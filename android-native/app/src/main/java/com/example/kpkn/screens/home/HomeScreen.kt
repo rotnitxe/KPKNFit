@@ -5,8 +5,6 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -28,7 +26,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -72,8 +69,6 @@ fun HomeScreen(
     val augePending by augeViewModel.pendingQuestionnaire.collectAsState()
     val augeDashboard by augeViewModel.dashboard.collectAsState()
     val augeBatteries by augeViewModel.batteries.collectAsState()
-
-    val selectedRingIndex by viewModel.selectedRingIndex.collectAsState()
 
     // Rings are rendered straight from AUGE so they react immediately to new logs.
     val muscularProgress = augeBatteries.muscular / 100f
@@ -179,6 +174,7 @@ fun HomeScreen(
                     onStartWorkout = onStartWorkout,
                     onCreateProgram = onCreateProgram,
                     onAddMeal = { onNavigate("nutrition") },
+                    onNavigate = onNavigate,
                 )
             },
         ) { innerPadding ->
@@ -196,7 +192,6 @@ fun HomeScreen(
                 listState = listState,
                 userName = userName,
                 greeting = greeting,
-                onRingSelect = { viewModel.selectRing(it) },
                 onRingsViewChange = { viewModel.setRingsViewMode(it) },
                 onSettingsClick = onNavigateToSettings,
                 onStartWorkout = onStartWorkout,
@@ -231,22 +226,6 @@ fun HomeScreen(
             )
         }
 
-        AnimatedVisibility(
-            visible = selectedRingIndex in setOf(1, 2),
-            enter = fadeIn(),
-            exit = fadeOut(),
-        ) {
-            CalibrationOverlay(
-                index = selectedRingIndex,
-                initialProgress = when (selectedRingIndex) {
-                    0 -> muscularProgress
-                    1 -> sncProgress
-                    else -> columnaProgress
-                },
-                onProgressChange = {},
-                onDismiss = { viewModel.clearSelection() },
-            )
-        }
     }
 }
 
@@ -265,7 +244,6 @@ private fun HomeWithProgram(
     listState: androidx.compose.foundation.lazy.LazyListState,
     userName: String,
     greeting: String,
-    onRingSelect: (Int) -> Unit,
     onRingsViewChange: (HomeViewModel.RingsViewMode) -> Unit,
     onSettingsClick: () -> Unit,
     onStartWorkout: (com.example.kpkn.data.models.Session, com.example.kpkn.data.models.Program) -> Unit,
@@ -303,7 +281,6 @@ private fun HomeWithProgram(
                 ringsViewMode = ringsViewMode,
                 hasActiveProgram = hasActiveProgram,
                 perMuscle = perMuscle,
-                onRingSelect = onRingSelect,
             )
         }
 
@@ -369,6 +346,7 @@ private fun HomeTopBar(
     onStartWorkout: (com.example.kpkn.data.models.Session, com.example.kpkn.data.models.Program) -> Unit,
     onCreateProgram: () -> Unit,
     onAddMeal: () -> Unit,
+    onNavigate: (String) -> Unit = {},
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -501,7 +479,7 @@ private fun HomeTopBar(
             }
 
             Row {
-                IconButton(onClick = { }) {
+                IconButton(onClick = { onNavigate(com.example.kpkn.navigation.KpknRoute.SettingsNotifications.route) }) {
                     Icon(
                         Icons.Default.Notifications,
                         contentDescription = "Notificaciones",
@@ -516,96 +494,6 @@ private fun HomeTopBar(
                         modifier = Modifier.size(22.dp),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CalibrationOverlay(
-    index: Int,
-    initialProgress: Float,
-    onProgressChange: (Float) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var localP by remember(index) { mutableFloatStateOf(initialProgress) }
-    val color = when (index) {
-        0 -> Color(0xFFFF5252)
-        1 -> Color(0xFF448AFF)
-        else -> Color(0xFFFFD740)
-    }
-    val name = when (index) {
-        0 -> "MÚSCULOS"
-        1 -> "SISTEMA"
-        else -> "ESTRUCTURA"
-    }
-    val msg = when (index) {
-        0 -> "Lectura automática basada en músculos y tendones."
-        1 -> "¿Cómo llegas hoy de energía y coordinación?"
-        else -> "¿Cómo toleras hoy la carga axial y articular?"
-    }
-
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.96f))
-            .pointerInput(Unit) { detectTapGestures(onTap = { onDismiss() }) }
-            .pointerInput(index) {
-                if (index != 0) detectDragGestures { change, drag ->
-                    change.consume()
-                    localP = (localP - drag.y / 1000f).coerceIn(0f, 1f)
-                    onProgressChange(localP)
-                }
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(40.dp),
-        ) {
-            Text(
-                "RECALIBRANDO $name",
-                color = color,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 3.sp,
-            )
-
-            Box(contentAlignment = Alignment.Center) {
-                Canvas(Modifier.size(240.dp)) {
-                    drawCircle(
-                        color.copy(alpha = 0.1f),
-                        style = Stroke(20.dp.toPx()),
-                    )
-                    drawArc(
-                        color,
-                        -90f,
-                        360f * localP,
-                        false,
-                        style = Stroke(20.dp.toPx()),
-                    )
-                }
-                Text(
-                    "${(localP * 100).toInt()}%",
-                    style = MaterialTheme.typography.displayLarge,
-                    color = Color.White,
-                    fontWeight = FontWeight.Black,
-                )
-            }
-
-            Text(
-                msg,
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(0.8f),
-            )
-
-            if (index == 0) {
-                Button(
-                    onClick = onDismiss,
-                    colors = ButtonDefaults.buttonColors(containerColor = color),
-                ) {
-                    Text("CERRAR", color = Color.Black)
                 }
             }
         }

@@ -9,8 +9,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.RingtoneManager
 import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -19,6 +19,8 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.kpkn.MainActivity
 import com.example.kpkn.R
+import com.example.kpkn.data.models.HapticIntensity
+import com.example.kpkn.data.repository.ProgramRepository
 import java.util.UUID
 
 class WorkoutRestAlertManager(private val context: Context) {
@@ -70,8 +72,7 @@ class WorkoutRestAlertManager(private val context: Context) {
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
             description = "Alerta al finalizar el descanso"
-            enableVibration(true)
-            vibrationPattern = longArrayOf(0, 250, 120, 300)
+            enableVibration(false)
             setShowBadge(true)
             setSound(
                 RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
@@ -90,6 +91,8 @@ class WorkoutRestAlertManager(private val context: Context) {
         durationSeconds: Int,
         sessionName: String,
         exerciseName: String,
+        setInfo: String = "",
+        exerciseImage: ByteArray? = null,
     ): String {
         ensureChannels()
         cancelRestAlerts()
@@ -130,7 +133,18 @@ class WorkoutRestAlertManager(private val context: Context) {
             }
         }
 
-        postOngoingNotification(sessionName, exerciseName, endAt)
+        runCatching {
+            WorkoutRestForegroundService.start(
+                context = appContext,
+                sessionName = sessionName,
+                exerciseName = exerciseName,
+                setInfo = setInfo,
+                exerciseImage = exerciseImage,
+                endAt = endAt,
+            )
+        }.onFailure {
+            postOngoingNotification(sessionName, exerciseName, endAt)
+        }
         return timerId
     }
 
@@ -143,6 +157,8 @@ class WorkoutRestAlertManager(private val context: Context) {
     }
 
     fun cancelRestAlerts() {
+        WorkoutRestForegroundService.stop(appContext)
+
         val alarmIntent = Intent(appContext, RestTimerFinishedReceiver::class.java)
         val pending = PendingIntent.getBroadcast(
             appContext,
@@ -174,9 +190,23 @@ class WorkoutRestAlertManager(private val context: Context) {
     }
 
     private fun deliverCompletionAlert(sessionName: String, exerciseName: String) {
+        WorkoutRestForegroundService.stop(appContext)
         notificationManager.cancel(NOTIF_ID_ONGOING)
-        vibrateNow()
-        postFinishedNotification(sessionName, exerciseName)
+
+        val settings = try {
+            ProgramRepository.getInstance().settings.value
+        } catch (_: Exception) {
+            null
+        }
+
+        val soundsEnabled = settings?.soundsEnabled ?: true
+        val hapticEnabled = settings?.hapticFeedbackEnabled ?: true
+        val hapticIntensity = settings?.hapticIntensity ?: HapticIntensity.MEDIUM
+
+        if (SystemAudioHelper.shouldVibrate(appContext, hapticEnabled)) {
+            vibrateNow(hapticIntensity)
+        }
+        postFinishedNotification(sessionName, exerciseName, soundsEnabled)
 
         prefs.edit()
             .remove(KEY_TIMER_ID)
@@ -213,7 +243,7 @@ class WorkoutRestAlertManager(private val context: Context) {
         notificationManager.notify(NOTIF_ID_ONGOING, notification)
     }
 
-    private fun postFinishedNotification(sessionName: String, exerciseName: String) {
+    private fun postFinishedNotification(sessionName: String, exerciseName: String, soundsEnabled: Boolean) {
         if (!canPostNotifications()) return
 
         val openIntent = Intent(appContext, MainActivity::class.java)
@@ -224,19 +254,26 @@ class WorkoutRestAlertManager(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        val notification = NotificationCompat.Builder(appContext, CHANNEL_REST_FINISHED)
+        val playSound = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext)
+
+        val builder = NotificationCompat.Builder(appContext, CHANNEL_REST_FINISHED)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("Fin del descanso")
             .setContentText("$sessionName · $exerciseName")
-            .setStyle(NotificationCompat.BigTextStyle().bigText("Tu descanso termino. Puedes iniciar la siguiente serie."))
+            .setStyle(NotificationCompat.BigTextStyle().bigText("Tu descanso terminó. Puedes iniciar la siguiente serie."))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(openPending)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setDefaults(NotificationCompat.DEFAULT_ALL)
-            .build()
 
-        notificationManager.notify(NOTIF_ID_FINISHED, notification)
+        if (playSound) {
+            builder.setDefaults(NotificationCompat.DEFAULT_ALL)
+        } else {
+            builder.setDefaults(0)
+            builder.setSound(null)
+        }
+
+        notificationManager.notify(NOTIF_ID_FINISHED, builder.build())
     }
 
     private fun canPostNotifications(): Boolean {
@@ -247,13 +284,18 @@ class WorkoutRestAlertManager(private val context: Context) {
         }
     }
 
-    private fun vibrateNow() {
+    private fun vibrateNow(intensity: HapticIntensity = HapticIntensity.MEDIUM) {
         val vibrator = appContext.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
+        val pattern = when (intensity) {
+            HapticIntensity.LIGHT   -> longArrayOf(0, 120, 80, 160)
+            HapticIntensity.MEDIUM  -> longArrayOf(0, 240, 110, 320)
+            HapticIntensity.STRONG  -> longArrayOf(0, 360, 160, 480)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 240, 110, 320), -1))
+            vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
         } else {
             @Suppress("DEPRECATION")
-            vibrator.vibrate(longArrayOf(0, 240, 110, 320), -1)
+            vibrator.vibrate(pattern, -1)
         }
     }
 }

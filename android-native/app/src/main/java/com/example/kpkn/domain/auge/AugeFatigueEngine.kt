@@ -31,6 +31,30 @@ object AugeFatigueEngine {
     fun getAthleteCapacity(settings: Settings): Double =
         ATHLETE_CAPACITY[settings.athleteType] ?: 500.0
 
+    private fun physiologicalFloor(settings: Settings): PhysiologicalFloor = when (settings.athleteType) {
+        AthleteType.POWERLIFTER, AthleteType.WEIGHTLIFTER -> PhysiologicalFloor(muscular = 15, cns = 20, spinal = 12)
+        AthleteType.BODYBUILDER, AthleteType.POWERBUILDER -> PhysiologicalFloor(muscular = 18, cns = 22, spinal = 14)
+        AthleteType.CALISTHENICS -> PhysiologicalFloor(muscular = 20, cns = 24, spinal = 16)
+        AthleteType.HYBRID, AthleteType.ZERCHER_LIFTER -> PhysiologicalFloor(muscular = 20, cns = 25, spinal = 18)
+        AthleteType.ENTHUSIAST -> PhysiologicalFloor(muscular = 22, cns = 26, spinal = 18)
+    }
+
+    private fun applySoftCap(drain: Double, accumulated: Double, cap: Double): Double {
+        if (drain <= 0.0 || cap <= 0.0) return 0.0
+        val proximity = (accumulated / cap).coerceIn(0.0, 1.0)
+        val damping = 1.0 - proximity.pow(1.5)
+        return (drain * damping).coerceAtLeast(0.0)
+    }
+
+    private fun normalizeBias(profile: PredictionBiasProfile): Triple<Double, Double, Double> {
+        val confidence = (profile.sampleCount.coerceIn(0, 30) / 30.0)
+        return Triple(
+            (profile.cnsBias * confidence).coerceIn(-15.0, 15.0),
+            (profile.muscularBias * confidence).coerceIn(-15.0, 15.0),
+            (profile.spinalBias * confidence).coerceIn(-15.0, 15.0),
+        )
+    }
+
     // ─── Tanques de batería personalizados ───────────────────────────────────
 
     fun calculatePersonalizedBatteryTanks(settings: Settings): BatteryTanks {
@@ -339,8 +363,14 @@ object AugeFatigueEngine {
     fun calculateCompletedSessionDrain(
         completedExercises: List<CompletedExercise>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
-        tanks: BatteryTanks = BatteryTanks(cns = 600.0, muscular = 500.0, spinal = 4000.0),
+        settings: Settings = Settings(),
     ): PredictedDrain {
+        val tanks = calculatePersonalizedBatteryTanks(settings)
+        val floor = physiologicalFloor(settings)
+        val muscularCap = (100 - floor.muscular).coerceAtLeast(5).toDouble()
+        val cnsCap = (100 - floor.cns).coerceAtLeast(5).toDouble()
+        val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
+
         var totalCns = 0.0
         var totalMuscular = 0.0
         var totalSpinal = 0.0
@@ -368,28 +398,37 @@ object AugeFatigueEngine {
                     restTime = ex.restTime,
                     densityMultiplier = densityMult,
                 )
-                totalCns += drain.cnsDrainPct
-                totalMuscular += drain.muscularDrainPct
-                totalSpinal += drain.spinalDrainPct
+                totalMuscular += applySoftCap(drain.muscularDrainPct, totalMuscular, muscularCap)
+                totalCns += applySoftCap(drain.cnsDrainPct, totalCns, cnsCap)
+                totalSpinal += applySoftCap(drain.spinalDrainPct, totalSpinal, spinalCap)
             }
             muscleVolumeMap[primaryMuscle] = accumulated
         }
 
         return PredictedDrain(
-            cns = totalCns.coerceAtMost(100.0).toInt(),
-            muscular = totalMuscular.coerceAtMost(100.0).toInt(),
-            spinal = totalSpinal.coerceAtMost(100.0).toInt(),
+            cns = totalCns.coerceAtMost(cnsCap).toInt(),
+            muscular = totalMuscular.coerceAtMost(muscularCap).toInt(),
+            spinal = totalSpinal.coerceAtMost(spinalCap).toInt(),
         )
+            .let { raw ->
+                val (cnsBias, muscularBias, spinalBias) = normalizeBias(settings.augePredictionBias)
+                PredictedDrain(
+                    cns = (raw.cns + cnsBias).toInt().coerceIn(0, cnsCap.toInt()),
+                    muscular = (raw.muscular + muscularBias).toInt().coerceIn(0, muscularCap.toInt()),
+                    spinal = (raw.spinal + spinalBias).toInt().coerceIn(0, spinalCap.toInt()),
+                )
+            }
     }
 
     fun calculateCompletedSessionStress(
         completedExercises: List<CompletedExercise>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
+        settings: Settings = Settings(),
     ): Double {
         val summary = calculateCompletedSessionDrain(
             completedExercises = completedExercises,
             exerciseDb = exerciseDb,
-            tanks = BatteryTanks(cns = 600.0, muscular = 500.0, spinal = 4000.0),
+            settings = settings,
         )
         return (summary.cns * 0.45) + (summary.muscular * 0.25) + (summary.spinal * 0.30)
     }
@@ -402,6 +441,10 @@ object AugeFatigueEngine {
         settings: Settings,
     ): PredictedDrain {
         val tanks = calculatePersonalizedBatteryTanks(settings)
+        val floor = physiologicalFloor(settings)
+        val muscularCap = (100 - floor.muscular).coerceAtLeast(5).toDouble()
+        val cnsCap = (100 - floor.cns).coerceAtLeast(5).toDouble()
+        val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
         var totalCns = 0.0; var totalMuscular = 0.0; var totalSpinal = 0.0
         val muscleVolumeMap = mutableMapOf<String, Int>()
 
@@ -441,18 +484,26 @@ object AugeFatigueEngine {
                     restTime = ex.restTime ?: 90,
                     densityMultiplier = densityMult,
                 )
-                totalCns      += drain.cnsDrainPct
-                totalMuscular += drain.muscularDrainPct
-                totalSpinal   += drain.spinalDrainPct
+                totalMuscular += applySoftCap(drain.muscularDrainPct, totalMuscular, muscularCap)
+                totalCns += applySoftCap(drain.cnsDrainPct, totalCns, cnsCap)
+                totalSpinal += applySoftCap(drain.spinalDrainPct, totalSpinal, spinalCap)
             }
             muscleVolumeMap[primaryMuscle] = accumulated
         }
 
         return PredictedDrain(
-            cns      = totalCns.coerceAtMost(100.0).toInt(),
-            muscular = totalMuscular.coerceAtMost(100.0).toInt(),
-            spinal   = totalSpinal.coerceAtMost(100.0).toInt(),
+            cns      = totalCns.coerceAtMost(cnsCap).toInt(),
+            muscular = totalMuscular.coerceAtMost(muscularCap).toInt(),
+            spinal   = totalSpinal.coerceAtMost(spinalCap).toInt(),
         )
+            .let { raw ->
+                val (cnsBias, muscularBias, spinalBias) = normalizeBias(settings.augePredictionBias)
+                PredictedDrain(
+                    cns = (raw.cns + cnsBias).toInt().coerceIn(0, cnsCap.toInt()),
+                    muscular = (raw.muscular + muscularBias).toInt().coerceIn(0, muscularCap.toInt()),
+                    spinal = (raw.spinal + spinalBias).toInt().coerceIn(0, spinalCap.toInt()),
+                )
+            }
     }
 
     fun calculateAdjustedPredictedDrain(
@@ -463,6 +514,10 @@ object AugeFatigueEngine {
         val tanks = calculatePersonalizedBatteryTanks(settings)
         val conservationFactor = 0.85
         val decayK = 0.65
+        val floor = physiologicalFloor(settings)
+        val muscularCap = (100 - floor.muscular).coerceAtLeast(5).toDouble()
+        val cnsCap = (100 - floor.cns).coerceAtLeast(5).toDouble()
+        val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
         var totalCns = 0.0; var totalMuscular = 0.0; var totalSpinal = 0.0
         var accumulatedDrain = 0.0
 
@@ -500,17 +555,136 @@ object AugeFatigueEngine {
                 val adjustedCns = rawDrain.cnsDrainPct * conservationFactor * diminishingFactor
                 val adjustedSpinal = rawDrain.spinalDrainPct * conservationFactor * diminishingFactor
 
-                totalMuscular += adjustedMuscular
-                totalCns += adjustedCns
-                totalSpinal += adjustedSpinal
+                totalMuscular += applySoftCap(adjustedMuscular, totalMuscular, muscularCap)
+                totalCns += applySoftCap(adjustedCns, totalCns, cnsCap)
+                totalSpinal += applySoftCap(adjustedSpinal, totalSpinal, spinalCap)
                 accumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
             }
         }
 
         return PredictedDrain(
-            cns = totalCns.coerceAtMost(100.0).toInt(),
-            muscular = totalMuscular.coerceAtMost(100.0).toInt(),
-            spinal = totalSpinal.coerceAtMost(100.0).toInt(),
+            cns = totalCns.coerceAtMost(cnsCap).toInt(),
+            muscular = totalMuscular.coerceAtMost(muscularCap).toInt(),
+            spinal = totalSpinal.coerceAtMost(spinalCap).toInt(),
         )
+            .let { raw ->
+                val (cnsBias, muscularBias, spinalBias) = normalizeBias(settings.augePredictionBias)
+                PredictedDrain(
+                    cns = (raw.cns + cnsBias).toInt().coerceIn(0, cnsCap.toInt()),
+                    muscular = (raw.muscular + muscularBias).toInt().coerceIn(0, muscularCap.toInt()),
+                    spinal = (raw.spinal + spinalBias).toInt().coerceIn(0, spinalCap.toInt()),
+                )
+            }
+    }
+
+    private const val EMA_ALPHA = 0.17
+    private const val EMA_SMOOTHING = 0.83
+    private const val TREND_WINDOW = 3
+
+    fun calculateMesocycleStressEMA(
+        logs: List<WorkoutLog>,
+        programId: String,
+        mesoIndex: Int,
+    ): MesocycleStressEMA {
+        val relevant = logs
+            .filter { it.programId == programId && it.mesoIndex == mesoIndex }
+            .sortedBy { it.date }
+
+        val stressScores = relevant.mapNotNull { it.sessionStressScore }
+
+        if (stressScores.isEmpty()) {
+            return MesocycleStressEMA(
+                programId = programId,
+                mesoIndex = mesoIndex,
+                emaValue = 0.0,
+                sessionCount = 0,
+                latestStressScore = null,
+                stressTrend = StressTrend.STABLE,
+                computedAtMs = System.currentTimeMillis(),
+            )
+        }
+
+        val emaValue = stressScores.fold(0.0) { acc, score ->
+            acc * EMA_SMOOTHING + score * EMA_ALPHA
+        }
+
+        val trend = if (stressScores.size >= TREND_WINDOW) {
+            val recent = stressScores.takeLast(TREND_WINDOW)
+            val firstHalf = recent.take(TREND_WINDOW / 2)
+            val secondHalf = recent.takeLast(TREND_WINDOW / 2)
+            val avgFirst = firstHalf.average()
+            val avgSecond = secondHalf.average()
+            when {
+                avgSecond > avgFirst * 1.10 -> StressTrend.RISING
+                avgSecond < avgFirst * 0.90 -> StressTrend.FALLING
+                else -> StressTrend.STABLE
+            }
+        } else {
+            StressTrend.STABLE
+        }
+
+        return MesocycleStressEMA(
+            programId = programId,
+            mesoIndex = mesoIndex,
+            emaValue = emaValue,
+            sessionCount = stressScores.size,
+            latestStressScore = stressScores.lastOrNull(),
+            stressTrend = trend,
+            computedAtMs = System.currentTimeMillis(),
+        )
+    }
+
+    fun adjustPredictedDrainWithEMA(
+        rawDrain: PredictedDrain,
+        ema: MesocycleStressEMA,
+    ): PredictedDrain {
+        if (ema.sessionCount < 2) return rawDrain
+
+        val avgHistoricalStress = ema.emaValue
+        val highStressThreshold = 50.0
+        val lowStressThreshold = 25.0
+
+        val adjustmentFactor = when {
+            avgHistoricalStress > highStressThreshold -> {
+                val severity = ((avgHistoricalStress - highStressThreshold) / 50.0).coerceAtMost(0.5)
+                1.0 - (severity * 0.15)
+            }
+            avgHistoricalStress < lowStressThreshold -> {
+                val headroom = ((lowStressThreshold - avgHistoricalStress) / 25.0).coerceAtMost(0.3)
+                1.0 + (headroom * 0.10)
+            }
+            else -> 1.0
+        }
+
+        return PredictedDrain(
+            cns = (rawDrain.cns * adjustmentFactor).toInt().coerceIn(0, 100),
+            muscular = (rawDrain.muscular * adjustmentFactor).toInt().coerceIn(0, 100),
+            spinal = (rawDrain.spinal * adjustmentFactor).toInt().coerceIn(0, 100),
+        )
+    }
+
+    /**
+     * Determina si debe mostrarse sugerencia de auto-deload cuando la fatiga se dispara.
+     *
+     * @param cumulativeFatigue Fatiga acumulada (0-100+)
+     * @param readinessScore Score de readiness (0-100)
+     * @param settings Configuración del usuario que incluye augeAutoDeload
+     * @return true si debe mostrarse la sugerencia de deload
+     */
+    fun shouldSuggestAutoDeload(
+        cumulativeFatigue: Double,
+        readinessScore: Int,
+        settings: Settings
+    ): Boolean {
+        if (!settings.algorithmSettings.augeAutoDeload) return false
+        
+        // Sugerir deload si:
+        // 1. Fatiga está muy alta (>75)
+        // 2. Y readiness está baja (<40)
+        // 3. Esto indica que el atleta necesita descanso preventivo
+        val highFatigue = cumulativeFatigue > 75.0
+        val lowReadiness = readinessScore < 40
+        
+        return highFatigue && lowReadiness
     }
 }

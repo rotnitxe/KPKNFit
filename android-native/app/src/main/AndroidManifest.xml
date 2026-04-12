@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <!-- Voz: reconocimiento de descripción nutricional -->
@@ -51,7 +53,23 @@
             android:exported="false" />
 
         <receiver
+            android:name=".services.workout.TimerNotificationActionReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <service
+            android:name=".services.workout.WorkoutRestForegroundService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
+
+        <receiver
             android:name=".services.nutrition.NutritionAlertReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <receiver
+            android:name=".services.workout.WorkoutReminderReceiver"
             android:enabled="true"
             android:exported="false" />
     </application>

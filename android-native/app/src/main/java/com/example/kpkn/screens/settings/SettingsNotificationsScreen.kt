@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,6 +32,8 @@ fun SettingsNotificationsScreen(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = viewModel { SettingsViewModel() },
 ) {
+    val context = LocalContext.current
+    viewModel.setContext(context)
     val settings by viewModel.settings.collectAsState()
 
     Scaffold(

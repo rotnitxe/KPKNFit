@@ -12,6 +12,8 @@ import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.services.nutrition.NutritionNotificationManager
+import com.example.kpkn.services.workout.WorkoutReminderManager
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -25,12 +27,82 @@ import java.time.format.DateTimeFormatter
 class SettingsViewModel : ViewModel() {
     private val programRepository = ProgramRepository.getInstance()
     private val nutritionRepository = NutritionRepository.getInstance()
+    private var appContext: Context? = null
 
     val settings: StateFlow<Settings> = programRepository.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), Settings())
 
+    fun setContext(context: Context) {
+        appContext = context.applicationContext
+    }
+
     fun update(transform: (Settings) -> Settings) {
-        programRepository.updateSettings(transform)
+        val oldSettings = programRepository.settings.value
+        val newSettings = transform(oldSettings)
+        programRepository.updateSettings { newSettings }
+
+        // Handle reminder scheduling changes
+        appContext?.let { ctx ->
+            handleReminderChanges(ctx, oldSettings, newSettings)
+        }
+    }
+
+    private fun handleReminderChanges(context: Context, oldSettings: Settings, newSettings: Settings) {
+        val workoutReminder = WorkoutReminderManager(context)
+        val nutritionReminder = NutritionNotificationManager(context)
+
+        // Workout reminder
+        if (oldSettings.workoutReminderEnabled != newSettings.workoutReminderEnabled) {
+            if (newSettings.workoutReminderEnabled) {
+                workoutReminder.scheduleWorkoutReminder(newSettings.workoutReminderTime)
+            } else {
+                workoutReminder.cancelWorkoutReminder()
+            }
+        } else if (newSettings.workoutReminderEnabled && oldSettings.workoutReminderTime != newSettings.workoutReminderTime) {
+            // Time changed
+            workoutReminder.cancelWorkoutReminder()
+            workoutReminder.scheduleWorkoutReminder(newSettings.workoutReminderTime)
+        }
+
+        // Sleep reminder
+        if (oldSettings.sleepReminderEnabled != newSettings.sleepReminderEnabled) {
+            if (newSettings.sleepReminderEnabled) {
+                workoutReminder.scheduleSleepReminder(newSettings.sleepReminderTime)
+            } else {
+                workoutReminder.cancelSleepReminder()
+            }
+        } else if (newSettings.sleepReminderEnabled && oldSettings.sleepReminderTime != newSettings.sleepReminderTime) {
+            // Time changed
+            workoutReminder.cancelSleepReminder()
+            workoutReminder.scheduleSleepReminder(newSettings.sleepReminderTime)
+        }
+
+        // Meal reminders
+        if (oldSettings.mealReminderEnabled != newSettings.mealReminderEnabled) {
+            if (newSettings.mealReminderEnabled) {
+                nutritionReminder.scheduleMealReminders(
+                    newSettings.mealReminderBreakfast,
+                    newSettings.mealReminderLunch,
+                    newSettings.mealReminderDinner,
+                )
+            } else {
+                nutritionReminder.cancelMealReminders()
+            }
+        } else if (newSettings.mealReminderEnabled) {
+            // Check if any meal time changed
+            val breakfastChanged = oldSettings.mealReminderBreakfast != newSettings.mealReminderBreakfast
+            val lunchChanged = oldSettings.mealReminderLunch != newSettings.mealReminderLunch
+            val dinnerChanged = oldSettings.mealReminderDinner != newSettings.mealReminderDinner
+
+            if (breakfastChanged || lunchChanged || dinnerChanged) {
+                nutritionReminder.cancelMealReminders()
+                nutritionReminder.scheduleMealReminders(
+                    newSettings.mealReminderBreakfast,
+                    newSettings.mealReminderLunch,
+                    newSettings.mealReminderDinner,
+                )
+            }
+        }
     }
 
     fun resetSettings() {

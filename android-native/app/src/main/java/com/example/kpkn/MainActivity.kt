@@ -31,6 +31,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.navigation.KpknRoute
 import com.example.kpkn.screens.home.HomeScreen
 import com.example.kpkn.screens.nutrition.BodyProgressScreen
@@ -63,6 +64,7 @@ import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.theme.KPKNTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,6 +74,12 @@ class MainActivity : ComponentActivity() {
         runCatching {
             com.example.kpkn.data.exercises.initializeExerciseDatabase(this)
         }.onFailure { it.printStackTrace() }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            runCatching {
+                com.example.kpkn.data.exercises.loadCustomExercisesAsync(this@MainActivity)
+            }.onFailure { it.printStackTrace() }
+        }
 
         runCatching {
             WorkoutRestAlertManager(this).ensureChannels()
@@ -92,11 +100,26 @@ class MainActivity : ComponentActivity() {
             }
         }.onFailure { it.printStackTrace() }
 
+        // Setup workout reminder channels + reminders based on settings
+        runCatching {
+            val workoutReminderManager = com.example.kpkn.services.workout.WorkoutReminderManager(this)
+            workoutReminderManager.createChannels()
+            val settings = com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value
+            if (settings.workoutReminderEnabled) {
+                workoutReminderManager.scheduleWorkoutReminder(settings.workoutReminderTime)
+            }
+            if (settings.sleepReminderEnabled) {
+                workoutReminderManager.scheduleSleepReminder(settings.sleepReminderTime)
+            }
+        }.onFailure { it.printStackTrace() }
+
         // Initialize repositories (loads Room data → StateFlows)
         runCatching {
             com.example.kpkn.data.repository.ProgramRepository.init(this)
             com.example.kpkn.data.repository.AugeRepository.getInstance(this)
             com.example.kpkn.data.repository.NutritionRepository.init(this)
+            com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this)
+            com.example.kpkn.data.repository.LearnRepository.initialize(this)
         }.onFailure { it.printStackTrace() }
 
         // Initialize WikiLab (muscle/joint/tendon/pattern/chain data)
@@ -105,22 +128,8 @@ class MainActivity : ComponentActivity() {
             com.example.kpkn.data.repository.WikiLabRepository.initialize(this, db)
         }.onFailure { it.printStackTrace() }
 
-        // Initialize Local AI at app startup (non-blocking, optional feature)
-        val context = this
-        lifecycleScope.launch(Dispatchers.IO) {
-            runCatching {
-                com.example.kpkn.data.localai.LocalAiManager.ensureReady(context, retries = 3)
-            }.onFailure {
-                android.util.Log.e("MainActivity", "Fallo inicializando IA local", it)
-            }
-
-            val status = com.example.kpkn.data.localai.LocalAiManager.status()
-            if (status.ready) {
-                android.util.Log.d("MainActivity", "Local AI lista: ${status.modelVersion} · ${(status.modelSizeBytes ?: 0) / 1024 / 1024}MB")
-            } else {
-                android.util.Log.e("MainActivity", "Local AI no lista: ${status.error}")
-            }
-        }
+        // Register app context for lazy Local AI usage.
+        com.example.kpkn.data.localai.LocalAiManager.primeContext(this)
 
         requestRequiredPermissions()
 
@@ -133,6 +142,17 @@ class MainActivity : ComponentActivity() {
                     onThemeChange = { themeMode = it }
                 )
             }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        com.example.kpkn.data.localai.LocalAiManager.onAppBackgrounded()
+        // Flush any in-flight Room writes to prevent session loss on background kill
+        runBlocking {
+            runCatching {
+                com.example.kpkn.data.repository.ProgramRepository.getInstance().flushPendingWrites()
+            }.onFailure { it.printStackTrace() }
         }
     }
 
@@ -197,6 +217,8 @@ fun KPKNApp(
         else -> KpknRoute.Home.route
     }
 
+    val ongoingWorkout by ProgramRepository.getInstance().ongoingWorkout.collectAsState()
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (isFullscreenWizard) {
             KPKNNavGraph(
@@ -208,6 +230,7 @@ fun KPKNApp(
         } else {
             NavigationSuiteScaffold(
                 navigationSuiteItems = {
+
                     item(
                         icon = { Icon(Icons.Default.Home, null, tint = navIconTint(currentTab == KpknRoute.Home.route)) },
                         label = { Text("Inicio") },
@@ -249,6 +272,70 @@ fun KPKNApp(
                     onThemeChange = onThemeChange,
                     primaryProgramId = primaryProgramId,
                 )
+            }
+        }
+
+        // ─── Floating "session in progress" banner ─────────────────────────────
+        // Appears on top of navigation when a workout is active but the user
+        // has navigated away. Hidden during workout/readiness screens (isFullscreenWizard).
+        if (!isFullscreenWizard) {
+            androidx.compose.animation.AnimatedVisibility(
+                visible = ongoingWorkout != null,
+                enter = androidx.compose.animation.slideInVertically { it } + androidx.compose.animation.fadeIn(),
+                exit = androidx.compose.animation.slideOutVertically { it } + androidx.compose.animation.fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp, vertical = 80.dp),
+            ) {
+                Card(
+                    onClick = {
+                        val state = ongoingWorkout ?: return@Card
+                        navController.navigate(
+                            KpknRoute.Workout.create(state.programId, state.session.id)
+                        ) { launchSingleTop = true }
+                    },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "Sesión en curso",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                            )
+                            Text(
+                                ongoingWorkout?.session?.name ?: "Entrenamiento activo",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                        FilledTonalButton(
+                            onClick = {
+                                val state = ongoingWorkout ?: return@FilledTonalButton
+                                navController.navigate(
+                                    KpknRoute.Workout.create(state.programId, state.session.id)
+                                ) { launchSingleTop = true }
+                            },
+                        ) {
+                            Text("Reanudar")
+                        }
+                    }
+                }
             }
         }
     }
@@ -303,6 +390,7 @@ private fun KPKNNavGraph(
                         "wiki-concept" -> navController.navigate(KpknRoute.WikiLabConcepts.route)
                         "wiki-concept-detail" -> navController.navigate(KpknRoute.WikiLabConcepts.route)
                         "nutrition" -> navController.navigate(KpknRoute.Nutrition.route)
+                        "learn", "cursos" -> navController.navigate(KpknRoute.Learn.route)
                         "powerlifter-corner" -> {
                             primaryProgramId?.let { navController.navigate(KpknRoute.ProgramDetail.create(it)) }
                         }
@@ -313,6 +401,13 @@ private fun KPKNNavGraph(
                                     navController.navigate(KpknRoute.WikiLabConceptDetail.create(conceptId))
                                 } else {
                                     navController.navigate(KpknRoute.WikiLab.route)
+                                }
+                            } else if (destination.startsWith("learn/course/")) {
+                                val courseId = destination.removePrefix("learn/course/")
+                                if (courseId.isNotBlank()) {
+                                    navController.navigate(KpknRoute.LearnCourse.create(courseId))
+                                } else {
+                                    navController.navigate(KpknRoute.Learn.route)
                                 }
                             }
                         }
@@ -376,6 +471,7 @@ private fun KPKNNavGraph(
                 onNavigateToMovementPatterns = { navController.navigate(KpknRoute.WikiLabMovementPatterns.route) },
                 onNavigateToBiomechanics = { navController.navigate(KpknRoute.WikiLabBiomechanics.route) },
                 onNavigateToConcepts = { navController.navigate(KpknRoute.WikiLabConcepts.route) },
+                onNavigateToLearn = { navController.navigate(KpknRoute.Learn.route) },
                 onNavigateToExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
                 onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
                 onNavigateToChain = { navController.navigate(KpknRoute.WikiLabChainDetail.create(it)) },
@@ -386,7 +482,21 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.WikiLabExercises.route) {
             WikiLabScreen(
+                onCreateExercise = { navController.navigate(KpknRoute.WikiLabExerciseCreator.route) },
                 onOpenExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
+            )
+        }
+        composable(KpknRoute.WikiLabExerciseCreator.route) {
+            CustomExerciseCreatorScreen(
+                onBack = { navController.popBackStack() },
+                onSaved = { exerciseId ->
+                    val previous = navController.previousBackStackEntry?.destination?.route.orEmpty()
+                    if (previous.contains("session-editor")) {
+                        navController.popBackStack()
+                    } else {
+                        navController.navigate(KpknRoute.WikiLabExerciseDetail.create(exerciseId))
+                    }
+                },
             )
         }
         composable(KpknRoute.WikiLabMuscleAnatomy.route) {
@@ -459,11 +569,17 @@ private fun KPKNNavGraph(
         composable(KpknRoute.WikiLabExerciseDetail.route) { backStack ->
             val exerciseId = backStack.arguments?.getString(KpknRoute.WikiLabExerciseDetail.ARG_EXERCISE_ID) ?: ""
             val exercise = com.example.kpkn.data.exercises.resolveExercise(exerciseId)
+                ?: com.example.kpkn.data.repository.CustomExerciseRepository.customExercises.value
+                    .firstOrNull { it.id.equals(exerciseId, ignoreCase = true) }
             if (exercise != null) {
+                val augeViewModel: AugeViewModel = viewModel()
+                val augeBatteries by augeViewModel.batteries.collectAsState()
                 ExerciseDetailScreen(
                     exercise = exercise,
+                    batteries = augeBatteries,
                     onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
                     onNavigateToJoint = { navController.navigate(KpknRoute.WikiLabJointDetail.create(it)) },
+                    onNavigateToExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
                     onBack = { navController.popBackStack() },
                 )
             } else {
@@ -487,6 +603,74 @@ private fun KPKNNavGraph(
                 conceptId = conceptId,
                 onNavigateToConcept = { navController.navigate(KpknRoute.WikiLabConceptDetail.create(it)) },
                 onBack = { navController.popBackStack() },
+            )
+        }
+
+        // ─── Learn (Cursos) Routes ────────────────────────────────────────
+        composable(KpknRoute.Learn.route) {
+            com.example.kpkn.screens.learn.LearnHomeScreen(
+                onOpenCourse = { navController.navigate(KpknRoute.LearnCourse.create(it)) },
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(KpknRoute.LearnCourse.route) { backStack ->
+            val courseId = backStack.arguments?.getString(KpknRoute.LearnCourse.ARG_COURSE_ID) ?: ""
+            com.example.kpkn.screens.learn.LearnCourseScreen(
+                courseId = courseId,
+                onStartModule = { submoduleIndex ->
+                    navController.navigate(KpknRoute.LearnReader.create(courseId, submoduleIndex))
+                },
+                onStartFinalQuiz = {
+                    navController.navigate(KpknRoute.LearnQuiz.create(courseId))
+                },
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(KpknRoute.LearnReader.route) { backStack ->
+            val courseId = backStack.arguments?.getString(KpknRoute.LearnReader.ARG_COURSE_ID) ?: ""
+            val submoduleIndex = backStack.arguments?.getString(KpknRoute.LearnReader.ARG_SUBMODULE_INDEX)?.toIntOrNull() ?: 0
+            com.example.kpkn.screens.learn.LearnReaderScreen(
+                courseId = courseId,
+                submoduleIndex = submoduleIndex,
+                onBack = { navController.popBackStack() },
+                onStartQuiz = {
+                    navController.navigate(KpknRoute.LearnQuiz.create(courseId, submoduleIndex)) {
+                        popUpTo(KpknRoute.LearnReader.create(courseId, submoduleIndex)) { inclusive = true }
+                    }
+                },
+            )
+        }
+        composable(KpknRoute.LearnQuiz.route) { backStack ->
+            val courseId = backStack.arguments?.getString(KpknRoute.LearnQuiz.ARG_COURSE_ID) ?: ""
+            val submoduleIndex = backStack.arguments?.getString(KpknRoute.LearnQuiz.ARG_SUBMODULE_INDEX)?.toIntOrNull() ?: -1
+            com.example.kpkn.screens.learn.LearnQuizScreen(
+                courseId = courseId,
+                submoduleIndex = submoduleIndex,
+                onComplete = { _, _ ->
+                    if (submoduleIndex < 0) {
+                        // Quiz final -> mostrar badge
+                        navController.navigate(KpknRoute.LearnBadge.create(courseId)) {
+                            popUpTo(KpknRoute.LearnQuiz.create(courseId)) { inclusive = true }
+                        }
+                    } else {
+                        // Submodule quiz -> volver al curso
+                        navController.navigate(KpknRoute.LearnCourse.create(courseId)) {
+                            popUpTo(KpknRoute.LearnQuiz.create(courseId, submoduleIndex)) { inclusive = true }
+                        }
+                    }
+                },
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(KpknRoute.LearnBadge.route) { backStack ->
+            val courseId = backStack.arguments?.getString(KpknRoute.LearnBadge.ARG_COURSE_ID) ?: ""
+            com.example.kpkn.screens.learn.LearnBadgeScreen(
+                courseId = courseId,
+                onContinue = {
+                    navController.navigate(KpknRoute.Learn.route) {
+                        popUpTo(KpknRoute.LearnBadge.create(courseId)) { inclusive = true }
+                    }
+                },
             )
         }
 
@@ -553,7 +737,10 @@ private fun KPKNNavGraph(
                     )
                 },
                 onEditProgram = { targetId ->
-                    navController.navigate(KpknRoute.ProgramEditor.create(targetId))
+                    val exists = ProgramRepository.getInstance().getProgramById(targetId) != null
+                    if (exists) {
+                        navController.navigate(KpknRoute.ProgramEditor.create(targetId))
+                    }
                 },
             )
         }
@@ -568,6 +755,7 @@ private fun KPKNNavGraph(
                 programId = programId,
                 sessionId = sessionId,
                 onBack = { navController.popBackStack() },
+                onOpenExerciseCreator = { navController.navigate(KpknRoute.WikiLabExerciseCreator.route) },
                 draftWeekId = weekId,
                 draftMacroIndex = macroIndex,
                 draftMesoIndex = mesoIndex,
