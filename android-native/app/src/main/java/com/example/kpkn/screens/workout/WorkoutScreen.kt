@@ -97,6 +97,7 @@ fun WorkoutScreen(
     )
     val uiState by viewModel.uiState.collectAsState()
     val session = uiState.session
+    val restTimerRemaining by viewModel.restTimerRemaining.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showExitDialog by remember { mutableStateOf(false) }
 
@@ -281,7 +282,7 @@ fun WorkoutScreen(
                 sessionName = session.name,
                 activePartName = currentPartName,
                 elapsedSeconds = elapsedSeconds,
-                restTimerRemaining = if (uiState.isRestTimerRunning) uiState.restTimerRemaining else null,
+                restTimerRemaining = if (uiState.isRestTimerRunning) restTimerRemaining else null,
                 progressPercent = progressPercent,
                 headerWidgets = uiState.headerWidgets,
                 headerWidgetsEnabled = true,
