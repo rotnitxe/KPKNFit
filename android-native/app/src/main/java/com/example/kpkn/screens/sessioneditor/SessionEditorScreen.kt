@@ -1616,6 +1616,7 @@ private fun ExerciseEditorCard(
     onAutoExpandHandled: () -> Unit,
 ) {
     var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
+    var showCustomUnitModal by remember { mutableStateOf(false) }
 
     val resolved1RM = remember(exercise.reference1RM, exercise.prFor1RM) {
         when {
@@ -1839,13 +1840,33 @@ private fun ExerciseEditorCard(
                 }
 
                 if (exercise.trainingMode == TrainingMode.CUSTOM) {
-                    EditorMiniField(
-                        label = "Unidad personalizada",
-                        value = customUnitInput,
-                        modifier = Modifier.fillMaxWidth(),
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { showCustomUnitModal = true },
+                        color = accentColor.copy(alpha = 0.12f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.3f)),
                     ) {
-                        customUnitInput = it
-                        onUpdateExercise { current -> current.copy(customUnit = it.ifBlank { null }) }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                "Unidad personalizada",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = accentColor,
+                            )
+                            Text(
+                                customUnitInput.ifBlank { "Presiona para configurar" },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (customUnitInput.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                                fontWeight = if (customUnitInput.isBlank()) FontWeight.Normal else FontWeight.Bold,
+                            )
+                        }
                     }
                 }
 
@@ -1975,6 +1996,48 @@ private fun ExerciseEditorCard(
         }
     }
 
+    // Custom unit modal dialog
+    if (showCustomUnitModal) {
+        AlertDialog(
+            onDismissRequest = { showCustomUnitModal = false },
+            title = { Text("Unidad Personalizada", fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        "Define el nombre de la unidad personalizada para este ejercicio (ej: brazadas, pasos, intentos)",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    OutlinedTextField(
+                        value = customUnitInput,
+                        onValueChange = { customUnitInput = it },
+                        label = { Text("Nombre de la unidad") },
+                        placeholder = { Text("ej: brazadas") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                }
+            },
+            confirmButton = {
+                FilledTonalButton(
+                    onClick = {
+                        onUpdateExercise { current -> current.copy(customUnit = customUnitInput.ifBlank { null }) }
+                        showCustomUnitModal = false
+                    },
+                ) {
+                    Text("Guardar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showCustomUnitModal = false },
+                ) {
+                    Text("Cancelar")
+                }
+            },
+        )
+    }
 }
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
