@@ -3,8 +3,12 @@ package com.example.kpkn.data.repository
 import android.content.Context
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.food.buildFoodDatabase
+import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.nutrition.FoodIndex
+import com.example.kpkn.domain.nutrition.SmartFoodResolver
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -13,6 +17,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.Normalizer
@@ -28,6 +34,22 @@ class NutritionRepository private constructor(context: Context) {
     private val db = KpknDatabase.getInstance(context)
     private val appContext = context.applicationContext
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val foodPrefs by lazy { appContext.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE) }
+
+    @Serializable
+    private data class FoodQueryLearningEntry(
+        val query: String,
+        val foodId: String,
+        val score: Double = 1.0,
+        val updatedAt: String,
+    )
+
+    @Serializable
+    data class FoodCatalogMeta(
+        val version: Int,
+        val checksum: String,
+        val importedAt: String,
+    )
 
     // ─── Nutrition Logs ──────────────────────────────────────────────────────
 
@@ -62,9 +84,32 @@ class NutritionRepository private constructor(context: Context) {
     private val _foodDatabase = MutableStateFlow<List<FoodItem>>(emptyList())
     val foodDatabase: StateFlow<List<FoodItem>> = _foodDatabase.asStateFlow()
 
+    // Phase B: SmartFoodResolver lazy-init
+    private var _foodIndex: FoodIndex? = null
+    private val foodIndex: FoodIndex
+        get() = _foodIndex ?: FoodIndex().also { idx ->
+            _foodIndex = idx
+        }
+
+    private var _smartResolver: SmartFoodResolver? = null
+    private val smartResolver: SmartFoodResolver
+        get() = _smartResolver ?: SmartFoodResolver(db.nutritionDao(), foodIndex, db.learnedResolutionDao()).also { resolver ->
+            _smartResolver = resolver
+            // Preload learned resolutions from DB
+            kotlinx.coroutines.GlobalScope.launch {
+                resolver.preloadLearned()
+            }
+        }
+
+    private val _foodQueryLearning = MutableStateFlow<Map<String, FoodQueryLearningEntry>>(emptyMap())
+
     fun addCustomFood(food: FoodItem) {
-        _foodDatabase.update { it + food }
-        scope.launch { db.nutritionDao().upsertCustomFood(food.toEntity()) }
+        val normalized = normalizeFoodItem(food)
+        _foodDatabase.update { current ->
+            val filtered = current.filterNot { it.id == normalized.id }
+            filtered + normalized
+        }
+        scope.launch { db.nutritionDao().upsertCustomFood(normalized.toEntity()) }
     }
 
     /**
@@ -75,12 +120,17 @@ class NutritionRepository private constructor(context: Context) {
      * Only saves foods not already present (by normalized name) to avoid duplicates.
      */
     fun saveAiInferredFood(food: FoodItem) {
+        val normalizedFood = normalizeFoodItem(food)
+        // If the inferred name maps to an existing static food, prefer the curated DB entry.
+        // This avoids storing noisy duplicates (e.g., "arroz") that can carry unstable macros.
+        if (findFoodByNormalized(normalizedFood.name) != null) return
         val alreadyKnown = _foodDatabase.value.any {
-            it.name.equals(food.name, ignoreCase = true) || it.id == food.id
+            val knownName = it.normalizedName ?: normalizeSearchText(it.name)
+            knownName == (normalizedFood.normalizedName ?: "") || it.id == normalizedFood.id
         }
         if (alreadyKnown) return
-        _foodDatabase.update { it + food }
-        scope.launch { db.nutritionDao().upsertCustomFood(food.toEntity()) }
+        _foodDatabase.update { it + normalizedFood }
+        scope.launch { db.nutritionDao().upsertCustomFood(normalizedFood.toEntity()) }
     }
 
     /** Convenience: saves all AI-inferred foods from a parse result. */
@@ -90,19 +140,112 @@ class NutritionRepository private constructor(context: Context) {
      * Search foods across all sources: static, custom, and global (USDA).
      */
     suspend fun searchFood(query: String): List<FoodItem> = withContext(Dispatchers.IO) {
-        if (query.isBlank()) return@withContext emptyList()
-        
-        // 1. Search in local (static + custom)
-        val localMatches = _foodDatabase.value.filter { 
-            it.name.contains(query, ignoreCase = true) || 
-            it.searchAliases.any { a -> a.contains(query, ignoreCase = true) }
-        }.take(20)
+        val normalizedQuery = normalizeSearchText(query)
+        if (normalizedQuery.isBlank()) return@withContext emptyList()
 
-        // 2. Search in massive global DB (USDA)
-        val globalMatches = db.nutritionDao().searchGlobalFoods(query).map { it.toFoodItem() }
+        val queryTokens = tokenize(normalizedQuery)
+        if (queryTokens.isEmpty()) return@withContext emptyList()
 
-        // Combine (Local priority)
-        (localMatches + globalMatches).distinctBy { it.name.lowercase() }.take(50)
+        val localFoods = _foodDatabase.value.map(::normalizeFoodItem)
+
+        val customMatches = db.nutritionDao()
+            .searchCustomFoods(normalizedQuery, 120)
+            .map { normalizeFoodItem(it.toFoodItem()) }
+
+        val normalizedGlobal = db.nutritionDao()
+            .searchGlobalFoodsNormalized(normalizedQuery, 150)
+            .map { normalizeFoodItem(it.toFoodItem()) }
+
+        val ftsQuery = buildFtsQuery(queryTokens)
+        val ftsGlobal = if (ftsQuery.isNotBlank()) {
+            runCatching { db.nutritionDao().searchGlobalFoodsWithFts(ftsQuery) }
+                .getOrDefault(emptyList())
+                .map { normalizeFoodItem(it.toFoodItem()) }
+        } else {
+            emptyList()
+        }
+
+        val fallbackGlobal = runCatching {
+            db.nutritionDao().searchGlobalFoods(query).map { normalizeFoodItem(it.toFoodItem()) }
+        }.getOrDefault(emptyList())
+
+        val merged = (localFoods + customMatches + normalizedGlobal + ftsGlobal + fallbackGlobal)
+            .associateBy { it.id.ifBlank { "${it.normalizedName}|${it.normalizedBrand}|${it.sourcePriority}" } }
+            .values
+            .toList()
+
+        val learned = _foodQueryLearning.value
+
+        merged
+            .mapNotNull { food ->
+                buildFoodCandidate(
+                    food = food,
+                    normalizedQuery = normalizedQuery,
+                    queryTokens = queryTokens,
+                    learnedEntry = learned[normalizedQuery],
+                )
+            }
+            .sortedByDescending { it.score }
+            .take(50)
+            .map { it.food }
+    }
+
+    suspend fun searchFoodCandidates(query: String, limit: Int = 50): List<FoodCandidate> = withContext(Dispatchers.IO) {
+        val normalizedQuery = normalizeSearchText(query)
+        if (normalizedQuery.isBlank()) return@withContext emptyList()
+        val queryTokens = tokenize(normalizedQuery)
+        if (queryTokens.isEmpty()) return@withContext emptyList()
+
+        val foods = searchFood(query)
+        val learned = _foodQueryLearning.value[normalizedQuery]
+        foods
+            .mapNotNull { food ->
+                buildFoodCandidate(
+                    food = normalizeFoodItem(food),
+                    normalizedQuery = normalizedQuery,
+                    queryTokens = queryTokens,
+                    learnedEntry = learned,
+                )
+            }
+            .sortedByDescending { it.score }
+            .take(limit)
+    }
+
+    fun recordFoodSelection(query: String, food: FoodItem) {
+        val normalizedQuery = normalizeSearchText(query)
+        if (normalizedQuery.isBlank()) return
+
+        val normalizedFood = normalizeFoodItem(food)
+        val now = Instant.now().toString()
+
+        _foodQueryLearning.update { current ->
+            val prev = current[normalizedQuery]
+            val updated = FoodQueryLearningEntry(
+                query = normalizedQuery,
+                foodId = normalizedFood.id,
+                score = ((prev?.score ?: 0.0) + 1.0).coerceAtMost(8.0),
+                updatedAt = now,
+            )
+            current + (normalizedQuery to updated)
+        }
+        persistFoodLearning()
+
+        scope.launch {
+            runCatching {
+                db.nutritionDao().incrementCustomFoodUsage(normalizedFood.id, now)
+            }
+            runCatching {
+                db.nutritionDao().incrementGlobalFoodUsage(normalizedFood.id, now)
+            }
+        }
+    }
+
+    fun setActiveNutritionPlanId(planId: String?) {
+        _activeNutritionPlanId.value = planId
+        scope.launch {
+            if (planId == null) db.nutritionDao().clearActiveState()
+            else db.nutritionDao().upsertActiveState(NutritionActiveStateEntity(activePlanId = planId))
+        }
     }
 
     // ─── Nutrition Plans ─────────────────────────────────────────────────────
@@ -213,19 +356,112 @@ class NutritionRepository private constructor(context: Context) {
             ?.first
     }
 
+    // ─── SmartFoodResolver Integration (Phase B) ────────────────────────────────
+
+    private val foodIndexLock = Any()
+
+    suspend fun initFoodIndex() {
+        synchronized(foodIndexLock) {
+            if (_foodIndex?.isBuilt() == true) return
+        }
+        try {
+            val globalFoods = withContext(Dispatchers.IO) {
+                db.nutritionDao().getAllGlobalFoods()
+            }
+            android.util.Log.i("NutritionRepository", "Building FoodIndex with ${globalFoods.size} global + ${_foodDatabase.value.size} static foods")
+            synchronized(foodIndexLock) {
+                foodIndex.build(globalFoods, _foodDatabase.value)
+            }
+            android.util.Log.i("NutritionRepository", "FoodIndex built: ${foodIndex.size()} foods indexed")
+        } catch (e: Exception) {
+            android.util.Log.w("NutritionRepository", "initFoodIndex failed", e)
+        }
+    }
+
+    suspend fun resolveFoodWithSmartResolver(
+        query: String,
+        brandHint: String? = null,
+    ): SmartFoodResolver.ResolutionResult {
+        // Ensure index is built synchronously before resolving
+        initFoodIndex()
+        return smartResolver.resolve(query, brandHint)
+    }
+
+    fun recordLearnedResolution(
+        query: String,
+        brandHint: String?,
+        foodId: String,
+        portionGrams: Double?,
+        cookingMethod: String?,
+    ) {
+        smartResolver.recordLearned(query, brandHint, foodId, portionGrams, cookingMethod)
+    }
+
+    /**
+     * Look up a food by ID across all sources: static, custom, and global.
+     */
+    suspend fun getFoodById(foodId: String): FoodItem? = withContext(Dispatchers.IO) {
+        // Check static foods
+        val static = _foodDatabase.value.find { it.id == foodId }
+        if (static != null) return@withContext static
+
+        // Check custom foods
+        val custom = db.nutritionDao().getAllCustomFoods()
+            .find { it.id == foodId }
+            ?.let { it.toFoodItem() }
+        if (custom != null) return@withContext custom
+
+        // Check global foods (USDA/OFF)
+        val global = runCatching {
+            db.nutritionDao().searchGlobalFoods(foodId).firstOrNull()?.toFoodItem()
+        }.getOrNull()
+        global
+    }
+
     // ─── Bootstrap ──────────────────────────────────────────────────────────
 
     private fun loadFromDb(context: Context) {
         scope.launch {
             try {
                 // Ensure Massive Food DB is ready
-                com.example.kpkn.data.food.FoodImporter.importIfEmpty(db.nutritionDao().getGlobalFoodCount() > 0, context)
+                val globalCount = db.nutritionDao().getGlobalFoodCount()
+                val imported = com.example.kpkn.data.food.FoodImporter.importIfNeeded(
+                    db = db,
+                    context = context,
+                    alreadyImported = globalCount > 0,
+                    existingMeta = loadFoodCatalogMeta()?.let {
+                        com.example.kpkn.data.food.FoodImporter.ImportMetadata(
+                            version = it.version,
+                            checksum = it.checksum,
+                            importedAt = it.importedAt,
+                        )
+                    },
+                    onMetaUpdated = { meta ->
+                        saveFoodCatalogMeta(
+                            FoodCatalogMeta(
+                                version = meta.version,
+                                checksum = meta.checksum,
+                                importedAt = meta.importedAt,
+                            )
+                        )
+                    },
+                )
+                if (imported) {
+                    android.util.Log.i("NutritionRepository", "Food catalog importado/actualizado")
+                }
 
                 val logs = db.nutritionDao().getAllLogs().map { it.toNutritionLog() }
                 val plans = db.nutritionDao().getAllPlans().map { it.toNutritionPlan() }
                 val activeId = db.nutritionDao().getActiveState()?.activePlanId
-                val customFoods = db.nutritionDao().getAllCustomFoods().map { it.toFoodItem() }
+                val customFoods = db.nutritionDao().getAllCustomFoods()
+                    .map { it.toFoodItem() }
+                    .filterNot { custom ->
+                        // Drop stale AI-inferred duplicates when a curated static entry exists.
+                        custom.isAiInferred && findFoodByNormalized(custom.name) != null
+                    }
+                    .map(::normalizeFoodItem)
                 val templates = db.nutritionDao().getAllTemplates().map { it.toMealTemplate() }
+                val learning = loadFoodLearning()
 
                 val measurementsJson = measurePrefs.getString("measurements", "[]") ?: "[]"
                 val scheduleJson = measurePrefs.getString("schedule", null)
@@ -239,10 +475,16 @@ class NutritionRepository private constructor(context: Context) {
                 _nutritionLogs.value = logs
                 _nutritionPlans.value = plans
                 _activeNutritionPlanId.value = activeId
-                _foodDatabase.value = buildFoodDatabase() + customFoods
+                _foodDatabase.value = (buildFoodDatabase() + customFoods)
+                    .map(::normalizeFoodItem)
+                    .distinctBy { it.id.ifBlank { it.normalizedName ?: it.name.lowercase() } }
                 _mealTemplates.value = templates
+                _foodQueryLearning.value = learning
                 _bodyMeasurements.value = measurements
                 _measurementSchedule.value = normalizeMeasurementSchedule(schedule)
+
+                // Initialize Phase B FoodIndex
+                initFoodIndex()
 
                 val notifier = NutritionNotificationManager(context)
                 val currentSchedule = _measurementSchedule.value
@@ -256,9 +498,11 @@ class NutritionRepository private constructor(context: Context) {
                     notifier.cancelMeasurementReminder()
                 }
             } catch (t: Throwable) {
+                if (t is CancellationException) throw t
                 android.util.Log.e("NutritionRepository", "loadFromDb failed (OOM?): ${t.javaClass.simpleName}", t)
                 _foodDatabase.value = buildFoodDatabase()
                 _mealTemplates.value = emptyList()
+                _foodQueryLearning.value = emptyMap()
                 _bodyMeasurements.value = emptyList()
                 _measurementSchedule.value = MeasurementSchedule()
                 NutritionNotificationManager(appContext).cancelMeasurementReminder()
@@ -390,6 +634,165 @@ class NutritionRepository private constructor(context: Context) {
             .replace(Regex("[^\\p{L}\\p{Nd}]+"), " ")
             .replace(Regex("\\s+"), " ")
             .trim()
+    }
+
+    private fun tokenize(normalizedText: String): List<String> = normalizedText
+        .split(" ")
+        .map { it.trim() }
+        .filter { it.length >= 2 }
+        .distinct()
+
+    private fun normalizeFoodItem(food: FoodItem): FoodItem {
+        val normalizedName = food.normalizedName ?: normalizeSearchText(food.name)
+        val normalizedBrand = food.normalizedBrand ?: food.brand?.let(::normalizeSearchText)
+        val normalizedAliases = food.searchAliases
+            .map(::normalizeSearchText)
+            .filter { it.isNotBlank() }
+            .distinct()
+
+        val withDefaults = food.copy(
+            normalizedName = normalizedName,
+            normalizedBrand = normalizedBrand,
+            searchAliases = normalizedAliases,
+        )
+
+        val sourcePriority = if (withDefaults.sourcePriority != 50) {
+            withDefaults.sourcePriority
+        } else {
+            when {
+                withDefaults.isCustom -> 95
+                withDefaults.tags.any { it.contains("OFF", ignoreCase = true) } -> 80
+                withDefaults.tags.any { it.contains("USDA", ignoreCase = true) } -> 70
+                else -> 60
+            }
+        }
+
+        val verifiedScore = if (withDefaults.verifiedScore != 0.5) {
+            withDefaults.verifiedScore
+        } else {
+            when {
+                withDefaults.isCustom -> 0.9
+                withDefaults.tags.any { it.contains("USDA", ignoreCase = true) } -> 0.85
+                withDefaults.tags.any { it.contains("OFF", ignoreCase = true) } -> 0.72
+                else -> 0.6
+            }
+        }
+
+        return withDefaults.copy(
+            sourcePriority = sourcePriority,
+            verifiedScore = verifiedScore,
+        )
+    }
+
+    private fun buildFtsQuery(tokens: List<String>): String {
+        if (tokens.isEmpty()) return ""
+        return tokens
+            .joinToString(separator = " ") { "$it*" }
+            .trim()
+    }
+
+    private fun buildFoodCandidate(
+        food: FoodItem,
+        normalizedQuery: String,
+        queryTokens: List<String>,
+        learnedEntry: FoodQueryLearningEntry?,
+    ): FoodCandidate? {
+        val normalizedName = food.normalizedName ?: normalizeSearchText(food.name)
+        val normalizedBrand = food.normalizedBrand ?: food.brand?.let(::normalizeSearchText)
+        val aliases = food.searchAliases.map(::normalizeSearchText).filter { it.isNotBlank() }
+        val fields = buildList {
+            add(normalizedName)
+            if (!normalizedBrand.isNullOrBlank()) add(normalizedBrand)
+            addAll(aliases)
+        }
+
+        val nameExact = normalizedName == normalizedQuery
+        val aliasExact = aliases.any { it == normalizedQuery }
+        val nameContains = normalizedName.contains(normalizedQuery)
+        val aliasContains = aliases.any { it.contains(normalizedQuery) }
+        val brandContains = !normalizedBrand.isNullOrBlank() && normalizedBrand.contains(normalizedQuery)
+
+        val tokenHits = queryTokens.count { token ->
+            fields.any { field -> field.split(" ").contains(token) || field.contains(token) }
+        }
+        if (!(nameExact || aliasExact || nameContains || aliasContains || tokenHits > 0 || brandContains)) {
+            return null
+        }
+
+        val coverage = if (queryTokens.isEmpty()) 0.0 else tokenHits.toDouble() / queryTokens.size.toDouble()
+        val precisionDenom = normalizedName.split(" ").filter { it.isNotBlank() }.size.coerceAtLeast(1)
+        val precision = (tokenHits.toDouble() / precisionDenom.toDouble()).coerceIn(0.0, 1.0)
+
+        val exactBoost = when {
+            nameExact || aliasExact -> 0.45
+            nameContains || aliasContains -> 0.25
+            else -> 0.0
+        }
+
+        val sourceScore = (food.sourcePriority.coerceIn(0, 100) / 100.0) * 0.2
+        val verifiedScore = food.verifiedScore.coerceIn(0.0, 1.0) * 0.2
+        val usageScore = (kotlin.math.ln((food.usageCount + 1).toDouble()) / kotlin.math.ln(10.0)).coerceIn(0.0, 1.0) * 0.08
+        val learnedScore = when {
+            learnedEntry != null && learnedEntry.foodId == food.id -> 0.22
+            else -> 0.0
+        }
+
+        val score = (coverage * 0.32) + (precision * 0.14) + exactBoost + sourceScore + verifiedScore + usageScore + learnedScore
+
+        val confidence = when {
+            score >= 0.82 -> SearchConfidence.HIGH
+            score >= 0.58 -> SearchConfidence.MEDIUM
+            else -> SearchConfidence.LOW
+        }
+
+        val source = when {
+            food.tags.any { it.contains("OFF", ignoreCase = true) } -> SearchSource.OFF
+            food.tags.any { it.contains("USDA", ignoreCase = true) } -> SearchSource.USDA
+            else -> SearchSource.LOCAL
+        }
+
+        return FoodCandidate(
+            foodId = food.id,
+            displayName = food.name,
+            score = score,
+            confidence = confidence,
+            source = source,
+            food = food,
+            trace = buildList {
+                if (nameExact || aliasExact) add("exact")
+                if (brandContains) add("brand")
+                if (learnedEntry?.foodId == food.id) add("learned")
+            },
+            queryCoverage = coverage,
+            tokenPrecision = precision,
+            brandMatched = brandContains,
+            learned = learnedEntry?.foodId == food.id,
+        )
+    }
+
+    private fun persistFoodLearning() {
+        val payload = runCatching {
+            Json.encodeToString(_foodQueryLearning.value.values.toList())
+        }.getOrDefault("[]")
+        foodPrefs.edit().putString("food_query_learning", payload).apply()
+    }
+
+    private fun loadFoodLearning(): Map<String, FoodQueryLearningEntry> {
+        val payload = foodPrefs.getString("food_query_learning", "[]") ?: "[]"
+        val list = runCatching {
+            Json.decodeFromString<List<FoodQueryLearningEntry>>(payload)
+        }.getOrDefault(emptyList())
+        return list.associateBy { it.query }
+    }
+
+    private fun saveFoodCatalogMeta(meta: FoodCatalogMeta) {
+        val encoded = runCatching { Json.encodeToString(meta) }.getOrDefault("")
+        foodPrefs.edit().putString("food_catalog_meta", encoded).apply()
+    }
+
+    private fun loadFoodCatalogMeta(): FoodCatalogMeta? {
+        val encoded = foodPrefs.getString("food_catalog_meta", null) ?: return null
+        return runCatching { Json.decodeFromString<FoodCatalogMeta>(encoded) }.getOrNull()
     }
 
     private fun formatNumber(value: Double): String {

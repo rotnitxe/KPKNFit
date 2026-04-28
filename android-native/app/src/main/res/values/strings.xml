@@ -1,3 +1,505 @@
 <resources>
+    <!-- ═══════════════════════════════════════════════════════════════
+         APP
+    ═══════════════════════════════════════════════════════════════ -->
     <string name="app_name">KPKN</string>
+    <string name="widget_nutrition_quick_action_desc">Acciones rápidas de nutrición</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         COMÚN
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="common_back">Volver</string>
+    <string name="common_save">Guardar</string>
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_ok">Aceptar</string>
+    <string name="common_close">Cerrar</string>
+    <string name="common_error_unknown">error desconocido</string>
+    <string name="common_start">Iniciar</string>
+    <string name="common_edit">Editar</string>
+    <string name="common_delete">Eliminar</string>
+    <string name="common_apply">Aplicar</string>
+    <string name="common_understood">Entendido</string>
+    <string name="common_remove">Quitar</string>
+    <string name="common_reorder">Reordenar</string>
+    <string name="common_select">Seleccionar</string>
+    <string name="common_change">Cambiar</string>
+    <string name="common_add">Agregar</string>
+    <string name="common_add_alt">Añadir</string>
+    <string name="common_name">Nombre</string>
+    <string name="common_objective">Objetivo</string>
+    <string name="common_title_field">Título</string>
+    <string name="common_notes_optional">Notas opcionales</string>
+    <string name="common_no_data">Sin datos</string>
+    <string name="common_open">Abrir</string>
+    <string name="common_convert">Convertir</string>
+    <string name="common_blocks">Bloques</string>
+    <string name="common_weeks">Semanas</string>
+    <string name="common_sessions">Sesiones</string>
+    <string name="common_rest">Descanso</string>
+    <string name="common_simple_program">Programa simple</string>
+    <string name="common_advanced_program">Programa avanzado</string>
+
+    <!-- Formatos de fecha (traducibles por locale) -->
+    <string name="date_format_day_month">EEEE, d \'de\' MMMM</string>
+    <string name="date_format_day_month_year">EEEE, d \'de\' MMMM yyyy</string>
+    <string name="date_format_short_month_year">d MMM yyyy</string>
+    <string name="date_format_short_day_month">EEE, d MMM</string>
+    <string name="date_format_3letter_day">EEE</string>
+    <string name="date_format_1letter_day">E</string>
+    <string name="date_format_measurement">d \'de\' MMMM</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         NAVEGACIÓN INFERIOR
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_training">Entreno</string>
+    <string name="nav_nutrition">Nutrición</string>
+    <string name="nav_my_rings">Mis RINGS</string>
+    <string name="nav_wikilab">Learn</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         AJUSTES — pantalla principal
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="screen_settings_title">Ajustes</string>
+    <string name="screen_settings_cat_general">General</string>
+    <string name="screen_settings_cat_general_subtitle">Tema, animaciones, IA y feedback sensorial</string>
+    <string name="screen_settings_cat_profile">Perfil personal</string>
+    <string name="screen_settings_cat_profile_subtitle">Nombre, medidas corporales y tipo de atleta</string>
+    <string name="screen_settings_cat_nutrition">Nutrición</string>
+    <string name="screen_settings_cat_nutrition_subtitle">Calorías, macros, sueño y wizard</string>
+    <string name="screen_settings_cat_training">Entrenamiento</string>
+    <string name="screen_settings_cat_training_subtitle">Unidades, temporizador, logger y volumen</string>
+    <string name="screen_settings_cat_rings">Mis RINGS</string>
+    <string name="screen_settings_cat_rings_subtitle">Fatiga, recuperación y sensibilidad del motor AUGE</string>
+    <string name="screen_settings_cat_notifications">Notificaciones</string>
+    <string name="screen_settings_cat_notifications_subtitle">Recordatorios de entreno, comidas y sueño</string>
+    <string name="screen_settings_cat_data">Datos y app</string>
+    <string name="screen_settings_cat_data_subtitle">Exportar, restablecer y ver versión</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         AJUSTES — General
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="screen_settings_general_title">General</string>
+
+    <!-- Sección: Apariencia -->
+    <string name="screen_settings_general_section_appearance">Apariencia</string>
+    <string name="screen_settings_general_theme">Tema de la app</string>
+    <string name="screen_settings_general_theme_desc">Prepara el terreno para futuros modos visuales nativos</string>
+    <string name="screen_settings_general_animations">Animaciones</string>
+    <string name="screen_settings_general_animations_desc">Activa las transiciones y microinteracciones de la interfaz</string>
+    <string name="screen_settings_general_reduced_motion">Modo ahorro rendimiento</string>
+    <string name="screen_settings_general_reduced_motion_desc">Reduce movimiento y efectos pesados para equipos más justos</string>
+
+    <!-- Sección: Sensorial -->
+    <string name="screen_settings_general_section_sensorial">Sensorial</string>
+    <string name="screen_settings_general_haptic">Vibración háptica</string>
+    <string name="screen_settings_general_haptic_desc">Feedback táctil en acciones clave de la app</string>
+    <string name="screen_settings_general_haptic_intensity">Intensidad háptica</string>
+    <string name="screen_settings_general_haptic_intensity_desc">Ajusta la fuerza del feedback</string>
+    <string name="screen_settings_general_sounds">Sonidos</string>
+    <string name="screen_settings_general_sounds_desc">Incluye avisos sonoros y celebraciones in-app</string>
+
+    <!-- Sección: Inteligencia Artificial -->
+    <string name="screen_settings_general_section_ai">Inteligencia artificial</string>
+    <string name="screen_settings_general_ai_local_food">Caupo AI para alimentos</string>
+    <string name="screen_settings_general_ai_local_food_desc">Prioriza Caupo AI en el dispositivo para interpretar comidas</string>
+    <string name="screen_settings_general_ai_provider">Proveedor IA</string>
+    <string name="screen_settings_general_ai_provider_desc">Proveedor principal para funciones asistidas</string>
+    <string name="screen_settings_general_api_key_gemini">Clave API Gemini</string>
+    <string name="screen_settings_general_api_key_gpt">Clave API GPT</string>
+    <string name="screen_settings_general_api_key_deepseek">Clave API DeepSeek</string>
+    <string name="screen_settings_general_ai_temperature">Temperatura IA</string>
+    <string name="screen_settings_general_ai_fallback">Usar fallback IA</string>
+    <string name="screen_settings_general_ai_fallback_desc">Si falla el proveedor principal, intenta el siguiente</string>
+    <string name="screen_settings_general_ai_max_tokens">Tokens máximos</string>
+
+    <!-- Sección: Idioma -->
+    <string name="screen_settings_general_section_language">Idioma</string>
+    <string name="screen_settings_general_language">Idioma de la app</string>
+    <string name="screen_settings_general_language_desc">Selecciona el idioma de la interfaz</string>
+    <string name="screen_settings_general_language_system">Usar idioma del sistema</string>
+    <string name="screen_settings_general_language_es">Español</string>
+    <string name="screen_settings_general_language_en">English</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         AJUSTES — Notificaciones
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="screen_settings_notif_title">Notificaciones</string>
+    <string name="screen_settings_notif_section_workout">Entrenamiento</string>
+    <string name="screen_settings_notif_workout_reminder">Recordatorio de entrenamiento</string>
+    <string name="screen_settings_notif_workout_reminder_desc">Guarda la preferencia horaria para futuras notificaciones</string>
+    <string name="screen_settings_notif_workout_time">Hora del recordatorio</string>
+    <string name="screen_settings_notif_section_meals">Comidas</string>
+    <string name="screen_settings_notif_meal_reminder">Recordatorio de comidas</string>
+    <string name="screen_settings_notif_meal_reminder_desc">Activa horarios para las comidas principales</string>
+    <string name="screen_settings_notif_breakfast">Desayuno</string>
+    <string name="screen_settings_notif_lunch">Almuerzo</string>
+    <string name="screen_settings_notif_dinner">Cena</string>
+    <string name="screen_settings_notif_section_sleep">Sueño</string>
+    <string name="screen_settings_notif_sleep_reminder">Recordatorio de sueño</string>
+    <string name="screen_settings_notif_sleep_reminder_desc">Guarda el horario recomendado para ir cerrando el día</string>
+    <string name="screen_settings_notif_sleep_time">Hora recordatorio</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         NOTIFICACIONES — Canales
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="notif_channel_meals_name">Recordatorios de comidas</string>
+    <string name="notif_channel_meals_desc">Recordatorios para registrar desayuno, almuerzo y cena</string>
+    <string name="notif_channel_macros_name">Alertas de macros</string>
+    <string name="notif_channel_macros_desc">Alertas inteligentes cuando los macros del día están incompletos</string>
+    <string name="notif_channel_measurement_name">Recordatorio de medidas</string>
+    <string name="notif_channel_measurement_desc">Recordatorio para registrar medidas corporales</string>
+    <string name="notif_channel_workout_name">Recordatorio de entrenamiento</string>
+    <string name="notif_channel_workout_desc">Recordatorio para comenzar tu sesión de entrenamiento</string>
+    <string name="notif_channel_sleep_name">Recordatorio de descanso</string>
+    <string name="notif_channel_sleep_desc">Recordatorio para prepararse para dormir</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         NOTIFICACIONES — Mensajes
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="notif_app_title">KPKN Fit</string>
+    <string name="notif_workout_text">¿Ya está todo listo para entrenar? 💪</string>
+    <string name="notif_sleep_text">Es hora de prepararse para descansar 😴</string>
+    <string name="notif_breakfast_text">¿Ya registraste el desayuno?</string>
+    <string name="notif_lunch_text">Hora de registrar el almuerzo 🍽</string>
+    <string name="notif_dinner_text">No olvides registrar la cena 🌙</string>
+    <string name="notif_measurement_title">Hoy toca medir 📏</string>
+    <!-- %1$s = fecha formateada -->
+    <string name="notif_measurement_text">Registra tus medidas corporales del %1$s en KPKN Fit</string>
+    <string name="notif_macro_title_exceeded">⚠ Calorías del día excedidas</string>
+    <string name="notif_macro_title_incomplete">Macros del día incompletos</string>
+    <!-- %1$d = consumido, %2$d = objetivo, %3$d = porcentaje -->
+    <string name="notif_macro_protein">Proteína: %1$dg / %2$dg (%3$d%%)</string>
+    <string name="notif_macro_carbs">Carbos: %1$dg / %2$dg (%3$d%%)</string>
+    <string name="notif_macro_fats">Grasas: %1$dg / %2$dg (%3$d%%)</string>
+    <!-- %1$d = consumido, %2$d = objetivo -->
+    <string name="notif_macro_calories_exceeded">Calorías excedidas: %1$d / %2$d kcal</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         EXPORTAR / DATOS
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="msg_export_ready">Datos preparados para exportar</string>
+    <!-- %1$s = mensaje de error -->
+    <string name="msg_export_failed">No se pudo exportar: %1$s</string>
+    <string name="title_export_chooser">Exportar datos de KPKN</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         DESCANSO (rest timer)
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="notif_channel_rest_ongoing_name">Descanso activo</string>
+    <string name="notif_channel_rest_ongoing_desc">Temporizador de descanso durante la sesión</string>
+    <string name="notif_channel_rest_finished_name">Fin de descanso</string>
+    <string name="notif_channel_rest_finished_desc">Alerta al finalizar el descanso</string>
+    <string name="notif_rest_ongoing_title">Descanso en curso</string>
+    <string name="notif_rest_finished_title">Fin del descanso</string>
+    <string name="notif_rest_finished_body">Tu descanso terminó. Puedes iniciar la siguiente serie.</string>
+    <string name="notif_rest_action_complete">Completar</string>
+    <string name="notif_rest_action_skip">Saltar</string>
+    <string name="notif_rest_default_session">Entrenamiento</string>
+    <string name="notif_rest_default_exercise">Siguiente serie</string>
+
+     <string name="notif_channel_ai_inference_name">Procesamiento de IA</string>
+     <string name="notif_channel_ai_inference_desc">Notificación temporal mientras Caupo AI procesa una solicitud</string>
+     <string name="notif_ai_inference_title">Procesando con Caupo AI</string>
+     <string name="notif_ai_inference_body">Analizando tu entrada para calcular calorías y macros</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         SESIÓN — Etiquetas de fatiga
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="session_fatigue_low">Baja</string>
+    <string name="session_fatigue_moderate">Moderada</string>
+    <string name="session_fatigue_high">Alta</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         PANTALLA: Progreso
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="screen_progress_title">Progreso</string>
+    <string name="screen_progress_rm_goal">Meta RM</string>
+    <string name="screen_progress_relative_strength">Fuerza relativa</string>
+    <string name="screen_progress_erm_high">eRM alto</string>
+    <string name="screen_progress_body_weight">Peso corporal</string>
+    <string name="screen_progress_ratio">Relación</string>
+    <string name="screen_progress_weekly_trend">Tendencia de mejora semanal</string>
+    <string name="screen_progress_rm_goals_title">Metas RM</string>
+    <string name="screen_progress_edit_goal">Editar meta</string>
+    <string name="screen_progress_no_rm_goal">Aún no tiene meta RM asignada.</string>
+    <string name="screen_progress_add_exercises">Añadir ejercicios</string>
+    <string name="screen_progress_goal_kg">Meta en kg</string>
+    <string name="screen_progress_level_elite">Nivel altísimo</string>
+    <string name="screen_progress_level_very_good">Muy buen nivel</string>
+    <string name="screen_progress_level_good">Buen nivel</string>
+    <string name="screen_progress_level_solid">Base sólida</string>
+    <string name="screen_progress_level_building">Aún en construcción</string>
+    <string name="screen_progress_empty_msg">Registra sesiones para desbloquear tu progreso por ejercicio.</string>
+    <string name="screen_progress_desc">Aquí ves fuerza relativa, velocidad de mejora semanal y metas RM de tus ejercicios clave.</string>
+    <string name="screen_progress_relative_strength_desc">Elige un ejercicio y compara tu eRM más alto con tu peso corporal actual.</string>
+    <string name="screen_progress_weekly_trend_desc">Promedio estimado de mejora por semana según la evolución del eRM en cada ejercicio.</string>
+    <string name="screen_progress_rm_goals_desc">Los ejercicios marcados con estrella aparecen aquí con su meta RM. Puedes añadir cualquier ejercicio desde esta vista.</string>
+    <string name="screen_progress_no_starred">Todavía no hay ejercicios estrella. Márcalos desde el editor de sesiones o añádelos aquí.</string>
+    <!-- %1$d = meta, %2$d = mejor eRM -->
+    <string name="screen_progress_goal_display">Meta: %1$d kg · Mejor eRM: %2$d kg</string>
+    <string name="screen_progress_add_star">★ Añadir</string>
+    <!-- %1$s = nombre del ejercicio -->
+    <string name="screen_progress_goal_editor_desc">Define una meta de 1RM para %1$s. Déjalo vacío si quieres quitar la meta.</string>
+    <string name="screen_progress_define_goal">Definir meta</string>
+    <string name="screen_progress_no_body_weight">Añade tu peso corporal en ajustes o perfil para calcular la fuerza relativa de forma exacta.</string>
+    <!-- %1$s = nivel descriptivo -->
+    <string name="screen_progress_strength_tier_copy">%1$s en este ejercicio según tu mejor eRM frente a tu peso corporal.</string>
+    <string name="common_pending">Pendiente</string>
+    <string name="common_no_single_data">Sin dato</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         PANTALLA: Protocolos
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="screen_protocols_title">Protocolos</string>
+    <string name="screen_protocols_subtitle">Sistemas de progresión comprobados</string>
+    <string name="screen_protocols_tab_all">Todos</string>
+    <string name="screen_protocols_apply_dialog_title">Aplicar Protocolo</string>
+    <!-- %1$s = nombre del protocolo -->
+    <string name="screen_protocols_apply_dialog_body">Esto reemplazará la estructura actual del programa con \"%1$s\".</string>
+    <!-- %1$s = autor -->
+    <string name="screen_protocols_by_author">por %1$s</string>
+    <string name="screen_protocols_session_categories">Categorías de sesión</string>
+    <!-- %1$d = min intensidad, %2$d = max intensidad -->
+    <string name="screen_protocols_intensity">Intensidad: %1$d\u2013%2$d%%</string>
+    <!-- %1$s = objetivo del bloque -->
+    <string name="screen_protocols_goal">Objetivo: %1$s</string>
+    <!-- %1$s = modificador de volumen -->
+    <string name="screen_protocols_volume_modifier">Modificador volumen: x%1$s</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         PANTALLA: Splits
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="screen_split_search_hint">Buscar split</string>
+    <string name="screen_split_active_label">Split activo</string>
+    <string name="screen_split_none">Sin split definido</string>
+    <string name="screen_split_catalog_title">Catálogo de Splits</string>
+    <string name="screen_split_comparator">Comparador</string>
+    <string name="screen_split_current">Actual</string>
+    <string name="screen_split_info_label">Info</string>
+    <string name="screen_split_compare_label">Comparar</string>
+    <string name="screen_split_what_is_it">En qué consiste</string>
+    <string name="screen_split_benefits">Beneficios</string>
+    <string name="screen_split_precautions">Precauciones</string>
+    <string name="screen_split_see_less">Ver menos</string>
+    <string name="screen_split_rest_short">Desc</string>
+    <string name="screen_split_compare_dialog_title">Comparar splits</string>
+    <!-- %1$s = lista de beneficios -->
+    <string name="screen_split_benefits_label">Beneficios: %1$s</string>
+    <!-- %1$s = lista de precauciones -->
+    <string name="screen_split_precautions_label">Precauciones: %1$s</string>
+    <string name="screen_split_apply_title">Aplicar split</string>
+    <string name="screen_split_temporal_scope">Alcance temporal</string>
+    <string name="screen_split_scope_current_week">Solo semana seleccionada</string>
+    <string name="screen_split_scope_all_weeks">Todas las semanas</string>
+    <string name="screen_split_advanced_global">Un split para todos los bloques</string>
+    <string name="screen_split_advanced_per_block">Elegir uno distinto por bloque</string>
+    <string name="screen_split_block_assignment">Asignación por bloque</string>
+    <string name="screen_split_session_migration">Migración de sesiones</string>
+    <string name="screen_split_migrate_sessions">Migrar sesiones</string>
+    <string name="screen_split_migrate_sessions_desc">Intenta mover sesiones al nuevo split según músculos trabajados y nombres.</string>
+    <string name="screen_split_start_fresh">Empezar de cero</string>
+    <string name="screen_split_start_fresh_desc">Genera sesiones base vacías según el split nuevo.</string>
+    <string name="screen_split_week_start">Inicio de semana</string>
+    <string name="screen_split_select_title">Seleccionar split</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         WIDGETS DE PROGRAMA (hero)
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="widget_muscle_title">Músculos</string>
+    <string name="widget_muscle_subtitle">Promedio general del RING de músculos del programa.</string>
+    <string name="widget_snc_title">Energía</string>
+    <string name="widget_snc_subtitle">Estado actual de tu frescura neural y capacidad de producir fuerza.</string>
+    <string name="widget_spinal_title">Espalda</string>
+    <string name="widget_spinal_subtitle">Estado general de tu carga axial y tolerancia conectiva.</string>
+    <string name="widget_volume_title">Calibrar volumen</string>
+    <string name="widget_volume_subtitle">Configura el volumen recomendado por músculo para este programa.</string>
+    <string name="widget_increase_title">Aumentar volumen</string>
+    <string name="widget_increase_subtitle">Sube 20% el volumen de la semana actual, músculo por músculo.</string>
+    <string name="widget_reduce_title">Disminuir volumen</string>
+    <string name="widget_reduce_subtitle">Baja 20% el volumen de la semana actual, músculo por músculo.</string>
+    <string name="widget_verified">Verificado</string>
+    <string name="widget_blocked">Bloqueado</string>
+    <string name="widget_limit">Límite</string>
+    <string name="widget_add_action">Añadir</string>
+    <string name="widget_picker_title">Agrega widgets</string>
+    <string name="widget_picker_desc">Selecciona hasta 3 widgets para mostrar en el hero. Cada uno incluye un botón de información.</string>
+    <string name="widget_remove_dialog_title">Quitar widget</string>
+    <!-- %1$s = nombre del widget -->
+    <string name="widget_remove_dialog_body">¿Eliminar %1$s del header?</string>
+    <string name="widget_default_name">este widget</string>
+    <string name="widget_needs_calibration_title">Primero calibra el volumen</string>
+    <string name="widget_needs_calibration_body">Necesitamos una calibración base antes de aplicar automatizaciones sobre el volumen.</string>
+    <string name="widget_calibrate_now">Calibrar ahora</string>
+    <string name="widget_increase_confirm_title">Aumentar volumen semanal</string>
+    <string name="widget_increase_confirm_body">Esto aumentará en 20% el volumen de la semana actual, músculo por músculo. ¿Deseas continuar?</string>
+    <string name="widget_confirm_increase">Sí, aumentar</string>
+    <string name="widget_decrease_confirm_title">Disminuir volumen semanal</string>
+    <string name="widget_decrease_confirm_body">Esto reducirá en 20% el volumen de la semana actual, músculo por músculo. ¿Deseas continuar?</string>
+    <string name="widget_confirm_decrease">Sí, reducir</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         CALIBRACIÓN DE VOLUMEN
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="screen_calibration_desc">Usamos el perfil del atleta para proponerte series semanales por músculo. Este resultado también sincroniza el enfoque del programa.</string>
+    <string name="screen_calibration_main_goal">Objetivo principal</string>
+    <string name="screen_calibration_main_goal_helper">Esto cambia el enfoque del programa y la base de recomendaciones.</string>
+    <string name="screen_calibration_technique">Técnica</string>
+    <string name="screen_calibration_technique_helper">Qué tan sólida sientes tu ejecución en ejercicios clave.</string>
+    <string name="screen_calibration_consistency">Consistencia</string>
+    <string name="screen_calibration_consistency_helper">Qué tan estable ha sido tu entrenamiento últimamente.</string>
+    <string name="screen_calibration_strength">Fuerza</string>
+    <string name="screen_calibration_strength_helper">Cómo percibes tu nivel actual de fuerza respecto a tu experiencia.</string>
+    <string name="screen_calibration_mobility">Movilidad</string>
+    <string name="screen_calibration_mobility_helper">Tu libertad para moverte y entrenar sin rigidez importante.</string>
+    <string name="screen_calibration_notes_placeholder">Ej: compito pronto, tolero alta frecuencia, priorizo banca…</string>
+    <string name="screen_calibration_summary_title">Resumen KPKN</string>
+    <!-- %1$s = modo/estilo -->
+    <string name="screen_calibration_focus">Enfoque: %1$s</string>
+    <!-- %1$s = nivel, %2$d = puntuación -->
+    <string name="screen_calibration_profile">Perfil: %1$s · Puntaje %2$d/12</string>
+    <string name="screen_calibration_save_button">Guardar calibración</string>
+    <string name="calibration_style_bodybuilder">Culturismo</string>
+    <string name="calibration_style_bodybuilder_detail">Prioriza masa muscular, simetría y estímulo local.</string>
+    <string name="calibration_style_powerbuilding">Powerbuilding</string>
+    <string name="calibration_style_powerbuilding_detail">Combina fuerza útil con suficiente volumen de hipertrofia.</string>
+    <string name="calibration_style_powerlifting">Powerlifting</string>
+    <string name="calibration_style_powerlifting_detail">Da prioridad al rendimiento en los levantamientos principales.</string>
+    <string name="calibration_technique_1">Base en construcción</string>
+    <string name="calibration_technique_1_detail">Todavía estás puliendo patrones y estabilidad.</string>
+    <string name="calibration_technique_2">Buena base</string>
+    <string name="calibration_technique_2_detail">Entrenas con control sólido en la mayoría de ejercicios.</string>
+    <string name="calibration_technique_3">Muy sólida</string>
+    <string name="calibration_technique_3_detail">Puedes sostener técnica incluso con cargas altas.</string>
+    <string name="calibration_consistency_1">Irregular</string>
+    <string name="calibration_consistency_1_detail">Has tenido semanas cortadas o estás retomando.</string>
+    <string name="calibration_consistency_2">Estable</string>
+    <string name="calibration_consistency_2_detail">Tu frecuencia ya es bastante consistente.</string>
+    <string name="calibration_consistency_3">Muy constante</string>
+    <string name="calibration_consistency_3_detail">Entrenar es parte firme de tu rutina.</string>
+    <string name="calibration_strength_1">Inicial</string>
+    <string name="calibration_strength_1_detail">Sigues construyendo fuerza base.</string>
+    <string name="calibration_strength_2">Intermedia</string>
+    <string name="calibration_strength_2_detail">Ya mueves cargas respetables con regularidad.</string>
+    <string name="calibration_strength_3">Alta</string>
+    <string name="calibration_strength_3_detail">Tu nivel de fuerza ya exige una mejor gestión del volumen.</string>
+    <string name="calibration_mobility_1">Limitada</string>
+    <string name="calibration_mobility_1_detail">Sueles notar rigidez o rangos acotados.</string>
+    <string name="calibration_mobility_2">Correcta</string>
+    <string name="calibration_mobility_2_detail">Te mueves bien en casi todo tu entrenamiento.</string>
+    <string name="calibration_mobility_3">Muy buena</string>
+    <string name="calibration_mobility_3_detail">Tu movilidad acompaña bien la carga y la técnica.</string>
+    <string name="mode_powerlifting">Powerlifting</string>
+    <string name="mode_powerbuilding">Powerbuilding</string>
+    <string name="mode_hypertrophy">Hipertrofia</string>
+    <string name="level_base">Base</string>
+    <string name="level_advanced">Avanzado</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         EDITOR DE MACROCICLO
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="macro_editor_add_block_and_convert">Agregar bloque y convertir a avanzado</string>
+    <string name="macro_editor_add_block">Agregar bloque</string>
+    <string name="macro_editor_delete_block_body">Eliminar este bloque puede cambiar la lógica temporal del programa.</string>
+    <string name="macro_editor_delete_meso_body">Eliminar este mesociclo quitará sus semanas y sesiones.</string>
+    <string name="macro_editor_delete_week_body">Eliminar esta semana quitará sus sesiones.</string>
+    <string name="macro_editor_convert_to_advanced_title">Convertir a programa avanzado</string>
+    <string name="macro_editor_convert_to_advanced_body">Agregar un segundo bloque hace que este programa deje de ser simple. La estructura pasa a ser lineal, se terminan los loops y los eventos cíclicos dejan de ser compatibles.</string>
+    <string name="macro_editor_create_view_loops">Crear/ver loops</string>
+    <!-- %1$d = cantidad de fechas clave -->
+    <string name="macro_editor_key_dates_count">%1$d fechas clave</string>
+    <string name="macro_editor_no_calendar">Sin calendario</string>
+    <string name="macro_editor_mesos">Mesos</string>
+    <string name="macro_editor_templates_protocols">Plantillas / protocolos</string>
+    <string name="macro_editor_key_dates_label">Fechas clave</string>
+    <string name="macro_editor_hide_roadmap">Ocultar roadmap</string>
+    <string name="macro_editor_view_roadmap">Ver roadmap</string>
+    <string name="macro_editor_loops_desc">Los loops viven solo en programas simples y te permiten repetir ciclos con eventos programados.</string>
+    <string name="macro_editor_macro_start_date_hint">Inicio del macrociclo (YYYY-MM-DD)</string>
+    <string name="macro_editor_save_start">Guardar inicio</string>
+    <string name="macro_editor_add_key_date">Agregar fecha clave</string>
+    <string name="macro_editor_no_key_dates">Todavía no hay fechas clave.</string>
+    <string name="macro_editor_key_date_item_title">Fecha clave</string>
+    <string name="macro_editor_roadmap_title">Roadmap interactivo</string>
+    <string name="macro_editor_set_start_date_first">Guarda primero la fecha de inicio.</string>
+    <string name="macro_editor_special_week">Semana especial</string>
+    <string name="macro_editor_special_session">Sesión especial</string>
+    <string name="macro_editor_competition_week_note">Esta semana contiene competición. Aquí después habilitaremos la creación de sesión de competición.</string>
+    <string name="keydate_type_competition">Competición</string>
+    <string name="keydate_type_exams">Exámenes</string>
+    <string name="keydate_type_vacation">Vacaciones</string>
+    <string name="keydate_type_travel">Viaje</string>
+    <string name="keydate_type_custom">Personalizada</string>
+    <string name="macro_editor_start_date_field">Inicio (YYYY-MM-DD)</string>
+    <string name="macro_editor_end_date_optional_field">Fin opcional (YYYY-MM-DD)</string>
+    <string name="macro_editor_program_templates_tab">Plantillas de programa</string>
+    <string name="macro_editor_training_protocols_tab">Protocolos de entrenamiento</string>
+    <string name="macro_editor_add_meso">Agregar mesociclo</string>
+    <string name="macro_editor_add_week">Agregar semana</string>
+    <string name="macro_editor_new_block_title">Nuevo bloque</string>
+    <string name="macro_editor_edit_block_title">Editar bloque</string>
+    <string name="macro_editor_new_meso_title">Nuevo mesociclo</string>
+    <string name="macro_editor_meso_label">Mesociclo</string>
+    <string name="macro_editor_goal_label">Objetivo</string>
+    <string name="macro_editor_new_week_title">Nueva semana</string>
+    <string name="macro_editor_week_label">Semana</string>
+    <string name="macro_editor_main_part">Parte principal</string>
+    <string name="macro_default_macro_name">Macrociclo 1</string>
+    <string name="macro_default_block1_name">Bloque 1</string>
+    <string name="macro_default_block2_name">Bloque 2</string>
+    <string name="macro_default_meso_name">Mesociclo 1</string>
+    <string name="macro_default_week1_name">Semana 1</string>
+    <!-- %1$d = número de semana -->
+    <string name="macro_default_week_n_name">Semana %1$d</string>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         HEATMAP (Caupolicán)
+    ═══════════════════════════════════════════════════════════════ -->
+    <string name="heatmap_calibrate_button">Calibrar atlas</string>
+    <string name="heatmap_review_needed">Atlas requiere revisión</string>
+    <string name="heatmap_most_loaded_label">Más cargados en esta vista</string>
+    <string name="heatmap_calibrator_title">Calibrador interno de atlas</string>
+    <string name="heatmap_front_side">Frente</string>
+    <string name="heatmap_frontal_label">Frontal</string>
+    <string name="heatmap_no_zone">Sin zona en esta cara</string>
+    <string name="heatmap_create_base_region">Crear región base</string>
+    <string name="heatmap_import_failed_open">No se pudo abrir el archivo.</string>
+    <string name="heatmap_import_success">Atlas importado correctamente.</string>
+    <!-- %1$s = mensaje de error -->
+    <string name="heatmap_import_failed">No pudimos importar el atlas: %1$s</string>
+    <string name="heatmap_export_success">Bundle exportado correctamente.</string>
+    <string name="heatmap_export_failed">No pudimos exportar el atlas: %1$s</string>
+    <string name="heatmap_write_failed">No se pudo abrir el destino para escritura.</string>
+    <string name="heatmap_calibration_file">Archivo de calibración</string>
+    <string name="heatmap_export_side">Exportar cara</string>
+    <string name="heatmap_export_bundle">Exportar bundle</string>
+    <string name="heatmap_import_json">Importar JSON</string>
+    <string name="heatmap_copy_bundle">Copiar bundle</string>
+    <string name="heatmap_json_current_side">JSON cara actual</string>
+    <string name="heatmap_copy_action">Copiar</string>
+    <string name="heatmap_insert_point">Insertar punto</string>
+    <string name="heatmap_remove_point">Quitar punto</string>
+    <string name="heatmap_see_landmarks">Ver landmarks</string>
+    <string name="heatmap_see_outline">Ver silueta</string>
+    <string name="heatmap_see_overlaps">Ver overlaps</string>
+    <string name="heatmap_no_overlaps">Sin overlaps relevantes en el atlas actual.</string>
+    <!-- %1$s = etiqueta de subzona, %2$d = nro de puntos -->
+    <string name="heatmap_subzone_info">Subzona: %1$s · Puntos: %2$d</string>
+    <!-- %1$d = índice del punto activo (1-based) -->
+    <string name="heatmap_active_point">Punto activo: %1$d</string>
+    <string name="heatmap_load_label">Carga</string>
+    <string name="heatmap_intensity_low">Bajo</string>
+    <string name="heatmap_intensity_ideal">Ideal</string>
+    <string name="heatmap_intensity_high">Alto</string>
+    <string name="heatmap_level_low">Baja</string>
+    <string name="heatmap_level_ideal">Ideal</string>
+    <string name="heatmap_level_high">Alta</string>
+    <string name="heatmap_volume_freq_low">Baja</string>
+    <string name="heatmap_volume_freq_medium">Media</string>
+    <string name="heatmap_volume_freq_high">Alta</string>
+    <!-- %1$s = número de series formateado -->
+    <string name="heatmap_volume_undertrained">Subentrenado · %1$s</string>
+    <string name="heatmap_volume_ideal">Ideal · %1$s</string>
+    <string name="heatmap_volume_high_sets">Alto · %1$s</string>
+    <string name="heatmap_volume_overtrained">Sobreentreno · %1$s</string>
 </resources>

@@ -18,7 +18,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,6 +27,7 @@ import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -39,14 +39,15 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -58,6 +59,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -68,13 +70,14 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.PriorityHigh
@@ -87,11 +90,13 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TipsAndUpdates
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
@@ -130,6 +135,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -137,6 +143,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import com.example.kpkn.screens.home.SingleRingCanvas
+import com.example.kpkn.data.models.Session
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.PathEffect
@@ -151,6 +160,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -164,20 +174,76 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.discomfortLabel
+import com.example.kpkn.data.sessions.SessionTemplate
+import com.example.kpkn.data.sessions.SessionTemplateApplyDecision
+import com.example.kpkn.data.sessions.SessionTemplateApplyMode
+import com.example.kpkn.data.sessions.SessionTemplateTag
+import com.example.kpkn.domain.auge.AugeFatigueEngine
+import com.example.kpkn.domain.calculations.calculateEstimatedMetric
+import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.exercises.*
-import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
-import com.example.kpkn.domain.calculations.calculateWeightFrom1RMAndIntensity
+import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.estimatePercent1RM
+import com.example.kpkn.domain.calculations.resolveReferenceCapacity
+import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
+import com.example.kpkn.ui.components.SwipeToDeleteCard
+import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.UUID
+import kotlin.math.abs
 import kotlin.math.roundToInt
+
+private fun String.safeIntOrNull(): Int? = toIntOrNull()
+private fun String.safeDoubleOrNull(): Double? = replace(",", ".").toDoubleOrNull()
+
+private fun formatEditableNumber(value: Double?): String {
+    if (value == null) return ""
+    val asLong = value.toLong()
+    return if (value == asLong.toDouble()) asLong.toString() else value.toString()
+}
+
+
+private fun formatOneDecimal(value: Double): String = "%.1f".format(value)
+
+private fun dayInitial(dayOfWeek: Int?): String = when (dayOfWeek) {
+    1 -> "L"
+    2 -> "M"
+    3 -> "X"
+    4 -> "J"
+    5 -> "V"
+    6 -> "S"
+    7 -> "D"
+    else -> "?"
+}
+
+private fun formatRestSummary(restTime: Int?): String {
+    val total = restTime ?: 90
+    val minutes = total / 60
+    val seconds = total % 60
+    return "${minutes}:${seconds.toString().padStart(2, '0')}"
+}
+
+private fun trainingModeLabel(mode: TrainingMode): String = when (mode) {
+    TrainingMode.REPS -> "Reps"
+    TrainingMode.TIME -> "Tiempo"
+    TrainingMode.RM -> "RM"
+    TrainingMode.CUSTOM -> "Personalizado"
+    TrainingMode.DISTANCE -> "Distancia"
+    TrainingMode.SOLO_RPE -> "Solo RPE"
+}
 
 private data class SessionCoverGradient(
     val id: String,
@@ -208,6 +274,9 @@ fun SessionEditorScreen(
     programId: String,
     sessionId: String,
     onBack: () -> Unit,
+    onOpenExerciseCreator: () -> Unit,
+    onOpenExerciseDetail: (String) -> Unit = {},
+    onSavedAndExit: () -> Unit = onBack,
     draftWeekId: String? = null,
     draftMacroIndex: Int? = null,
     draftMesoIndex: Int? = null,
@@ -224,6 +293,7 @@ fun SessionEditorScreen(
     ),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val allTemplates by viewModel.allTemplates.collectAsState()
     val session = uiState.session
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -231,6 +301,8 @@ fun SessionEditorScreen(
     val context = LocalContext.current
     var showDiscardDialog by rememberSaveable { mutableStateOf(false) }
     var pendingAutoExpandExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
+    var showCompetitionModeConfirm by rememberSaveable { mutableStateOf(false) }
+    var competitionToggleTarget by rememberSaveable { mutableStateOf(false) }
 
     // Auto-scroll al ejercicio recién añadido para que el usuario vea la tarjeta expandida
     LaunchedEffect(pendingAutoExpandExerciseId) {
@@ -268,14 +340,17 @@ fun SessionEditorScreen(
     val partBounds = remember { mutableMapOf<String, Rect>() }
     val partContentBounds = remember { mutableMapOf<String, Rect>() }
     val exerciseBounds = remember { mutableMapOf<String, Rect>() }
+    var looseContentBounds by remember { mutableStateOf<Rect?>(null) }
     var draggingPartId by remember { mutableStateOf<String?>(null) }
     var draggingPartOffsetY by remember { mutableStateOf(0f) }
     var partDropTargetId by remember { mutableStateOf<String?>(null) }
+    var partDropTargetIndex by remember { mutableStateOf<Int?>(null) }
     var draggingExerciseId by remember { mutableStateOf<String?>(null) }
     var draggingExercisePartId by remember { mutableStateOf<String?>(null) }
     var draggingExerciseOffset by remember { mutableStateOf(Offset.Zero) }
     var exerciseDropTargetKey by remember { mutableStateOf<String?>(null) }
     var exerciseDropTargetPartId by remember { mutableStateOf<String?>(null) }
+    var exerciseDropTargetIndex by remember { mutableStateOf<Int?>(null) }
 
     if (session == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -284,6 +359,12 @@ fun SessionEditorScreen(
         return
     }
     val groupedParts = session.parts.filterNot { it.isUncategorized() }
+
+    LaunchedEffect(session.exercises.isEmpty()) {
+        if (session.exercises.isEmpty()) {
+            looseContentBounds = null
+        }
+    }
 
     BackHandler(enabled = !showDiscardDialog && uiState.sheet == SessionEditorSheet.NONE) {
         if (uiState.hasUnsavedChanges) showDiscardDialog = true else onBack()
@@ -294,23 +375,42 @@ fun SessionEditorScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             floatingActionButton = {
-                HeroGlassFab(
-                    summary = uiState.augeSummary,
-                    onClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
-                )
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    TemplatesFab(onClick = viewModel::openTemplates)
+                    HeroGlassFab(
+                        summary = uiState.augeSummary,
+                        onClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
+                    )
+                }
             },
             floatingActionButtonPosition = FabPosition.End,
             bottomBar = {
-                SessionContextNavigator(
-                    sessions = uiState.siblingSessions,
-                    selectedSessionId = uiState.selectedSiblingSessionId ?: session.id,
-                    onSelectSession = viewModel::requestSessionSwitch,
-                    weekStartDay = uiState.weekStartDay,
-                    activeDayOfWeek = uiState.dayOfWeek,
-                    onCreateSessionForDay = { day ->
-                        val result = viewModel.createSessionForDay(day)
-                        scope.launch {
-                            snackbarHostState.showKpknSnackbar(
+                    SessionContextNavigator(
+                        sessions = uiState.siblingSessions,
+                        selectedSessionId = uiState.selectedSiblingSessionId ?: session.id,
+                        onSelectSession = viewModel::requestSessionSwitch,
+                        weekStartDay = uiState.weekStartDay,
+                        activeDayOfWeek = uiState.dayOfWeek,
+                        onSelectDay = { day ->
+                            val result = viewModel.selectRoadmapDay(day)
+                            if (result.message.isNotBlank()) {
+                                scope.launch {
+                                    snackbarHostState.showKpknSnackbar(
+                                        result.message,
+                                        if (result.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
+                                    )
+                                }
+                            }
+                        },
+                        roadmapOptions = uiState.roadmapOptions,
+                        onSelectRoadmapOption = viewModel::selectRoadmapOption,
+                        onCreateSessionForDay = { day ->
+                            val result = viewModel.createSessionForDay(day)
+                            scope.launch {
+                                snackbarHostState.showKpknSnackbar(
                                 result.message,
                                 if (result.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
                             )
@@ -330,10 +430,23 @@ fun SessionEditorScreen(
                 SessionHero(
                     session = session,
                     hasChanges = uiState.hasUnsavedChanges,
+                    latestBodyMeasurement = uiState.latestBodyMeasurement,
                     onNameChange = viewModel::updateSessionName,
                     onDescriptionChange = viewModel::updateSessionDescription,
-                    onMeetDayChange = viewModel::updateSessionMeetDay,
+                    onMeetDayChange = { targetState ->
+                        competitionToggleTarget = targetState
+                        showCompetitionModeConfirm = true
+                    },
                     onMeetBodyweightChange = viewModel::updateSessionMeetBodyweight,
+                    onSyncMeetBodyweight = {
+                        val result = viewModel.syncMeetBodyweightFromLatestMeasurement()
+                        scope.launch {
+                            snackbarHostState.showKpknSnackbar(
+                                result.message,
+                                if (result.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
+                            )
+                        }
+                    },
                     onClose = {
                         if (uiState.hasUnsavedChanges) showDiscardDialog = true else onBack()
                     },
@@ -345,23 +458,26 @@ fun SessionEditorScreen(
                 )
             }
 
-            item {
-                SessionOverviewStrip(
-                    session = session,
-                    uiState = uiState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                )
+            if (session.isMeetDay) {
+                item("competition-mode-editor") {
+                    CompetitionSessionEditor(
+                        session = session,
+                        onUpdateSession = { updater: (Session) -> Session -> viewModel.updateCurrentSession(updater) },
+                        onAddCompetitionMovement = {
+                            viewModel.addCompetitionMovement("Movimiento ${session.exercises.size + 1}")
+                        },
+                    )
+                }
             }
 
-            if (session.exercises.isNotEmpty()) {
+            if (!session.isMeetDay && session.exercises.isNotEmpty()) {
                 item("loose-exercises") {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                        verticalArrangement = Arrangement.spacedBy(0.dp),
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .onGloballyPositioned { looseContentBounds = it.boundsInWindow() },
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         session.exercises.forEachIndexed { index, exercise ->
                             key("loose|${exercise.id}") {
@@ -373,7 +489,7 @@ fun SessionEditorScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     isDragging = draggingExerciseId == exercise.id,
                                     dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
-                                    isDropTarget = exerciseDropTargetKey == "__loose__|${exercise.id}" && draggingExerciseId != exercise.id,
+                                    isDropTarget = (exerciseDropTargetKey == "__loose__|${exercise.id}" || (exerciseDropTargetPartId == "__loose__" && exerciseDropTargetIndex == index)) && draggingExerciseId != exercise.id,
                                     isPartDropTarget = exerciseDropTargetPartId == "__loose__" && draggingExerciseId != exercise.id,
                                     onBoundsChange = { rect -> exerciseBounds["__loose__|${exercise.id}"] = rect },
                                     onDragStart = {
@@ -382,6 +498,7 @@ fun SessionEditorScreen(
                                         draggingExerciseOffset = Offset.Zero
                                         exerciseDropTargetKey = null
                                         exerciseDropTargetPartId = null
+                                        exerciseDropTargetIndex = null
                                     },
                                     onDrag = { delta ->
                                         val activeExerciseId = draggingExerciseId ?: return@ExerciseEditorCard
@@ -389,50 +506,94 @@ fun SessionEditorScreen(
                                         draggingExerciseOffset += delta
                                         val activeRect = exerciseBounds["$currentPartId|$activeExerciseId"] ?: return@ExerciseEditorCard
                                         val center = Offset(activeRect.center.x + draggingExerciseOffset.x, activeRect.center.y + draggingExerciseOffset.y)
+
+                                        // Find target exercise by rect containment
                                         val targetExerciseKey = exerciseBounds.entries.firstOrNull { (key, rect) ->
                                             key != "$currentPartId|$activeExerciseId" && rect.contains(center)
                                         }?.key
                                         if (targetExerciseKey != null) {
                                             exerciseDropTargetKey = targetExerciseKey
-                                            val targetPartId = targetExerciseKey.substringBefore("|")
-                                            val targetExerciseId = targetExerciseKey.substringAfter("|")
-                                            val targetIdx = when (targetPartId) {
-                                                "__loose__" -> session.exercises.indexOfFirst { it.id == targetExerciseId }
-                                                else -> session.parts.firstOrNull { it.id == targetPartId }?.exercises?.indexOfFirst { it.id == targetExerciseId } ?: -1
-                                            }
-                                            if (targetIdx >= 0) {
-                                                viewModel.moveExerciseToPart(
-                                                    sourcePartId = currentPartId.takeUnless { it == "__loose__" },
-                                                    exerciseId = activeExerciseId,
-                                                    targetPartId = targetPartId.takeUnless { it == "__loose__" },
-                                                    targetIndex = targetIdx,
-                                                )
-                                                draggingExercisePartId = targetPartId
-                                                draggingExerciseOffset = Offset.Zero
-                                            }
+                                            exerciseDropTargetPartId = null
+                                            exerciseDropTargetIndex = null
                                         } else {
-                                            val targetPartId = groupedParts.firstOrNull { candidate ->
-                                                partContentBounds[candidate.id]?.contains(center) == true
-                                            }?.id
+                                            exerciseDropTargetKey = null
+                                            // Find target part by bounds containment
+                                            val targetPartId = when {
+                                                looseContentBounds?.contains(center) == true -> "__loose__"
+                                                else -> groupedParts.firstOrNull { candidate ->
+                                                    partContentBounds[candidate.id]?.contains(center) == true
+                                                }?.id
+                                            }
                                             exerciseDropTargetPartId = targetPartId
-                                            if (targetPartId != null && targetPartId != currentPartId) {
-                                                viewModel.moveExerciseToPart(
-                                                    sourcePartId = currentPartId.takeUnless { it == "__loose__" },
-                                                    exerciseId = activeExerciseId,
-                                                    targetPartId = targetPartId,
-                                                    targetIndex = null,
-                                                )
-                                                draggingExercisePartId = targetPartId
-                                                draggingExerciseOffset = Offset.Zero
+                                            // Find insertion index by comparing Y position with sorted exercise bounds
+                                            if (targetPartId != null) {
+                                                val relevantBounds = exerciseBounds.filterKeys { it.startsWith("$targetPartId|") }
+                                                val orderedKeys = relevantBounds.entries.sortedBy { it.value.top }
+                                                val insertIdx = orderedKeys.indexOfFirst { (key, rect) ->
+                                                    key != "$targetPartId|$activeExerciseId" && center.y < rect.center.y
+                                                }
+                                                exerciseDropTargetIndex = if (insertIdx >= 0) {
+                                                    val selfIdx = orderedKeys.indexOfFirst { it.key == "$targetPartId|$activeExerciseId" }
+                                                    if (selfIdx >= 0 && insertIdx > selfIdx) insertIdx - 1 else insertIdx
+                                                } else {
+                                                    val partSize = when (targetPartId) {
+                                                        "__loose__" -> session.exercises.size
+                                                        else -> session.parts.firstOrNull { it.id == targetPartId }?.exercises?.size ?: 0
+                                                    }
+                                                    (partSize - 1).coerceAtLeast(0)
+                                                }
+                                            } else {
+                                                exerciseDropTargetIndex = null
                                             }
                                         }
                                     },
                                     onDragEnd = {
+                                        val activeExerciseId = draggingExerciseId
+                                        val currentPartId = draggingExercisePartId
+                                        if (activeExerciseId != null && currentPartId != null) {
+                                            val finalTargetKey = exerciseDropTargetKey
+                                            val finalTargetPart = exerciseDropTargetPartId
+                                            val finalTargetIdx = exerciseDropTargetIndex
+                                            if (finalTargetKey != null) {
+                                                val tPartId = finalTargetKey.substringBefore("|")
+                                                val tExId = finalTargetKey.substringAfter("|")
+                                                val idx = when (tPartId) {
+                                                    "__loose__" -> session.exercises.indexOfFirst { it.id == tExId }
+                                                    else -> session.parts.firstOrNull { it.id == tPartId }?.exercises?.indexOfFirst { it.id == tExId }
+                                                }
+                                                if (idx != null && idx >= 0) {
+                                                    viewModel.moveExerciseToPart(
+                                                        sourcePartId = currentPartId.takeUnless { it == "__loose__" },
+                                                        exerciseId = activeExerciseId,
+                                                        targetPartId = tPartId.takeUnless { it == "__loose__" },
+                                                        targetIndex = idx,
+                                                    )
+                                                }
+                                            } else if (finalTargetPart != null && finalTargetPart != currentPartId) {
+                                                viewModel.moveExerciseToPart(
+                                                    sourcePartId = currentPartId.takeUnless { it == "__loose__" },
+                                                    exerciseId = activeExerciseId,
+                                                    targetPartId = finalTargetPart.takeUnless { it == "__loose__" },
+                                                    targetIndex = null,
+                                                )
+                                            } else if (finalTargetIdx != null) {
+                                                val selfIdx = session.exercises.indexOfFirst { it.id == activeExerciseId }
+                                                if (finalTargetIdx != selfIdx) {
+                                                    viewModel.moveExerciseToPart(
+                                                        sourcePartId = currentPartId.takeUnless { it == "__loose__" },
+                                                        exerciseId = activeExerciseId,
+                                                        targetPartId = currentPartId.takeUnless { it == "__loose__" },
+                                                        targetIndex = finalTargetIdx,
+                                                    )
+                                                }
+                                            }
+                                        }
                                         draggingExerciseId = null
                                         draggingExercisePartId = null
                                         draggingExerciseOffset = Offset.Zero
                                         exerciseDropTargetKey = null
                                         exerciseDropTargetPartId = null
+                                        exerciseDropTargetIndex = null
                                     },
                                     onUpdateExercise = { updater -> viewModel.updateExercise(null, exercise.id, updater) },
                                     onAddSet = { viewModel.addSet(null, exercise.id) },
@@ -440,6 +601,11 @@ fun SessionEditorScreen(
                                     onRemoveSet = { setId -> viewModel.removeSet(null, exercise.id, setId) },
                                     onMoveSet = { setId, dir -> viewModel.moveSet(null, exercise.id, setId, dir) },
                                     onOpenQuickActions = { viewModel.openExerciseQuickActions(null, exercise.id) },
+                                    relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
+                                    onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, exercise.id) },
+                                    onClearRelationship = { viewModel.linkExerciseRelativeTo(null, exercise.id, null) },
+                                    onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(null, exercise.id, type) },
+                                    onUpdateRelationshipNotes = { notes -> viewModel.updateExerciseRelationshipNotes(null, exercise.id, notes) },
                                     autoExpand = pendingAutoExpandExerciseId == exercise.id,
                                     onAutoExpandHandled = {
                                         if (pendingAutoExpandExerciseId == exercise.id) pendingAutoExpandExerciseId = null
@@ -447,10 +613,15 @@ fun SessionEditorScreen(
                                 )
                             }
                             AnimatedVisibility(
-                                visible = draggingExerciseId != null && exerciseDropTargetKey == "__loose__|${exercise.id}",
+                                visible = draggingExerciseId != null && (
+                                    exerciseDropTargetKey == "__loose__|${exercise.id}" ||
+                                    (exerciseDropTargetPartId == "__loose__" && exerciseDropTargetIndex == index)
+                                ),
                                 enter = fadeIn() + expandVertically(),
                                 exit = fadeOut() + shrinkVertically(),
                             ) {
+                                val primaryColor = MaterialTheme.colorScheme.primary
+                                val cornerRadiusPx = with(LocalDensity.current) { 12.dp.toPx() }
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -460,9 +631,9 @@ fun SessionEditorScreen(
                                             drawContent()
                                             val dashEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 8f), 0f)
                                             drawRoundRect(
-                                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f),
+                                                color = primaryColor.copy(alpha = 0.24f),
                                                 style = Stroke(width = 2f, pathEffect = dashEffect),
-                                                cornerRadius = CornerRadius(12.dp.toPx()),
+                                                cornerRadius = CornerRadius(cornerRadiusPx),
                                             )
                                         },
                                 )
@@ -485,7 +656,7 @@ fun SessionEditorScreen(
                 }
             }
 
-            itemsIndexed(groupedParts, key = { _, part -> part.id }) { _, part ->
+            if (!session.isMeetDay) itemsIndexed(groupedParts, key = { _, part -> part.id }) { _, part ->
                 GroupEditorCard(
                     part = part,
                     collapsed = part.id in uiState.collapsedPartIds,
@@ -502,6 +673,7 @@ fun SessionEditorScreen(
                         draggingPartId = part.id
                         draggingPartOffsetY = 0f
                         partDropTargetId = null
+                        partDropTargetIndex = null
                     },
                     onDrag = { deltaY ->
                         val activeId = draggingPartId ?: return@GroupEditorCard
@@ -513,18 +685,23 @@ fun SessionEditorScreen(
                         }?.id
                         partDropTargetId = targetId
                         if (targetId != null) {
-                            val currentIndex = groupedParts.indexOfFirst { it.id == activeId }
-                            val targetIndex = groupedParts.indexOfFirst { it.id == targetId }
-                            if (currentIndex != -1 && targetIndex != -1 && currentIndex != targetIndex) {
-                                viewModel.movePartToIndex(activeId, targetIndex)
-                                draggingPartOffsetY = 0f
-                            }
+                            partDropTargetIndex = groupedParts.indexOfFirst { it.id == targetId }
+                        } else {
+                            partDropTargetIndex = null
                         }
                     },
                     onDragEnd = {
+                        val activeId = draggingPartId
+                        if (activeId != null && partDropTargetIndex != null) {
+                            val currentIndex = groupedParts.indexOfFirst { it.id == activeId }
+                            if (currentIndex != -1 && partDropTargetIndex != currentIndex) {
+                                viewModel.movePartToIndex(activeId, partDropTargetIndex!!)
+                            }
+                        }
                         draggingPartId = null
                         draggingPartOffsetY = 0f
                         partDropTargetId = null
+                        partDropTargetIndex = null
                     },
                     onAddExercise = { viewModel.openPicker(part.id) },
                     content = {
@@ -539,7 +716,7 @@ fun SessionEditorScreen(
                                             modifier = Modifier.fillMaxWidth(),
                                             isDragging = draggingExerciseId == exercise.id,
                                             dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
-                                            isDropTarget = exerciseDropTargetKey == "${part.id}|${exercise.id}" && draggingExerciseId != exercise.id,
+                                            isDropTarget = (exerciseDropTargetKey == "${part.id}|${exercise.id}" || (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == targetIndex)) && draggingExerciseId != exercise.id,
                                             isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != exercise.id,
                                             onBoundsChange = { rect -> exerciseBounds["${part.id}|${exercise.id}"] = rect },
                                             onDragStart = {
@@ -548,6 +725,7 @@ fun SessionEditorScreen(
                                                 draggingExerciseOffset = Offset.Zero
                                                 exerciseDropTargetKey = null
                                                 exerciseDropTargetPartId = null
+                                                exerciseDropTargetIndex = null
                                             },
                                             onDrag = { delta ->
                                                 val activeExerciseId = draggingExerciseId ?: return@ExerciseEditorCard
@@ -555,50 +733,98 @@ fun SessionEditorScreen(
                                                 draggingExerciseOffset += delta
                                                 val activeRect = exerciseBounds["$currentPartId|$activeExerciseId"] ?: return@ExerciseEditorCard
                                                 val center = Offset(activeRect.center.x + draggingExerciseOffset.x, activeRect.center.y + draggingExerciseOffset.y)
+
+                                                // Find target exercise by rect containment
                                                 val targetExerciseKey = exerciseBounds.entries.firstOrNull { (key, rect) ->
                                                     key != "$currentPartId|$activeExerciseId" && rect.contains(center)
                                                 }?.key
                                                 if (targetExerciseKey != null) {
                                                     exerciseDropTargetKey = targetExerciseKey
-                                                    val targetPartId = targetExerciseKey.substringBefore("|")
-                                                    val targetExerciseId = targetExerciseKey.substringAfter("|")
-                                                    val targetIdx = when (targetPartId) {
-                                                        "__loose__" -> session.exercises.indexOfFirst { it.id == targetExerciseId }
-                                                        else -> session.parts.firstOrNull { it.id == targetPartId }?.exercises?.indexOfFirst { it.id == targetExerciseId } ?: -1
-                                                    }
-                                                    if (targetIdx >= 0) {
-                                                        viewModel.moveExerciseToPart(
-                                                            sourcePartId = currentPartId.takeUnless { it == "__loose__" },
-                                                            exerciseId = activeExerciseId,
-                                                            targetPartId = targetPartId.takeUnless { it == "__loose__" },
-                                                            targetIndex = targetIdx,
-                                                        )
-                                                        draggingExercisePartId = targetPartId
-                                                        draggingExerciseOffset = Offset.Zero
-                                                    }
+                                                    exerciseDropTargetPartId = null
+                                                    exerciseDropTargetIndex = null
                                                 } else {
-                                                    val targetPartId = groupedParts.firstOrNull { candidate ->
-                                                        partContentBounds[candidate.id]?.contains(center) == true
-                                                    }?.id
+                                                    exerciseDropTargetKey = null
+                                                    // Find target part by bounds containment
+                                                    val targetPartId = when {
+                                                        looseContentBounds?.contains(center) == true -> "__loose__"
+                                                        else -> groupedParts.firstOrNull { candidate ->
+                                                            partContentBounds[candidate.id]?.contains(center) == true
+                                                        }?.id
+                                                    }
                                                     exerciseDropTargetPartId = targetPartId
-                                                    if (targetPartId != null && targetPartId != currentPartId) {
-                                                        viewModel.moveExerciseToPart(
-                                                            sourcePartId = currentPartId.takeUnless { it == "__loose__" },
-                                                            exerciseId = activeExerciseId,
-                                                            targetPartId = targetPartId,
-                                                            targetIndex = null,
-                                                        )
-                                                        draggingExercisePartId = targetPartId
-                                                        draggingExerciseOffset = Offset.Zero
+                                                    // Find insertion index by comparing Y position with sorted exercise bounds
+                                                    if (targetPartId != null) {
+                                                        val relevantBounds = exerciseBounds.filterKeys { it.startsWith("$targetPartId|") }
+                                                        val orderedKeys = relevantBounds.entries.sortedBy { it.value.top }
+                                                        val insertIdx = orderedKeys.indexOfFirst { (key, rect) ->
+                                                            key != "$targetPartId|$activeExerciseId" && center.y < rect.center.y
+                                                        }
+                                                        exerciseDropTargetIndex = if (insertIdx >= 0) {
+                                                            val selfIdx = orderedKeys.indexOfFirst { it.key == "$targetPartId|$activeExerciseId" }
+                                                            if (selfIdx >= 0 && insertIdx > selfIdx) insertIdx - 1 else insertIdx
+                                                        } else {
+                                                            val partSize = when (targetPartId) {
+                                                                "__loose__" -> session.exercises.size
+                                                                else -> session.parts.firstOrNull { it.id == targetPartId }?.exercises?.size ?: 0
+                                                            }
+                                                            (partSize - 1).coerceAtLeast(0)
+                                                        }
+                                                    } else {
+                                                        exerciseDropTargetIndex = null
                                                     }
                                                 }
                                             },
                                             onDragEnd = {
+                                                val activeExerciseId = draggingExerciseId
+                                                val currentPartId = draggingExercisePartId
+                                                if (activeExerciseId != null && currentPartId != null) {
+                                                    val finalTargetKey = exerciseDropTargetKey
+                                                    val finalTargetPart = exerciseDropTargetPartId
+                                                    val finalTargetIdx = exerciseDropTargetIndex
+                                                    if (finalTargetKey != null) {
+                                                        val tPartId = finalTargetKey.substringBefore("|")
+                                                        val tExId = finalTargetKey.substringAfter("|")
+                                                        val idx = when (tPartId) {
+                                                            "__loose__" -> session.exercises.indexOfFirst { it.id == tExId }
+                                                            else -> session.parts.firstOrNull { it.id == tPartId }?.exercises?.indexOfFirst { it.id == tExId }
+                                                        }
+                                                        if (idx != null && idx >= 0) {
+                                                            viewModel.moveExerciseToPart(
+                                                                sourcePartId = currentPartId.takeUnless { it == "__loose__" },
+                                                                exerciseId = activeExerciseId,
+                                                                targetPartId = tPartId.takeUnless { it == "__loose__" },
+                                                                targetIndex = idx,
+                                                            )
+                                                        }
+                                                    } else if (finalTargetPart != null && finalTargetPart != currentPartId) {
+                                                        viewModel.moveExerciseToPart(
+                                                            sourcePartId = currentPartId.takeUnless { it == "__loose__" },
+                                                            exerciseId = activeExerciseId,
+                                                            targetPartId = finalTargetPart.takeUnless { it == "__loose__" },
+                                                            targetIndex = null,
+                                                        )
+                                                    } else if (finalTargetIdx != null) {
+                                                        val exercisesList = when (currentPartId) {
+                                                            "__loose__" -> session.exercises
+                                                            else -> session.parts.firstOrNull { it.id == currentPartId }?.exercises ?: emptyList()
+                                                        }
+                                                        val selfIdx = exercisesList.indexOfFirst { it.id == activeExerciseId }
+                                                        if (finalTargetIdx != selfIdx) {
+                                                            viewModel.moveExerciseToPart(
+                                                                sourcePartId = currentPartId.takeUnless { it == "__loose__" },
+                                                                exerciseId = activeExerciseId,
+                                                                targetPartId = currentPartId.takeUnless { it == "__loose__" },
+                                                                targetIndex = finalTargetIdx,
+                                                            )
+                                                        }
+                                                    }
+                                                }
                                                 draggingExerciseId = null
                                                 draggingExercisePartId = null
                                                 draggingExerciseOffset = Offset.Zero
                                                 exerciseDropTargetKey = null
                                                 exerciseDropTargetPartId = null
+                                                exerciseDropTargetIndex = null
                                             },
                                             onUpdateExercise = { updater -> viewModel.updateExercise(part.id, exercise.id, updater) },
                                             onAddSet = { viewModel.addSet(part.id, exercise.id) },
@@ -606,6 +832,11 @@ fun SessionEditorScreen(
                                             onRemoveSet = { setId -> viewModel.removeSet(part.id, exercise.id, setId) },
                                             onMoveSet = { setId, dir -> viewModel.moveSet(part.id, exercise.id, setId, dir) },
                                             onOpenQuickActions = { viewModel.openExerciseQuickActions(part.id, exercise.id) },
+                                            relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
+                                            onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, exercise.id) },
+                                            onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, exercise.id, null) },
+                                            onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(part.id, exercise.id, type) },
+                                            onUpdateRelationshipNotes = { notes -> viewModel.updateExerciseRelationshipNotes(part.id, exercise.id, notes) },
                                             autoExpand = pendingAutoExpandExerciseId == exercise.id,
                                             onAutoExpandHandled = {
                                                 if (pendingAutoExpandExerciseId == exercise.id) pendingAutoExpandExerciseId = null
@@ -631,7 +862,7 @@ fun SessionEditorScreen(
                 )
             }
 
-            item {
+            if (!session.isMeetDay) item {
                 Row(
                     modifier = Modifier
                         .padding(horizontal = 20.dp, vertical = 12.dp)
@@ -691,6 +922,10 @@ fun SessionEditorScreen(
                 }
             }
         },
+        onMultiSelectExercises = { infos ->
+            val targetPartId = uiState.pickerTargetPartId
+            viewModel.addExercisesToPart(targetPartId, infos)
+        },
         onApplyRules = { partId ->
             viewModel.applyRuleDefaultsToSession(partId)
             scope.launch {
@@ -702,16 +937,36 @@ fun SessionEditorScreen(
                 snackbarHostState.showKpknSnackbar(message, SnackbarType.SUCCESS)
             }
         },
-        onExportToSession = viewModel::exportToSession,
-        onImportFromSession = viewModel::importFromSession,
-        onSave = { saveScope ->
-            val saveResult = viewModel.saveSession(saveScope)
+        onCloneCurrentToTargets = { targetKeys, selectedExerciseIds, applyMode ->
+            val result = viewModel.cloneCurrentSessionToTargets(targetKeys, selectedExerciseIds, applyMode)
             scope.launch {
-                if (saveResult.success) {
-                    snackbarHostState.showKpknSnackbar(saveResult.message, SnackbarType.SUCCESS)
-                    onBack()
-                } else {
-                    snackbarHostState.showKpknSnackbar(saveResult.message, SnackbarType.DANGER)
+                snackbarHostState.showKpknSnackbar(
+                    result.message,
+                    if (result.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
+                )
+            }
+        },
+        onImportFromSource = { sourceSessionId, selectedExerciseIds, applyMode ->
+            val result = viewModel.importFromSourceSession(sourceSessionId, selectedExerciseIds, applyMode)
+            scope.launch {
+                snackbarHostState.showKpknSnackbar(
+                    result.message,
+                    if (result.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
+                )
+            }
+        },
+        onSave = { saveScope ->
+            val hasPendingSwitch = uiState.pendingSessionSwitchId != null
+            val saveResult = viewModel.saveSession(saveScope)
+            if (saveResult.success && !hasPendingSwitch) {
+                // Exit immediately after a successful save; waiting on snackbar blocks navigation.
+                onSavedAndExit()
+            } else {
+                scope.launch {
+                    snackbarHostState.showKpknSnackbar(
+                        saveResult.message,
+                        if (saveResult.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
+                    )
                 }
             }
         },
@@ -719,6 +974,18 @@ fun SessionEditorScreen(
             viewModel.applyAugeCorrection(alertId)
             scope.launch {
                 snackbarHostState.showKpknSnackbar("Ajuste AUGE aplicado", SnackbarType.SUCCESS)
+            }
+        },
+        onAddGhostExercise = { cardId ->
+            viewModel.addGhostExercise(cardId)
+            scope.launch {
+                snackbarHostState.showKpknSnackbar("Ejercicio añadido a la sesión", SnackbarType.SUCCESS)
+            }
+        },
+        onApplyAssistantSuggestion = { suggestionId ->
+            viewModel.applyAssistantSuggestion(suggestionId)
+            scope.launch {
+                snackbarHostState.showKpknSnackbar("Ajuste aplicado", SnackbarType.SUCCESS)
             }
         },
         onDiscardSwitch = if (uiState.pendingSessionSwitchId != null) viewModel::discardAndSwitchPendingSession else null,
@@ -737,15 +1004,37 @@ fun SessionEditorScreen(
                 snackbarHostState.showKpknSnackbar("Límites guardados", SnackbarType.SUCCESS)
             }
         },
+        onAdvancedRuleLimitsChange = { maxSessionVolume, maxWeeklyVolume, maxPattern, rigid ->
+            viewModel.updateAdvancedRuleLimits(
+                maxVolumePerMuscleSession = maxSessionVolume,
+                maxVolumePerMuscleWeekly = maxWeeklyVolume,
+                maxSamePatternPerSession = maxPattern,
+                rigidLimits = rigid,
+            )
+        },
+        onApplyGlobalIntensityAdjustment = { mode, value, muscles ->
+            viewModel.applyGlobalIntensityAdjustment(mode, value, muscles)
+            scope.launch {
+                snackbarHostState.showKpknSnackbar("Modificación global aplicada", SnackbarType.SUCCESS)
+            }
+        },
         onQuickActionOpenPicker = viewModel::triggerQuickActionOpenPicker,
         onQuickActionOpenWarmup = viewModel::triggerQuickActionOpenWarmup,
         onQuickActionDelete = viewModel::triggerQuickActionDelete,
         onQuickActionLinkSuperset = viewModel::triggerQuickActionLinkSuperset,
         onQuickActionUnlinkSuperset = viewModel::triggerQuickActionUnlinkSuperset,
+        onLinkExerciseRelativeTo = viewModel::linkExerciseRelativeTo,
         onOpenSupersetManager = viewModel::openSupersetManager,
         onUpdateSupersetRestBetween = viewModel::updateSupersetRestBetween,
         onUpdateSupersetRestAfter = viewModel::updateSupersetRestAfter,
         onRemoveFromSuperset = viewModel::removeFromSuperset,
+        onOpenExerciseDetail = onOpenExerciseDetail,
+        onOpenExerciseCreator = onOpenExerciseCreator,
+        allTemplates = allTemplates,
+        onSelectTemplate = viewModel::selectTemplate,
+        onConfirmApplyTemplate = viewModel::confirmTemplateApply,
+        onCancelTemplateApply = viewModel::cancelTemplateApply,
+        onTemplateSearchChange = viewModel::setTemplateSearchQuery,
     )
 
     if (showDiscardDialog) {
@@ -786,16 +1075,64 @@ fun SessionEditorScreen(
             },
         )
     }
+
+    if (showCompetitionModeConfirm) {
+        AlertDialog(
+            onDismissRequest = { showCompetitionModeConfirm = false },
+            title = {
+                Text(
+                    if (competitionToggleTarget) "Activar modo competición" else "Salir de modo competición",
+                    fontWeight = FontWeight.Black,
+                )
+            },
+            text = {
+                Text(
+                    if (competitionToggleTarget) {
+                        "Guardaremos respaldo de tu sesión de entrenamiento y transformaremos esta sesión en formato de competición."
+                    } else {
+                        "Vamos a restaurar tu sesión de entrenamiento desde el respaldo guardado para este día."
+                    }
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showCompetitionModeConfirm = false
+                        viewModel.updateSessionMeetDay(competitionToggleTarget)
+                        scope.launch {
+                            snackbarHostState.showKpknSnackbar(
+                                if (competitionToggleTarget) {
+                                    "Modo competición activado"
+                                } else {
+                                    "Modo entrenamiento restaurado"
+                                },
+                                SnackbarType.SUCCESS,
+                            )
+                        }
+                    }
+                ) {
+                    Text(if (competitionToggleTarget) "Activar" else "Restaurar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCompetitionModeConfirm = false }) {
+                    Text("Cancelar")
+                }
+            },
+        )
+    }
 }
 
 @Composable
 private fun SessionHero(
     session: Session,
     hasChanges: Boolean,
+    latestBodyMeasurement: BodyMeasurementEntry?,
     onNameChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onMeetDayChange: (Boolean) -> Unit,
     onMeetBodyweightChange: (Double?) -> Unit,
+    onSyncMeetBodyweight: () -> Unit,
     onClose: () -> Unit,
     onSave: () -> Unit,
     onOpenBackgroundSheet: () -> Unit,
@@ -803,205 +1140,168 @@ private fun SessionHero(
     onOpenHistory: () -> Unit,
     onOpenRules: () -> Unit,
 ) {
-    var descriptionExpanded by rememberSaveable(session.id) { mutableStateOf(false) }
-    val background = session.background
-    val brightness = background?.style?.brightness ?: 0.92f
-    val blur = (background?.style?.blur ?: 0f).dp
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(Color.Black)
-        ) {
-            SessionBackgroundLayer(background = background, blurDp = blur)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = (1f - brightness.coerceIn(0.25f, 1f)) * 0.55f),
-                                Color.Black.copy(alpha = 0.12f),
-                                Color.Black.copy(alpha = 0.78f),
-                            ),
-                        )
-                    ),
-            )
-        }
+      val background = session.background
+      val brightness = background?.style?.brightness ?: 0.92f
+      val blur = (background?.style?.blur ?: 0f).dp
+      Box(
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+         Box(
+             modifier = Modifier
+                 .matchParentSize()
+                 .background(Color.Black)
+         ) {
+             SessionBackgroundLayer(background = background, blurDp = blur)
+             Box(
+                 modifier = Modifier
+                     .fillMaxSize()
+                     .background(
+                         Brush.verticalGradient(
+                             colors = listOf(
+                                 Color.Black.copy(alpha = (1f - brightness.coerceIn(0.25f, 1f)) * 0.55f),
+                                 Color.Black.copy(alpha = 0.12f),
+                                 Color.Black.copy(alpha = 0.78f),
+                             ),
+                         )
+                     ),
+             )
+         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = Color.White.copy(alpha = 0.14f),
-                ) {
-                    Text(
-                        text = dayLabel(session.dayOfWeek),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
+         Column(
+             modifier = Modifier
+                 .fillMaxWidth()
+                 .statusBarsPadding()
+                 .padding(horizontal = 16.dp, vertical = 10.dp),
+             verticalArrangement = Arrangement.spacedBy(6.dp),
+         ) {
+              Column(
+                  modifier = Modifier.fillMaxWidth(),
+                  verticalArrangement = Arrangement.spacedBy(4.dp),
+              ) {
+                  val titleFontSize = when {
+                      session.name.length < 15 -> 36.sp
+                      session.name.length < 25 -> 28.sp
+                      else -> 22.sp
+                  }
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    HeroGlassIconButton(
-                        icon = Icons.Default.Close,
-                        contentDescription = "Salir",
-                        onClick = onClose,
-                    )
-                    HeroGlassIconButton(
-                        icon = Icons.Default.Save,
-                        contentDescription = "Guardar sesión",
-                        onClick = onSave,
-                        showUnsavedDot = hasChanges,
-                    )
-                    HeroGlassIconButton(
-                        icon = Icons.Default.Palette,
-                        contentDescription = "Editar fondo",
-                        onClick = onOpenBackgroundSheet,
-                    )
-                }
-            }
+                  OutlinedTextField(
+                      value = session.name,
+                      onValueChange = onNameChange,
+                      modifier = Modifier.fillMaxWidth(),
+                      placeholder = { Text("Nueva sesión", color = Color.White.copy(alpha = 0.72f)) },
+                      singleLine = true,
+                      shape = RoundedCornerShape(0.dp),
+                      textStyle = MaterialTheme.typography.displaySmall.copy(
+                          fontSize = titleFontSize,
+                          fontWeight = FontWeight.Bold,
+                          color = Color.White,
+                      ),
+                      colors = OutlinedTextFieldDefaults.colors(
+                          focusedContainerColor = Color.Transparent,
+                          unfocusedContainerColor = Color.Transparent,
+                          focusedBorderColor = Color.Transparent,
+                          unfocusedBorderColor = Color.Transparent,
+                          focusedTextColor = Color.White,
+                          unfocusedTextColor = Color.White,
+                          cursorColor = Color.White,
+                      ),
+                  )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                OutlinedTextField(
-                    value = session.name,
-                    onValueChange = onNameChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Nombre de la sesión", color = Color.White.copy(alpha = 0.72f)) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color.Black.copy(alpha = 0.22f),
-                        unfocusedContainerColor = Color.Black.copy(alpha = 0.22f),
-                        focusedBorderColor = Color.White.copy(alpha = 0.38f),
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.18f),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedLabelColor = Color.White.copy(alpha = 0.82f),
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.62f),
-                        cursorColor = Color.White,
-                    ),
-                )
+                  OutlinedTextField(
+                      value = session.description.orEmpty(),
+                      onValueChange = onDescriptionChange,
+                      modifier = Modifier.fillMaxWidth(),
+                      placeholder = { Text("Añadir descripción", color = Color.White.copy(alpha = 0.62f)) },
+                      singleLine = false,
+                      minLines = 1,
+                      maxLines = 2,
+                      shape = RoundedCornerShape(0.dp),
+                      textStyle = MaterialTheme.typography.bodyMedium.copy(
+                          color = Color.White.copy(alpha = 0.86f),
+                          fontWeight = FontWeight.Medium,
+                      ),
+                      colors = OutlinedTextFieldDefaults.colors(
+                          focusedContainerColor = Color.Transparent,
+                          unfocusedContainerColor = Color.Transparent,
+                          focusedBorderColor = Color.Transparent,
+                          unfocusedBorderColor = Color.Transparent,
+                          focusedTextColor = Color.White,
+                          unfocusedTextColor = Color.White,
+                          cursorColor = Color.White,
+                      ),
+                  )
 
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .clickable { descriptionExpanded = !descriptionExpanded },
-                    shape = RoundedCornerShape(14.dp),
-                    color = Color.Black.copy(alpha = 0.20f),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        Color.White.copy(alpha = 0.18f),
-                    ),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = if (session.description.isNullOrBlank()) "Añadir descripción" else "Descripción",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Icon(
-                            imageVector = if (descriptionExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (descriptionExpanded) "Ocultar descripción" else "Mostrar descripción",
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                }
+                  // Action buttons row - combined top and bottom buttons
+                  Row(
+                     modifier = Modifier
+                         .fillMaxWidth()
+                         .padding(horizontal = 4.dp),
+                     horizontalArrangement = Arrangement.spacedBy(12.dp),
+                     verticalAlignment = Alignment.CenterVertically,
+                 ) {
+                     // Close button (red, prominent)
+                     Box(
+                         modifier = Modifier
+                             .size(36.dp)
+                             .clip(CircleShape)
+                             .background(Color(0xFFB3261E).copy(alpha = 0.9f))
+                             .clickable { onClose() },
+                         contentAlignment = Alignment.Center,
+                     ) {
+                         Icon(
+                             imageVector = Icons.Default.Close,
+                             contentDescription = "Salir",
+                             tint = Color.White,
+                             modifier = Modifier.size(18.dp),
+                         )
+                     }
 
-                AnimatedVisibility(descriptionExpanded) {
-                    OutlinedTextField(
-                        value = session.description.orEmpty(),
-                        onValueChange = onDescriptionChange,
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Descripción", color = Color.White.copy(alpha = 0.72f)) },
-                        minLines = 1,
-                        maxLines = 2,
-                        shape = RoundedCornerShape(16.dp),
-                        textStyle = MaterialTheme.typography.bodySmall.copy(
-                            color = Color.White,
-                            fontWeight = FontWeight.Medium,
-                        ),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color.Black.copy(alpha = 0.22f),
-                            unfocusedContainerColor = Color.Black.copy(alpha = 0.22f),
-                            focusedBorderColor = Color.White.copy(alpha = 0.38f),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.18f),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedLabelColor = Color.White.copy(alpha = 0.82f),
-                            unfocusedLabelColor = Color.White.copy(alpha = 0.62f),
-                            cursorColor = Color.White,
-                        ),
-                    )
-                }
+                     // Transfer
+                     HeroActionIcon(
+                         icon = Icons.Default.SwapHoriz,
+                         contentDescription = "Transferir",
+                         onClick = onOpenTransfer,
+                     )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        HeroActionIcon(
-                            icon = Icons.Default.SwapHoriz,
-                            contentDescription = "Transferir",
-                            onClick = onOpenTransfer,
-                        )
-                        HeroActionIcon(
-                            icon = Icons.Default.History,
-                            contentDescription = "Historial",
-                            onClick = onOpenHistory,
-                        )
-                        HeroActionIcon(
-                            icon = Icons.Default.Settings,
-                            contentDescription = "Reglas",
-                            onClick = onOpenRules,
-                        )
-                        HeroActionIcon(
-                            icon = Icons.Default.WorkspacePremium,
-                            contentDescription = "Modo competición",
-                            onClick = { onMeetDayChange(!session.isMeetDay) },
-                            selected = session.isMeetDay,
-                        )
-                    }
-                }
+                     // History
+                     HeroActionIcon(
+                         icon = Icons.Default.History,
+                         contentDescription = "Historial",
+                         onClick = onOpenHistory,
+                     )
+
+                     // Rules
+                     HeroActionIcon(
+                         icon = Icons.Default.Settings,
+                         contentDescription = "Reglas",
+                         onClick = onOpenRules,
+                     )
+
+                     // Meet day (competition mode)
+                     HeroActionIcon(
+                         icon = Icons.Default.WorkspacePremium,
+                         contentDescription = "Modo competición",
+                         onClick = { onMeetDayChange(!session.isMeetDay) },
+                         selected = session.isMeetDay,
+                     )
+
+                     Spacer(Modifier.weight(1f))
+
+                     // Save button
+                     HeroGlassIconButton(
+                         icon = Icons.Default.Save,
+                         contentDescription = "Guardar sesión",
+                         onClick = onSave,
+                         showUnsavedDot = hasChanges,
+                     )
+
+                     // Palette (edit background)
+                     HeroGlassIconButton(
+                         icon = Icons.Default.Palette,
+                         contentDescription = "Editar fondo",
+                         onClick = onOpenBackgroundSheet,
+                     )
+                 }
 
                 if (session.isMeetDay) {
                     OutlinedTextField(
@@ -1025,6 +1325,26 @@ private fun SessionHero(
                             cursorColor = Color.White,
                         ),
                     )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        val measurementText = latestBodyMeasurement?.weight?.let { weight ->
+                            "Medición reciente: ${formatOneDecimal(weight)} kg (${latestBodyMeasurement.date})"
+                        } ?: "Sin medición corporal reciente"
+                        Text(
+                            text = measurementText,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.75f),
+                        )
+                        OutlinedButton(
+                            onClick = onSyncMeetBodyweight,
+                            enabled = latestBodyMeasurement?.weight != null,
+                        ) {
+                            Text("Usar medición")
+                        }
+                    }
                 }
             }
         }
@@ -1053,76 +1373,6 @@ private fun SessionBackgroundLayer(background: SessionBackground?, blurDp: andro
                 contentScale = ContentScale.Crop,
             )
         }
-    }
-}
-
-@Composable
-private fun SessionMetricCard(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(22.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.Start,
-        ) {
-            Text(
-                text = label,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(Modifier.height(2.dp))
-            Text(
-                text = value,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Black,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SessionOverviewStrip(
-    session: Session,
-    uiState: SessionEditorUiState,
-    modifier: Modifier = Modifier,
-) {
-    val totalExercises = remember(session) { session.allExercises().size }
-    val totalSets = remember(session) { session.allExercises().sumOf { it.sets.size } }
-    val estimatedMinutes = uiState.estimatedDurationMinutes
-    val drainPercent = uiState.augeSummary.combinedSessionDrainPercent()
-
-    Row(
-        modifier = modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        SessionMetricCard(
-            label = "Ejercicios",
-            value = totalExercises.toString(),
-            modifier = Modifier.width(104.dp),
-        )
-        SessionMetricCard(
-            label = "Series",
-            value = totalSets.toString(),
-            modifier = Modifier.width(94.dp),
-        )
-        SessionMetricCard(
-            label = "Duración est.",
-            value = "${estimatedMinutes} min",
-            modifier = Modifier.width(118.dp),
-        )
-        SessionMetricCard(
-            label = "Estrés AUGE",
-            value = "${drainPercent}%",
-            modifier = Modifier.width(118.dp),
-        )
     }
 }
 
@@ -1194,67 +1444,38 @@ private fun HeroActionIcon(
 }
 
 @Composable
+private fun TemplatesFab(onClick: () -> Unit) {
+    FloatingActionButton(
+        onClick = onClick,
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.primary,
+        shape = CircleShape,
+    ) {
+        Icon(
+            imageVector = Icons.Default.AutoAwesome,
+            contentDescription = "Plantillas de sesión",
+            modifier = Modifier.size(24.dp),
+        )
+    }
+}
+
+@Composable
 private fun HeroGlassFab(
     summary: SessionEditorAugeSummary,
     onClick: () -> Unit,
 ) {
-    val pulseTransition = rememberInfiniteTransition(label = "auge-fab-pulse")
-    val pulsingScale by pulseTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.04f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1400),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "auge-fab-scale",
-    )
-    val accentColor = augeStatusColor(summary.status, summary.hasCriticalAlerts)
-    val scale = if (summary.hasCriticalAlerts) pulsingScale else 1f
     FloatingActionButton(
         onClick = onClick,
-        modifier = Modifier.graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        },
+        modifier = Modifier,
         containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = accentColor,
+        contentColor = MaterialTheme.colorScheme.primary,
         shape = CircleShape,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.AutoAwesome,
-                    contentDescription = "Abrir Asistente de sesión",
-                    modifier = Modifier.size(20.dp),
-                )
-                if (summary.alertCount > 0) {
-                    Surface(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = 8.dp, y = (-8).dp),
-                        shape = CircleShape,
-                        color = accentColor,
-                    ) {
-                        Text(
-                            text = summary.alertCount.toString(),
-                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-                            color = Color.White,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                        )
-                    }
-                }
-            }
-            Text(
-                text = "Asistente de sesión",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.Visibility,
+            contentDescription = "Abrir Asistente de sesión",
+            modifier = Modifier.size(24.dp),
+        )
     }
 }
 
@@ -1265,6 +1486,9 @@ private fun SessionContextNavigator(
     onSelectSession: (String) -> Unit,
     weekStartDay: Int,
     activeDayOfWeek: Int?,
+    onSelectDay: (Int) -> Unit,
+    roadmapOptions: List<SessionRoadmapOption>,
+    onSelectRoadmapOption: (SessionRoadmapOption) -> Unit,
     onCreateSessionForDay: (Int) -> Unit,
 ) {
     val orderedDays = remember(weekStartDay) {
@@ -1273,13 +1497,17 @@ private fun SessionContextNavigator(
         val offset = safeStart - 1
         base.drop(offset) + base.take(offset)
     }
-    var selectedDay by remember(activeDayOfWeek, orderedDays) {
-        mutableStateOf(activeDayOfWeek ?: orderedDays.first())
+    val selectedSessionDay = remember(sessions, selectedSessionId) {
+        sessions.firstOrNull { it.id == selectedSessionId }?.dayOfWeek
     }
-
-    val sessionsForSelectedDay = remember(sessions, selectedDay) {
-        sessions.filter { it.dayOfWeek == selectedDay }
+    var selectedDay by remember(activeDayOfWeek, selectedSessionDay, orderedDays) {
+        mutableStateOf(activeDayOfWeek ?: selectedSessionDay ?: orderedDays.first())
     }
+    val selectedDayHasSession = remember(sessions, selectedDay) {
+        sessions.any { it.dayOfWeek == selectedDay }
+    }
+    var showRoadmapMenu by remember { mutableStateOf(false) }
+    val showRoadmapMenuButton = roadmapOptions.size > 1
 
     Surface(
         shadowElevation = 14.dp,
@@ -1290,66 +1518,141 @@ private fun SessionContextNavigator(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                orderedDays.forEach { day ->
-                    val hasSession = sessions.any { it.dayOfWeek == day }
-                    val selectedDayChip = selectedDay == day
-                    FilterChip(
-                        selected = selectedDayChip,
-                        onClick = {
-                            selectedDay = day
-                            sessions.firstOrNull { it.dayOfWeek == day }?.let { onSelectSession(it.id) }
-                        },
-                        label = { Text(dayLabelShort(day)) },
-                        leadingIcon = if (hasSession) {
-                            {
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary)
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Row(
+                        modifier = Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        orderedDays.forEach { day ->
+                            val hasSession = sessions.any { it.dayOfWeek == day }
+                            val selectedDayChip = selectedDay == day
+                            val selectedDayColor = Color(0xFF2563EB)
+                            val backgroundColor = if (selectedDayChip && hasSession) selectedDayColor else Color.White
+                            val borderColor = when {
+                                selectedDayChip && hasSession -> Color.Transparent
+                                selectedDayChip -> selectedDayColor
+                                else -> MaterialTheme.colorScheme.outline
+                            }
+                            val borderWidth = if (selectedDayChip) 1.8.dp else 1.dp
+                            val textColor = when {
+                                selectedDayChip && hasSession -> Color.White
+                                selectedDayChip -> selectedDayColor
+                                else -> Color.Black
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .background(backgroundColor)
+                                    .border(
+                                        width = borderWidth,
+                                        color = borderColor,
+                                        shape = CircleShape,
+                                    )
+                                    .combinedClickable(
+                                        onClick = {
+                                            selectedDay = day
+                                            sessions.firstOrNull { it.dayOfWeek == day }?.let { onSelectSession(it.id) } ?: onSelectDay(day)
+                                        },
+                                        onLongClick = {
+                                            if (!hasSession) {
+                                                selectedDay = day
+                                                onCreateSessionForDay(day)
+                                            }
+                                        },
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = dayInitial(day),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = textColor,
+                                )
+                                if (hasSession && !selectedDayChip) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .offset(x = (-4).dp, y = (-4).dp)
+                                            .size(6.dp)
+                                            .clip(CircleShape)
+                                            .background(selectedDayColor),
+                                    )
+                                }
+                            }
+                        }
+
+                        Surface(
+                            onClick = { onCreateSessionForDay(selectedDay) },
+                            shape = CircleShape,
+                            color = if (selectedDayHasSession) Color.Transparent else Color(0xFF2563EB),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                if (selectedDayHasSession) MaterialTheme.colorScheme.outline else Color.Transparent,
+                            ),
+                        ) {
+                            Box(
+                                modifier = Modifier.size(38.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Crear sesión en día seleccionado",
+                                    tint = if (selectedDayHasSession) MaterialTheme.colorScheme.onSurfaceVariant else Color.White,
                                 )
                             }
-                        } else null,
-                    )
-                }
-            }
+                        }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = if (sessionsForSelectedDay.isEmpty()) {
-                        "Sin sesión en ${dayLabelShort(selectedDay)}"
-                    } else {
-                        "${sessionsForSelectedDay.size} sesión${if (sessionsForSelectedDay.size > 1) "es" else ""} en ${dayLabelShort(selectedDay)}"
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                if (sessionsForSelectedDay.isEmpty()) {
-                    AssistChip(
-                        onClick = { onCreateSessionForDay(selectedDay) },
-                        label = { Text("Agregar") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                            )
-                        },
-                    )
+                        if (showRoadmapMenuButton) {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .clickable { showRoadmapMenu = true },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = "Cambiar roadmap",
+                                )
+                                DropdownMenu(
+                                    expanded = showRoadmapMenu,
+                                    onDismissRequest = { showRoadmapMenu = false },
+                                ) {
+                                    roadmapOptions.forEach { option ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Column {
+                                                    Text(
+                                                        "B${option.blockIndex + 1} · S${option.weekIndex + 1}",
+                                                        fontWeight = FontWeight.Bold,
+                                                    )
+                                                    Text(
+                                                        option.weekName,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    )
+                                                }
+                                            },
+                                            onClick = {
+                                                showRoadmapMenu = false
+                                                onSelectRoadmapOption(option)
+                                            },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1382,6 +1685,9 @@ private fun GroupEditorCard(
         runCatching { Color(AndroidColor.parseColor(part.color ?: PART_COLORS.first())) }.getOrDefault(Color(0xFF00F0FF))
     }
     val dropScale by animateFloatAsState(if (isDropTarget) 1.01f else 1f, label = "partDropScale")
+    val normalizedName = part.name.trim()
+    val displayName = if (normalizedName.isBlank()) "GRUPO" else normalizedName.uppercase()
+    val shouldShowDeleteChoice = part.exercises.isNotEmpty()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1408,142 +1714,164 @@ private fun GroupEditorCard(
             } else null,
         ) {
             Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .pointerInput(part.id) {
-                            detectDragGesturesAfterLongPress(
-                                onDragStart = { onDragStart() },
-                                onDragCancel = { onDragEnd() },
-                                onDragEnd = { onDragEnd() },
-                                onDrag = { change, dragAmount ->
-                                    change.consume()
-                                    onDrag(dragAmount.y)
-                                }
+                SwipeToDeleteCard(
+                    onDelete = {
+                        if (shouldShowDeleteChoice) {
+                            showDeleteModeConfirm = true
+                        } else {
+                            showDeleteConfirm = true
+                        }
+                    },
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DragHandle,
+                            contentDescription = "Mantén pulsado para reordenar grupo",
+                            tint = partColor.copy(alpha = if (isDragging) 0.92f else 0.56f),
+                            modifier = Modifier
+                                .size(18.dp)
+                                .pointerInput(part.id) {
+                                    detectDragGesturesAfterLongPress(
+                                        onDragStart = { onDragStart() },
+                                        onDragCancel = { onDragEnd() },
+                                        onDragEnd = { onDragEnd() },
+                                        onDrag = { change, dragAmount ->
+                                            change.consume()
+                                            onDrag(dragAmount.y)
+                                        }
+                                    )
+                                },
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(partColor)
+                                .clickable { showColorPicker = !showColorPicker },
+                        )
+                        if (part.isUncategorized()) {
+                            Text(
+                                "SIN GRUPO",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Black,
+                                color = partColor,
+                            )
+                        } else {
+                            Column(modifier = Modifier.weight(1f)) {
+                                BasicTextField(
+                                    value = normalizedName.uppercase(),
+                                    onValueChange = { input ->
+                                        onRename(input.trim())
+                                    },
+                                    singleLine = true,
+                                    cursorBrush = SolidColor(partColor),
+                                    textStyle = MaterialTheme.typography.labelLarge.copy(
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    ),
+                                    decorationBox = { innerTextField ->
+                                        Box {
+                                            if (normalizedName.isBlank()) {
+                                                Text(
+                                                    displayName,
+                                                    style = MaterialTheme.typography.labelLarge.copy(
+                                                        fontWeight = FontWeight.Black,
+                                                        fontSize = 14.sp,
+                                                    ),
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                )
+                                            }
+                                            innerTextField()
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .height(2.dp)
+                                        .fillMaxWidth()
+                                        .background(partColor.copy(alpha = 0.4f))
+                                )
+                            }
+                        }
+                        IconButton(
+                            onClick = onToggleCollapse,
+                            modifier = Modifier.size(30.dp),
+                        ) {
+                            Icon(
+                                if (collapsed) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                                contentDescription = if (collapsed) "Expandir" else "Colapsar",
+                                tint = partColor,
+                                modifier = Modifier.size(20.dp),
                             )
                         }
-                        .padding(horizontal = 6.dp, vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DragHandle,
-                        contentDescription = "Mantén pulsado para reordenar grupo",
-                        tint = partColor.copy(alpha = if (isDragging) 0.92f else 0.56f),
-                        modifier = Modifier.size(18.dp),
-                    )
-                    IconButton(
-                        onClick = onToggleCollapse,
-                        modifier = Modifier.size(30.dp),
-                    ) {
-                        Icon(
-                            if (collapsed) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                            contentDescription = if (collapsed) "Expandir" else "Colapsar",
-                            tint = partColor,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(partColor)
-                            .clickable { showColorPicker = !showColorPicker },
-                    )
-                    if (part.isUncategorized()) {
-                        Text(
-                            "Sin grupo",
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = partColor,
-                        )
-                    } else {
-                        OutlinedTextField(
-                            value = part.name,
-                            onValueChange = onRename,
-                            modifier = Modifier.weight(1f),
-                            singleLine = true,
-                            textStyle = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = partColor,
-                                unfocusedBorderColor = partColor.copy(alpha = 0.4f),
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                cursorColor = partColor,
-                            ),
-                        )
-                    }
-                    IconButton(
-                        onClick = { showDeleteConfirm = true },
-                        modifier = Modifier.size(30.dp),
-                    ) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Eliminar",
-                            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
-                            modifier = Modifier.size(16.dp),
-                        )
                     }
                 }
 
                 AnimatedVisibility(showColorPicker) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        PART_COLORS.forEach { hex ->
-                            val c = runCatching { Color(AndroidColor.parseColor(hex)) }.getOrDefault(Color.Gray)
-                            Box(
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            PART_COLORS.forEach { hex ->
+                                val c = runCatching { Color(AndroidColor.parseColor(hex)) }.getOrDefault(Color.Gray)
+                                Box(
+                                    modifier = Modifier
+                                        .size(22.dp)
+                                        .clip(CircleShape)
+                                        .background(c)
+                                        .border(if (hex == part.color) 2.dp else 0.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                                        .clickable {
+                                            onChangeColor(hex)
+                                            showColorPicker = false
+                                        }
+                                )
+                            }
+                        }
+                    }
+
+                    AnimatedVisibility(!collapsed) {
+                        Column(
+                            modifier = Modifier.onGloballyPositioned { onContentBoundsChange(it.boundsInWindow()) },
+                            verticalArrangement = Arrangement.spacedBy(0.dp),
+                        ) {
+                            content()
+                            FilledTonalButton(
+                                onClick = onAddExercise,
                                 modifier = Modifier
-                                    .size(22.dp)
-                                    .clip(CircleShape)
-                                    .background(c)
-                                    .border(if (hex == part.color) 2.dp else 0.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                                    .clickable {
-                                        onChangeColor(hex)
-                                        showColorPicker = false
-                                    }
-                            )
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            ) {
+                                Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Agregar ejercicio en ${displayName}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
                         }
                     }
                 }
             }
         }
-
-        AnimatedVisibility(!collapsed) {
-            Column(
-                modifier = Modifier.onGloballyPositioned { onContentBoundsChange(it.boundsInWindow()) },
-                verticalArrangement = Arrangement.spacedBy(0.dp),
-            ) {
-                content()
-                FilledTonalButton(
-                    onClick = onAddExercise,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp, vertical = 6.dp),
-                ) {
-                    Icon(Icons.Default.Add, null)
-                    Spacer(Modifier.width(6.dp))
-                    Text("Agregar ejercicio", fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-    }
 
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             title = { Text("Eliminar grupo", fontWeight = FontWeight.Black) },
-            text = { Text("Antes de borrar el grupo, decide qué hacer con los ejercicios que contiene.") },
+            text = { Text("¿Eliminar este grupo?") },
             confirmButton = {
                 FilledTonalButton(onClick = {
                     showDeleteConfirm = false
-                    showDeleteModeConfirm = true
-                }) {
-                    Text("Continuar")
-                }
+                    onRemove(false)
+                }) { Text("Eliminar") }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
@@ -1612,47 +1940,71 @@ private fun ExerciseEditorCard(
     onRemoveSet: (String) -> Unit,
     onMoveSet: (String, Int) -> Unit,
     onOpenQuickActions: () -> Unit,
+    relationshipAnchorName: String?,
+    onOpenRelationshipPicker: () -> Unit,
+    onClearRelationship: () -> Unit,
+    onUpdateRelationshipType: (ExerciseRelationshipType?) -> Unit,
+    onUpdateRelationshipNotes: (String?) -> Unit,
     autoExpand: Boolean,
     onAutoExpandHandled: () -> Unit,
 ) {
     var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
     var showCustomUnitModal by remember { mutableStateOf(false) }
 
-    val resolved1RM = remember(exercise.reference1RM, exercise.prFor1RM) {
-        when {
-            exercise.reference1RM != null -> exercise.reference1RM
-            exercise.prFor1RM != null -> calculateHybrid1RM(exercise.prFor1RM.weight, exercise.prFor1RM.reps)
-            else -> null
-        }
+    val resolved1RM = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM) {
+        resolveReferenceCapacity(exercise)
     }
     var rmInputMode by remember(exercise.id, exercise.prFor1RM) {
         mutableStateOf(if (exercise.prFor1RM != null) "pr" else "direct")
     }
-    val initialLoad = exercise.consolidatedWeight?.weightKg ?: exercise.sets.firstOrNull()?.weight
     var restSelectionSeconds by rememberSaveable(exercise.id) { mutableStateOf(exercise.restTime ?: 90) }
-    var directRmInput by rememberSaveable(exercise.id) { mutableStateOf(formatEditableNumber(exercise.reference1RM)) }
-    var prWeightInput by rememberSaveable(exercise.id) { mutableStateOf(formatEditableNumber(exercise.prFor1RM?.weight)) }
+    var directRmInput by rememberSaveable(exercise.id) { mutableStateOf<String>(formatEditableNumber(exercise.reference1RM)) }
+    var prWeightInput by rememberSaveable(exercise.id) { mutableStateOf<String>(formatEditableNumber(exercise.prFor1RM?.weight)) }
     var prRepsInput by rememberSaveable(exercise.id) { mutableStateOf(exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toString().orEmpty()) }
-    var initialLoadInput by rememberSaveable(exercise.id) { mutableStateOf(formatEditableNumber(initialLoad)) }
     var customUnitInput by rememberSaveable(exercise.id) { mutableStateOf(exercise.customUnit.orEmpty()) }
-    var goalRmInput by rememberSaveable(exercise.id) { mutableStateOf(formatEditableNumber(exercise.goal1RM)) }
+    var goalRmInput by rememberSaveable(exercise.id) { mutableStateOf<String>(formatEditableNumber(exercise.goal1RM)) }
     val localPrEstimatedRm = remember(prWeightInput, prRepsInput) {
         val weight = prWeightInput.safeDoubleOrNull()
         val reps = prRepsInput.safeIntOrNull()
-        if (weight != null && weight > 0 && reps != null && reps > 0) calculateHybrid1RM(weight, reps) else null
+        if (weight != null && weight > 0 && reps != null && reps > 0) {
+            when (exercise.trainingMode) {
+                TrainingMode.REPS,
+                TrainingMode.RM,
+                -> calculateHybrid1RM(weight, reps)
+                TrainingMode.TIME,
+                TrainingMode.DISTANCE,
+                TrainingMode.CUSTOM,
+                -> calculateGeneralizedCapacity(weight, reps.toDouble())
+                TrainingMode.SOLO_RPE -> null
+            }
+        } else null
     }
     val accentColor = remember(accentHex) {
         runCatching { Color(AndroidColor.parseColor(accentHex ?: PART_COLORS.first())) }.getOrDefault(Color(0xFF00F0FF))
     }
-    val predictedWeights = remember(exercise.reference1RM, exercise.sets) {
+    val predictedWeights = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM, exercise.sets) {
         exercise.sets.associate { set ->
-            set.id to exercise.reference1RM?.let { reference ->
-                calculateWeightFrom1RMAndIntensity(reference, set)
-            }
+            set.id to calculateSuggestedLoad(exercise, set)
+        }
+    }
+    val predictedMetrics = remember(exercise.trainingMode, exercise.sets) {
+        exercise.sets.associate { set ->
+            set.id to calculateEstimatedMetric(exercise, set)
         }
     }
 
     LaunchedEffect(exercise.id, exercise.restTime) { restSelectionSeconds = exercise.restTime ?: 90 }
+    LaunchedEffect(exercise.id, exercise.reference1RM) {
+        directRmInput = formatEditableNumber(exercise.reference1RM)
+    }
+    LaunchedEffect(exercise.id, exercise.prFor1RM) {
+        prWeightInput = formatEditableNumber(exercise.prFor1RM?.weight)
+        prRepsInput = exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toString().orEmpty()
+        rmInputMode = if (exercise.prFor1RM != null) "pr" else rmInputMode
+    }
+    LaunchedEffect(exercise.id, exercise.goal1RM) {
+        goalRmInput = formatEditableNumber(exercise.goal1RM)
+    }
     LaunchedEffect(autoExpand) {
         if (autoExpand) { expanded = true; onAutoExpandHandled() }
     }
@@ -1680,17 +2032,6 @@ private fun ExerciseEditorCard(
         modifier = modifier
             .fillMaxWidth()
             .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
-            .pointerInput(partId, exercise.id) {
-                detectDragGesturesAfterLongPress(
-                    onDragStart = { onDragStart() },
-                    onDragCancel = { onDragEnd() },
-                    onDragEnd = { onDragEnd() },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        onDrag(Offset(dragAmount.x, dragAmount.y))
-                    },
-                )
-            }
             .graphicsLayer {
                 translationX = if (isDragging) dragOffset.x else 0f
                 translationY = if (isDragging) dragOffset.y else 0f
@@ -1712,21 +2053,43 @@ private fun ExerciseEditorCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .combinedClickable(
-                    onClick = { expanded = !expanded },
-                    onLongClick = onOpenQuickActions,
-                )
                 .padding(horizontal = 14.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Icon(
-                imageVector = Icons.Default.DragHandle,
-                contentDescription = "Mantén pulsado para reordenar ejercicio",
-                tint = accentColor.copy(alpha = if (isDragging) 0.9f else 0.48f),
-                modifier = Modifier.size(18.dp),
-            )
-            Column(modifier = Modifier.weight(1f)) {
+            // Drag handle — exclusive drag zone, larger touch target
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .pointerInput(exercise.id) {
+                        detectDragGesturesAfterLongPress(
+                            onDragStart = { onDragStart() },
+                            onDragCancel = { onDragEnd() },
+                            onDragEnd = { onDragEnd() },
+                            onDrag = { change, dragAmount ->
+                                change.consume()
+                                onDrag(Offset(dragAmount.x, dragAmount.y))
+                            },
+                        )
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DragHandle,
+                    contentDescription = "Mantén pulsado para reordenar ejercicio",
+                    tint = accentColor.copy(alpha = if (isDragging) 0.9f else 0.48f),
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            // Name & subtitle — click to expand, long-press for quick actions
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .combinedClickable(
+                        onClick = { expanded = !expanded },
+                        onLongClick = onOpenQuickActions,
+                    ),
+            ) {
                 Text(
                     text = exercise.name.ifBlank { "Seleccionar ejercicio" },
                     style = MaterialTheme.typography.labelLarge,
@@ -1745,34 +2108,12 @@ private fun ExerciseEditorCard(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Box {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    if (!expanded) {
-                        Text(
-                            text = "Mantén o toca ⋯",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
-                            maxLines = 1,
-                        )
-                    }
-                    IconButton(onClick = onOpenQuickActions, modifier = Modifier.size(24.dp)) {
-                        Icon(
-                            imageVector = Icons.Default.MoreHoriz,
-                            contentDescription = "Acciones rápidas",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.76f),
-                            modifier = Modifier.size(16.dp),
-                        )
-                    }
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = if (expanded) "Plegar" else "Desplegar",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = if (expanded) "Plegar" else "Desplegar",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.clickable { expanded = !expanded },
+            )
         }
 
         // Inline expanded editor
@@ -1797,7 +2138,7 @@ private fun ExerciseEditorCard(
                     CompactRestPickerButton(
                         totalSeconds = restSelectionSeconds,
                         accentColor = accentColor,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier,
                     ) { totalSeconds ->
                         restSelectionSeconds = totalSeconds
                         onUpdateExercise { draft -> draft.copy(restTime = totalSeconds) }
@@ -1818,24 +2159,12 @@ private fun ExerciseEditorCard(
                     ) {
                         onUpdateExercise { ex -> ex.copy(isStarTarget = !ex.isStarTarget) }
                     }
-                }
 
-                // Initial load only for REPS mode
-                if (exercise.trainingMode == TrainingMode.REPS) {
-                    EditorMiniField(
-                        label = "Carga inicial (opcional)",
-                        value = initialLoadInput,
-                        keyboardType = KeyboardType.Decimal,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { input ->
-                        initialLoadInput = input
-                        val load = input.safeDoubleOrNull()
-                        onUpdateExercise { current ->
-                            current.copy(
-                                consolidatedWeight = load?.let { ConsolidatedWeight(it, current.sets.firstOrNull()?.targetReps ?: 1) },
-                                sets = current.sets.map { set -> set.copy(weight = load) },
-                            )
-                        }
+                    CompactUnilateralButton(
+                        isActive = exercise.isUnilateral,
+                        accentColor = accentColor,
+                    ) {
+                        onUpdateExercise { ex -> ex.copy(isUnilateral = !ex.isUnilateral) }
                     }
                 }
 
@@ -1870,21 +2199,30 @@ private fun ExerciseEditorCard(
                     }
                 }
 
-                // 1RM reference (percent mode)
-                if (exercise.trainingMode == TrainingMode.PERCENT) {
+                if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
+                    Text(
+                        "Carga inteligente",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+
+                if (exercise.trainingMode == TrainingMode.REPS || exercise.trainingMode == TrainingMode.RM) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        ToggleToken("1RM directo", rmInputMode == "direct") { rmInputMode = "direct" }
+                        ToggleToken("RM directo", rmInputMode == "direct") { rmInputMode = "direct" }
                         ToggleToken("Desde PR", rmInputMode == "pr") { rmInputMode = "pr" }
                     }
                     if (rmInputMode == "direct") {
                         EditorMiniField(
-                            label = "1RM referencial",
+                            label = "RM referencial",
                             value = directRmInput,
                             keyboardType = KeyboardType.Decimal,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             directRmInput = it
-                            onUpdateExercise { current -> current.copy(reference1RM = it.safeDoubleOrNull()) }
+                            val parsed = it.safeDoubleOrNull()?.takeIf { value -> value > 0 }
+                            onUpdateExercise { current -> current.copy(reference1RM = parsed) }
                         }
                     } else {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1897,12 +2235,14 @@ private fun ExerciseEditorCard(
                                 prWeightInput = it
                                 val weight = it.safeDoubleOrNull()
                                 val reps = prRepsInput.safeIntOrNull()
-                                if (weight != null && weight > 0 && reps != null && reps > 0) {
-                                    onUpdateExercise { current ->
+                                onUpdateExercise { current ->
+                                    if (weight != null && weight > 0 && reps != null && reps > 0) {
                                         current.copy(
                                             prFor1RM = PrReference(weight, reps),
                                             reference1RM = calculateHybrid1RM(weight, reps),
                                         )
+                                    } else {
+                                        current.copy(prFor1RM = null, reference1RM = null)
                                     }
                                 }
                             }
@@ -1915,24 +2255,108 @@ private fun ExerciseEditorCard(
                                 prRepsInput = it
                                 val weight = prWeightInput.safeDoubleOrNull()
                                 val reps = it.safeIntOrNull()
-                                if (weight != null && weight > 0 && reps != null && reps > 0) {
-                                    onUpdateExercise { current ->
+                                onUpdateExercise { current ->
+                                    if (weight != null && weight > 0 && reps != null && reps > 0) {
                                         current.copy(
                                             prFor1RM = PrReference(weight, reps),
                                             reference1RM = calculateHybrid1RM(weight, reps),
                                         )
+                                    } else {
+                                        current.copy(prFor1RM = null, reference1RM = null)
                                     }
                                 }
                             }
                         }
                         if (localPrEstimatedRm != null) {
                             Text(
-                                "1RM calculado: ${formatEditableNumber(localPrEstimatedRm)} kg",
+                                if (exercise.trainingMode == TrainingMode.RM) {
+                                    "RM calculado: ${formatEditableNumber(localPrEstimatedRm)} kg"
+                                } else {
+                                    "Base calculada: ${formatEditableNumber(localPrEstimatedRm)} kg"
+                                },
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold,
                             )
                         }
+                    }
+                    val needsRmReference = exercise.sets.any { it.targetPercentageRM != null } && resolved1RM == null
+                    if (needsRmReference) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            color = accentColor.copy(alpha = 0.12f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.24f)),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text(
+                                    "Falta referencia para %RM",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = accentColor,
+                                )
+                                Text(
+                                    "Agrega un RM directo o un PR para que las series con %RM autocompleten la carga exacta.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    "Se usará esa misma referencia para las sugerencias de carga dentro de la sesión.",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                } else if (exercise.trainingMode == TrainingMode.TIME || exercise.trainingMode == TrainingMode.DISTANCE || exercise.trainingMode == TrainingMode.CUSTOM) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        EditorMiniField(
+                            label = "Carga base",
+                            value = prWeightInput,
+                            keyboardType = KeyboardType.Decimal,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            prWeightInput = it
+                            val weight = it.safeDoubleOrNull()
+                            val metric = prRepsInput.safeIntOrNull()
+                            if (weight != null && weight > 0 && metric != null && metric > 0) {
+                                onUpdateExercise { current ->
+                                    current.copy(
+                                        prFor1RM = PrReference(weight, metric),
+                                        reference1RM = calculateGeneralizedCapacity(weight, metric.toDouble()),
+                                    )
+                                }
+                            }
+                        }
+                        EditorMiniField(
+                            label = smartReferenceMetricLabel(exercise.trainingMode, customUnitInput),
+                            value = prRepsInput,
+                            keyboardType = KeyboardType.Number,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            prRepsInput = it
+                            val weight = prWeightInput.safeDoubleOrNull()
+                            val metric = it.safeIntOrNull()
+                            if (weight != null && weight > 0 && metric != null && metric > 0) {
+                                onUpdateExercise { current ->
+                                    current.copy(
+                                        prFor1RM = PrReference(weight, metric),
+                                        reference1RM = calculateGeneralizedCapacity(weight, metric.toDouble()),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    if (localPrEstimatedRm != null) {
+                        Text(
+                            "Base calculada: ${formatEditableNumber(localPrEstimatedRm)} kg-equivalentes",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                        )
                     }
                 }
 
@@ -1966,6 +2390,75 @@ private fun ExerciseEditorCard(
                     }
                 }
 
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        "Relacion con otro ejercicio",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    OutlinedButton(
+                        onClick = onOpenRelationshipPicker,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                    ) {
+                        Icon(Icons.Default.Link, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            relationshipAnchorName?.let { "Ancla: $it" } ?: "Vincular a otro ejercicio",
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    if (exercise.relativeToCanonicalExerciseId != null) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = exercise.relationshipType?.displayLabel()?.let { "$it de ${relationshipAnchorName ?: exercise.relativeToCanonicalExerciseId}" }
+                                    ?: "Vinculado a ${relationshipAnchorName ?: exercise.relativeToCanonicalExerciseId}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.weight(1f),
+                            )
+                            TextButton(onClick = onClearRelationship) {
+                                Text("Quitar")
+                            }
+                        }
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            ExerciseRelationshipType.values().forEach { type ->
+                                FilterChip(
+                                    selected = exercise.relationshipType == type,
+                                    onClick = { onUpdateRelationshipType(type) },
+                                    label = { Text(type.displayLabel()) },
+                                )
+                            }
+                        }
+                        EditorMiniField(
+                            label = "Notas de relacion",
+                            value = exercise.relationshipNotes.orEmpty(),
+                            stateKey = "relationship-notes-${exercise.id}",
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { input ->
+                            onUpdateRelationshipNotes(input.ifBlank { null })
+                        }
+                    } else {
+                        Text(
+                            "Puedes enlazar variantes, asistencias o sobrecargas al ejercicio ancla para ordenar mejor el historial.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
                 // Series carousel section
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -1982,6 +2475,7 @@ private fun ExerciseEditorCard(
                         reference1RM = resolved1RM,
                         trainingMode = exercise.trainingMode,
                         customUnit = exercise.customUnit,
+                        predictedMetrics = predictedMetrics,
                         accentColor = accentColor,
                         modifier = Modifier.fillMaxWidth(),
                         onAddSet = onAddSet,
@@ -2045,6 +2539,7 @@ private fun InlineSetRow(
     index: Int,
     reference1RM: Double?,
     predictedWeight: Double?,
+    estimatedMetric: Double?,
     trainingMode: TrainingMode,
     customUnit: String?,
     accentColor: Color,
@@ -2058,29 +2553,30 @@ private fun InlineSetRow(
     var showAmrapDialog by remember(set.id) { mutableStateOf(false) }
     var showIntensityMenu by remember(set.id) { mutableStateOf(false) }
     val isNarrowScreen = LocalConfiguration.current.screenWidthDp <= 380
-    val isRmMode = trainingMode == TrainingMode.PERCENT
+    val isRmMode = trainingMode == TrainingMode.RM
+    val isSoloRpeMode = trainingMode == TrainingMode.SOLO_RPE
     val isAmrapMode = set.isAmrap
     val sliderPercent = remember(set.targetPercentageRM, set.targetReps, set.intensityMode, predictedWeight, reference1RM) {
         when {
-            set.intensityMode == IntensityMode.SOLO_RM && set.targetPercentageRM != null -> set.targetPercentageRM
+            isRmMode && set.targetPercentageRM != null -> set.targetPercentageRM
             predictedWeight != null && reference1RM != null && reference1RM > 0 -> ((predictedWeight / reference1RM) * 100.0).coerceIn(40.0, 100.0)
             set.targetReps != null -> estimatePercent1RM(set.targetReps)
             else -> 75.0
         }
     }
-    val displayedWeight = when {
-        reference1RM == null -> null
-        set.intensityMode == IntensityMode.SOLO_RM -> ((reference1RM * sliderPercent / 100.0) * 4).toInt() / 4.0
-        else -> predictedWeight
-    }
+    val displayedWeight = predictedWeight
     val metricLabel = when (trainingMode) {
-        TrainingMode.PERCENT, TrainingMode.REPS -> if (isAmrapMode) "Reps mín." else "Reps"
+        TrainingMode.RM -> "Reps est."
+        TrainingMode.REPS -> if (isAmrapMode) "Reps mín." else "Reps"
         TrainingMode.TIME -> if (isAmrapMode) "Tiempo mín." else "Tiempo"
         TrainingMode.DISTANCE -> if (isAmrapMode) "Dist. mín." else "Dist."
         TrainingMode.CUSTOM -> if (isAmrapMode) "${customUnit?.ifBlank { "Unidad" } ?: "Unidad"} mín." else (customUnit?.ifBlank { "Unidad" } ?: "Unidad")
+        TrainingMode.SOLO_RPE -> "RPE obj."
     }
     val metricValue = when (trainingMode) {
+        TrainingMode.RM -> formatEstimatedMetric(estimatedMetric, trainingMode, customUnit)
         TrainingMode.TIME -> set.targetDuration?.toString().orEmpty()
+        TrainingMode.SOLO_RPE -> formatEditableNumber(set.targetRPE)
         else -> set.targetReps?.toString().orEmpty()
     }
     val intensityLabel = when (set.intensityMode ?: IntensityMode.RPE) {
@@ -2108,6 +2604,9 @@ private fun InlineSetRow(
         IntensityMode.LOAD -> formatEditableNumber(set.weight)
     }
     val setSurface = lerp(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f), accentColor, 0.14f)
+    val estimatedSurface = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+    val estimatedText = MaterialTheme.colorScheme.onSurface
+    val estimatedSubtle = MaterialTheme.colorScheme.onSurfaceVariant
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -2154,21 +2653,69 @@ private fun InlineSetRow(
                 horizontalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 6.dp else 8.dp),
                 verticalAlignment = Alignment.Top,
             ) {
-                EditorMiniField(
-                    label = metricLabel,
-                    value = metricValue,
-                    stateKey = "metric-${set.id}",
-                    keyboardType = KeyboardType.Number,
-                    modifier = Modifier.weight(if (isAmrapMode) if (isNarrowScreen) 1.2f else 1.35f else 1f),
-                ) { input ->
-                    onUpdate { current ->
-                        when (trainingMode) {
-                            TrainingMode.TIME -> current.copy(targetDuration = input.safeIntOrNull())
-                            else -> current.copy(targetReps = input.safeIntOrNull())
+                if (isRmMode) {
+                    EditorMiniField(
+                        label = "%RM",
+                        value = formatEditableNumber(set.targetPercentageRM ?: sliderPercent),
+                        stateKey = "percent-${set.id}",
+                        keyboardType = KeyboardType.Decimal,
+                        modifier = Modifier.weight(1f),
+                    ) { input ->
+                        onUpdate { current ->
+                            current.copy(
+                                targetPercentageRM = input.safeDoubleOrNull(),
+                                intensityMode = IntensityMode.LOAD,
+                                targetRPE = null,
+                                targetRIR = null,
+                                isFailure = false,
+                            )
+                        }
+                    }
+                    EditorMiniField(
+                        label = metricLabel,
+                        value = metricValue,
+                        stateKey = "metric-${set.id}",
+                        enabled = false,
+                        modifier = Modifier.weight(1f),
+                    ) {}
+                } else if (isSoloRpeMode) {
+                    EditorMiniField(
+                        label = metricLabel,
+                        value = metricValue,
+                        stateKey = "metric-${set.id}",
+                        keyboardType = KeyboardType.Decimal,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { input ->
+                        onUpdate { current ->
+                            current.copy(
+                                targetRPE = input.safeDoubleOrNull(),
+                                intensityMode = IntensityMode.RPE,
+                                targetRIR = null,
+                                targetPercentageRM = null,
+                                targetReps = null,
+                                targetDuration = null,
+                                isFailure = false,
+                                isAmrap = false,
+                            )
+                        }
+                    }
+                } else {
+                    EditorMiniField(
+                        label = metricLabel,
+                        value = metricValue,
+                        stateKey = "metric-${set.id}",
+                        keyboardType = KeyboardType.Number,
+                        modifier = Modifier.weight(if (isAmrapMode) if (isNarrowScreen) 1.2f else 1.35f else 1f),
+                    ) { input ->
+                        onUpdate { current ->
+                            when (trainingMode) {
+                                TrainingMode.TIME -> current.copy(targetDuration = input.safeIntOrNull())
+                                else -> current.copy(targetReps = input.safeIntOrNull())
+                            }
                         }
                     }
                 }
-                if (!isAmrapMode) {
+                if (!isAmrapMode && !isRmMode && !isSoloRpeMode) {
                     Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 4.dp else 6.dp)) {
                         Text(
                             if (isNarrowScreen) "Intens." else "Intensidad",
@@ -2190,7 +2737,6 @@ private fun InlineSetRow(
                                     IntensityMode.RPE to "RPE",
                                     IntensityMode.RIR to "RIR",
                                     IntensityMode.FAILURE to "Fallo",
-                                    if (isRmMode) IntensityMode.SOLO_RM to "Solo RM" else null,
                                 ).forEach { (mode, label) ->
                                     DropdownMenuItem(
                                         text = { Text(label) },
@@ -2201,7 +2747,6 @@ private fun InlineSetRow(
                                                     IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, targetRPE = it.targetRPE ?: 8.0, targetRIR = null)
                                                     IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, targetRIR = it.targetRIR ?: 2, targetRPE = null)
                                                     IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, targetRIR = 0, targetRPE = null)
-                                                    IntensityMode.SOLO_RM -> it.copy(intensityMode = IntensityMode.SOLO_RM, isFailure = false, targetPercentageRM = it.targetPercentageRM ?: estimatePercent1RM(it.targetReps ?: 1), targetRIR = null, targetRPE = null)
                                                     else -> it
                                                 }
                                             }
@@ -2224,14 +2769,13 @@ private fun InlineSetRow(
                             label = intensityValueLabel,
                             value = intensityValue,
                             stateKey = "intensity-${set.id}",
-                            keyboardType = if ((set.intensityMode ?: IntensityMode.RPE) == IntensityMode.RPE || (set.intensityMode ?: IntensityMode.RPE) == IntensityMode.SOLO_RM) KeyboardType.Decimal else KeyboardType.Number,
+                            keyboardType = if ((set.intensityMode ?: IntensityMode.RPE) == IntensityMode.RPE) KeyboardType.Decimal else KeyboardType.Number,
                             modifier = Modifier.weight(if (isNarrowScreen) 0.82f else 0.9f),
                         ) { input ->
                             onUpdate { current ->
                                 when (current.intensityMode ?: IntensityMode.RPE) {
                                     IntensityMode.RPE -> current.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE)
                                     IntensityMode.RIR -> current.copy(targetRIR = input.safeIntOrNull(), intensityMode = IntensityMode.RIR)
-                                    IntensityMode.SOLO_RM -> current.copy(targetPercentageRM = input.safeDoubleOrNull(), intensityMode = IntensityMode.SOLO_RM)
                                     IntensityMode.LOAD -> current.copy(weight = input.safeDoubleOrNull(), intensityMode = IntensityMode.LOAD)
                                     else -> current
                                 }
@@ -2255,73 +2799,76 @@ private fun InlineSetRow(
                 }
             }
 
-            if (isRmMode) {
+            if (!isSoloRpeMode) {
                 Surface(
-                    shape = RoundedCornerShape(if (isNarrowScreen) 16.dp else 20.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(if (isNarrowScreen) 14.dp else 16.dp),
+                    color = estimatedSurface,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
                 ) {
                     Column(
-                        Modifier.fillMaxWidth().padding(if (isNarrowScreen) 10.dp else 14.dp),
-                        verticalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 8.dp else 10.dp),
+                        Modifier.fillMaxWidth().padding(if (isNarrowScreen) 8.dp else 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 6.dp else 8.dp),
                     ) {
-                        Text(
-                            "Carga estimada",
-                            style = if (isNarrowScreen) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                if (isRmMode) "Carga sugerida" else "Carga inteligente",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = estimatedSubtle,
+                            )
+                            Spacer(Modifier.weight(1f))
+                            if (isRmMode) {
+                                Text(
+                                    text = reference1RM?.let { "${sliderPercent.toInt()}% RM" } ?: "",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = estimatedSubtle,
+                                )
+                            }
+                        }
                         Row(
                             verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 8.dp else 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             Text(
                                 text = displayedWeight?.let { "${"%.1f".format(it)} kg" } ?: "Sin referencia",
                                 style = if (isNarrowScreen) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                            Text(
-                                text = reference1RM?.let { "${sliderPercent.toInt()}% RM" } ?: "",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.Bold,
+                                color = estimatedText,
                             )
                         }
-                        Slider(
-                            value = sliderPercent.toFloat(),
-                            onValueChange = { onUpdate { current -> current.copy(targetPercentageRM = it.toDouble(), intensityMode = if (current.intensityMode == IntensityMode.SOLO_RM) IntensityMode.SOLO_RM else current.intensityMode) } },
-                            valueRange = 45f..100f,
-                            enabled = reference1RM != null && set.intensityMode == IntensityMode.SOLO_RM,
-                        )
-                        Text(
-                            text = if (isAmrapMode) {
-                                "En AMRAP solo importa la carga objetivo; las repeticiones se toman como mínimo."
-                            } else if (set.intensityMode == IntensityMode.SOLO_RM) {
-                                "Ajusta la carga directamente con el control de %RM."
-                            } else {
-                                "La carga cambia automáticamente según repeticiones e intensidad."
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        if (isRmMode) {
+                            Slider(
+                                value = sliderPercent.toFloat(),
+                                onValueChange = { onUpdate { current -> current.copy(targetPercentageRM = it.toDouble(), intensityMode = IntensityMode.LOAD) } },
+                                valueRange = 45f..100f,
+                                enabled = reference1RM != null,
+                            )
+                        }
                     }
                 }
             }
 
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 6.dp else 8.dp),
-                verticalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 6.dp else 8.dp),
-            ) {
-                ToggleToken(
-                    label = when {
-                        set.isAmrap && set.isCalibrator -> "AMRAP calibrador"
-                        set.isAmrap -> "AMRAP"
-                        else -> "Activar AMRAP"
-                    },
-                    selected = set.isAmrap,
+            if (!isRmMode && !isSoloRpeMode) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 6.dp else 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 6.dp else 8.dp),
                 ) {
-                    if (set.isAmrap) {
-                        onUpdate { it.copy(isAmrap = false, isCalibrator = false, intensityMode = IntensityMode.RPE) }
-                    } else {
-                        showAmrapDialog = true
+                    ToggleToken(
+                        label = when {
+                            set.isAmrap && set.isCalibrator -> "AMRAP calibrador"
+                            set.isAmrap -> "AMRAP"
+                            else -> "Activar AMRAP"
+                        },
+                        selected = set.isAmrap,
+                    ) {
+                        if (set.isAmrap) {
+                            onUpdate { it.copy(isAmrap = false, isCalibrator = false, intensityMode = IntensityMode.RPE) }
+                        } else {
+                            showAmrapDialog = true
+                        }
                     }
                 }
             }
@@ -2361,6 +2908,19 @@ private fun SessionPart.isUncategorized(): Boolean =
     name.trim().lowercase() in setOf("sin categoría", "sin categoria", "sin grupo")
 
 private fun Session.allExercises(): List<Exercise> = exercises + parts.flatMap { it.exercises }
+
+private fun resolveRelationshipAnchorName(
+    session: Session,
+    exercise: Exercise,
+): String? {
+    val anchorId = exercise.relativeToCanonicalExerciseId ?: return null
+    return session.allExercises()
+        .firstOrNull { candidate ->
+            candidate.id != exercise.id && candidate.resolvedCanonicalExerciseId() == anchorId
+        }
+        ?.name
+        ?: anchorId
+}
 
 @Composable
 private fun EditorMiniField(
@@ -2579,7 +3139,7 @@ private fun ExerciseFactChip(label: String, value: String) {
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = Color.White
         )
     }
 }
@@ -2629,25 +3189,38 @@ private fun SessionEditorSheets(
     onLabelPositionChange: (LabelPosition) -> Unit,
     onExerciseSearch: (String) -> Unit,
     onSelectExercise: (ExerciseMuscleInfo) -> Unit,
+    onMultiSelectExercises: (List<ExerciseMuscleInfo>) -> Unit,
     onApplyRules: (String?) -> Unit,
-    onExportToSession: (String) -> Unit,
-    onImportFromSession: (String) -> Unit,
+    onCloneCurrentToTargets: (Set<String>, Set<String>?, SessionCloneApplyMode) -> Unit,
+    onImportFromSource: (String, Set<String>?, SessionCloneApplyMode) -> Unit,
     onSave: (SessionSaveScope) -> Unit,
     onApplyAugeCorrection: (String) -> Unit,
+    onAddGhostExercise: (String) -> Unit,
+    onApplyAssistantSuggestion: (String) -> Unit,
     onDiscardSwitch: (() -> Unit)?,
     onWarmupSave: (String, List<WarmupSetDefinition>) -> Unit,
-    onRestoreSnapshot: (Session) -> Unit,
+    onRestoreSnapshot: (SessionDraftSnapshot) -> Unit,
     onRuleDefaultsChange: (Int?, Int?, Double?) -> Unit,
     onRuleLimitsChange: (Double?, Int?) -> Unit,
+    onAdvancedRuleLimitsChange: (Double?, Double?, Int?, Boolean) -> Unit,
+    onApplyGlobalIntensityAdjustment: (IntensityMode, Double, Set<String>?) -> Unit,
     onQuickActionOpenPicker: () -> Unit,
     onQuickActionOpenWarmup: () -> Unit,
     onQuickActionDelete: () -> Unit,
     onQuickActionLinkSuperset: () -> Unit,
     onQuickActionUnlinkSuperset: () -> Unit,
+    onLinkExerciseRelativeTo: (String?, String, String?) -> Unit,
     onOpenSupersetManager: (String?, String) -> Unit,
     onUpdateSupersetRestBetween: (String?, String, Int) -> Unit,
     onUpdateSupersetRestAfter: (String?, String, Int) -> Unit,
     onRemoveFromSuperset: (String?, String) -> Unit,
+    onOpenExerciseDetail: (String) -> Unit,
+    onOpenExerciseCreator: () -> Unit,
+    allTemplates: List<SessionTemplate>,
+    onSelectTemplate: (SessionTemplate) -> Unit,
+    onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
+    onCancelTemplateApply: () -> Unit,
+    onTemplateSearchChange: (String) -> Unit,
 ) {
     val session = uiState.session ?: return
     if (uiState.sheet == SessionEditorSheet.NONE) return
@@ -2667,35 +3240,51 @@ private fun SessionEditorSheets(
         idx >= 0 && idx < source.lastIndex
     }
 
-    if (uiState.sheet == SessionEditorSheet.EXERCISE_PICKER) {
-        Dialog(
-            onDismissRequest = onDismiss,
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                dismissOnBackPress = true,
-                dismissOnClickOutside = true,
-            ),
-        ) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(vertical = 18.dp, horizontal = 8.dp),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface,
-            ) {
-                ExercisePickerSheet(
-                    query = uiState.searchQuery,
-                    catalog = EXERCISE_DATABASE,
-                    workoutLogs = uiState.workoutLogs,
-                    editingExisting = uiState.pickerTargetExerciseId != null,
-                    onSearch = onExerciseSearch,
-                    onSelect = onSelectExercise,
-                    onDismiss = onDismiss,
-                )
-            }
-        }
-        return
-    }
+     if (uiState.sheet == SessionEditorSheet.EXERCISE_PICKER) {
+         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+         ModalBottomSheet(
+              onDismissRequest = onDismiss,
+              sheetState = sheetState,
+              modifier = Modifier.fillMaxHeight(),
+              scrimColor = Color.Black.copy(alpha = 0.32f),
+              dragHandle = null,
+          ) {
+              Column(
+                  modifier = Modifier
+                      .fillMaxWidth()
+                      .fillMaxHeight()
+                      .navigationBarsPadding(),
+              ) {
+                 // Drag handle indicator
+                 Box(
+                     modifier = Modifier
+                         .align(Alignment.CenterHorizontally)
+                         .padding(top = 8.dp, bottom = 4.dp)
+                         .width(32.dp)
+                         .height(4.dp)
+                         .clip(RoundedCornerShape(2.dp))
+                         .background(MaterialTheme.colorScheme.outlineVariant),
+                 )
+                 
+                  ExercisePickerSheet(
+                      query = uiState.searchQuery,
+                      catalog = EXERCISE_DATABASE,
+                      workoutLogs = uiState.workoutLogs,
+                      editingExisting = uiState.pickerTargetExerciseId != null,
+                      onSearch = onExerciseSearch,
+                      onSelect = onSelectExercise,
+                      onMultiSelect = onMultiSelectExercises,
+                      onOpenExerciseDetail = { id ->
+                          onDismiss()
+                          onOpenExerciseDetail(id)
+                      },
+                      onOpenExerciseCreator = onOpenExerciseCreator,
+                      onDismiss = onDismiss,
+                  )
+             }
+         }
+         return
+     }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -2718,10 +3307,30 @@ private fun SessionEditorSheets(
                 onLabelPositionChange = onLabelPositionChange,
             )
             SessionEditorSheet.HISTORY -> HistorySheet(uiState, onRestoreSnapshot)
-            SessionEditorSheet.RULES -> RulesSheet(uiState, onApplyRules, onRuleDefaultsChange, onRuleLimitsChange)
-            SessionEditorSheet.TRANSFER -> TransferSheet(uiState, onExportToSession, onImportFromSession)
-            SessionEditorSheet.SAVE -> SaveSheet(onSave = onSave, onDiscardSwitch = onDiscardSwitch)
-            SessionEditorSheet.AUGE -> AugeSheet(uiState, onApplyAugeCorrection)
+            SessionEditorSheet.RULES -> RulesSheet(
+                uiState = uiState,
+                onApplyRules = onApplyRules,
+                onRuleDefaultsChange = onRuleDefaultsChange,
+                onRuleLimitsChange = onRuleLimitsChange,
+                onAdvancedRuleLimitsChange = onAdvancedRuleLimitsChange,
+                onApplyGlobalIntensityAdjustment = onApplyGlobalIntensityAdjustment,
+            )
+            SessionEditorSheet.TRANSFER -> SessionClonerSheet(
+                uiState = uiState,
+                onCloneCurrentToTargets = onCloneCurrentToTargets,
+                onImportFromSource = onImportFromSource,
+            )
+            SessionEditorSheet.SAVE -> SaveSheet(
+                onSave = onSave,
+                onDiscardSwitch = onDiscardSwitch,
+                isSimpleProgram = uiState.isSimpleProgram,
+            )
+            SessionEditorSheet.AUGE -> AssistantSheet(
+                uiState = uiState,
+                onApplyAugeCorrection = onApplyAugeCorrection,
+                onAddGhostExercise = onAddGhostExercise,
+                onApplyAssistantSuggestion = onApplyAssistantSuggestion,
+            )
             SessionEditorSheet.WARMUP -> WarmupSheet(exercise = warmupExercise, onSave = onWarmupSave)
             SessionEditorSheet.SUPERSERIE_MANAGER -> {
                 val supersetExercises = session.allExercises().filter { it.supersetId == uiState.supersetManagerSupersetId }
@@ -2735,16 +3344,381 @@ private fun SessionEditorSheets(
                     onDismiss = onDismiss,
                 )
             }
+            SessionEditorSheet.RELATIONSHIP_PICKER -> {
+                val targetExerciseId = uiState.pickerTargetExerciseId
+                val targetExercise = targetExerciseId?.let { targetId -> session.allExercises().find { it.id == targetId } }
+                RelationshipPickerSheet(
+                    targetExercise = targetExercise,
+                    candidates = uiState.allProgramExerciseCandidates.filter { it.exerciseId != targetExerciseId },
+                    query = uiState.searchQuery,
+                    onSearch = onExerciseSearch,
+                    onSelectAnchor = { anchorExerciseId ->
+                        val target = targetExercise ?: return@RelationshipPickerSheet
+                        onLinkExerciseRelativeTo(uiState.pickerTargetPartId, target.id, anchorExerciseId)
+                    },
+                    onDismiss = onDismiss,
+                )
+            }
             SessionEditorSheet.QUICK_ACTIONS -> ExerciseQuickActionsSheet(
                 exercise = quickActionExercise,
                 canLinkWithNext = quickActionCanLinkWithNext,
+                catalog = EXERCISE_DATABASE,
+                workoutLogs = uiState.workoutLogs,
+                onOpenExerciseDetail = { id ->
+                    onDismiss()
+                    onOpenExerciseDetail(id)
+                },
                 onOpenPicker = onQuickActionOpenPicker,
                 onOpenWarmup = onQuickActionOpenWarmup,
                 onDelete = onQuickActionDelete,
                 onLinkSuperset = onQuickActionLinkSuperset,
                 onUnlinkSuperset = onQuickActionUnlinkSuperset,
             )
+            SessionEditorSheet.TEMPLATES -> TemplatesSheet(
+                templates = allTemplates,
+                searchQuery = uiState.templateSearchQuery,
+                applyDecision = uiState.templateApplyDecision,
+                onSearchChange = onTemplateSearchChange,
+                onSelectTemplate = onSelectTemplate,
+                onConfirmApplyTemplate = onConfirmApplyTemplate,
+                onCancelApply = onCancelTemplateApply,
+                onDismiss = onDismiss,
+            )
             SessionEditorSheet.NONE -> Unit
+        }
+    }
+}
+
+@Composable
+private fun RelationshipPickerSheet(
+    targetExercise: Exercise?,
+    candidates: List<ProgramExerciseCandidate>,
+    query: String,
+    onSearch: (String) -> Unit,
+    onSelectAnchor: (String?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    if (targetExercise == null) {
+        Text(
+            text = "No encontramos el ejercicio que quieres vincular.",
+            modifier = Modifier.padding(20.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        return
+    }
+
+    val currentAnchorId = targetExercise.relativeToCanonicalExerciseId
+    val filteredCandidates = remember(candidates, query) {
+        candidates
+            .filter { candidate ->
+                query.isBlank() || candidate.exerciseName.contains(query, ignoreCase = true)
+            }
+            .sortedBy { it.exerciseName.lowercase() }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Vincular ejercicio", fontWeight = FontWeight.Black, fontSize = 18.sp)
+                Text(
+                    targetExercise.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = onDismiss) {
+                Icon(Icons.Default.Close, contentDescription = "Cerrar")
+            }
+        }
+
+        Text(
+            "Elige un ejercicio ancla de cualquier sesión del programa para marcar esta variante, asistencia o sobrecarga.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        OutlinedTextField(
+            value = query,
+            onValueChange = onSearch,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Buscar ejercicio ancla") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            singleLine = true,
+            shape = RoundedCornerShape(18.dp),
+        )
+
+        if (currentAnchorId != null) {
+            OutlinedButton(
+                onClick = { onSelectAnchor(null) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+            ) {
+                Text("Quitar vinculo actual")
+            }
+        }
+
+        if (filteredCandidates.isEmpty()) {
+            Text(
+                "No hay ejercicios candidatos para este vinculo.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.heightIn(max = 360.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(filteredCandidates, key = { it.exerciseId }) { candidate ->
+                    val selected = candidate.exerciseDbId == currentAnchorId ||
+                        candidate.exerciseName.equals(currentAnchorId?.removePrefix("custom:"), ignoreCase = true)
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { onSelectAnchor(candidate.exerciseId) },
+                        color = if (selected) {
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)
+                        },
+                        border = if (selected) {
+                            androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+                        } else {
+                            null
+                        },
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(candidate.exerciseName, fontWeight = FontWeight.Bold)
+                                Text(
+                                    buildString {
+                                        append(candidate.sessionName)
+                                        if (candidate.partName != null) append(" · ${candidate.partName}")
+                                    },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            if (selected) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TemplatesSheet(
+    templates: List<SessionTemplate>,
+    searchQuery: String,
+    applyDecision: SessionTemplateApplyDecision?,
+    onSearchChange: (String) -> Unit,
+    onSelectTemplate: (SessionTemplate) -> Unit,
+    onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
+    onCancelApply: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        modifier = Modifier.fillMaxHeight(),
+        scrimColor = Color.Black.copy(alpha = 0.32f),
+        dragHandle = null,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .navigationBarsPadding(),
+        ) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 8.dp, bottom = 4.dp)
+                    .width(32.dp)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(MaterialTheme.colorScheme.outlineVariant),
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp),
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    text = "Plantillas de sesión",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Black,
+                )
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar")
+                }
+            }
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchChange,
+                placeholder = { Text("Buscar plantilla...") },
+                leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(18.dp)) },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                ),
+            )
+            val filtered = remember(templates, searchQuery) {
+                if (searchQuery.isBlank()) templates
+                else templates.filter {
+                    it.name.contains(searchQuery, ignoreCase = true) ||
+                    it.description.contains(searchQuery, ignoreCase = true) ||
+                    it.muscleGroupsSummary.contains(searchQuery, ignoreCase = true)
+                }
+            }
+            if (filtered.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = if (searchQuery.isBlank()) "No hay plantillas disponibles"
+                               else "Sin resultados para \"$searchQuery\"",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    items(filtered, key = { it.id }) { template ->
+                        TemplateCard(template = template, onApply = { onSelectTemplate(template) })
+                    }
+                }
+            }
+        }
+    }
+    if (applyDecision != null) {
+        AlertDialog(
+            onDismissRequest = onCancelApply,
+            title = { Text("Aplicar plantilla", fontWeight = FontWeight.Black) },
+            text = {
+                Text("La sesión ya tiene ejercicios. ¿Qué deseas hacer con la plantilla \"${applyDecision.template.name}\"?")
+            },
+            confirmButton = {
+                Button(onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.REPLACE) }) {
+                    Text("Reemplazar")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.APPEND) }) {
+                    Text("Añadir al final")
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun TemplateCard(
+    template: SessionTemplate,
+    onApply: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = template.emoji, fontSize = 22.sp, modifier = Modifier.padding(end = 8.dp))
+                    Text(
+                        text = template.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                if (template.description.isNotBlank()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = template.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                    )
+                }
+                if (template.muscleGroupsSummary.isNotBlank() || template.estimatedDurationMinutes != null) {
+                    Spacer(Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (template.muscleGroupsSummary.isNotBlank()) {
+                            SuggestionChip(
+                                onClick = {},
+                                label = { Text(template.muscleGroupsSummary, fontSize = 11.sp) },
+                            )
+                        }
+                        template.estimatedDurationMinutes?.let {
+                            SuggestionChip(
+                                onClick = {},
+                                label = { Text("~${it}min", fontSize = 11.sp) },
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.width(8.dp))
+            FilledTonalButton(onClick = onApply) {
+                Text("Aplicar")
+            }
         }
     }
 }
@@ -2753,6 +3727,9 @@ private fun SessionEditorSheets(
 private fun ExerciseQuickActionsSheet(
     exercise: Exercise?,
     canLinkWithNext: Boolean,
+    catalog: List<ExerciseMuscleInfo>,
+    workoutLogs: List<WorkoutLog>,
+    onOpenExerciseDetail: (String) -> Unit,
     onOpenPicker: () -> Unit,
     onOpenWarmup: () -> Unit,
     onDelete: () -> Unit,
@@ -2769,6 +3746,14 @@ private fun ExerciseQuickActionsSheet(
     }
 
     var showDeleteConfirm by rememberSaveable(exercise.id) { mutableStateOf(false) }
+    var showInfoDialog by rememberSaveable(exercise.id) { mutableStateOf(false) }
+    val catalogLookup = remember(catalog) { buildExerciseCatalogLookup(catalog) }
+    val selectedInfo = remember(exercise.id, catalogLookup) {
+        resolveCatalogExerciseInfo(exercise, catalogLookup)
+    }
+    val discomfortByExercise = remember(workoutLogs) {
+        buildDiscomfortByExercise(workoutLogs)
+    }
 
     Column(
         modifier = Modifier
@@ -2782,6 +3767,14 @@ private fun ExerciseQuickActionsSheet(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+
+        if (selectedInfo != null) {
+            OutlinedButton(onClick = { showInfoDialog = true }, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.Visibility, null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Ver información")
+            }
+        }
 
         OutlinedButton(onClick = onOpenPicker, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.Search, null, modifier = Modifier.size(16.dp))
@@ -2837,6 +3830,17 @@ private fun ExerciseQuickActionsSheet(
             },
         )
     }
+
+    if (showInfoDialog && selectedInfo != null) {
+        ExerciseCatalogInfoDialog(
+            exercise = selectedInfo,
+            catalog = catalog,
+            associatedDiscomforts = discomfortByExercise[selectedInfo.id].orEmpty(),
+            onOpenExercise = onOpenExerciseDetail,
+            onDismiss = { showInfoDialog = false },
+        )
+    }
+
 }
 
 @Composable
@@ -2912,13 +3916,16 @@ private fun SupersetManagerSheet(
 }
 
 @Composable
-private fun ExercisePickerSheet(
+internal fun ExercisePickerSheet(
     query: String,
     catalog: List<ExerciseMuscleInfo>,
     workoutLogs: List<WorkoutLog>,
     editingExisting: Boolean,
     onSearch: (String) -> Unit,
     onSelect: (ExerciseMuscleInfo) -> Unit,
+    onMultiSelect: (List<ExerciseMuscleInfo>) -> Unit,
+    onOpenExerciseDetail: (String) -> Unit,
+    onOpenExerciseCreator: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var selectedRegion by rememberSaveable { mutableStateOf<ExerciseCatalogRegion?>(null) }
@@ -2926,9 +3933,22 @@ private fun ExercisePickerSheet(
     var sortMode by rememberSaveable { mutableStateOf(ExerciseCatalogSort.RELEVANCE) }
     var showSortMenu by remember { mutableStateOf(false) }
     var infoExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedExercises by remember { mutableStateOf<List<ExerciseMuscleInfo>>(emptyList()) }
 
     val normalizedQuery = query.trim()
     val activeRegion = selectedRegion ?: ExerciseCatalogRegion.ALL
+
+    fun handleSelect(info: ExerciseMuscleInfo) {
+        if (editingExisting) {
+            onSelect(info)
+        } else {
+            selectedExercises = if (selectedExercises.any { it.id == info.id }) {
+                selectedExercises.filterNot { it.id == info.id }
+            } else {
+                selectedExercises + info
+            }
+        }
+    }
     val results = remember(query, catalog, activeRegion, selectedTrait, sortMode) {
         val baseFiltered = catalog.filter { info ->
             val regionMatch = activeRegion == ExerciseCatalogRegion.ALL || resolveExerciseRegion(info) == activeRegion
@@ -2964,7 +3984,7 @@ private fun ExercisePickerSheet(
         val map = mutableMapOf<String, MutableMap<String, Int>>()
         workoutLogs.forEach { log ->
             log.postExerciseReports.forEach { report ->
-                val key = report.exerciseDbId ?: report.exerciseId
+                val key = report.canonicalExerciseId ?: report.exerciseDbId ?: report.exerciseId
                 if (key.isBlank()) return@forEach
                 val bucket = map.getOrPut(key) { mutableMapOf() }
                 report.discomfortIds
@@ -2993,13 +4013,13 @@ private fun ExercisePickerSheet(
         catalog.filter { it.category.isNullOrBlank() }
     }
 
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+     Column(
+         Modifier
+             .fillMaxWidth()
+             .fillMaxHeight()
+             .padding(horizontal = 14.dp, vertical = 12.dp),
+         verticalArrangement = Arrangement.spacedBy(16.dp),
+     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -3010,35 +4030,33 @@ private fun ExercisePickerSheet(
                     if (editingExisting) "Cambiar ejercicio" else "Catálogo",
                     fontWeight = FontWeight.Black,
                     fontSize = 18.sp,
+                    color = Color.White
                 )
                 Text(
                     "${catalog.size} ejercicios",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.7f),
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Surface(
-                    onClick = onDismiss,
-                    shape = CircleShape,
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                    ),
-                    color = Color.Transparent,
+                FilledTonalButton(
+                    onClick = onOpenExerciseCreator,
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Box(
-                        modifier = Modifier.size(40.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar catálogo")
-                    }
+                    Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Crear", style = MaterialTheme.typography.labelSmall)
                 }
                 Box {
-                    OutlinedButton(onClick = { showSortMenu = true }) {
-                        Text(sortMode.label)
+                    OutlinedButton(
+                        onClick = { showSortMenu = true },
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.Default.FilterList, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
-                        Icon(Icons.Default.KeyboardArrowDown, null)
+                        Text(sortMode.label, style = MaterialTheme.typography.labelSmall)
                     }
                     DropdownMenu(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
                         ExerciseCatalogSort.values().forEach { option ->
@@ -3064,153 +4082,183 @@ private fun ExercisePickerSheet(
             leadingIcon = { Icon(Icons.Default.Search, null) },
         )
 
-        if (selectedRegion == null && normalizedQuery.isBlank()) {
-            Text(
-                "Grupos",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-            )
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+     if (selectedRegion == null && normalizedQuery.isBlank()) {
+         Text(
+             "Grupos",
+             style = MaterialTheme.typography.labelLarge,
+             fontWeight = FontWeight.Bold,
+             color = Color.White
+         )
+         LazyColumn(
+             modifier = Modifier.weight(1f),
+             verticalArrangement = Arrangement.spacedBy(8.dp),
+         ) {
+             item {
+                 Text(
+                     "Explorar por grupo muscular",
+                     style = MaterialTheme.typography.labelMedium,
+                     color = Color.White.copy(alpha = 0.7f),
+                     fontWeight = FontWeight.SemiBold,
+                 )
+             }
+             items(ExerciseCatalogRegion.values(), key = { it.name }) { region ->
+                 val count = catalog.count { region == ExerciseCatalogRegion.ALL || resolveExerciseRegion(it) == region }
+                 Surface(
+                     modifier = Modifier
+                         .fillMaxWidth()
+                         .clickable { selectedRegion = region }
+                         .padding(horizontal = 2.dp),
+                     shape = RoundedCornerShape(14.dp),
+                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),
+                 ) {
+                     Row(
+                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                         horizontalArrangement = Arrangement.SpaceBetween,
+                         verticalAlignment = Alignment.CenterVertically,
+                     ) {
+                         Column(modifier = Modifier.weight(1f)) {
+                             Text(region.label, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium, color = Color.White)
+                             Text("$count ejercicios", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.7f))
+                         }
+                         Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                     }
+                 }
+             }
+
+             if (categorizedCatalog.isNotEmpty()) {
+                 item {
+                     Spacer(Modifier.height(8.dp))
+                     Text(
+                         "Por grupo muscular",
+                         style = MaterialTheme.typography.labelMedium,
+                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                         fontWeight = FontWeight.SemiBold,
+                     )
+                 }
+                 items(categorizedCatalog, key = { it.first }) { (category, exercisesInCategory) ->
+                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                         Text(
+                             category,
+                             style = MaterialTheme.typography.titleSmall,
+                             fontWeight = FontWeight.Black,
+                             color = Color.White
+                         )
+                          LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                              items(exercisesInCategory, key = { it.id }) { info ->
+                                  ExercisePickerCompactCard(
+                                      info = info,
+                                      isSelected = selectedExercises.any { it.id == info.id },
+                                      onSelect = { handleSelect(info) },
+                                      onInfo = { infoExerciseId = info.id },
+                                  )
+                              }
+                          }
+                     }
+                 }
+             }
+
+             if (uncategorizedCatalog.isNotEmpty()) {
+                 item {
+                     Spacer(Modifier.height(8.dp))
+                     Text(
+                         "Sin grupo",
+                         style = MaterialTheme.typography.titleSmall,
+                         fontWeight = FontWeight.Black,
+                         color = Color.White
+                     )
+                 }
+                  items(uncategorizedCatalog, key = { it.id }) { info ->
+                      ExercisePickerDetailedCard(
+                          info = info,
+                          isSelected = selectedExercises.any { it.id == info.id },
+                          onSelect = { handleSelect(info) },
+                          onInfo = { infoExerciseId = info.id },
+                      )
+                  }
+             }
+         }
+     } else {
+         if (selectedRegion != null) {
+             Text(activeRegion.label, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleSmall)
+         }
+
+         LazyColumn(
+             modifier = Modifier.weight(1f),
+             verticalArrangement = Arrangement.spacedBy(10.dp),
+         ) {
+             item {
+                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                     Text(
+                         "Filtros rápidos",
+                         style = MaterialTheme.typography.labelLarge,
+                         fontWeight = FontWeight.Bold,
+                         color = Color.White
+                     )
+                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                         ExerciseCatalogTrait.values().forEach { trait ->
+                             FilterChip(
+                                 selected = selectedTrait == trait,
+                                 onClick = { selectedTrait = if (selectedTrait == trait) null else trait },
+                                 label = { Text(trait.label) },
+                             )
+                         }
+                     }
+                     Row(
+                         modifier = Modifier.fillMaxWidth(),
+                         horizontalArrangement = Arrangement.SpaceBetween,
+                         verticalAlignment = Alignment.CenterVertically,
+                     ) {
+                         Text(
+                             if (results.isEmpty()) "Sin resultados" else "${results.size} resultados",
+                             style = MaterialTheme.typography.labelMedium,
+                             fontWeight = FontWeight.Bold,
+                             color = Color.White
+                         )
+                         if (selectedTrait != null || activeRegion != ExerciseCatalogRegion.ALL || normalizedQuery.isNotBlank()) {
+                             TextButton(
+                                 onClick = {
+                                     selectedRegion = null
+                                     selectedTrait = null
+                                     onSearch("")
+                                     sortMode = ExerciseCatalogSort.RELEVANCE
+                                 }
+                             ) { Text("Limpiar") }
+                         }
+                     }
+                 }
+             }
+              items(results, key = { it.id }) { info ->
+                  ExercisePickerDetailedCard(
+                      info = info,
+                      isSelected = selectedExercises.any { it.id == info.id },
+                      onSelect = { handleSelect(info) },
+                      onInfo = { infoExerciseId = info.id },
+                  )
+              }
+          }
+
+        if (!editingExisting && selectedExercises.isNotEmpty()) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                tonalElevation = 3.dp,
             ) {
-                item {
-                    Text(
-                        "Explorar por grupo muscular",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-                items(ExerciseCatalogRegion.values(), key = { it.name }) { region ->
-                    val count = catalog.count { region == ExerciseCatalogRegion.ALL || resolveExerciseRegion(it) == region }
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { selectedRegion = region }
-                            .padding(horizontal = 2.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(region.label, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
-                                Text("$count ejercicios", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                }
-
-                if (categorizedCatalog.isNotEmpty()) {
-                    item {
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Por grupo muscular",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
-                    items(categorizedCatalog, key = { it.first }) { (category, exercisesInCategory) ->
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                category,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Black,
-                            )
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                items(exercisesInCategory, key = { it.id }) { info ->
-                                    ExercisePickerCompactCard(
-                                        info = info,
-                                        onSelect = onSelect,
-                                        onInfo = { infoExerciseId = info.id },
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (uncategorizedCatalog.isNotEmpty()) {
-                    item {
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Sin grupo",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Black,
-                        )
-                    }
-                    items(uncategorizedCatalog, key = { it.id }) { info ->
-                        ExercisePickerDetailedCard(
-                            info = info,
-                            onSelect = onSelect,
-                            onInfo = { infoExerciseId = info.id },
-                        )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("${selectedExercises.size} seleccionados", color = Color.White)
+                    FilledTonalButton(onClick = {
+                        onMultiSelect(selectedExercises)
+                        selectedExercises = emptyList()
+                    }) {
+                        Text("Agregar ${selectedExercises.size}")
                     }
                 }
             }
-            return
         }
-
-        if (selectedRegion != null) {
-            Text(activeRegion.label, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleSmall)
-        }
-
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        "Filtros rápidos",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        ExerciseCatalogTrait.values().forEach { trait ->
-                            FilterChip(
-                                selected = selectedTrait == trait,
-                                onClick = { selectedTrait = if (selectedTrait == trait) null else trait },
-                                label = { Text(trait.label) },
-                            )
-                        }
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            if (results.isEmpty()) "Sin resultados" else "${results.size} resultados",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        if (selectedTrait != null || activeRegion != ExerciseCatalogRegion.ALL || normalizedQuery.isNotBlank()) {
-                            TextButton(
-                                onClick = {
-                                    selectedRegion = null
-                                    selectedTrait = null
-                                    onSearch("")
-                                    sortMode = ExerciseCatalogSort.RELEVANCE
-                                }
-                            ) { Text("Limpiar") }
-                        }
-                    }
-                }
-            }
-            items(results, key = { it.id }) { info ->
-                ExercisePickerDetailedCard(
-                    info = info,
-                    onSelect = onSelect,
-                    onInfo = { infoExerciseId = info.id },
-                )
-            }
         }
     }
 
@@ -3219,9 +4267,102 @@ private fun ExercisePickerSheet(
             exercise = selected,
             catalog = catalog,
             associatedDiscomforts = discomfortByExercise[selected.id].orEmpty(),
+            onOpenExercise = onOpenExerciseDetail,
             onDismiss = { infoExerciseId = null },
         )
     }
+}
+
+private fun buildExerciseUtilityBullets(exercise: ExerciseMuscleInfo): List<String> {
+    val bullets = mutableListOf<String>()
+    val region = resolveExerciseRegion(exercise)
+    val type = exercise.type?.lowercase().orEmpty()
+    val fatigue = calculateFriendlyFatigue(exercise).overall
+
+    if (exercise.functionalTransfer?.isNotBlank() == true) {
+        bullets += exercise.functionalTransfer
+    }
+
+    if (type.contains("básico") || type.contains("basico") || exercise.tier?.equals("T1", true) == true) {
+        bullets += "Muy útil para mejorar básicos del programa y capacidad de producir fuerza."
+    }
+
+    if (type.contains("aislamiento") || type.contains("accesorio")) {
+        bullets += "Buena opción para reforzar puntos débiles con fatiga sistémica controlada."
+    }
+
+    if (exercise.bracingRecommended == true || fatigue >= 7) {
+        bullets += "Puede mejorar tolerancia estructural y control técnico cuando se programa con criterio."
+    } else {
+        bullets += "Útil para salud muscular/articular al acumular práctica de calidad con fatiga moderada."
+    }
+
+    bullets += when (region) {
+        ExerciseCatalogRegion.FULL -> "Aporta utilidad general para rendimiento global y coordinación."
+        ExerciseCatalogRegion.UPPER -> "Útil para salud de hombro y mejora de empuje/tirón del tren superior."
+        ExerciseCatalogRegion.LOWER -> "Útil para potencia del tren inferior, estabilidad y rendimiento atlético."
+        ExerciseCatalogRegion.CORE -> "Útil para estabilidad del tronco y transmisión de fuerza."
+        ExerciseCatalogRegion.ALL -> "Útil para construir base general según tu objetivo."
+    }
+
+    if (!exercise.sportsRelevance.isNullOrEmpty()) {
+        bullets += "Muy usado en: ${exercise.sportsRelevance.take(4).joinToString(", ")}."
+    }
+
+    bullets += when {
+        fatigue <= 3 -> "Permite acumular práctica técnica sin castigar demasiado la recuperación."
+        fatigue <= 6 -> "Equilibrio entre estímulo y recuperación para progresar con constancia."
+        else -> "Conviene periodizar su uso porque genera una demanda alta de recuperación."
+    }
+
+    return bullets.distinct().take(5)
+}
+
+private data class MuscleVolumeContribution(
+    val muscle: String,
+    val role: MuscleRole,
+    val seriesEquivalent: Double,
+)
+
+private fun oneSeriesVolumeContributions(exercise: ExerciseMuscleInfo): List<MuscleVolumeContribution> {
+    if (exercise.involvedMuscles.isEmpty()) return emptyList()
+
+    val grouped = linkedMapOf<String, MutableList<MuscleVolumeContribution>>()
+    val rolePriority = mapOf(
+        MuscleRole.PRIMARY to 0,
+        MuscleRole.SECONDARY to 1,
+        MuscleRole.STABILIZER to 2,
+        MuscleRole.NEUTRALIZER to 3,
+    )
+    exercise.involvedMuscles.forEach { involvement ->
+        val muscle = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
+        val contribution = resolveMuscleVolumeContribution(involvement)
+        grouped.getOrPut(muscle) { mutableListOf() }
+            .add(MuscleVolumeContribution(muscle, involvement.role, contribution))
+    }
+
+    return grouped.values.map { entries ->
+        val topRole = entries.minByOrNull { rolePriority[it.role] ?: 99 }?.role ?: MuscleRole.SECONDARY
+        MuscleVolumeContribution(
+            muscle = entries.first().muscle,
+            role = topRole,
+            // 1 serie del ejercicio no puede aportar > 1.0 serie a un músculo
+            seriesEquivalent = entries.maxOf { it.seriesEquivalent }.coerceIn(0.0, 1.0),
+        )
+    }.sortedByDescending { it.seriesEquivalent }
+}
+
+private fun roleVolumeLabel(role: MuscleRole): String = when (role) {
+    MuscleRole.PRIMARY -> "Primario"
+    MuscleRole.SECONDARY -> "Secundario"
+    MuscleRole.STABILIZER -> "Estabilizador"
+    MuscleRole.NEUTRALIZER -> "Neutralizador"
+}
+
+private fun formatSeriesEquivalent(value: Double): String {
+    val normalized = value.coerceAtLeast(0.0)
+    val text = "%.1f".format(normalized)
+    return "$text serie"
 }
 
 private fun fatigueColor(score: Int): Color = when {
@@ -3230,24 +4371,31 @@ private fun fatigueColor(score: Int): Color = when {
     else -> Color(0xFFEF4444)
 }
 
+private fun fatigueLabel(score: Int): String = when {
+    score <= 3 -> "Poca fatiga"
+    score <= 6 -> "Fatiga media"
+    score <= 8 -> "Alta fatiga"
+    else -> "Fatiga muy alta"
+}
+
 @Composable
-private fun ExercisePickerCompactCard(
+internal fun ExercisePickerCompactCard(
     info: ExerciseMuscleInfo,
-    onSelect: (ExerciseMuscleInfo) -> Unit,
+    isSelected: Boolean,
+    onSelect: () -> Unit,
     onInfo: () -> Unit,
 ) {
-    val fatigue = calculateFriendlyFatigue(info)
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
+    val bgAlpha = if (isSelected) 0.40f else 0.24f
     Surface(
         modifier = Modifier
             .width(220.dp)
             .clip(RoundedCornerShape(14.dp))
-            .clickable { onSelect(info) },
+            .clickable { onSelect() },
         shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.24f),
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.14f),
-        ),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = bgAlpha),
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
+        contentColor = Color.White
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -3255,22 +4403,25 @@ private fun ExercisePickerCompactCard(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Icon(
-                    Icons.Default.FitnessCenter,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp),
-                )
                 Text(
                     info.name,
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Black,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
+                    color = Color.White
                 )
+                if (isSelected) {
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        contentDescription = "Seleccionado",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
                 IconButton(onClick = onInfo, modifier = Modifier.size(26.dp)) {
                     Icon(Icons.Default.Info, contentDescription = "Ver detalle", modifier = Modifier.size(16.dp))
                 }
@@ -3282,42 +4433,30 @@ private fun ExercisePickerCompactCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Surface(
-                shape = RoundedCornerShape(999.dp),
-                color = fatigueColor(fatigue.overall).copy(alpha = 0.16f),
-            ) {
-                Text(
-                    "Fatiga ${fatigue.overall}/10",
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    color = fatigueColor(fatigue.overall),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Black,
-                )
-            }
         }
     }
 }
 
 @Composable
-private fun ExercisePickerDetailedCard(
+internal fun ExercisePickerDetailedCard(
     info: ExerciseMuscleInfo,
-    onSelect: (ExerciseMuscleInfo) -> Unit,
+    isSelected: Boolean,
+    onSelect: () -> Unit,
     onInfo: () -> Unit,
 ) {
-    val fatigue = calculateFriendlyFatigue(info)
     val primaryMuscle = resolvePrimaryMuscleLabel(info)
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.16f)
+    val bgAlpha = if (isSelected) 0.44f else 0.28f
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSelect(info) },
+            .clickable { onSelect() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = bgAlpha),
+            contentColor = Color.White
         ),
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.16f),
-        ),
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -3328,39 +4467,27 @@ private fun ExercisePickerDetailedCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(Icons.Default.FitnessCenter, null, tint = MaterialTheme.colorScheme.primary)
-                }
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         info.name,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Black,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
+                        color = Color.White
                     )
                     Text(
                         listOfNotNull(primaryMuscle, info.equipment, info.type).joinToString(" · "),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = Color.White.copy(alpha = 0.7f),
                     )
                 }
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = fatigueColor(fatigue.overall).copy(alpha = 0.16f),
-                ) {
-                    Text(
-                        "Fatiga ${fatigue.overall}/10",
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-                        color = fatigueColor(fatigue.overall),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
+                if (isSelected) {
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        contentDescription = "Seleccionado",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp),
                     )
                 }
                 IconButton(onClick = onInfo) {
@@ -3381,7 +4508,7 @@ private fun ExercisePickerDetailedCard(
                 Text(
                     info.description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.7f),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -3391,10 +4518,11 @@ private fun ExercisePickerDetailedCard(
 }
 
 @Composable
-private fun ExerciseCatalogInfoDialog(
+internal fun ExerciseCatalogInfoDialog(
     exercise: ExerciseMuscleInfo,
     catalog: List<ExerciseMuscleInfo>,
     associatedDiscomforts: List<Pair<String, Int>>,
+    onOpenExercise: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val fatigue = remember(exercise.id) { calculateFriendlyFatigue(exercise) }
@@ -3436,6 +4564,18 @@ private fun ExerciseCatalogInfoDialog(
                     }
                 }
 
+                OutlinedButton(
+                    onClick = {
+                        onDismiss()
+                        onOpenExercise(exercise.id)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Abrir página completa")
+                }
+
                 exercise.description?.takeIf { it.isNotBlank() }?.let {
                     Text(
                         it,
@@ -3447,33 +4587,72 @@ private fun ExerciseCatalogInfoDialog(
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ExerciseFactChip("Set-up", inferSetupTimeLabel(exercise))
                     ExerciseFactChip("Curva", inferLearningCurveLabel(exercise))
-                    ExerciseFactChip("Fatiga", "${fatigue.overall}/10")
+                    ExerciseFactChip("Fatiga", fatigueLabel(fatigue.overall))
                     ExerciseFactChip("Región", resolveExerciseRegion(exercise).label)
                 }
 
-                Card(
-                    shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f)),
-                ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Fatiga AUGE", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                        FriendlyFatigueRow("Muscular", fatigue.muscle)
-                        FriendlyFatigueRow("SNC", fatigue.snc)
-                        FriendlyFatigueRow("Espinal", fatigue.spinal)
-                    }
-                }
+                ExerciseFatigueScenarios(exercise = exercise)
 
                 Card(
                     shape = RoundedCornerShape(22.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)),
                 ) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Transferencia", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                        Text(
-                            inferTransferLabel(exercise),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Text("Utilidad del ejercicio", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
+                        buildExerciseUtilityBullets(exercise).forEach { bullet ->
+                            Text(
+                                "• $bullet",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+
+                val muscleContributions = remember(exercise.id, exercise.involvedMuscles) {
+                    oneSeriesVolumeContributions(exercise)
+                }
+                if (muscleContributions.isNotEmpty()) {
+                    Card(
+                        shape = RoundedCornerShape(22.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)),
+                    ) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("Músculos involucrados y aporte", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
+                            Text(
+                                "Aporte estimado por 1 serie efectiva del ejercicio.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            muscleContributions.forEach { item ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(item.muscle, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                        Text(
+                                            roleVolumeLabel(item.role),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    Surface(
+                                        shape = RoundedCornerShape(999.dp),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                                    ) {
+                                        Text(
+                                            formatSeriesEquivalent(item.seriesEquivalent),
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Black,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -3510,87 +4689,58 @@ private fun ExerciseCatalogInfoDialog(
                     ) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text("Otras opciones", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                            kinship.similar.forEach { similar ->
-                                val similarFatigue = calculateFriendlyFatigue(similar.exercise).overall
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(similar.exercise.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                        Text(
-                                            listOfNotNull(resolvePrimaryMuscleLabel(similar.exercise), similar.exercise.equipment).joinToString(" · "),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        Text(
-                                            similar.rationale,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
+                            Text(
+                                "Mismo patrón de movimiento y perfil similar. Pulsa una opción para abrir su ficha.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                items(kinship.similar, key = { it.exercise.id }) { similar ->
+                                    val similarFatigue = calculateFriendlyFatigue(similar.exercise).overall
+                                    Card(
+                                        modifier = Modifier
+                                            .width(250.dp)
+                                            .clickable {
+                                                onDismiss()
+                                                onOpenExercise(similar.exercise.id)
+                                            },
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
+                                        ),
+                                        border = androidx.compose.foundation.BorderStroke(
+                                            1.dp,
+                                            MaterialTheme.colorScheme.outline.copy(alpha = 0.14f),
+                                        ),
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(12.dp),
+                                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                                        ) {
+                                            Text(similar.exercise.name, fontWeight = FontWeight.Black, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                            Text(
+                                                listOfNotNull(resolvePrimaryMuscleLabel(similar.exercise), similar.exercise.equipment, similar.exercise.type)
+                                                    .joinToString(" · "),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                            Text(
+                                                similar.rationale,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 2,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                            Text(
+                                                fatigueLabel(similarFatigue),
+                                                color = fatigueColor(similarFatigue),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Black,
+                                            )
+                                        }
                                     }
-                                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                        Text(
-                                            "${similar.band.label}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Black,
-                                            color = MaterialTheme.colorScheme.primary,
-                                        )
-                                        Text(
-                                            "Sim ${similar.similarityScore}% · Transf ${similar.transferScore}%",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        Text(
-                                            "Fatiga $similarFatigue/10",
-                                            color = fatigueColor(similarFatigue),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.Black,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (kinship.transfer.isNotEmpty()) {
-                    Card(
-                        shape = RoundedCornerShape(22.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f)),
-                    ) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text("Transferencia cruzada", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                            kinship.transfer.forEach { transfer ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(transfer.exercise.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                        Text(
-                                            listOfNotNull(resolvePrimaryMuscleLabel(transfer.exercise), transfer.exercise.equipment).joinToString(" · "),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        Text(
-                                            transfer.rationale,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                    }
-                                    Text(
-                                        "Transf ${transfer.transferScore}%",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Black,
-                                    )
                                 }
                             }
                         }
@@ -3743,14 +4893,40 @@ private fun BackgroundSheet(
 @Composable
 private fun HistorySheet(
     uiState: SessionEditorUiState,
-    onRestoreSnapshot: (Session) -> Unit,
+    onRestoreSnapshot: (SessionDraftSnapshot) -> Unit,
 ) {
     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Historial y borradores", fontWeight = FontWeight.Black, fontSize = 18.sp)
         Text("Cambios recientes del borrador", style = MaterialTheme.typography.labelLarge)
-        uiState.localDraftHistory.reversed().take(8).forEachIndexed { index, snapshot ->
-            OutlinedButton(onClick = { onRestoreSnapshot(snapshot) }, modifier = Modifier.fillMaxWidth()) {
-                Text("Restaurar estado ${index + 1}: ${snapshot.name.ifBlank { "Sesión" }}")
+        if (uiState.localDraftHistory.isEmpty()) {
+            Text("Todavía no hay snapshots locales.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            uiState.localDraftHistory.asReversed().forEachIndexed { index, snapshot ->
+                val title = snapshot.session.name.ifBlank { "Sesión" }
+                val diffSummary = snapshot.changedFields.take(3).joinToString(" · ")
+                OutlinedButton(onClick = { onRestoreSnapshot(snapshot) }, modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text("${index + 1}. $title", fontWeight = FontWeight.Bold)
+                        Text(
+                            "${formatHistoryTimestamp(snapshot.savedAtMs)} · ${snapshot.reason}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            "${snapshot.exerciseCount} ejercicios · ${snapshot.setCount} series · ${snapshot.partCount} grupos",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            "Cambios: $diffSummary",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
             }
         }
         HorizontalDivider()
@@ -3784,6 +4960,8 @@ private fun RulesSheet(
     onApplyRules: (String?) -> Unit,
     onRuleDefaultsChange: (Int?, Int?, Double?) -> Unit,
     onRuleLimitsChange: (Double?, Int?) -> Unit,
+    onAdvancedRuleLimitsChange: (Double?, Double?, Int?, Boolean) -> Unit,
+    onApplyGlobalIntensityAdjustment: (IntensityMode, Double, Set<String>?) -> Unit,
 ) {
     var scopePartId by remember { mutableStateOf<String?>(null) }
     var tab by remember { mutableStateOf("defaults") }
@@ -3793,11 +4971,36 @@ private fun RulesSheet(
     var maxExercisesInput by remember(uiState.ruleLimits.maxExercisesPerMuscle) {
         mutableStateOf(uiState.ruleLimits.maxExercisesPerMuscle?.toString().orEmpty())
     }
+    var maxSessionVolumeInput by remember(uiState.ruleLimits.maxVolumePerMuscleSession) {
+        mutableStateOf(formatEditableNumber(uiState.ruleLimits.maxVolumePerMuscleSession))
+    }
+    var maxWeeklyVolumeInput by remember(uiState.ruleLimits.maxVolumePerMuscleWeekly) {
+        mutableStateOf(formatEditableNumber(uiState.ruleLimits.maxVolumePerMuscleWeekly))
+    }
+    var maxPatternInput by remember(uiState.ruleLimits.maxSamePatternPerSession) {
+        mutableStateOf(uiState.ruleLimits.maxSamePatternPerSession?.toString().orEmpty())
+    }
+    var rigidLimits by remember(uiState.ruleLimits.rigidLimits) { mutableStateOf(uiState.ruleLimits.rigidLimits) }
+    var adjustmentModeName by remember { mutableStateOf(IntensityMode.RPE.name) }
+    var adjustmentValueInput by remember { mutableStateOf("7.5") }
+    var useMuscleScope by remember { mutableStateOf(false) }
+    var selectedMuscles by remember { mutableStateOf(setOf<String>()) }
+    val adjustmentMode = runCatching { IntensityMode.valueOf(adjustmentModeName) }.getOrElse { IntensityMode.RPE }
+    val availableMuscles = remember(uiState.session) {
+        uiState.session?.allExercises()?.mapNotNull { exercise ->
+            EXERCISE_DATABASE
+                .firstOrNull { it.id == exercise.exerciseDbId || it.id == exercise.exerciseId || it.name.equals(exercise.name, ignoreCase = true) }
+                ?.involvedMuscles
+                ?.firstOrNull { muscle -> muscle.role == MuscleRole.PRIMARY }
+                ?.let { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) }
+        }?.distinct().orEmpty()
+    }
 
     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Reglas del editor", fontWeight = FontWeight.Black, fontSize = 18.sp)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(selected = tab == "defaults", onClick = { tab = "defaults" }, label = { Text("Defaults") })
+            FilterChip(selected = tab == "modify", onClick = { tab = "modify" }, label = { Text("Modificar") })
             FilterChip(selected = tab == "limits", onClick = { tab = "limits" }, label = { Text("Límites") })
         }
 
@@ -3815,6 +5018,64 @@ private fun RulesSheet(
             }
             Button(onClick = { onApplyRules(scopePartId) }, modifier = Modifier.fillMaxWidth()) {
                 Text("Aplicar defaults", fontWeight = FontWeight.Black)
+            }
+        } else if (tab == "modify") {
+            Text("Modifica intensidad globalmente por modo y alcance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Modo objetivo")
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(IntensityMode.RPE, IntensityMode.RIR, IntensityMode.FAILURE, IntensityMode.SOLO_RM).forEach { mode ->
+                    FilterChip(
+                        selected = adjustmentMode == mode,
+                        onClick = { adjustmentModeName = mode.name },
+                        label = { Text(mode.name) },
+                    )
+                }
+            }
+            EditorMiniField(
+                label = when (adjustmentMode) {
+                    IntensityMode.RPE -> "RPE objetivo"
+                    IntensityMode.RIR -> "RIR objetivo"
+                    IntensityMode.SOLO_RM -> "%RM objetivo"
+                    IntensityMode.FAILURE -> "Valor"
+                    else -> "Valor"
+                },
+                value = adjustmentValueInput,
+                keyboardType = KeyboardType.Decimal,
+            ) { adjustmentValueInput = it }
+
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Checkbox(checked = useMuscleScope, onCheckedChange = { useMuscleScope = it })
+                Text("Aplicar solo a músculos seleccionados")
+            }
+            if (useMuscleScope) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    availableMuscles.forEach { muscle ->
+                        val selected = muscle in selectedMuscles
+                        FilterChip(
+                            selected = selected,
+                            onClick = {
+                                selectedMuscles = if (selected) selectedMuscles - muscle else selectedMuscles + muscle
+                            },
+                            label = { Text(muscle) },
+                        )
+                    }
+                }
+            }
+
+            Button(
+                onClick = {
+                    val value = adjustmentValueInput.safeDoubleOrNull()
+                    if (value != null) {
+                        onApplyGlobalIntensityAdjustment(
+                            adjustmentMode,
+                            value,
+                            if (useMuscleScope) selectedMuscles else null,
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Aplicar modificación", fontWeight = FontWeight.Black)
             }
         } else {
             Text("Límites de seguridad al guardar.", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -3834,11 +5095,45 @@ private fun RulesSheet(
             ) { value ->
                 maxExercisesInput = value
             }
+            EditorMiniField(
+                label = "Volumen máx por músculo (sesión)",
+                value = maxSessionVolumeInput,
+                keyboardType = KeyboardType.Decimal,
+                stateKey = "rules-max-vol-session",
+            ) { value ->
+                maxSessionVolumeInput = value
+            }
+            EditorMiniField(
+                label = "Volumen máx por músculo (semana)",
+                value = maxWeeklyVolumeInput,
+                keyboardType = KeyboardType.Decimal,
+                stateKey = "rules-max-vol-week",
+            ) { value ->
+                maxWeeklyVolumeInput = value
+            }
+            EditorMiniField(
+                label = "Máx patrón repetido / sesión",
+                value = maxPatternInput,
+                keyboardType = KeyboardType.Number,
+                stateKey = "rules-max-pattern",
+            ) { value ->
+                maxPatternInput = value
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Checkbox(checked = rigidLimits, onCheckedChange = { rigidLimits = it })
+                Text(if (rigidLimits) "Límites rígidos (bloquea guardar)" else "Límites flexibles (solo alerta)")
+            }
             Button(
                 onClick = {
                     onRuleLimitsChange(
                         maxRpeInput.safeDoubleOrNull(),
                         maxExercisesInput.safeIntOrNull(),
+                    )
+                    onAdvancedRuleLimitsChange(
+                        maxSessionVolumeInput.safeDoubleOrNull(),
+                        maxWeeklyVolumeInput.safeDoubleOrNull(),
+                        maxPatternInput.safeIntOrNull(),
+                        rigidLimits,
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -3849,92 +5144,310 @@ private fun RulesSheet(
     }
 }
 
+private enum class SessionClonerMode { CLONE_TO_DAYS, IMPORT_FROM_DAY }
+
 @Composable
-private fun TransferSheet(
+private fun SessionClonerSheet(
     uiState: SessionEditorUiState,
-    onExportToSession: (String) -> Unit,
-    onImportFromSession: (String) -> Unit,
+    onCloneCurrentToTargets: (Set<String>, Set<String>?, SessionCloneApplyMode) -> Unit,
+    onImportFromSource: (String, Set<String>?, SessionCloneApplyMode) -> Unit,
 ) {
-    var exportMode by remember { mutableStateOf(true) }
-    Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Copiar bloques entre sesiones", fontWeight = FontWeight.Black, fontSize = 18.sp)
+    val currentSession = uiState.session ?: return
+    val availableExercises = remember(currentSession) {
+        currentSession.parts.flatMap { part ->
+            part.exercises.map { ex -> SessionCloneExerciseOption(ex.id, ex.name.ifBlank { "Ejercicio" }, part.name) }
+        } + currentSession.exercises.map { ex ->
+            SessionCloneExerciseOption(ex.id, ex.name.ifBlank { "Ejercicio" }, null)
+        }
+    }
+
+    var mode by rememberSaveable { mutableStateOf(SessionClonerMode.CLONE_TO_DAYS) }
+    var applyModeName by rememberSaveable { mutableStateOf(SessionCloneApplyMode.APPEND.name) }
+    val applyMode = remember(applyModeName) {
+        runCatching { SessionCloneApplyMode.valueOf(applyModeName) }.getOrElse { SessionCloneApplyMode.APPEND }
+    }
+    var clonePartial by rememberSaveable { mutableStateOf(false) }
+    var importPartial by rememberSaveable { mutableStateOf(false) }
+    var selectedTargetKeys by rememberSaveable { mutableStateOf(setOf<String>()) }
+    var selectedCloneExerciseIds by rememberSaveable { mutableStateOf(setOf<String>()) }
+    var selectedSourceSessionId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedImportExerciseIds by rememberSaveable { mutableStateOf(setOf<String>()) }
+
+    val sourceOption = remember(uiState.cloneSourceOptions, selectedSourceSessionId) {
+        uiState.cloneSourceOptions.firstOrNull { it.sessionId == selectedSourceSessionId }
+    }
+
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Text("Clonador de sesiones", fontWeight = FontWeight.Black, fontSize = 18.sp)
         Text(
-            if (exportMode) {
-                "Envía una copia de los bloques actuales a otra sesión. No se reemplaza nada: se agregan al final."
-            } else {
-                "Trae una copia de bloques desde otra sesión hacia esta. El contenido actual se mantiene intacto."
-            },
+            "Copia esta sesión a varios días o trae una sesión de otro día/semana/bloque.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = exportMode, onClick = { exportMode = true }, label = { Text("Exportar bloques") })
-            FilterChip(selected = !exportMode, onClick = { exportMode = false }, label = { Text("Importar bloques") })
+            FilterChip(
+                selected = mode == SessionClonerMode.CLONE_TO_DAYS,
+                onClick = { mode = SessionClonerMode.CLONE_TO_DAYS },
+                label = { Text("Copiar hacia") },
+            )
+            FilterChip(
+                selected = mode == SessionClonerMode.IMPORT_FROM_DAY,
+                onClick = { mode = SessionClonerMode.IMPORT_FROM_DAY },
+                label = { Text("Traer desde") },
+            )
         }
-        uiState.weekSessions.filterNot { it.id == uiState.session?.id }.forEach { sibling ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        if (exportMode) onExportToSession(sibling.id) else onImportFromSession(sibling.id)
-                    },
-                shape = RoundedCornerShape(22.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),
-                ),
-                border = androidx.compose.foundation.BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.16f),
-                ),
-            ) {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(sibling.name.ifBlank { "Sesión" }, fontWeight = FontWeight.Black)
-                    Text(
-                        "${dayLabel(sibling.dayOfWeek)} · ${sibling.allExercises().size} ejercicios",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    Text(
-                        if (exportMode) "Agregar mis bloques aquí" else "Traer bloques de esta sesión",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                    )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SessionCloneApplyMode.entries.forEach { candidate ->
+                FilterChip(
+                    selected = applyMode == candidate,
+                    onClick = { applyModeName = candidate.name },
+                    label = { Text(if (candidate == SessionCloneApplyMode.APPEND) "Agregar" else "Reemplazar") },
+                )
+            }
+        }
+
+        if (mode == SessionClonerMode.CLONE_TO_DAYS) {
+            Text("Selecciona días destino", fontWeight = FontWeight.Bold)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.heightIn(max = 220.dp).verticalScroll(rememberScrollState())) {
+                uiState.cloneDayOptions
+                    .filterNot { it.isCurrentSessionDay }
+                    .forEach { target ->
+                        val selected = target.key in selectedTargetKeys
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(14.dp))
+                                .clickable {
+                                    selectedTargetKeys = if (selected) {
+                                        selectedTargetKeys - target.key
+                                    } else {
+                                        selectedTargetKeys + target.key
+                                    }
+                                },
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.24f),
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.42f)
+                                else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            ),
+                        ) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(
+                                    "${dayLabel(target.dayOfWeek)} · ${target.weekName}",
+                                    fontWeight = FontWeight.Black,
+                                )
+                                Text(
+                                    "${target.blockName} · ${target.mesoName}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    if (target.existingSessionId != null) {
+                                        "Destino actual: ${target.existingSessionName?.ifBlank { "Sesión" } ?: "Sesión"}"
+                                    } else {
+                                        "Día sin sesión asignada"
+                                    },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
+                    }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Checkbox(checked = clonePartial, onCheckedChange = { clonePartial = it })
+                Text("Clonación parcial (ejercicios seleccionados)")
+            }
+
+            if (clonePartial) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.heightIn(max = 180.dp).verticalScroll(rememberScrollState())) {
+                    availableExercises.forEach { exercise ->
+                        val selected = exercise.exerciseId in selectedCloneExerciseIds
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable {
+                                    selectedCloneExerciseIds = if (selected) {
+                                        selectedCloneExerciseIds - exercise.exerciseId
+                                    } else {
+                                        selectedCloneExerciseIds + exercise.exerciseId
+                                    }
+                                }
+                                .padding(horizontal = 8.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Checkbox(checked = selected, onCheckedChange = null)
+                            Column(Modifier.weight(1f)) {
+                                Text(exercise.name, fontWeight = FontWeight.SemiBold)
+                                Text(exercise.sourcePartName ?: "Sin grupo", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
                 }
+            }
+
+            Button(
+                onClick = {
+                    onCloneCurrentToTargets(
+                        selectedTargetKeys,
+                        if (clonePartial) selectedCloneExerciseIds else null,
+                        applyMode,
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Clonar hacia días seleccionados", fontWeight = FontWeight.Black)
+            }
+        } else {
+            Text("Selecciona sesión origen", fontWeight = FontWeight.Bold)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.heightIn(max = 220.dp).verticalScroll(rememberScrollState())) {
+                uiState.cloneSourceOptions.forEach { source ->
+                    val selected = selectedSourceSessionId == source.sessionId
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable { selectedSourceSessionId = source.sessionId },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.24f),
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.42f)
+                            else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                        ),
+                    ) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(source.sessionName, fontWeight = FontWeight.Black)
+                            Text(
+                                "${dayLabel(source.dayOfWeek)} · ${source.weekName}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "${source.blockName} · ${source.mesoName} · ${source.exerciseCount} ejercicios",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Checkbox(checked = importPartial, onCheckedChange = { importPartial = it })
+                Text("Importación parcial (ejercicios seleccionados)")
+            }
+
+            if (importPartial && sourceOption != null) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.heightIn(max = 180.dp).verticalScroll(rememberScrollState())) {
+                    sourceOption.exercises.forEach { exercise ->
+                        val selected = exercise.exerciseId in selectedImportExerciseIds
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable {
+                                    selectedImportExerciseIds = if (selected) {
+                                        selectedImportExerciseIds - exercise.exerciseId
+                                    } else {
+                                        selectedImportExerciseIds + exercise.exerciseId
+                                    }
+                                }
+                                .padding(horizontal = 8.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Checkbox(checked = selected, onCheckedChange = null)
+                            Column(Modifier.weight(1f)) {
+                                Text(exercise.name, fontWeight = FontWeight.SemiBold)
+                                Text(exercise.sourcePartName ?: "Sin grupo", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Button(
+                onClick = {
+                    val sourceId = selectedSourceSessionId ?: return@Button
+                    onImportFromSource(
+                        sourceId,
+                        if (importPartial) selectedImportExerciseIds else null,
+                        applyMode,
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = selectedSourceSessionId != null,
+            ) {
+                Text("Traer sesión al editor actual", fontWeight = FontWeight.Black)
             }
         }
     }
+}
+
+private fun formatHistoryTimestamp(timestampMs: Long): String {
+    return runCatching {
+        SimpleDateFormat("dd MMM · HH:mm", Locale.forLanguageTag("es-ES")).format(Date(timestampMs))
+    }.getOrDefault("Momento desconocido")
 }
 
 @Composable
 private fun SaveSheet(
     onSave: (SessionSaveScope) -> Unit,
     onDiscardSwitch: (() -> Unit)?,
+    isSimpleProgram: Boolean,
 ) {
     var saveScope by rememberSaveable { mutableStateOf(SessionSaveScope.SESSION_ONLY) }
     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Guardar cambios", fontWeight = FontWeight.Black, fontSize = 18.sp)
         Text(
             if (onDiscardSwitch != null) {
-                "Hay un cambio de sesión pendiente. Si guardas, te llevamos directo a la sesión que elegiste."
+                "Hay cambios sin guardar. Si guardas, continuarás editando la sesión destino. Si descartas, los cambios se perderán."
+            } else if (isSimpleProgram) {
+                "Este programa es simple: el guardado aplica solo a esta sesión."
             } else {
                 "Puedes guardar solo esta sesión o propagar el mismo molde al mesociclo."
             },
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = saveScope == SessionSaveScope.SESSION_ONLY,
-                onClick = { saveScope = SessionSaveScope.SESSION_ONLY },
-                label = { Text("Solo esta sesión") },
-            )
-            FilterChip(
-                selected = saveScope == SessionSaveScope.MESOCYCLE,
-                onClick = { saveScope = SessionSaveScope.MESOCYCLE },
-                label = { Text("Todo el mesociclo") },
-            )
+        if (!isSimpleProgram) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = saveScope == SessionSaveScope.SESSION_ONLY,
+                    onClick = { saveScope = SessionSaveScope.SESSION_ONLY },
+                    label = { Text("Solo esta sesión") },
+                )
+                FilterChip(
+                    selected = saveScope == SessionSaveScope.MESOCYCLE,
+                    onClick = { saveScope = SessionSaveScope.MESOCYCLE },
+                    label = { Text("Todo el mesociclo") },
+                )
+            }
         }
-        Button(onClick = { onSave(saveScope) }, modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = {
+                onSave(if (isSimpleProgram) SessionSaveScope.SESSION_ONLY else saveScope)
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Text(
-                if (onDiscardSwitch != null) "Guardar y cambiar sesión" else "Guardar",
+                if (onDiscardSwitch != null) "Guardar y continuar" else "Guardar y volver al programa",
                 fontWeight = FontWeight.Black,
             )
         }
@@ -3995,12 +5508,17 @@ private fun WarmupSheet(
 }
 
 @Composable
-private fun AugeSheet(
+private fun AssistantSheet(
     uiState: SessionEditorUiState,
     onApplyAugeCorrection: (String) -> Unit,
+    onAddGhostExercise: (String) -> Unit,
+    onApplyAssistantSuggestion: (String) -> Unit,
 ) {
+    val report = uiState.assistantReport
     val summary = uiState.augeSummary
     val accentColor = augeStatusColor(summary.status, summary.hasCriticalAlerts)
+    var ringsExpanded by rememberSaveable { mutableStateOf(false) }
+    var volumeExpanded by rememberSaveable { mutableStateOf(false) }
 
     Column(
         Modifier
@@ -4010,69 +5528,100 @@ private fun AugeSheet(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("Asistente", fontWeight = FontWeight.Black, fontSize = 18.sp)
-        Text(
-            "Monitorea fatiga, alertas y margen antes de cerrar o guardar la sesión.",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Text("Asistente de sesión", fontWeight = FontWeight.Black, fontSize = 18.sp)
 
-        Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                AugeOverviewMetric(
-                    title = "Sets",
-                    value = summary.sessionSetCount.toString(),
-                    subtitle = "Semana ${summary.weeklySetCount}",
-                    modifier = Modifier.weight(1f),
-                )
-                AugeOverviewMetric(
-                    title = "Duración",
-                    value = "${summary.sessionDurationMinutes} min",
-                    subtitle = "Semana ${summary.weeklyDurationMinutes}",
-                    modifier = Modifier.weight(1f),
-                )
-                AugeOverviewMetric(
-                    title = "Dificultad",
-                    value = "${summary.sessionDifficulty}/10",
-                    subtitle = "Semana ${summary.weeklyDifficulty}/10",
-                    modifier = Modifier.weight(1f),
-                )
+        if (report != null) {
+            AssistantVeredictoCard(report)
+            if (report.riesgos.isNotEmpty()) {
+                AssistantSectionTitle("Riesgos detectados")
+                report.riesgos.forEach { risk ->
+                    AssistantRiskCard(risk)
+                }
             }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                SessionMetricBadge(
-                    label = "Estado",
-                    value = when (summary.status) {
-                        SessionEditorAugeStatus.OPTIMAL -> "Óptimo"
-                        SessionEditorAugeStatus.WARNING -> "Vigilar"
-                        SessionEditorAugeStatus.FATIGUING -> "Fatigante"
-                    },
-                    tone = accentColor,
-                    modifier = Modifier.weight(1f),
-                )
-                SessionMetricBadge(
-                    label = "Riesgo",
-                    value = if (summary.hasCriticalAlerts) "Alto" else if (summary.alertCount > 0) "Medio" else "Bajo",
-                    tone = if (summary.hasCriticalAlerts) Color(0xFFEA580C) else if (summary.alertCount > 0) Color(0xFFF59E0B) else Color(0xFF16A34A),
-                    modifier = Modifier.weight(1f),
-                )
+            if (report.ajustes.isNotEmpty()) {
+                AssistantSectionTitle("Ajustes sugeridos")
+                report.ajustes.forEach { suggestion ->
+                    AssistantSuggestionCard(suggestion, onApplyAssistantSuggestion)
+                }
             }
-
+            if (report.tarjetasFantasma.isNotEmpty()) {
+                AssistantSectionTitle("Propuestas")
+                report.tarjetasFantasma.forEach { card ->
+                    AssistantGhostCard(card, onAddGhostExercise)
+                }
+            }
+            if (report.plantillasCompatibles.isNotEmpty()) {
+                AssistantSectionTitle("Plantillas compatibles")
+                report.plantillasCompatibles.forEach { preview ->
+                    AssistantTemplatePreviewCard(preview)
+                }
+            }
+        } else {
             Text(
-                "${summary.combinedSessionDrainPercent()}% carga sesión · ${summary.combinedWeeklyDrainPercent()}% semanal",
+                "Calculando análisis...",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelSmall,
             )
         }
 
+        val energySummary = summary.sessionEnergy
+        if (energySummary.totalKcal.mid > 0) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.22f),
+                ),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Kcal estimadas", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "${energySummary.totalKcal.mid}",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            "${energySummary.totalKcal.low}–${energySummary.totalKcal.high} kcal",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("EPOC estimado", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "${energySummary.epocKcal.mid} kcal",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Confianza", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            when (energySummary.confidence) {
+                                EnergyConfidence.HIGH -> "alta"
+                                EnergyConfidence.MEDIUM -> "media"
+                                EnergyConfidence.LOW -> "baja"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = when (energySummary.confidence) {
+                                EnergyConfidence.HIGH -> Color(0xFF22C55E)
+                                EnergyConfidence.MEDIUM -> Color(0xFFF59E0B)
+                                EnergyConfidence.LOW -> Color(0xFFEF4444)
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        // Rings section (kept from old AugeSheet)
         Card(
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
@@ -4080,65 +5629,89 @@ private fun AugeSheet(
             ),
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text("Baterías AUGE", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-                Text("Sesión", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                AugePercentBar("Muscular", summary.sessionDrain.muscular)
-                AugePercentBar("SNC", summary.sessionDrain.cns)
-                AugePercentBar("Espinal", summary.sessionDrain.spinal)
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
-                Text("Semana", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                AugePercentBar("Muscular", summary.weeklyDrain.muscular)
-                AugePercentBar("SNC", summary.weeklyDrain.cns)
-                AugePercentBar("Espinal", summary.weeklyDrain.spinal)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { ringsExpanded = !ringsExpanded },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "RINGS de sesión",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                    )
+                    Icon(
+                        imageVector = if (ringsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                    )
+                }
+                EstimatedRingsRow(
+                    energy = (100 - summary.sessionDrain.cns).coerceIn(0, 100),
+                    spine = (100 - summary.sessionDrain.spinal).coerceIn(0, 100),
+                )
             }
         }
 
-        // ── Volumen por músculo ──────────────────────────────────────────────
-        val session = uiState.session
-        if (session != null) {
-            val allExercises = session.allExercises()
-            val setsPerMuscle = remember(allExercises) {
-                val map = mutableMapOf<String, Int>()
-                allExercises.forEach { exercise ->
-                    val setCount = exercise.sets.size.coerceAtLeast(1)
-                    val dbEntry = EXERCISE_DATABASE.firstOrNull { it.id == exercise.exerciseDbId }
-                    val muscles = dbEntry?.involvedMuscles?.map { im ->
-                        VolumeCalculator.normalizeCanonicalMuscleGroup(im.muscle, im.emphasis)
-                    }?.distinct() ?: listOf(exercise.name.ifBlank { "General" })
-                    muscles.forEach { muscle ->
-                        map[muscle] = (map[muscle] ?: 0) + setCount
-                    }
-                }
-                map.entries.sortedByDescending { it.value }.take(8)
-            }
-
-            if (setsPerMuscle.isNotEmpty()) {
-                val maxSets = setsPerMuscle.maxOf { it.value }.coerceAtLeast(1)
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f),
-                    ),
+        // Volume section (kept from old AugeSheet)
+        val sortedVolumeEntries = remember(report) {
+            (report?.volumenPorMusculo ?: summary.sessionVolumeByMuscle)
+                .entries
+                .filter { it.value > 0.0 }
+                .sortedByDescending { it.value }
+        }
+        if (sortedVolumeEntries.isNotEmpty()) {
+            val maxSets = sortedVolumeEntries.maxOfOrNull { it.value }?.coerceAtLeast(1.0) ?: 1.0
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f),
+                ),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Column(
-                        modifier = Modifier.padding(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { volumeExpanded = !volumeExpanded },
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
                             "Volumen por músculo",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Black,
                         )
-                        Text(
-                            "Sets estimados por grupo muscular en esta sesión.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        Icon(
+                            imageVector = if (volumeExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
                         )
-                        setsPerMuscle.forEach { (muscle, sets) ->
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    }
+                    if (volumeExpanded) {
+                        sortedVolumeEntries.forEach { (muscle, sets) ->
+                            val threshold = report?.umbralesPorMusculo?.get(muscle)
+                            val mev = threshold?.mev
+                            val mav = threshold?.mav
+                            val mrv = threshold?.mrv
+                            val indicatorColor = when {
+                                mrv != null && sets > mrv -> Color(0xFFEF4444)
+                                mav != null && sets > mav -> Color(0xFFF59E0B)
+                                mev != null && sets >= mev -> Color(0xFF22C55E)
+                                else -> accentColor
+                            }
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -4146,20 +5719,20 @@ private fun AugeSheet(
                                 ) {
                                     Text(muscle, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
                                     Text(
-                                        "$sets sets",
+                                        "${if (sets == sets.toLong().toDouble()) sets.toLong().toString() else "%.1f".format(sets)} sets",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = accentColor,
+                                        color = indicatorColor,
                                         fontWeight = FontWeight.Black,
                                     )
                                 }
                                 LinearProgressIndicator(
-                                    progress = { sets.toFloat() / maxSets },
+                                    progress = { (sets / maxSets).toFloat().coerceIn(0f, 1f) },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(6.dp)
+                                        .height(7.dp)
                                         .clip(RoundedCornerShape(999.dp)),
-                                    color = accentColor,
-                                    trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.48f),
+                                    color = indicatorColor,
+                                    trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.42f),
                                 )
                             }
                         }
@@ -4167,64 +5740,231 @@ private fun AugeSheet(
                 }
             }
         }
+    }
+}
 
-        if (summary.alerts.isEmpty()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    Icons.Default.CheckCircle,
-                    contentDescription = null,
-                    tint = Color(0xFF16A34A),
-                    modifier = Modifier.size(20.dp),
-                )
-                Text("Todo en rango", fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
-            }
-        } else {
-            AugeSectionTitle(
-                title = "Alertas prioritarias",
-                subtitle = "Esto es lo primero que AUGE corregiría antes de seguir cargando la sesión.",
-            )
-            summary.alerts.forEach { alert ->
-                AugeAlertCard(
-                    alert = alert,
-                    onApplyCorrection = onApplyAugeCorrection,
-                )
-            }
-        }
-
-        if (summary.suggestions.isNotEmpty()) {
-            Text("Sugerencias", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-            Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                summary.suggestions.forEach { suggestion ->
-                    SuggestionChip(
-                        onClick = {
-                            if (suggestion.correctionType != null) {
-                                onApplyAugeCorrection(suggestion.id)
-                            }
-                        },
-                        label = { Text(suggestion.title, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
-                        icon = {
-                            Icon(
-                                augeSeverityIcon(suggestion.severity),
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp),
-                                tint = augeSeverityColor(suggestion.severity),
-                            )
-                        },
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            augeSeverityColor(suggestion.severity).copy(alpha = 0.32f),
-                        ),
+@Composable
+private fun AssistantVeredictoCard(report: com.example.kpkn.domain.sessionassistant.SessionAssistantReport) {
+    val color = when (report.veredicto) {
+        com.example.kpkn.domain.sessionassistant.Verdict.OPTIMAL -> Color(0xFF22C55E)
+        com.example.kpkn.domain.sessionassistant.Verdict.WARNING -> Color(0xFFF59E0B)
+        com.example.kpkn.domain.sessionassistant.Verdict.FATIGUING -> Color(0xFFF97316)
+        com.example.kpkn.domain.sessionassistant.Verdict.CRITICAL -> Color(0xFFEF4444)
+    }
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.3f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(shape = RoundedCornerShape(12.dp), color = color.copy(alpha = 0.15f)) {
+                    Text(
+                        "${report.scoreEstimado}",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        color = color,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 20.sp,
                     )
+                }
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    report.veredicto.name,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 16.sp,
+                    color = color,
+                )
+            }
+            Text(
+                report.resumenTexto,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AssistantSectionTitle(title: String) {
+    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+}
+
+@Composable
+private fun AssistantRiskCard(risk: com.example.kpkn.domain.sessionassistant.SessionRisk) {
+    val color = when (risk.severity) {
+        com.example.kpkn.domain.sessionassistant.RiskSeverity.BLOCKING -> Color(0xFFEF4444)
+        com.example.kpkn.domain.sessionassistant.RiskSeverity.WARNING -> Color(0xFFF59E0B)
+        com.example.kpkn.domain.sessionassistant.RiskSeverity.INFO -> MaterialTheme.colorScheme.primary
+    }
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.08f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.2f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(shape = RoundedCornerShape(8.dp), color = color.copy(alpha = 0.15f)) {
+                    Text(
+                        risk.severity.name,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        color = color,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                    )
+                }
+                Spacer(Modifier.width(8.dp))
+                Text(risk.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+            }
+            Text(risk.message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(risk.action, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
+
+@Composable
+private fun AssistantSuggestionCard(
+    suggestion: com.example.kpkn.domain.sessionassistant.AssistantSuggestion,
+    onApplySuggestion: (String) -> Unit,
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(suggestion.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+            Text(suggestion.message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (suggestion.type == com.example.kpkn.domain.sessionassistant.AssistantActionType.LOWER_RPE ||
+                suggestion.type == com.example.kpkn.domain.sessionassistant.AssistantActionType.REDUCE_SET ||
+                suggestion.type == com.example.kpkn.domain.sessionassistant.AssistantActionType.REMOVE_FAILURE
+            ) {
+                FilledTonalButton(onClick = { onApplySuggestion(suggestion.id) }) {
+                    Text("Aplicar", fontWeight = FontWeight.Bold)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AssistantGhostCard(
+    card: com.example.kpkn.domain.sessionassistant.GhostExerciseCard,
+    onAdd: (String) -> Unit,
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(card.name, fontWeight = FontWeight.Bold)
+            }
+            Text(card.motivo, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                listOf(card.impactoVolumen, card.impactoDrenaje, card.impactoColumna).forEach { impact ->
+                    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)) {
+                        Text(
+                            impact,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+            Text("${card.sets} × ${card.reps} @ RPE ${card.rpe}", style = MaterialTheme.typography.labelSmall)
+            FilledTonalButton(onClick = { onAdd(card.cardId) }) {
+                Text("Añadir", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AssistantTemplatePreviewCard(preview: com.example.kpkn.domain.sessionassistant.TemplatePreview) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(preview.template.emoji, fontSize = 20.sp)
+                Spacer(Modifier.width(8.dp))
+                Text(preview.template.name, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.weight(1f))
+                Text("${preview.duracionEstimada}m", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text(
+                preview.modoRecomendado.name,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            if (preview.advertencias.isNotEmpty()) {
+                preview.advertencias.forEach { adv ->
+                    Text("⚠ $adv", style = MaterialTheme.typography.labelSmall, color = Color(0xFFF59E0B))
+                }
+            }
+        }
+    }
+}
+
+private fun buildExerciseCatalogLookup(catalog: List<ExerciseMuscleInfo>): Map<String, ExerciseMuscleInfo> {
+    val base = catalog.associateBy { it.id.lowercase() }
+    val aliasEntries = EXERCISE_ID_ALIASES.mapNotNull { (alias, canonical) ->
+        base[canonical]?.let { alias.lowercase() to it }
+    }.toMap()
+    return base + aliasEntries
+}
+
+private fun resolveCatalogExerciseInfo(
+    exercise: Exercise,
+    catalogLookup: Map<String, ExerciseMuscleInfo>,
+): ExerciseMuscleInfo? {
+    val byId = exercise.exerciseDbId ?: exercise.exerciseId
+    return byId?.lowercase()?.let(catalogLookup::get)
+        ?: catalogLookup.values.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
+}
+
+private fun buildDiscomfortByExercise(
+    workoutLogs: List<WorkoutLog>,
+): Map<String, List<Pair<String, Int>>> {
+    val map = mutableMapOf<String, MutableMap<String, Int>>()
+    workoutLogs.forEach { log ->
+        log.postExerciseReports.forEach { report ->
+            val key = report.canonicalExerciseId ?: report.exerciseDbId ?: report.exerciseId
+            if (key.isBlank()) return@forEach
+            val bucket = map.getOrPut(key) { mutableMapOf() }
+            report.discomfortIds
+                .filter { it != "none" }
+                .forEach { discomfortId ->
+                    val label = discomfortLabel(discomfortId)
+                    bucket[label] = (bucket[label] ?: 0) + 1
+                }
+        }
+    }
+
+    return map.mapValues { (_, value) ->
+        value.entries
+            .sortedByDescending { it.value }
+            .take(5)
+            .map { it.key to it.value }
     }
 }
 
@@ -4234,62 +5974,31 @@ private fun AugeOverviewMetric(
     value: String,
     subtitle: String,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = if (compact) 0.7f else 0.8f),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(horizontal = if (compact) 10.dp else 12.dp, vertical = if (compact) 8.dp else 12.dp),
+            verticalArrangement = Arrangement.spacedBy(if (compact) 2.dp else 4.dp),
         ) {
             Text(
                 title,
-                style = MaterialTheme.typography.labelMedium,
+                style = if (compact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 value,
-                style = MaterialTheme.typography.titleMedium,
+                style = if (compact) MaterialTheme.typography.labelLarge else MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Black,
             )
             Text(
                 subtitle,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SessionMetricBadge(
-    label: String,
-    value: String,
-    tone: Color,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = tone.copy(alpha = 0.12f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, tone.copy(alpha = 0.24f)),
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-                color = tone,
             )
         }
     }
@@ -4311,39 +6020,11 @@ private fun AugeSectionTitle(
 }
 
 @Composable
-private fun AugePercentBar(
-    label: String,
-    value: Int,
-) {
-    val safeValue = value.coerceIn(0, 100)
-    val color = drainColor(safeValue)
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(label, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
-            Text("$safeValue%", color = color, fontWeight = FontWeight.Black, style = MaterialTheme.typography.labelSmall)
-        }
-        LinearProgressIndicator(
-            progress = { safeValue / 100f },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(999.dp)),
-            color = color,
-            trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.48f),
-        )
-    }
-}
-
-@Composable
 private fun AugeAlertCard(
     alert: SessionEditorAugeAlert,
     onApplyCorrection: (String) -> Unit,
 ) {
-    val accentColor = augeSeverityColor(alert.severity)
+    val accentColor = MaterialTheme.colorScheme.primary
     Card(
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(
@@ -4371,7 +6052,7 @@ private fun AugeAlertCard(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = augeSeverityIcon(alert.severity),
+                        imageVector = Icons.Default.TipsAndUpdates,
                         contentDescription = null,
                         tint = accentColor,
                     )
@@ -4393,7 +6074,7 @@ private fun AugeAlertCard(
                     color = accentColor.copy(alpha = 0.12f),
                 ) {
                     Text(
-                        augeSeverityLabel(alert.severity),
+                        "Recomendación",
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                         color = accentColor,
                         style = MaterialTheme.typography.labelMedium,
@@ -4402,14 +6083,13 @@ private fun AugeAlertCard(
                 }
             }
 
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                AugeTag(augeSourceLabel(alert.source), accentColor)
-                alert.exerciseName?.let { AugeTag(it, accentColor) }
-                alert.muscle?.let { AugeTag(it, accentColor) }
-            }
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    alert.exerciseName?.let { AugeTag(it, accentColor) }
+                    alert.muscle?.let { AugeTag(it, accentColor) }
+                }
 
             if (alert.correctionType != null) {
                 FilledTonalButton(onClick = { onApplyCorrection(alert.id) }) {
@@ -4439,12 +6119,6 @@ private fun AugeTag(
     }
 }
 
-private fun SessionEditorAugeSummary.combinedSessionDrainPercent(): Int =
-    ((sessionDrain.cns + sessionDrain.muscular + sessionDrain.spinal) / 3.0).roundToInt()
-
-private fun SessionEditorAugeSummary.combinedWeeklyDrainPercent(): Int =
-    ((weeklyDrain.cns + weeklyDrain.muscular + weeklyDrain.spinal) / 3.0).roundToInt()
-
 private fun augeStatusLabel(status: SessionEditorAugeStatus): String = when (status) {
     SessionEditorAugeStatus.OPTIMAL -> "Sesión bien calibrada"
     SessionEditorAugeStatus.WARNING -> "Sesión a vigilar"
@@ -4461,42 +6135,47 @@ private fun augeStatusColor(
     else -> Color(0xFFEA580C)
 }
 
-private fun augeSeverityLabel(severity: SessionEditorAugeAlertSeverity): String = when (severity) {
-    SessionEditorAugeAlertSeverity.INFO -> "Sugerencia"
-    SessionEditorAugeAlertSeverity.WARNING -> "Atención"
-    SessionEditorAugeAlertSeverity.CRITICAL -> "Importante"
-}
-
-private fun augeSeverityColor(severity: SessionEditorAugeAlertSeverity): Color = when (severity) {
-    SessionEditorAugeAlertSeverity.INFO -> Color(0xFF2563EB)
-    SessionEditorAugeAlertSeverity.WARNING -> Color(0xFFF59E0B)
-    SessionEditorAugeAlertSeverity.CRITICAL -> Color(0xFFEA580C)
-}
-
-private fun augeSeverityIcon(severity: SessionEditorAugeAlertSeverity): ImageVector = when (severity) {
-    SessionEditorAugeAlertSeverity.INFO -> Icons.Default.TipsAndUpdates
-    SessionEditorAugeAlertSeverity.WARNING -> Icons.Default.AutoAwesome
-    SessionEditorAugeAlertSeverity.CRITICAL -> Icons.Default.PriorityHigh
-}
-
-private fun augeSourceLabel(source: SessionEditorAugeAlertSource): String = when (source) {
-    SessionEditorAugeAlertSource.SESSION -> "Sesión"
-    SessionEditorAugeAlertSource.WEEK -> "Semana"
-    SessionEditorAugeAlertSource.SYSTEM -> "Sistema"
-    SessionEditorAugeAlertSource.EXERCISE -> "Ejercicio"
-}
+// (removed source label helpers - no longer displayed)
 
 private fun augeCorrectionLabel(correctionType: SessionEditorAugeCorrectionType): String = when (correctionType) {
     SessionEditorAugeCorrectionType.REDUCE_SERIES -> "Aplicar recorte de series"
-    SessionEditorAugeCorrectionType.REDUCE_RPE -> "Aplicar baja de RPE"
+    SessionEditorAugeCorrectionType.REDUCE_RPE -> "Aplicar baja de intensidad"
     SessionEditorAugeCorrectionType.REDUCE_VOLUME_RPE -> "Bajar volumen e intensidad"
     SessionEditorAugeCorrectionType.ADD_SERIES -> "Agregar una serie"
 }
 
-private fun drainColor(value: Int): Color = when {
-    value < 40 -> Color(0xFF16A34A)
-    value < 70 -> Color(0xFFF59E0B)
-    else -> Color(0xFFEA580C)
+private data class SuggestionGroup(
+    val title: String,
+    val alerts: List<SessionEditorAugeAlert>,
+    val correctionType: SessionEditorAugeCorrectionType?,
+)
+
+private fun groupSuggestionsForSheet(suggestions: List<SessionEditorAugeAlert>): List<SuggestionGroup> {
+    if (suggestions.isEmpty()) return emptyList()
+
+    val grouped = suggestions
+        .mapIndexed { index, alert -> index to alert }
+        .groupBy { (_, alert) ->
+            val normalizedTitle = alert.title
+                .replace(Regex("\\s+para\\s+.+$", RegexOption.IGNORE_CASE), "")
+                .trim()
+            "$normalizedTitle|${alert.source}|${alert.correctionType ?: "none"}"
+        }
+
+    return grouped.values
+        .sortedBy { pairs -> pairs.minOf { it.first } }
+        .map { pairs ->
+            val alerts = pairs.map { it.second }
+            val normalizedTitle = alerts.first().title
+                .replace(Regex("\\s+para\\s+.+$", RegexOption.IGNORE_CASE), "")
+                .trim()
+            val correctionType = alerts.mapNotNull { it.correctionType }.firstOrNull()
+            SuggestionGroup(
+                title = if (normalizedTitle.isBlank()) alerts.first().title else normalizedTitle,
+                alerts = alerts,
+                correctionType = correctionType,
+            )
+        }
 }
 
 private fun dayLabel(dayOfWeek: Int?): String = when (dayOfWeek) {
@@ -4518,28 +6197,452 @@ private fun dayLabelShort(dayOfWeek: Int?): String = when (dayOfWeek) {
     5 -> "Vie"
     6 -> "Sáb"
     7 -> "Dom"
-    else -> "?"
+     else -> "?"
+ }
+
+
+private fun smartReferenceMetricLabel(mode: TrainingMode, customUnit: String?): String = when (mode) {
+    TrainingMode.REPS,
+    TrainingMode.RM,
+    -> "Reps base"
+    TrainingMode.TIME -> "Tiempo base"
+    TrainingMode.DISTANCE -> "Dist. base"
+    TrainingMode.CUSTOM -> "${customUnit?.ifBlank { "Unidad" } ?: "Unidad"} base"
+    TrainingMode.SOLO_RPE -> "Base"
 }
 
-private fun formatRestSummary(restTime: Int?): String {
-    val total = restTime ?: 90
-    val minutes = total / 60
-    val seconds = total % 60
-    return "${minutes}:${seconds.toString().padStart(2, '0')}"
+private fun estimatedMetricLabel(mode: TrainingMode, customUnit: String?): String = when (mode) {
+    TrainingMode.REPS,
+    TrainingMode.RM,
+    -> "Reps est."
+    TrainingMode.TIME -> "Tiempo est."
+    TrainingMode.DISTANCE -> "Dist. est."
+    TrainingMode.CUSTOM -> "${customUnit?.ifBlank { "Unidad" } ?: "Unidad"} est."
+    TrainingMode.SOLO_RPE -> "RPE"
 }
 
-private fun trainingModeLabel(mode: TrainingMode): String = when (mode) {
-    TrainingMode.REPS -> "Reps"
-    TrainingMode.TIME -> "Tiempo"
-    TrainingMode.PERCENT -> "RM"
-    TrainingMode.CUSTOM -> "Personalizado"
-    TrainingMode.DISTANCE -> "Distancia"
+private fun formatEstimatedMetric(value: Double?, mode: TrainingMode, customUnit: String?): String {
+    if (value == null) return "-"
+    return when (mode) {
+        TrainingMode.TIME -> "${value.toInt()}s"
+        TrainingMode.CUSTOM -> formatEditableNumber(value)
+        else -> value.toInt().toString()
+    }
 }
 
-private fun formatEditableNumber(value: Double?): String {
-    if (value == null) return ""
-    val asLong = value.toLong()
-    return if (value == asLong.toDouble()) asLong.toString() else value.toString()
+
+@Composable
+private fun CompetitionSessionEditor(
+    session: Session,
+    onUpdateSession: ((Session) -> Session) -> Unit,
+    onAddCompetitionMovement: () -> Unit,
+) {
+    var dateInput by rememberSaveable(session.id, session.competitionDetails?.competitionDate) {
+        mutableStateOf(session.competitionDetails?.competitionDate.orEmpty())
+    }
+    var timeInput by rememberSaveable(session.id, session.competitionDetails?.startTime) {
+        mutableStateOf(session.competitionDetails?.startTime.orEmpty())
+    }
+    var locationInput by rememberSaveable(session.id, session.competitionDetails?.location) {
+        mutableStateOf(session.competitionDetails?.location.orEmpty())
+    }
+    var federationInput by rememberSaveable(session.id, session.competitionDetails?.federation) {
+        mutableStateOf(session.competitionDetails?.federation.orEmpty())
+    }
+    var weighInDateInput by rememberSaveable(session.id, session.competitionDetails?.weighInDate) {
+        mutableStateOf(session.competitionDetails?.weighInDate.orEmpty())
+    }
+    var weighInTimeInput by rememberSaveable(session.id, session.competitionDetails?.weighInTime) {
+        mutableStateOf(session.competitionDetails?.weighInTime.orEmpty())
+    }
+    var strategyNotesInput by rememberSaveable(session.id, session.competitionDetails?.strategyNotes) {
+        mutableStateOf(session.competitionDetails?.strategyNotes.orEmpty())
+    }
+    var reminderOneWeekEnabled by rememberSaveable(session.id, session.competitionDetails?.reminderOneWeekEnabled) {
+        mutableStateOf(session.competitionDetails?.reminderOneWeekEnabled ?: true)
+    }
+    var reminder48hEnabled by rememberSaveable(session.id, session.competitionDetails?.reminder48hEnabled) {
+        mutableStateOf(session.competitionDetails?.reminder48hEnabled ?: true)
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text("Sesión de competición", fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Configura datos del evento y registra intentos por movimiento. Sin timer de descanso.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            val remindersText = competitionReminderSummary(session.competitionDetails)
+            if (remindersText.isNotBlank()) {
+                Text(
+                    remindersText,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+
+            EditorMiniField(
+                label = "Fecha competición (YYYY-MM-DD)",
+                value = dateInput,
+                stateKey = "comp-date-${session.id}",
+            ) { input ->
+                dateInput = input
+                onUpdateSession { current ->
+                    current.copy(
+                        competitionDetails = (current.competitionDetails ?: CompetitionDetails()).copy(competitionDate = input.ifBlank { null }),
+                    )
+                }
+            }
+            EditorMiniField(
+                label = "Hora inicio (HH:mm)",
+                value = timeInput,
+                stateKey = "comp-time-${session.id}",
+            ) { input ->
+                timeInput = input
+                onUpdateSession { current ->
+                    current.copy(
+                        competitionDetails = (current.competitionDetails ?: CompetitionDetails()).copy(startTime = input.ifBlank { null }),
+                    )
+                }
+            }
+            EditorMiniField(
+                label = "Ubicación",
+                value = locationInput,
+                stateKey = "comp-location-${session.id}",
+            ) { input ->
+                locationInput = input
+                onUpdateSession { current ->
+                    current.copy(
+                        competitionDetails = (current.competitionDetails ?: CompetitionDetails()).copy(location = input.ifBlank { null }),
+                    )
+                }
+            }
+            EditorMiniField(
+                label = "Federación",
+                value = federationInput,
+                stateKey = "comp-fed-${session.id}",
+            ) { input ->
+                federationInput = input
+                onUpdateSession { current ->
+                    current.copy(
+                        competitionDetails = (current.competitionDetails ?: CompetitionDetails()).copy(federation = input.ifBlank { null }),
+                    )
+                }
+            }
+            EditorMiniField(
+                label = "Pesaje (fecha YYYY-MM-DD)",
+                value = weighInDateInput,
+                stateKey = "comp-weigh-date-${session.id}",
+            ) { input ->
+                weighInDateInput = input
+                onUpdateSession { current ->
+                    current.copy(
+                        competitionDetails = (current.competitionDetails ?: CompetitionDetails()).copy(weighInDate = input.ifBlank { null }),
+                    )
+                }
+            }
+            EditorMiniField(
+                label = "Pesaje (hora HH:mm)",
+                value = weighInTimeInput,
+                stateKey = "comp-weigh-time-${session.id}",
+            ) { input ->
+                weighInTimeInput = input
+                onUpdateSession { current ->
+                    current.copy(
+                        competitionDetails = (current.competitionDetails ?: CompetitionDetails()).copy(weighInTime = input.ifBlank { null }),
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(
+                    checked = reminderOneWeekEnabled,
+                    onCheckedChange = { checked ->
+                        reminderOneWeekEnabled = checked
+                        onUpdateSession { current ->
+                            current.copy(
+                                competitionDetails = (current.competitionDetails ?: CompetitionDetails()).copy(reminderOneWeekEnabled = checked),
+                            )
+                        }
+                    },
+                )
+                Text("Recordatorio 1 semana antes", style = MaterialTheme.typography.bodySmall)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(
+                    checked = reminder48hEnabled,
+                    onCheckedChange = { checked ->
+                        reminder48hEnabled = checked
+                        onUpdateSession { current ->
+                            current.copy(
+                                competitionDetails = (current.competitionDetails ?: CompetitionDetails()).copy(reminder48hEnabled = checked),
+                            )
+                        }
+                    },
+                )
+                Text("Recordatorio 48h antes", style = MaterialTheme.typography.bodySmall)
+            }
+            EditorMiniField(
+                label = "Estrategia / notas de competición",
+                value = strategyNotesInput,
+                stateKey = "comp-strategy-${session.id}",
+            ) { input ->
+                strategyNotesInput = input
+                onUpdateSession { current ->
+                    current.copy(
+                        competitionDetails = (current.competitionDetails ?: CompetitionDetails()).copy(strategyNotes = input.ifBlank { null }),
+                    )
+                }
+            }
+
+            if (session.exercises.isEmpty()) {
+                OutlinedButton(onClick = onAddCompetitionMovement, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(Modifier.width(6.dp))
+                    Text("Agregar movimiento de competición")
+                }
+            } else {
+                Text("Movimientos e intentos", fontWeight = FontWeight.Bold)
+                session.exercises.forEach { movement ->
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.68f)),
+                    ) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(movement.name.ifBlank { "Movimiento" }, fontWeight = FontWeight.Black)
+                            val placeholders = (3 - movement.sets.size).coerceAtLeast(0)
+                            val sets = (movement.sets + List(placeholders) { idx ->
+                                ExerciseSet(id = "placeholder-${movement.id}-$idx")
+                            }).take(3)
+                            sets.take(3).forEachIndexed { attemptIndex, attempt ->
+                                Card(
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.16f)),
+                                ) {
+                                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Text("Intento ${attemptIndex + 1}", fontWeight = FontWeight.Bold)
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            EditorMiniField(
+                                                label = "Peso",
+                                                value = formatEditableNumber(attempt.weight),
+                                                keyboardType = KeyboardType.Decimal,
+                                                stateKey = "comp-w-${movement.id}-${attempt.id}",
+                                                modifier = Modifier.weight(1f),
+                                            ) { input ->
+                                                val value = input.safeDoubleOrNull()
+                                                onUpdateSession { current ->
+                                                    current.updateCompetitionSetAtIndex(movement.id, attemptIndex) { set ->
+                                                        set.copy(weight = value)
+                                                    }
+                                                }
+                                            }
+                                            EditorMiniField(
+                                                label = "RPE",
+                                                value = formatEditableNumber(attempt.targetRPE),
+                                                keyboardType = KeyboardType.Decimal,
+                                                stateKey = "comp-rpe-${movement.id}-${attempt.id}",
+                                                modifier = Modifier.weight(1f),
+                                            ) { input ->
+                                                val value = input.safeDoubleOrNull()
+                                                onUpdateSession { current ->
+                                                    current.updateCompetitionSetAtIndex(movement.id, attemptIndex) { set ->
+                                                        set.copy(targetRPE = value, intensityMode = IntensityMode.RPE)
+                                                    }
+                                                }
+                                            }
+                                            EditorMiniField(
+                                                label = "Técnica (1-10)",
+                                                value = attempt.technicalQuality?.toString().orEmpty(),
+                                                keyboardType = KeyboardType.Number,
+                                                stateKey = "comp-tech-${movement.id}-${attempt.id}",
+                                                modifier = Modifier.weight(1f),
+                                            ) { input ->
+                                                val quality = input.safeIntOrNull()?.coerceIn(1, 10)
+                                                onUpdateSession { current ->
+                                                    current.updateCompetitionSetAtIndex(movement.id, attemptIndex) { set ->
+                                                        set.copy(technicalQuality = quality)
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            listOf(
+                                                AttemptResult.GOOD to "Aprobado",
+                                                AttemptResult.NO_LIFT to "Nulo",
+                                                AttemptResult.PENDING to "Pendiente",
+                                            ).forEach { (result, label) ->
+                                                FilterChip(
+                                                    selected = attempt.attemptResult == result,
+                                                    onClick = {
+                                                        onUpdateSession { current ->
+                                                            current.updateCompetitionSetAtIndex(movement.id, attemptIndex) { set ->
+                                                                set.copy(attemptResult = result)
+                                                            }
+                                                        }
+                                                    },
+                                                    label = { Text(label) },
+                                                )
+                                            }
+                                        }
+
+                                        Text("Luces del jurado", style = MaterialTheme.typography.labelSmall)
+                                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            repeat(3) { lightIndex ->
+                                                val currentValue = attempt.judgingLights.getOrNull(lightIndex)
+                                                FilterChip(
+                                                    selected = currentValue == true,
+                                                    onClick = {
+                                                        val next = when (currentValue) {
+                                                            true -> false
+                                                            false -> null
+                                                            null -> true
+                                                        }
+                                                        onUpdateSession { current ->
+                                                            current.updateCompetitionSetAtIndex(movement.id, attemptIndex) { set ->
+                                                                val mutable = set.judgingLights.toMutableList()
+                                                                while (mutable.size < 3) mutable.add(null)
+                                                                mutable[lightIndex] = next
+                                                                set.copy(judgingLights = mutable)
+                                                            }
+                                                        }
+                                                    },
+                                                    label = {
+                                                        Text(
+                                                            when (currentValue) {
+                                                                true -> "L${lightIndex + 1}: B"
+                                                                false -> "L${lightIndex + 1}: R"
+                                                                null -> "L${lightIndex + 1}: ?"
+                                                            }
+                                                        )
+                                                    },
+                                                )
+                                            }
+                                        }
+
+                                        Text("Molestias", style = MaterialTheme.typography.labelSmall)
+                                        FlowRow(
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                                        ) {
+                                            DISCOMFORT_CATALOG.filterNot { it.id == "none" }.forEach { discomfort ->
+                                                val selected = discomfort.id in attempt.discomfortIds
+                                                FilterChip(
+                                                    selected = selected,
+                                                    onClick = {
+                                                        onUpdateSession { current ->
+                                                            current.updateCompetitionSetAtIndex(movement.id, attemptIndex) { set ->
+                                                                val nextIds = if (selected) {
+                                                                    set.discomfortIds - discomfort.id
+                                                                } else {
+                                                                    set.discomfortIds + discomfort.id
+                                                                }
+                                                                set.copy(discomfortIds = nextIds)
+                                                            }
+                                                        }
+                                                    },
+                                                    label = { Text(discomfort.label) },
+                                                )
+                                            }
+                                        }
+
+                                        EditorMiniField(
+                                            label = "Notas técnicas / arbitraje",
+                                            value = attempt.refereeNotes.orEmpty(),
+                                            stateKey = "comp-notes-${movement.id}-${attempt.id}",
+                                        ) { input ->
+                                            onUpdateSession { current ->
+                                                current.updateCompetitionSetAtIndex(movement.id, attemptIndex) { set ->
+                                                    set.copy(refereeNotes = input.ifBlank { null })
+                                                }
+                                            }
+                                        }
+
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            Checkbox(
+                                                checked = attempt.isFailure,
+                                                onCheckedChange = { checked ->
+                                                    onUpdateSession { current ->
+                                                        current.updateCompetitionSetAtIndex(movement.id, attemptIndex) { set ->
+                                                            set.copy(isFailure = checked)
+                                                        }
+                                                    }
+                                                },
+                                            )
+                                            Text("Intento fallido")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                OutlinedButton(onClick = onAddCompetitionMovement, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(Modifier.width(6.dp))
+                    Text("Agregar otro movimiento")
+                }
+            }
+        }
+    }
+}
+
+private fun competitionReminderSummary(details: CompetitionDetails?): String {
+    val competitionDate = details?.competitionDate?.toLocalDateOrNull() ?: return ""
+    val today = runCatching { LocalDate.now() }.getOrNull() ?: return ""
+    val days = ChronoUnit.DAYS.between(today, competitionDate).toInt()
+    if (days < 0) return "Competencia ya pasó (${kotlin.math.abs(days)} días)."
+    val reminders = mutableListOf<String>()
+    if (details.reminderOneWeekEnabled) reminders += "1 semana"
+    if (details.reminder48hEnabled) reminders += "48h"
+    val reminderSummary = if (reminders.isEmpty()) {
+        "sin recordatorios"
+    } else {
+        reminders.joinToString(" + ")
+    }
+    return "Competencia en $days días · Recordatorios: $reminderSummary"
+}
+
+private fun String.toLocalDateOrNull(): LocalDate? = runCatching { LocalDate.parse(this) }.getOrNull()
+
+private fun Session.updateCompetitionSetAtIndex(
+    exerciseId: String,
+    setIndex: Int,
+    transform: (ExerciseSet) -> ExerciseSet,
+): Session {
+    return copy(
+        exercises = exercises.map { exercise ->
+            if (exercise.id != exerciseId) return@map exercise
+            val safeIndex = setIndex.coerceAtLeast(0)
+            val needed = (safeIndex + 1 - exercise.sets.size).coerceAtLeast(0)
+            val baseSets = if (needed == 0) {
+                exercise.sets
+            } else {
+                exercise.sets + List(needed) { ExerciseSet(id = UUID.randomUUID().toString()) }
+            }
+            exercise.copy(
+                sets = baseSets.mapIndexed { index, set -> if (index == safeIndex) transform(set) else set }
+            )
+        }
+    )
 }
 
 private fun suggestWarmupReps(percentage: Double): Int = when {
@@ -4554,8 +6657,6 @@ private fun suggestWarmupReps(percentage: Double): Int = when {
     else -> 12
 }
 
-private fun String.safeIntOrNull(): Int? = toIntOrNull()
-private fun String.safeDoubleOrNull(): Double? = replace(",", ".").toDoubleOrNull()
 
 // ===== COMPACT COMPONENTS FOR OPTIMIZED EXERCISE EDITOR =====
 
@@ -4570,6 +6671,7 @@ private fun CompactRestPickerButton(
     
     Surface(
         modifier = modifier
+            .width(96.dp)
             .height(48.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable { showPicker = true },
@@ -4631,8 +6733,7 @@ private fun CompactModeSelector(
         ) {
             Row(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 10.dp),
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -4642,6 +6743,8 @@ private fun CompactModeSelector(
                     fontWeight = FontWeight.Bold,
                     color = accentColor,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 90.dp),
                 )
                 Spacer(Modifier.width(4.dp))
                 Icon(
@@ -4656,7 +6759,8 @@ private fun CompactModeSelector(
         DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
             listOf(
                 TrainingMode.REPS to "Reps",
-                TrainingMode.PERCENT to "RM",
+                TrainingMode.RM to "RM",
+                TrainingMode.SOLO_RPE to "Solo RPE",
                 TrainingMode.TIME to "Tiempo",
                 TrainingMode.DISTANCE to "Distancia",
                 TrainingMode.CUSTOM to "Personalizado",
@@ -4705,11 +6809,43 @@ private fun CompactGoalTrackingButton(
 }
 
 @Composable
+private fun CompactUnilateralButton(
+    isActive: Boolean,
+    accentColor: Color,
+    onToggle: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onToggle() },
+        color = if (isActive) accentColor.copy(alpha = 0.24f) else accentColor.copy(alpha = 0.08f),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (isActive) accentColor.copy(alpha = 0.5f) else accentColor.copy(alpha = 0.2f),
+        ),
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Default.SwapHoriz,
+                contentDescription = "Registro unilateral",
+                tint = if (isActive) MaterialTheme.colorScheme.primary else accentColor,
+                modifier = Modifier.size(24.dp),
+            )
+        }
+    }
+}
+
+@Composable
 private fun ExerciseSetsCarousel(
     exercise: Exercise,
     reference1RM: Double?,
     trainingMode: TrainingMode,
     customUnit: String?,
+    predictedMetrics: Map<String, Double?>,
     accentColor: Color,
     modifier: Modifier = Modifier,
     onAddSet: () -> Unit,
@@ -4733,21 +6869,42 @@ private fun ExerciseSetsCarousel(
             )
             FilledTonalButton(
                 onClick = onAddSet,
-                modifier = Modifier.height(40.dp),
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .size(48.dp),
+                shape = CircleShape,
+                contentPadding = PaddingValues(0.dp)
             ) {
                 Icon(
                     Icons.Default.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+                    contentDescription = "Añadir serie",
+                    modifier = Modifier.size(24.dp),
                 )
-                Spacer(Modifier.width(6.dp))
-                Text("Añadir serie", style = MaterialTheme.typography.labelSmall)
             }
         }
         return
     }
 
-    var currentSetIndex by remember { mutableStateOf(0) }
+    var currentSetIndex by remember(exercise.id) { mutableStateOf(0) }
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = currentSetIndex)
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(exercise.sets.size) {
+        val lastIndex = (exercise.sets.size - 1).coerceAtLeast(0)
+        currentSetIndex = currentSetIndex.coerceIn(0, lastIndex)
+    }
+    LaunchedEffect(listState, exercise.sets.size) {
+        snapshotFlow { listState.layoutInfo }
+            .collect { layoutInfo ->
+                val items = layoutInfo.visibleItemsInfo
+                if (items.isEmpty()) return@collect
+                val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
+                val closest = items.minByOrNull { item ->
+                    abs((item.offset + item.size / 2) - viewportCenter)
+                } ?: return@collect
+                currentSetIndex = closest.index.coerceIn(0, (exercise.sets.size - 1).coerceAtLeast(0))
+            }
+    }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -4757,18 +6914,17 @@ private fun ExerciseSetsCarousel(
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(280.dp),
+                .height(252.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(horizontal = 4.dp),
-            state = rememberLazyListState(initialFirstVisibleItemIndex = currentSetIndex),
+            state = listState,
         ) {
             itemsIndexed(exercise.sets) { index, set ->
                 key(set.id) {
-                    val predictedWeight = remember(exercise.reference1RM, set) {
-                        exercise.reference1RM?.let { reference ->
-                            calculateWeightFrom1RMAndIntensity(reference, set)
-                        }
+                    val predictedWeight = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM, set) {
+                        calculateSuggestedLoad(exercise, set)
                     }
+                    val estimatedMetric = predictedMetrics[set.id]
 
                     Box(
                         modifier = Modifier
@@ -4780,6 +6936,7 @@ private fun ExerciseSetsCarousel(
                             index = index,
                             reference1RM = reference1RM,
                             predictedWeight = predictedWeight,
+                            estimatedMetric = estimatedMetric,
                             trainingMode = trainingMode,
                             customUnit = customUnit,
                             accentColor = accentColor,
@@ -4793,44 +6950,282 @@ private fun ExerciseSetsCarousel(
                     }
                 }
             }
+            item("add-set") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .padding(start = 4.dp, end = 16.dp)
+                            .size(48.dp)
+                            .clickable { onAddSet() },
+                        shape = CircleShape,
+                        color = accentColor.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(2.dp, accentColor.copy(alpha = 0.35f))
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Añadir serie",
+                                tint = accentColor,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         // Dot stepper indicator
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically,
         ) {
-            exercise.sets.forEachIndexed { index, _ ->
-                Box(
-                    modifier = Modifier
-                        .size(if (index == currentSetIndex) 10.dp else 8.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (index == currentSetIndex) accentColor else accentColor.copy(alpha = 0.35f),
-                        )
-                        .clickable { currentSetIndex = index },
-                )
+            Row(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                exercise.sets.forEachIndexed { index, _ ->
+                    Box(
+                        modifier = Modifier
+                            .size(if (index == currentSetIndex) 10.dp else 8.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (index == currentSetIndex) accentColor else accentColor.copy(alpha = 0.35f),
+                            )
+                            .clickable {
+                                currentSetIndex = index
+                                coroutineScope.launch {
+                                    listState.animateScrollToItem(index)
+                                }
+                            },
+                    )
+                }
             }
-
-            Spacer(Modifier.weight(1f))
-
-            // Set counter and add button
             Text(
                 "${currentSetIndex + 1}/${exercise.sets.size}",
+                modifier = Modifier.align(Alignment.CenterEnd),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            FilledTonalButton(
-                onClick = onAddSet,
-                modifier = Modifier.height(32.dp),
+        }
+    }
+}
+
+@Composable
+private fun EstimatedRingsRow(
+    energy: Int,
+    spine: Int,
+) {
+    val energyProgress = (energy.coerceIn(0, 100) / 100f)
+    val spineProgress = (spine.coerceIn(0, 100) / 100f)
+    val ringColors = listOf(Color(0xFF448AFF), Color(0xFFFFD740))
+    val ringLabels = listOf("ENERGÍA", "COLUMNA")
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        listOf(energyProgress to ringLabels[0], spineProgress to ringLabels[1]).forEachIndexed { index, entry ->
+            val (progress, label) = entry
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                SingleRingCanvas(
+                    value = progress,
+                    color = ringColors[index],
+                    ringDiameter = 120f,
+                    strokeWidth = 8f,
+                )
+                Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = ringColors[index])
+                Text("${(progress * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+private data class SessionMuscleGroup(val label: String, val muscles: List<String>)
+
+private enum class SessionAnalyticsScope(val label: String) {
+    CURRENT("Sesión actual"),
+    WEEK("Semana"),
+}
+
+private val SESSION_MUSCLE_GROUPS = listOf(
+    SessionMuscleGroup("Pecho", listOf("Pectorales")),
+    SessionMuscleGroup("Espalda", listOf("Dorsales", "Trapecio", "Erectores Espinales")),
+    SessionMuscleGroup("Hombros", listOf("Deltoides")),
+    SessionMuscleGroup("Brazos", listOf("Bíceps", "Tríceps", "Antebrazo")),
+    SessionMuscleGroup("Core", listOf("Abdomen", "Core")),
+    SessionMuscleGroup("Piernas", listOf("Cuádriceps", "Isquiosurales", "Glúteos", "Aductores", "Pantorrillas")),
+)
+
+private fun computeSessionRoleWeightedSets(
+    session: Session,
+    exerciseIndex: Map<String, ExerciseMuscleInfo>,
+): Map<String, Double> {
+    val result = mutableMapOf<String, Double>()
+    val exercises = session.allExercises()
+    exercises.forEach { exercise ->
+        val dbEntry = exercise.exerciseDbId?.lowercase()?.let(exerciseIndex::get)
+            ?: exercise.exerciseId?.lowercase()?.let(exerciseIndex::get)
+            ?: exerciseIndex.values.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
+            ?: return@forEach
+        val effectiveSetCount = exercise.sets.count { !it.isIneffective }.coerceAtLeast(1)
+        dbEntry.involvedMuscles.forEach { involvement ->
+            val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
+            val roleMultiplier = resolveMuscleVolumeContribution(involvement)
+            val weighted = effectiveSetCount * roleMultiplier
+            result[canonical] = (result[canonical] ?: 0.0) + weighted
+        }
+    }
+    return result
+}
+
+private fun computePredictedMuscleBatteries(
+    session: Session,
+    roleWeightedSets: Map<String, Double>,
+    predictedMuscularDrain: Int,
+): Map<String, Int> {
+    if (roleWeightedSets.isEmpty()) return emptyMap()
+    val totalRoleWeight = roleWeightedSets.values.sum().takeIf { it > 0.0 } ?: return emptyMap()
+    val muscleCount = roleWeightedSets.size.coerceAtLeast(1)
+    val totalSets = session.allExercises().sumOf { exercise ->
+        exercise.sets.count { !it.isIneffective }
+    }.coerceAtLeast(1)
+    val avgSessionRest = session.allExercises().mapNotNull { it.restTime }.ifEmpty { listOf(90) }.average()
+    val densityFactor = when {
+        avgSessionRest <= 45.0 -> 1.16
+        avgSessionRest <= 75.0 -> 1.10
+        avgSessionRest >= 210.0 -> 0.92
+        avgSessionRest >= 150.0 -> 0.96
+        else -> 1.0
+    }
+    val progressionFactor = (1.0 + ((totalSets - 4).coerceAtLeast(0) / 14.0) * 0.22)
+        .coerceIn(1.0, 1.30)
+    val supersetFactor = if (session.allExercises().any { !it.supersetId.isNullOrBlank() }) 1.08 else 1.0
+    val expectedDrop = predictedMuscularDrain.coerceIn(0, 100).toDouble()
+    val adjustedExpectedDrop = (expectedDrop * densityFactor * progressionFactor * supersetFactor).coerceAtMost(100.0)
+
+    return roleWeightedSets.mapValues { (_, weight) ->
+        val share = (weight / totalRoleWeight).coerceIn(0.0, 1.0)
+        val relativeShare = share * muscleCount.toDouble()
+        val roleFactor = (0.60 + (0.40 * relativeShare)).coerceIn(0.45, 1.55)
+        val modeledDrop = (adjustedExpectedDrop * roleFactor).coerceIn(0.0, 100.0)
+        (100.0 - modeledDrop).roundToInt().coerceIn(0, 100)
+    }
+}
+
+private fun computePredictedMuscleBatteriesFromVolumeMap(
+    volumeByMuscle: Map<String, Double>,
+    predictedMuscularDrain: Int,
+): Map<String, Int> {
+    if (volumeByMuscle.isEmpty()) return emptyMap()
+    val totalVolume = volumeByMuscle.values.sum().takeIf { it > 0.0 } ?: return emptyMap()
+    val expectedDrop = predictedMuscularDrain.coerceIn(0, 100).toDouble()
+    return volumeByMuscle.mapValues { (_, sets) ->
+        val share = (sets / totalVolume).coerceIn(0.0, 1.0)
+        val modeledDrop = (expectedDrop * (0.65 + share * 0.9)).coerceIn(0.0, 100.0)
+        (100.0 - modeledDrop).roundToInt().coerceIn(0, 100)
+    }
+}
+
+private fun thresholdForScope(
+    threshold: SessionEditorVolumeThreshold?,
+    scope: SessionAnalyticsScope,
+): Triple<Double, Double, Double>? {
+    threshold ?: return null
+    return when (scope) {
+        SessionAnalyticsScope.CURRENT -> Triple(threshold.sessionMev, threshold.sessionMav, threshold.sessionMrv)
+        SessionAnalyticsScope.WEEK -> Triple(threshold.weeklyMev, threshold.weeklyMav, threshold.weeklyMrv)
+    }
+}
+
+@Composable
+private fun PredictedMuscleBatterySection(perMuscle: Map<String, Int>) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            "Batería restante por músculo",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Black,
+        )
+        val entries = perMuscle.entries.sortedBy { it.value }
+        entries.forEach { (muscle, score) ->
+            val color = when {
+                score >= 80 -> Color(0xFF22C55E)
+                score >= 50 -> Color(0xFFFACC15)
+                else -> Color(0xFFEF4444)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
+                Text(
+                    muscle,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.widthIn(max = 118.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                LinearProgressIndicator(
+                    progress = { score / 100f },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(5.dp)
+                        .clip(RoundedCornerShape(999.dp)),
+                    color = color,
+                    trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.42f),
+                )
+                Text(
+                    "$score%",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = color,
+                    fontWeight = FontWeight.Black,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddSetGhostCard(onAddSet: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(220.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onAddSet() },
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.14f),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.18f),
+        ),
+    ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.45f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Añadir serie",
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    "Agregar serie",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

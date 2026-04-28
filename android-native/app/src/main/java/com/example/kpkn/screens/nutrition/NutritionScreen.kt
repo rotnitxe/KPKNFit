@@ -78,13 +78,35 @@ fun NutritionScreen(
     val activePlan by viewModel.activePlan.collectAsState()
     val showWizard by viewModel.showWizard.collectAsState()
     val bodyKpis by viewModel.bodyKpis.collectAsState()
-    val progressPct by viewModel.progressPct.collectAsState()
     val foodDatabase by viewModel.foodDatabase.collectAsState()
     val trendData by viewModel.trendData.collectAsState()
+    val sharedDescription by viewModel.pendingSharedDescription.collectAsState()
+    val sharedTab by viewModel.pendingSharedTab.collectAsState()
+    val foodLoggerOpenRequest by viewModel.foodLoggerOpenRequest.collectAsState()
+    val dailyEnergyBalance by viewModel.dailyEnergyBalance.collectAsState()
+    val nutritionRepo = remember { com.example.kpkn.data.repository.NutritionRepository.getInstance() }
 
     var showFoodLogger by remember { mutableStateOf(false) }
     var showPlanEditor by remember { mutableStateOf(false) }
     var selectedMealForLogger by remember { mutableStateOf(MealType.LUNCH) }
+    var foodLoggerInitialDescription by remember { mutableStateOf<String?>(sharedDescription) }
+    var foodLoggerInitialTab by remember { mutableIntStateOf(sharedTab.coerceIn(0, 1)) }
+
+    LaunchedEffect(sharedDescription) {
+        if (!sharedDescription.isNullOrBlank()) {
+            foodLoggerInitialDescription = sharedDescription
+            foodLoggerInitialTab = sharedTab.coerceIn(0, 1)
+            showFoodLogger = true
+        }
+    }
+
+    LaunchedEffect(foodLoggerOpenRequest) {
+        val request = foodLoggerOpenRequest ?: return@LaunchedEffect
+        foodLoggerInitialDescription = request.description
+        foodLoggerInitialTab = request.tab
+        showFoodLogger = true
+        viewModel.consumeFoodLoggerOpenRequest()
+    }
 
     // Redirige al wizard full-screen (fuera del scaffold) si no hay plan o se solicitó recrear
     LaunchedEffect(showWizard, activePlan) {
@@ -121,10 +143,15 @@ fun NutritionScreen(
             )
         }
 
+        // ── Energy Balance Card ────────────────────────────────────────────
+        item {
+            DailyEnergyBalanceCard(balance = dailyEnergyBalance)
+        }
+
         // ── Distribución calórica — justo sobre el calendario ────────────
         if (dailyTotals.calories > 0) {
             item {
-                MacroBarsSection(dailyTotals = dailyTotals, goals = goals)
+                MacroBarsSection(dailyTotals = dailyTotals)
             }
         }
 
@@ -141,7 +168,9 @@ fun NutritionScreen(
             QuickAddBar(
                 onMealTypeClick = { meal ->
                     selectedMealForLogger = meal
-                    showFoodLogger = true
+                    foodLoggerInitialDescription = null
+                    foodLoggerInitialTab = 0
+                    viewModel.requestFoodLoggerOpen(tab = 0)
                 },
             )
         }
@@ -156,7 +185,9 @@ fun NutritionScreen(
                 onDelete = { viewModel.deleteLog(it) },
                 onAddFood = {
                     selectedMealForLogger = mealType
-                    showFoodLogger = true
+                    foodLoggerInitialDescription = null
+                    foodLoggerInitialTab = 0
+                    viewModel.requestFoodLoggerOpen(tab = 0)
                 },
             )
         }
@@ -196,18 +227,38 @@ fun NutritionScreen(
 
     // ── Food Logger Drawer ───────────────────────────────────────────────────
     FoodLoggerDrawer(
+        nutritionRepo = nutritionRepo,
         isOpen = showFoodLogger,
-        onDismiss = { showFoodLogger = false },
+        onDismiss = {
+            showFoodLogger = false
+            viewModel.consumeSharedDescription()
+            foodLoggerInitialDescription = null
+            foodLoggerInitialTab = 0
+        },
         onSave = { log ->
             viewModel.addLog(log)
             showFoodLogger = false
+            viewModel.consumeSharedDescription()
+            foodLoggerInitialDescription = null
+            foodLoggerInitialTab = 0
         },
         foodDatabase = foodDatabase,
         initialDate = selectedDate,
         initialMealType = selectedMealForLogger,
+        initialDescription = foodLoggerInitialDescription,
+        initialTab = foodLoggerInitialTab,
     )
 
+    LaunchedEffect(showFoodLogger, sharedDescription) {
+        if (!showFoodLogger && !sharedDescription.isNullOrBlank()) {
+            foodLoggerInitialDescription = sharedDescription
+            foodLoggerInitialTab = sharedTab.coerceIn(0, 1)
+            showFoodLogger = true
+        }
+    }
+
     // ── Plan Editor Modal ────────────────────────────────────────────────────
+    val currentSettings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsState()
     NutritionPlanEditorModal(
         isOpen = showPlanEditor,
         onDismiss = { showPlanEditor = false },
@@ -215,7 +266,8 @@ fun NutritionScreen(
             viewModel.createPlan(plan)
             showPlanEditor = false
         },
-        currentSettings = com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value,
+        currentSettings = currentSettings,
+        activePlan = activePlan,
     )
 }
 
@@ -234,7 +286,7 @@ private fun NutritionHeroHeader(
 ) {
     val dateLabel = try {
         java.time.LocalDate.parse(selectedDate)
-            .format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", java.util.Locale("es")))
+            .format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", java.util.Locale.getDefault()))
             .replaceFirstChar { it.uppercase() }
     } catch (_: Exception) { selectedDate }
 
@@ -320,9 +372,27 @@ private fun NutritionHeroHeader(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    MacroDetailRow("Proteína", dailyTotals.protein, goals.proteinGoal, "g", PROTEIN_COLOR)
-                    MacroDetailRow("Carbohidratos", dailyTotals.carbs, goals.carbGoal, "g", CARBS_COLOR)
-                    MacroDetailRow("Grasas", dailyTotals.fats, goals.fatGoal, "g", FATS_COLOR)
+                    MacroDetailRow(
+                        label = "Proteína",
+                        current = dailyTotals.protein,
+                        goal = goals.proteinGoal,
+                        unit = "g",
+                        color = PROTEIN_COLOR,
+                    )
+                    MacroDetailRow(
+                        label = "Carbohidratos",
+                        current = dailyTotals.carbs,
+                        goal = goals.carbGoal,
+                        unit = "g",
+                        color = CARBS_COLOR,
+                    )
+                    MacroDetailRow(
+                        label = "Grasas",
+                        current = dailyTotals.fats,
+                        goal = goals.fatGoal,
+                        unit = "g",
+                        color = FATS_COLOR,
+                    )
 
                     Spacer(Modifier.height(4.dp))
 
@@ -369,6 +439,7 @@ private fun MacroDetailRow(
     goal: Int,
     unit: String,
     color: Color,
+    margin: Double? = null,
 ) {
     val pct = if (goal > 0) (current / goal).coerceIn(0.0, 1.2) else 0.0
     Column {
@@ -386,6 +457,14 @@ private fun MacroDetailRow(
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = if (pct > 1.0) Color(0xFFE53935) else MaterialTheme.colorScheme.onSurface,
+            )
+        }
+        if (margin != null && margin > 0.0) {
+            Text(
+                text = "+${formatSignedMargin(margin)} / -${formatSignedMargin(margin)} $unit",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                modifier = Modifier.padding(start = 14.dp, top = 1.dp),
             )
         }
         Spacer(Modifier.height(3.dp))
@@ -406,6 +485,14 @@ private fun MacroDetailRow(
                 )
             }
         }
+    }
+}
+
+private fun formatSignedMargin(value: Double): String {
+    return if (value >= 10.0) {
+        value.toInt().toString()
+    } else {
+        "%.1f".format(value)
     }
 }
 
@@ -475,7 +562,7 @@ private fun DateSelector(
             val isSelected = date == selectedDate
             val isToday = date == today.toString()
             val d = try { java.time.LocalDate.parse(date) } catch (_: Exception) { today }
-            val dayName = d.format(java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale("es")))
+            val dayName = d.format(java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale.getDefault()))
             val dayNum = d.dayOfMonth.toString()
 
             Surface(
@@ -582,7 +669,7 @@ private fun QuickAddBar(onMealTypeClick: (MealType) -> Unit) {
 // ═══════════════════════════════════════════════════════════════════════
 
 @Composable
-private fun MacroBarsSection(dailyTotals: DailyMacroTotals, goals: MacroGoals) {
+private fun MacroBarsSection(dailyTotals: DailyMacroTotals) {
     val totalCal = dailyTotals.protein * 4 + dailyTotals.carbs * 4 + dailyTotals.fats * 9
     val protPct = if (totalCal > 0) (dailyTotals.protein * 4 / totalCal) else 0.0
     val carbPct = if (totalCal > 0) (dailyTotals.carbs * 4 / totalCal) else 0.0
@@ -617,16 +704,92 @@ private fun MacroBarsSection(dailyTotals: DailyMacroTotals, goals: MacroGoals) {
                         }
                     }
                 }
-                Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DailyEnergyBalanceCard(balance: DailyEnergyBalance) {
+    val statusColor = when (balance.status) {
+        DailyEnergyStatus.DEFICIT -> Color(0xFFEF5350)
+        DailyEnergyStatus.MAINTENANCE -> Color(0xFF22C55E)
+        DailyEnergyStatus.SURPLUS -> Color(0xFF7E57C2)
+    }
+    val statusLabel = when (balance.status) {
+        DailyEnergyStatus.DEFICIT -> "D\u00E9ficit"
+        DailyEnergyStatus.MAINTENANCE -> "Mantenci\u00F3n"
+        DailyEnergyStatus.SURPLUS -> "Super\u00E1vit"
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = statusColor.copy(alpha = 0.08f)),
+    ) {
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Consumido", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${balance.consumedKcal}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Entreno", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("-${balance.trainingBurnKcal}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Neto", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${balance.netKcal}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                }
+            }
+
+            val maxForBar = maxOf(balance.targetKcal * 2, balance.netKcal.coerceAtLeast(1))
+            val netFraction = if (maxForBar > 0) balance.netKcal.toFloat() / maxForBar.toFloat() else 0f
+            val targetFraction = if (maxForBar > 0) balance.targetKcal.toFloat() / maxForBar.toFloat() else 0f
+
+            Canvas(
+                modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp))
+            ) {
+                drawRoundRect(Color.Gray.copy(alpha = 0.12f), cornerRadius = CornerRadius(5.dp.toPx()))
+
+                val netW = (size.width * netFraction).coerceAtMost(size.width)
+                if (netW > 0f) {
+                    drawRoundRect(statusColor.copy(alpha = 0.7f), topLeft = Offset.Zero, size = Size(netW, size.height), cornerRadius = CornerRadius(5.dp.toPx()))
+                }
+
+                val targetX = (size.width * targetFraction).coerceIn(2.dp.toPx(), size.width - 2.dp.toPx())
+                drawLine(Color.White, Offset(targetX, 0f), Offset(targetX, size.height), strokeWidth = 3.dp.toPx())
+                drawLine(Color(0xFF333333), Offset(targetX, 0f), Offset(targetX, size.height), strokeWidth = 1.5.dp.toPx())
             }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                DistributionLabel("Proteína", "${(protPct * 100).toInt()}%", PROTEIN_COLOR)
-                DistributionLabel("Carbos", "${(carbPct * 100).toInt()}%", CARBS_COLOR)
-                DistributionLabel("Grasas", "${(fatPct * 100).toInt()}%", FATS_COLOR)
+                Text(
+                    "Meta: ${balance.targetKcal} kcal",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        statusLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        color = statusColor,
+                    )
+                    Text(
+                        " · ${if (balance.deltaFromTarget >= 0) "+" else ""}${balance.deltaFromTarget} kcal",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = statusColor.copy(alpha = 0.8f),
+                    )
+                }
             }
         }
     }
@@ -888,7 +1051,7 @@ private fun CalorieTrendChart(
                 trendData.forEach { point ->
                     val dayLabel = try {
                         java.time.LocalDate.parse(point.date)
-                            .format(java.time.format.DateTimeFormatter.ofPattern("E", java.util.Locale("es")))
+                            .format(java.time.format.DateTimeFormatter.ofPattern("E", java.util.Locale.getDefault()))
                             .take(2)
                     } catch (_: Exception) { "?" }
                     Text(

@@ -16,6 +16,7 @@ data class WorkoutLog(
     val notes: String? = null,
     val totalVolume: Double = 0.0,         // kg × reps total
     val sessionStressScore: Double? = null, // AUGE: computed CNC drain for this session
+    val energySummary: SessionEnergySummary? = null,
     val weekId: String? = null,
     val macroIndex: Int? = null,
     val mesoIndex: Int? = null,
@@ -28,15 +29,25 @@ data class WorkoutLog(
     val contextProfilesV3: Map<String, WorkoutContextProfile> = emptyMap(),
     val replacementDecisionsV2: List<ExerciseReplacementDecisionV2> = emptyList(),
     val postExerciseReports: List<ExerciseDiscomfortReport> = emptyList(),
+    val omittedExercises: List<OmittedExercise> = emptyList(),
+)
+
+@Serializable
+data class OmittedExercise(
+    val exerciseId: String,
+    val exerciseName: String,
+    val exerciseDbId: String? = null,
 )
 
 @Serializable
 data class ExerciseDiscomfortReport(
     val exerciseId: String,
     val exerciseDbId: String? = null,
+    val canonicalExerciseId: String? = null,
     val exerciseName: String,
     val technicalQuality: Int,
     val discomfortIds: List<String> = emptyList(),
+    val notes: String? = null,
 )
 
 @Serializable
@@ -60,6 +71,8 @@ data class CompletedExercise(
     val exerciseId: String,
     val exerciseName: String,
     val exerciseDbId: String? = null,  // AUGE: link to ExerciseDatabase for metrics
+    val canonicalExerciseId: String? = null,
+    val relativeToCanonicalExerciseId: String? = null,
     val sets: List<CompletedSet> = emptyList(),
     val restTime: Int = 90,            // AUGE: rest interval in seconds for drain calc
     val supersetId: String? = null,
@@ -80,6 +93,8 @@ data class CompletedSet(
     val partialReps: Int? = null,
     val dropSets: List<DropSetData> = emptyList(),
     val restPauses: List<RestPauseData> = emptyList(),
+    val skipped: Boolean = false,
+    val superSetWithExerciseId: String? = null,
     val isWarmup: Boolean = false,
     val side: String? = null,      // "left" / "right" for unilateral
     val spinalScore: Double? = null,
@@ -96,6 +111,9 @@ data class CompletedSet(
     val setOutcomeV2: SetOutcomeV2? = null,
 )
 
+fun CompletedSet.effectiveRepEquivalent(): Double =
+    reps.toDouble() + ((partialReps ?: 0).coerceAtLeast(0) * 0.5)
+
 @Serializable
 data class OngoingWorkoutState(
     val programId: String,
@@ -104,9 +122,14 @@ data class OngoingWorkoutState(
     val startTime: Long,                   // epoch ms
     val activeExerciseId: String? = null,
     val activeSetId: String? = null,
+    val activeSetIndex: Int = 0,
     val activeMode: WeekVariant = WeekVariant.A,
     val completedSets: Map<String, CompletedSet> = emptyMap(),
     val dynamicWeights: Map<String, Double> = emptyMap(),
+    val loadSuggestionReasons: Map<String, String> = emptyMap(),
+    val setDrafts: Map<String, com.example.kpkn.screens.workout.WorkoutSetDraft> = emptyMap(),
+    val manualLoadOverrides: Map<String, Double> = emptyMap(),
+    val editingSetKey: String? = null,
     val isCarpeDiem: Boolean = false,
     val macroIndex: Int? = null,
     val mesoIndex: Int? = null,
@@ -114,6 +137,13 @@ data class OngoingWorkoutState(
     val exerciseTags: Map<String, String> = emptyMap(), // exerciseId → active tag
     val contextProfilesV3: Map<String, WorkoutContextProfile> = emptyMap(),
     val activeContextProfileByExerciseId: Map<String, String> = emptyMap(),
+    val skippedExerciseIds: Set<String> = emptySet(),
+    val warmupCompletedExerciseIds: Set<String> = emptySet(),
+    val readinessNeuralOverride: Int? = null,
+    val readinessMuscularOverride: Int? = null,
+    val readinessSpinalOverride: Int? = null,
+    val readinessMuscleOverrides: Map<String, Int> = emptyMap(),
+    val restModalState: com.example.kpkn.screens.workout.WorkoutRestModalState? = null,
 )
 
 /** Summary card data for the Home screen "Sesión de hoy" */

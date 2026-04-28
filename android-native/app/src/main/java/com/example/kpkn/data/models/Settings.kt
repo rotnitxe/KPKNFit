@@ -15,6 +15,7 @@ data class Settings(
     val weightUnit: WeightUnit = WeightUnit.KG,
     val intensityMetric: IntensityMetric = IntensityMetric.RIR,
     val barbellWeight: Double = 20.0,
+    val availablePlates: List<Double> = listOf(25.0, 20.0, 15.0, 10.0, 5.0, 2.5, 1.25),
     val restTimerDefaultSeconds: Int = 90,
     val restTimerAutoStart: Boolean = false,
     val showPRsInWorkout: Boolean = true,
@@ -25,6 +26,7 @@ data class Settings(
     val apiProvider: ApiProvider = ApiProvider.GEMINI,
     val apiKeys: ApiKeys = ApiKeys(),
     val aiTemperature: Double = 0.7,
+    val useApiForDescriptions: Boolean = false,
 
     val appTheme: AppTheme = AppTheme.DEFAULT,
     val themePrimaryColor: String = "#6750A4",
@@ -37,14 +39,20 @@ data class Settings(
     val dailyProteinGoal: Int? = null,
     val dailyCarbGoal: Int? = null,
     val dailyFatGoal: Int? = null,
+    val dailyFiberGoal: Int? = 25,
+    val dailySugarLimit: Int? = 50,
+    val dailySodiumLimitMg: Int? = 2300,
+    val dailyPotassiumGoalMg: Int? = 3500,
+    val dailyHydrationGoalMl: Int? = 2000,
+    val nutritionShowOverages: Boolean = true,
     val calorieGoalObjective: CalorieGoalObjective = CalorieGoalObjective.MAINTENANCE,
 
     val sleepTargetHours: Double = 8.0,
     val smartSleepEnabled: Boolean = false,
 
     val algorithmSettings: AlgorithmSettings = AlgorithmSettings(),
+    val augePredictionBias: PredictionBiasProfile = PredictionBiasProfile(),
 
-    val localAiFoodEnabled: Boolean = true,
     val reducedMotionMode: Boolean = false,
     val hapticIntensity: HapticIntensity = HapticIntensity.MEDIUM,
 
@@ -67,6 +75,9 @@ data class Settings(
     val mealReminderDinner: String = "20:00",
     val sleepReminderEnabled: Boolean = false,
     val sleepReminderTime: String = "22:00",
+
+    /** Código BCP-47 del idioma seleccionado, o "system" para respetar el locale del SO. */
+    val appLanguage: String = "system",
 )
 
 enum class CalorieGoalObjective { DEFICIT, MAINTENANCE, SURPLUS }
@@ -101,6 +112,15 @@ data class UserVitals(
 )
 
 enum class Gender { MALE, FEMALE, OTHER }
+
+@Serializable
+data class PredictionBiasProfile(
+    val cnsBias: Double = 0.0,
+    val muscularBias: Double = 0.0,
+    val spinalBias: Double = 0.0,
+    val sampleCount: Int = 0,
+    val lastUpdatedMs: Long = 0L,
+)
 
 @Serializable
 data class AlgorithmSettings(

@@ -100,7 +100,7 @@ class MacroCalculatorTest {
         assertEquals(4, groups.size) // BREAKFAST, LUNCH, DINNER, SNACK
         val breakfast = groups.find { it.mealType == MealType.BREAKFAST }
         assertEquals(1, breakfast?.logs?.size)
-        assertEquals(300.0, breakfast?.totals?.calories, 0.01)
+        assertEquals(300.0, breakfast?.totals?.calories ?: 0.0, 0.01)
     }
 
     // ─── Macro Ring Pct ────────────────────────────────────────────────────
@@ -155,5 +155,116 @@ class MacroCalculatorTest {
         assertEquals(100.0, food.amount, 0.01)
         assertEquals(250.0, food.calories, 0.01)
         assertEquals(20.0, food.protein, 0.01)
+    }
+
+    // ─── Cooking Method Application ─────────────────────────────────────────
+
+    @Test
+    fun `scale food with frito boosts fat`() {
+        val food = FoodItem(
+            id = "pollo", name = "Pollo", servingSize = 100.0, unit = "g",
+            calories = 165.0, protein = 31.0, carbs = 0.0, fats = 3.6,
+        )
+        val logged = scaleFoodByPortion(food, amountGrams = 200.0, cookingMethod = CookingMethod.FRITO)
+        assertEquals(200.0, logged.amount, 0.01)
+        assertEquals(660.0, logged.calories, 1.0) // 165 * 2.0 * 2 = 660
+        assertEquals(62.0, logged.protein, 0.5)
+        assertEquals(0.0, logged.carbs, 0.5)
+        assertTrue(logged.fats > 10.0) // 3.6 * 2.5 * 2 = 18.0
+        assertEquals(CookingMethod.FRITO, logged.cookingMethod)
+    }
+
+    @Test
+    fun `scale food with plancha reduces fat`() {
+        val food = FoodItem(
+            id = "pollo", name = "Pollo", servingSize = 100.0, unit = "g",
+            calories = 165.0, protein = 31.0, carbs = 0.0, fats = 3.6,
+        )
+        val logged = scaleFoodByPortion(food, amountGrams = 200.0, cookingMethod = CookingMethod.PLANCHA)
+        assertEquals(200.0, logged.amount, 0.01)
+        assertEquals(330.0, logged.calories, 1.0) // 165 * 1.0 * 2 = 330
+        assertTrue(logged.protein > 62.0) // protein boosted slightly (1.05x)
+        assertTrue(logged.fats < 8.0) // fats reduced (0.95x)
+    }
+
+    @Test
+    fun `scale food with empanizado frito boosts everything`() {
+        val food = FoodItem(
+            id = "merluza", name = "Merluza", servingSize = 100.0, unit = "g",
+            calories = 120.0, protein = 22.0, carbs = 0.0, fats = 3.0,
+        )
+        val logged = scaleFoodByPortion(food, amountGrams = 150.0, cookingMethod = CookingMethod.EMPANIZADO_FRITO)
+        assertEquals(150.0, logged.amount, 0.01)
+        // kcal: 120 * 3.5 * 1.5 = 630
+        assertTrue(logged.calories > 550.0)
+        // carbs: 0 * 1.3 * 1.5 = 0 but breading... well it's from base 0
+        assertTrue(logged.fats > 10.0)
+    }
+
+    @Test
+    fun `scale food with cocido reduces kcal due to water dilution`() {
+        val food = FoodItem(
+            id = "pollo", name = "Pollo", servingSize = 100.0, unit = "g",
+            calories = 165.0, protein = 31.0, carbs = 0.0, fats = 3.6,
+        )
+        val logged = scaleFoodByPortion(food, amountGrams = 200.0, cookingMethod = CookingMethod.COCIDO)
+        // kcal: 165 * 0.90 * 2 = 297
+        assertTrue(logged.calories < 310.0)
+        assertTrue(logged.protein < 60.0) // 31 * 0.95 * 2 = 58.9
+    }
+
+    @Test
+    fun `scale food without cooking keeps original macros`() {
+        val food = FoodItem(
+            id = "pollo", name = "Pollo", servingSize = 100.0, unit = "g",
+            calories = 165.0, protein = 31.0, carbs = 0.0, fats = 3.6,
+        )
+        val logged = scaleFoodByPortion(food, amountGrams = 200.0)
+        assertEquals(330.0, logged.calories, 1.0) // 165 * 2 = 330
+        assertEquals(62.0, logged.protein, 0.5) // 31 * 2 = 62
+        assertEquals(7.2, logged.fats, 0.5) // 3.6 * 2 = 7.2
+    }
+
+    @Test
+    fun `scale food with salteado boosts fat`() {
+        val food = FoodItem(
+            id = "verduras", name = "Verduras", servingSize = 100.0, unit = "g",
+            calories = 28.0, protein = 2.0, carbs = 5.0, fats = 0.3,
+        )
+        val logged = scaleFoodByPortion(food, amountGrams = 150.0, cookingMethod = CookingMethod.SALTEADO)
+        // kcal: 28 * 1.25 * 1.5 = 52.5
+        // fats: 0.3 * 1.30 * 1.5 = 0.585
+        assertTrue(logged.fats > 0.5)
+        assertTrue(logged.calories > 28.0) // boosted
+    }
+
+    @Test
+    fun `liquid food uses ml unit`() {
+        val food = FoodItem(
+            id = "leche", name = "Leche entera", servingSize = 200.0, unit = "g",
+            calories = 62.0, protein = 3.2, carbs = 4.8, fats = 3.4,
+        )
+        val logged = scaleFoodByPortion(food, amountGrams = 200.0)
+        assertEquals("ml", logged.unit)
+    }
+
+    @Test
+    fun `liquid food bebida uses ml unit`() {
+        val food = FoodItem(
+            id = "bebida", name = "Bebida energética", servingSize = 250.0, unit = "g",
+            calories = 45.0, protein = 0.0, carbs = 11.0, fats = 0.0,
+        )
+        val logged = scaleFoodByPortion(food, amountGrams = 250.0)
+        assertEquals("ml", logged.unit)
+    }
+
+    @Test
+    fun `non-liquid food keeps g unit`() {
+        val food = FoodItem(
+            id = "pollo", name = "Pollo", servingSize = 100.0, unit = "g",
+            calories = 165.0, protein = 31.0, carbs = 0.0, fats = 3.6,
+        )
+        val logged = scaleFoodByPortion(food, amountGrams = 200.0)
+        assertEquals("g", logged.unit)
     }
 }

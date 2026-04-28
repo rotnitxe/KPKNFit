@@ -41,12 +41,12 @@ class WorkoutV2UiTest {
                     currentSet = ExerciseSet(id = "set-1", targetReps = 8, targetRPE = 8.0, loadModeV2 = LoadModeV2.LOAD, unitModeV2 = UnitModeV2.REPS),
                     ghostSet = null,
                     weightSuggestion = null,
-                    exerciseTag = "Base",
                     onTagSet = {},
                     onShowHistory = {},
                     onSetBodyWeight = {},
                     initialBodyWeight = 80.0,
-                    onRecordV2 = { _, _, _, _, _, _, _, _ -> },
+                    recordActionHolder = RecordActionHolder(),
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _ -> },
                 )
             }
         }
@@ -86,12 +86,12 @@ class WorkoutV2UiTest {
                     ),
                     ghostSet = null,
                     weightSuggestion = null,
-                    exerciseTag = null,
                     onTagSet = {},
                     onShowHistory = {},
                     onSetBodyWeight = {},
                     initialBodyWeight = 82.0,
-                    onRecordV2 = { _, _, _, _, _, _, _, _ -> },
+                    recordActionHolder = RecordActionHolder(),
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _ -> },
                 )
             }
         }
@@ -129,12 +129,12 @@ class WorkoutV2UiTest {
                     ),
                     ghostSet = null,
                     weightSuggestion = null,
-                    exerciseTag = null,
                     onTagSet = {},
                     onShowHistory = {},
                     onSetBodyWeight = {},
                     initialBodyWeight = 80.0,
-                    onRecordV2 = { _, _, _, _, _, _, _, _ -> },
+                    recordActionHolder = RecordActionHolder(),
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _ -> },
                 )
             }
         }
@@ -153,20 +153,10 @@ class WorkoutV2UiTest {
                     exercises = listOf(
                         Exercise(id = "ex-1", name = "Sentadilla frontal", sets = listOf(ExerciseSet(id = "s1"))),
                     ),
-                    parts = listOf(
-                        SessionPart(
-                            id = "p1",
-                            name = "Parte A",
-                            exercises = listOf(
-                                Exercise(id = "ex-1", name = "Sentadilla frontal", sets = listOf(ExerciseSet(id = "s1")))
-                            ),
-                        )
-                    ),
                     currentIdx = 0,
                     completedSets = emptyMap(),
                     onSelect = {},
                     onOpenContext = { opened.value = true },
-                    showGroupedLabels = true,
                 )
 
                 if (opened.value) {
@@ -209,4 +199,37 @@ class WorkoutV2UiTest {
         composeRule.onNodeWithText("Guardar permanente")
         composeRule.onNodeWithText("Cancelar").performClick()
     }
+
+    @Test
+    fun compact_pager_card_keeps_side_chip_and_status_text() {
+        composeRule.setContent {
+            MaterialTheme {
+                WorkoutSetPager(
+                    items = listOf(
+                        WorkoutSetPagerItem(
+                            index = 0,
+                            label = "Serie 1",
+                            state = WorkoutSetCardVisualState.ACTIVE,
+                            isEditing = true,
+                            side = "left",
+                        ),
+                        WorkoutSetPagerItem(
+                            index = 1,
+                            label = "Serie 2",
+                            state = WorkoutSetCardVisualState.FUTURE,
+                            isEditing = false,
+                        ),
+                    ),
+                    activePageIndex = 0,
+                    onSelectPage = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Serie 1/2").assertExists()
+        composeRule.onNodeWithText("Editando").assertExists()
+        composeRule.onNodeWithText("Izq").assertExists()
+        composeRule.onNodeWithText("Lista para registrar").assertExists()
+    }
+
 }

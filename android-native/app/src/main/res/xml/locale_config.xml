@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    locale_config.xml — Idiomas soportados por KPKN Fit.
+
+    Tanda 1 (T1): Español (base) + English
+    T2+: pt, fr, de, ht, arn, zh, ja, ar, fa — agregar aquí y crear values-xx/strings.xml.
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- T1 -->
+    <locale android:name="es" />
+    <locale android:name="en" />
+</locale-config>

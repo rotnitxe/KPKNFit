@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.nutrition.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -30,8 +31,49 @@ class NutritionViewModel : ViewModel() {
     private val _selectedDate = MutableStateFlow(LocalDate.now().toString())
     val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
 
+    private val _pendingSharedDescription = MutableStateFlow<String?>(null)
+    val pendingSharedDescription: StateFlow<String?> = _pendingSharedDescription.asStateFlow()
+
+    private val _pendingSharedTab = MutableStateFlow(0)
+    val pendingSharedTab: StateFlow<Int> = _pendingSharedTab.asStateFlow()
+
+    data class FoodLoggerOpenRequest(
+        val tab: Int = 0,
+        val description: String? = null,
+    )
+
+    private val _foodLoggerOpenRequest = MutableStateFlow<FoodLoggerOpenRequest?>(null)
+    val foodLoggerOpenRequest: StateFlow<FoodLoggerOpenRequest?> = _foodLoggerOpenRequest.asStateFlow()
+
     fun setSelectedDate(date: String) {
         _selectedDate.value = date
+    }
+
+    fun enqueueSharedDescription(text: String, openTab: Int = 0) {
+        val normalized = text.trim()
+        if (normalized.isBlank()) return
+        _pendingSharedDescription.value = normalized
+        _pendingSharedTab.value = openTab.coerceIn(0, 1)
+        _foodLoggerOpenRequest.value = FoodLoggerOpenRequest(
+            tab = openTab.coerceIn(0, 1),
+            description = normalized,
+        )
+    }
+
+    fun consumeSharedDescription() {
+        _pendingSharedDescription.value = null
+        _pendingSharedTab.value = 0
+    }
+
+    fun requestFoodLoggerOpen(tab: Int = 0, description: String? = null) {
+        _foodLoggerOpenRequest.value = FoodLoggerOpenRequest(
+            tab = tab.coerceIn(0, 1),
+            description = description?.trim()?.takeIf { it.isNotBlank() },
+        )
+    }
+
+    fun consumeFoodLoggerOpenRequest() {
+        _foodLoggerOpenRequest.value = null
     }
 
     // ─── Derived: Goals ─────────────────────────────────────────────────────
@@ -42,6 +84,7 @@ class NutritionViewModel : ViewModel() {
         .combine(nutritionRepo.activeNutritionPlanId) { plans, activeId ->
             plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
         }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val goals: StateFlow<MacroGoals> = combine(
@@ -50,6 +93,7 @@ class NutritionViewModel : ViewModel() {
     ) { settings, plan ->
         deriveMacroGoals(settings, plan)
     }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, MacroGoals())
 
     // ─── Derived: Today Logs ────────────────────────────────────────────────
@@ -58,16 +102,20 @@ class NutritionViewModel : ViewModel() {
         nutritionLogs, _selectedDate
     ) { logs, date ->
         logs.filter { it.date.take(10) == date && it.status != NutritionStatus.PLANNED }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // ─── Derived: Daily Totals ──────────────────────────────────────────────
 
     val dailyTotals: StateFlow<DailyMacroTotals> = todayLogs
         .map { computeDailyTotals(it) }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, DailyMacroTotals())
 
     val mealGroups: StateFlow<List<MealGroup>> = todayLogs
         .map { computeMealGroups(it) }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // ─── Derived: Macro Ring Percentages ─────────────────────────────────────
@@ -76,7 +124,91 @@ class NutritionViewModel : ViewModel() {
         dailyTotals, goals
     ) { totals, g ->
         computeMacroRingPct(totals, g.calorieGoal, g.proteinGoal, g.carbGoal, g.fatGoal)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, MacroRingPct())
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, MacroRingPct())
+
+    val nutrientProgress: StateFlow<List<NutrientProgress>> = combine(
+        dailyTotals,
+        goals,
+    ) { totals, g ->
+        listOf(
+            NutrientProgress(
+                key = "calories",
+                label = "Calorias",
+                consumed = totals.calories,
+                goal = g.calorieGoal.toDouble(),
+                unit = "kcal",
+                showOverages = g.showOverages,
+            ),
+            NutrientProgress(
+                key = "protein",
+                label = "Proteina",
+                consumed = totals.protein,
+                goal = g.proteinGoal.toDouble(),
+                unit = "g",
+                showOverages = g.showOverages,
+            ),
+            NutrientProgress(
+                key = "carbs",
+                label = "Carbohidratos",
+                consumed = totals.carbs,
+                goal = g.carbGoal.toDouble(),
+                unit = "g",
+                showOverages = g.showOverages,
+            ),
+            NutrientProgress(
+                key = "fats",
+                label = "Grasas",
+                consumed = totals.fats,
+                goal = g.fatGoal.toDouble(),
+                unit = "g",
+                showOverages = g.showOverages,
+            ),
+            NutrientProgress(
+                key = "fiber",
+                label = "Fibra",
+                consumed = totals.fiber,
+                goal = g.fiberGoal.toDouble(),
+                unit = "g",
+                showOverages = true,
+            ),
+            NutrientProgress(
+                key = "sugar",
+                label = "Azucar",
+                consumed = totals.sugar,
+                goal = g.sugarLimit.toDouble(),
+                unit = "g",
+                showOverages = true,
+            ),
+            NutrientProgress(
+                key = "sodium",
+                label = "Sodio",
+                consumed = totals.sodiumMg,
+                goal = g.sodiumLimitMg.toDouble(),
+                unit = "mg",
+                showOverages = true,
+            ),
+            NutrientProgress(
+                key = "potassium",
+                label = "Potasio",
+                consumed = totals.potassiumMg,
+                goal = g.potassiumGoalMg.toDouble(),
+                unit = "mg",
+                showOverages = g.showOverages,
+            ),
+            NutrientProgress(
+                key = "hydration",
+                label = "Agua",
+                consumed = totals.waterMl,
+                goal = g.hydrationGoalMl.toDouble(),
+                unit = "ml",
+                showOverages = g.showOverages,
+            ),
+        )
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // ─── Derived: Trend Data ────────────────────────────────────────────────
 
@@ -84,12 +216,22 @@ class NutritionViewModel : ViewModel() {
         nutritionLogs, goals
     ) { logs, g ->
         computeTrendData(logs, g.calorieGoal, 7)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // ─── Actions ────────────────────────────────────────────────────────────
 
     fun addLog(log: NutritionLog) {
         nutritionRepo.addNutritionLog(log)
+    }
+
+    fun recordFoodSelection(query: String, food: FoodItem) {
+        nutritionRepo.recordFoodSelection(query, food)
+    }
+
+    fun saveAiInferredFoods(foods: List<FoodItem>) {
+        nutritionRepo.saveAiInferredFoods(foods)
     }
 
     fun deleteLog(logId: String) {
@@ -149,6 +291,7 @@ class NutritionViewModel : ViewModel() {
                 BodyKpi("IMC", if (bmi != null) "${(kotlin.math.round(bmi * 10) / 10.0)}" else "—"),
             )
         }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // ─── Progress Calculation ───────────────────────────────────────────────
@@ -168,7 +311,28 @@ class NutritionViewModel : ViewModel() {
         val currentDistance = kotlin.math.abs(goalValue - currentWeight)
         val progress = ((totalDistance - currentDistance) / totalDistance * 100)
         progress.toInt().coerceIn(0, 100)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+    val dailyEnergyBalance: StateFlow<DailyEnergyBalance> = combine(
+        dailyTotals,
+        programRepo.settings,
+        programRepo.history,
+        _selectedDate,
+    ) { totals, settings, history, date ->
+        val consumedKcal = totals.calories.toInt()
+        val targetKcal = settings.dailyCalorieGoal ?: 2000
+        val workoutsToday = history.filter { it.date.take(10) == date }
+        val trainingBurn = workoutsToday.sumOf { it.energySummary?.totalKcal?.mid ?: 0 }
+        TrainingEnergyEngine.calculateDailyEnergyBalance(
+            consumedKcal = consumedKcal,
+            trainingBurnKcal = trainingBurn,
+            targetKcal = targetKcal,
+        )
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, DailyEnergyBalance())
 
     // ─── Wizard State ───────────────────────────────────────────────────────
 
@@ -178,6 +342,113 @@ class NutritionViewModel : ViewModel() {
     fun setShowWizard(show: Boolean) {
         _showWizard.value = show
     }
+
+    data class NutritionUiState(
+        val selectedDate: String,
+        val totals: DailyMacroTotals,
+        val goals: MacroGoals,
+        val macroRingPct: MacroRingPct,
+        val nutrientProgress: List<NutrientProgress>,
+        val mealGroups: List<MealGroup>,
+        val trendData: List<TrendPoint>,
+        val bodyKpis: List<BodyKpi>,
+        val dailyEnergyBalance: DailyEnergyBalance = DailyEnergyBalance(),
+    )
+
+    private data class UiPrimaryState(
+        val selectedDate: String,
+        val totals: DailyMacroTotals,
+        val goals: MacroGoals,
+        val macroRingPct: MacroRingPct,
+    )
+
+    private data class UiSecondaryState(
+        val nutrientProgress: List<NutrientProgress>,
+        val mealGroups: List<MealGroup>,
+        val trendData: List<TrendPoint>,
+        val bodyKpis: List<BodyKpi>,
+        val dailyEnergyBalance: DailyEnergyBalance,
+    )
+
+    private val uiPrimaryState: StateFlow<UiPrimaryState> = combine(
+        selectedDate,
+        dailyTotals,
+        goals,
+        macroRingPct,
+    ) { selectedDateValue, totals, goalValues, ring ->
+        UiPrimaryState(
+            selectedDate = selectedDateValue,
+            totals = totals,
+            goals = goalValues,
+            macroRingPct = ring,
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        UiPrimaryState(
+            selectedDate = LocalDate.now().toString(),
+            totals = DailyMacroTotals(),
+            goals = MacroGoals(),
+            macroRingPct = MacroRingPct(),
+        )
+    )
+
+    private val uiSecondaryState: StateFlow<UiSecondaryState> = combine(
+        nutrientProgress,
+        mealGroups,
+        trendData,
+        bodyKpis,
+        dailyEnergyBalance,
+    ) { progress, groups, trend, kpis, energy ->
+        UiSecondaryState(
+            nutrientProgress = progress,
+            mealGroups = groups,
+            trendData = trend,
+            bodyKpis = kpis,
+            dailyEnergyBalance = energy,
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        UiSecondaryState(
+            nutrientProgress = emptyList(),
+            mealGroups = emptyList(),
+            trendData = emptyList(),
+            bodyKpis = emptyList(),
+            dailyEnergyBalance = DailyEnergyBalance(),
+        )
+    )
+
+    val uiState: StateFlow<NutritionUiState> = combine(
+        uiPrimaryState,
+        uiSecondaryState,
+    ) { primary, secondary ->
+        NutritionUiState(
+            selectedDate = primary.selectedDate,
+            totals = primary.totals,
+            goals = primary.goals,
+            macroRingPct = primary.macroRingPct,
+            nutrientProgress = secondary.nutrientProgress,
+            mealGroups = secondary.mealGroups,
+            trendData = secondary.trendData,
+            bodyKpis = secondary.bodyKpis,
+            dailyEnergyBalance = secondary.dailyEnergyBalance,
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        NutritionUiState(
+            selectedDate = LocalDate.now().toString(),
+            totals = DailyMacroTotals(),
+            goals = MacroGoals(),
+            macroRingPct = MacroRingPct(),
+            nutrientProgress = emptyList(),
+            mealGroups = emptyList(),
+            trendData = emptyList(),
+            bodyKpis = emptyList(),
+            dailyEnergyBalance = DailyEnergyBalance(),
+        )
+    )
 
     private fun applyPlanToSettings(plan: NutritionPlan) {
         val currentWeight = programRepo.settings.value.userVitals.weight

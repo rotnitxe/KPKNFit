@@ -12,8 +12,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.example.kpkn.MainActivity
 import com.example.kpkn.R
+import com.example.kpkn.navigation.KpknDeepLinks
 import java.util.Calendar
 
 /**
@@ -52,18 +52,18 @@ class WorkoutReminderManager(private val context: Context) {
     fun createChannels() {
         val workoutChannel = NotificationChannel(
             CHANNEL_WORKOUT_REMINDER,
-            "Recordatorio de entrenamiento",
+            appCtx.getString(com.example.kpkn.R.string.notif_channel_workout_name),
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
-            description = "Recordatorio para comenzar tu sesión de entrenamiento"
+            description = appCtx.getString(com.example.kpkn.R.string.notif_channel_workout_desc)
             enableVibration(true)
         }
         val sleepChannel = NotificationChannel(
             CHANNEL_SLEEP_REMINDER,
-            "Recordatorio de descanso",
+            appCtx.getString(com.example.kpkn.R.string.notif_channel_sleep_name),
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
-            description = "Recordatorio para prepararse para dormir"
+            description = appCtx.getString(com.example.kpkn.R.string.notif_channel_sleep_desc)
             enableVibration(true)
         }
 
@@ -156,12 +156,10 @@ class WorkoutReminderManager(private val context: Context) {
         }
 
     private fun mainActivityPendingIntent(): PendingIntent =
-        PendingIntent.getActivity(
-            appCtx, 0,
-            Intent(appCtx, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        KpknDeepLinks.pendingActivityIntent(
+            context = appCtx,
+            requestCode = 0,
+            path = "training",
         )
 
     private fun parseHour(time: String) = time.split(":").getOrNull(0)?.toIntOrNull() ?: 18
@@ -190,8 +188,8 @@ class WorkoutReminderReceiver : BroadcastReceiver() {
     private fun sendWorkoutReminder(context: Context, manager: WorkoutReminderManager) {
         val notification = NotificationCompat.Builder(context, WorkoutReminderManager.CHANNEL_WORKOUT_REMINDER)
             .setSmallIcon(com.example.kpkn.R.mipmap.ic_launcher)
-            .setContentTitle("KPKN Fit")
-            .setContentText("¿Ya está todo listo para entrenar? 💪")
+            .setContentTitle(context.getString(com.example.kpkn.R.string.notif_app_title))
+            .setContentText(context.getString(com.example.kpkn.R.string.notif_workout_text))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(mainActivityPendingIntent(context))
@@ -205,8 +203,8 @@ class WorkoutReminderReceiver : BroadcastReceiver() {
     private fun sendSleepReminder(context: Context, manager: WorkoutReminderManager) {
         val notification = NotificationCompat.Builder(context, WorkoutReminderManager.CHANNEL_SLEEP_REMINDER)
             .setSmallIcon(com.example.kpkn.R.mipmap.ic_launcher)
-            .setContentTitle("KPKN Fit")
-            .setContentText("Es hora de prepararse para descansar 😴")
+            .setContentTitle(context.getString(com.example.kpkn.R.string.notif_app_title))
+            .setContentText(context.getString(com.example.kpkn.R.string.notif_sleep_text))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(mainActivityPendingIntent(context))
@@ -227,11 +225,9 @@ class WorkoutReminderReceiver : BroadcastReceiver() {
     }
 
     private fun mainActivityPendingIntent(context: Context): PendingIntent =
-        PendingIntent.getActivity(
-            context, 0,
-            Intent(context, com.example.kpkn.MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        KpknDeepLinks.pendingActivityIntent(
+            context = context,
+            requestCode = 0,
+            path = "training",
         )
 }

@@ -25,9 +25,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.R
 import com.example.kpkn.screens.settings.components.SettingsCategoryRow
 import com.example.kpkn.screens.settings.components.SettingsProfileHeader
 import com.example.kpkn.screens.settings.components.SettingsSectionCard
@@ -52,10 +54,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Ajustes", fontWeight = FontWeight.Black) },
+                title = { Text(stringResource(R.string.screen_settings_title), fontWeight = FontWeight.Black) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
             )
@@ -78,44 +80,44 @@ fun SettingsScreen(
                 SettingsSectionCard {
                     SettingsCategoryRow(
                         icon = Icons.Default.Settings,
-                        title = "General",
-                        subtitle = "Tema, animaciones, IA y feedback sensorial",
+                        title = stringResource(R.string.screen_settings_cat_general),
+                        subtitle = stringResource(R.string.screen_settings_cat_general_subtitle),
                         onClick = onNavigateToGeneral,
                     )
                     SettingsCategoryRow(
                         icon = Icons.Default.Person,
-                        title = "Perfil personal",
-                        subtitle = "Nombre, medidas corporales y tipo de atleta",
+                        title = stringResource(R.string.screen_settings_cat_profile),
+                        subtitle = stringResource(R.string.screen_settings_cat_profile_subtitle),
                         onClick = onNavigateToProfile,
                     )
                     SettingsCategoryRow(
                         icon = Icons.Default.Restaurant,
-                        title = "Nutricion",
-                        subtitle = "Calorias, macros, sueno y wizard",
+                        title = stringResource(R.string.screen_settings_cat_nutrition),
+                        subtitle = stringResource(R.string.screen_settings_cat_nutrition_subtitle),
                         onClick = onNavigateToNutrition,
                     )
                     SettingsCategoryRow(
                         icon = Icons.Default.FitnessCenter,
-                        title = "Entrenamiento",
-                        subtitle = "Unidades, temporizador, logger y volumen",
+                        title = stringResource(R.string.screen_settings_cat_training),
+                        subtitle = stringResource(R.string.screen_settings_cat_training_subtitle),
                         onClick = onNavigateToTraining,
                     )
                     SettingsCategoryRow(
                         icon = Icons.Default.Psychology,
-                        title = "Estado de recuperación",
-                        subtitle = "Fatiga, recuperación y sensibilidad del motor AUGE",
+                        title = stringResource(R.string.screen_settings_cat_rings),
+                        subtitle = stringResource(R.string.screen_settings_cat_rings_subtitle),
                         onClick = onNavigateToAuge,
                     )
                     SettingsCategoryRow(
                         icon = Icons.Default.Notifications,
-                        title = "Notificaciones",
-                        subtitle = "Recordatorios de entreno, comidas y sueno",
+                        title = stringResource(R.string.screen_settings_cat_notifications),
+                        subtitle = stringResource(R.string.screen_settings_cat_notifications_subtitle),
                         onClick = onNavigateToNotifications,
                     )
                     SettingsCategoryRow(
                         icon = Icons.Default.Storage,
-                        title = "Datos y app",
-                        subtitle = "Exportar, restablecer y ver version",
+                        title = stringResource(R.string.screen_settings_cat_data),
+                        subtitle = stringResource(R.string.screen_settings_cat_data_subtitle),
                         onClick = onNavigateToData,
                     )
                 }

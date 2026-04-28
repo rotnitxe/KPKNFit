@@ -27,13 +27,14 @@ fun HomeCardsSection(
     viewModel: HomeViewModel,
     onNavigateToCard: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onAddMeal: () -> Unit = {},
 ) {
     Column(modifier.fillMaxWidth()) {
         // ─── Progreso físico y alimentación ──────────────────────────────────
         SectionHeader("Progreso físico y alimentación", Modifier.padding(horizontal = 24.dp))
 
         // Macro bars
-        MacroProgressBars(viewModel, Modifier.padding(horizontal = 24.dp))
+        MacroProgressBars(viewModel, onAddMeal, Modifier.padding(horizontal = 24.dp))
 
         Spacer(Modifier.height(16.dp))
 
@@ -52,7 +53,7 @@ fun HomeCardsSection(
 // ─── Macro Progress Bars ────────────────────────────────────────────────────
 
 @Composable
-private fun MacroProgressBars(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
+private fun MacroProgressBars(viewModel: HomeViewModel, onAddMeal: () -> Unit = {}, modifier: Modifier = Modifier) {
     val calGoal by viewModel.dailyCalorieGoal.collectAsState()
     val protGoal by viewModel.dailyProteinGoal.collectAsState()
     val carbGoal by viewModel.dailyCarbGoal.collectAsState()
@@ -67,6 +68,7 @@ private fun MacroProgressBars(viewModel: HomeViewModel, modifier: Modifier = Mod
     )
 
     Card(
+        onClick = onAddMeal,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(

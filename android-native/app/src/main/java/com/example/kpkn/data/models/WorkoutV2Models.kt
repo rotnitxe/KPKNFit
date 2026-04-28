@@ -30,6 +30,7 @@ enum class LoadModeV2 {
 enum class UnitModeV2 {
     REPS,
     TIME,
+    DISTANCE,
     CUSTOM,
 }
 
@@ -97,6 +98,7 @@ data class RecordedSetPayload(
     val contextProfileId: String? = null,
     val exerciseId: String,
     val exerciseDbId: String? = null,
+    val side: String? = null,
     val loadInputMode: LoadModeV2 = LoadModeV2.LOAD,
     val unitMode: UnitModeV2 = UnitModeV2.REPS,
     val externalLoad: Double? = null,
@@ -114,6 +116,9 @@ data class RecordedSetPayload(
     val timerTargetSeconds: Int? = null,
     val timerElapsedSeconds: Int? = null,
     val failureReason: String? = null,
+    val executionError: Boolean = false,
+    val skipped: Boolean = false,
+    val superSetWithExerciseId: String? = null,
 )
 
 @Serializable
@@ -163,12 +168,15 @@ data class HomologatedPerformanceResult(
     val suggestionReason: String? = null,
     val augeEquivalentLoad: Double,
     val augeEquivalentReps: Int,
+    val ermRangeMin: Double = 0.0,
+    val ermRangeMax: Double = 0.0,
 )
 
 @Serializable
 data class SetEntryV2(
     val exerciseId: String,
     val exerciseDbId: String? = null,
+    val canonicalExerciseId: String? = null,
     val setIndex: Int,
     val loadMode: LoadModeV2,
     val unitMode: UnitModeV2,
@@ -272,3 +280,7 @@ fun buildWorkoutContextKey(
         unitMode.name,
     ).joinToString("|")
 }
+
+fun SetEntryV2.resolvedCanonicalExerciseId(): String =
+    canonicalExerciseId?.trim()?.lowercase()?.takeIf { it.isNotBlank() }
+        ?: (exerciseDbId ?: exerciseId).trim().lowercase().ifBlank { "unknown" }

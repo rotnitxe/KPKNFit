@@ -12,6 +12,9 @@ enum class SessionEditorSheet {
     AUGE,
     WARMUP,
     SUPERSERIE_MANAGER,
+    RELATIONSHIP_PICKER,
+    /** Session template browser/picker. Opened from the Templates FAB. */
+    TEMPLATES,
 }
 
 data class SessionDraftBundle(
@@ -23,6 +26,68 @@ data class SessionDraftBundle(
     val siblingSessionIds: List<String> = emptyList(),
     val weekSessionIds: List<String> = emptyList(),
 )
+
+data class SessionRoadmapOption(
+    val macroIndex: Int,
+    val blockIndex: Int,
+    val mesoIndex: Int,
+    val weekIndex: Int,
+    val weekId: String,
+    val macroName: String,
+    val blockName: String,
+    val weekName: String,
+    val sessionCount: Int,
+)
+
+data class SessionCloneDayOption(
+    val key: String,
+    val macroIndex: Int,
+    val mesoIndex: Int,
+    val weekId: String,
+    val dayOfWeek: Int,
+    val macroName: String,
+    val blockName: String,
+    val mesoName: String,
+    val weekName: String,
+    val existingSessionId: String? = null,
+    val existingSessionName: String? = null,
+    val isCurrentSessionDay: Boolean = false,
+)
+
+data class SessionCloneSourceOption(
+    val sessionId: String,
+    val dayOfWeek: Int?,
+    val macroIndex: Int,
+    val mesoIndex: Int,
+    val weekId: String,
+    val macroName: String,
+    val blockName: String,
+    val mesoName: String,
+    val weekName: String,
+    val sessionName: String,
+    val exerciseCount: Int,
+    val exercises: List<SessionCloneExerciseOption> = emptyList(),
+)
+
+data class SessionCloneExerciseOption(
+    val exerciseId: String,
+    val name: String,
+    val sourcePartName: String? = null,
+)
+
+data class ProgramExerciseCandidate(
+    val exerciseId: String,
+    val exerciseName: String,
+    val exerciseDbId: String?,
+    val sessionDayOfWeek: Int?,
+    val sessionName: String,
+    val partName: String?,
+)
+
+enum class SessionCloneApplyMode {
+    APPEND,
+    REPLACE,
+}
 
 enum class SessionSaveScope {
     SESSION_ONLY,

@@ -63,33 +63,50 @@ fun ReadinessSheet(
     currentSpinalBattery: Int? = null,
     muscleBatteries: Map<String, Int> = emptyMap(),
     todayWellbeing: DailyWellbeingLog? = null,
+    isLoading: Boolean = false,
     onDismiss: () -> Unit,
     dismissOnBackPress: Boolean = true,
     dismissOnClickOutside: Boolean = true,
     onSave: (DailyWellbeingLog, Int?, Int?, Int?, Map<String, Int>) -> Unit,
 ) {
+    val dashboardNeural = dashboard?.channels?.firstOrNull { it.id == RecoveryChannelId.SYSTEM }?.score
+    val dashboardSpinal = dashboard?.channels?.firstOrNull { it.id == RecoveryChannelId.STRUCTURE }?.score
+
     var sleepQuality by remember { mutableIntStateOf(todayWellbeing?.sleepQuality ?: 3) }
     var stressLevel  by remember { mutableIntStateOf(todayWellbeing?.stressLevel  ?: 3) }
     var doms         by remember { mutableIntStateOf(todayWellbeing?.doms         ?: 1) }
     var motivation   by remember { mutableIntStateOf(todayWellbeing?.motivation   ?: 3) }
+
+    var userEditedNeural by remember { mutableStateOf(false) }
+    var userEditedSpinal by remember { mutableStateOf(false) }
+
     var neural by remember {
         mutableIntStateOf(
-            currentNeuralBattery
-                ?: dashboard?.channels?.firstOrNull { it.id == RecoveryChannelId.SYSTEM }?.score
-                ?: readiness?.score
-                ?: 75
+            currentNeuralBattery ?: dashboardNeural ?: readiness?.score ?: 100
         )
     }
     var spinal by remember {
         mutableIntStateOf(
-            currentSpinalBattery
-                ?: dashboard?.channels?.firstOrNull { it.id == RecoveryChannelId.STRUCTURE }?.score
-                ?: 75
+            currentSpinalBattery ?: dashboardSpinal ?: 100
         )
     }
+
     val muscleAdjustments = remember(muscleBatteries) {
         mutableStateMapOf<String, Int>().also { map ->
             muscleBatteries.forEach { (k, v) -> map[k] = v }
+        }
+    }
+
+    LaunchedEffect(isLoading, currentNeuralBattery, currentSpinalBattery, dashboard) {
+        if (!isLoading) {
+            if (!userEditedNeural) {
+                val newVal = currentNeuralBattery ?: dashboardNeural ?: readiness?.score ?: 100
+                neural = newVal
+            }
+            if (!userEditedSpinal) {
+                val newVal = currentSpinalBattery ?: dashboardSpinal ?: 100
+                spinal = newVal
+            }
         }
     }
 
@@ -119,7 +136,7 @@ fun ReadinessSheet(
             ) {
                 Column {
                     Text(
-                        "Estado de recuperación",
+                        "Mis RINGS",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Black,
                     )
@@ -202,7 +219,7 @@ fun ReadinessSheet(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Corrección avanzada", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                        Text("Sistema, estructura y músculos implicados. Nunca músculo global.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Energía, columna y músculos implicados. Nunca porcentaje global.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text(
                         if (showDetails) "Ocultar" else "Mostrar",
@@ -215,12 +232,12 @@ fun ReadinessSheet(
 
             if (showDetails) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    BatteryAdjustRow("Sistema", currentNeuralBattery, neural) { neural = it }
-                    BatteryAdjustRow("Estructura", currentSpinalBattery, spinal) { spinal = it }
+                    BatteryAdjustRow("Energía", currentNeuralBattery, neural) { neural = it; userEditedNeural = true }
+                    BatteryAdjustRow("Columna", currentSpinalBattery, spinal) { spinal = it; userEditedSpinal = true }
                 }
 
                 Text(
-                    "La batería muscular global no se edita aquí. Si algo no cuadra, el ajuste es por músculo.",
+                    "El RING muscular global no se edita aquí. Si algo no cuadra, el ajuste es por músculo.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

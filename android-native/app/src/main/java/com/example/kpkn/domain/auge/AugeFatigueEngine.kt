@@ -1,12 +1,12 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
-
 /**
  * AugeFatigueEngine — Motor de Fatiga AUGE v3.0 para Kotlin.
  * Funciones puras, sin estado. Equivalente a @kpkn/shared-domain fatigue.ts
@@ -32,7 +32,7 @@ object AugeFatigueEngine {
         ATHLETE_CAPACITY[settings.athleteType] ?: 500.0
 
     private fun physiologicalFloor(settings: Settings): PhysiologicalFloor = when (settings.athleteType) {
-        AthleteType.POWERLIFTER, AthleteType.WEIGHTLIFTER -> PhysiologicalFloor(muscular = 15, cns = 20, spinal = 12)
+        AthleteType.POWERLIFTER, AthleteType.WEIGHTLIFTER -> PhysiologicalFloor(muscular = 22, cns = 25, spinal = 12)
         AthleteType.BODYBUILDER, AthleteType.POWERBUILDER -> PhysiologicalFloor(muscular = 18, cns = 22, spinal = 14)
         AthleteType.CALISTHENICS -> PhysiologicalFloor(muscular = 20, cns = 24, spinal = 16)
         AthleteType.HYBRID, AthleteType.ZERCHER_LIFTER -> PhysiologicalFloor(muscular = 20, cns = 25, spinal = 18)
@@ -41,8 +41,12 @@ object AugeFatigueEngine {
 
     private fun applySoftCap(drain: Double, accumulated: Double, cap: Double): Double {
         if (drain <= 0.0 || cap <= 0.0) return 0.0
-        val proximity = (accumulated / cap).coerceIn(0.0, 1.0)
-        val damping = 1.0 - proximity.pow(1.5)
+        val p = (accumulated / cap).coerceIn(0.0, 1.0)
+        val damping = when {
+            p <= 0.40 -> 1.0 - p * 0.5
+            p <= 0.70 -> 0.80 * exp(-3.2 * (p - 0.40))
+            else      -> 0.30 * exp(-5.5 * (p - 0.70))
+        }
         return (drain * damping).coerceAtLeast(0.0)
     }
 
@@ -76,60 +80,36 @@ object AugeFatigueEngine {
 
     // ─── Métricas dinámicas AUGE por nombre de ejercicio ─────────────────────
 
-    fun getDynamicAugeMetrics(exerciseName: String, equipment: String? = null): AugeMetrics {
-        val name = exerciseName.lowercase()
-
-        var efc = 2.5; var ssc = 0.5; var cnc = 2.5
-
-        // 1. Diccionario de patrones fundamentales
-        when {
-            name.contains("peso muerto") || name.contains("deadlift") -> {
-                efc = 5.0; ssc = 2.0; cnc = 5.0
-                if (name.contains("rumano") || name.contains("rdl"))  { efc = 4.2; ssc = 1.8; cnc = 4.0 }
-                if (name.contains("sumo"))                             { efc = 4.8; ssc = 1.6; cnc = 4.8 }
-            }
-            name.contains("sentadilla") || name.contains("squat") -> {
-                efc = 4.5; ssc = 1.5; cnc = 4.5
-                if (name.contains("frontal") || name.contains("front"))           { efc = 4.2; ssc = 1.2; cnc = 4.5 }
-                if (name.contains("búlgara") || name.contains("bulgarian"))       { efc = 3.8; ssc = 0.8; cnc = 3.5 }
-                if (name.contains("hack"))                                         { efc = 3.5; ssc = 0.4; cnc = 3.0 }
-            }
-            name.contains("press militar") || name.contains("ohp") -> { efc = 4.0; ssc = 1.5; cnc = 4.2 }
-            name.contains("press banca") || name.contains("bench press") -> { efc = 3.8; ssc = 0.3; cnc = 3.8 }
-            name.contains("dominada") || name.contains("pull-up") || name.contains("pullup") -> { efc = 4.0; ssc = 0.2; cnc = 4.0 }
-            name.contains("remo") || name.contains("row") -> {
-                efc = 4.2; ssc = 1.6; cnc = 4.0
-                if (name.contains("seal") || name.contains("pecho apoyado")) { efc = 3.2; ssc = 0.1; cnc = 2.5 }
-            }
-            name.contains("hip thrust") || name.contains("puente") -> { efc = 3.5; ssc = 0.5; cnc = 3.0 }
-            name.contains("clean") || name.contains("snatch") -> { efc = 4.8; ssc = 1.8; cnc = 5.0 }
-            name.contains("zancada") || name.contains("lunge") -> { efc = 3.5; ssc = 0.6; cnc = 3.2 }
-            name.contains("press inclinado") -> { efc = 3.5; ssc = 0.2; cnc = 3.5 }
-            name.contains("extensión") && (name.contains("cuádriceps") || name.contains("pierna")) -> { efc = 2.5; ssc = 0.1; cnc = 2.0 }
-            name.contains("curl") -> { efc = 2.0; ssc = 0.1; cnc = 2.0 }
-        }
-
-        // 2. Modificadores de herramienta
-        val eq = equipment?.lowercase() ?: ""
-        if (name.contains("mancuerna") || eq == "mancuerna") {
-            cnc = min(5.0, cnc + 0.2); ssc = max(0.0, ssc - 0.2)
-        } else if (name.contains("smith") || name.contains("multipower")) {
-            cnc = max(1.0, cnc - 0.5); efc = max(1.0, efc - 0.2)
-        } else if (name.contains("polea") || name.contains("cable") || eq == "polea") {
-            cnc = max(1.0, cnc - 0.3); efc = min(5.0, efc + 0.2)
-        }
-
-        // 3. Modificadores de técnica
-        if (name.contains("pausa") || name.contains("paused")) { cnc = min(5.0, cnc + 0.3); efc = min(5.0, efc + 0.5) }
-        if (name.contains("déficit") || name.contains("deficit")) { ssc = min(2.0, ssc + 0.2); efc = min(5.0, efc + 0.3) }
-        if (name.contains("parcial") || name.contains("rack pull")) { ssc = min(2.0, ssc + 0.2); efc = max(1.0, efc - 0.2) }
-
+    private fun deriveAugeMetricsFromDb(dbInfo: ExerciseMuscleInfo?): AugeMetrics? {
+        if (dbInfo == null) return null
+        val efc = dbInfo.efc ?: return null
+        val cnc = dbInfo.cnc ?: return null
+        val ssc = dbInfo.ssc ?: return null
         return AugeMetrics(
             efc = efc.coerceIn(1.0, 5.0),
-            ssc = ssc.coerceIn(0.0, 2.0),
             cnc = cnc.coerceIn(1.0, 5.0),
+            ssc = ssc.coerceIn(0.0, 2.0),
         )
     }
+
+    /**
+     * Devuelve las métricas AUGE del ejercicio leyendo únicamente la base de datos.
+     * Retorna **null** si la DB no tiene efc+cnc+ssc completos.
+     *
+     * Antes de este cambio la función inventaba valores por heurística de nombre cuando la DB
+     * no tenía datos, haciendo que la DB no fuera la única fuente de verdad.
+     * Los callers deben manejar null mostrando "—" en la UI o saltando el ejercicio en los
+     * cálculos de fatiga.
+     *
+     * @param exerciseName  Solo para logging; no se usa para derivar valores.
+     * @param equipment     Ignorado — mantenido por compatibilidad de firma.
+     * @param dbInfo        Entrada de la DB para el ejercicio. Si es null, retorna null.
+     */
+    fun getDynamicAugeMetrics(
+        exerciseName: String,
+        equipment: String? = null,
+        dbInfo: ExerciseMuscleInfo? = null,
+    ): AugeMetrics? = deriveAugeMetricsFromDb(dbInfo)
 
     // ─── RPE efectivo (traduce RPE / RIR / failure) ──────────────────────────
 
@@ -153,6 +133,7 @@ object AugeFatigueEngine {
     // ─── ¿El set cuenta para fatiga? ─────────────────────────────────────────
 
     fun isSetEffective(set: CompletedSet): Boolean {
+        if (set.skipped) return false
         val hasTime = (set.timeSeconds ?: 0) > 0
         if (set.reps <= 0 && !hasTime && set.weight <= 0.0) return false
         val rpe = getEffectiveRPE(set)
@@ -276,6 +257,7 @@ object AugeFatigueEngine {
         restTime: Int = 90,
         densityMultiplier: Double = 1.0,
     ): SetDrain {
+        if (set.skipped) return SetDrain(cnsDrainPct = 0.0, muscularDrainPct = 0.0, spinalDrainPct = 0.0)
         val rpe = getEffectiveRPE(set)
         val reps = when {
             (set.timeSeconds ?: 0) > 0 -> ((set.timeSeconds ?: 0).coerceAtLeast(5) / 5.0)
@@ -375,11 +357,21 @@ object AugeFatigueEngine {
         var totalMuscular = 0.0
         var totalSpinal = 0.0
         val muscleVolumeMap = mutableMapOf<String, Int>()
+        val conservationFactor = 0.85
+        val decayK = 0.65
+        var accumulatedDrain = 0.0
 
         completedExercises.forEach { ex ->
             val lookupId = (ex.exerciseDbId ?: ex.exerciseId)?.lowercase()
             val dbInfo = lookupId?.let { exerciseDb[it] }
-            val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment)
+            val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo)
+                ?: run {
+                    android.util.Log.d(
+                        "AugeFatigueEngine",
+                        "Sin métricas AUGE para '${ex.exerciseName}' (id=$lookupId) — ejercicio omitido del drenaje",
+                    )
+                    return@forEach
+                }
             val densityMult = getDensityMultiplierForExercise(ex.supersetId, ex.restTime)
             val primaryMuscle = dbInfo?.involvedMuscles
                 ?.find { it.role == MuscleRole.PRIMARY }
@@ -398,9 +390,14 @@ object AugeFatigueEngine {
                     restTime = ex.restTime,
                     densityMultiplier = densityMult,
                 )
-                totalMuscular += applySoftCap(drain.muscularDrainPct, totalMuscular, muscularCap)
-                totalCns += applySoftCap(drain.cnsDrainPct, totalCns, cnsCap)
-                totalSpinal += applySoftCap(drain.spinalDrainPct, totalSpinal, spinalCap)
+                val diminishingFactor = 1.0 / (1.0 + decayK * accumulatedDrain)
+                val adjustedMuscular = drain.muscularDrainPct * conservationFactor * diminishingFactor
+                val adjustedCns = drain.cnsDrainPct * conservationFactor * diminishingFactor
+                val adjustedSpinal = drain.spinalDrainPct * conservationFactor * diminishingFactor
+                totalMuscular += applySoftCap(adjustedMuscular, totalMuscular, muscularCap)
+                totalCns += applySoftCap(adjustedCns, totalCns, cnsCap)
+                totalSpinal += applySoftCap(adjustedSpinal, totalSpinal, spinalCap)
+                accumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
             }
             muscleVolumeMap[primaryMuscle] = accumulated
         }
@@ -435,76 +432,12 @@ object AugeFatigueEngine {
 
     // ─── Costo estimado de sesión futura ─────────────────────────────────────
 
+    @Deprecated("Use calculateAdjustedPredictedDrain instead", ReplaceWith("calculateAdjustedPredictedDrain(session, exerciseDb, settings)"))
     fun calculatePredictedSessionDrain(
         session: Session,
         exerciseDb: Map<String, ExerciseMuscleInfo>,
         settings: Settings,
-    ): PredictedDrain {
-        val tanks = calculatePersonalizedBatteryTanks(settings)
-        val floor = physiologicalFloor(settings)
-        val muscularCap = (100 - floor.muscular).coerceAtLeast(5).toDouble()
-        val cnsCap = (100 - floor.cns).coerceAtLeast(5).toDouble()
-        val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
-        var totalCns = 0.0; var totalMuscular = 0.0; var totalSpinal = 0.0
-        val muscleVolumeMap = mutableMapOf<String, Int>()
-
-        val exercises = if (session.parts.isNotEmpty())
-            session.parts.flatMap { it.exercises }
-        else session.exercises
-
-        exercises.forEach { ex ->
-            val dbInfo = exerciseDb[ex.exerciseDbId] ?: exerciseDb.values.find {
-                it.name.equals(ex.name, ignoreCase = true)
-            }
-            val metrics = getDynamicAugeMetrics(ex.name, dbInfo?.equipment)
-            val densityMult = getDensityMultiplierForExercise(ex.supersetId, ex.restTime ?: 90)
-            val primaryMuscle = dbInfo?.involvedMuscles
-                ?.find { it.role == MuscleRole.PRIMARY }
-                ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
-                ?: "Core"
-            var accumulated = muscleVolumeMap[primaryMuscle] ?: 0
-
-            ex.sets.forEach { s ->
-                if (s.isIneffective) return@forEach
-                accumulated++
-                // Use a synthetic completed set from the planned set
-                val syntheticSet = CompletedSet(
-                    id = "",
-                    weight = s.weight ?: 60.0,
-                    reps = s.targetReps ?: 8,
-                    rpe = s.targetRPE,
-                    rir = s.targetRIR,
-                    isFailure = s.isFailure || s.intensityMode == IntensityMode.FAILURE,
-                )
-                val drain = calculateSetBatteryDrain(
-                    set = syntheticSet,
-                    metrics = metrics,
-                    tanks = tanks,
-                    accumulatedSets = accumulated,
-                    restTime = ex.restTime ?: 90,
-                    densityMultiplier = densityMult,
-                )
-                totalMuscular += applySoftCap(drain.muscularDrainPct, totalMuscular, muscularCap)
-                totalCns += applySoftCap(drain.cnsDrainPct, totalCns, cnsCap)
-                totalSpinal += applySoftCap(drain.spinalDrainPct, totalSpinal, spinalCap)
-            }
-            muscleVolumeMap[primaryMuscle] = accumulated
-        }
-
-        return PredictedDrain(
-            cns      = totalCns.coerceAtMost(cnsCap).toInt(),
-            muscular = totalMuscular.coerceAtMost(muscularCap).toInt(),
-            spinal   = totalSpinal.coerceAtMost(spinalCap).toInt(),
-        )
-            .let { raw ->
-                val (cnsBias, muscularBias, spinalBias) = normalizeBias(settings.augePredictionBias)
-                PredictedDrain(
-                    cns = (raw.cns + cnsBias).toInt().coerceIn(0, cnsCap.toInt()),
-                    muscular = (raw.muscular + muscularBias).toInt().coerceIn(0, muscularCap.toInt()),
-                    spinal = (raw.spinal + spinalBias).toInt().coerceIn(0, spinalCap.toInt()),
-                )
-            }
-    }
+    ): PredictedDrain = calculateAdjustedPredictedDrain(session, exerciseDb, settings)
 
     fun calculateAdjustedPredictedDrain(
         session: Session,
@@ -520,20 +453,35 @@ object AugeFatigueEngine {
         val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
         var totalCns = 0.0; var totalMuscular = 0.0; var totalSpinal = 0.0
         var accumulatedDrain = 0.0
+        val muscleVolumeMap = mutableMapOf<String, Int>()
 
-        val exercises = if (session.parts.isNotEmpty())
-            session.parts.flatMap { it.exercises }
-        else session.exercises
+        val exercises = session.exercises + session.parts.flatMap { it.exercises }
 
         exercises.forEach { ex ->
-            val dbInfo = exerciseDb[ex.exerciseDbId] ?: exerciseDb.values.find {
+            val resolvedId = (ex.exerciseDbId ?: ex.exerciseId)?.lowercase()?.let { rawId ->
+                EXERCISE_ID_ALIASES[rawId] ?: rawId
+            }
+            val dbInfo = resolvedId?.let { exerciseDb[it] } ?: exerciseDb.values.find {
                 it.name.equals(ex.name, ignoreCase = true)
             }
-            val metrics = getDynamicAugeMetrics(ex.name, dbInfo?.equipment)
+            val metrics = getDynamicAugeMetrics(ex.name, dbInfo?.equipment, dbInfo)
+                ?: run {
+                    android.util.Log.d(
+                        "AugeFatigueEngine",
+                        "Sin métricas AUGE para '${ex.name}' — ejercicio omitido del drenaje ajustado",
+                    )
+                    return@forEach
+                }
             val densityMult = getDensityMultiplierForExercise(ex.supersetId, ex.restTime ?: 90)
+            val primaryMuscle = dbInfo?.involvedMuscles
+                ?.find { it.role == MuscleRole.PRIMARY }
+                ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
+                ?: "Core"
+            var accumulated = muscleVolumeMap[primaryMuscle] ?: 0
 
             ex.sets.forEach { s ->
                 if (s.isIneffective) return@forEach
+                accumulated++
                 val syntheticSet = CompletedSet(
                     id = "",
                     weight = s.weight ?: 60.0,
@@ -546,7 +494,7 @@ object AugeFatigueEngine {
                     set = syntheticSet,
                     metrics = metrics,
                     tanks = tanks,
-                    accumulatedSets = 0,
+                    accumulatedSets = accumulated,
                     restTime = ex.restTime ?: 90,
                     densityMultiplier = densityMult,
                 )
@@ -560,6 +508,7 @@ object AugeFatigueEngine {
                 totalSpinal += applySoftCap(adjustedSpinal, totalSpinal, spinalCap)
                 accumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
             }
+            muscleVolumeMap[primaryMuscle] = accumulated
         }
 
         return PredictedDrain(

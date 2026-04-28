@@ -141,6 +141,100 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     // ─── Suplementos ─────────────────────────────────────────────────────────
     FoodItem(id = "gen105", name = "Proteína en Polvo (Whey)", brand = "Genérico", servingSize = 30.0, unit = "g", calories = 120.0, protein = 24.0, carbs = 3.0, fats = 2.0, searchAliases = listOf("whey", "proteína en polvo", "proteina", "suero de leche", "proteína whey", "whey protein")),
     FoodItem(id = "gen106", name = "Creatina Monohidrato", brand = "Genérico", servingSize = 5.0, unit = "g", calories = 0.0, protein = 0.0, carbs = 0.0, fats = 0.0, searchAliases = listOf("creatina", "creatine")),
+    // ─── Variantes de cocción (top 30 alimentos) ─────────────────────────────
+    // Pollo
+    FoodItem(id = "gen003c", name = "Pechuga de Pollo (plancha)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 173.0, protein = 31.0, carbs = 0.0, fats = 3.4, searchAliases = listOf("pollo a la plancha", "pechuga plancha")),
+    FoodItem(id = "gen003f", name = "Pechuga de Pollo (frita)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 223.0, protein = 30.0, carbs = 0.0, fats = 10.9, searchAliases = listOf("pollo frito", "pechuga frita")),
+    FoodItem(id = "gen003h", name = "Pechuga de Pollo (horno)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 168.0, protein = 31.0, carbs = 0.0, fats = 3.5, searchAliases = listOf("pollo al horno", "pechuga al horno")),
+    FoodItem(id = "gen003v", name = "Pechuga de Pollo (vapor)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 160.0, protein = 31.0, carbs = 0.0, fats = 3.2, searchAliases = listOf("pollo al vapor", "pechuga vapor")),
+    FoodItem(id = "gen003p", name = "Pechuga de Pollo (parrilla)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 170.0, protein = 31.0, carbs = 0.0, fats = 3.3, searchAliases = listOf("pollo a la parrilla", "pechuga parrilla")),
+    // Vacuno
+    FoodItem(id = "gen010p", name = "Carne Molida (plancha)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 228.0, protein = 26.0, carbs = 0.0, fats = 10.5, searchAliases = listOf("carne a la plancha")),
+    FoodItem(id = "gen010f", name = "Carne Molida (frita)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 293.0, protein = 25.0, carbs = 0.0, fats = 15.4, searchAliases = listOf("carne frita")),
+    // Arroz
+    FoodItem(id = "gen005c", name = "Arroz Blanco (crudo)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 360.0, protein = 7.0, carbs = 80.0, fats = 0.6, cookingWeightFactor = 2.8, searchAliases = listOf("arroz crudo")),
+    // Huevo
+    FoodItem(id = "gen007f", name = "Huevo Entero (frito)", servingSize = 50.0, unit = "g", calories = 90.0, protein = 6.3, carbs = 0.6, fats = 7.0, searchAliases = listOf("huevo frito", "huevos fritos")),
+    FoodItem(id = "gen007c", name = "Huevo Entero (crudo)", servingSize = 50.0, unit = "g", calories = 72.0, protein = 6.3, carbs = 0.4, fats = 5.0, searchAliases = listOf("huevo crudo")),
+    FoodItem(id = "gen007r", name = "Huevo Entero (revuelto)", servingSize = 50.0, unit = "g", calories = 95.0, protein = 6.5, carbs = 0.8, fats = 7.5, searchAliases = listOf("huevos revueltos", "huevo revuelto")),
+    // Salmón
+    FoodItem(id = "gen009p", name = "Salmón (plancha)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 218.0, protein = 20.0, carbs = 0.0, fats = 12.4, searchAliases = listOf("salmon a la plancha")),
+    FoodItem(id = "gen009h", name = "Salmón (horno)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 212.0, protein = 20.0, carbs = 0.0, fats = 12.7, searchAliases = listOf("salmon al horno")),
+    // Papa
+    FoodItem(id = "gen021f", name = "Papa (frita)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 312.0, protein = 3.4, carbs = 41.0, fats = 15.0, searchAliases = listOf("papa frita", "papas fritas")),
+    FoodItem(id = "gen021h", name = "Papa (horno)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 93.0, protein = 2.5, carbs = 21.0, fats = 0.1, searchAliases = listOf("papa al horno", "papas al horno")),
+    FoodItem(id = "gen021p", name = "Papa (puré)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 110.0, protein = 2.0, carbs = 18.0, fats = 3.5, searchAliases = listOf("pure de papa", "pure")),
+    // Pasta
+    FoodItem(id = "gen040c", name = "Pasta (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 371.0, protein = 13.0, carbs = 75.0, fats = 1.5, cookingWeightFactor = 2.2, searchAliases = listOf("pasta cruda", "fideos crudos")),
+    // Lentejas
+    FoodItem(id = "gen012c", name = "Lentejas (crudas)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 352.0, protein = 25.0, carbs = 60.0, fats = 1.1, cookingWeightFactor = 2.5, searchAliases = listOf("lentejas crudas")),
+    // Cerdo
+    FoodItem(id = "gen028p", name = "Lomo de Cerdo (plancha)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 254.0, protein = 27.0, carbs = 0.0, fats = 13.3, searchAliases = listOf("cerdo a la plancha")),
+    // Atún
+    FoodItem(id = "gen029e", name = "Atún en lata (aceite)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 200.0, protein = 26.0, carbs = 0.0, fats = 10.0, searchAliases = listOf("atun en aceite")),
+
+    // ─── Estados de hidratación ──────────────────────────────────────────────
+    FoodItem(id = "gen012h", name = "Lentejas (hidratadas)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 116.0, protein = 9.0, carbs = 20.0, fats = 0.4, searchAliases = listOf("lentejas remojadas", "lentejas hidratadas")),
+    FoodItem(id = "gen013h", name = "Garbanzos (hidratados)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 139.0, protein = 7.0, carbs = 26.0, fats = 2.4, searchAliases = listOf("garbanzos remojados", "garbanzos hidratados")),
+    FoodItem(id = "gen040h", name = "Pasta (hidratada/cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 131.0, protein = 5.0, carbs = 25.0, fats = 1.1, searchAliases = listOf("pasta cocida", "fideos cocidos")),
+    FoodItem(id = "gen005h", name = "Arroz (hidratado/cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 130.0, protein = 2.7, carbs = 28.0, fats = 0.3, searchAliases = listOf("arroz cocido", "arroz graneado")),
+    FoodItem(id = "gen057h", name = "Soya texturizada (hidratada)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 120.0, protein = 18.0, carbs = 12.0, fats = 0.4, searchAliases = listOf("soya hidratada", "pvt hidratada", "proteina vegetal hidratada")),
+
+    // ─── Cortes de carne chilenos ────────────────────────────────────────────
+    FoodItem(id = "gen093a", name = "Posta Rosada (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 140.0, protein = 22.0, carbs = 0.0, fats = 5.0, cookingWeightFactor = 0.75, searchAliases = listOf("posta rosada", "posta")),
+    FoodItem(id = "gen093b", name = "Posta Negra (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 150.0, protein = 21.0, carbs = 0.0, fats = 6.5, cookingWeightFactor = 0.75, searchAliases = listOf("posta negra")),
+    FoodItem(id = "gen093c", name = "Asado de Tira (crudo)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 250.0, protein = 18.0, carbs = 0.0, fats = 20.0, cookingWeightFactor = 0.7, searchAliases = listOf("asado de tira", "costillar")),
+    FoodItem(id = "gen093d", name = "Lomo Vetado (crudo)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 220.0, protein = 20.0, carbs = 0.0, fats = 15.0, cookingWeightFactor = 0.75, searchAliases = listOf("lomo vetado", "vetado")),
+    FoodItem(id = "gen093e", name = "Punta de Ganso (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 190.0, protein = 21.0, carbs = 0.0, fats = 11.0, cookingWeightFactor = 0.75, searchAliases = listOf("punta de ganso")),
+    FoodItem(id = "gen093f", name = "Pulpa Negra (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 145.0, protein = 21.0, carbs = 0.0, fats = 6.0, cookingWeightFactor = 0.75, searchAliases = listOf("pulpa negra")),
+    FoodItem(id = "gen093g", name = "Plateada (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 210.0, protein = 19.0, carbs = 0.0, fats = 14.0, cookingWeightFactor = 0.7, searchAliases = listOf("plateada")),
+    FoodItem(id = "gen093h", name = "Churrasco (crudo)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 180.0, protein = 22.0, carbs = 0.0, fats = 9.0, cookingWeightFactor = 0.75, searchAliases = listOf("churrasco", "bistec")),
+    FoodItem(id = "gen093i", name = "Malaya (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 280.0, protein = 17.0, carbs = 0.0, fats = 23.0, cookingWeightFactor = 0.65, searchAliases = listOf("malaya")),
+    FoodItem(id = "gen093j", name = "Huachalomo (crudo)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 195.0, protein = 20.0, carbs = 0.0, fats = 12.0, cookingWeightFactor = 0.75, searchAliases = listOf("huachalomo")),
+
+    // ─── Preparaciones chilenas adicionales ──────────────────────────────────
+    FoodItem(id = "cl021", name = "Calzones Rotos", servingSize = 80.0, unit = "g", calories = 420.0, protein = 6.0, carbs = 50.0, fats = 22.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("calzones rotos")),
+    FoodItem(id = "cl022", name = "Sopaipillas Pasadas", servingSize = 150.0, unit = "g", calories = 280.0, protein = 3.0, carbs = 45.0, fats = 10.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("sopaipillas pasadas")),
+    FoodItem(id = "cl023", name = "Arroz con Leche", servingSize = 200.0, unit = "g", calories = 220.0, protein = 6.0, carbs = 38.0, fats = 5.0, tags = listOf("preparacion", "chileno", "postre"), searchAliases = listOf("arroz con leche")),
+    FoodItem(id = "cl024", name = "Leche Asada", servingSize = 150.0, unit = "g", calories = 180.0, protein = 7.0, carbs = 28.0, fats = 4.0, tags = listOf("preparacion", "chileno", "postre"), searchAliases = listOf("leche asada")),
+    FoodItem(id = "cl025", name = "Pan con Palta", servingSize = 120.0, unit = "g", calories = 280.0, protein = 6.0, carbs = 30.0, fats = 16.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("pan con palta", "palta pan")),
+    FoodItem(id = "cl026", name = "Pan con Queso", servingSize = 100.0, unit = "g", calories = 320.0, protein = 14.0, carbs = 28.0, fats = 18.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("pan con queso")),
+    FoodItem(id = "cl027", name = "Pan con Jamón", servingSize = 100.0, unit = "g", calories = 260.0, protein = 12.0, carbs = 30.0, fats = 10.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("pan con jamon", "pan con jamón")),
+    FoodItem(id = "cl028", name = "Ensalada Chilena", servingSize = 150.0, unit = "g", calories = 60.0, protein = 1.5, carbs = 8.0, fats = 3.0, tags = listOf("preparacion", "chileno", "ensalada"), searchAliases = listOf("ensalada chilena", "tomate cebolla")),
+    FoodItem(id = "cl029", name = "Porotos con Riendas", servingSize = 350.0, unit = "g", calories = 450.0, protein = 20.0, carbs = 65.0, fats = 12.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("porotos con riendas")),
+    FoodItem(id = "cl030", name = "Cazuela de Vacuno", servingSize = 400.0, unit = "ml", calories = 380.0, protein = 28.0, carbs = 35.0, fats = 14.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("cazuela de vacuno", "cazuela")),
+    FoodItem(id = "cl031", name = "Cazuela de Pollo", servingSize = 400.0, unit = "ml", calories = 340.0, protein = 26.0, carbs = 32.0, fats = 12.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("cazuela de pollo")),
+    FoodItem(id = "cl032", name = "Empanada de Mariscos", servingSize = 150.0, unit = "g", calories = 320.0, protein = 16.0, carbs = 28.0, fats = 18.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("empanada de mariscos")),
+    FoodItem(id = "cl033", name = "Humitas", servingSize = 200.0, unit = "g", calories = 280.0, protein = 8.0, carbs = 40.0, fats = 10.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("humitas")),
+    FoodItem(id = "cl034", name = "Pastel de Papa", servingSize = 250.0, unit = "g", calories = 380.0, protein = 18.0, carbs = 35.0, fats = 20.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("pastel de papa")),
+    FoodItem(id = "cl035", name = "Completo Americano", servingSize = 220.0, unit = "g", calories = 420.0, protein = 14.0, carbs = 35.0, fats = 26.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("completo americano")),
+    FoodItem(id = "cl036", name = "Sándwich de Pavita", servingSize = 150.0, unit = "g", calories = 280.0, protein = 18.0, carbs = 25.0, fats = 12.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("sandwich de pavita", "pavita")),
+    FoodItem(id = "cl037", name = "Ave Palta", servingSize = 180.0, unit = "g", calories = 350.0, protein = 12.0, carbs = 30.0, fats = 22.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("ave palta")),
+    FoodItem(id = "cl038", name = "Bistec a lo Pobre", servingSize = 400.0, unit = "g", calories = 850.0, protein = 45.0, carbs = 60.0, fats = 48.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("bistec a lo pobre", "lomo a lo pobre")),
+    FoodItem(id = "cl039", name = "Charquicán", servingSize = 350.0, unit = "g", calories = 380.0, protein = 20.0, carbs = 35.0, fats = 16.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("charquican", "charquicán")),
+    FoodItem(id = "cl040", name = "Porotos Granados con Mazamorra", servingSize = 350.0, unit = "g", calories = 420.0, protein = 18.0, carbs = 60.0, fats = 14.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("porotos granados con mazamorra")),
+
+    // ─── Alimentos adicionales del dataset ───────────────────────────────────
+    FoodItem(id = "gen107", name = "Tocino", brand = "Genérico", servingSize = 15.0, unit = "g", calories = 54.0, protein = 3.0, carbs = 0.0, fats = 4.5, searchAliases = listOf("tocino", "bacon"), tags = listOf("USDA")),
+    FoodItem(id = "gen108", name = "Mermelada", brand = "Genérico", servingSize = 20.0, unit = "g", calories = 50.0, protein = 0.0, carbs = 13.0, fats = 0.0, searchAliases = listOf("mermelada", "jam")),
+    FoodItem(id = "gen109", name = "Manjar (Dulce de Leche)", brand = "Genérico", servingSize = 20.0, unit = "g", calories = 60.0, protein = 1.5, carbs = 12.0, fats = 1.0, searchAliases = listOf("manjar", "dulce de leche")),
+    FoodItem(id = "gen110", name = "Choclo en Grano", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 95.0, protein = 3.5, carbs = 20.0, fats = 1.5, searchAliases = listOf("choclo en grano", "maiz en grano")),
+    FoodItem(id = "gen111", name = "Palmitos", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 25.0, protein = 2.5, carbs = 3.0, fats = 0.5, searchAliases = listOf("palmitos", "chonta")),
+    FoodItem(id = "gen112", name = "Aceitunas", brand = "Genérico", servingSize = 10.0, unit = "g", calories = 15.0, protein = 0.1, carbs = 0.5, fats = 1.5, searchAliases = listOf("aceitunas", "olivas")),
+    FoodItem(id = "gen113", name = "Pepinillos", brand = "Genérico", servingSize = 10.0, unit = "g", calories = 3.0, protein = 0.1, carbs = 0.5, fats = 0.0, searchAliases = listOf("pepinillos", "pickles")),
+    FoodItem(id = "gen114", name = "Salsa Golf", brand = "Genérico", servingSize = 20.0, unit = "g", calories = 70.0, protein = 0.5, carbs = 5.0, fats = 5.5, searchAliases = listOf("salsa golf", "rosada")),
+    FoodItem(id = "gen115", name = "Vinagreta", brand = "Genérico", servingSize = 20.0, unit = "g", calories = 80.0, protein = 0.0, carbs = 2.0, fats = 8.5, searchAliases = listOf("vinagreta")),
+    FoodItem(id = "gen116", name = "Maltodextrina", brand = "Genérico", servingSize = 30.0, unit = "g", calories = 110.0, protein = 0.0, carbs = 27.0, fats = 0.0, searchAliases = listOf("maltodextrina", "maltodextrine")),
+    FoodItem(id = "gen117", name = "Caseína", brand = "Genérico", servingSize = 30.0, unit = "g", calories = 110.0, protein = 25.0, carbs = 2.0, fats = 1.0, searchAliases = listOf("caseina", "caseína")),
+    FoodItem(id = "gen118", name = "Requesón", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 140.0, protein = 12.0, carbs = 4.0, fats = 9.0, searchAliases = listOf("requeson", "requesón", "ricotta")),
+    FoodItem(id = "gen119", name = "Mantequilla de Almendras", brand = "Genérico", servingSize = 20.0, unit = "g", calories = 120.0, protein = 4.0, carbs = 4.0, fats = 10.0, searchAliases = listOf("mantequilla de almendras", "almond butter")),
+    FoodItem(id = "gen120", name = "Couscous (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 112.0, protein = 3.8, carbs = 23.0, fats = 0.2, searchAliases = listOf("couscous", "cuscus")),
+    FoodItem(id = "gen121", name = "Bulgur (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 83.0, protein = 3.1, carbs = 18.0, fats = 0.2, searchAliases = listOf("bulgur", "trigo bulgur")),
+    FoodItem(id = "gen122", name = "Mijo (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 119.0, protein = 3.5, carbs = 23.0, fats = 1.0, searchAliases = listOf("mijo")),
+    FoodItem(id = "gen123", name = "Amaranto (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 102.0, protein = 3.8, carbs = 19.0, fats = 1.6, searchAliases = listOf("amaranto")),
+    FoodItem(id = "gen124", name = "Trigo Sarraceno (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 92.0, protein = 3.4, carbs = 20.0, fats = 0.6, searchAliases = listOf("trigo sarraceno", "alforfón", "alforfon")),
+    FoodItem(id = "gen125", name = "Yuca (cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 130.0, protein = 0.9, carbs = 31.0, fats = 0.3, searchAliases = listOf("yuca", "mandioca")),
+    FoodItem(id = "gen126", name = "Ñame (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 118.0, protein = 1.5, carbs = 28.0, fats = 0.2, searchAliases = listOf("ñame", "name")),
 )
 
 // ─── Chilean Foods ───────────────────────────────────────────────────────────
@@ -173,7 +267,7 @@ val CHILEAN_FOODS: List<FoodItem> = listOf(
 val FOOD_ALIASES: Map<String, String> = mapOf(
     // Sinónimos comunes
     "manzana" to "manzana",
-    "plátano" to "plátano", "banana" to "plátano", "cambur" to "plátano",
+    "plátano" to "plátano", "banana" to "plátano", "cambur" to "plátano", "platano" to "plátano",
     "pollo" to "pechuga de pollo", "pechuga" to "pechuga de pollo",
     "arroz" to "arroz blanco", "arroz blanco" to "arroz blanco",
     "huevo" to "huevo entero", "huevos" to "huevo entero", "huevo cocido" to "huevo entero",
@@ -216,6 +310,107 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "filete" to "filete de vacuno", "lomo" to "filete de vacuno",
     "merluza" to "merluza (cocida)",
     "camarón" to "camarón (cocido)", "camaron" to "camarón (cocido)",
+    // ── Jerga Latinoamericana ──
+    // Chile
+    "choripán" to "empanada de pino", "choripan" to "empanada de pino",
+    "chorrillana" to "chorrillana",
+    "completo" to "completo italiano", "completo italiano" to "completo italiano",
+    "completo americano" to "completo americano",
+    "pichanga" to "pichanga",
+    "sanguche" to "pan blanco", "sánduche" to "pan blanco", "sandwich" to "pan blanco",
+    "lomito" to "filete de vacuno",
+    "terremoto" to "terremoto",
+    "once" to "pan blanco",
+    "pan con palta" to "pan con palta",
+    "pan con queso" to "pan con queso",
+    "pan con jamon" to "pan con jamón",
+    "bistec a lo pobre" to "bistec a lo pobre",
+    "lomo a lo pobre" to "bistec a lo pobre",
+    "porotos con riendas" to "porotos con riendas",
+    // México
+    "taco" to "taco", "tacos" to "taco",
+    "torta" to "pan blanco", "torta de jamón" to "pan blanco",
+    "gordita" to "pan blanco",
+    "quesadilla" to "queso cheddar",
+    "chilaquiles" to "tortilla de trigo",
+    "pozole" to "porotos granados",
+    "tamal" to "tamal", "tamales" to "tamal",
+    // Argentina / Uruguay
+    "milanga" to "filete de vacuno", "milanesa" to "filete de vacuno",
+    "milanesa napolitana" to "filete de vacuno",
+    "facturas" to "pan blanco", "medialunas" to "pan blanco",
+    "asado" to "filete de vacuno",
+    "bife" to "filete de vacuno", "bife de chorizo" to "filete de vacuno",
+    "provoleta" to "queso cheddar",
+    "dulce de leche" to "miel",
+    // Perú
+    "ceviche" to "merluza (cocida)", "cebiche" to "merluza (cocida)",
+    "lomo saltado" to "filete de vacuno",
+    "ají de gallina" to "pechuga de pollo",
+    "causa" to "papa",
+    "anticucho" to "filete de vacuno",
+    // Colombia / Venezuela
+    "arepa" to "pan blanco", "arepa reina pepiada" to "pan blanco",
+    "cachapa" to "choclo desgranado",
+    "pabellón" to "arroz blanco", "pabellon" to "arroz blanco",
+    "tequeños" to "queso cheddar",
+    "bandeja paisa" to "arroz blanco",
+    "empanada colombiana" to "empanada de pino",
+    // Internacionales
+    "burguer" to "hamburguesa", "burger" to "hamburguesa",
+    "hotdog" to "salchicha tipo viena", "hot dog" to "salchicha tipo viena",
+    "nuggets" to "pechuga de pollo",
+    "papas fritas" to "papa",
+    "papitas" to "papa",
+    "galleta" to "pan blanco", "galletas" to "pan blanco",
+    "cereal" to "avena",
+    "batido" to "leche entera",
+    "smoothie" to "leche entera",
+    "ensalada" to "lechuga",
+    // Hidratación
+    "lentejas secas" to "lentejas (crudas)",
+    "lentejas remojadas" to "lentejas (hidratadas)",
+    "garbanzos secos" to "garbanzos (cocidos)",
+    "garbanzos remojados" to "garbanzos (hidratados)",
+    "pasta seca" to "pasta (cruda)",
+    "arroz seco" to "arroz blanco (crudo)",
+    "soya seca" to "soya texturizada (seca)",
+    "soya hidratada" to "soya texturizada (hidratada)",
+    "pvt seca" to "soya texturizada (seca)",
+    "pvt hidratada" to "soya texturizada (hidratada)",
+    // Cortes de carne
+    "posta" to "posta rosada (cruda)",
+    "posta rosada" to "posta rosada (cruda)",
+    "posta negra" to "posta negra (cruda)",
+    "asado de tira" to "asado de tira (crudo)",
+    "costillar" to "asado de tira (crudo)",
+    "lomo vetado" to "lomo vetado (crudo)",
+    "vetado" to "lomo vetado (crudo)",
+    "punta de ganso" to "punta de ganso (cruda)",
+    "pulpa negra" to "pulpa negra (cruda)",
+    "plateada" to "plateada (cruda)",
+    "churrasco" to "churrasco (crudo)",
+    "malaya" to "malaya (cruda)",
+    "huachalomo" to "huachalomo (crudo)",
+    // Casino / contexto
+    "queque del casino" to "queque",
+    "galletas del casino" to "galleta",
+    "café de máquina" to "café (negro)",
+    "café con leche" to "leche entera",
+    // Postres / dulces
+    "manjar" to "miel",
+    "dulce de leche" to "miel",
+    "arroz con leche" to "arroz con leche",
+    "leche asada" to "leche asada",
+    // Preparaciones
+    "ensalada chilena" to "ensalada chilena",
+    "porotos granados" to "porotos granados",
+    "cazuela" to "cazuela",
+    "humitas" to "humitas",
+    "pastel de papa" to "pastel de papa",
+    "sopaipillas" to "sopaipillas",
+    "sopaipillas pasadas" to "sopaipillas pasadas",
+    "calzones rotos" to "calzones rotos",
 )
 
 // ─── Portion References (grams per unit) ─────────────────────────────────────
@@ -240,6 +435,7 @@ val PORTION_REFERENCES: List<PortionRef> = listOf(
     PortionRef("scoop", 30.0),
     PortionRef("palm", 80.0),
     PortionRef("fist", 100.0),
+    PortionRef("piece", 120.0),
 )
 
 // ─── Lookup Helpers ──────────────────────────────────────────────────────────

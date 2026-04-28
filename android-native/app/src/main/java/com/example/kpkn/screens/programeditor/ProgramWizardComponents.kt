@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,7 +33,9 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -41,12 +44,14 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.*
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -68,6 +73,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.kpkn.R
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Program
@@ -85,6 +91,7 @@ import java.util.UUID
 
 private val wizardStepOrder = listOf(
     WizardStep.COVER,
+    WizardStep.SPLIT,
 )
 
 private data class CoverGradientOption(
@@ -94,10 +101,18 @@ private data class CoverGradientOption(
 )
 
 private val coverGradients = listOf(
-    CoverGradientOption("gradient://ember", "Ember", listOf(Color(0xFF1A1D22), Color(0xFF2A2F37), Color(0xFF3B4350))),
-    CoverGradientOption("gradient://lagoon", "Lagoon", listOf(Color(0xFF12161D), Color(0xFF1E2633), Color(0xFF2E3A4D))),
-    CoverGradientOption("gradient://velvet", "Velvet", listOf(Color(0xFF17171D), Color(0xFF232730), Color(0xFF343A46))),
-    CoverGradientOption("gradient://forest", "Forest", listOf(Color(0xFF141B1B), Color(0xFF202B2B), Color(0xFF313F3F))),
+    CoverGradientOption("gradient://ember", "Ember", listOf(Color(0xFF20110F), Color(0xFF8D3D2E), Color(0xFFE08E45))),
+    CoverGradientOption("gradient://lagoon", "Lagoon", listOf(Color(0xFF0D1B2A), Color(0xFF1B4965), Color(0xFF5FA8D3))),
+    CoverGradientOption("gradient://velvet", "Velvet", listOf(Color(0xFF1C1024), Color(0xFF5B2A86), Color(0xFFE26D5A))),
+    CoverGradientOption("gradient://forest", "Forest", listOf(Color(0xFF102A1F), Color(0xFF2D6A4F), Color(0xFF95D5B2))),
+    CoverGradientOption("gradient://sunrise", "Sunrise", listOf(Color(0xFF2B0B3F), Color(0xFF8E2D5E), Color(0xFFFFB86C))),
+    CoverGradientOption("gradient://ice", "Ice", listOf(Color(0xFF0B132B), Color(0xFF1C2541), Color(0xFF5BC0BE))),
+    CoverGradientOption("gradient://obsidian", "Obsidian", listOf(Color(0xFF0A0A0A), Color(0xFF1C1C1E), Color(0xFF3A3A3C))),
+    CoverGradientOption("gradient://mint", "Mint", listOf(Color(0xFF022C22), Color(0xFF0F766E), Color(0xFF99F6E4))),
+    CoverGradientOption("gradient://copper", "Copper", listOf(Color(0xFF26110B), Color(0xFF8C3A1E), Color(0xFFE6A15A))),
+    CoverGradientOption("gradient://storm", "Storm", listOf(Color(0xFF111827), Color(0xFF374151), Color(0xFF9CA3AF))),
+    CoverGradientOption("gradient://aurora", "Aurora", listOf(Color(0xFF0B132B), Color(0xFF1D7874), Color(0xFFBEE9E8))),
+    CoverGradientOption("gradient://sand", "Sand", listOf(Color(0xFF3A2E1F), Color(0xFF8C6A43), Color(0xFFE3C28B))),
 )
 
 private data class WizardDay(
@@ -107,13 +122,13 @@ private data class WizardDay(
 )
 
 private val wizardDays = listOf(
-    WizardDay(0, "Domingo", "Dom"),
     WizardDay(1, "Lunes", "Lun"),
     WizardDay(2, "Martes", "Mar"),
     WizardDay(3, "Miércoles", "Mié"),
     WizardDay(4, "Jueves", "Jue"),
     WizardDay(5, "Viernes", "Vie"),
     WizardDay(6, "Sábado", "Sáb"),
+    WizardDay(7, "Domingo", "Dom"),
 )
 
 private val wizardSplitFilters = listOf(
@@ -128,72 +143,171 @@ private val wizardSplitFilters = listOf(
 )
 
 @Composable
-fun WizardStepIndicator(
+internal fun WizardStepIndicator(
     currentStep: WizardStep,
     onStepClick: (WizardStep) -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         wizardStepOrder.forEach { step ->
             val selected = step == currentStep
             val completed = wizardStepOrder.indexOf(step) < wizardStepOrder.indexOf(currentStep)
 
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 6.dp)
-                    .clip(RoundedCornerShape(99.dp))
-                    .clickable(enabled = selected || completed) { onStepClick(step) }
-                    .width(if (selected) 28.dp else 10.dp)
-                    .height(10.dp)
-                    .background(
-                        color = when {
-                            selected -> MaterialTheme.colorScheme.primary
-                            completed -> MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
-                            else -> MaterialTheme.colorScheme.outlineVariant
-                        },
-                        shape = RoundedCornerShape(99.dp),
-                    ),
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
+                Box(
+                    modifier = Modifier
+                        .size(if (selected) 18.dp else 12.dp)
+                        .clip(CircleShape)
+                        .clickable(enabled = selected || completed) { onStepClick(step) }
+                        .background(
+                            color = when {
+                                selected -> Color.White
+                                completed -> Color.White.copy(alpha = 0.5f)
+                                else -> Color.White.copy(alpha = 0.2f)
+                            },
+                        ),
+                ) {
+                    if (completed && !selected) {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(8.dp)
+                                .align(Alignment.Center),
+                            tint = Color.Black,
+                        )
+                    }
+                }
+                Text(
+                    text = when (step) {
+                        WizardStep.COVER -> "Portada"
+                        WizardStep.SPLIT -> "Split"
+                    },
+                    fontSize = 10.sp,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                    color = Color.White.copy(alpha = if (selected) 0.9f else 0.5f),
+                    maxLines = 1,
+                )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
+private fun SimpleProgramSelectionCard(
+    templates: List<ProgramTemplateOption>,
+    selectedTemplateId: String,
+    onSelect: (ProgramTemplateOption) -> Unit,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = "Plantillas simples",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White.copy(alpha = 0.9f),
+        )
+        Text(
+            text = "Ideales para comenzar o rutinas cortas",
+            fontSize = 12.sp,
+            color = Color.White.copy(alpha = 0.6f),
+        )
+        WizardTemplateCarousel(
+            templates = templates,
+            selectedTemplateId = selectedTemplateId,
+            showDetailedDescription = false,
+            onSelect = onSelect,
+        )
+    }
+}
+
+@Composable
+private fun AdvancedProgramSelectionCard(
+    templates: List<ProgramTemplateOption>,
+    selectedTemplateId: String,
+    onSelect: (ProgramTemplateOption) -> Unit,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = "Plantillas avanzadas",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White.copy(alpha = 0.9f),
+        )
+        Text(
+            text = "Para competidores y entrenamientos avanzados",
+            fontSize = 12.sp,
+            color = Color.White.copy(alpha = 0.6f),
+        )
+        WizardTemplateCarousel(
+            templates = templates,
+            selectedTemplateId = selectedTemplateId,
+            showDetailedDescription = true,
+            onSelect = onSelect,
+        )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun CoverStep(
     uiState: ProgramEditorUiState,
     viewModel: ProgramEditorViewModel,
 ) {
     val draft = uiState.programDraft ?: return
-    val context = LocalContext.current
     val selectedGradient = coverGradients.firstOrNull { it.id == draft.coverImage } ?: coverGradients.first()
-    val openDocument = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    var selectedGradientState by remember { mutableStateOf(selectedGradient) }
+    var showGradientSheet by rememberSaveable { mutableStateOf(false) }
+
+    val openDocument = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+    ) { uri ->
         if (uri != null) {
-            runCatching {
-                context.contentResolver.takePersistableUriPermission(
-                    uri,
-                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION,
-                )
-            }
             viewModel.updateCoverImage(uri.toString())
         }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        ProgramIdentityEditorCard(
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Información del programa",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White,
+            modifier = Modifier.padding(start = 4.dp),
+        )
+        ProgramIdentityEditorCardSimple(
             name = draft.name,
             description = draft.description.orEmpty(),
             coverValue = draft.coverImage,
-            selectedGradient = selectedGradient,
+            selectedGradient = selectedGradientState,
             onNameChange = viewModel::updateName,
             onDescriptionChange = viewModel::updateDescription,
             onPickImage = { openDocument.launch(arrayOf("image/*")) },
-            onSelectGradient = { viewModel.updateCoverImage(it.id) },
-            onClearImage = { viewModel.updateCoverImage(selectedGradient.id) },
+            onSelectGradient = { selectedGradientState = it; viewModel.updateCoverImage(it.id) },
+            onOpenGradientSheet = { showGradientSheet = true },
         )
+
+        if (showGradientSheet) {
+            ModalBottomSheet(onDismissRequest = { showGradientSheet = false }) {
+                ProgramGradientCatalogSheet(
+                    coverValue = draft.coverImage,
+                    onSelect = {
+                        selectedGradientState = it
+                        viewModel.updateCoverImage(it.id)
+                        showGradientSheet = false
+                    },
+                )
+            }
+        }
     }
 }
 
@@ -209,109 +323,58 @@ fun TemporalStructureStep(
     var infoDialog by rememberSaveable { mutableStateOf<String?>(null) }
     var structureMode by rememberSaveable { mutableStateOf(ProgramStructure.SIMPLE) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Surface(
-            shape = RoundedCornerShape(99.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant,
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Tipo de programa",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White,
+            modifier = Modifier.padding(start = 4.dp),
+        )
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                StructureModeButton(
-                    title = "Simple",
-                    selected = structureMode == ProgramStructure.SIMPLE,
-                    onClick = {
-                        structureMode = ProgramStructure.SIMPLE
-                        if (template.type != ProgramStructure.SIMPLE) {
-                            viewModel.selectWizardTemplate(simpleTemplates.first { it.isDefault }.id)
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-                StructureModeButton(
-                    title = "Avanzado",
-                    selected = structureMode == ProgramStructure.COMPLEX,
-                    onClick = {
-                        structureMode = ProgramStructure.COMPLEX
-                        if (template.type != ProgramStructure.COMPLEX) {
-                            viewModel.selectWizardTemplate(advancedTemplates.first().id)
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            StructureModeButtonSimple(
+                title = "Simple",
+                selected = structureMode == ProgramStructure.SIMPLE,
+                onClick = {
+                    structureMode = ProgramStructure.SIMPLE
+                    if (template.type != ProgramStructure.SIMPLE) {
+                        viewModel.selectWizardTemplate(simpleTemplates.first { it.isDefault }.id)
+                    }
+                },
+                modifier = Modifier.weight(1f),
+            )
+            StructureModeButtonSimple(
+                title = "Avanzado",
+                selected = structureMode == ProgramStructure.COMPLEX,
+                onClick = {
+                    structureMode = ProgramStructure.COMPLEX
+                    if (template.type != ProgramStructure.COMPLEX) {
+                        viewModel.selectWizardTemplate(advancedTemplates.first().id)
+                    }
+                },
+                modifier = Modifier.weight(1f),
+            )
         }
 
         if (structureMode == ProgramStructure.SIMPLE) {
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text("Programa simple", fontSize = 16.sp, fontWeight = FontWeight.Black)
-                        InfoPillButton(onClick = { infoDialog = "simple" })
-                    }
-
-                    Text(
-                        "Un programa simple es una excelente forma de programar sin complicarse, sobre todo cuando no tienes en mente competir. Elige de cuantas semanas quieres que sea tu programa simple para más adelante crear tus sesiones.",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-
-                    WizardTemplateCarousel(
-                        templates = simpleTemplates,
-                        selectedTemplateId = template.id,
-                        showDetailedDescription = false,
-                        onSelect = { option -> viewModel.selectWizardTemplate(option.id) },
-                    )
-                }
-            }
+            SimpleProgramSelectionCard(
+                templates = simpleTemplates,
+                selectedTemplateId = template.id,
+                onSelect = { option -> viewModel.selectWizardTemplate(option.id) },
+            )
         } else {
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text("Programa avanzado", fontSize = 16.sp, fontWeight = FontWeight.Black)
-                        InfoPillButton(onClick = { infoDialog = "advanced" })
-                    }
-
-                    Text(
-                        "Plantillas pensadas para personas que buscan competir o entrenar de forma avanzada.",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-
-                    WizardTemplateCarousel(
-                        templates = advancedTemplates,
-                        selectedTemplateId = template.id,
-                        showDetailedDescription = true,
-                        onSelect = { option -> viewModel.selectWizardTemplate(option.id) },
-                    )
-                }
-            }
+            AdvancedProgramSelectionCard(
+                templates = advancedTemplates,
+                selectedTemplateId = template.id,
+                onSelect = { option -> viewModel.selectWizardTemplate(option.id) },
+            )
         }
 
-        PreviewBlockStructureCard(
+        PreviewBlockStructureCardSimple(
             program = draft,
             template = template,
         )
@@ -348,61 +411,170 @@ fun SplitStep(
     val startDay = draft.startDay ?: 1
     val cycleDuration = draft.weekDays ?: 7
     var selectedFilter by rememberSaveable { mutableStateOf<SplitTag?>(null) }
+    var showCatalog by rememberSaveable { mutableStateOf(draft.selectedSplitId != null) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var visibleCount by rememberSaveable { mutableIntStateOf(5) }
     val selectedPattern = if (draft.customSplitPattern.isNotEmpty()) draft.customSplitPattern else selectedSplit?.pattern.orEmpty()
 
-    val filteredSplits = SPLIT_TEMPLATES.filter { split ->
-        selectedFilter == null || split.tags.contains(selectedFilter)
+    val filteredSplits = remember(searchQuery, selectedFilter) {
+        SPLIT_TEMPLATES.filter { split ->
+            if (split.id == "custom") return@filter false
+            val matchesTag = selectedFilter == null || split.tags.contains(selectedFilter)
+            val query = searchQuery.trim().lowercase()
+            val matchesSearch = query.isBlank() ||
+                split.name.lowercase().contains(query) ||
+                split.description.lowercase().contains(query) ||
+                split.pros.any { it.lowercase().contains(query) } ||
+                split.cons.any { it.lowercase().contains(query) }
+            matchesTag && matchesSearch
+        }
     }
+    val visibleSplits = filteredSplits.take(visibleCount)
 
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(wizardSplitFilters, key = { it?.name ?: "all" }) { tag ->
-                FilterChip(
-                    selected = tag == selectedFilter,
-                    onClick = { selectedFilter = if (selectedFilter == tag) null else tag },
-                    label = { Text(splitTagLabel(tag)) },
-                )
+        Text(
+            text = "Split semanal",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White,
+            modifier = Modifier.padding(start = 4.dp),
+        )
+
+        if (!showCatalog) {
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text(
+                        text = "Deseas elegir una plantilla de split semanal para comenzar a editar tus sesiones de la semana?",
+                        fontWeight = FontWeight.Black,
+                        fontSize = 14.sp,
+                    )
+                    Text(
+                        text = "Puedes hacerlo ahora o continuar y definirlo mas adelante.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        OutlinedButton(
+                            onClick = { showCatalog = false },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text("No, lo vere despues")
+                        }
+                        Button(
+                            onClick = {
+                                showCatalog = true
+                                visibleCount = 5
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text("Ver catalogo")
+                        }
+                    }
+                }
             }
         }
 
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(wizardDays, key = { it.index }) { day ->
-                FilterChip(
-                    selected = day.index == startDay,
-                    onClick = { viewModel.updateStartDay(day.index) },
-                    label = { Text(day.shortLabel) },
-                )
-            }
-        }
-
-        if (selectedSplit != null && selectedPattern.isNotEmpty()) {
-            SelectedSplitOverviewCard(
-                split = selectedSplit,
-                pattern = selectedPattern,
-                startDay = startDay,
-                cycleDuration = cycleDuration,
+        if (showCatalog) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = {
+                    searchQuery = it
+                    visibleCount = 5
+                },
+                label = { Text("Buscar split") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
             )
-        }
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            filteredSplits.forEach { split ->
-                WizardSplitCard(
-                    split = split,
-                    isSelected = split.id == draft.selectedSplitId,
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(wizardSplitFilters, key = { it?.name ?: "all" }) { tag ->
+                    FilterChip(
+                        selected = tag == selectedFilter,
+                        onClick = {
+                            selectedFilter = if (selectedFilter == tag) null else tag
+                            visibleCount = 5
+                        },
+                        label = { Text(splitTagLabel(tag)) },
+                    )
+                }
+            }
+
+            WizardSectionHeader(
+                title = "Dia en que comienza tu semana",
+                subtitle = "Este ajuste ordena la plantilla segun tus dias reales.",
+            )
+
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(wizardDays, key = { it.index }) { day ->
+                    FilterChip(
+                        selected = day.index == startDay,
+                        onClick = { viewModel.updateStartDay(day.index) },
+                        label = { Text(day.shortLabel) },
+                    )
+                }
+            }
+
+            if (selectedSplit != null && selectedPattern.isNotEmpty()) {
+                SelectedSplitOverviewCard(
+                    split = selectedSplit,
+                    pattern = selectedPattern,
                     startDay = startDay,
-                    pattern = if (split.id == draft.selectedSplitId && draft.customSplitPattern.isNotEmpty()) draft.customSplitPattern else split.pattern,
-                    onClick = { viewModel.applyWizardSplit(split, startDay) },
-                    onMoveUp = { index ->
-                        if (split.id == draft.selectedSplitId) {
-                            viewModel.updateCustomSplitPattern(movePatternItem(draft.customSplitPattern, index, index - 1))
-                        }
-                    },
-                    onMoveDown = { index ->
-                        if (split.id == draft.selectedSplitId) {
-                            viewModel.updateCustomSplitPattern(movePatternItem(draft.customSplitPattern, index, index + 1))
-                        }
-                    },
+                    cycleDuration = cycleDuration,
                 )
+            }
+
+            Text(
+                text = "Mostrando ${visibleSplits.size} de ${filteredSplits.size} splits",
+                fontSize = 11.sp,
+                color = Color.White.copy(alpha = 0.7f),
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                visibleSplits.forEach { split ->
+                    WizardSplitCard(
+                        split = split,
+                        isSelected = split.id == draft.selectedSplitId,
+                        startDay = startDay,
+                        pattern = if (split.id == draft.selectedSplitId && draft.customSplitPattern.isNotEmpty()) draft.customSplitPattern else split.pattern,
+                        onClick = { viewModel.applyWizardSplit(split, startDay) },
+                        onMoveUp = { index ->
+                            if (split.id == draft.selectedSplitId) {
+                                viewModel.updateCustomSplitPattern(movePatternItem(draft.customSplitPattern, index, index - 1))
+                            }
+                        },
+                        onMoveDown = { index ->
+                            if (split.id == draft.selectedSplitId) {
+                                viewModel.updateCustomSplitPattern(movePatternItem(draft.customSplitPattern, index, index + 1))
+                            }
+                        },
+                    )
+                }
+
+                if (visibleCount < filteredSplits.size) {
+                    OutlinedButton(
+                        onClick = { visibleCount = (visibleCount + 5).coerceAtMost(filteredSplits.size) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Cargar 5 mas")
+                    }
+                }
+
+                OutlinedButton(
+                    onClick = { showCatalog = false },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("No, lo vere despues")
+                }
             }
         }
     }
@@ -418,6 +590,14 @@ fun CalendarStep(
     var showEventComposer by rememberSaveable { mutableStateOf(draft.events.isEmpty()) }
 
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        Text(
+            text = "Duracion y eventos",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White,
+            modifier = Modifier.padding(start = 4.dp),
+        )
+
         if (template.type == ProgramStructure.SIMPLE) {
             SimpleCycleDurationCard(
                 currentWeeks = draft.macrocycles.firstOrNull()
@@ -535,7 +715,7 @@ fun ProgramPreviewSheet(
 }
 
 @Composable
-private fun ProgramIdentityEditorCard(
+private fun ProgramIdentityEditorCardSimple(
     name: String,
     description: String,
     coverValue: String?,
@@ -544,72 +724,144 @@ private fun ProgramIdentityEditorCard(
     onDescriptionChange: (String) -> Unit,
     onPickImage: () -> Unit,
     onSelectGradient: (CoverGradientOption) -> Unit,
-    onClearImage: () -> Unit,
+    onOpenGradientSheet: () -> Unit,
 ) {
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-        ),
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            ProgramCoverArt(
-                coverValue = coverValue,
-                gradient = selectedGradient,
+        ProgramCoverArtSimple(
+            coverValue = coverValue,
+            gradient = selectedGradient,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp),
+        )
+
+        OutlinedTextField(
+            value = name,
+            onValueChange = onNameChange,
+            label = { Text("Nombre del programa") },
+            placeholder = { Text("Ej: Base fuerza") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+            ),
+        )
+
+        OutlinedTextField(
+            value = description,
+            onValueChange = onDescriptionChange,
+            label = { Text("Descripción") },
+            placeholder = { Text("Objetivo del programa y público objetivo") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 2,
+            maxLines = 4,
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+            ),
+        )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Button(
+                onClick = onPickImage,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color.Black
+                ),
+            ) {
+                Text("Subir foto")
+            }
+            Button(
+                onClick = {
+                    if (!isGradientCover(coverValue)) {
+                        onSelectGradient(selectedGradient)
+                    }
+                    onOpenGradientSheet()
+                },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color.Black,
+                ),
+            ) {
+                Text("Usar gradiente")
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProgramGradientCatalogSheet(
+    coverValue: String?,
+    onSelect: (CoverGradientOption) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Text(
+            text = "Colores de portada",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Black,
+        )
+        Text(
+            text = "Elige una base para el header del programa. Si usas una foto, esta accion volvera a una portada con gradiente.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        coverGradients.forEach { option ->
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(196.dp),
-            )
-
-            OutlinedTextField(
-                value = name,
-                onValueChange = onNameChange,
-                label = { Text("Nombre del programa") },
-                placeholder = { Text("Ej: Base otoño") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(18.dp),
-            )
-
-            OutlinedTextField(
-                value = description,
-                onValueChange = onDescriptionChange,
-                label = { Text("Descripción") },
-                placeholder = { Text("Qué busca este programa, para quién es o cómo se va a usar.") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 3,
-                maxLines = 5,
-                shape = RoundedCornerShape(14.dp),
-            )
-
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(onClick = onPickImage, modifier = Modifier.weight(1f)) {
-                    Text(if (isGradientCover(coverValue)) "Subir foto" else "Cambiar foto")
-                }
-                OutlinedButton(
-                    onClick = onClearImage,
-                    modifier = Modifier.weight(1f),
-                    enabled = !isGradientCover(coverValue),
+                    .clickable { onSelect(option) },
+                shape = RoundedCornerShape(22.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Usar gradiente")
-                }
-            }
-
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(coverGradients, key = { it.id }) { option ->
-                    GradientSwatch(
-                        option = option,
-                        selected = option.id == selectedGradient.id && isGradientCover(coverValue),
-                        onClick = { onSelectGradient(option) },
+                    Box(
+                        modifier = Modifier
+                            .size(width = 92.dp, height = 64.dp)
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(Brush.linearGradient(option.colors)),
                     )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(option.name, fontWeight = FontWeight.Bold)
+                        Text(
+                            if (coverValue == option.id) "Actual" else "Aplicar a la portada",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    if (coverValue == option.id) {
+                        Text(
+                            text = "Seleccionado",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
                 }
             }
         }
+
+        Spacer(Modifier.height(24.dp))
     }
 }
 
@@ -630,7 +882,7 @@ private fun ProgramIdentityPreviewCard(
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column {
-            ProgramCoverArt(
+            ProgramCoverArtSimple(
                 coverValue = coverValue,
                 gradient = gradient,
                 modifier = Modifier
@@ -650,90 +902,87 @@ private fun ProgramIdentityPreviewCard(
 }
 
 @Composable
-private fun ProgramCoverArt(
+private fun ProgramCoverArtSimple(
     coverValue: String?,
     gradient: CoverGradientOption,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(Brush.linearGradient(gradient.colors)),
     ) {
-        if (!isGradientCover(coverValue)) {
-            AsyncImage(
-                model = coverValue,
-                contentDescription = "Portada del programa",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.18f)),
-            )
-        }
-
         if (isGradientCover(coverValue)) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(92.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.08f)),
+                    .background(Color.White.copy(alpha = 0.1f))
+                    .align(Alignment.Center),
             )
             Image(
                 painter = painterResource(id = R.drawable.kpknicon),
                 contentDescription = "KPKN",
-                colorFilter = ColorFilter.tint(Color.White.copy(alpha = 0.96f)),
+                colorFilter = ColorFilter.tint(Color.White.copy(alpha = 0.8f)),
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(84.dp),
+                    .size(32.dp)
+                    .align(Alignment.Center),
+            )
+        } else {
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(coverValue)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Portada",
+                modifier = Modifier.fillMaxSize(),
             )
         }
     }
 }
 
 @Composable
-private fun GradientSwatch(
+private fun GradientSwatchSimple(
     option: CoverGradientOption,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
     Surface(
         modifier = Modifier
-            .width(96.dp)
-            .clip(RoundedCornerShape(14.dp))
+            .width(80.dp)
+            .height(60.dp)
+            .clip(RoundedCornerShape(8.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(8.dp),
+        color = if (selected) Color.White.copy(alpha = 0.2f) else Color.Transparent,
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
-            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+            if (selected) Color.White else Color.White.copy(alpha = 0.3f),
         ),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(62.dp)
-                    .background(Brush.linearGradient(option.colors)),
-            ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Brush.linearGradient(option.colors)),
+        ) {
+            if (selected) {
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.3f))
+                        .align(Alignment.Center),
+                )
                 Icon(
                     painter = painterResource(id = R.drawable.kpknicon),
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.92f),
+                    tint = Color.White,
                     modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(24.dp),
+                        .size(12.dp)
+                        .align(Alignment.Center),
                 )
             }
-            Text(
-                text = option.name,
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Bold,
-            )
         }
     }
 }
@@ -749,57 +998,55 @@ private fun WizardTemplateCard(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(24.dp),
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = if (selected) 4.dp else 0.dp,
+        shape = RoundedCornerShape(16.dp),
+        color = if (selected) Color.White.copy(alpha = 0.15f) else Color.Transparent,
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
-            if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.35f) else MaterialTheme.colorScheme.outlineVariant,
+            if (selected) Color.White else Color.White.copy(alpha = 0.1f),
         ),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = template.name,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Black,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White,
                 )
                 if (showDetailedDescription) {
                     Text(
                         text = template.description,
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 12.sp,
+                        color = Color.White.copy(alpha = 0.7f),
                     )
                 } else {
                     Text(
                         text = "SIMPLE",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White.copy(alpha = 0.7f),
                     )
                 }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (template.trackLabel != null) {
-                    CompactBadge(text = template.trackLabel)
+                    CompactBadgeSimple(text = template.trackLabel)
                 }
                 if (template.audienceLabel != null) {
-                    CompactBadge(text = template.audienceLabel)
+                    CompactBadgeSimple(text = template.audienceLabel)
                 }
                 if (template.isDefault) {
-                    CompactBadge(text = "Por defecto")
+                    CompactBadgeSimple(text = "Por defecto")
                 }
-                CompactBadge(text = "${template.weeks} sem")
+                CompactBadgeSimple(text = "${template.weeks} sem")
                 if (template.type == ProgramStructure.COMPLEX && template.blockNames.isNotEmpty()) {
-                    CompactBadge(text = "${template.blockNames.size} bloques")
+                    CompactBadgeSimple(text = "${template.blockNames.size} bloques")
                 }
             }
         }
@@ -914,7 +1161,7 @@ private fun WizardSplitCard(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                             ) {
                                 Text(
-                                    text = shortDayLabel((startDay + index) % 7),
+                                    text = shortDayLabel(rotatedDayIndex(startDay, index)),
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Black,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -987,7 +1234,7 @@ private fun SelectedSplitOverviewCard(
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text(
-                            text = shortDayLabel((startDay + index) % 7),
+                            text = shortDayLabel(rotatedDayIndex(startDay, index)),
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1036,28 +1283,59 @@ private fun SimpleCycleDurationCard(
     onIncrease: () -> Unit,
 ) {
     Surface(
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(16.dp),
+        color = Color.Black.copy(alpha = 0.9f),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            Color.White.copy(alpha = 0.1f),
+        ),
     ) {
         Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text("Duración del ciclo", fontSize = 12.sp, fontWeight = FontWeight.Black)
+            Text(
+                text = "Duración del ciclo",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.White,
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(currentWeeks.toString(), fontSize = 42.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
-                    Text("semanas", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        currentWeeks.toString(),
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    )
+                    Text(
+                        "semanas",
+                        fontSize = 12.sp,
+                        color = Color.White.copy(alpha = 0.7f),
+                    )
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = onDecrease) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedButton(
+                        onClick = onDecrease,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.size(48.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                    ) {
                         Icon(Icons.Default.Remove, contentDescription = "Reducir")
                     }
-                    Button(onClick = onIncrease) {
+                    Button(
+                        onClick = onIncrease,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.size(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black
+                        ),
+                    ) {
                         Icon(Icons.Default.Add, contentDescription = "Aumentar")
                     }
                 }
@@ -1151,14 +1429,18 @@ private fun PreviewBlockStructureCard(
     if (blocks.isEmpty()) return
 
     Surface(
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(16.dp),
+        color = Color.Black.copy(alpha = 0.9f),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            Color.White.copy(alpha = 0.1f),
+        ),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Estructura seleccionada", fontSize = 12.sp, fontWeight = FontWeight.Black)
+            Text("Estructura seleccionada", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.White)
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 CompactBadge(text = "${totalProgramWeeks(program)} sem")
@@ -1168,7 +1450,7 @@ private fun PreviewBlockStructureCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(10.dp)
+                    .height(8.dp)
                     .clip(RoundedCornerShape(99.dp)),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
@@ -1177,7 +1459,7 @@ private fun PreviewBlockStructureCard(
                     Box(
                         modifier = Modifier
                             .weight(weeks.toFloat())
-                            .height(10.dp)
+                            .height(8.dp)
                             .clip(RoundedCornerShape(99.dp))
                             .background(blockColor(index)),
                     )
@@ -1191,11 +1473,11 @@ private fun PreviewBlockStructureCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(block.name, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(block.name, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color.White)
                     Text(
                         "$weeks sem",
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp,
+                        color = Color.White.copy(alpha = 0.7f),
                     )
                 }
             }
@@ -1204,16 +1486,57 @@ private fun PreviewBlockStructureCard(
 }
 
 @Composable
-fun InfoPillButton(
-    onClick: () -> Unit,
+private fun PreviewBlockStructureCardSimple(
+    program: Program,
+    template: ProgramTemplateOption,
 ) {
-    TextButton(onClick = onClick, contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)) {
-        Text("(i)", fontWeight = FontWeight.Black)
+    PreviewBlockStructureCard(program, template)
+}
+
+@Composable
+private fun CompactBadge(
+    text: String,
+) {
+    Surface(
+        shape = RoundedCornerShape(99.dp),
+        color = Color.White.copy(alpha = 0.1f),
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White.copy(alpha = 0.8f),
+        )
     }
 }
 
 @Composable
-private fun StructureModeButton(
+private fun CompactBadgeSimple(
+    text: String,
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = Color.Transparent,
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            Color.White.copy(alpha = 0.2f),
+        ),
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White.copy(alpha = 0.8f),
+        )
+    }
+}
+
+@Composable
+private fun StructureModeButtonSimple(
     title: String,
     selected: Boolean,
     onClick: () -> Unit,
@@ -1221,21 +1544,25 @@ private fun StructureModeButton(
 ) {
     Surface(
         modifier = modifier
-            .clip(RoundedCornerShape(99.dp))
+            .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(99.dp),
-        color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+        shape = RoundedCornerShape(12.dp),
+        color = if (selected) Color.White.copy(alpha = 0.2f) else Color.Transparent,
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (selected) Color.White else Color.White.copy(alpha = 0.3f),
+        ),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp),
+                .padding(vertical = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 title,
-                fontWeight = FontWeight.Black,
-                color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium,
+                color = if (selected) Color.White else Color.White.copy(alpha = 0.7f),
             )
         }
     }
@@ -1415,19 +1742,6 @@ private fun WizardSectionHeader(
 }
 
 @Composable
-private fun CompactBadge(text: String) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(99.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(99.dp))
-            .padding(horizontal = 10.dp, vertical = 5.dp),
-    ) {
-        Text(text, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-@Composable
 private fun PreviewStatCard(
     modifier: Modifier = Modifier,
     value: String,
@@ -1486,10 +1800,12 @@ private fun blockColor(index: Int): Color {
 
 private fun stepTitle(step: WizardStep): String = when (step) {
     WizardStep.COVER -> "Portada"
+    WizardStep.SPLIT -> "División de entrenamiento"
 }
 
 private fun stepCaption(step: WizardStep): String = when (step) {
     WizardStep.COVER -> "Identidad del programa"
+    WizardStep.SPLIT -> "Selecciona cómo distribuir tus entrenamientos"
 }
 
 private fun splitTagLabel(tag: SplitTag?): String = when (tag) {
@@ -1516,6 +1832,11 @@ private fun dayLabel(day: Int): String {
 
 private fun shortDayLabel(day: Int): String {
     return wizardDays.firstOrNull { it.index == day }?.shortLabel ?: "Lun"
+}
+
+private fun rotatedDayIndex(startDay: Int, offset: Int): Int {
+    val normalizedStart = startDay.coerceIn(1, 7)
+    return ((normalizedStart - 1 + offset) % 7) + 1
 }
 
 private fun trainingDayCount(pattern: List<String>): Int {

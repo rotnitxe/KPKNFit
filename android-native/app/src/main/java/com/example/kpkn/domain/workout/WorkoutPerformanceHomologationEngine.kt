@@ -10,6 +10,8 @@ import com.example.kpkn.data.models.SetEntryV2
 import com.example.kpkn.data.models.SetOutcomeV2
 import com.example.kpkn.data.models.TimeProgressionStrategyV3
 import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.resolvedCanonicalExerciseId
+import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import kotlin.math.max
 import kotlin.math.pow
@@ -80,10 +82,16 @@ object WorkoutPerformanceHomologationEngine {
         val normalizedLoad = normalizeLoad(entry)
         val normalizedReps = when (entry.unitMode) {
             UnitModeV2.TIME -> max(1, (entry.actualValue / 5.0).toInt())
+            UnitModeV2.DISTANCE -> max(1, entry.actualValue.toInt())
             else -> max(1, entry.actualValue.toInt())
         }
 
-        val metricType = if (entry.unitMode == UnitModeV2.TIME) "TRM" else "ERM"
+        val metricType = when (entry.unitMode) {
+            UnitModeV2.TIME -> "TRM"
+            UnitModeV2.DISTANCE -> "DRM"
+            UnitModeV2.CUSTOM -> "CRM"
+            UnitModeV2.REPS -> "ERM"
+        }
         val trm = if (entry.unitMode == UnitModeV2.TIME) metric else null
         val estimatedRm = if (entry.unitMode != UnitModeV2.TIME) metric else null
 
@@ -207,10 +215,12 @@ object WorkoutPerformanceHomologationEngine {
         val suggestedLoad: Double? = null,
         val suggestedTimeSeconds: Int? = null,
         val reason: String? = null,
+        val suggestedLoadMode: LoadModeV2? = null,
+        val isFailure: Boolean = false,
     )
 
     private fun buildGlobalKey(entry: SetEntryV2): String =
-        (entry.exerciseDbId ?: entry.exerciseId).ifBlank { "unknown" }
+        entry.resolvedCanonicalExerciseId()
 
     private fun updateStats(
         metric: Double,
@@ -256,14 +266,19 @@ object WorkoutPerformanceHomologationEngine {
         difficultySignal: DifficultySignalV2,
     ): Double {
         var adjusted = localScore
+        if (entry.reachedFailure && entry.plannedTarget != null && entry.actualValue < entry.plannedTarget) {
+            adjusted -= 12.0
+        }
         if (entry.plannedTarget != null && entry.actualValue >= entry.plannedTarget) adjusted += 4.0
         if (entry.debt > 0.0) adjusted -= (entry.debt * 4.0).coerceAtMost(18.0)
         if (entry.failedSet) adjusted -= 16.0
         if (isContextPr) adjusted += 6.0
-        adjusted += when (difficultySignal) {
-            DifficultySignalV2.EASIER -> 4.0
-            DifficultySignalV2.HARDER -> -4.0
-            DifficultySignalV2.MATCHED -> 0.0
+        if (!entry.reachedFailure) {
+            adjusted += when (difficultySignal) {
+                DifficultySignalV2.EASIER -> 4.0
+                DifficultySignalV2.HARDER -> -4.0
+                DifficultySignalV2.MATCHED -> 0.0
+            }
         }
         return adjusted.coerceIn(MIN_SCORE, MAX_SCORE)
     }
@@ -280,12 +295,21 @@ object WorkoutPerformanceHomologationEngine {
             return Suggestion(
                 suggestedLoad = currentLoad,
                 reason = "Mantener por deuda/fallida",
+                isFailure = entry.reachedFailure,
+            )
+        }
+
+        if (entry.reachedFailure && entry.plannedTarget != null && entry.actualValue < entry.plannedTarget) {
+            return Suggestion(
+                suggestedLoad = currentLoad,
+                reason = "Mantener/reducir por fallo prematuro",
+                isFailure = true,
             )
         }
 
         return when (entry.loadMode) {
             LoadModeV2.LOAD -> {
-                val base = currentLoad ?: return Suggestion(reason = "Sin carga registrada")
+                val base = currentLoad ?: return Suggestion(reason = "Sin carga registrada", isFailure = entry.reachedFailure)
                 val factor = when {
                     historyColor == HistoryColorV2.YELLOW || score >= 72 -> 1.025
                     score >= 58 -> 1.015
@@ -294,22 +318,17 @@ object WorkoutPerformanceHomologationEngine {
                 Suggestion(
                     suggestedLoad = roundToHalf(base * factor),
                     reason = if (factor > 1.0) "Subir carga por rendimiento" else "Mantener carga",
+                    isFailure = entry.reachedFailure,
                 )
             }
 
             LoadModeV2.BODYWEIGHT -> {
-                val hasGreenRun = prior.consecutiveGreenSessions >= 2 || historyColor == HistoryColorV2.YELLOW
                 val external = currentLoad ?: 0.0
                 if (external > 0.0 && (historyColor == HistoryColorV2.YELLOW || score >= 65)) {
                     return Suggestion(
                         suggestedLoad = roundToHalf(external + 2.5),
                         reason = "Agregar lastre",
-                    )
-                }
-                if (hasGreenRun) {
-                    return Suggestion(
-                        suggestedLoad = roundToHalf(external + 2.5),
-                        reason = "Transición a lastre",
+                        isFailure = entry.reachedFailure,
                     )
                 }
                 if (entry.unitMode == UnitModeV2.TIME && entry.timeProgressionStrategy == TimeProgressionStrategyV3.LOAD_THEN_TIME) {
@@ -317,27 +336,65 @@ object WorkoutPerformanceHomologationEngine {
                         suggestedLoad = currentLoad,
                         suggestedTimeSeconds = entry.actualValue.toInt() + 5,
                         reason = "Subir tiempo objetivo +5s",
+                        isFailure = entry.reachedFailure,
+                    )
+                }
+                if (prior.consecutiveGreenSessions >= 2 || historyColor == HistoryColorV2.YELLOW) {
+                    return Suggestion(
+                        suggestedLoad = roundToHalf(external + 2.5),
+                        reason = "Transición a lastre",
+                        isFailure = entry.reachedFailure,
+                    )
+                }
+                if (external == 0.0 && score >= 65) {
+                    return Suggestion(
+                        suggestedLoad = roundToHalf(2.5),
+                        reason = "Iniciar con lastre",
+                        isFailure = entry.reachedFailure,
                     )
                 }
                 Suggestion(
                     suggestedLoad = currentLoad,
                     reason = "Progresar por reps/intensidad",
+                    isFailure = entry.reachedFailure,
                 )
             }
 
             LoadModeV2.ASSISTED -> {
-                val assistance = currentLoad ?: return Suggestion(reason = "Sin asistencia registrada")
-                val nextAssistance = if (historyColor != HistoryColorV2.RED && score >= 55) {
-                    max(0.0, assistance - 2.5)
-                } else {
-                    assistance
+                val assistance = currentLoad ?: return Suggestion(reason = "Sin asistencia registrada", isFailure = entry.reachedFailure)
+                if (historyColor != HistoryColorV2.RED && score >= 55) {
+                    val nextAssistance = max(0.0, assistance - 2.5)
+                    if (nextAssistance <= 0.0) {
+                        return Suggestion(
+                            suggestedLoad = 2.5,
+                            reason = "Cruce a lastre (BODYWEIGHT + 2.5kg)",
+                            suggestedLoadMode = LoadModeV2.BODYWEIGHT,
+                            isFailure = entry.reachedFailure,
+                        )
+                    }
+                    return Suggestion(
+                        suggestedLoad = roundToHalf(nextAssistance),
+                        reason = "Reducir asistencia",
+                        isFailure = entry.reachedFailure,
+                    )
                 }
                 Suggestion(
-                    suggestedLoad = roundToHalf(nextAssistance),
-                    reason = if (nextAssistance < assistance) "Reducir asistencia" else "Mantener asistencia",
+                    suggestedLoad = roundToHalf(assistance),
+                    reason = "Mantener asistencia",
+                    isFailure = entry.reachedFailure,
                 )
             }
         }
+    }
+
+    fun isPrematureFailure(entry: SetEntryV2): Boolean {
+        return entry.reachedFailure && entry.plannedTarget != null && entry.actualValue < entry.plannedTarget
+    }
+
+    fun computeNormalizedLoad(entry: SetEntryV2): Double = when (entry.loadMode) {
+        LoadModeV2.LOAD -> entry.loggedLoad ?: 0.0
+        LoadModeV2.BODYWEIGHT -> entry.loggedLoad ?: 0.0
+        LoadModeV2.ASSISTED -> -(entry.loggedLoad ?: 0.0)
     }
 
     private fun computeMetric(entry: SetEntryV2): Double {
@@ -346,6 +403,12 @@ object WorkoutPerformanceHomologationEngine {
                 val load = normalizeLoad(entry)
                 val seconds = entry.actualValue.coerceAtLeast(1.0)
                 (load * seconds.pow(0.35)).coerceAtLeast(1.0)
+            }
+
+            UnitModeV2.DISTANCE -> {
+                val load = normalizeLoad(entry)
+                val distance = entry.actualValue.coerceAtLeast(1.0)
+                calculateGeneralizedCapacity(load, distance).coerceAtLeast(1.0)
             }
 
             UnitModeV2.REPS,
@@ -377,6 +440,12 @@ object WorkoutPerformanceHomologationEngine {
     }
 
     private fun computeDifficultySignal(entry: SetEntryV2): DifficultySignalV2 {
+        if (entry.reachedFailure) {
+            if (entry.plannedTarget != null && entry.actualValue < entry.plannedTarget) {
+                return DifficultySignalV2.HARDER
+            }
+            return DifficultySignalV2.MATCHED
+        }
         val expected = entry.plannedIntensity ?: return DifficultySignalV2.MATCHED
         val actual = entry.actualIntensity ?: return DifficultySignalV2.MATCHED
         return when {

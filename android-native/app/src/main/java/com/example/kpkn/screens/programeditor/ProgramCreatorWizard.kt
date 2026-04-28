@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -59,20 +61,13 @@ fun ProgramCreatorWizard(
 
     val canContinue = when (step) {
         WizardStep.COVER -> !draft?.name.isNullOrBlank()
+        WizardStep.SPLIT -> true
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f),
-                        MaterialTheme.colorScheme.surface,
-                        MaterialTheme.colorScheme.surface,
-                    ),
-                ),
-            ),
+            .background(Color.Black),
     ) {
         Column(
             modifier = Modifier
@@ -82,23 +77,29 @@ fun ProgramCreatorWizard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     IconButton(onClick = onCancel) {
                         Icon(Icons.Default.Close, contentDescription = "Salir")
                     }
-                    Text(
-                        text = wizardStepTitle(step),
-                        fontSize = 20.sp,
-                        lineHeight = 22.sp,
-                        fontWeight = FontWeight.Black,
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = "Crea tu programa",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = wizardStepTitle(step),
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.72f),
+                        )
+                    }
                 }
 
                 WizardStepIndicator(
@@ -115,8 +116,8 @@ fun ProgramCreatorWizard(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 AnimatedContent(
                     targetState = step,
@@ -131,10 +132,14 @@ fun ProgramCreatorWizard(
                             uiState = uiState,
                             viewModel = viewModel,
                         )
+                        WizardStep.SPLIT -> SplitStep(
+                            uiState = uiState,
+                            viewModel = viewModel,
+                        )
                     }
                 }
 
-                Spacer(modifier = Modifier.padding(bottom = 120.dp))
+                Spacer(modifier = Modifier.height(120.dp))
             }
         }
 
@@ -142,25 +147,15 @@ fun ProgramCreatorWizard(
             modifier = Modifier
                 .align(androidx.compose.ui.Alignment.BottomCenter)
                 .fillMaxWidth()
+                .background(Color.Black)
                 .navigationBarsPadding(),
         ) {
             Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    TextButton(onClick = { showPreview = true }, enabled = draft != null) {
-                        Text("Preview")
-                    }
-                }
-                Surface(
+Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-                    tonalElevation = 4.dp,
-                    shadowElevation = 6.dp,
-                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                    tonalElevation = 2.dp,
+                    color = Color.Black.copy(alpha = 0.95f),
                 ) {
                     WizardBottomBar(
                         step = step,
@@ -197,24 +192,25 @@ private fun WizardBottomBar(
     onSave: () -> Unit,
 ) {
     val isFirst = step == WizardStep.COVER
-    val isLast = step == WizardStep.COVER
+    val isLast = step == WizardStep.SPLIT
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = Color.Transparent,
+        color = Color.Black.copy(alpha = 0.95f),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             if (!isFirst) {
                 OutlinedButton(
                     onClick = onBack,
                     modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
                 ) {
-                    Text("Atrás")
+                    Text("Atrás", fontWeight = FontWeight.Medium)
                 }
             }
 
@@ -222,8 +218,16 @@ private fun WizardBottomBar(
                 onClick = if (isLast) onSave else onNext,
                 enabled = canContinue,
                 modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color.Black
+                ),
             ) {
-                Text(if (isLast) "Crear programa" else "Continuar")
+                Text(
+                    if (isLast) "Crear programa" else "Continuar",
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }
@@ -231,8 +235,10 @@ private fun WizardBottomBar(
 
 private fun wizardStepIndex(step: WizardStep): Int = when (step) {
     WizardStep.COVER -> 0
+    WizardStep.SPLIT -> 1
 }
 
 private fun wizardStepTitle(step: WizardStep): String = when (step) {
-    WizardStep.COVER -> "Portada, nombre y descripción"
+    WizardStep.COVER -> "Crear programa"
+    WizardStep.SPLIT -> "División de entrenamiento"
 }

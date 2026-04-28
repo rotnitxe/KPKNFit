@@ -6,7 +6,10 @@ import kotlinx.serialization.Serializable
 
 enum class PortionPreset { SMALL, MEDIUM, LARGE, EXTRA }
 
-enum class CookingMethod { CRUDO, COCIDO, PLANCHA, HORNO, FRITO, EMPANIZADO_FRITO }
+enum class CookingMethod {
+    CRUDO, COCIDO, PLANCHA, HORNO, FRITO, EMPANIZADO_FRITO,
+    SALTEADO, AHUMADO, VAPOR, OLLA, ASADO_PARRILLA, GUISADO
+}
 
 enum class PortionReference {
     PALM, FIST, TABLESPOON, CUP, HANDFUL, PINCH, TEASPOON, GLASS, SLICE, CAN, PORTION, SCOOP
@@ -47,6 +50,8 @@ data class FoodItem(
     val id: String = "",
     val name: String = "",
     val brand: String? = null,
+    val normalizedName: String? = null,
+    val normalizedBrand: String? = null,
     val category: String? = null,
     val servingSize: Double = 100.0,
     val servingUnit: String = "g",
@@ -66,6 +71,10 @@ data class FoodItem(
     val searchAliases: List<String> = emptyList(),
     val cookingBehavior: CookingBehavior? = null,
     val cookingWeightFactor: Double? = null,
+    val sourcePriority: Int = 50,
+    val verifiedScore: Double = 0.5,
+    val usageCount: Int = 0,
+    val lastUsedAt: String? = null,
 )
 
 enum class CookingBehavior { SHRINKS, EXPANDS }
@@ -82,6 +91,11 @@ data class LoggedFood(
     val protein: Double = 0.0,
     val carbs: Double = 0.0,
     val fats: Double = 0.0,
+    val fiber: Double = 0.0,
+    val sugar: Double = 0.0,
+    val sodiumMg: Double = 0.0,
+    val potassiumMg: Double = 0.0,
+    val waterMl: Double = 0.0,
     val fatBreakdown: FatBreakdown? = null,
     val micronutrients: List<Micronutrient> = emptyList(),
     val portionPreset: PortionPreset? = null,
@@ -168,7 +182,7 @@ data class MealTemplate(
 
 // ─── Parsed Meal ─────────────────────────────────────────────────────────────
 
-enum class AnalysisSource { RULES, DATABASE, USER_MEMORY, LOCAL_AI_ESTIMATE, LOCAL_HEURISTIC }
+enum class AnalysisSource { RULES, DATABASE, USER_MEMORY, LOCAL_AI_ESTIMATE, EXTERNAL_API_ESTIMATE, LOCAL_HEURISTIC }
 
 @Serializable
 data class ParsedMealItem(
@@ -180,17 +194,15 @@ data class ParsedMealItem(
     val isFuzzyMatch: Boolean = false,
     val brandHint: String? = null,
     val macroOverrides: MacroOverrides? = null,
-    /**
-     * Macros por 100g inferidos por la IA local. Permite al UI reescalar correctamente cuando
-     * el usuario cambia la cantidad (gramos), sin perder la referencia base del modelo.
-     * Solo presente cuando analysisSource == LOCAL_AI_ESTIMATE y no hay match en la BD.
-     */
     val basePer100g: MacroOverrides? = null,
     val analysisSource: AnalysisSource = AnalysisSource.RULES,
     val analysisConfidence: Double? = null,
     val reviewRequired: Boolean = false,
     val subItems: List<ParsedMealItem> = emptyList(),
     val isGroup: Boolean = false,
+    val resolvedFoodId: String? = null,
+    val appliedCookingFactor: Double = 1.0,
+    val modifierScale: MacroOverrides? = null,
 )
 
 @Serializable
@@ -225,7 +237,34 @@ data class DailyMacroTotals(
     val protein: Double = 0.0,
     val carbs: Double = 0.0,
     val fats: Double = 0.0,
+    val fiber: Double = 0.0,
+    val sugar: Double = 0.0,
+    val sodiumMg: Double = 0.0,
+    val potassiumMg: Double = 0.0,
+    val waterMl: Double = 0.0,
 )
+
+data class NutrientProgress(
+    val key: String,
+    val label: String,
+    val consumed: Double,
+    val goal: Double,
+    val unit: String,
+    val showOverages: Boolean = true,
+) {
+    val remaining: Double
+        get() = goal - consumed
+
+    val progressRatio: Double
+        get() {
+            if (goal <= 0.0) return 1.0
+            val raw = consumed / goal
+            return if (showOverages) raw else raw.coerceAtMost(1.0)
+        }
+
+    val progressPercent: Int
+        get() = kotlin.math.round(progressRatio * 100.0).toInt()
+}
 
 data class MealGroup(
     val mealType: MealType,

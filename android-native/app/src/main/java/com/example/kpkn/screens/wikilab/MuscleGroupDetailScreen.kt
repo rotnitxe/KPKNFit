@@ -158,12 +158,6 @@ fun MuscleGroupDetailScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 22.sp,
                 )
-                Spacer(Modifier.height(16.dp))
-                MuscleBiomechVisual(
-                    muscleId = muscle.id,
-                    muscleName = muscle.name,
-                    color = color,
-                )
             }
 
             item {

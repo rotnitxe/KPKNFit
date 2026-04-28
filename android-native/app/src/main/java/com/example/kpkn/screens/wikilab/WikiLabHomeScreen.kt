@@ -24,12 +24,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.data.repository.WikiLabRepository
 import com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE
 import com.example.kpkn.data.wikilab.searchConcepts
 
 // ═══════════════════════════════════════════════════════════════════════
-// WIKILAB HOME — "Wikipedia del Entrenamiento"
+// LEARN HOME — "Wikipedia del Entrenamiento"
 // ═══════════════════════════════════════════════════════════════════════
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,6 +42,7 @@ fun WikiLabHomeScreen(
     onNavigateToMovementPatterns: () -> Unit,
     onNavigateToBiomechanics: () -> Unit,
     onNavigateToConcepts: () -> Unit,
+    onNavigateToLearn: () -> Unit = {},
     onNavigateToExercise: (String) -> Unit,
     onNavigateToMuscle: (String) -> Unit,
     onNavigateToChain: (String) -> Unit,
@@ -53,6 +55,13 @@ fun WikiLabHomeScreen(
     val tendons by WikiLabRepository.tendons.collectAsState()
     val patterns by WikiLabRepository.patterns.collectAsState()
     val chains by WikiLabRepository.chains.collectAsState()
+    val customExercises by CustomExerciseRepository.customExercises.collectAsState()
+    val exerciseCatalog = remember(customExercises) {
+        (EXERCISE_DATABASE + customExercises)
+            .associateBy { it.id.lowercase() }
+            .values
+            .toList()
+    }
 
     var searchQuery by remember { mutableStateOf("") }
     val isSearching = searchQuery.isNotBlank()
@@ -64,7 +73,7 @@ fun WikiLabHomeScreen(
         val results = mutableListOf<SearchResult>()
 
         // Search exercises
-        EXERCISE_DATABASE.filter {
+        exerciseCatalog.filter {
             it.name.lowercase().contains(q) ||
                 it.involvedMuscles.any { m -> m.muscle.lowercase().contains(q) }
         }.take(5).mapTo(results) {
@@ -156,7 +165,7 @@ fun WikiLabHomeScreen(
                         Spacer(Modifier.width(14.dp))
                         Column {
                             Text(
-                                "WikiLab",
+                                "Learn",
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Black,
                                 color = Color.White,
@@ -177,7 +186,7 @@ fun WikiLabHomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        StatBadge("${EXERCISE_DATABASE.size}", "Ejercicios")
+                        StatBadge("${exerciseCatalog.size}", "Ejercicios")
                         StatBadge("${muscles.size}", "Músculos")
                         StatBadge("${joints.size}", "Articulaciones")
                         StatBadge("${TRAINING_CONCEPTS_DATABASE.size}", "Conceptos")
@@ -296,7 +305,7 @@ fun WikiLabHomeScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         WikiSectionTile(
                             title = "Ejercicios",
-                            subtitle = "${EXERCISE_DATABASE.size} ejercicios",
+                            subtitle = "${exerciseCatalog.size} ejercicios",
                             icon = Icons.Default.FitnessCenter,
                             color = Color(0xFFE53935),
                             onClick = onNavigateToExercises,
@@ -346,6 +355,17 @@ fun WikiLabHomeScreen(
                             onClick = onNavigateToConcepts,
                             modifier = Modifier.weight(1f),
                         )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        WikiSectionTile(
+                            title = "Learn",
+                            subtitle = "Aprende y mejora",
+                            icon = Icons.Default.School,
+                            color = Color(0xFF7E57C2),
+                            onClick = onNavigateToLearn,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }

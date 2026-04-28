@@ -12,8 +12,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.example.kpkn.MainActivity
 import com.example.kpkn.R
+import com.example.kpkn.navigation.KpknDeepLinks
 import com.example.kpkn.data.models.DailyMacroTotals
 import com.example.kpkn.domain.nutrition.MacroGoals
 import java.util.Calendar
@@ -66,26 +66,26 @@ class NutritionNotificationManager(private val context: Context) {
     fun createChannels() {
         val mealsChannel = NotificationChannel(
             CHANNEL_MEALS,
-            "Recordatorios de comidas",
+            appCtx.getString(com.example.kpkn.R.string.notif_channel_meals_name),
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
-            description = "Recordatorios para registrar desayuno, almuerzo y cena"
+            description = appCtx.getString(com.example.kpkn.R.string.notif_channel_meals_desc)
             enableVibration(true)
         }
         val macrosChannel = NotificationChannel(
             CHANNEL_MACROS,
-            "Alertas de macros",
+            appCtx.getString(com.example.kpkn.R.string.notif_channel_macros_name),
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
-            description = "Alertas inteligentes cuando los macros del día están incompletos"
+            description = appCtx.getString(com.example.kpkn.R.string.notif_channel_macros_desc)
             enableVibration(true)
         }
         val measurementChannel = NotificationChannel(
             CHANNEL_MEASUREMENT,
-            "Recordatorio de medidas",
+            appCtx.getString(com.example.kpkn.R.string.notif_channel_measurement_name),
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
-            description = "Recordatorio para registrar medidas corporales"
+            description = appCtx.getString(com.example.kpkn.R.string.notif_channel_measurement_desc)
         }
 
         val manager = appCtx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -122,8 +122,9 @@ class NutritionNotificationManager(private val context: Context) {
     }
 
     fun cancelMealReminders() {
-        listOf(REQ_BREAKFAST, REQ_LUNCH, REQ_DINNER).forEach { req ->
-            val intent = buildReceiverIntent(TYPE_BREAKFAST)
+        val types = listOf(REQ_BREAKFAST to TYPE_BREAKFAST, REQ_LUNCH to TYPE_LUNCH, REQ_DINNER to TYPE_DINNER)
+        types.forEach { (req, type) ->
+            val intent = buildReceiverIntent(type)
             val pi = PendingIntent.getBroadcast(
                 appCtx, req, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
@@ -195,25 +196,29 @@ class NutritionNotificationManager(private val context: Context) {
     fun sendMacroDeficitAlert(totals: DailyMacroTotals, goals: MacroGoals) {
         if (!hasPermission()) return
 
+        var hasCalorieExcess = false
         val deficitItems = buildList {
             val protPct = if (goals.proteinGoal > 0) totals.protein / goals.proteinGoal else 1.0
             val carbPct = if (goals.carbGoal > 0) totals.carbs / goals.carbGoal else 1.0
             val fatPct = if (goals.fatGoal > 0) totals.fats / goals.fatGoal else 1.0
             val calPct = if (goals.calorieGoal > 0) totals.calories / goals.calorieGoal else 1.0
 
-            if (protPct < 0.70) add("Proteína: ${totals.protein.toInt()}/${goals.proteinGoal}g (${(protPct * 100).toInt()}%)")
-            if (carbPct < 0.60) add("Carbos: ${totals.carbs.toInt()}/${goals.carbGoal}g (${(carbPct * 100).toInt()}%)")
-            if (fatPct < 0.60) add("Grasas: ${totals.fats.toInt()}/${goals.fatGoal}g (${(fatPct * 100).toInt()}%)")
-            if (calPct > 1.10) add("Calorías excedidas: ${totals.calories.toInt()} / ${goals.calorieGoal} kcal")
+            if (protPct < 0.70) add(appCtx.getString(com.example.kpkn.R.string.notif_macro_protein, totals.protein.toInt(), goals.proteinGoal, (protPct * 100).toInt()))
+            if (carbPct < 0.60) add(appCtx.getString(com.example.kpkn.R.string.notif_macro_carbs, totals.carbs.toInt(), goals.carbGoal, (carbPct * 100).toInt()))
+            if (fatPct < 0.60) add(appCtx.getString(com.example.kpkn.R.string.notif_macro_fats, totals.fats.toInt(), goals.fatGoal, (fatPct * 100).toInt()))
+            if (calPct > 1.10) {
+                hasCalorieExcess = true
+                add(appCtx.getString(com.example.kpkn.R.string.notif_macro_calories_exceeded, totals.calories.toInt(), goals.calorieGoal))
+            }
         }
 
         if (deficitItems.isEmpty()) return
 
         val body = deficitItems.joinToString("\n")
-        val title = if (deficitItems.any { it.startsWith("Calorías excedidas") })
-            "⚠ Calorías del día excedidas"
+        val title = if (hasCalorieExcess)
+            appCtx.getString(com.example.kpkn.R.string.notif_macro_title_exceeded)
         else
-            "Macros del día incompletos"
+            appCtx.getString(com.example.kpkn.R.string.notif_macro_title_incomplete)
 
         val notification = NotificationCompat.Builder(appCtx, CHANNEL_MACROS)
             .setSmallIcon(R.mipmap.ic_launcher)
@@ -236,13 +241,16 @@ class NutritionNotificationManager(private val context: Context) {
         if (!hasPermission()) return
         val label = try {
             java.time.LocalDate.parse(nextDate)
-                .format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM", java.util.Locale("es")))
+                .format(java.time.format.DateTimeFormatter.ofPattern(
+                    appCtx.getString(com.example.kpkn.R.string.date_format_measurement),
+                    com.example.kpkn.ui.locale.LocaleManager.getEffectiveLocale(appCtx),
+                ))
         } catch (_: Exception) { nextDate }
 
         val notification = NotificationCompat.Builder(appCtx, CHANNEL_MEASUREMENT)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("Hoy toca medir 📏")
-            .setContentText("Registra tus medidas corporales del $label en KPKN Fit")
+            .setContentTitle(appCtx.getString(com.example.kpkn.R.string.notif_measurement_title))
+            .setContentText(appCtx.getString(com.example.kpkn.R.string.notif_measurement_text, label))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(mainActivityPendingIntent())
@@ -291,12 +299,10 @@ class NutritionNotificationManager(private val context: Context) {
         }
 
     private fun mainActivityPendingIntent(): PendingIntent =
-        PendingIntent.getActivity(
-            appCtx, 0,
-            Intent(appCtx, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        KpknDeepLinks.pendingActivityIntent(
+            context = appCtx,
+            requestCode = 0,
+            path = "nutrition",
         )
 
     private fun parseHour(time: String) = time.split(":").getOrNull(0)?.toIntOrNull() ?: 8
@@ -315,9 +321,9 @@ class NutritionAlertReceiver : BroadcastReceiver() {
         manager.createChannels()
 
         when (type) {
-            NutritionNotificationManager.TYPE_BREAKFAST -> sendMealReminder(context, manager, "desayuno", "¿Ya registraste el desayuno?", NutritionNotificationManager.TYPE_BREAKFAST)
-            NutritionNotificationManager.TYPE_LUNCH -> sendMealReminder(context, manager, "almuerzo", "Hora de registrar el almuerzo 🍽", NutritionNotificationManager.TYPE_LUNCH)
-            NutritionNotificationManager.TYPE_DINNER -> sendMealReminder(context, manager, "cena", "No olvides registrar la cena 🌙", NutritionNotificationManager.TYPE_DINNER)
+            NutritionNotificationManager.TYPE_BREAKFAST -> sendMealReminder(context, manager, context.getString(com.example.kpkn.R.string.notif_breakfast_text), NutritionNotificationManager.TYPE_BREAKFAST)
+            NutritionNotificationManager.TYPE_LUNCH -> sendMealReminder(context, manager, context.getString(com.example.kpkn.R.string.notif_lunch_text), NutritionNotificationManager.TYPE_LUNCH)
+            NutritionNotificationManager.TYPE_DINNER -> sendMealReminder(context, manager, context.getString(com.example.kpkn.R.string.notif_dinner_text), NutritionNotificationManager.TYPE_DINNER)
             NutritionNotificationManager.TYPE_MACRO_CHECK -> checkAndSendMacroAlert(context, manager)
             NutritionNotificationManager.TYPE_MEASUREMENT -> {
                 // La fecha exacta la maneja el scheduler, aquí solo enviamos la notificación
@@ -326,7 +332,7 @@ class NutritionAlertReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun sendMealReminder(context: Context, manager: NutritionNotificationManager, meal: String, text: String, type: String) {
+    private fun sendMealReminder(context: Context, manager: NutritionNotificationManager, text: String, type: String) {
         // Verificar si ya hay registros de esa comida hoy
         try {
             val repo = com.example.kpkn.data.repository.NutritionRepository.getInstance()
@@ -356,17 +362,15 @@ class NutritionAlertReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, NutritionNotificationManager.CHANNEL_MEALS)
             .setSmallIcon(com.example.kpkn.R.mipmap.ic_launcher)
-            .setContentTitle("KPKN Fit")
+            .setContentTitle(context.getString(com.example.kpkn.R.string.notif_app_title))
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(
-                PendingIntent.getActivity(
-                    context, 0,
-                    Intent(context, com.example.kpkn.MainActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    },
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                KpknDeepLinks.pendingActivityIntent(
+                    context = context,
+                    requestCode = 0,
+                    path = "nutrition",
                 )
             )
             .build()

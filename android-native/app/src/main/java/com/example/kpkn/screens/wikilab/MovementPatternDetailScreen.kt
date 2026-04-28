@@ -109,13 +109,6 @@ fun MovementPatternDetailScreen(
                 Spacer(Modifier.height(8.dp))
             }
 
-            item {
-                PatternBiomechVisual(
-                    patternId = pattern.id,
-                    patternName = pattern.name,
-                )
-            }
-
             insight?.let {
                 item {
                     WikiLabInsightCard(

@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.util.Calendar
@@ -40,14 +41,18 @@ class HomeViewModel : ViewModel() {
         .map { state ->
             if (state?.status == ProgramStatus.ACTIVE) state.programId else null
         }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val activeProgram: StateFlow<Program?> = combine(repository.programs, activeProgramId) { programs, activeId ->
         activeId?.let { id -> programs.find { it.id == id } }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val hasActiveProgram: StateFlow<Boolean> = activeProgramId
         .map { it != null }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     // ─── AUGE batteries (wired from AugeViewModel at composition) ─────────
@@ -57,16 +62,11 @@ class HomeViewModel : ViewModel() {
     // Home no longer keeps shadow overrides for the rings because that masked
     // real AUGE updates after training logs and readiness saves.
 
-    private val _selectedRingIndex = MutableStateFlow(-1)
-
-    // ─── Ring Progress State (Public StateFlow) ────────────────────────────
-
-    val selectedRingIndex: StateFlow<Int> = _selectedRingIndex.asStateFlow()
-
     // ─── User Data (Derived StateFlow) ─────────────────────────────────────
 
     val userName: StateFlow<String> = repository.settings
         .map { it.username.ifBlank { "Usuario" } }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, "Usuario")
 
     // ─── Business Logic ────────────────────────────────────────────────────
@@ -78,15 +78,6 @@ class HomeViewModel : ViewModel() {
             h < 19 -> "¡Buenas tardes"
             else -> "¡Buenas noches"
         }
-    }
-
-    fun selectRing(index: Int) {
-        if (index == 0) return
-        _selectedRingIndex.value = index
-    }
-
-    fun clearSelection() {
-        _selectedRingIndex.value = -1
     }
 
     private data class WeekLocation(
@@ -209,7 +200,9 @@ class HomeViewModel : ViewModel() {
         val program = programs.find { it.id == active.programId } ?: return@combine emptyList()
         val today = currentDayOfWeek()
         resolveTodaySessions(program, active, today, history, ongoing)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // ─── Rings View Mode ───────────────────────────────────────────────────────
 
@@ -222,44 +215,39 @@ class HomeViewModel : ViewModel() {
 
     // ─── Macro Goals ──────────────────────────────────────────────────────────
 
-    val dailyCalorieGoal: StateFlow<Int> = combine(
+    private val macroGoals = combine(
         repository.settings,
         nutritionRepository.nutritionPlans,
         nutritionRepository.activeNutritionPlanId,
     ) { settings, plans, activeId ->
-            val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
-            deriveMacroGoals(settings, activePlan).calorieGoal
-        }
+        val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
+        deriveMacroGoals(settings, activePlan)
+    }
+        .distinctUntilChanged()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Lazily,
+            deriveMacroGoals(repository.settings.value, nutritionRepository.activeNutritionPlan),
+        )
+
+    val dailyCalorieGoal: StateFlow<Int> = macroGoals
+        .map { it.calorieGoal }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, 2500)
 
-    val dailyProteinGoal: StateFlow<Int> = combine(
-        repository.settings,
-        nutritionRepository.nutritionPlans,
-        nutritionRepository.activeNutritionPlanId,
-    ) { settings, plans, activeId ->
-            val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
-            deriveMacroGoals(settings, activePlan).proteinGoal
-        }
+    val dailyProteinGoal: StateFlow<Int> = macroGoals
+        .map { it.proteinGoal }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, 150)
 
-    val dailyCarbGoal: StateFlow<Int> = combine(
-        repository.settings,
-        nutritionRepository.nutritionPlans,
-        nutritionRepository.activeNutritionPlanId,
-    ) { settings, plans, activeId ->
-            val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
-            deriveMacroGoals(settings, activePlan).carbGoal
-        }
+    val dailyCarbGoal: StateFlow<Int> = macroGoals
+        .map { it.carbGoal }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, 250)
 
-    val dailyFatGoal: StateFlow<Int> = combine(
-        repository.settings,
-        nutritionRepository.nutritionPlans,
-        nutritionRepository.activeNutritionPlanId,
-    ) { settings, plans, activeId ->
-            val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
-            deriveMacroGoals(settings, activePlan).fatGoal
-        }
+    val dailyFatGoal: StateFlow<Int> = macroGoals
+        .map { it.fatGoal }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, 70)
 
     // ─── Nutrition Snapshot (today) ─────────────────────────────────────────
@@ -290,6 +278,7 @@ class HomeViewModel : ViewModel() {
                 fats = fats,
             )
         }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, HomeNutritionSnapshot())
 
     // ─── Body Metrics ────────────────────────────────────────────────────────────
@@ -301,7 +290,9 @@ class HomeViewModel : ViewModel() {
     ) { settings, measurements ->
         settings.userVitals.weight
             ?: measurements.maxByOrNull { it.date }?.weight
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val lastBodyFat: StateFlow<Double?> = combine(
         repository.settings,
@@ -309,7 +300,9 @@ class HomeViewModel : ViewModel() {
     ) { settings, measurements ->
         settings.userVitals.bodyFatPercentage
             ?: measurements.maxByOrNull { it.date }?.bodyFat
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val lastMusclePct: StateFlow<Double?> = combine(
         repository.settings,
@@ -317,10 +310,13 @@ class HomeViewModel : ViewModel() {
     ) { settings, measurements ->
         settings.userVitals.muscleMassPercentage
             ?: measurements.maxByOrNull { it.date }?.muscleMass
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val heightCm: StateFlow<Double> = repository.settings
         .map { it.userVitals.height ?: 170.0 }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, 170.0)
 
     fun computeImc(weightKg: Double, heightCm: Double): Double? {
@@ -375,6 +371,7 @@ class HomeViewModel : ViewModel() {
 
     val historyCount: StateFlow<Int> = repository.history
         .map { it.size }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
     // ─── Relative Strength from History ────────────────────────────────────────

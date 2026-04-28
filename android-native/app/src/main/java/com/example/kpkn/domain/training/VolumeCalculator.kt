@@ -2,10 +2,10 @@ package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
-import com.example.kpkn.data.models.HYPERTROPHY_ROLE_MULTIPLIERS
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.data.models.totalProgramWeeks
 
 data class MuscleVolumeEntry(
@@ -63,6 +63,11 @@ object VolumeCalculator {
         "core" to "Abdomen",
     )
 
+    @Deprecated(
+        message = "Use normalizeCanonicalMuscleGroup instead. This function maps 'core' → 'Abdomen' " +
+            "and splits deltoid heads, breaking volume aggregation when used as a re-normalizer.",
+        replaceWith = ReplaceWith("normalizeCanonicalMuscleGroup(specificMuscle, emphasis)"),
+    )
     fun normalizeMuscleGroup(specificMuscle: String, emphasis: String? = null): String {
         if (specificMuscle.isBlank()) return ""
 
@@ -114,10 +119,47 @@ object VolumeCalculator {
         if (lower.contains("adductor") || lower.contains("aductor") || lower.contains("pectíneo") || lower.contains("pectineo")) return "Aductores"
         if (lower.contains("gemelo") || lower.contains("pantorrilla") || lower.contains("gastrocnemio") || lower.contains("sóleo") || lower.contains("soleo")) return "Pantorrillas"
         if (lower.contains("cuello") || lower.contains("cervical")) return "Cuello"
+        // Core: deep stabilizers — must be checked BEFORE Abdomen to avoid "core" → "Abdomen".
         if (lower == "core" || lower.contains("transverso") || lower.contains("serrato") || emphasisLower.contains("core")) return "Core"
-        if (lower.contains("abdominal") || lower.contains("abdomen") || lower.contains("oblicuo")) return "Abdomen"
+        // Abdomen: rectus abdominis + obliques.
+        if (lower.contains("abdominal") || lower.contains("abdomen") || lower.contains("oblicuo") || lower.contains("recto del abdomen")) return "Abdomen"
 
         return normalizeMuscleGroup(specificMuscle, emphasis)
+    }
+
+    /**
+     * Agrupa aportes por músculo canónico. Dentro del mismo grupo (p. ej. cabezas
+     * del deltoides), toma el MÁXIMO de las activaciones declaradas — nunca suma,
+     * para evitar contar "deltoides anterior + deltoides lateral" como 2.0 sets.
+     *
+     * Si el JSON declara dos músculos canónicos distintos en el mismo ejercicio
+     * (ej. Core y Abdomen), ambos reciben su contribución por separado, respetando
+     * la decisión de mantenerlos como grupos independientes.
+     *
+     * Las claves del mapa resultante son ya canónicas (via [normalizeCanonicalMuscleGroup]);
+     * no volver a normalizarlas con [normalizeMuscleGroup].
+     */
+    fun buildPerExerciseMuscleContributions(
+        involvedMuscles: List<com.example.kpkn.data.models.InvolvedMuscle>,
+    ): Map<String, Double> {
+        if (involvedMuscles.isEmpty()) return emptyMap()
+        val grouped = linkedMapOf<String, Double>()
+        involvedMuscles.forEach { involvement ->
+            val canonicalMuscle = normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
+            val contribution = resolveMuscleVolumeContribution(involvement)
+            val current = grouped[canonicalMuscle] ?: 0.0
+            if (contribution > current) {
+                grouped[canonicalMuscle] = contribution
+            }
+        }
+        return grouped.filterValues { it > 0.0 }
+    }
+
+    private fun countEffectiveSets(exerciseSets: List<ExerciseSet>): Int {
+        val counted = exerciseSets.count { set ->
+            !set.isIneffective && ((set.completedReps ?: set.targetReps ?: 0) > 0 || (set.weight ?: 0.0) > 0.0)
+        }
+        return if (counted == 0) exerciseSets.count { !it.isIneffective } else counted
     }
 
     fun calculateUnifiedMuscleVolume(
@@ -135,25 +177,16 @@ object VolumeCalculator {
             }
 
             for (exercise in allExercises) {
-                val validSetsCount = exercise.sets.count { set ->
-                    !set.isIneffective && ((set.completedReps ?: set.targetReps ?: 0) > 0 || (set.weight ?: 0.0) > 0.0)
-                }
+                val validSetsCount = countEffectiveSets(exercise.sets)
 
                 if (validSetsCount > 0) {
                     val dbInfo = exercise.exerciseDbId?.let { exIndex[it.lowercase()] }
                     val involvedMuscles = dbInfo?.involvedMuscles ?: emptyList()
 
                     if (involvedMuscles.isNotEmpty()) {
-                        val uniqueMultipliers = mutableMapOf<String, Double>()
-
-                        for (m in involvedMuscles) {
-                            val muscleName = normalizeMuscleGroup(m.muscle)
-                            val multiplier = HYPERTROPHY_ROLE_MULTIPLIERS[m.role] ?: 0.5
-                            val currentMax = uniqueMultipliers[muscleName] ?: 0.0
-                            if (multiplier > currentMax) {
-                                uniqueMultipliers[muscleName] = multiplier
-                            }
-                        }
+                        // buildPerExerciseMuscleContributions already returns canonical keys;
+                        // do NOT re-apply normalizeMuscleGroup here or "Core" collapses into "Abdomen".
+                        val uniqueMultipliers = buildPerExerciseMuscleContributions(involvedMuscles)
 
                         for ((muscleName, maxMultiplier) in uniqueMultipliers) {
                             val (currentVol, currentSets) = volumeMap[muscleName] ?: (0.0 to 0)
@@ -199,23 +232,13 @@ object VolumeCalculator {
             }
 
             for (exercise in allExercises) {
-                val effectiveSets = exercise.sets.count { set ->
-                    !set.isIneffective && ((set.completedReps ?: set.targetReps ?: 0) > 0 || (set.weight ?: 0.0) > 0.0)
-                }
+                val effectiveSets = countEffectiveSets(exercise.sets)
                 if (effectiveSets <= 0) continue
 
                 val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: continue
                 if (dbInfo.involvedMuscles.isEmpty()) continue
 
-                val perExerciseMuscles = mutableMapOf<String, Double>()
-                dbInfo.involvedMuscles.forEach { muscle ->
-                    val canonicalMuscle = normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
-                    val multiplier = HYPERTROPHY_ROLE_MULTIPLIERS[muscle.role] ?: 0.5
-                    val current = perExerciseMuscles[canonicalMuscle] ?: 0.0
-                    if (multiplier > current) {
-                        perExerciseMuscles[canonicalMuscle] = multiplier
-                    }
-                }
+                val perExerciseMuscles = buildPerExerciseMuscleContributions(dbInfo.involvedMuscles)
 
                 perExerciseMuscles.forEach { (muscleName, multiplier) ->
                     val current = volumeMap[muscleName] ?: 0.0

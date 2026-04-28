@@ -7,6 +7,7 @@ import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
 import com.example.kpkn.data.programs.buildProgramDraft
 import com.example.kpkn.data.programs.resolveProgramTemplate
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTemplate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 enum class EditorSection { DETAILS, STRUCTURE, GOALS, EVENTS, EXPORT }
-enum class WizardStep { COVER }
+enum class WizardStep { COVER, SPLIT }
 
 data class ProgramEditorUiState(
     val programDraft: Program? = null,
@@ -36,25 +37,29 @@ class ProgramEditorViewModel(private val programId: String) : ViewModel() {
 
     init {
         if (programId == "new") {
-            val template = PROGRAM_TEMPLATES.first()
-            val draft = template.buildProgramDraft(
-                Program(
-                    id = java.util.UUID.randomUUID().toString(),
-                    name = "",
-                    mode = ProgramMode.HYPERTROPHY,
-                    structure = template.type,
-                    structureTemplateId = template.id,
-                    macrocycles = emptyList(),
-                    isDraft = true,
-                ),
-            )
-            _uiState.update {
-                it.copy(
-                    programDraft = draft,
-                    isWizardMode = true,
-                    wizardStep = WizardStep.COVER,
-                    selectedTemplateId = template.id,
+            val template = PROGRAM_TEMPLATES.firstOrNull()
+            if (template != null) {
+                val draft = template.buildProgramDraft(
+                    Program(
+                        id = java.util.UUID.randomUUID().toString(),
+                        name = "",
+                        mode = ProgramMode.HYPERTROPHY,
+                        structure = template.type,
+                        structureTemplateId = template.id,
+                        macrocycles = emptyList(),
+                        isDraft = true,
+                    ),
                 )
+                _uiState.update {
+                    it.copy(
+                        programDraft = draft,
+                        isWizardMode = true,
+                        wizardStep = WizardStep.COVER,
+                        selectedTemplateId = template.id,
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(programDraft = null, isWizardMode = false) }
             }
         } else {
             val existing = repository.getProgramById(programId)
@@ -62,7 +67,7 @@ class ProgramEditorViewModel(private val programId: String) : ViewModel() {
                 it.copy(
                     programDraft = existing,
                     isWizardMode = false,
-                    selectedTemplateId = existing?.structureTemplateId ?: PROGRAM_TEMPLATES.first().id,
+                    selectedTemplateId = existing?.structureTemplateId ?: PROGRAM_TEMPLATES.firstOrNull()?.id.orEmpty(),
                 )
             }
         }
@@ -71,11 +76,19 @@ class ProgramEditorViewModel(private val programId: String) : ViewModel() {
     // ─── Wizard ───────────────────────────────────────────────────────────────
 
     fun nextWizardStep() {
-        _uiState.update { it.copy(wizardStep = WizardStep.COVER) }
+        _uiState.update { state ->
+            val currentIndex = wizardStepOrder.indexOf(state.wizardStep)
+            val nextStep = wizardStepOrder.getOrNull(currentIndex + 1) ?: state.wizardStep
+            state.copy(wizardStep = nextStep)
+        }
     }
 
     fun prevWizardStep() {
-        _uiState.update { it.copy(wizardStep = WizardStep.COVER) }
+        _uiState.update { state ->
+            val currentIndex = wizardStepOrder.indexOf(state.wizardStep)
+            val prevStep = wizardStepOrder.getOrNull(currentIndex - 1) ?: state.wizardStep
+            state.copy(wizardStep = prevStep)
+        }
     }
 
     fun setWizardStep(step: WizardStep) {
@@ -127,18 +140,41 @@ class ProgramEditorViewModel(private val programId: String) : ViewModel() {
     fun updateDescription(desc: String) = updateDraft { it.copy(description = desc) }
     fun updateCoverImage(coverImage: String?) = updateDraft { it.copy(coverImage = coverImage) }
     fun updateMode(mode: ProgramMode) = updateDraft { it.copy(mode = mode) }
-    fun updateStartDay(day: Int) = updateDraft { it.copy(startDay = day) }
+    fun updateStartDay(day: Int) = updateDraft { program ->
+        val normalizedDay = day.coerceIn(1, 7)
+        val updated = program.copy(startDay = normalizedDay)
+        applySplitProjection(updated)
+    }
     fun updateWeekDays(days: Int) = updateDraft { it.copy(weekDays = days.coerceIn(1, 14)) }
     fun updateStructure(structure: ProgramStructure) = updateDraft { it.copy(structure = structure) }
     fun updateMacrocycles(macrocycles: List<Macrocycle>) = updateDraft { it.copy(macrocycles = macrocycles) }
-    fun updateCustomSplitPattern(pattern: List<String>) = updateDraft { it.copy(customSplitPattern = pattern) }
+    fun updateCustomSplitPattern(pattern: List<String>) = updateDraft { program ->
+        val updated = program.copy(customSplitPattern = pattern)
+        applySplitProjection(updated)
+    }
 
     fun applyWizardSplit(split: SplitTemplate, startDay: Int) {
-        updateDraft { it.copy(selectedSplitId = split.id, startDay = startDay, customSplitPattern = split.pattern) }
+        updateDraft { program ->
+            applySplitProjection(
+                program.copy(
+                    selectedSplitId = split.id,
+                    startDay = startDay.coerceIn(1, 7),
+                    customSplitPattern = split.pattern,
+                )
+            )
+        }
     }
 
     fun applySplitFromEditor(split: SplitTemplate, startDay: Int) {
-        updateDraft { it.copy(selectedSplitId = split.id, startDay = startDay, customSplitPattern = split.pattern) }
+        updateDraft { program ->
+            applySplitProjection(
+                program.copy(
+                    selectedSplitId = split.id,
+                    startDay = startDay.coerceIn(1, 7),
+                    customSplitPattern = split.pattern,
+                )
+            )
+        }
         _uiState.update { it.copy(isSplitChangerOpen = false) }
     }
 
@@ -186,7 +222,7 @@ class ProgramEditorViewModel(private val programId: String) : ViewModel() {
         val draft = _uiState.value.programDraft ?: return null
         if (draft.name.isBlank()) return null
 
-        val final = draft.copy(isDraft = false)
+        val final = applySplitProjection(draft).copy(isDraft = false)
         val hadRealProgramsBefore = repository.programs.value.any { !it.isDraft }
         if (programId == "new") {
             repository.addProgram(final)
@@ -226,6 +262,93 @@ class ProgramEditorViewModel(private val programId: String) : ViewModel() {
         }
     }
 
+    private fun applySplitProjection(program: Program): Program {
+        val pattern = when {
+            program.customSplitPattern.isNotEmpty() -> program.customSplitPattern
+            !program.selectedSplitId.isNullOrBlank() -> {
+                SPLIT_TEMPLATES.firstOrNull { it.id == program.selectedSplitId }?.pattern.orEmpty()
+            }
+            else -> emptyList()
+        }
+        if (pattern.isEmpty()) return program
+
+        val startDay = (program.startDay ?: 1).coerceIn(1, 7)
+
+        return program.copy(
+            startDay = startDay,
+            macrocycles = program.macrocycles.map { macrocycle ->
+                macrocycle.copy(
+                    blocks = macrocycle.blocks.map { block ->
+                        block.copy(
+                            mesocycles = block.mesocycles.map { mesocycle ->
+                                mesocycle.copy(
+                                    weeks = mesocycle.weeks.map { week ->
+                                        week.copy(
+                                            sessions = projectWeekSessions(
+                                                existingSessions = week.sessions,
+                                                pattern = pattern,
+                                                startDay = startDay,
+                                            )
+                                        )
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        )
+    }
+
+    private fun projectWeekSessions(
+        existingSessions: List<Session>,
+        pattern: List<String>,
+        startDay: Int,
+    ): List<Session> {
+        val rotatedDays = (startDay..7).toList() + (1 until startDay).toList()
+        val targets = pattern.mapIndexedNotNull { index, label ->
+            if (label.equals("Descanso", ignoreCase = true)) return@mapIndexedNotNull null
+            val dayOfWeek = rotatedDays[index % rotatedDays.size]
+            SplitTarget(label = label, dayOfWeek = dayOfWeek)
+        }
+        if (targets.isEmpty()) return emptyList()
+
+        return targets.mapIndexed { index, target ->
+            val existing = existingSessions.getOrNull(index)
+            if (existing != null) {
+                existing.copy(
+                    dayOfWeek = target.dayOfWeek,
+                    scheduleLabel = dayName(target.dayOfWeek),
+                    isMainSession = index == 0,
+                )
+            } else {
+                Session(
+                    id = java.util.UUID.randomUUID().toString(),
+                    name = target.label,
+                    dayOfWeek = target.dayOfWeek,
+                    scheduleLabel = dayName(target.dayOfWeek),
+                    isMainSession = index == 0,
+                )
+            }
+        }
+    }
+
+    private fun dayName(dayOfWeek: Int): String = when (dayOfWeek) {
+        1 -> "Lunes"
+        2 -> "Martes"
+        3 -> "Miércoles"
+        4 -> "Jueves"
+        5 -> "Viernes"
+        6 -> "Sábado"
+        7 -> "Domingo"
+        else -> "Lunes"
+    }
+
+    private data class SplitTarget(
+        val label: String,
+        val dayOfWeek: Int,
+    )
+
     companion object {
         fun factory(programId: String): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
@@ -234,4 +357,9 @@ class ProgramEditorViewModel(private val programId: String) : ViewModel() {
                     ProgramEditorViewModel(programId) as T
             }
     }
+
+    private val wizardStepOrder = listOf(
+        WizardStep.COVER,
+        WizardStep.SPLIT,
+    )
 }

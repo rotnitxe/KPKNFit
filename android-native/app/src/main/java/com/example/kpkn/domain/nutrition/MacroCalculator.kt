@@ -20,29 +20,60 @@ fun scaleFoodByPortion(
     val grams = amountGrams ?: (food.servingSize * quantity * multiplier)
     val ratio = if (food.servingSize > 0) grams / food.servingSize else 1.0
 
-    // Apply cooking factor if applicable
-    val cookingFactor = if (cookingMethod != null && cookingMethod != CookingMethod.CRUDO && food.cookingWeightFactor != null) {
-        food.cookingWeightFactor!!
-    } else 1.0
+    fun extractMicronutrientAmount(vararg names: String): Double {
+        val lowered = names.map { it.lowercase() }
+        return food.micronutrients
+            .filter { micro -> lowered.any { key -> micro.name.lowercase().contains(key) } }
+            .sumOf { it.amount }
+    }
 
-    val effectiveRatio = ratio * cookingFactor
+    val fiberBase = food.carbBreakdown?.fiber ?: 0.0
+    val sugarBase = food.carbBreakdown?.sugar ?: 0.0
+    val sodiumBase = extractMicronutrientAmount("sodio")
+    val potassiumBase = extractMicronutrientAmount("potasio")
+    val waterBase = extractMicronutrientAmount("agua", "water")
 
-    // Si se proporcionaron gramos explícitos, el portionPreset no es autorativo — se anula para
-    // evitar que el UI lo lea y reescale los macros de forma incorrecta al mostrar el item.
+    var calPerGram = food.calories
+    var protPerGram = food.protein
+    var carbPerGram = food.carbs
+    var fatPerGram = food.fats
+
+    if (cookingMethod != null && cookingMethod != CookingMethod.CRUDO) {
+        val cf = COOKING_FACTORS[cookingMethod]
+        if (cf != null) {
+            calPerGram = food.calories * cf.kcal
+            protPerGram = food.protein * cf.protein
+            carbPerGram = food.carbs * cf.carbs
+            fatPerGram = food.fats * cf.fats
+        }
+    }
+
+    val totalCalories = kotlin.math.round(calPerGram * ratio)
+    val totalProtein = kotlin.math.round(protPerGram * ratio * 10) / 10.0
+    val totalCarbs = kotlin.math.round(carbPerGram * ratio * 10) / 10.0
+    val totalFats = kotlin.math.round(fatPerGram * ratio * 10) / 10.0
+
     val effectivePortion = if (amountGrams != null) null else portion
+
+    val resolvedUnit = if (isLikelyLiquid(food.name, food.category)) "ml" else food.unit
 
     return LoggedFood(
         id = java.util.UUID.randomUUID().toString(),
         foodName = food.name,
         amount = grams,
-        unit = food.unit,
-        calories = kotlin.math.round(food.calories * effectiveRatio),
-        protein = kotlin.math.round(food.protein * effectiveRatio * 10) / 10.0,
-        carbs = kotlin.math.round(food.carbs * effectiveRatio * 10) / 10.0,
-        fats = kotlin.math.round(food.fats * effectiveRatio * 10) / 10.0,
+        unit = resolvedUnit,
+        calories = totalCalories,
+        protein = totalProtein,
+        carbs = totalCarbs,
+        fats = totalFats,
+        fiber = kotlin.math.round(fiberBase * ratio * 10) / 10.0,
+        sugar = kotlin.math.round(sugarBase * ratio * 10) / 10.0,
+        sodiumMg = kotlin.math.round(sodiumBase * ratio * 10) / 10.0,
+        potassiumMg = kotlin.math.round(potassiumBase * ratio * 10) / 10.0,
+        waterMl = kotlin.math.round(waterBase * ratio * 10) / 10.0,
         fatBreakdown = food.fatBreakdown,
         micronutrients = food.micronutrients.map {
-            it.copy(amount = kotlin.math.round(it.amount * effectiveRatio * 10) / 10.0)
+            it.copy(amount = kotlin.math.round(it.amount * ratio * 10) / 10.0)
         },
         portionPreset = effectivePortion,
         cookingMethod = cookingMethod,
@@ -60,6 +91,11 @@ fun createLoggedFood(
     protein: Double = 0.0,
     carbs: Double = 0.0,
     fats: Double = 0.0,
+    fiber: Double = 0.0,
+    sugar: Double = 0.0,
+    sodiumMg: Double = 0.0,
+    potassiumMg: Double = 0.0,
+    waterMl: Double = 0.0,
     portion: PortionPreset? = null,
     cookingMethod: CookingMethod? = null,
 ): LoggedFood {
@@ -72,6 +108,11 @@ fun createLoggedFood(
         protein = protein,
         carbs = carbs,
         fats = fats,
+        fiber = fiber,
+        sugar = sugar,
+        sodiumMg = sodiumMg,
+        potassiumMg = potassiumMg,
+        waterMl = waterMl,
         portionPreset = portion,
         cookingMethod = cookingMethod,
     )
@@ -84,6 +125,11 @@ fun computeDailyTotals(logs: List<NutritionLog>): DailyMacroTotals {
     var protein = 0.0
     var carbs = 0.0
     var fats = 0.0
+    var fiber = 0.0
+    var sugar = 0.0
+    var sodiumMg = 0.0
+    var potassiumMg = 0.0
+    var waterMl = 0.0
 
     for (log in logs) {
         if (log.status == NutritionStatus.PLANNED) continue
@@ -92,6 +138,11 @@ fun computeDailyTotals(logs: List<NutritionLog>): DailyMacroTotals {
             protein += food.protein
             carbs += food.carbs
             fats += food.fats
+            fiber += food.fiber
+            sugar += food.sugar
+            sodiumMg += food.sodiumMg
+            potassiumMg += food.potassiumMg
+            waterMl += food.waterMl
         }
     }
 
@@ -100,6 +151,11 @@ fun computeDailyTotals(logs: List<NutritionLog>): DailyMacroTotals {
         protein = kotlin.math.round(protein),
         carbs = kotlin.math.round(carbs),
         fats = kotlin.math.round(fats),
+        fiber = kotlin.math.round(fiber * 10) / 10.0,
+        sugar = kotlin.math.round(sugar * 10) / 10.0,
+        sodiumMg = kotlin.math.round(sodiumMg),
+        potassiumMg = kotlin.math.round(potassiumMg),
+        waterMl = kotlin.math.round(waterMl),
     )
 }
 
@@ -171,6 +227,12 @@ data class MacroGoals(
     val proteinGoal: Int = 150,
     val carbGoal: Int = 250,
     val fatGoal: Int = 70,
+    val fiberGoal: Int = 25,
+    val sugarLimit: Int = 50,
+    val sodiumLimitMg: Int = 2300,
+    val potassiumGoalMg: Int = 3500,
+    val hydrationGoalMl: Int = 2000,
+    val showOverages: Boolean = true,
 )
 
 fun deriveMacroGoals(settings: Settings, activePlan: NutritionPlan? = null): MacroGoals {
@@ -186,6 +248,12 @@ fun deriveMacroGoals(settings: Settings, activePlan: NutritionPlan? = null): Mac
                 proteinGoal = planProtein ?: settings.dailyProteinGoal ?: 150,
                 carbGoal = planCarbs ?: settings.dailyCarbGoal ?: 250,
                 fatGoal = planFats ?: settings.dailyFatGoal ?: 70,
+                fiberGoal = settings.dailyFiberGoal ?: 25,
+                sugarLimit = settings.dailySugarLimit ?: 50,
+                sodiumLimitMg = settings.dailySodiumLimitMg ?: 2300,
+                potassiumGoalMg = settings.dailyPotassiumGoalMg ?: 3500,
+                hydrationGoalMl = settings.dailyHydrationGoalMl ?: 2000,
+                showOverages = settings.nutritionShowOverages,
             )
         }
     }
@@ -195,6 +263,12 @@ fun deriveMacroGoals(settings: Settings, activePlan: NutritionPlan? = null): Mac
         proteinGoal = settings.dailyProteinGoal ?: 150,
         carbGoal = settings.dailyCarbGoal ?: 250,
         fatGoal = settings.dailyFatGoal ?: 70,
+        fiberGoal = settings.dailyFiberGoal ?: 25,
+        sugarLimit = settings.dailySugarLimit ?: 50,
+        sodiumLimitMg = settings.dailySodiumLimitMg ?: 2300,
+        potassiumGoalMg = settings.dailyPotassiumGoalMg ?: 3500,
+        hydrationGoalMl = settings.dailyHydrationGoalMl ?: 2000,
+        showOverages = settings.nutritionShowOverages,
     )
 }
 

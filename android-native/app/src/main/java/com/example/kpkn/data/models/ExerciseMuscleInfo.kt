@@ -149,8 +149,8 @@ data class SetupDetails(
 val HYPERTROPHY_ROLE_MULTIPLIERS = mapOf(
     MuscleRole.PRIMARY to 1.0,
     MuscleRole.SECONDARY to 0.5,
-    MuscleRole.STABILIZER to 0.0,
-    MuscleRole.NEUTRALIZER to 0.0,
+    MuscleRole.STABILIZER to 0.2,
+    MuscleRole.NEUTRALIZER to 0.1,
 )
 
 val FATIGUE_ROLE_MULTIPLIERS = mapOf(
@@ -159,3 +159,19 @@ val FATIGUE_ROLE_MULTIPLIERS = mapOf(
     MuscleRole.STABILIZER to 0.3,
     MuscleRole.NEUTRALIZER to 0.2,
 )
+
+private val VOLUME_CONTRIBUTION_FALLBACKS = mapOf(
+    MuscleRole.PRIMARY to 1.0,
+    MuscleRole.SECONDARY to 0.5,
+    MuscleRole.STABILIZER to 0.3,
+    MuscleRole.NEUTRALIZER to 0.1,
+)
+
+fun resolveMuscleVolumeContribution(
+    involvement: InvolvedMuscle,
+    capAtOne: Boolean = true,
+): Double {
+    val fallback = VOLUME_CONTRIBUTION_FALLBACKS[involvement.role] ?: 0.0
+    val raw = involvement.volumeContribution ?: fallback
+    return if (capAtOne) raw.coerceIn(0.0, 1.0) else raw.coerceAtLeast(0.0)
+}

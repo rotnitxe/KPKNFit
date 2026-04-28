@@ -50,15 +50,18 @@ object WikiLabRepository {
         dao = db.wikiLabDao()
 
         scope.launch {
-            // Prepopulate on first run
             prepopulateWikiLabAssets(context, db)
 
-            // Collect from Room → StateFlows
-            launch { dao.getAllMuscles().collect { _muscles.value = it } }
-            launch { dao.getAllJoints().collect { _joints.value = it } }
-            launch { dao.getAllTendons().collect { _tendons.value = it } }
-            launch { dao.getAllPatterns().collect { _patterns.value = it } }
-            launch { dao.getAllChains().collect { _chains.value = it } }
+            val muscles = dao.getAllMuscles().first()
+            val joints = dao.getAllJoints().first()
+            val tendons = dao.getAllTendons().first()
+            val patterns = dao.getAllPatterns().first()
+            val chains = dao.getAllChains().first()
+            _muscles.value = muscles
+            _joints.value = joints
+            _tendons.value = tendons
+            _patterns.value = patterns
+            _chains.value = chains
         }
     }
 

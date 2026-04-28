@@ -7,8 +7,29 @@ import androidx.room.PrimaryKey
 import com.example.kpkn.data.models.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.Instant
+import java.text.Normalizer
 
 internal val dbJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+
+private fun normalizeSearch(value: String?): String {
+    if (value.isNullOrBlank()) return ""
+    val stripped = Normalizer.normalize(value, Normalizer.Form.NFD)
+        .replace(Regex("\\p{Mn}+"), "")
+    return stripped
+        .lowercase()
+        .replace(Regex("[^\\p{L}\\p{Nd}]+"), " ")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+}
+
+private fun encodeAliases(aliases: List<String>): String = runCatching {
+    dbJson.encodeToString(aliases.filter { it.isNotBlank() }.distinct())
+}.getOrDefault("[]")
+
+private fun decodeAliases(aliasesJson: String): List<String> = runCatching {
+    dbJson.decodeFromString<List<String>>(aliasesJson)
+}.getOrDefault(emptyList())
 
 @Entity(tableName = "programs")
 data class ProgramEntity(@PrimaryKey val id: String, val name: String, val data: String)
@@ -81,6 +102,11 @@ data class SleepLogEntity(@PrimaryKey val id: String, val date: String, val data
 fun SleepLog.toEntity() = SleepLogEntity(id = id, date = date, data = dbJson.encodeToString(this))
 fun SleepLogEntity.toSleepLog(): SleepLog = dbJson.decodeFromString(data)
 
+@Entity(tableName = "auge_sleep_extended", indices = [Index("date")])
+data class SleepLogExtendedEntity(@PrimaryKey val id: String, val date: String, val data: String)
+fun com.example.kpkn.data.models.SleepLogExtended.toExtendedEntity() = SleepLogExtendedEntity(id = id, date = date, data = dbJson.encodeToString(this))
+fun SleepLogExtendedEntity.toSleepLogExtended(): com.example.kpkn.data.models.SleepLogExtended = dbJson.decodeFromString(data)
+
 @Entity(tableName = "auge_feedback", indices = [Index("date")])
 data class PostSessionFeedbackEntity(@PrimaryKey val logId: String, val date: String, val data: String)
 fun PostSessionFeedback.toEntity() = PostSessionFeedbackEntity(logId = logId, date = date, data = dbJson.encodeToString(this))
@@ -114,23 +140,142 @@ data class MealTemplateEntity(@PrimaryKey val id: String, val name: String, val 
 fun MealTemplate.toEntity() = MealTemplateEntity(id = id, name = name, data = dbJson.encodeToString(this))
 fun MealTemplateEntity.toMealTemplate(): MealTemplate = dbJson.decodeFromString(data)
 
-@Entity(tableName = "nutrition_custom_foods")
-data class CustomFoodEntity(@PrimaryKey val id: String, val name: String, val data: String)
-fun FoodItem.toEntity() = CustomFoodEntity(id = id, name = name, data = dbJson.encodeToString(this))
-fun CustomFoodEntity.toFoodItem(): FoodItem = dbJson.decodeFromString(data)
+@Entity(
+    tableName = "nutrition_custom_foods",
+    indices = [Index("name"), Index("normalizedName"), Index("normalizedBrand")],
+)
+data class CustomFoodEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val normalizedName: String,
+    val normalizedBrand: String?,
+    val aliasesJson: String,
+    val sourcePriority: Int,
+    val verifiedScore: Double,
+    val usageCount: Int,
+    val lastUsedAt: String?,
+    val data: String,
+)
 
-@Entity(tableName = "global_foods", indices = [Index("name")])
+fun FoodItem.toEntity(): CustomFoodEntity {
+    val normalizedNameValue = normalizedName ?: normalizeSearch(name)
+    val normalizedBrandValue = normalizedBrand ?: brand?.let { normalizeSearch(it) }
+    val aliases = (searchAliases + listOfNotNull(name, brand))
+        .map { normalizeSearch(it) }
+        .filter { it.isNotBlank() }
+
+    val normalizedCopy = this.copy(
+        normalizedName = normalizedNameValue,
+        normalizedBrand = normalizedBrandValue,
+        searchAliases = (searchAliases + aliases).distinct(),
+    )
+
+    return CustomFoodEntity(
+        id = id,
+        name = name,
+        normalizedName = normalizedNameValue,
+        normalizedBrand = normalizedBrandValue,
+        aliasesJson = encodeAliases(aliases),
+        sourcePriority = sourcePriority,
+        verifiedScore = verifiedScore,
+        usageCount = usageCount,
+        lastUsedAt = lastUsedAt,
+        data = dbJson.encodeToString(normalizedCopy),
+    )
+}
+
+fun CustomFoodEntity.toFoodItem(): FoodItem {
+    val decoded = dbJson.decodeFromString<FoodItem>(data)
+    val aliases = decodeAliases(aliasesJson)
+    return decoded.copy(
+        id = decoded.id.ifBlank { id },
+        name = decoded.name.ifBlank { name },
+        normalizedName = decoded.normalizedName ?: normalizedName,
+        normalizedBrand = decoded.normalizedBrand ?: normalizedBrand,
+        searchAliases = (decoded.searchAliases + aliases).distinct(),
+        sourcePriority = if (decoded.sourcePriority != 50) decoded.sourcePriority else sourcePriority,
+        verifiedScore = if (decoded.verifiedScore != 0.5) decoded.verifiedScore else verifiedScore,
+        usageCount = maxOf(decoded.usageCount, usageCount),
+        lastUsedAt = decoded.lastUsedAt ?: lastUsedAt,
+    )
+}
+
+// ─── Session Templates (user-created) ───────────────────────────────────────
+
+/**
+ * Persists user-created [com.example.kpkn.data.sessions.SessionTemplate] objects.
+ * System templates are served from the in-memory catalog and are never stored here.
+ */
+@Entity(
+    tableName = "session_templates",
+    indices = [Index("sourceType"), Index("sortOrder"), Index("createdAt")],
+)
+data class SessionTemplateEntity(
+    @PrimaryKey val id: String,
+    val sourceType: String,
+    val name: String,
+    val sortOrder: Int,
+    val isArchived: Int, // 0 = false, 1 = true
+    val createdAt: String,
+    val data: String, // Full SessionTemplate JSON blob
+)
+
+fun com.example.kpkn.data.sessions.SessionTemplate.toEntity() = SessionTemplateEntity(
+    id = id,
+    sourceType = sourceType.name,
+    name = name,
+    sortOrder = sortOrder,
+    isArchived = if (isArchived) 1 else 0,
+    createdAt = createdAt ?: "",
+    data = dbJson.encodeToString(this),
+)
+
+fun SessionTemplateEntity.toSessionTemplate(): com.example.kpkn.data.sessions.SessionTemplate =
+    dbJson.decodeFromString(data)
+
+// ─── Custom Exercises ─────────────────────────────────────────────────────────
+
+@Entity(tableName = "custom_exercises", indices = [Index("name")])
+data class CustomExerciseEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val data: String,
+    val createdAt: String,
+    val updatedAt: String,
+)
+
+fun ExerciseMuscleInfo.toEntity(nowIso: String = Instant.now().toString()) = CustomExerciseEntity(
+    id = id,
+    name = name,
+    data = dbJson.encodeToString(this.copy(isCustom = true)),
+    createdAt = nowIso,
+    updatedAt = nowIso,
+)
+
+fun CustomExerciseEntity.toExerciseMuscleInfo(): ExerciseMuscleInfo = dbJson.decodeFromString<ExerciseMuscleInfo>(data)
+
+@Entity(tableName = "global_foods", indices = [Index("name"), Index("normalizedName"), Index("normalizedBrand")])
 data class GlobalFoodEntity(
     @PrimaryKey val foodId: String,
     val name: String,
     val brand: String? = null,
+    val normalizedName: String = "",
+    val normalizedBrand: String? = null,
+    val aliasesJson: String = "[]",
     val calories: Double = 0.0,
     val protein: Double = 0.0,
     val carbs: Double = 0.0,
     val fats: Double = 0.0,
     val fiber: Double = 0.0,
     val sugar: Double = 0.0,
-    val source: String = "unknown"
+    val sodiumMg: Double = 0.0,
+    val potassiumMg: Double = 0.0,
+    val waterMl: Double = 0.0,
+    val source: String = "unknown",
+    val sourcePriority: Int = 50,
+    val verifiedScore: Double = 0.5,
+    val usageCount: Int = 0,
+    val lastUsedAt: String? = null,
 )
 
 @Fts4(contentEntity = GlobalFoodEntity::class)
@@ -141,8 +286,41 @@ data class GlobalFoodFtsEntity(
 )
 
 fun GlobalFoodEntity.toFoodItem() = FoodItem(
-    id = foodId, name = name, brand = brand, calories = calories,
-    protein = protein, carbs = carbs, fats = fats,
+    id = foodId,
+    name = name,
+    brand = brand,
+    normalizedName = if (normalizedName.isBlank()) normalizeSearch(name) else normalizedName,
+    normalizedBrand = normalizedBrand,
+    calories = calories,
+    protein = protein,
+    carbs = carbs,
+    fats = fats,
     carbBreakdown = CarbBreakdown(fiber = fiber, sugar = sugar),
-    tags = listOf(source)
+    micronutrients = buildList {
+        if (sodiumMg > 0.0) add(Micronutrient(name = "Sodio", amount = sodiumMg, unit = "mg"))
+        if (potassiumMg > 0.0) add(Micronutrient(name = "Potasio", amount = potassiumMg, unit = "mg"))
+        if (waterMl > 0.0) add(Micronutrient(name = "Agua", amount = waterMl, unit = "ml"))
+    },
+    tags = listOf(source),
+    searchAliases = decodeAliases(aliasesJson),
+    sourcePriority = sourcePriority,
+    verifiedScore = verifiedScore,
+    usageCount = usageCount,
+    lastUsedAt = lastUsedAt,
+)
+
+@Entity(
+    tableName = "learned_resolutions",
+    indices = [Index("queryKey", unique = true)],
+)
+data class LearnedResolutionEntity(
+    @PrimaryKey val id: String,
+    val queryKey: String,
+    val foodId: String,
+    val portionGrams: Double?,
+    val cookingMethod: String?,
+    val count: Int = 1,
+    val lastUsedAt: Long = 0L,
+    val createdAt: Long = 0L,
+    val syncedAt: Long? = null,
 )

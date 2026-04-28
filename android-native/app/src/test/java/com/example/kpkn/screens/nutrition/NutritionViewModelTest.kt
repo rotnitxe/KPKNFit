@@ -1,36 +1,67 @@
 package com.example.kpkn.screens.nutrition
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.*
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.util.UUID
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest = Config.NONE, sdk = [34])
 class NutritionViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
+    private val testScope = TestScope(testDispatcher)
     private lateinit var nutritionRepo: NutritionRepository
     private lateinit var programRepo: ProgramRepository
     private lateinit var vm: NutritionViewModel
+    private val collectors = mutableListOf<Job>()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        NutritionRepository.init(context)
+        ProgramRepository.init(context)
         nutritionRepo = NutritionRepository.getInstance()
         programRepo = ProgramRepository.getInstance()
 
         // Clear shared state
         nutritionRepo.clearNutritionLogs()
         nutritionRepo.setActiveNutritionPlanId(null)
+        programRepo.clearPrograms()
+        programRepo.clearActiveProgram()
+        programRepo.clearOngoingWorkout()
 
         vm = NutritionViewModel()
+
+        collectors += testScope.launch { vm.todayLogs.collect { } }
+        collectors += testScope.launch { vm.dailyTotals.collect { } }
+        collectors += testScope.launch { vm.mealGroups.collect { } }
+        collectors += testScope.launch { vm.activePlan.collect { } }
+        collectors += testScope.launch { vm.goals.collect { } }
+    }
+
+    @After
+    fun tearDown() {
+        collectors.forEach { it.cancel() }
+        collectors.clear()
+        Dispatchers.resetMain()
     }
 
     // ─── Log Management ────────────────────────────────────────────────────
@@ -134,7 +165,7 @@ class NutritionViewModelTest {
         assertEquals(4, groups.size) // BREAKFAST, LUNCH, DINNER, SNACK
         val breakfastGroup = groups.find { it.mealType == MealType.BREAKFAST }
         assertEquals(1, breakfastGroup?.logs?.size)
-        assertEquals(300.0, breakfastGroup?.totals?.calories, 0.01)
+        assertEquals(300.0, breakfastGroup?.totals?.calories ?: 0.0, 0.01)
     }
 
     // ─── Goals ─────────────────────────────────────────────────────────────

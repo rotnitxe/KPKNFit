@@ -38,8 +38,18 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         // Global Food (v5)
         GlobalFoodEntity::class,
         GlobalFoodFtsEntity::class,
+        CustomExerciseEntity::class,
+        // Mis RINGS: sueño extendido (v12)
+        SleepLogExtendedEntity::class,
+        // Session Templates: user-created blueprints (v13)
+        SessionTemplateEntity::class,
+        // Learned Resolutions: auto-improvement for food matching (v14)
+        LearnedResolutionEntity::class,
+        // Performance Range: RMS tracking (v15)
+        PerformanceRangeEntity::class,
+        PerformanceSnapshotEntity::class,
     ],
-    version = 7,
+    version = 16,
     exportSchema = false,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -51,7 +61,12 @@ abstract class KpknDatabase : RoomDatabase() {
     abstract fun workoutV2Dao(): WorkoutV2Dao
     abstract fun augeDao(): AugeDao
     abstract fun nutritionDao(): NutritionDao
+    abstract fun customExerciseDao(): CustomExerciseDao
     abstract fun wikiLabDao(): WikiLabDao
+    abstract fun sessionTemplateDao(): SessionTemplateDao
+    abstract fun learnedResolutionDao(): LearnedResolutionDao
+    abstract fun performanceRangeDao(): PerformanceRangeDao
+    abstract fun performanceSnapshotDao(): PerformanceSnapshotDao
 
     companion object {
         @Volatile private var INSTANCE: KpknDatabase? = null
@@ -209,6 +224,187 @@ abstract class KpknDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `custom_exercises` (
+                        `id` TEXT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `data` TEXT NOT NULL,
+                        `createdAt` TEXT NOT NULL,
+                        `updatedAt` TEXT NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_custom_exercises_name` ON `custom_exercises` (`name`)")
+            }
+        }
+
+        // v9: Elimina índices huérfanos en workout_context_performance creados en MIGRATION_3_4
+        // pero no declarados en WorkoutContextPerformanceEntity → Room fallaba al validar schema.
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP INDEX IF EXISTS `index_workout_context_performance_contextKey`")
+                db.execSQL("DROP INDEX IF EXISTS `index_workout_context_performance_updatedAt`")
+            }
+        }
+
+        // v10: Elimina índices huérfanos en workout_replacement_decisions creados en MIGRATION_3_4
+        // pero no declarados en WorkoutReplacementDecisionEntity → mismo patrón que v9.
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP INDEX IF EXISTS `index_workout_replacement_decisions_programId`")
+                db.execSQL("DROP INDEX IF EXISTS `index_workout_replacement_decisions_sessionId`")
+                db.execSQL("DROP INDEX IF EXISTS `index_workout_replacement_decisions_createdAt`")
+            }
+        }
+
+        // v11: robust nutrition food schema (normalized fields, quality scores, usage tracking)
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // nutrition_custom_foods expansion
+                db.execSQL("ALTER TABLE `nutrition_custom_foods` ADD COLUMN `normalizedName` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE `nutrition_custom_foods` ADD COLUMN `normalizedBrand` TEXT")
+                db.execSQL("ALTER TABLE `nutrition_custom_foods` ADD COLUMN `aliasesJson` TEXT NOT NULL DEFAULT '[]'")
+                db.execSQL("ALTER TABLE `nutrition_custom_foods` ADD COLUMN `sourcePriority` INTEGER NOT NULL DEFAULT 50")
+                db.execSQL("ALTER TABLE `nutrition_custom_foods` ADD COLUMN `verifiedScore` REAL NOT NULL DEFAULT 0.5")
+                db.execSQL("ALTER TABLE `nutrition_custom_foods` ADD COLUMN `usageCount` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE `nutrition_custom_foods` ADD COLUMN `lastUsedAt` TEXT")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_nutrition_custom_foods_name` ON `nutrition_custom_foods` (`name`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_nutrition_custom_foods_normalizedName` ON `nutrition_custom_foods` (`normalizedName`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_nutrition_custom_foods_normalizedBrand` ON `nutrition_custom_foods` (`normalizedBrand`)")
+                db.execSQL("UPDATE `nutrition_custom_foods` SET `normalizedName` = lower(`name`) WHERE `normalizedName` = ''")
+                db.execSQL("UPDATE `nutrition_custom_foods` SET `normalizedBrand` = lower(`name`) WHERE `normalizedBrand` IS NULL")
+
+                // global_foods expansion
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `normalizedName` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `normalizedBrand` TEXT")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `aliasesJson` TEXT NOT NULL DEFAULT '[]'")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `sodiumMg` REAL NOT NULL DEFAULT 0.0")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `potassiumMg` REAL NOT NULL DEFAULT 0.0")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `waterMl` REAL NOT NULL DEFAULT 0.0")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `sourcePriority` INTEGER NOT NULL DEFAULT 50")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `verifiedScore` REAL NOT NULL DEFAULT 0.5")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `usageCount` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `lastUsedAt` TEXT")
+
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_global_foods_normalizedName` ON `global_foods` (`normalizedName`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_global_foods_normalizedBrand` ON `global_foods` (`normalizedBrand`)")
+
+                db.execSQL("UPDATE `global_foods` SET `normalizedName` = lower(`name`) WHERE `normalizedName` = ''")
+                db.execSQL("UPDATE `global_foods` SET `normalizedBrand` = lower(`brand`) WHERE `normalizedBrand` IS NULL AND `brand` IS NOT NULL")
+                db.execSQL(
+                    """
+                    UPDATE `global_foods`
+                    SET `sourcePriority` = CASE
+                        WHEN lower(`source`) LIKE '%off%' THEN 80
+                        WHEN lower(`source`) LIKE '%usda%' THEN 70
+                        ELSE 60
+                    END
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    """
+                    UPDATE `global_foods`
+                    SET `verifiedScore` = CASE
+                        WHEN lower(`source`) LIKE '%usda%' THEN 0.85
+                        WHEN lower(`source`) LIKE '%off%' THEN 0.72
+                        ELSE 0.60
+                    END
+                    """.trimIndent()
+                )
+            }
+        }
+
+        // v12: auge_sleep_extended para tracking de sueño completo en Mis RINGS
+        val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `auge_sleep_extended` (
+                        `id` TEXT NOT NULL,
+                        `date` TEXT NOT NULL,
+                        `data` TEXT NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_auge_sleep_extended_date` ON `auge_sleep_extended` (`date`)")
+            }
+        }
+
+        // v13: session_templates – persistencia de plantillas de sesión creadas por el usuario
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `session_templates` (
+                        `id` TEXT NOT NULL,
+                        `sourceType` TEXT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `sortOrder` INTEGER NOT NULL DEFAULT 0,
+                        `isArchived` INTEGER NOT NULL DEFAULT 0,
+                        `createdAt` TEXT NOT NULL DEFAULT '',
+                        `data` TEXT NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_session_templates_sourceType` ON `session_templates` (`sourceType`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_session_templates_sortOrder` ON `session_templates` (`sortOrder`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_session_templates_createdAt` ON `session_templates` (`createdAt`)")
+            }
+        }
+
+        // v14: learned_resolutions – auto-mejora para matching de alimentos
+        val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `learned_resolutions` (
+                        `id` TEXT NOT NULL,
+                        `queryKey` TEXT NOT NULL,
+                        `foodId` TEXT NOT NULL,
+                        `portionGrams` REAL,
+                        `cookingMethod` TEXT,
+                        `count` INTEGER NOT NULL DEFAULT 1,
+                        `lastUsedAt` INTEGER NOT NULL DEFAULT 0,
+                        `createdAt` INTEGER NOT NULL DEFAULT 0,
+                        `syncedAt` INTEGER,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_learned_resolutions_queryKey` ON `learned_resolutions` (`queryKey`)")
+            }
+        }
+
+        // v15: rendimiento RMS – rango de rendimiento con eRM mínimo, máximo y RMS
+        val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `performance_range` (
+                        `contextKey` TEXT NOT NULL,
+                        `data` TEXT NOT NULL,
+                        PRIMARY KEY(`contextKey`)
+                    )
+                """.trimIndent())
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `performance_snapshot` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                        `contextKey` TEXT NOT NULL,
+                        `data` TEXT NOT NULL
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_performance_snapshot_contextKey` ON `performance_snapshot` (`contextKey`)")
+            }
+        }
+
+        // v16: isTechnicalInvalid en PerformanceSnapshotData — campo serializado en JSON dentro
+        // del campo 'data' existente (no requiere ALTER TABLE). Solo se hace bump de versión.
+        val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Sin cambios de schema: isTechnicalInvalid se gestiona via kotlinx.serialization
+                // dentro del JSON almacenado en performance_snapshot.data
+            }
+        }
+
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -216,7 +412,23 @@ abstract class KpknDatabase : RoomDatabase() {
                     KpknDatabase::class.java,
                     "kpkn.db",
                 )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                .addMigrations(
+                    MIGRATION_1_2,
+                    MIGRATION_2_3,
+                    MIGRATION_3_4,
+                    MIGRATION_4_5,
+                    MIGRATION_5_6,
+                    MIGRATION_6_7,
+                    MIGRATION_7_8,
+                    MIGRATION_8_9,
+                    MIGRATION_9_10,
+                    MIGRATION_10_11,
+                    MIGRATION_11_12,
+                    MIGRATION_12_13,
+                    MIGRATION_13_14,
+                    MIGRATION_14_15,
+                    MIGRATION_15_16,
+                )
                 .build()
                 .also { INSTANCE = it }
             }

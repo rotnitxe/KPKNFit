@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="health_connect_permissions">
+        <item>android.permission.health.READ_WEIGHT</item>
+        <item>android.permission.health.READ_BODY_FAT</item>
+        <item>android.permission.health.READ_NUTRITION</item>
+        <item>android.permission.health.READ_HYDRATION</item>
+        <item>android.permission.health.READ_STEPS</item>
+        <item>android.permission.health.WRITE_WEIGHT</item>
+        <item>android.permission.health.WRITE_BODY_FAT</item>
+        <item>android.permission.health.WRITE_NUTRITION</item>
+        <item>android.permission.health.WRITE_HYDRATION</item>
+    </string-array>
+</resources>

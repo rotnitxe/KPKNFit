@@ -58,6 +58,7 @@ import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTag
 import com.example.kpkn.data.splits.SplitTemplate
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.util.UUID
 
@@ -941,7 +942,7 @@ private fun collectSessionMuscles(session: Session): Set<String> {
     fun collectFromExercises(exercises: List<Exercise>) {
         exercises.forEach { exercise ->
             val info = exercise.exerciseDbId?.lowercase()?.let { EXERCISE_DATABASE_BY_ID[it] }
-            info?.involvedMuscles.orEmpty().forEach { involved ->
+            SessionMuscleFilter.relevantMusclesFor(info).forEach { involved ->
                 muscles.add(
                     normalizeCanonicalMuscle(
                         VolumeCalculator.normalizeMuscleGroup(

@@ -3,6 +3,7 @@ package com.example.kpkn.data.repository
 import android.content.Context
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -36,13 +37,15 @@ class ProgramRepository private constructor(context: Context) {
     val programs: StateFlow<List<Program>> = _programs.asStateFlow()
 
     fun addProgram(program: Program) {
-        _programs.update { it + program }
-        scope.launch { db.programDao().upsert(program.toEntity()) }
+        val normalized = program.normalizedIdentityFields()
+        _programs.update { it + normalized }
+        scope.launch { db.programDao().upsert(normalized.toEntity()) }
     }
 
     fun updateProgram(program: Program) {
-        _programs.update { list -> list.map { if (it.id == program.id) program else it } }
-        scope.launch { db.programDao().upsert(program.toEntity()) }
+        val normalized = program.normalizedIdentityFields()
+        _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
+        scope.launch { db.programDao().upsert(normalized.toEntity()) }
     }
 
     fun deleteProgram(programId: String) {
@@ -96,8 +99,9 @@ class ProgramRepository private constructor(context: Context) {
     val history: StateFlow<List<WorkoutLog>> = _history.asStateFlow()
 
     fun addWorkoutLog(log: WorkoutLog) {
-        _history.update { listOf(log) + it }
-        scope.launch { db.workoutLogDao().insert(log.toEntity()) }
+        val normalized = log.normalizedIdentityFields()
+        _history.update { listOf(normalized) + it }
+        scope.launch { db.workoutLogDao().insert(normalized.toEntity()) }
     }
 
     fun getLogsForProgram(programId: String): List<WorkoutLog> =
@@ -112,18 +116,33 @@ class ProgramRepository private constructor(context: Context) {
     val ongoingWorkout: StateFlow<OngoingWorkoutState?> = _ongoingWorkout.asStateFlow()
 
     fun startWorkout(state: OngoingWorkoutState) {
-        _ongoingWorkout.value = state
-        scope.launch { db.stateDao().upsertOngoingWorkout(state.toEntity()) }
+        val normalized = state.normalizedIdentityFields()
+        _ongoingWorkout.value = normalized
+        scope.launch { db.stateDao().upsertOngoingWorkout(normalized.toEntity()) }
     }
 
     fun updateOngoingWorkout(update: (OngoingWorkoutState) -> OngoingWorkoutState) {
-        _ongoingWorkout.update { it?.let(update) }
+        _ongoingWorkout.update { current -> current?.let(update)?.normalizedIdentityFields() }
         _ongoingWorkout.value?.let { scope.launch { db.stateDao().upsertOngoingWorkout(it.toEntity()) } }
     }
 
     fun clearOngoingWorkout() {
         _ongoingWorkout.value = null
         scope.launch { db.stateDao().clearOngoingWorkout() }
+    }
+
+    /**
+     * Synchronously persists the current [ongoingWorkout] state to Room.
+     * Call from [MainActivity.onStop] to prevent data loss when the OS kills the process
+     * before the background write coroutine completes.
+     */
+    suspend fun flushPendingWrites() {
+        val current = _ongoingWorkout.value
+        if (current != null) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                db.stateDao().upsertOngoingWorkout(current.toEntity())
+            }
+        }
     }
 
     // ─── Settings ─────────────────────────────────────────────────────────────
@@ -222,11 +241,13 @@ class ProgramRepository private constructor(context: Context) {
     /** Carga el estado persistido de Room en los StateFlows. Llamar al arrancar. */
     private fun loadFromDb() {
         scope.launch {
-            val programs = db.programDao().getAll().map { it.toProgram() }
-            val logs = db.workoutLogDao().getAll().map { it.toWorkoutLog() }
+            val programEntities = db.programDao().getAll()
+            val programs = programEntities.map { entity -> entity.toProgram().normalizedIdentityFields() }
+            val logEntities = db.workoutLogDao().getAll()
+            val logs = logEntities.map { entity -> entity.toWorkoutLog().normalizedIdentityFields() }
             val settings = db.settingsDao().get()?.toSettings() ?: Settings()
             val activeProgram = db.stateDao().getActiveProgram()?.toActiveProgramState()
-            val ongoingWorkout = db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()
+            val ongoingWorkout = db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()?.normalizedIdentityFields()
             val contextPerformance = db.workoutV2Dao().getAllContextPerformance()
                 .map { it.toContextPerformanceStateV2() }
                 .associateBy { it.contextKey }
@@ -239,6 +260,21 @@ class ProgramRepository private constructor(context: Context) {
             val replacementDecisions = db.workoutV2Dao().getAllReplacementDecisions()
                 .map { it.toExerciseReplacementDecisionV2() }
             val normalizedActiveProgram = normalizeActiveProgramState(programs, activeProgram)
+
+            programEntities.zip(programs).forEach { (entity, normalized) ->
+                if (entity.toProgram() != normalized) {
+                    scope.launch { db.programDao().upsert(normalized.toEntity()) }
+                }
+            }
+            logEntities.zip(logs).forEach { (entity, normalized) ->
+                if (entity.toWorkoutLog() != normalized) {
+                    scope.launch { db.workoutLogDao().insert(normalized.toEntity()) }
+                }
+            }
+            val persistedOngoing = db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()
+            if (persistedOngoing != null && persistedOngoing != ongoingWorkout && ongoingWorkout != null) {
+                scope.launch { db.stateDao().upsertOngoingWorkout(ongoingWorkout.toEntity()) }
+            }
 
             if (normalizedActiveProgram != activeProgram && normalizedActiveProgram != null) {
                 scope.launch { db.stateDao().upsertActiveProgram(normalizedActiveProgram.toEntity()) }

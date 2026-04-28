@@ -5,35 +5,60 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keepattributes SourceFile,LineNumberTable
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
-#-renamesourcefileattribute SourceFile
+-renamesourcefileattribute SourceFile
 
-# ── LiteRT-LM (Gemma 4) ──────────────────────────────────────────────────────
--keep class com.google.ai.edge.litertlm.** { *; }
--keep interface com.google.ai.edge.litertlm.** { *; }
--dontwarn com.google.ai.edge.litertlm.**
-
-# Protobuf Lite — field names must survive obfuscation
--keep class com.google.protobuf.** { *; }
--keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite {
-    <fields>;
-}
--dontwarn com.google.protobuf.**
-
-# LiteRT runtime (formerly TensorFlow Lite)
--keep class org.tensorflow.** { *; }
--dontwarn org.tensorflow.**
+# ── llama.cpp JNI bridge ──────────────────────────────────────────────────────
+# Explicit keep for the JNI class AND a generic rule covering any future native methods.
+-keep class com.example.kpkn.data.localai.LlamaCppEngine { *; }
+-keepclasseswithmembernames class * { native <methods>; }
 -keep class com.google.android.gms.tflite.** { *; }
 -dontwarn com.google.android.gms.tflite.**
+
+# ── kotlinx.serialization ──────────────────────────────────────────────────────
+-keepattributes *Annotation*, InnerClasses, Signature
+-dontnote kotlinx.serialization.AnnotationsKt
+
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.** {
+    kotlinx.serialization.KSerializer serializer;
+}
+-keepclassmembers class **$serializer {
+    kotlinx.serialization.KSerializer serializer;
+}
+-keepclassmembers class * {
+    @kotlinx.serialization.Serializable <fields>;
+    @kotlinx.serialization.Serializable <methods>;
+}
+-keep,includedescriptorclasses class com.example.kpkn.**$$serializer { *; }
+-keepclassmembers class com.example.kpkn.** {
+    *** Companion;
+}
+
+# ── KPKN domain models (serializable data classes) ────────────────────────────
+-keep class com.example.kpkn.data.models.** { *; }
+-keep class com.example.kpkn.data.exercises.** { *; }
+-keep class com.example.kpkn.data.db.** { *; }
+-keep class com.example.kpkn.data.food.** { *; }
+-keep class com.example.kpkn.domain.** { *; }
+
+# ── Room entities, DAOs, and database ─────────────────────────────────────────
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Dao interface * { *; }
+-keep @androidx.room.TypeConverter class * { *; }
+-keep @androidx.room.Database class * { *; }
+
+# ── Haze (Blur effect) ────────────────────────────────────────────────────────
+-keep class dev.chrisbanes.haze.** { *; }
+
+# ── Compose & Navigation ──────────────────────────────────────────────────────
+-keep class androidx.compose.material.icons.** { *; }
+-keep class androidx.navigation.** { *; }

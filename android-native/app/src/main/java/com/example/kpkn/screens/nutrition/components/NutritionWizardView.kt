@@ -87,6 +87,13 @@ private val METABOLIC_OPTIONS = listOf(
 // MAIN COMPOSABLE
 // ═══════════════════════════════════════════════════════════════════════
 
+private data class SliderConfig(
+    val value: Double,
+    val unit: String,
+    val range: ClosedFloatingPointRange<Float>,
+    val steps: Int,
+)
+
 @Composable
 fun NutritionWizardView(
     onComplete: (NutritionPlan) -> Unit,
@@ -120,13 +127,8 @@ fun NutritionWizardView(
     var activityLevel by remember { mutableIntStateOf(3) }
     var dietaryPreference by remember { mutableStateOf("omnivore") }
     var weeklyChangeKg by remember { mutableStateOf(0.45) }
+    var weeklyChangePercentage by remember { mutableStateOf(0.45) } // Para BODY_FAT meta en %
     var metabolicConditions by remember { mutableStateOf(emptyList<String>()) }
-
-    // Step 4: Summary
-    var useManualOverrides by remember { mutableStateOf(false) }
-    var customProtein by remember { mutableIntStateOf(0) }
-    var customCarbs by remember { mutableIntStateOf(0) }
-    var customFats by remember { mutableIntStateOf(0) }
 
     // ─── Derived ─────────────────────────────────────────────────────────
     val weightD = weight.toDoubleOrNull() ?: 70.0
@@ -135,6 +137,27 @@ fun NutritionWizardView(
     val bodyFatD = bodyFat.toDoubleOrNull()
     val muscleMassD = muscleMass.toDoubleOrNull()
     val primaryValD = primaryValue.toDoubleOrNull() ?: 0.0
+
+    // Manejar cambios en ritmo semanal según tipo de meta
+    fun updateWeeklyChange(newValue: Double) {
+        when (primaryMetric) {
+            GoalMetric.WEIGHT, GoalMetric.MUSCLE_MASS -> {
+                weeklyChangeKg = newValue
+                weeklyChangePercentage = newValue // Para consistencia, pero no se usa en UI
+            }
+            GoalMetric.BODY_FAT -> {
+                weeklyChangePercentage = newValue
+                // Convertir % a kg basado en peso actual
+                weeklyChangeKg = newValue * weightD / 100.0
+            }
+        }
+    }
+
+    // Step 4: Summary
+    var useManualOverrides by remember { mutableStateOf(false) }
+    var customProtein by remember { mutableIntStateOf(0) }
+    var customCarbs by remember { mutableIntStateOf(0) }
+    var customFats by remember { mutableIntStateOf(0) }
 
     val nutritionInput = NutritionInput(
         weightKg = weightD, heightCm = heightD, age = ageI,
@@ -178,6 +201,10 @@ fun NutritionWizardView(
     val weeklyTrendKg = when (direction) {
         "lose" -> -weeklyChangeKg; "gain" -> weeklyChangeKg; else -> 0.0
     }
+    
+    val weeklyTrendPercentage = when (direction) {
+        "lose" -> -weeklyChangePercentage; "gain" -> weeklyChangePercentage; else -> 0.0
+    }
 
     val ffmi = if (weightD > 0 && heightD > 0 && bodyFatD != null && bodyFatD > 0) {
         val lbm = weightD * (1 - bodyFatD / 100)
@@ -187,16 +214,43 @@ fun NutritionWizardView(
     val riskInput = RiskInput(
         settings = nutritionInput, calorieTarget = plannedCalories,
         goalMetric = primaryMetric, goalValue = primaryValD,
-        weeklyChangeKg = kotlin.math.abs(weeklyTrendKg),
+        weeklyChangeKg = when (primaryMetric) {
+            GoalMetric.WEIGHT -> kotlin.math.abs(weeklyTrendKg)
+            GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> kotlin.math.abs(weeklyTrendPercentage) * weightD / 100.0
+        },
     )
     val riskFlags = buildNutritionRiskFlags(riskInput)
     val hasHardStop = riskFlags.any { it.hardStop }
 
     val estimatedEndDate = if (direction == "maintain") null else {
-        val deltaPerWeek = kotlin.math.abs(weeklyTrendKg)
+        val deltaPerWeek = when (primaryMetric) {
+            GoalMetric.WEIGHT -> kotlin.math.abs(weeklyTrendKg)
+            GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> kotlin.math.abs(weeklyTrendPercentage)
+        }
         if (deltaPerWeek > 0) {
-            val weeks = kotlin.math.abs(primaryValD - weightD) / deltaPerWeek
-            java.time.LocalDate.now().plusDays((weeks * 7).toLong().coerceAtMost(365)).toString()
+            // Calculate delta in the correct unit for the goal type:
+            // WEIGHT → kg difference; BODY_FAT/MUSCLE_MASS → % difference
+            val (deltaInTargetUnit, ratePerWeek) = when (primaryMetric) {
+                GoalMetric.WEIGHT -> {
+                    val deltaKg = kotlin.math.abs(primaryValD - weightD)
+                    val rateKg = kotlin.math.abs(weeklyTrendKg)
+                    Pair(deltaKg, rateKg)
+                }
+                GoalMetric.BODY_FAT -> {
+                    val currentBf = bodyFatD ?: 0.0
+                    val deltaPercentage = kotlin.math.abs(currentBf - primaryValD)
+                    val ratePercentage = kotlin.math.abs(weeklyTrendPercentage)
+                    Pair(deltaPercentage, ratePercentage)
+                }
+                GoalMetric.MUSCLE_MASS -> {
+                    val currentMm = muscleMassD ?: 0.0
+                    val deltaPercentage = kotlin.math.abs(currentMm - primaryValD)
+                    val ratePercentage = kotlin.math.abs(weeklyTrendPercentage)
+                    Pair(deltaPercentage, ratePercentage)
+                }
+            }
+            val weeks = if (ratePerWeek > 0) deltaInTargetUnit / ratePerWeek else 0.0
+            java.time.LocalDate.now().plusDays((weeks * 7).toLong().coerceAtMost(730)).toString()
         } else null
     }
 
@@ -514,24 +568,38 @@ fun NutritionWizardView(
                         item {
                             WizardSection(
                                 "Ritmo de cambio semanal",
-                                "Un ritmo seguro está entre 0.25 – 0.75 kg/semana para la mayoría.",
+                                when (primaryMetric) {
+                                    GoalMetric.WEIGHT, GoalMetric.MUSCLE_MASS -> "Un ritmo seguro está entre 0.25 – 0.75 kg/semana para la mayoría."
+                                    GoalMetric.BODY_FAT -> "Un ritmo seguro está entre 0.2 – 0.8 %/semana para la mayoría."
+                                },
                                 Icons.Default.Speed,
                             ) {
+                                val config = when (primaryMetric) {
+                                    GoalMetric.WEIGHT, GoalMetric.MUSCLE_MASS ->
+                                        SliderConfig(weeklyChangeKg, "kg", 0.1f..2.0f, 37)
+                                    GoalMetric.BODY_FAT ->
+                                        SliderConfig(weeklyChangePercentage, "%", 0.1f..1.5f, 28)
+                                }
+                                val currentValue = config.value
+                                val unit = config.unit
+                                val valueRange = config.range
+                                val steps = config.steps
+                                
                                 Text(
-                                    "${"%.2f".format(weeklyChangeKg)} kg / semana",
+                                    "${"%.2f".format(currentValue)} $unit / semana",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Black,
                                     color = when {
-                                        weeklyChangeKg <= 0.5 -> Color(0xFF43A047)
-                                        weeklyChangeKg <= 1.0 -> Color(0xFFFF8F00)
+                                        currentValue <= 0.5 -> Color(0xFF43A047)
+                                        currentValue <= 1.0 -> Color(0xFFFF8F00)
                                         else -> Color(0xFFE53935)
                                     },
                                 )
                                 Slider(
-                                    value = weeklyChangeKg.toFloat(),
-                                    onValueChange = { weeklyChangeKg = it.toDouble() },
-                                    valueRange = 0.1f..2.0f,
-                                    steps = 37,
+                                    value = currentValue.toFloat(),
+                                    onValueChange = { updateWeeklyChange(it.toDouble()) },
+                                    valueRange = valueRange,
+                                    steps = steps,
                                 )
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -539,6 +607,15 @@ fun NutritionWizardView(
                                 ) {
                                     Text("Lento", style = MaterialTheme.typography.labelSmall, color = Color(0xFF43A047))
                                     Text("Agresivo", style = MaterialTheme.typography.labelSmall, color = Color(0xFFE53935))
+                                }
+                                
+                                if (primaryMetric == GoalMetric.BODY_FAT) {
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(
+                                        "Basado en tu peso actual (${"%.0f".format(weightD)} kg)",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    )
                                 }
                             }
                         }
@@ -614,10 +691,19 @@ fun NutritionWizardView(
                                         "${kotlin.math.abs(deficit)} kcal/día",
                                     )
                                 }
+                                
+                                // Mostrar ritmo semanal según tipo de meta
+                                val weeklyRateDisplay = when (primaryMetric) {
+                                    GoalMetric.WEIGHT -> "${"%.2f".format(weeklyChangeKg)} kg/semana"
+                                    GoalMetric.BODY_FAT -> "${"%.2f".format(weeklyChangePercentage)} %/semana"
+                                    GoalMetric.MUSCLE_MASS -> "${"%.2f".format(weeklyChangeKg)} kg/semana"
+                                }
+                                InfoRow("Ritmo semanal", weeklyRateDisplay)
+                                
                                 if (estimatedEndDate != null) {
                                     InfoRow("Fecha estimada", try {
                                         java.time.LocalDate.parse(estimatedEndDate)
-                                            .format(java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", java.util.Locale("es")))
+                                            .format(java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", java.util.Locale.getDefault()))
                                     } catch (_: Exception) { estimatedEndDate })
                                 }
 

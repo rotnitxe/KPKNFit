@@ -70,9 +70,9 @@ private enum class HeroWidgetType(
     val subtitle: String,
     val accent: Color,
 ) {
-    MUSCLE("Músculo", "Promedio general de la batería muscular del programa.", Color(0xFF22C55E)),
-    SNC("Sistema", "Estado actual de tu frescura neural y capacidad de producir fuerza.", Color(0xFF3B82F6)),
-    SPINAL("Estructura", "Estado general de tu carga axial y tolerancia conectiva.", Color(0xFFA855F7)),
+    MUSCLE("Músculos", "Promedio general del RING de músculos del programa.", Color(0xFF22C55E)),
+    SNC("Energía", "Estado actual de tu frescura neural y capacidad de producir fuerza.", Color(0xFF3B82F6)),
+    SPINAL("Columna", "Estado general de tu carga axial y tolerancia conectiva.", Color(0xFFA855F7)),
     VOLUME("Calibrar volumen", "Configura el volumen recomendado por músculo para este programa.", Color(0xFFF59E0B)),
     INCREASE("Aumentar volumen", "Sube 20% el volumen de la semana actual, músculo por músculo.", Color(0xFF14B8A6)),
     REDUCE("Disminuir volumen", "Baja 20% el volumen de la semana actual, músculo por músculo.", Color(0xFFE11D48));

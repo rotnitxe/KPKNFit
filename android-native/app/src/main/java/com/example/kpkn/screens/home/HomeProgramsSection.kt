@@ -5,19 +5,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.totalProgramWeeks
 import com.example.kpkn.ui.components.SectionHeader
@@ -91,22 +93,9 @@ private fun ProgramCard(program: Program, isActive: Boolean, onClick: () -> Unit
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.Top,
                     ) {
-                        if (isActive) {
-                            AssistChip(
-                                onClick = onClick,
-                                label = { Text("Activo") },
-                                colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = Color.White.copy(alpha = 0.18f),
-                                    labelColor = Color.White,
-                                ),
-                            )
-                        } else {
-                            Spacer(Modifier.width(1.dp))
-                        }
-
                         Text(
                             when (program.mode) {
                                 com.example.kpkn.data.models.ProgramMode.POWERLIFTING -> "Powerlifting"
@@ -142,6 +131,14 @@ private fun ProgramCard(program: Program, isActive: Boolean, onClick: () -> Unit
 
 @Composable
 private fun ProgramCardBackground(coverValue: String?) {
+    val context = LocalContext.current
+    val coverRequest = remember(coverValue, context) {
+        if (coverValue.isNullOrBlank() || coverValue.startsWith("gradient://")) return@remember null
+        ImageRequest.Builder(context)
+            .data(coverValue)
+            .size(640, 360)
+            .build()
+    }
     when {
         coverValue.isNullOrBlank() || coverValue.startsWith("gradient://") -> {
             Box(
@@ -158,9 +155,10 @@ private fun ProgramCardBackground(coverValue: String?) {
         }
         else -> {
             AsyncImage(
-                model = coverValue,
+                model = coverRequest,
                 contentDescription = "Portada del programa",
                 modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
             )
         }
     }

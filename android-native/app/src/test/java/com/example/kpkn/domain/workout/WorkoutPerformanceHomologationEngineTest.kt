@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.GlobalPerformanceStateV3
 import com.example.kpkn.data.models.HistoryColorV2
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.SetEntryV2
+import com.example.kpkn.data.models.TimeProgressionStrategyV3
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.buildWorkoutContextKey
 import org.junit.Assert.assertEquals
@@ -67,13 +68,21 @@ class WorkoutPerformanceHomologationEngineTest {
         val key = buildWorkoutContextKey("plank", null, null, LoadModeV2.BODYWEIGHT, UnitModeV2.TIME)
         val previous = ContextPerformanceStateV2(
             contextKey = key,
-            ewma = 40.0,
-            mean = 40.0,
-            variance = 16.0,
-            bestScore = 42.0,
+            ewma = 318.0,
+            mean = 318.0,
+            variance = 25.0,
+            bestScore = 330.0,
             sampleCount = 3,
-            recentScores = listOf(36.0, 40.0, 42.0),
-            consecutiveGreenSessions = 1,
+            recentScores = listOf(310.0, 320.0, 330.0),
+        )
+        val previousGlobal = GlobalPerformanceStateV3(
+            globalKey = "plank",
+            ewma = 56.0,
+            mean = 56.0,
+            variance = 4.0,
+            bestScore = 58.0,
+            sampleCount = 5,
+            recentScores = listOf(52.0, 54.0, 55.0, 57.0, 58.0),
         )
         val entry = SetEntryV2(
             exerciseId = "plank",
@@ -84,11 +93,13 @@ class WorkoutPerformanceHomologationEngineTest {
             actualValue = 50.0,
             bodyWeight = 80.0,
             contextKey = key,
+            timeProgressionStrategy = TimeProgressionStrategyV3.LOAD_THEN_TIME,
         )
 
-        val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous)
+        val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous, previousGlobal)
         assertEquals("TRM", result.outcome.metricType)
         assertNotNull(result.outcome.trm)
+        assertEquals("Subir tiempo objetivo +5s", result.outcome.suggestionReason)
         assertTrue((result.outcome.suggestedTargetSeconds ?: 0) >= 55)
     }
 
@@ -182,12 +193,12 @@ class WorkoutPerformanceHomologationEngineTest {
         )
         val previousGlobal = GlobalPerformanceStateV3(
             globalKey = "row-db",
-            ewma = 91.0,
-            mean = 91.0,
+            ewma = 80.0,
+            mean = 80.0,
             variance = 4.0,
-            bestScore = 92.0,
+            bestScore = 82.0,
             sampleCount = 6,
-            recentScores = listOf(88.0, 89.0, 90.0, 91.0, 91.5, 92.0),
+            recentScores = listOf(76.0, 78.0, 79.0, 80.0, 81.0, 82.0),
         )
         val entry = SetEntryV2(
             exerciseId = "row",
@@ -209,8 +220,9 @@ class WorkoutPerformanceHomologationEngineTest {
         )
 
         assertTrue(result.outcome.isGlobalPr)
-        assertEquals("row-db", result.homologated.globalKey)
         assertEquals(HistoryColorV2.YELLOW, result.outcome.historyColor)
+        assertEquals("row-db", result.homologated.globalKey)
+        assertTrue(result.nextGlobalState.bestScore > previousGlobal.bestScore)
     }
 
     @Test

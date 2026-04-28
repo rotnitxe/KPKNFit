@@ -285,6 +285,31 @@ private fun TrainingPanel(
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
 
+    fun focusWeek(blockId: String, weekId: String) {
+        viewModel.selectBlock(blockId)
+        viewModel.selectWeek(weekId)
+        viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+    }
+
+    fun createSessionForWeek(weekId: String, preferredDayOfWeek: Int) {
+        val located = locateWeekForSessionCreation(program, weekId) ?: return
+        val suggestedDay = chooseSessionCreationDay(
+            existingSessions = located.sessions,
+            preferredDayOfWeek = preferredDayOfWeek,
+            startDay = program.startDay ?: 1,
+        )
+        viewModel.selectBlock(located.blockId)
+        viewModel.selectWeek(located.weekId)
+        viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+        onCreateSession(
+            java.util.UUID.randomUUID().toString(),
+            located.weekId,
+            located.macroIndex,
+            located.mesoIndex,
+            suggestedDay,
+        )
+    }
+
     // Edge case: empty program
     if (roadmapBlocks.isEmpty()) {
         EmptyProgramState(onAddStructure = {
@@ -360,20 +385,14 @@ private fun TrainingPanel(
             StructureSubTab.MACROCICLO -> MacrocycleEditor(
                 program = program,
                 onUpdateProgram = { viewModel.updateProgram(it) },
-                onFocusWeek = { blockId, weekId ->
-                    viewModel.selectBlock(blockId)
-                    viewModel.selectWeek(weekId)
-                    viewModel.setStructureSubTab(StructureSubTab.SEMANA)
-                },
+                onFocusWeek = ::focusWeek,
+                onCreateSessionForWeek = ::createSessionForWeek,
             )
             StructureSubTab.LOOPS -> MacrocycleEditor(
                 program = program,
                 onUpdateProgram = { viewModel.updateProgram(it) },
-                onFocusWeek = { blockId, weekId ->
-                    viewModel.selectBlock(blockId)
-                    viewModel.selectWeek(weekId)
-                    viewModel.setStructureSubTab(StructureSubTab.SEMANA)
-                },
+                onFocusWeek = ::focusWeek,
+                onCreateSessionForWeek = ::createSessionForWeek,
             )
             StructureSubTab.PROTOCOLOS -> ProtocolsView(
                 program = program,
@@ -383,6 +402,49 @@ private fun TrainingPanel(
 
         Spacer(Modifier.height(120.dp))
     }
+}
+
+private data class WeekSessionLocation(
+    val blockId: String,
+    val weekId: String,
+    val macroIndex: Int,
+    val mesoIndex: Int,
+    val sessions: List<Session>,
+)
+
+private fun locateWeekForSessionCreation(program: Program, weekId: String): WeekSessionLocation? {
+    program.macrocycles.forEachIndexed { macroIndex, macro ->
+        macro.blocks.forEach { block ->
+            block.mesocycles.forEachIndexed { mesoIndex, meso ->
+                meso.weeks.forEach { week ->
+                    if (week.id == weekId) {
+                        return WeekSessionLocation(
+                            blockId = block.id,
+                            weekId = week.id,
+                            macroIndex = macroIndex,
+                            mesoIndex = mesoIndex,
+                            sessions = week.sessions,
+                        )
+                    }
+                }
+            }
+        }
+    }
+    return null
+}
+
+private fun chooseSessionCreationDay(
+    existingSessions: List<Session>,
+    preferredDayOfWeek: Int,
+    startDay: Int,
+): Int {
+    val normalizedPreferred = preferredDayOfWeek.coerceIn(1, 7)
+    val occupiedDays = existingSessions.mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }.toSet()
+    if (normalizedPreferred !in occupiedDays) return normalizedPreferred
+
+    val normalizedStart = startDay.coerceIn(1, 7)
+    val orderedDays = (normalizedStart..7).toList() + (1 until normalizedStart).toList()
+    return orderedDays.firstOrNull { it !in occupiedDays } ?: normalizedPreferred
 }
 
 // ─── Analytics Panel ────────────────────────────────────────────────────────
@@ -403,14 +465,17 @@ private fun AnalyticsPanel(
             AnalyticsSubTab.VOLUMEN -> {
                 val programDiscomforts by viewModel.programDiscomforts.collectAsState()
                 val exerciseDiscomfortAssociations by viewModel.exerciseDiscomfortAssociations.collectAsState()
-                VolumeView(
-                    program = program,
-                    isProgramActive = isProgramActive,
-                    hasCreatedSessions = program.macrocycles
+                val hasCreatedSessions = remember(program) {
+                    program.macrocycles
                         .flatMap { it.blocks }
                         .flatMap { it.mesocycles }
                         .flatMap { it.weeks }
-                        .any { it.sessions.isNotEmpty() },
+                        .any { it.sessions.isNotEmpty() }
+                }
+                VolumeView(
+                    program = program,
+                    isProgramActive = isProgramActive,
+                    hasCreatedSessions = hasCreatedSessions,
                     onActivateProgram = { viewModel.startProgram() },
                     onGoCreateSession = {
                         val firstBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()

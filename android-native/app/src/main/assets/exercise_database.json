@@ -19,11 +19,6 @@
         "muscle": "Tríceps",
         "role": "secondary",
         "activation": 0.5
-      },
-      {
-        "muscle": "Bíceps",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Pectorales",
@@ -63,11 +58,6 @@
         "muscle": "Tríceps",
         "role": "secondary",
         "activation": 0.5
-      },
-      {
-        "muscle": "Bíceps",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Pectorales",
@@ -1489,8 +1479,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "secondary",
-        "activation": 0.5,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       },
       {
@@ -1939,8 +1929,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -1998,8 +1988,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -2057,8 +2047,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -2116,8 +2106,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -2175,8 +2165,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -2234,8 +2224,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -2288,8 +2278,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -2342,8 +2332,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -2402,7 +2392,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Trapecio",
@@ -2445,8 +2435,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -2499,8 +2489,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -2688,7 +2678,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -2736,8 +2726,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -2796,7 +2786,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -2850,7 +2840,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -2899,7 +2889,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -2958,7 +2948,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -3017,7 +3007,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -3066,7 +3056,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -3115,7 +3105,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -3169,7 +3159,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -3212,8 +3202,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -3266,8 +3256,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -3326,7 +3316,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -3375,7 +3365,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -3429,7 +3419,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -3477,8 +3467,8 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
+        "role": "secondary",
+        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -3739,12 +3729,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       }
     ],
     "subMuscleGroup": "Deltoides",
@@ -3789,12 +3774,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       }
     ],
     "subMuscleGroup": "Deltoides",
@@ -4351,11 +4331,6 @@
         "role": "primary",
         "activation": 1,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -4390,11 +4365,6 @@
         "role": "primary",
         "activation": 1,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -4429,11 +4399,6 @@
         "role": "primary",
         "activation": 1,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -4468,11 +4433,6 @@
         "role": "primary",
         "activation": 1,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -4502,11 +4462,6 @@
         "role": "primary",
         "activation": 1,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "primary",
-        "activation": 1
       },
       {
         "muscle": "Bíceps",
@@ -4541,11 +4496,6 @@
         "role": "primary",
         "activation": 1,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "primary",
-        "activation": 1
       },
       {
         "muscle": "Bíceps",
@@ -4585,11 +4535,6 @@
         "role": "primary",
         "activation": 1,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -4624,11 +4569,6 @@
         "role": "primary",
         "activation": 1,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -4663,11 +4603,6 @@
         "role": "primary",
         "activation": 1,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -4702,11 +4637,6 @@
         "role": "primary",
         "activation": 1,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -4775,11 +4705,6 @@
         "role": "primary",
         "activation": 1,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -4814,11 +4739,6 @@
         "role": "primary",
         "activation": 1,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -4843,11 +4763,6 @@
     "name": "Curl Invertido con Barra",
     "description": "Curl con agarre prono. Máximo énfasis en braquiorradial y braquial.",
     "involvedMuscles": [
-      {
-        "muscle": "Antebrazo",
-        "role": "primary",
-        "activation": 1
-      },
       {
         "muscle": "Bíceps",
         "role": "primary",
@@ -6052,11 +5967,6 @@
         "muscle": "Trapecio",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Cuádriceps",
@@ -6282,11 +6192,6 @@
         "muscle": "Aductores",
         "role": "secondary",
         "activation": 0.5
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Cuádriceps",
@@ -6422,11 +6327,6 @@
         "role": "stabilizer",
         "activation": 0.4,
         "emphasis": "medio"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Cuádriceps",
@@ -6527,11 +6427,6 @@
         "muscle": "Aductores",
         "role": "secondary",
         "activation": 0.5
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Cuádriceps",
@@ -6676,11 +6571,6 @@
         "muscle": "Aductores",
         "role": "secondary",
         "activation": 0.5
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Glúteos",
@@ -6721,11 +6611,6 @@
         "role": "secondary",
         "activation": 0.5,
         "emphasis": "medio"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Cuádriceps",
@@ -6771,11 +6656,6 @@
         "role": "secondary",
         "activation": 0.5,
         "emphasis": "medio"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Cuádriceps",
@@ -6816,11 +6696,6 @@
         "role": "secondary",
         "activation": 0.5,
         "emphasis": "medio"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Glúteos",
@@ -6952,11 +6827,6 @@
         "role": "secondary",
         "activation": 0.5,
         "emphasis": "gastrocnemio"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Cuádriceps",
@@ -7159,11 +7029,6 @@
         "role": "stabilizer",
         "activation": 0.4,
         "emphasis": "gastrocnemio"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Cuádriceps",
@@ -7256,8 +7121,8 @@
       },
       {
         "muscle": "Dorsales",
-        "role": "secondary",
-        "activation": 0.5
+        "role": "neutralizer",
+        "activation": 0.15
       },
       {
         "muscle": "Erectores Espinales",
@@ -7266,11 +7131,6 @@
       },
       {
         "muscle": "Trapecio",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       },
@@ -7334,11 +7194,6 @@
         "activation": 0.4
       },
       {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
@@ -7379,8 +7234,8 @@
       },
       {
         "muscle": "Dorsales",
-        "role": "secondary",
-        "activation": 0.5
+        "role": "neutralizer",
+        "activation": 0.15
       },
       {
         "muscle": "Erectores Espinales",
@@ -7389,11 +7244,6 @@
       },
       {
         "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -7440,11 +7290,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Isquiosurales",
@@ -7487,11 +7332,6 @@
       },
       {
         "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -7541,11 +7381,6 @@
       },
       {
         "muscle": "Erectores Espinales",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       },
@@ -7604,11 +7439,6 @@
         "activation": 0.4
       },
       {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
@@ -7654,16 +7484,11 @@
       },
       {
         "muscle": "Dorsales",
-        "role": "secondary",
-        "activation": 0.5
+        "role": "neutralizer",
+        "activation": 0.15
       },
       {
         "muscle": "Erectores Espinales",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -7715,11 +7540,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Glúteos",
@@ -7757,11 +7577,6 @@
       },
       {
         "muscle": "Erectores Espinales",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       },
@@ -7811,11 +7626,6 @@
       },
       {
         "muscle": "Erectores Espinales",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       },
@@ -8155,11 +7965,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Glúteos",
@@ -8203,11 +8008,6 @@
       },
       {
         "muscle": "Erectores Espinales",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -8255,11 +8055,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Isquiosurales",
@@ -8305,11 +8100,6 @@
         "muscle": "Erectores Espinales",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Isquiosurales",
@@ -8353,11 +8143,6 @@
       },
       {
         "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -8410,11 +8195,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Isquiosurales",
@@ -8465,11 +8245,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Isquiosurales",
@@ -8512,11 +8287,6 @@
       },
       {
         "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -8903,11 +8673,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Glúteos",
@@ -8972,11 +8737,6 @@
       },
       {
         "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -9045,11 +8805,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Glúteos",
@@ -9105,11 +8860,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Glúteos",
@@ -9157,13 +8907,8 @@
       },
       {
         "muscle": "Dorsales",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
+        "role": "neutralizer",
+        "activation": 0.15
       }
     ],
     "subMuscleGroup": "Glúteos",
@@ -9206,11 +8951,6 @@
       },
       {
         "muscle": "Erectores Espinales",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -9463,11 +9203,6 @@
       },
       {
         "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -10001,11 +9736,6 @@
         "role": "secondary",
         "activation": 0.5,
         "emphasis": "sóleo"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Pantorrillas",
@@ -10405,11 +10135,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Dorsales",
@@ -10485,11 +10210,6 @@
     "description": "Caminar sosteniendo mancuernas a los lados. Antebrazo, trapecio y core.",
     "involvedMuscles": [
       {
-        "muscle": "Antebrazo",
-        "role": "primary",
-        "activation": 1
-      },
-      {
         "muscle": "Trapecio",
         "role": "primary",
         "activation": 1
@@ -10533,19 +10253,14 @@
         "activation": 1
       },
       {
-        "muscle": "Antebrazo",
-        "role": "primary",
-        "activation": 1
-      },
-      {
         "muscle": "Trapecio",
         "role": "secondary",
         "activation": 0.5
       },
       {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "medio"
       }
     ],
@@ -10589,8 +10304,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "secondary",
-        "activation": 0.5,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       },
       {
@@ -10641,11 +10356,6 @@
         "muscle": "Core",
         "role": "secondary",
         "activation": 0.5
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       },
       {
         "muscle": "Bíceps",
@@ -10853,8 +10563,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       }
     ],
@@ -10992,8 +10702,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       },
       {
@@ -11140,19 +10850,14 @@
         "activation": 1
       },
       {
-        "muscle": "Antebrazo",
-        "role": "primary",
-        "activation": 1
-      },
-      {
         "muscle": "Core",
         "role": "secondary",
         "activation": 0.5
       },
       {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       }
     ],
@@ -11192,7 +10897,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       }
     ],
     "subMuscleGroup": "Dorsales",
@@ -11236,8 +10941,8 @@
       },
       {
         "muscle": "Dorsales",
-        "role": "stabilizer",
-        "activation": 0.4
+        "role": "neutralizer",
+        "activation": 0.15
       },
       {
         "muscle": "Antebrazo",
@@ -11282,11 +10987,6 @@
         "muscle": "Tríceps",
         "role": "secondary",
         "activation": 0.5
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Pectorales",
@@ -11359,12 +11059,12 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5,
+        "activation": 0.3,
         "emphasis": "braquial"
       },
       {
@@ -11447,7 +11147,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Deltoides",
@@ -11743,11 +11443,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Cuádriceps",
@@ -11793,11 +11488,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Cuádriceps",
@@ -11840,11 +11530,6 @@
       },
       {
         "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -12109,8 +11794,8 @@
       },
       {
         "muscle": "Dorsales",
-        "role": "stabilizer",
-        "activation": 0.4
+        "role": "neutralizer",
+        "activation": 0.15
       },
       {
         "muscle": "Core",
@@ -12163,8 +11848,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       }
     ],
@@ -12372,11 +12057,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Deltoides",
@@ -12482,7 +12162,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Core",
@@ -12529,11 +12209,6 @@
       },
       {
         "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -12606,7 +12281,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Deltoides",
@@ -12645,7 +12320,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -12698,7 +12373,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Pectorales",
@@ -12860,11 +12535,6 @@
         "role": "secondary",
         "activation": 0.5,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -13264,11 +12934,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Trapecio",
@@ -13383,8 +13048,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "medio"
       }
     ],
@@ -13428,8 +13093,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       }
     ],
@@ -13492,11 +13157,6 @@
         "muscle": "Core",
         "role": "primary",
         "activation": 1
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       },
       {
         "muscle": "Dorsales",
@@ -13670,8 +13330,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       }
     ],
@@ -13841,11 +13501,6 @@
         "activation": 0.5
       },
       {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
         "muscle": "Bíceps",
         "role": "stabilizer",
         "activation": 0.4
@@ -13965,7 +13620,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       }
     ],
     "subMuscleGroup": "Dorsales",
@@ -14409,11 +14064,6 @@
         "muscle": "Core",
         "role": "secondary",
         "activation": 0.5
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Isquiosurales",
@@ -14967,8 +14617,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       }
     ],
@@ -15082,11 +14732,6 @@
         "muscle": "Trapecio",
         "role": "primary",
         "activation": 1
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Trapecio",
@@ -15185,7 +14830,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Core",
@@ -15233,8 +14878,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       }
     ],
@@ -15270,11 +14915,6 @@
         "role": "secondary",
         "activation": 0.5,
         "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -15422,11 +15062,6 @@
         "activation": 1
       },
       {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      },
-      {
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
@@ -15503,11 +15138,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -15536,11 +15166,6 @@
         "muscle": "Bíceps",
         "role": "primary",
         "activation": 1
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       },
       {
         "muscle": "Core",
@@ -15577,19 +15202,9 @@
         "emphasis": "braquial"
       },
       {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      },
-      {
         "muscle": "Bíceps",
         "role": "secondary",
         "activation": 0.5
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -15795,11 +15410,6 @@
         "muscle": "Tríceps",
         "role": "primary",
         "activation": 1
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Tríceps",
@@ -15867,11 +15477,6 @@
         "role": "secondary",
         "activation": 0.5,
         "emphasis": "anterior"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Tríceps",
@@ -15947,8 +15552,8 @@
       },
       {
         "muscle": "Dorsales",
-        "role": "stabilizer",
-        "activation": 0.4
+        "role": "neutralizer",
+        "activation": 0.15
       },
       {
         "muscle": "Core",
@@ -16038,13 +15643,7 @@
     "id": "ultimo_curl_dedos_barra",
     "name": "Curl de Dedos con Barra (Finger Curls)",
     "description": "Flexión de dedos. Antebrazo.",
-    "involvedMuscles": [
-      {
-        "muscle": "Antebrazo",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
+    "involvedMuscles": [],
     "subMuscleGroup": "Antebrazo",
     "category": "Hipertrofia",
     "type": "Aislamiento",
@@ -16066,13 +15665,7 @@
     "id": "ultimo_pinzas_discos",
     "name": "Pinzas con Discos (Plate Pinches Isométricos)",
     "description": "Agarre isométrico de discos. Antebrazo.",
-    "involvedMuscles": [
-      {
-        "muscle": "Antebrazo",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
+    "involvedMuscles": [],
     "subMuscleGroup": "Antebrazo",
     "category": "Resistencia",
     "type": "Aislamiento",
@@ -16094,18 +15687,7 @@
     "id": "ultimo_pronacion_supinacion_mazo",
     "name": "Pronación/SuPinación con Mazo o Mancuerna Asimétrica",
     "description": "Rotación de antebrazo. Movilidad.",
-    "involvedMuscles": [
-      {
-        "muscle": "Antebrazo",
-        "role": "primary",
-        "activation": 1
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
+    "involvedMuscles": [],
     "subMuscleGroup": "Antebrazo",
     "category": "Movilidad",
     "type": "Aislamiento",
@@ -16130,11 +15712,6 @@
     "involvedMuscles": [
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "primary",
         "activation": 1
       },
@@ -16370,11 +15947,6 @@
       },
       {
         "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -16747,27 +16319,17 @@
       },
       {
         "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1
-      },
-      {
-        "muscle": "Bíceps",
-        "role": "secondary",
-        "activation": 0.5,
-        "emphasis": "braquial"
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "secondary",
         "activation": 0.5
       },
       {
-        "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.4
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.3,
+        "emphasis": "braquial"
       },
       {
-        "muscle": "Antebrazo",
+        "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -16894,8 +16456,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       }
     ],
@@ -16935,11 +16497,6 @@
         "muscle": "Dorsales",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Core",
@@ -16972,7 +16529,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Core",
@@ -17015,8 +16572,8 @@
       },
       {
         "muscle": "Dorsales",
-        "role": "stabilizer",
-        "activation": 0.4
+        "role": "neutralizer",
+        "activation": 0.15
       },
       {
         "muscle": "Core",
@@ -17163,8 +16720,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "secondary",
-        "activation": 0.5,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       },
       {
@@ -17487,14 +17044,9 @@
         "activation": 1
       },
       {
-        "muscle": "Antebrazo",
-        "role": "primary",
-        "activation": 1
-      },
-      {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Core",
@@ -17536,8 +17088,8 @@
       },
       {
         "muscle": "Glúteos",
-        "role": "secondary",
-        "activation": 0.5,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       },
       {
@@ -17663,14 +17215,9 @@
         "emphasis": "anterior"
       },
       {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      },
-      {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       },
       {
@@ -17805,19 +17352,14 @@
         "activation": 1
       },
       {
-        "muscle": "Antebrazo",
-        "role": "primary",
-        "activation": 1
-      },
-      {
         "muscle": "Cuádriceps",
         "role": "secondary",
         "activation": 0.5
       },
       {
         "muscle": "Glúteos",
-        "role": "stabilizer",
-        "activation": 0.4,
+        "role": "neutralizer",
+        "activation": 0.15,
         "emphasis": "mayor"
       },
       {
@@ -17858,11 +17400,6 @@
         "muscle": "Isquiosurales",
         "role": "primary",
         "activation": 1
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
       },
       {
         "muscle": "Core",
@@ -17911,11 +17448,6 @@
       },
       {
         "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
         "role": "stabilizer",
         "activation": 0.4
       }
@@ -18179,14 +17711,9 @@
         "activation": 1
       },
       {
-        "muscle": "Antebrazo",
-        "role": "primary",
-        "activation": 1
-      },
-      {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Dorsales",
@@ -18303,14 +17830,9 @@
         "activation": 1
       },
       {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      },
-      {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Core",
@@ -18405,11 +17927,6 @@
         "muscle": "Core",
         "role": "stabilizer",
         "activation": 0.4
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Glúteos",
@@ -18442,7 +17959,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5,
+        "activation": 0.3,
         "emphasis": "braquial"
       },
       {
@@ -18553,7 +18070,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Core",
@@ -18635,7 +18152,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Deltoides",
@@ -19032,11 +18549,6 @@
         "role": "secondary",
         "activation": 0.5,
         "emphasis": "anterior"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Bíceps",
@@ -19143,11 +18655,6 @@
         "role": "secondary",
         "activation": 0.5,
         "emphasis": "anterior"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "stabilizer",
-        "activation": 0.4
       }
     ],
     "subMuscleGroup": "Tríceps",
@@ -19294,7 +18801,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Trapecio",
@@ -19342,7 +18849,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Trapecio",
@@ -19380,7 +18887,7 @@
       {
         "muscle": "Bíceps",
         "role": "secondary",
-        "activation": 0.5
+        "activation": 0.3
       },
       {
         "muscle": "Core",
@@ -19702,9 +19209,22 @@
     "name": "Patada de Glúteos en Polea (De Pie)",
     "description": "Extensión de cadera unilateral en polea baja con tobillera. Trabaja glúteo mayor en rango de extensión. Movimiento controlado, sin balanceo de cadera.",
     "involvedMuscles": [
-      { "muscle": "Glúteos", "role": "primary", "activation": 1, "emphasis": "mayor" },
-      { "muscle": "Isquiosurales", "role": "secondary", "activation": 0.5 },
-      { "muscle": "Core", "role": "stabilizer", "activation": 0.4 }
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
     ],
     "subMuscleGroup": "Glúteos",
     "category": "Hipertrofia",
@@ -19714,9 +19234,9 @@
     "bodyPart": "lower",
     "chain": "posterior",
     "efc": 2.2,
-    "cnc": 2.0,
+    "cnc": 2,
     "ssc": 0.3,
-    "ttc": 2.0,
+    "ttc": 2,
     "averageRestSeconds": 60,
     "coreInvolvement": "low",
     "bracingRecommended": true,
@@ -19728,9 +19248,22 @@
     "name": "Patada de Glúteos en Polea (A Cuatro Patas)",
     "description": "Extensión de cadera en cuadrupedia con polea baja. Mayor rango de movimiento y aislamiento del glúteo mayor. Clásico ejercicio de bodybuilding.",
     "involvedMuscles": [
-      { "muscle": "Glúteos", "role": "primary", "activation": 1, "emphasis": "mayor" },
-      { "muscle": "Isquiosurales", "role": "secondary", "activation": 0.4 },
-      { "muscle": "Core", "role": "stabilizer", "activation": 0.3 }
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
     ],
     "subMuscleGroup": "Glúteos",
     "category": "Hipertrofia",
@@ -19739,7 +19272,7 @@
     "force": "Empuje",
     "bodyPart": "lower",
     "chain": "posterior",
-    "efc": 2.0,
+    "efc": 2,
     "cnc": 1.8,
     "ssc": 0.3,
     "ttc": 2.2,
@@ -19754,9 +19287,23 @@
     "name": "Patada de Glúteos Lateral en Polea",
     "description": "Abducción de cadera en polea baja. Trabaja glúteo medio y menor. Mantén pelvis estable y evita inclinación lateral.",
     "involvedMuscles": [
-      { "muscle": "Glúteos", "role": "primary", "activation": 1, "emphasis": "medio" },
-      { "muscle": "Glúteos", "role": "secondary", "activation": 0.5, "emphasis": "menor" },
-      { "muscle": "Core", "role": "stabilizer", "activation": 0.4 }
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "medio"
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.5,
+        "emphasis": "menor"
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
     ],
     "subMuscleGroup": "Glúteos",
     "category": "Hipertrofia",
@@ -19765,10 +19312,10 @@
     "force": "Otro",
     "bodyPart": "lower",
     "chain": "lateral",
-    "efc": 2.0,
+    "efc": 2,
     "cnc": 1.8,
     "ssc": 0.2,
-    "ttc": 2.0,
+    "ttc": 2,
     "averageRestSeconds": 60,
     "coreInvolvement": "low",
     "bracingRecommended": true,
@@ -19780,9 +19327,21 @@
     "name": "Press Pallof de Pie",
     "description": "Antirotación de core con polea lateral. De pie, empuja y extiende los brazos resistiendo la rotación. Trabaja oblicuos, transverso y estabilizadores lumbares.",
     "involvedMuscles": [
-      { "muscle": "Core", "role": "primary", "activation": 1 },
-      { "muscle": "Oblicuos", "role": "primary", "activation": 1 },
-      { "muscle": "Glúteos", "role": "stabilizer", "activation": 0.3 }
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Oblicuos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "neutralizer",
+        "activation": 0.15
+      }
     ],
     "subMuscleGroup": "Core",
     "category": "Funcional",
@@ -19806,9 +19365,21 @@
     "name": "Press Pallof con Rotación",
     "description": "Variante del Pallof donde se añade una rotación controlada al extender los brazos. Mayor demanda sobre los oblicuos y la estabilidad rotacional.",
     "involvedMuscles": [
-      { "muscle": "Oblicuos", "role": "primary", "activation": 1 },
-      { "muscle": "Core", "role": "primary", "activation": 0.9 },
-      { "muscle": "Dorsales", "role": "stabilizer", "activation": 0.3 }
+      {
+        "muscle": "Oblicuos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "neutralizer",
+        "activation": 0.15
+      }
     ],
     "subMuscleGroup": "Core",
     "category": "Funcional",
@@ -19817,7 +19388,7 @@
     "force": "Otro",
     "bodyPart": "full",
     "chain": "anterior",
-    "efc": 3.0,
+    "efc": 3,
     "cnc": 2.8,
     "ssc": 0.4,
     "ttc": 2.8,
@@ -19832,10 +19403,26 @@
     "name": "Press Pallof en Split",
     "description": "Press Pallof ejecutado en posición de zancada (split). Mayor exigencia de estabilidad de cadera y pelvis, combinando antirotación con equilibrio.",
     "involvedMuscles": [
-      { "muscle": "Core", "role": "primary", "activation": 1 },
-      { "muscle": "Oblicuos", "role": "primary", "activation": 0.9 },
-      { "muscle": "Glúteos", "role": "stabilizer", "activation": 0.4 },
-      { "muscle": "Cuádriceps", "role": "stabilizer", "activation": 0.3 }
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Oblicuos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "neutralizer",
+        "activation": 0.15
+      },
+      {
+        "muscle": "Cuádriceps",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
     ],
     "subMuscleGroup": "Core",
     "category": "Funcional",
@@ -19845,7 +19432,7 @@
     "bodyPart": "full",
     "chain": "anterior",
     "efc": 3.2,
-    "cnc": 3.0,
+    "cnc": 3,
     "ssc": 0.4,
     "ttc": 2.8,
     "averageRestSeconds": 60,
@@ -19859,10 +19446,26 @@
     "name": "Chop Diagonal en Polea Alta",
     "description": "Movimiento diagonal de polea alta hacia abajo cruzando el cuerpo. Trabaja oblicuos, latísimo y core en patrón de rotación y anti-extensión.",
     "involvedMuscles": [
-      { "muscle": "Oblicuos", "role": "primary", "activation": 1 },
-      { "muscle": "Dorsales", "role": "secondary", "activation": 0.6 },
-      { "muscle": "Core", "role": "primary", "activation": 0.9 },
-      { "muscle": "Deltoides", "role": "secondary", "activation": 0.4 }
+      {
+        "muscle": "Oblicuos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Dorsales",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Deltoides",
+        "role": "secondary",
+        "activation": 0.4
+      }
     ],
     "subMuscleGroup": "Core",
     "category": "Funcional",
@@ -19871,7 +19474,7 @@
     "force": "Jalón",
     "bodyPart": "full",
     "chain": "anterior",
-    "efc": 3.0,
+    "efc": 3,
     "cnc": 2.8,
     "ssc": 0.5,
     "ttc": 2.5,
@@ -19886,10 +19489,26 @@
     "name": "Lift Diagonal en Polea Baja",
     "description": "Movimiento diagonal de polea baja hacia arriba cruzando el cuerpo. Complemento del Chop. Activa oblicuos inferiores, glúteos y hombros en movimiento funcional.",
     "involvedMuscles": [
-      { "muscle": "Oblicuos", "role": "primary", "activation": 1 },
-      { "muscle": "Glúteos", "role": "secondary", "activation": 0.5 },
-      { "muscle": "Core", "role": "primary", "activation": 0.9 },
-      { "muscle": "Deltoides", "role": "secondary", "activation": 0.5 }
+      {
+        "muscle": "Oblicuos",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "neutralizer",
+        "activation": 0.15
+      },
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Deltoides",
+        "role": "secondary",
+        "activation": 0.5
+      }
     ],
     "subMuscleGroup": "Core",
     "category": "Funcional",
@@ -19898,7 +19517,7 @@
     "force": "Empuje",
     "bodyPart": "full",
     "chain": "anterior",
-    "efc": 3.0,
+    "efc": 3,
     "cnc": 2.8,
     "ssc": 0.5,
     "ttc": 2.5,
@@ -19913,8 +19532,17 @@
     "name": "Patada de Glúteos en Máquina",
     "description": "Extensión de cadera en máquina específica de glúteos. Permite carga progresiva con técnica controlada. Excelente para hipertrofia del glúteo mayor.",
     "involvedMuscles": [
-      { "muscle": "Glúteos", "role": "primary", "activation": 1, "emphasis": "mayor" },
-      { "muscle": "Isquiosurales", "role": "secondary", "activation": 0.4 }
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      }
     ],
     "subMuscleGroup": "Glúteos",
     "category": "Hipertrofia",
@@ -19923,10 +19551,10 @@
     "force": "Empuje",
     "bodyPart": "lower",
     "chain": "posterior",
-    "efc": 2.0,
+    "efc": 2,
     "cnc": 1.8,
     "ssc": 0.2,
-    "ttc": 2.0,
+    "ttc": 2,
     "averageRestSeconds": 60,
     "coreInvolvement": "low",
     "bracingRecommended": false,
@@ -19938,9 +19566,23 @@
     "name": "Abducción de Cadera en Polea (Tumbado Lateral)",
     "description": "Abducción de cadera tumbado de lado con polea baja. Aísla glúteo medio y menor. Ideal para trabajar la banda lateral de la cadera en rango completo.",
     "involvedMuscles": [
-      { "muscle": "Glúteos", "role": "primary", "activation": 1, "emphasis": "medio" },
-      { "muscle": "Glúteos", "role": "secondary", "activation": 0.6, "emphasis": "menor" },
-      { "muscle": "Tensor Fascia Lata", "role": "secondary", "activation": 0.4 }
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "medio"
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6,
+        "emphasis": "menor"
+      },
+      {
+        "muscle": "Tensor Fascia Lata",
+        "role": "secondary",
+        "activation": 0.4
+      }
     ],
     "subMuscleGroup": "Glúteos",
     "category": "Hipertrofia",
@@ -19952,7 +19594,7 @@
     "efc": 1.8,
     "cnc": 1.6,
     "ssc": 0.2,
-    "ttc": 2.0,
+    "ttc": 2,
     "averageRestSeconds": 60,
     "coreInvolvement": "low",
     "bracingRecommended": false,
@@ -19964,9 +19606,21 @@
     "name": "Press Arnold",
     "description": "Press de hombro con rotación de muñecas al subir. Trabaja los tres cabezales del deltoides en un rango amplio. Buena opción para volumen muscular en hombros.",
     "involvedMuscles": [
-      { "muscle": "Deltoides", "role": "primary", "activation": 1 },
-      { "muscle": "Tríceps", "role": "secondary", "activation": 0.5 },
-      { "muscle": "Trapecio", "role": "secondary", "activation": 0.3 }
+      {
+        "muscle": "Deltoides",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "secondary",
+        "activation": 0.3
+      }
     ],
     "subMuscleGroup": "Deltoides",
     "category": "Hipertrofia",
@@ -19976,7 +19630,7 @@
     "bodyPart": "upper",
     "chain": "anterior",
     "efc": 3.2,
-    "cnc": 3.0,
+    "cnc": 3,
     "ssc": 0.8,
     "ttc": 2.2,
     "averageRestSeconds": 90,
@@ -19990,9 +19644,21 @@
     "name": "Press de Hombro Unilateral con Mancuerna",
     "description": "Press de hombro a un lado a la vez. Corrige desequilibrios, mayor activación estabilizadora del core. Alterna o ejecuta todos los reps por lado.",
     "involvedMuscles": [
-      { "muscle": "Deltoides", "role": "primary", "activation": 1 },
-      { "muscle": "Tríceps", "role": "secondary", "activation": 0.5 },
-      { "muscle": "Core", "role": "stabilizer", "activation": 0.5 }
+      {
+        "muscle": "Deltoides",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
     ],
     "subMuscleGroup": "Deltoides",
     "category": "Hipertrofia",
@@ -20001,7 +19667,7 @@
     "force": "Empuje",
     "bodyPart": "upper",
     "chain": "anterior",
-    "efc": 3.0,
+    "efc": 3,
     "cnc": 2.8,
     "ssc": 0.7,
     "ttc": 2.2,
@@ -20016,8 +19682,17 @@
     "name": "Elevación Lateral en Polea (Unilateral)",
     "description": "Elevación lateral con polea baja cruzada. Mantiene tensión constante en el deltoides medial en todo el rango, a diferencia de la versión con mancuerna.",
     "involvedMuscles": [
-      { "muscle": "Deltoides", "role": "primary", "activation": 1, "emphasis": "medial" },
-      { "muscle": "Trapecio", "role": "secondary", "activation": 0.3 }
+      {
+        "muscle": "Deltoides",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "medial"
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "secondary",
+        "activation": 0.3
+      }
     ],
     "subMuscleGroup": "Deltoides",
     "category": "Hipertrofia",
@@ -20027,9 +19702,9 @@
     "bodyPart": "upper",
     "chain": "lateral",
     "efc": 2.2,
-    "cnc": 2.0,
+    "cnc": 2,
     "ssc": 0.4,
-    "ttc": 2.0,
+    "ttc": 2,
     "averageRestSeconds": 60,
     "coreInvolvement": "low",
     "bracingRecommended": false,
@@ -20041,9 +19716,21 @@
     "name": "Curl Martillo con Mancuernas",
     "description": "Curl con agarre neutro (prono). Trabaja braquial y braquiorradial además del bíceps. Mejora la masa del brazo en su totalidad. Agarre más seguro para codos.",
     "involvedMuscles": [
-      { "muscle": "Bíceps", "role": "secondary", "activation": 0.7 },
-      { "muscle": "Braquial", "role": "primary", "activation": 1 },
-      { "muscle": "Braquiorradial", "role": "primary", "activation": 0.9 }
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Braquial",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquiorradial",
+        "role": "primary",
+        "activation": 0.9
+      }
     ],
     "subMuscleGroup": "Bíceps",
     "category": "Hipertrofia",
@@ -20052,10 +19739,10 @@
     "force": "Jalón",
     "bodyPart": "upper",
     "chain": "anterior",
-    "efc": 2.0,
+    "efc": 2,
     "cnc": 1.8,
     "ssc": 0.4,
-    "ttc": 2.0,
+    "ttc": 2,
     "averageRestSeconds": 60,
     "coreInvolvement": "low",
     "bracingRecommended": false,
@@ -20067,8 +19754,16 @@
     "name": "Curl 21s con Barra",
     "description": "Técnica de 7+7+7 repeticiones: rango inferior, rango superior y rango completo. Alta congestión y fatiga del bíceps. Ideal como finalizador.",
     "involvedMuscles": [
-      { "muscle": "Bíceps", "role": "primary", "activation": 1 },
-      { "muscle": "Braquial", "role": "secondary", "activation": 0.5 }
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Braquial",
+        "role": "secondary",
+        "activation": 0.5
+      }
     ],
     "subMuscleGroup": "Bíceps",
     "category": "Hipertrofia",
@@ -20078,7 +19773,7 @@
     "bodyPart": "upper",
     "chain": "anterior",
     "efc": 2.2,
-    "cnc": 2.0,
+    "cnc": 2,
     "ssc": 0.5,
     "ttc": 2.5,
     "averageRestSeconds": 60,
@@ -20092,8 +19787,16 @@
     "name": "Extensión de Tríceps con Cuerda (Unilateral)",
     "description": "Press-down de tríceps con cuerda a un brazo. Corrige asimetrías y permite mayor extensión de codo. Alta tensión en la cabeza larga del tríceps.",
     "involvedMuscles": [
-      { "muscle": "Tríceps", "role": "primary", "activation": 1 },
-      { "muscle": "Core", "role": "stabilizer", "activation": 0.3 }
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
     ],
     "subMuscleGroup": "Tríceps",
     "category": "Hipertrofia",
@@ -20117,10 +19820,27 @@
     "name": "Pullover en Polea Alta",
     "description": "Extensión de hombro desde polea alta con brazos casi extendidos. Trabaja latísimo del dorso con tensión constante. Accesorio excelente para anchura de espalda.",
     "involvedMuscles": [
-      { "muscle": "Dorsales", "role": "primary", "activation": 1 },
-      { "muscle": "Pectorales", "role": "secondary", "activation": 0.4, "emphasis": "inferior" },
-      { "muscle": "Tríceps", "role": "secondary", "activation": 0.3 },
-      { "muscle": "Core", "role": "stabilizer", "activation": 0.3 }
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Pectorales",
+        "role": "secondary",
+        "activation": 0.4,
+        "emphasis": "inferior"
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.3
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
     ],
     "subMuscleGroup": "Dorsales",
     "category": "Hipertrofia",
@@ -20132,7 +19852,7 @@
     "efc": 2.5,
     "cnc": 2.2,
     "ssc": 0.5,
-    "ttc": 2.0,
+    "ttc": 2,
     "averageRestSeconds": 60,
     "coreInvolvement": "low",
     "bracingRecommended": false,
@@ -20144,10 +19864,26 @@
     "name": "Remo en Polea Baja Unilateral",
     "description": "Remo con polea baja a un brazo. Mayor recorrido y rotación del torso que la versión bilateral. Trabaja latísimo, romboides y bíceps de forma aislada.",
     "involvedMuscles": [
-      { "muscle": "Dorsales", "role": "primary", "activation": 1 },
-      { "muscle": "Romboides", "role": "primary", "activation": 0.8 },
-      { "muscle": "Bíceps", "role": "secondary", "activation": 0.5 },
-      { "muscle": "Core", "role": "stabilizer", "activation": 0.4 }
+      {
+        "muscle": "Dorsales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Romboides",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "secondary",
+        "activation": 0.3
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
     ],
     "subMuscleGroup": "Dorsales",
     "category": "Hipertrofia",
@@ -20156,7 +19892,7 @@
     "force": "Jalón",
     "bodyPart": "upper",
     "chain": "posterior",
-    "efc": 3.0,
+    "efc": 3,
     "cnc": 2.8,
     "ssc": 0.6,
     "ttc": 2.2,
@@ -20171,9 +19907,23 @@
     "name": "Crossover Inferior en Polea",
     "description": "Cruce de poleas desde posición baja hacia arriba, con brazos semi-extendidos. Enfatiza la porción inferior y medial del pectoral. Alta tensión en aducción.",
     "involvedMuscles": [
-      { "muscle": "Pectorales", "role": "primary", "activation": 1, "emphasis": "inferior" },
-      { "muscle": "Deltoides", "role": "secondary", "activation": 0.4, "emphasis": "anterior" },
-      { "muscle": "Bíceps", "role": "stabilizer", "activation": 0.3 }
+      {
+        "muscle": "Pectorales",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "inferior"
+      },
+      {
+        "muscle": "Deltoides",
+        "role": "secondary",
+        "activation": 0.4,
+        "emphasis": "anterior"
+      },
+      {
+        "muscle": "Bíceps",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
     ],
     "subMuscleGroup": "Pectorales",
     "category": "Hipertrofia",
@@ -20185,7 +19935,7 @@
     "efc": 2.5,
     "cnc": 2.2,
     "ssc": 0.5,
-    "ttc": 2.0,
+    "ttc": 2,
     "averageRestSeconds": 60,
     "coreInvolvement": "low",
     "bracingRecommended": false,
@@ -20197,9 +19947,23 @@
     "name": "Flexión Diamante (Diamond Push-Up)",
     "description": "Flexión con manos en posición de diamante bajo el pecho. Mayor activación de la cabeza medial del tríceps y porción central del pectoral.",
     "involvedMuscles": [
-      { "muscle": "Tríceps", "role": "primary", "activation": 1 },
-      { "muscle": "Pectorales", "role": "primary", "activation": 0.8, "emphasis": "medial" },
-      { "muscle": "Deltoides", "role": "secondary", "activation": 0.4, "emphasis": "anterior" }
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Pectorales",
+        "role": "primary",
+        "activation": 0.8,
+        "emphasis": "medial"
+      },
+      {
+        "muscle": "Deltoides",
+        "role": "secondary",
+        "activation": 0.4,
+        "emphasis": "anterior"
+      }
     ],
     "subMuscleGroup": "Tríceps",
     "category": "Hipertrofia",
@@ -20211,7 +19975,7 @@
     "efc": 2.5,
     "cnc": 2.2,
     "ssc": 0.5,
-    "ttc": 2.0,
+    "ttc": 2,
     "averageRestSeconds": 60,
     "coreInvolvement": "medium",
     "bracingRecommended": true,
@@ -20223,10 +19987,27 @@
     "name": "Sentadilla Búlgara con Mancuernas",
     "description": "Zancada trasera elevada con pie posterior en banco. Alta activación de cuádriceps y glúteo ipsilateral. Excelente para hipertrofia unilateral de pierna.",
     "involvedMuscles": [
-      { "muscle": "Cuádriceps", "role": "primary", "activation": 1 },
-      { "muscle": "Glúteos", "role": "primary", "activation": 0.9, "emphasis": "mayor" },
-      { "muscle": "Isquiosurales", "role": "secondary", "activation": 0.4 },
-      { "muscle": "Core", "role": "stabilizer", "activation": 0.5 }
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      }
     ],
     "subMuscleGroup": "Cuádriceps",
     "category": "Fuerza",
@@ -20237,7 +20018,7 @@
     "chain": "anterior",
     "efc": 3.8,
     "cnc": 3.5,
-    "ssc": 1.0,
+    "ssc": 1,
     "ttc": 2.5,
     "averageRestSeconds": 90,
     "coreInvolvement": "high",
@@ -20250,9 +20031,22 @@
     "name": "Step Up con Mancuernas",
     "description": "Subida a cajón o banco con mancuernas. Trabaja cuádriceps y glúteo en patrón funcional. Controla el descenso para maximizar el estímulo excéntrico.",
     "involvedMuscles": [
-      { "muscle": "Cuádriceps", "role": "primary", "activation": 1 },
-      { "muscle": "Glúteos", "role": "primary", "activation": 0.8, "emphasis": "mayor" },
-      { "muscle": "Isquiosurales", "role": "secondary", "activation": 0.4 }
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.8,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      }
     ],
     "subMuscleGroup": "Cuádriceps",
     "category": "Funcional",
@@ -20262,7 +20056,7 @@
     "bodyPart": "lower",
     "chain": "anterior",
     "efc": 3.2,
-    "cnc": 3.0,
+    "cnc": 3,
     "ssc": 0.8,
     "ttc": 2.2,
     "averageRestSeconds": 75,
@@ -20276,9 +20070,22 @@
     "name": "Peso Muerto Rumano Unilateral con Mancuerna",
     "description": "RDL a una pierna con mancuerna en la mano opuesta. Máximo estímulo en isquiosurales y glúteo, con alta demanda de equilibrio y estabilidad.",
     "involvedMuscles": [
-      { "muscle": "Isquiosurales", "role": "primary", "activation": 1 },
-      { "muscle": "Glúteos", "role": "primary", "activation": 0.9, "emphasis": "mayor" },
-      { "muscle": "Core", "role": "stabilizer", "activation": 0.6 }
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.6
+      }
     ],
     "subMuscleGroup": "Isquiosurales",
     "category": "Fuerza",
@@ -20302,11 +20109,31 @@
     "name": "Sentadilla Overhead (OHS)",
     "description": "Sentadilla con barra por encima de la cabeza (agarre de arrancada). Alta demanda técnica: trabaja toda la cadena posterior, core y movilidad de hombros y caderas.",
     "involvedMuscles": [
-      { "muscle": "Cuádriceps", "role": "primary", "activation": 1 },
-      { "muscle": "Glúteos", "role": "primary", "activation": 0.9 },
-      { "muscle": "Deltoides", "role": "stabilizer", "activation": 0.8 },
-      { "muscle": "Core", "role": "stabilizer", "activation": 0.9 },
-      { "muscle": "Trapecio", "role": "stabilizer", "activation": 0.6 }
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Deltoides",
+        "role": "stabilizer",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.9
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "stabilizer",
+        "activation": 0.6
+      }
     ],
     "subMuscleGroup": "Cuádriceps",
     "category": "Fuerza",
@@ -20315,8 +20142,8 @@
     "force": "Empuje",
     "bodyPart": "full",
     "chain": "anterior",
-    "efc": 5.0,
-    "cnc": 5.0,
+    "efc": 5,
+    "cnc": 5,
     "ssc": 1.5,
     "ttc": 3.5,
     "averageRestSeconds": 180,
@@ -20330,9 +20157,21 @@
     "name": "Dead Bug",
     "description": "Ejercicio de estabilización lumbar en supino. Extiende brazo y pierna opuesta manteniendo la zona lumbar pegada al suelo. Activa transverso del abdomen sin compresión espinal.",
     "involvedMuscles": [
-      { "muscle": "Core", "role": "primary", "activation": 1 },
-      { "muscle": "Oblicuos", "role": "secondary", "activation": 0.6 },
-      { "muscle": "Psoas", "role": "secondary", "activation": 0.5 }
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Oblicuos",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Psoas",
+        "role": "secondary",
+        "activation": 0.5
+      }
     ],
     "subMuscleGroup": "Core",
     "category": "Rehabilitación",
@@ -20344,7 +20183,7 @@
     "efc": 1.5,
     "cnc": 1.2,
     "ssc": 0.2,
-    "ttc": 2.0,
+    "ttc": 2,
     "averageRestSeconds": 45,
     "coreInvolvement": "high",
     "bracingRecommended": true,
@@ -20356,9 +20195,21 @@
     "name": "Hollow Body Hold",
     "description": "Posición isométrica en supino con brazos extendidos y piernas elevadas. Activa fuertemente el recto abdominal y el core profundo. Base de la gimnasia artística.",
     "involvedMuscles": [
-      { "muscle": "Abdominales", "role": "primary", "activation": 1 },
-      { "muscle": "Core", "role": "primary", "activation": 1 },
-      { "muscle": "Psoas", "role": "secondary", "activation": 0.6 }
+      {
+        "muscle": "Abdominales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Psoas",
+        "role": "secondary",
+        "activation": 0.6
+      }
     ],
     "subMuscleGroup": "Core",
     "category": "Fuerza",
@@ -20370,7 +20221,7 @@
     "efc": 1.8,
     "cnc": 1.5,
     "ssc": 0.2,
-    "ttc": 2.0,
+    "ttc": 2,
     "averageRestSeconds": 45,
     "coreInvolvement": "high",
     "bracingRecommended": true,
@@ -20382,8 +20233,16 @@
     "name": "McGill Curl-Up",
     "description": "Crunch cervical mínimo sobre manos bajo la zona lumbar. Propuesto por Stuart McGill como el abdominal más seguro para la columna. Activa recto abdominal sin flexión lumbar.",
     "involvedMuscles": [
-      { "muscle": "Abdominales", "role": "primary", "activation": 1 },
-      { "muscle": "Core", "role": "primary", "activation": 0.8 }
+      {
+        "muscle": "Abdominales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 0.8
+      }
     ],
     "subMuscleGroup": "Core",
     "category": "Rehabilitación",
@@ -20393,7 +20252,7 @@
     "bodyPart": "full",
     "chain": "anterior",
     "efc": 1.2,
-    "cnc": 1.0,
+    "cnc": 1,
     "ssc": 0.1,
     "ttc": 1.5,
     "averageRestSeconds": 30,
@@ -20407,8 +20266,16 @@
     "name": "Encogimiento de Hombros con Barra (Detrás)",
     "description": "Shrug con barra detrás del cuerpo. Mayor activación del trapecio medio y superior que la versión frontal. Requiere buena movilidad de hombros.",
     "involvedMuscles": [
-      { "muscle": "Trapecio", "role": "primary", "activation": 1 },
-      { "muscle": "Romboides", "role": "secondary", "activation": 0.4 }
+      {
+        "muscle": "Trapecio",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Romboides",
+        "role": "secondary",
+        "activation": 0.4
+      }
     ],
     "subMuscleGroup": "Trapecio",
     "category": "Hipertrofia",
@@ -20417,7 +20284,7 @@
     "force": "Jalón",
     "bodyPart": "upper",
     "chain": "posterior",
-    "efc": 2.0,
+    "efc": 2,
     "cnc": 1.8,
     "ssc": 0.3,
     "ttc": 1.8,
@@ -20432,9 +20299,22 @@
     "name": "Sentadilla Hack con Mancuernas",
     "description": "Sentadilla con mancuernas detrás de los talones. Aísla cuádriceps con menor demanda lumbar. Alternativa accesible al hack squat en máquina.",
     "involvedMuscles": [
-      { "muscle": "Cuádriceps", "role": "primary", "activation": 1 },
-      { "muscle": "Glúteos", "role": "secondary", "activation": 0.5, "emphasis": "mayor" },
-      { "muscle": "Isquiosurales", "role": "secondary", "activation": 0.3 }
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.5,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.3
+      }
     ],
     "subMuscleGroup": "Cuádriceps",
     "category": "Hipertrofia",
@@ -20443,7 +20323,7 @@
     "force": "Empuje",
     "bodyPart": "lower",
     "chain": "anterior",
-    "efc": 3.0,
+    "efc": 3,
     "cnc": 2.8,
     "ssc": 0.7,
     "ttc": 2.2,
@@ -20458,9 +20338,22 @@
     "name": "Hip Thrust con Pie Elevado",
     "description": "Hip Thrust con el pie de trabajo elevado en un banco o step. Mayor rango de movimiento para el glúteo y mayor énfasis en isquiosurales. Variante avanzada.",
     "involvedMuscles": [
-      { "muscle": "Glúteos", "role": "primary", "activation": 1, "emphasis": "mayor" },
-      { "muscle": "Isquiosurales", "role": "primary", "activation": 0.8 },
-      { "muscle": "Core", "role": "stabilizer", "activation": 0.4 }
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
     ],
     "subMuscleGroup": "Glúteos",
     "category": "Hipertrofia",
@@ -20484,10 +20377,27 @@
     "name": "Sentadilla Goblet con Kettlebell",
     "description": "Sentadilla con kettlebell sostenido con las dos manos en el pecho. Postura erguida natural. Ideal para aprender la mecánica de la sentadilla y como calentamiento.",
     "involvedMuscles": [
-      { "muscle": "Cuádriceps", "role": "primary", "activation": 1 },
-      { "muscle": "Glúteos", "role": "primary", "activation": 0.8, "emphasis": "mayor" },
-      { "muscle": "Core", "role": "stabilizer", "activation": 0.5 },
-      { "muscle": "Isquiosurales", "role": "secondary", "activation": 0.4 }
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.8,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      }
     ],
     "subMuscleGroup": "Cuádriceps",
     "category": "Funcional",
@@ -20496,10 +20406,10 @@
     "force": "Empuje",
     "bodyPart": "lower",
     "chain": "anterior",
-    "efc": 3.0,
+    "efc": 3,
     "cnc": 2.8,
     "ssc": 0.8,
-    "ttc": 2.0,
+    "ttc": 2,
     "averageRestSeconds": 75,
     "coreInvolvement": "medium",
     "bracingRecommended": true,

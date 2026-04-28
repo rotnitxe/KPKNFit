@@ -31,6 +31,9 @@ interface WorkoutLogDao {
     @Query("SELECT * FROM workout_logs ORDER BY date DESC")
     suspend fun getAll(): List<WorkoutLogEntity>
 
+    @Query("SELECT * FROM workout_logs WHERE date >= :from ORDER BY date DESC")
+    suspend fun getAllSince(from: String): List<WorkoutLogEntity>
+
     @Query("SELECT * FROM workout_logs WHERE programId = :programId ORDER BY date DESC")
     suspend fun getByProgram(programId: String): List<WorkoutLogEntity>
 
@@ -136,12 +139,25 @@ interface AugeDao {
     @Upsert
     suspend fun upsertWellbeing(entity: WellbeingEntity)
 
-    // Sleep
+    // Sleep (basic - used by AUGE engine)
     @Query("SELECT * FROM auge_sleep ORDER BY date DESC LIMIT :n")
     suspend fun getLastNSleepLogs(n: Int): List<SleepLogEntity>
 
     @Upsert
     suspend fun upsertSleepLog(entity: SleepLogEntity)
+
+    // Sleep Extended (Mis RINGS tracking)
+    @Query("SELECT * FROM auge_sleep_extended ORDER BY date DESC LIMIT :n")
+    suspend fun getLastNSleepLogsExtended(n: Int): List<SleepLogExtendedEntity>
+
+    @Query("SELECT * FROM auge_sleep_extended ORDER BY date DESC")
+    suspend fun getAllSleepLogsExtended(): List<SleepLogExtendedEntity>
+
+    @Upsert
+    suspend fun upsertSleepLogExtended(entity: SleepLogExtendedEntity)
+
+    @Query("DELETE FROM auge_sleep_extended WHERE id = :id")
+    suspend fun deleteSleepLogExtended(id: String)
 
     // Post-session feedback
     @Query("SELECT * FROM auge_feedback ORDER BY date DESC")
@@ -174,6 +190,9 @@ interface NutritionDao {
     // NutritionLog
     @Query("SELECT * FROM nutrition_logs ORDER BY date DESC")
     suspend fun getAllLogs(): List<NutritionLogEntity>
+
+    @Query("SELECT * FROM nutrition_logs WHERE date >= :from ORDER BY date DESC")
+    suspend fun getLogsSince(from: String): List<NutritionLogEntity>
 
     @Query("SELECT * FROM nutrition_logs WHERE date = :date ORDER BY date DESC")
     suspend fun getLogsForDate(date: String): List<NutritionLogEntity>
@@ -231,6 +250,28 @@ interface NutritionDao {
     @Query("SELECT * FROM nutrition_custom_foods")
     suspend fun getAllCustomFoods(): List<CustomFoodEntity>
 
+    @Query(
+        """
+        SELECT * FROM nutrition_custom_foods
+        WHERE normalizedName LIKE '%' || :normalizedQuery || '%'
+           OR IFNULL(normalizedBrand, '') LIKE '%' || :normalizedQuery || '%'
+           OR aliasesJson LIKE '%' || :normalizedQuery || '%'
+        ORDER BY usageCount DESC, verifiedScore DESC, sourcePriority DESC
+        LIMIT :limit
+        """
+    )
+    suspend fun searchCustomFoods(normalizedQuery: String, limit: Int = 100): List<CustomFoodEntity>
+
+    @Query(
+        """
+        UPDATE nutrition_custom_foods
+        SET usageCount = usageCount + 1,
+            lastUsedAt = :lastUsedAt
+        WHERE id = :foodId
+        """
+    )
+    suspend fun incrementCustomFoodUsage(foodId: String, lastUsedAt: String)
+
     @Upsert
     suspend fun upsertCustomFood(entity: CustomFoodEntity)
 
@@ -242,6 +283,18 @@ interface NutritionDao {
     @Query("SELECT * FROM global_foods WHERE name LIKE '%' || :query || '%' LIMIT 100")
     suspend fun searchGlobalFoods(query: String): List<GlobalFoodEntity>
 
+    @Query(
+        """
+        SELECT * FROM global_foods
+        WHERE normalizedName LIKE '%' || :normalizedQuery || '%'
+           OR IFNULL(normalizedBrand, '') LIKE '%' || :normalizedQuery || '%'
+           OR aliasesJson LIKE '%' || :normalizedQuery || '%'
+        ORDER BY usageCount DESC, verifiedScore DESC, sourcePriority DESC
+        LIMIT :limit
+        """
+    )
+    suspend fun searchGlobalFoodsNormalized(normalizedQuery: String, limit: Int = 150): List<GlobalFoodEntity>
+
     @Query("""
         SELECT gf.* FROM global_foods gf
         INNER JOIN global_foods_fts fts ON gf.rowid = fts.rowid
@@ -250,11 +303,27 @@ interface NutritionDao {
     """)
     suspend fun searchGlobalFoodsWithFts(query: String): List<GlobalFoodEntity>
 
-    @Query("SELECT COUNT(*) FROM global_foods")
+@Query("SELECT COUNT(*) FROM global_foods")
     suspend fun getGlobalFoodCount(): Int
+
+    @Query("SELECT * FROM global_foods")
+    suspend fun getAllGlobalFoods(): List<GlobalFoodEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGlobalFoods(foods: List<GlobalFoodEntity>)
+
+    @Query(
+        """
+        UPDATE global_foods
+        SET usageCount = usageCount + 1,
+            lastUsedAt = :lastUsedAt
+        WHERE foodId = :foodId
+        """
+    )
+    suspend fun incrementGlobalFoodUsage(foodId: String, lastUsedAt: String)
+
+    @Query("DELETE FROM global_foods")
+    suspend fun clearGlobalFoods()
 
     @Transaction
     suspend fun activatePlanAtomic(planId: String, plans: List<NutritionPlanEntity>) {
@@ -263,4 +332,115 @@ interface NutritionDao {
         }
         upsertActiveState(NutritionActiveStateEntity(activePlanId = planId))
     }
+}
+
+// ─── Session Templates ───────────────────────────────────────────────────────
+
+@Dao
+interface SessionTemplateDao {
+    @Query("SELECT * FROM session_templates ORDER BY sortOrder ASC, createdAt DESC")
+    suspend fun getAll(): List<SessionTemplateEntity>
+
+    @Query("SELECT * FROM session_templates WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): SessionTemplateEntity?
+
+    @Upsert
+    suspend fun upsert(entity: SessionTemplateEntity)
+
+    @Query("DELETE FROM session_templates WHERE id = :id")
+    suspend fun delete(id: String)
+}
+
+// ─── Custom Exercises ─────────────────────────────────────────────────────────
+
+@Dao
+interface CustomExerciseDao {
+    @Query("SELECT * FROM custom_exercises ORDER BY name ASC")
+    suspend fun getAll(): List<CustomExerciseEntity>
+
+    @Query("SELECT * FROM custom_exercises WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): CustomExerciseEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(entity: CustomExerciseEntity)
+
+    @Query("DELETE FROM custom_exercises WHERE id = :id")
+    suspend fun delete(id: String)
+}
+
+// ─── Learned Resolutions ─────────────────────────────────────────────────────
+
+@Dao
+interface LearnedResolutionDao {
+    @Query("SELECT * FROM learned_resolutions WHERE queryKey = :queryKey LIMIT 1")
+    suspend fun getByQueryKey(queryKey: String): LearnedResolutionEntity?
+
+    @Upsert
+    suspend fun upsert(entity: LearnedResolutionEntity)
+
+    @Query("""
+        UPDATE learned_resolutions
+        SET count = count + 1, lastUsedAt = :lastUsedAt,
+            portionGrams = COALESCE(:portionGrams, portionGrams),
+            cookingMethod = COALESCE(:cookingMethod, cookingMethod)
+        WHERE queryKey = :queryKey
+    """)
+    suspend fun increment(
+        queryKey: String,
+        lastUsedAt: Long,
+        portionGrams: Double?,
+        cookingMethod: String?,
+    )
+
+    @Query("""
+        SELECT * FROM learned_resolutions
+        WHERE queryKey LIKE :prefix || '%'
+        ORDER BY count DESC, lastUsedAt DESC
+        LIMIT :n
+    """)
+    suspend fun topFor(prefix: String, n: Int = 5): List<LearnedResolutionEntity>
+
+    @Query("""
+        DELETE FROM learned_resolutions
+        WHERE id NOT IN (
+            SELECT id FROM learned_resolutions
+            ORDER BY count DESC, lastUsedAt DESC
+            LIMIT :keep
+        )
+    """)
+    suspend fun prune(keep: Int = 500)
+
+    @Query("SELECT COUNT(*) FROM learned_resolutions")
+    suspend fun count(): Int
+}
+
+// ─── Performance Range ─────────────────────────────────────────────────────────
+
+@Dao
+interface PerformanceRangeDao {
+    @Query("SELECT * FROM performance_range WHERE contextKey = :contextKey LIMIT 1")
+    suspend fun getByContextKey(contextKey: String): PerformanceRangeEntity?
+
+    @Query("SELECT * FROM performance_range")
+    suspend fun getAll(): List<PerformanceRangeEntity>
+
+    @Upsert
+    suspend fun upsert(entity: PerformanceRangeEntity)
+}
+
+// ─── Performance Snapshot ──────────────────────────────────────────────────────
+
+@Dao
+interface PerformanceSnapshotDao {
+    @Query("SELECT * FROM performance_snapshot WHERE contextKey = :contextKey ORDER BY id DESC")
+    suspend fun getByContextKey(contextKey: String): List<PerformanceSnapshotEntity>
+
+    @Query("SELECT * FROM performance_snapshot ORDER BY id DESC LIMIT :limit")
+    suspend fun getRecent(limit: Int = 100): List<PerformanceSnapshotEntity>
+
+    @Upsert
+    suspend fun upsert(entity: PerformanceSnapshotEntity)
+
+    @Query("DELETE FROM performance_snapshot WHERE id = :id")
+    suspend fun delete(id: Long)
 }

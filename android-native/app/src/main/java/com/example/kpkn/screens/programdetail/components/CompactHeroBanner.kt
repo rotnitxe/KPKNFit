@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.VolumeRecommendation
@@ -464,6 +465,14 @@ private fun HeroBackground(
     coverGradient: CoverGradient,
     usesGradient: Boolean,
 ) {
+    val context = LocalContext.current
+    val coverRequest = remember(coverValue, context, usesGradient) {
+        if (usesGradient || coverValue.isNullOrBlank()) return@remember null
+        ImageRequest.Builder(context)
+            .data(coverValue)
+            .size(1280, 720)
+            .build()
+    }
     Box(modifier = Modifier.fillMaxWidth().height(360.dp)) {
         if (usesGradient) {
             Box(
@@ -479,7 +488,7 @@ private fun HeroBackground(
             )
         } else {
             AsyncImage(
-                model = coverValue,
+                model = coverRequest,
                 contentDescription = "Portada del programa",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,

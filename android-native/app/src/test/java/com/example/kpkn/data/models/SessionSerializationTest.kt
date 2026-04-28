@@ -5,6 +5,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.example.kpkn.screens.workout.WorkoutRestModalState
+import com.example.kpkn.screens.workout.WorkoutSetDraft
 
 class SessionSerializationTest {
 
@@ -89,6 +91,17 @@ class SessionSerializationTest {
                 rules = listOf(MicroProgramRule("rule-1", "Regla 1", "Mantener RIR 2")),
             ),
             meetResults = MeetResults(placement = "1er lugar", total = 615.0, dots = 420.5, awards = listOf("Open")),
+            competitionDetails = CompetitionDetails(
+                competitionDate = "2026-05-10",
+                startTime = "09:00",
+                location = "Santiago",
+                federation = "IPF",
+                weighInDate = "2026-05-09",
+                weighInTime = "08:00",
+                reminderOneWeekEnabled = true,
+                reminder48hEnabled = true,
+                strategyNotes = "Abrir conservador y cerrar agresivo.",
+            ),
             parts = listOf(
                 SessionPart(
                     id = "part-1",
@@ -100,7 +113,7 @@ class SessionSerializationTest {
                             name = "Back Squat",
                             exerciseDbId = "back-squat",
                             exerciseId = "back-squat",
-                            trainingMode = TrainingMode.PERCENT,
+                            trainingMode = TrainingMode.RM,
                             restTime = 180,
                             reference1RM = 220.0,
                             setupDetails = ExerciseSetupDetails(seatPosition = "Rack 12"),
@@ -126,6 +139,9 @@ class SessionSerializationTest {
                                     restPauses = listOf(RestPauseData(15, 3)),
                                     attemptResult = AttemptResult.GOOD,
                                     judgingLights = listOf(true, true, true),
+                                    technicalQuality = 9,
+                                    discomfortIds = listOf("lumbar"),
+                                    refereeNotes = "Buen control en bajada",
                                 )
                             ),
                         )
@@ -142,10 +158,14 @@ class SessionSerializationTest {
         assertEquals(1, decoded.warmup.size)
         assertEquals(2, decoded.microProgram?.everyXCycles)
         assertEquals(615.0, decoded.meetResults?.total ?: 0.0, 0.001)
+        assertEquals("2026-05-09", decoded.competitionDetails?.weighInDate)
+        assertEquals(true, decoded.competitionDetails?.reminder48hEnabled)
         assertEquals("Rack 12", decoded.parts.first().exercises.first().setupDetails?.seatPosition)
         assertEquals(true, decoded.parts.first().exercises.first().isCompetitionLift)
         assertEquals(true, decoded.parts.first().exercises.first().sets.first().isCalibrator)
         assertEquals(AttemptResult.GOOD, decoded.parts.first().exercises.first().sets.first().attemptResult)
+        assertEquals(9, decoded.parts.first().exercises.first().sets.first().technicalQuality)
+        assertEquals("lumbar", decoded.parts.first().exercises.first().sets.first().discomfortIds.first())
     }
 
     @Test
@@ -179,5 +199,47 @@ class SessionSerializationTest {
         assertTrue(decoded.replacementDecisionsV2.isEmpty())
         assertNotNull(decoded.completedExercises.first().sets.first())
         assertTrue(decoded.completedExercises.first().sets.first().setOutcomeV2 == null)
+    }
+
+    @Test
+    fun encode_and_decode_ongoing_workout_state_preserves_workout_session_contracts() {
+        val ongoing = OngoingWorkoutState(
+            programId = "program-1",
+            session = Session(id = "session-1", name = "Sesion activa"),
+            startTime = 123456789L,
+            activeExerciseId = "bench",
+            activeSetId = "set-1",
+            activeSetIndex = 1,
+            setDrafts = mapOf(
+                "bench_1" to WorkoutSetDraft(
+                    weightText = "102.5",
+                    valueText = "5",
+                    intensityText = "8.5",
+                    isDirty = true,
+                )
+            ),
+            manualLoadOverrides = mapOf("bench_1" to 102.5),
+            loadSuggestionReasons = mapOf("bench_1" to "Base manual de la sesion"),
+            dynamicWeights = mapOf("bench_1" to 102.5),
+            editingSetKey = "bench_1",
+            restModalState = WorkoutRestModalState(
+                exerciseId = "bench",
+                exerciseName = "Bench Press",
+                plannedSeconds = 120,
+                suggestedSeconds = 135,
+                activeSeconds = 150,
+                isManualOverride = true,
+            ),
+        )
+
+        val encoded = json.encodeToString(OngoingWorkoutState.serializer(), ongoing)
+        val decoded = json.decodeFromString<OngoingWorkoutState>(encoded)
+
+        assertEquals("102.5", decoded.setDrafts["bench_1"]?.weightText)
+        assertEquals(true, decoded.setDrafts["bench_1"]?.isDirty)
+        assertEquals(102.5, decoded.manualLoadOverrides["bench_1"] ?: 0.0, 0.001)
+        assertEquals("bench_1", decoded.editingSetKey)
+        assertEquals(150, decoded.restModalState?.activeSeconds)
+        assertEquals(true, decoded.restModalState?.isManualOverride)
     }
 }

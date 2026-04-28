@@ -64,7 +64,33 @@ private fun ProgramEditorContent(
     viewModel: ProgramEditorViewModel,
     onBack: () -> Unit,
 ) {
-    val program = uiState.programDraft ?: return
+    val program = uiState.programDraft
+    if (program == null) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Editar Programa", fontWeight = FontWeight.Black) },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.Default.ArrowBack, "Volver")
+                        }
+                    },
+                )
+            },
+        ) { innerPadding ->
+            Box(
+                Modifier.fillMaxSize().padding(innerPadding),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    "Programa no encontrado",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+        return
+    }
     var showDiscardDialog by remember { mutableStateOf(false) }
     var showMenuExpanded by remember { mutableStateOf(false) }
 

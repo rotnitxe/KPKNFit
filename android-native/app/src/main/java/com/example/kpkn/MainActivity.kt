@@ -4,10 +4,8 @@ import android.Manifest
 import android.app.AlarmManager
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.os.Build
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,6 +21,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -32,11 +32,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.navigation.DeepLinkRouter
 import com.example.kpkn.navigation.KpknRoute
+import com.example.kpkn.navigation.addHealthConnectRoute
+import com.example.kpkn.navigation.NavigationBus
 import com.example.kpkn.screens.home.HomeScreen
 import com.example.kpkn.screens.nutrition.BodyProgressScreen
 import com.example.kpkn.screens.nutrition.MealHistoryScreen
 import com.example.kpkn.screens.nutrition.NutritionScreen
+import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.profile.ProfileScreen
 import com.example.kpkn.screens.programdetail.ProgramDetailScreen
 import com.example.kpkn.screens.programeditor.ProgramEditorScreen
@@ -53,13 +57,17 @@ import com.example.kpkn.screens.settings.SettingsScreen
 import com.example.kpkn.screens.settings.SettingsTrainingScreen
 import com.example.kpkn.screens.wikilab.*
 import com.example.kpkn.screens.workout.WorkoutScreen
-import com.example.kpkn.screens.workout.ReadinessGateScreen
+
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
+import com.example.kpkn.telemetry.TelemetryHelper
 import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.icons.NutritionIcon
+import com.example.kpkn.ui.components.icons.RingsTabIcon
 import com.example.kpkn.ui.components.icons.WikiIcon
+import com.example.kpkn.screens.myrings.MyRingsScreen
+import com.example.kpkn.ui.locale.LocaleManager
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.theme.KPKNTheme
 import kotlinx.coroutines.Dispatchers
@@ -67,13 +75,42 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
+    private val pendingDeepLinkRoute = mutableStateOf<String?>(null)
+    private val pendingSharedNutritionText = mutableStateOf<String?>(null)
+    private lateinit var telemetryHelper: TelemetryHelper
+
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(LocaleManager.wrapContext(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Initialize telemetry
+        telemetryHelper = TelemetryHelper(this)
+        telemetryHelper.logAppOpen()
+
+        pendingDeepLinkRoute.value = resolveNavigationRouteFromIntent(intent)
+        pendingSharedNutritionText.value = extractSharedNutritionText(intent)
+
         runCatching {
             com.example.kpkn.data.exercises.initializeExerciseDatabase(this)
         }.onFailure { it.printStackTrace() }
+
+        // Sync Room appLanguage → SharedPreferences on first load (retrocompat)
+        lifecycleScope.launch(Dispatchers.IO) {
+            runCatching {
+                val savedLang = com.example.kpkn.data.repository.ProgramRepository
+                    .init(this@MainActivity).settings.value.appLanguage
+                LocaleManager.persist(this@MainActivity, savedLang)
+            }.onFailure { it.printStackTrace() }
+        }
+
+        // API ≤ 32: observe locale change events emitted by SettingsViewModel
+        lifecycleScope.launch {
+            LocaleManager.recreateEvent.collect { recreate() }
+        }
 
         lifecycleScope.launch(Dispatchers.IO) {
             runCatching {
@@ -128,9 +165,6 @@ class MainActivity : ComponentActivity() {
             com.example.kpkn.data.repository.WikiLabRepository.initialize(this, db)
         }.onFailure { it.printStackTrace() }
 
-        // Register app context for lazy Local AI usage.
-        com.example.kpkn.data.localai.LocalAiManager.primeContext(this)
-
         requestRequiredPermissions()
 
         setContent {
@@ -139,15 +173,37 @@ class MainActivity : ComponentActivity() {
             KPKNTheme(themeMode = themeMode) {
                 KPKNApp(
                     themeMode = themeMode,
-                    onThemeChange = { themeMode = it }
+                    onThemeChange = { themeMode = it },
+                    pendingDeepLinkRoute = pendingDeepLinkRoute.value,
+                    onDeepLinkHandled = { pendingDeepLinkRoute.value = null },
+                    pendingSharedNutritionText = pendingSharedNutritionText.value,
+                    onSharedNutritionHandled = { pendingSharedNutritionText.value = null },
                 )
             }
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val deepLinkRoute = resolveNavigationRouteFromIntent(intent)
+        pendingDeepLinkRoute.value = deepLinkRoute
+        
+        if (!deepLinkRoute.isNullOrBlank()) {
+            telemetryHelper.logDeepLinkOpen(deepLinkRoute)
+        }
+        
+        val shared = extractSharedNutritionText(intent)
+        pendingSharedNutritionText.value = shared
+        if (!shared.isNullOrBlank()) {
+            NavigationBus.emitSharedNutritionText(shared)
+            telemetryHelper.logFoodItemAdd("shared_text", "Shared nutrition text", null)
+        }
+    }
+
     override fun onStop() {
         super.onStop()
-        com.example.kpkn.data.localai.LocalAiManager.onAppBackgrounded()
+        telemetryHelper.logAppBackground()
         // Flush any in-flight Room writes to prevent session loss on background kill
         runBlocking {
             runCatching {
@@ -168,16 +224,50 @@ class MainActivity : ComponentActivity() {
             val alarmManager = getSystemService(AlarmManager::class.java)
             val canScheduleExact = alarmManager?.canScheduleExactAlarms() == true
             if (!canScheduleExact) {
-                runCatching {
-                    startActivity(
-                        Intent(
-                            Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
-                            Uri.parse("package:$packageName")
-                        )
-                    )
-                }.onFailure { it.printStackTrace() }
+                logKpknPermissionIssue("SCHEDULE_EXACT_ALARM")
             }
         }
+    }
+    
+    private fun logKpknPermissionIssue(permission: String) {
+        runCatching {
+            com.example.kpkn.telemetry.KpknTelemetry.getInstance(this).logEvent(
+                "permission_issue",
+                "permission" to permission,
+                "blocker" to false
+            )
+        }
+    }
+
+    private fun extractSharedNutritionText(intent: Intent?): String? {
+        if (intent == null) return null
+        if (intent.action != Intent.ACTION_SEND) return null
+        val mime = intent.type.orEmpty()
+        if (!mime.contains("text", ignoreCase = true)) return null
+        return intent.getStringExtra(Intent.EXTRA_TEXT)?.trim()?.takeIf { it.isNotBlank() }
+    }
+
+    private fun resolveNavigationRouteFromIntent(intent: Intent?): String? {
+        if (intent == null) return null
+        val explicitAction = intent.getStringExtra("kpkn_nutrition_action")
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+        if (explicitAction != null) {
+            return KpknRoute.NutritionAction.create(explicitAction)
+        }
+
+        val dataRoute = DeepLinkRouter.resolve(intent.data)?.route
+        if (dataRoute != null) return dataRoute
+
+        val data = intent.data
+        if (data != null && data.scheme.equals("kpkn", ignoreCase = true)) {
+            val action = data.getQueryParameter("action")
+                ?: data.pathSegments.lastOrNull()
+            if (!action.isNullOrBlank()) {
+                return KpknRoute.NutritionAction.create(action)
+            }
+        }
+        return null
     }
 }
 
@@ -186,14 +276,34 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun KPKNApp(
     themeMode: AppThemeMode,
-    onThemeChange: (AppThemeMode) -> Unit
+    onThemeChange: (AppThemeMode) -> Unit,
+    pendingDeepLinkRoute: String? = null,
+    onDeepLinkHandled: () -> Unit = {},
+    pendingSharedNutritionText: String? = null,
+    onSharedNutritionHandled: () -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val telemetryHelper = remember { TelemetryHelper(context) }
     val navController = rememberNavController()
     val programsViewModel: ProgramsViewModel = viewModel()
+    val nutritionViewModel: NutritionViewModel = viewModel { NutritionViewModel() }
     val activeProgram by programsViewModel.activeProgram.collectAsState()
     val allPrograms by programsViewModel.programs.collectAsState()
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStack?.destination?.route
+    val previousRoute = remember { mutableStateOf<String?>(null) }
+    
+    // Log navigation when route changes
+    LaunchedEffect(currentRoute) {
+        if (currentRoute != previousRoute.value) {
+            telemetryHelper.logNavigation(
+                from = previousRoute.value ?: "unknown",
+                to = currentRoute ?: "unknown"
+            )
+            previousRoute.value = currentRoute
+        }
+    }
+    
     val isFullscreenWizard = (currentRoute == KpknRoute.ProgramEditor.route &&
         currentBackStack?.arguments?.getString(KpknRoute.ProgramEditor.ARG_PROGRAM_ID) == "new") ||
         currentRoute == KpknRoute.NutritionWizard.route ||
@@ -212,12 +322,60 @@ fun KPKNApp(
         currentRoute?.startsWith("workout") == true -> KpknRoute.Training.route
         currentRoute == KpknRoute.ProgramDetail.route -> KpknRoute.Training.route
         currentRoute == "log-workout" -> KpknRoute.Training.route
+        currentRoute?.startsWith(KpknRoute.MyRings.route) == true -> KpknRoute.MyRings.route
         currentRoute?.startsWith(KpknRoute.Nutrition.route) == true -> KpknRoute.Nutrition.route
+        currentRoute?.startsWith(KpknRoute.Learn.route) == true -> KpknRoute.WikiLab.route
         currentRoute?.startsWith(KpknRoute.WikiLab.route) == true   -> KpknRoute.WikiLab.route
         else -> KpknRoute.Home.route
     }
 
     val ongoingWorkout by ProgramRepository.getInstance().ongoingWorkout.collectAsState()
+
+    LaunchedEffect(pendingDeepLinkRoute) {
+        val route = pendingDeepLinkRoute ?: return@LaunchedEffect
+        if (route != currentRoute) {
+            navController.navigate(route) {
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+        onDeepLinkHandled()
+    }
+
+    LaunchedEffect(pendingSharedNutritionText) {
+        val shared = pendingSharedNutritionText ?: return@LaunchedEffect
+        val normalized = shared.trim()
+        if (normalized.isBlank()) {
+            onSharedNutritionHandled()
+            return@LaunchedEffect
+        }
+        telemetryHelper.logMealLogStart("shared")
+        nutritionViewModel.enqueueSharedDescription(normalized, openTab = 0)
+        if (currentRoute != KpknRoute.Nutrition.route) {
+            navController.navigate(KpknRoute.Nutrition.route) {
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+        onSharedNutritionHandled()
+    }
+
+    DisposableEffect(Unit) {
+        val listener: (String) -> Unit = { text ->
+            nutritionViewModel.enqueueSharedDescription(text, openTab = 0)
+            val routeNow = navController.currentBackStackEntry?.destination?.route
+            if (routeNow != KpknRoute.Nutrition.route) {
+                navController.navigate(KpknRoute.Nutrition.route) {
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        }
+        NavigationBus.registerNutritionShareListener(listener)
+        onDispose {
+            NavigationBus.unregisterNutritionShareListener(listener)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (isFullscreenWizard) {
@@ -226,6 +384,7 @@ fun KPKNApp(
                 themeMode = themeMode,
                 onThemeChange = onThemeChange,
                 primaryProgramId = primaryProgramId,
+                nutritionViewModel = nutritionViewModel,
             )
         } else {
             NavigationSuiteScaffold(
@@ -233,15 +392,19 @@ fun KPKNApp(
 
                     item(
                         icon = { Icon(Icons.Default.Home, null, tint = navIconTint(currentTab == KpknRoute.Home.route)) },
-                        label = { Text("Inicio") },
+                        label = { Text(stringResource(R.string.nav_home)) },
                         selected = currentTab == KpknRoute.Home.route,
-                        onClick = { navController.navigate(KpknRoute.Home.route) { launchSingleTop = true } },
+                        onClick = { 
+                            telemetryHelper.logNavigation(currentTab, KpknRoute.Home.route)
+                            navController.navigate(KpknRoute.Home.route) { launchSingleTop = true } 
+                        },
                     )
                     item(
                         icon = { DumbbellIcon(tint = navIconTint(currentTab == KpknRoute.Training.route)) },
-                        label = { Text("Entreno") },
+                        label = { Text(stringResource(R.string.nav_training)) },
                         selected = currentTab == KpknRoute.Training.route,
-                        onClick = {
+                        onClick = { 
+                            telemetryHelper.logNavigation(currentTab, KpknRoute.Training.route)
                             val activeProgramId = activeProgram?.id
                             if (activeProgramId != null) {
                                 navController.navigate(KpknRoute.ProgramDetail.create(activeProgramId)) {
@@ -254,15 +417,31 @@ fun KPKNApp(
                     )
                     item(
                         icon = { NutritionIcon(tint = navIconTint(currentTab == KpknRoute.Nutrition.route)) },
-                        label = { Text("Nutrición") },
+                        label = { Text(stringResource(R.string.nav_nutrition)) },
                         selected = currentTab == KpknRoute.Nutrition.route,
-                        onClick = { navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true } },
+                        onClick = { 
+                            telemetryHelper.logNutritionOpen()
+                            telemetryHelper.logNavigation(currentTab, KpknRoute.Nutrition.route)
+                            navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true } 
+                        },
+                    )
+                    item(
+                        icon = { RingsTabIcon(tint = navIconTint(currentTab == KpknRoute.MyRings.route)) },
+                        label = { Text(stringResource(R.string.nav_my_rings)) },
+                        selected = currentTab == KpknRoute.MyRings.route,
+                        onClick = {
+                            telemetryHelper.logNavigation(currentTab, KpknRoute.MyRings.route)
+                            navController.navigate(KpknRoute.MyRings.route) { launchSingleTop = true }
+                        },
                     )
                     item(
                         icon = { WikiIcon(tint = navIconTint(currentTab == KpknRoute.WikiLab.route)) },
-                        label = { Text("WikiLab") },
+                        label = { Text(stringResource(R.string.nav_wikilab)) },
                         selected = currentTab == KpknRoute.WikiLab.route,
-                        onClick = { navController.navigate(KpknRoute.WikiLab.route) { launchSingleTop = true } },
+                        onClick = { 
+                            telemetryHelper.logNavigation(currentTab, KpknRoute.WikiLab.route)
+                            navController.navigate(KpknRoute.WikiLab.route) { launchSingleTop = true } 
+                        },
                     )
                 },
             ) {
@@ -271,6 +450,7 @@ fun KPKNApp(
                     themeMode = themeMode,
                     onThemeChange = onThemeChange,
                     primaryProgramId = primaryProgramId,
+                    nutritionViewModel = nutritionViewModel,
                 )
             }
         }
@@ -347,11 +527,13 @@ private fun KPKNNavGraph(
     themeMode: AppThemeMode,
     onThemeChange: (AppThemeMode) -> Unit,
     primaryProgramId: String?,
+    nutritionViewModel: NutritionViewModel,
 ) {
     NavHost(navController = navController, startDestination = KpknRoute.Home.route) {
         composable(KpknRoute.Home.route) {
             HomeScreen(
                 themeMode = themeMode,
+                nutritionViewModel = nutritionViewModel,
                 onThemeChange = onThemeChange,
                 onNavigateToSettings = { navController.navigate(KpknRoute.Settings.route) },
                 onNavigateToProfile = { navController.navigate(KpknRoute.Profile.route) },
@@ -362,7 +544,7 @@ private fun KPKNNavGraph(
                     navController.navigate(KpknRoute.ProgramEditor.create("new"))
                 },
                 onStartWorkout = { session, program ->
-                    navController.navigate(KpknRoute.ReadinessGate.create(program.id, session.id))
+                    navController.navigate(KpknRoute.Workout.create(program.id, session.id))
                 },
                 onResumeWorkout = {
                     val ongoing = com.example.kpkn.data.repository.ProgramRepository.getInstance().ongoingWorkout.value
@@ -390,6 +572,7 @@ private fun KPKNNavGraph(
                         "wiki-concept" -> navController.navigate(KpknRoute.WikiLabConcepts.route)
                         "wiki-concept-detail" -> navController.navigate(KpknRoute.WikiLabConcepts.route)
                         "nutrition" -> navController.navigate(KpknRoute.Nutrition.route)
+                        "settings/notifications" -> navController.navigate(KpknRoute.SettingsNotifications.route)
                         "learn", "cursos" -> navController.navigate(KpknRoute.Learn.route)
                         "powerlifter-corner" -> {
                             primaryProgramId?.let { navController.navigate(KpknRoute.ProgramDetail.create(it)) }
@@ -427,6 +610,7 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.Nutrition.route) {
             NutritionScreen(
+                viewModel = nutritionViewModel,
                 onNavigateToWizard = {
                     navController.navigate(KpknRoute.NutritionWizard.route)
                 },
@@ -438,7 +622,36 @@ private fun KPKNNavGraph(
                 },
             )
         }
+
+        // Route de acciones rápidas internas para navegación directa desde widgets/atajos
+        composable(KpknRoute.NutritionAction.route) { backStack ->
+            val action = backStack.arguments?.getString(KpknRoute.NutritionAction.ARG_ACTION)?.lowercase().orEmpty()
+            when (action) {
+                "openfoodlog", "foodlog", "log" -> {
+                    nutritionViewModel.requestFoodLoggerOpen(tab = 0)
+                    navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
+                }
+                "opensearch", "search" -> {
+                    nutritionViewModel.requestFoodLoggerOpen(tab = 1)
+                    navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
+                }
+                "openweighteditor", "weight" -> {
+                    navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true }
+                }
+                "opendashboard", "dashboard" -> {
+                    navController.navigate(KpknRoute.Home.route) { launchSingleTop = true }
+                }
+                else -> {
+                    navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
+                }
+            }
+
+            LaunchedEffect(action) {
+                navController.popBackStack(KpknRoute.NutritionAction.route, inclusive = true)
+            }
+        }
         composable(KpknRoute.NutritionWizard.route) {
+            val currentSettings by ProgramRepository.getInstance().settings.collectAsState()
             com.example.kpkn.screens.nutrition.components.NutritionWizardView(
                 onComplete = { plan ->
                     com.example.kpkn.data.repository.NutritionRepository.getInstance().addNutritionPlan(plan)
@@ -452,7 +665,7 @@ private fun KPKNNavGraph(
                         popUpTo(KpknRoute.NutritionWizard.route) { inclusive = true }
                     }
                 },
-                currentSettings = com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value,
+                currentSettings = currentSettings,
             )
         }
         composable(KpknRoute.BodyProgress.route) {
@@ -460,6 +673,12 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.MealHistory.route) {
             MealHistoryScreen(onBack = { navController.popBackStack() })
+        }
+
+        // ─── Mis RINGS ────────────────────────────────────────────────
+        composable(KpknRoute.MyRings.route) {
+            val augeVm: com.example.kpkn.screens.auge.AugeViewModel = viewModel()
+            MyRingsScreen(augeViewModel = augeVm)
         }
 
         // ─── WikiLab Routes ───────────────────────────────────────────
@@ -572,11 +791,8 @@ private fun KPKNNavGraph(
                 ?: com.example.kpkn.data.repository.CustomExerciseRepository.customExercises.value
                     .firstOrNull { it.id.equals(exerciseId, ignoreCase = true) }
             if (exercise != null) {
-                val augeViewModel: AugeViewModel = viewModel()
-                val augeBatteries by augeViewModel.batteries.collectAsState()
                 ExerciseDetailScreen(
                     exercise = exercise,
-                    batteries = augeBatteries,
                     onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
                     onNavigateToJoint = { navController.navigate(KpknRoute.WikiLabJointDetail.create(it)) },
                     onNavigateToExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
@@ -710,6 +926,7 @@ private fun KPKNNavGraph(
         composable(KpknRoute.SettingsData.route) {
             SettingsDataScreen(onBack = { navController.popBackStack() })
         }
+        addHealthConnectRoute(navController)
         composable(KpknRoute.Profile.route) {
             ProfileScreen(onBack = { navController.popBackStack() })
         }
@@ -719,7 +936,7 @@ private fun KPKNNavGraph(
                 programId = id,
                 onBack = { navController.popBackStack() },
                 onStartWorkout = { session, program ->
-                    navController.navigate(KpknRoute.ReadinessGate.create(program.id, session.id))
+                    navController.navigate(KpknRoute.Workout.create(program.id, session.id))
                 },
                 onEditSession = { sessionId ->
                     navController.navigate(KpknRoute.SessionEditor.create(id, sessionId))
@@ -756,24 +973,16 @@ private fun KPKNNavGraph(
                 sessionId = sessionId,
                 onBack = { navController.popBackStack() },
                 onOpenExerciseCreator = { navController.navigate(KpknRoute.WikiLabExerciseCreator.route) },
+                onOpenExerciseDetail = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
+                onSavedAndExit = {
+                    navController.navigate(KpknRoute.ProgramDetail.create(programId)) {
+                        popUpTo(KpknRoute.SessionEditor.route) { inclusive = true }
+                    }
+                },
                 draftWeekId = weekId,
                 draftMacroIndex = macroIndex,
                 draftMesoIndex = mesoIndex,
                 draftDayOfWeek = dayOfWeek,
-            )
-        }
-        composable(KpknRoute.ReadinessGate.route) { backStack ->
-            val programId = backStack.arguments?.getString(KpknRoute.ReadinessGate.ARG_PROGRAM_ID) ?: ""
-            val sessionId = backStack.arguments?.getString(KpknRoute.ReadinessGate.ARG_SESSION_ID) ?: ""
-            ReadinessGateScreen(
-                programId = programId,
-                sessionId = sessionId,
-                onBack = { navController.popBackStack() },
-                onReady = {
-                    navController.navigate(KpknRoute.Workout.create(programId, sessionId)) {
-                        popUpTo(KpknRoute.ReadinessGate.route) { inclusive = true }
-                    }
-                },
             )
         }
         composable(KpknRoute.Workout.route) { backStack ->
@@ -783,6 +992,12 @@ private fun KPKNNavGraph(
                 programId = programId,
                 sessionId = sessionId,
                 onBack = { navController.popBackStack() },
+                onComplete = {
+                    navController.navigate(KpknRoute.Home.route) {
+                        popUpTo(KpknRoute.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
                 onNavigateToWikiLab = { exerciseDbId ->
                     navController.navigate(KpknRoute.WikiLabExerciseDetail.create(exerciseDbId))
                 },

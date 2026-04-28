@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.data.models.ApiProvider
 import com.example.kpkn.data.models.CalorieGoalObjective
 import com.example.kpkn.screens.settings.components.SettingsActionItem
 import com.example.kpkn.screens.settings.components.SettingsSectionCard
@@ -105,6 +106,58 @@ fun SettingsNutritionScreen(
                         },
                         keyboardType = KeyboardType.Number,
                     )
+                    SettingsSwitchItem(
+                        title = "Mostrar sobrepaso",
+                        description = "Permite que los porcentajes superen 100% cuando pasas tus metas",
+                        checked = settings.nutritionShowOverages,
+                        onCheckedChange = { value -> viewModel.update { it.copy(nutritionShowOverages = value) } },
+                    )
+                }
+            }
+
+            item { SettingsSectionHeader("Micronutrientes") }
+            item {
+                SettingsSectionCard {
+                    SettingsTextFieldItem(
+                        label = "Meta de fibra (g)",
+                        value = settings.dailyFiberGoal?.toString().orEmpty(),
+                        onValueChange = { value ->
+                            viewModel.update { it.copy(dailyFiberGoal = value.filter(Char::isDigit).toIntOrNull()) }
+                        },
+                        keyboardType = KeyboardType.Number,
+                    )
+                    SettingsTextFieldItem(
+                        label = "Limite de azucar (g)",
+                        value = settings.dailySugarLimit?.toString().orEmpty(),
+                        onValueChange = { value ->
+                            viewModel.update { it.copy(dailySugarLimit = value.filter(Char::isDigit).toIntOrNull()) }
+                        },
+                        keyboardType = KeyboardType.Number,
+                    )
+                    SettingsTextFieldItem(
+                        label = "Limite de sodio (mg)",
+                        value = settings.dailySodiumLimitMg?.toString().orEmpty(),
+                        onValueChange = { value ->
+                            viewModel.update { it.copy(dailySodiumLimitMg = value.filter(Char::isDigit).toIntOrNull()) }
+                        },
+                        keyboardType = KeyboardType.Number,
+                    )
+                    SettingsTextFieldItem(
+                        label = "Meta de potasio (mg)",
+                        value = settings.dailyPotassiumGoalMg?.toString().orEmpty(),
+                        onValueChange = { value ->
+                            viewModel.update { it.copy(dailyPotassiumGoalMg = value.filter(Char::isDigit).toIntOrNull()) }
+                        },
+                        keyboardType = KeyboardType.Number,
+                    )
+                    SettingsTextFieldItem(
+                        label = "Meta de hidratacion (ml)",
+                        value = settings.dailyHydrationGoalMl?.toString().orEmpty(),
+                        onValueChange = { value ->
+                            viewModel.update { it.copy(dailyHydrationGoalMl = value.filter(Char::isDigit).toIntOrNull()) }
+                        },
+                        keyboardType = KeyboardType.Number,
+                    )
                 }
             }
 
@@ -139,6 +192,51 @@ fun SettingsNutritionScreen(
                         icon = Icons.Default.Restaurant,
                         onClick = onNavigateToWizard,
                     )
+                }
+            }
+
+            item { SettingsSectionHeader("IA Avanzada") }
+            item {
+                SettingsSectionCard {
+                    SettingsSegmentedButtonItem(
+                        title = "Proveedor API",
+                        options = ApiProvider.entries,
+                        selected = settings.apiProvider,
+                        onSelect = { value -> viewModel.update { it.copy(apiProvider = value) } },
+                        optionLabel = { it.name.lowercase().replaceFirstChar { c -> c.uppercase() } },
+                    )
+                    when (settings.apiProvider) {
+                        ApiProvider.GEMINI -> SettingsTextFieldItem(
+                            label = "API Key Gemini",
+                            value = settings.apiKeys.gemini.orEmpty(),
+                            onValueChange = { value ->
+                                viewModel.update {
+                                    it.copy(apiKeys = it.apiKeys.copy(gemini = value.takeIf { it.isNotBlank() }))
+                                }
+                            },
+                            keyboardType = KeyboardType.Password,
+                        )
+                        ApiProvider.GPT -> SettingsTextFieldItem(
+                            label = "API Key OpenAI",
+                            value = settings.apiKeys.gpt.orEmpty(),
+                            onValueChange = { value ->
+                                viewModel.update {
+                                    it.copy(apiKeys = it.apiKeys.copy(gpt = value.takeIf { it.isNotBlank() }))
+                                }
+                            },
+                            keyboardType = KeyboardType.Password,
+                        )
+                        ApiProvider.DEEPSEEK -> SettingsTextFieldItem(
+                            label = "API Key DeepSeek",
+                            value = settings.apiKeys.deepseek.orEmpty(),
+                            onValueChange = { value ->
+                                viewModel.update {
+                                    it.copy(apiKeys = it.apiKeys.copy(deepseek = value.takeIf { it.isNotBlank() }))
+                                }
+                            },
+                            keyboardType = KeyboardType.Password,
+                        )
+                    }
                 }
             }
         }

@@ -38,6 +38,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.domain.exercises.analyticsExerciseKey
+import com.example.kpkn.domain.exercises.displayLabel
+import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -75,12 +78,20 @@ private data class ExerciseHistoryEntry(
 private data class ExerciseHistoryDetail(
     val key: String,
     val exerciseName: String,
+    val anchorLabel: String?,
+    val relationLabel: String?,
     val totalSessions: Int,
     val totalSets: Int,
     val maxLoad: Double,
     val bestEstimated1RM: Double,
     val averageWeeklyVolume: Double,
     val entries: List<ExerciseHistoryEntry>,
+)
+
+private data class PlannedHistoryMeta(
+    val name: String,
+    val anchorCanonicalId: String?,
+    val relationLabel: String?,
 )
 
 @Composable
@@ -94,7 +105,7 @@ fun HistoryView(
     var expandedId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val sessionDetails = remember(programLogs) { buildSessionHistory(programLogs) }
-    val exerciseDetails = remember(programLogs) { buildExerciseHistory(programLogs) }
+    val exerciseDetails = remember(program, programLogs) { buildExerciseHistory(program, programLogs) }
 
     val filteredSessions = remember(sessionDetails, searchQuery) {
         if (searchQuery.isBlank()) {
@@ -392,6 +403,13 @@ private fun ExerciseHistoryCard(
                         fontSize = 10.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    detail.anchorLabel?.let { anchor ->
+                        Text(
+                            text = detail.relationLabel?.let { "$it de $anchor" } ?: "Vinculado a $anchor",
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
                 }
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
@@ -531,14 +549,16 @@ private fun buildSessionHistory(logs: List<WorkoutLog>): List<SessionHistoryDeta
     }
 }
 
-private fun buildExerciseHistory(logs: List<WorkoutLog>): List<ExerciseHistoryDetail> {
+private fun buildExerciseHistory(program: Program, logs: List<WorkoutLog>): List<ExerciseHistoryDetail> {
+    val planned = collectPlannedHistoryMeta(program)
+    val exerciseNames = buildHistoryExerciseNameIndex(program, logs)
     val grouped = logs.flatMap { log ->
         log.completedExercises.mapNotNull { exercise ->
             val bestSet = exercise.sets.maxByOrNull { it.weight * it.reps } ?: return@mapNotNull null
             val averageRpe = exercise.sets.mapNotNull { it.rpe }.average().takeIf { !it.isNaN() }
             Triple(
-                historyExerciseKey(exercise.exerciseDbId, exercise.exerciseName, exercise.exerciseId),
-                exercise.exerciseName,
+                exercise.analyticsExerciseKey(),
+                exercise,
                 ExerciseHistoryEntry(
                     dateLabel = formatHistoryDate(log.date),
                     sessionName = log.sessionName,
@@ -554,9 +574,14 @@ private fun buildExerciseHistory(logs: List<WorkoutLog>): List<ExerciseHistoryDe
 
     return grouped.map { (key, values) ->
         val entries = values.map { it.third }
+        val latestExercise = values.lastOrNull()?.second
+        val planMeta = planned[key]
+        val anchorCanonicalId = latestExercise?.relativeToCanonicalExerciseId ?: planMeta?.anchorCanonicalId
         ExerciseHistoryDetail(
             key = key,
-            exerciseName = values.lastOrNull()?.second ?: key,
+            exerciseName = latestExercise?.exerciseName ?: planMeta?.name ?: key.removePrefix("exercise:"),
+            anchorLabel = resolveHistoryAnchorLabel(anchorCanonicalId, exerciseNames),
+            relationLabel = planMeta?.relationLabel,
             totalSessions = entries.size,
             totalSets = entries.sumOf { it.totalSets },
             maxLoad = entries.maxOfOrNull { it.bestLoad } ?: 0.0,
@@ -573,16 +598,52 @@ private fun buildExerciseHistory(logs: List<WorkoutLog>): List<ExerciseHistoryDe
     }.sortedByDescending { it.bestEstimated1RM }
 }
 
-private fun historyExerciseKey(
-    exerciseDbId: String?,
-    exerciseName: String,
-    fallbackId: String,
-): String {
-    return when {
-        !exerciseDbId.isNullOrBlank() -> "db:${exerciseDbId.lowercase()}"
-        exerciseName.isNotBlank() -> "name:${exerciseName.trim().lowercase()}"
-        else -> "id:$fallbackId"
+private fun collectPlannedHistoryMeta(program: Program): Map<String, PlannedHistoryMeta> {
+    val meta = mutableMapOf<String, PlannedHistoryMeta>()
+    program.macrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .flatMap { it.sessions }
+        .flatMap { it.exercises + it.parts.flatMap { part -> part.exercises } }
+        .forEach { exercise ->
+            val key = exercise.analyticsExerciseKey()
+            val current = meta[key]
+            meta[key] = PlannedHistoryMeta(
+                name = current?.name ?: exercise.name,
+                anchorCanonicalId = exercise.relativeToCanonicalExerciseId ?: current?.anchorCanonicalId,
+                relationLabel = exercise.relationshipType?.displayLabel() ?: current?.relationLabel,
+            )
+        }
+    return meta
+}
+
+private fun buildHistoryExerciseNameIndex(
+    program: Program,
+    logs: List<WorkoutLog>,
+): Map<String, String> {
+    val names = mutableMapOf<String, String>()
+    program.macrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .flatMap { it.sessions }
+        .flatMap { it.exercises + it.parts.flatMap { part -> part.exercises } }
+        .forEach { exercise ->
+            names.putIfAbsent(exercise.resolvedCanonicalExerciseId(), exercise.name)
+        }
+    logs.flatMap { it.completedExercises }.forEach { exercise ->
+        names.putIfAbsent(exercise.resolvedCanonicalExerciseId(), exercise.exerciseName)
     }
+    return names
+}
+
+private fun resolveHistoryAnchorLabel(
+    anchorCanonicalId: String?,
+    exerciseNames: Map<String, String>,
+): String? {
+    val id = anchorCanonicalId ?: return null
+    return exerciseNames[id] ?: id
 }
 
 private fun calculateEpley1RM(load: Double, reps: Int): Double {

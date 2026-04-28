@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -89,6 +90,18 @@ fun SettingsDataScreen(
                             viewModel.resetOnboarding()
                             Toast.makeText(context, "Bienvenida restablecida", Toast.LENGTH_SHORT).show()
                         },
+                    )
+                }
+            }
+
+            item { SettingsSectionHeader("Salud") }
+            item {
+                SettingsSectionCard {
+                    SettingsActionItem(
+                        title = "Health Connect",
+                        description = "Sincroniza datos de actividad, peso y composicion corporal",
+                        icon = Icons.Default.Favorite,
+                        onClick = { /* Navigation handled in MainActivity */ },
                     )
                 }
             }

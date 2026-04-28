@@ -103,3 +103,35 @@ fun CaupolicanIcon(
         )
     }
 }
+
+// ─── Single Ring with Glow (Mis RINGS tab) ───────────────────────────────────
+@Composable
+fun RingsTabIcon(tint: Color, size: Dp = 24.dp) {
+    val yellow = Color(0xFFFFD740)
+    val glowColor = if (tint == yellow) yellow else tint
+    Canvas(Modifier.size(size)) {
+        val center = Offset(this.size.width / 2f, this.size.height / 2f)
+        val r = minOf(this.size.width, this.size.height) / 2f - 2.dp.toPx()
+        val sw = 2.2.dp.toPx()
+        // Outer glow (resplandor)
+        drawCircle(
+            brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                colors = listOf(glowColor.copy(alpha = 0.35f), glowColor.copy(alpha = 0.0f)),
+                center = center,
+                radius = r + 3.dp.toPx(),
+            ),
+            radius = r + 3.dp.toPx(),
+            center = center,
+        )
+        // Ring arc (300° sweep, open at top-left for style)
+        drawArc(
+            color = glowColor,
+            startAngle = -230f,
+            sweepAngle = 300f,
+            useCenter = false,
+            topLeft = Offset(center.x - r, center.y - r),
+            size = Size(r * 2, r * 2),
+            style = Stroke(width = sw, cap = androidx.compose.ui.graphics.StrokeCap.Round),
+        )
+    }
+}

@@ -14,6 +14,7 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import com.example.kpkn.services.workout.WorkoutReminderManager
+import com.example.kpkn.ui.locale.LocaleManager
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -44,6 +45,10 @@ class SettingsViewModel : ViewModel() {
         // Handle reminder scheduling changes
         appContext?.let { ctx ->
             handleReminderChanges(ctx, oldSettings, newSettings)
+            // Handle language changes
+            if (oldSettings.appLanguage != newSettings.appLanguage) {
+                LocaleManager.applyAndPersist(ctx, newSettings.appLanguage)
+            }
         }
     }
 
@@ -147,7 +152,7 @@ class SettingsViewModel : ViewModel() {
             }.onFailure { error ->
                 Toast.makeText(
                     context,
-                    "No se pudo exportar: ${error.message ?: "error desconocido"}",
+                    context.getString(com.example.kpkn.R.string.msg_export_failed, error.message ?: context.getString(com.example.kpkn.R.string.common_error_unknown)),
                     Toast.LENGTH_LONG,
                 ).show()
             }
@@ -166,9 +171,9 @@ class SettingsViewModel : ViewModel() {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(
-            Intent.createChooser(intent, "Exportar datos de KPKN").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            Intent.createChooser(intent, context.getString(com.example.kpkn.R.string.title_export_chooser)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
-        Toast.makeText(context, "Datos preparados para exportar", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(com.example.kpkn.R.string.msg_export_ready), Toast.LENGTH_SHORT).show()
     }
 }
 

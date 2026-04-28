@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ProgramDetailHelpers
 import com.example.kpkn.domain.training.RoadmapBlock
@@ -21,6 +22,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -56,10 +59,10 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     // ─── Raw Data from Repository ─────────────────────────────────────────
 
-    val program: StateFlow<Program?> = combine(repository.programs) { arrays ->
-        val programs = arrays.first()
-        programs.find { it.id == programId }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, repository.getProgramById(programId))
+    val program: StateFlow<Program?> = repository.programs
+        .map { programs -> programs.find { it.id == programId } }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, repository.getProgramById(programId))
 
     val activeProgramState: StateFlow<ActiveProgramState?> = repository.activeProgramState
 
@@ -67,68 +70,90 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     // ─── Derived State ────────────────────────────────────────────────────
 
-    val isSimpleProgram: StateFlow<Boolean> = combine(program) { (p) ->
-        p?.let { ProgramDetailHelpers.isSimpleProgram(it) } ?: true
-    }.stateIn(viewModelScope, SharingStarted.Lazily, true)
+    val isSimpleProgram: StateFlow<Boolean> = program
+        .map { p -> p?.let { ProgramDetailHelpers.isSimpleProgram(it) } ?: true }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, true)
 
-    val roadmapBlocks: StateFlow<List<RoadmapBlock>> = combine(program) { (p) ->
-        p?.let { ProgramDetailHelpers.buildRoadmapBlocks(it) } ?: emptyList()
-    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val roadmapBlocks: StateFlow<List<RoadmapBlock>> = program
+        .map { p -> p?.let { ProgramDetailHelpers.buildRoadmapBlocks(it) } ?: emptyList() }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val activeBlockId: StateFlow<String?> = combine(activeProgramState, roadmapBlocks) { active, blocks ->
         ProgramDetailHelpers.findActiveBlockId(active, programId, blocks)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val currentWeeks: StateFlow<List<WeekWithMeta>> = combine(_uiState, roadmapBlocks, program) { state, blocks, p ->
         if (p == null) emptyList()
         else ProgramDetailHelpers.getWeeksForBlock(state.selectedBlockId, blocks, p)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val displayedSessions: StateFlow<List<Session>> = combine(_uiState, currentWeeks) { state, weeks ->
         ProgramDetailHelpers.getDisplayedSessions(state.selectedWeekId, weeks)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val selectedWeekMeta: StateFlow<WeekWithMeta?> = combine(_uiState, currentWeeks) { state, weeks ->
         weeks.find { it.id == state.selectedWeekId }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val programLogs: StateFlow<List<WorkoutLog>> = combine(history) { (h) ->
-        ProgramDetailHelpers.computeProgramLogs(h, programId)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val programLogs: StateFlow<List<WorkoutLog>> = history
+        .map { h -> ProgramDetailHelpers.computeProgramLogs(h, programId) }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val totalAdherence: StateFlow<Int> = combine(programLogs, program) { logs, p ->
         if (p == null) 0 else ProgramDetailHelpers.computeTotalAdherence(logs, p)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
     val weeklyAdherence: StateFlow<List<WeekAdherence>> = combine(currentWeeks, programLogs) { weeks, logs ->
         ProgramDetailHelpers.computeWeeklyAdherence(weeks, logs)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val totalWeeks: StateFlow<Int> = combine(program) { (p) ->
-        p?.let { ProgramDetailHelpers.getTotalWeeks(it) } ?: 0
-    }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
+    val totalWeeks: StateFlow<Int> = program
+        .map { p -> p?.let { ProgramDetailHelpers.getTotalWeeks(it) } ?: 0 }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
     val currentWeekIndex: StateFlow<Int> = combine(activeProgramState, program) { state, p ->
         if (p == null) 0 else ProgramDetailHelpers.computeCurrentWeekIndex(state, p)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
     val programDiscomforts: StateFlow<List<com.example.kpkn.domain.training.DiscomfortEntry>> =
-        combine(history) { (h) ->
-            ProgramDetailHelpers.computeProgramDiscomforts(h, programId)
-        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        history
+            .map { h -> ProgramDetailHelpers.computeProgramDiscomforts(h, programId) }
+            .distinctUntilChanged()
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val exerciseDiscomfortAssociations: StateFlow<List<com.example.kpkn.domain.training.ExerciseDiscomfortAssociationEntry>> =
-        combine(history) { (h) ->
-            ProgramDetailHelpers.computeExerciseDiscomfortAssociations(h, programId)
-        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        history
+            .map { h -> ProgramDetailHelpers.computeExerciseDiscomfortAssociations(h, programId) }
+            .distinctUntilChanged()
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val isActiveProgram: StateFlow<Boolean> = combine(activeProgramState) { (state) ->
-        state?.programId == programId && state?.status == ProgramStatus.ACTIVE
-    }.stateIn(viewModelScope, SharingStarted.Lazily, false)
+    val isActiveProgram: StateFlow<Boolean> = activeProgramState
+        .map { state -> state?.programId == programId && state.status == ProgramStatus.ACTIVE }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
-    val isPausedProgram: StateFlow<Boolean> = combine(activeProgramState) { (state) ->
-        state?.programId == programId && state?.status == ProgramStatus.PAUSED
-    }.stateIn(viewModelScope, SharingStarted.Lazily, false)
+    val isPausedProgram: StateFlow<Boolean> = activeProgramState
+        .map { state -> state?.programId == programId && state.status == ProgramStatus.PAUSED }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     // ─── Init: Auto-select + Tour ─────────────────────────────────────────
 
@@ -557,7 +582,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         val info = EXERCISE_DATABASE_BY_ID[exerciseDbId] ?: return emptySet()
 
         return info.involvedMuscles
-            .filter { (HYPERTROPHY_ROLE_MULTIPLIERS[it.role] ?: 0.0) > 0.0 }
+            .filter { resolveMuscleVolumeContribution(it) > 0.0 }
             .map { involved ->
                 canonicalizeMuscleName(
                     VolumeCalculator.normalizeMuscleGroup(

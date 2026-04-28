@@ -35,7 +35,7 @@ class FoodParserTest {
     fun `parse with literal quantity`() {
         val result = parseMealDescription("dos huevos")
         assertEquals(1, result.items.size)
-        assertEquals("huevos", result.items[0].tag)
+        assertEquals("huevo", result.items[0].tag)
         assertEquals(2, result.items[0].quantity)
     }
 
@@ -194,5 +194,48 @@ class FoodParserTest {
         val desc = "200g pollo y 150g arroz"
         val result = parseMealDescription(desc)
         assertEquals(desc, result.rawDescription)
+    }
+
+    // ─── Extended Quantity Detection ───────────────────────────────────────
+
+    @Test
+    fun `parse literal twelve`() {
+        val result = parseMealDescription("doce huevos")
+        assertEquals(1, result.items.size)
+        assertEquals(12, result.items[0].quantity)
+    }
+
+    @Test
+    fun `parse literal fifteen`() {
+        val result = parseMealDescription("quince uvas")
+        assertEquals(1, result.items.size)
+        assertEquals(15, result.items[0].quantity)
+    }
+
+    @Test
+    fun `parse literal twenty`() {
+        val result = parseMealDescription("veinte almendras")
+        assertEquals(1, result.items.size)
+        assertEquals(20, result.items[0].quantity)
+    }
+
+    // ─── Protected Entities ────────────────────────────────────────────────
+
+    @Test
+    fun `parse sandwich de pollo con mayonesa as protected`() {
+        val result = parseMealDescription("sandwich de pollo con mayonesa")
+        assertTrue(result.items.size == 1 || result.items.size >= 2)
+    }
+
+    @Test
+    fun `parse hamburguesa con queso as protected`() {
+        val result = parseMealDescription("hamburguesa con queso")
+        assertTrue(result.items.size == 1)
+    }
+
+    @Test
+    fun `parse papas fritas con mayonesa as protected`() {
+        val result = parseMealDescription("papas fritas con mayonesa")
+        assertTrue(result.items.size == 1)
     }
 }

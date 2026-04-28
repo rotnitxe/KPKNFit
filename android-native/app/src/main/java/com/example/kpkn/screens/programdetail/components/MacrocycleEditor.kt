@@ -17,10 +17,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -45,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Block
@@ -82,6 +85,7 @@ fun MacrocycleEditor(
     program: Program,
     onUpdateProgram: (Program) -> Unit,
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
+    onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     var expandedBlocks by remember { mutableStateOf(setOf("0")) }
@@ -123,6 +127,7 @@ fun MacrocycleEditor(
             AdvancedRoadmapCard(
                 roadmap = advancedRoadmap,
                 onFocusWeek = onFocusWeek,
+                onCreateSessionForWeek = onCreateSessionForWeek,
             )
         }
 
@@ -376,6 +381,8 @@ fun MacrocycleEditor(
                 LoopsView(
                     program = program,
                     onUpdateProgram = onUpdateProgram,
+                    onFocusWeek = onFocusWeek,
+                    onCreateSessionForWeek = onCreateSessionForWeek,
                 )
             }
         }
@@ -532,6 +539,7 @@ private fun KeyDatesManagementSheet(
 private fun AdvancedRoadmapCard(
     roadmap: AdvancedRoadmap,
     onFocusWeek: (blockId: String, weekId: String) -> Unit,
+    onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -571,38 +579,51 @@ private fun AdvancedRoadmapCard(
                             }
                             track.slots.forEach { slot ->
                                 Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { onFocusWeek(slot.blockId, slot.weekId) },
+                                    modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 ) {
-                                    Text(
-                                        slot.relativeLabel,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.width(56.dp),
-                                    )
-                                    Box(
+                                    Row(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(16.dp)
-                                            .background(
-                                                when (slot.trackKind) {
-                                                    KeyDateTrackKind.BEFORE -> MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)
-                                                    KeyDateTrackKind.INSIDE -> Color(0xFFF59E0B)
-                                                    KeyDateTrackKind.AFTER -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.28f)
-                                                },
-                                                RoundedCornerShape(999.dp),
-                                            )
-                                    )
-                                    Text(
-                                        slot.weekName,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        modifier = Modifier.width(104.dp),
-                                    )
+                                            .clickable { onFocusWeek(slot.blockId, slot.weekId) },
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    ) {
+                                        Text(
+                                            slot.relativeLabel,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.width(56.dp),
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(16.dp)
+                                                .background(
+                                                    when (slot.trackKind) {
+                                                        KeyDateTrackKind.BEFORE -> MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)
+                                                        KeyDateTrackKind.INSIDE -> Color(0xFFF59E0B)
+                                                        KeyDateTrackKind.AFTER -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.28f)
+                                                    },
+                                                    RoundedCornerShape(999.dp),
+                                                )
+                                        )
+                                        Text(
+                                            slot.weekName,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            modifier = Modifier.width(104.dp),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
+                                    if (slot.trackKind == KeyDateTrackKind.INSIDE) {
+                                        IconButton(onClick = { onCreateSessionForWeek(slot.weekId, preferredDayOfWeek(track.keyDate.type)) }) {
+                                            Icon(Icons.Default.PlayArrow, contentDescription = "Crear sesión")
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -647,12 +668,20 @@ private fun AdvancedRoadmapCard(
                                     )
                                 }
                             }
-                            if (slot.marks.any { it.type == KeyDateType.COMPETITION }) {
-                                Text(
-                                    "Esta semana contiene competición. Aquí después habilitaremos la creación de sesión de competición.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFFFCA5A5),
-                                )
+                            val actionableMark = slot.marks.firstOrNull { it.isActionable }
+                            if (actionableMark != null) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    OutlinedButton(onClick = { onFocusWeek(slot.blockId, slot.weekId) }) {
+                                        Icon(Icons.Default.CalendarMonth, contentDescription = null)
+                                        Spacer(Modifier.width(6.dp))
+                                        Text("Ir a semana")
+                                    }
+                                    Button(onClick = { onCreateSessionForWeek(slot.weekId, actionableMark.preferredDayOfWeek) }) {
+                                        Icon(Icons.Default.PlayArrow, contentDescription = null)
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(actionableMark.ctaLabel)
+                                    }
+                                }
                             }
                         }
                     }
@@ -1274,7 +1303,22 @@ private data class KeyDateMark(
     val title: String,
     val type: KeyDateType,
     val kind: KeyDateMarkKind,
-)
+) {
+    val isActionable: Boolean
+        get() = true
+
+    val ctaLabel: String
+        get() = when (type) {
+            KeyDateType.COMPETITION -> "Crear sesión clave"
+            KeyDateType.EXAMS -> "Crear sesión ligera"
+            KeyDateType.VACATION -> "Crear sesión ajuste"
+            KeyDateType.TRAVEL -> "Crear sesión viaje"
+            KeyDateType.CUSTOM -> "Crear sesión"
+        }
+
+    val preferredDayOfWeek: Int
+        get() = preferredDayOfWeek(type)
+}
 
 private enum class KeyDateMarkKind { SPECIAL_WEEK, SPECIAL_SESSION }
 private enum class KeyDateTrackKind { BEFORE, INSIDE, AFTER }
@@ -1396,6 +1440,16 @@ private fun ProgramKeyDate.dateSummary(): String {
         startDate
     } else {
         "$startDate → $endDate"
+    }
+}
+
+private fun preferredDayOfWeek(type: KeyDateType): Int {
+    return when (type) {
+        KeyDateType.COMPETITION -> 6
+        KeyDateType.EXAMS -> 1
+        KeyDateType.VACATION -> 3
+        KeyDateType.TRAVEL -> 2
+        KeyDateType.CUSTOM -> 1
     }
 }
 

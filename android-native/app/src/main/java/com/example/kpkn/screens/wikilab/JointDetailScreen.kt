@@ -136,11 +136,6 @@ fun JointDetailScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 20.sp,
                 )
-                Spacer(Modifier.height(16.dp))
-                JointBiomechVisual(
-                    jointType = joint.type,
-                    jointName = joint.name,
-                )
             }
 
             item {

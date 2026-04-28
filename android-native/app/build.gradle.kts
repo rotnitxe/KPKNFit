@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -7,24 +9,41 @@ plugins {
 
 android {
     namespace = "com.example.kpkn"
+    // Revertimos a 36 porque las librerías actuales lo exigen
     compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.kpkn"
         minSdk = 24
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 7
+        versionName = "1.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions += "healthConnect"
+    productFlavors {
+        create("base") {
+            dimension = "healthConnect"
+        }
+        create("health") {
+            dimension = "healthConnect"
+            minSdk = 26
+        }
+    }
+
     signingConfigs {
         create("release") {
+            // Firma local forzada para evitar el error de "paquete no válido"
             storeFile = file("kpkn-release.keystore")
             storePassword = "kpkn2024"
             keyAlias = "kpkn"
             keyPassword = "kpkn2024"
+            enableV1Signing = true
+            enableV2Signing = true
+            enableV3Signing = true
+            enableV4Signing = true
         }
     }
 
@@ -38,18 +57,16 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            // El debug también usa la firma de release para evitar conflictos de instalación
+            signingConfig = signingConfigs.getByName("release")
+        }
     }
     
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
-    }
-
-    androidResources {
-        // Mantenemos la configuración para que el modelo no se comprima
-        noCompress += "litertlm"
-        noCompress += "tflite"
     }
 
     compileOptions {
@@ -59,6 +76,13 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
     }
 }
 
@@ -79,16 +103,25 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.haze)
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
-    implementation(libs.litert.lm.android)
+    testImplementation("org.robolectric:robolectric:4.12.2")
+    testImplementation("androidx.test:core:1.6.1")
+    // Health Connect dependency - only for health flavor
+    "healthImplementation"(libs.androidx.health.connect.client)
+    
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // LeakCanary: detects memory leaks in debug builds only (not included in release APK).
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
 }

@@ -10,6 +10,8 @@ object WorkoutReadinessBridge {
         val muscular: Int?,
         val spinal: Int?,
         val perMuscle: Map<String, Int>,
+        /** sleepQuality (1-5) del DailyWellbeingLog más reciente para el sleep modifier. */
+        val sleepQuality: Int? = null,
     )
 
     private var pending: ReadinessAdjustments? = null

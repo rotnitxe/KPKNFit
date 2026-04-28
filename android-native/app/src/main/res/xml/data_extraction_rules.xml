@@ -1,19 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
--->
+<?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
-    <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
-    </cloud-backup>
     <!--
-    <device-transfer>
-        <include .../>
-        <exclude .../>
-    </device-transfer>
+        Excluir la base de datos Room de los backups automáticos de Google.
+        Esto asegura que al reinstalar la app se comience con datos limpios,
+        evitando que datos de sesiones anteriores reaparezcan.
     -->
+    <cloud-backup>
+        <exclude domain="database" path="kpkn.db"/>
+        <exclude domain="database" path="kpkn.db-shm"/>
+        <exclude domain="database" path="kpkn.db-wal"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="database" path="kpkn.db"/>
+        <exclude domain="database" path="kpkn.db-shm"/>
+        <exclude domain="database" path="kpkn.db-wal"/>
+    </device-transfer>
 </data-extraction-rules>

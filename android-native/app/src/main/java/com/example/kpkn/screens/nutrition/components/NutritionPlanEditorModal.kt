@@ -56,10 +56,13 @@ fun NutritionPlanEditorModal(
     onDismiss: () -> Unit,
     onSave: (NutritionPlan) -> Unit,
     currentSettings: Settings = Settings(),
+    activePlan: NutritionPlan? = null,
 ) {
     if (!isOpen) return
 
-    var state by remember {
+    // Use activePlan?.id as key so state reinitializes whenever the active plan changes,
+    // and isOpen so it reinitializes each time the modal is freshly opened.
+    var state by remember(isOpen, activePlan?.id) {
         mutableStateOf(EditorState(
             goal = when (currentSettings.calorieGoalObjective) {
                 CalorieGoalObjective.DEFICIT -> CalorieGoal.LOSE
@@ -75,6 +78,7 @@ fun NutritionPlanEditorModal(
             proteinG = currentSettings.dailyProteinGoal?.toString() ?: "150",
             carbsG = currentSettings.dailyCarbGoal?.toString() ?: "250",
             fatsG = currentSettings.dailyFatGoal?.toString() ?: "70",
+            weeklyChangeKg = activePlan?.weeklyChangeKg ?: 0.5,
         ))
     }
 
@@ -115,7 +119,7 @@ fun NutritionPlanEditorModal(
         proteinD * (KCAL_PER_GRAM["protein"] ?: 4) * dietMultiplier +
         carbsD * (KCAL_PER_GRAM["carbs"] ?: 4) +
         fatsD * (KCAL_PER_GRAM["fat"] ?: 9)
-    )
+    ).toInt()
     val weeklyTrendKg = if (tdee != null && tdee > 0) {
         ((caloriesFromMacros - tdee) * 7) / 7700.0
     } else null
@@ -420,7 +424,7 @@ fun NutritionPlanEditorModal(
                         }
                     }
                     Text(
-                        text = "%d kcal/día (P×4 + C×4 + G×9)".format(caloriesFromMacros),
+                        text = "$caloriesFromMacros kcal/día (P×4 + C×4 + G×9)",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                     )
@@ -457,7 +461,7 @@ fun NutritionPlanEditorModal(
             item {
                 val riskInput = RiskInput(
                     settings = nutritionInput,
-                    calorieTarget = caloriesFromMacros.toInt(),
+                    calorieTarget = caloriesFromMacros,
                     goalMetric = when (state.goal) {
                         CalorieGoal.LOSE -> GoalMetric.WEIGHT
                         CalorieGoal.GAIN -> GoalMetric.WEIGHT
@@ -512,22 +516,28 @@ fun NutritionPlanEditorModal(
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {
+                        // Preserve goalType and goalValue from the active plan so body-fat
+                        // and muscle goals are not silently reset to WEIGHT.
+                        val preservedGoalType = activePlan?.goalType ?: when (state.goal) {
+                            CalorieGoal.LOSE, CalorieGoal.GAIN -> GoalMetric.WEIGHT
+                            else -> GoalMetric.WEIGHT
+                        }
+                        val preservedGoalValue = activePlan?.goalValue ?: weightD
                         val plan = NutritionPlan(
-                            id = java.util.UUID.randomUUID().toString(),
-                            name = "Mi Plan",
-                            goalType = when (state.goal) {
-                                CalorieGoal.LOSE -> GoalMetric.WEIGHT
-                                CalorieGoal.GAIN -> GoalMetric.WEIGHT
-                                else -> GoalMetric.WEIGHT
-                            },
-                            goalValue = weightD,
-                            calorieTarget = caloriesFromMacros.toInt(),
+                            id = activePlan?.id ?: java.util.UUID.randomUUID().toString(),
+                            name = activePlan?.name ?: "Mi Plan",
+                            goalType = preservedGoalType,
+                            goalValue = preservedGoalValue,
+                            calorieTarget = caloriesFromMacros,
                             proteinGoal = (proteinD * dietMultiplier).toInt(),
                             carbGoal = carbsD.toInt(),
                             fatGoal = fatsD.toInt(),
                             isActive = true,
-                            createdAt = java.time.Instant.now().toString(),
+                            createdAt = activePlan?.createdAt ?: java.time.Instant.now().toString(),
+                            primaryGoal = activePlan?.primaryGoal,
+                            estimatedEndDate = activePlan?.estimatedEndDate,
                             weeklyChangeKg = state.weeklyChangeKg,
+                            startValue = activePlan?.startValue,
                         )
                         onSave(plan)
                     },

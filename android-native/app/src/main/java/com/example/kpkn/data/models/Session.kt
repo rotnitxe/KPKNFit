@@ -25,6 +25,8 @@ data class Session(
     val microProgram: SessionMicroProgram? = null,
     val meetBodyweight: Double? = null,
     val meetResults: MeetResults? = null,
+    val competitionDetails: CompetitionDetails? = null,
+    val trainingBackup: TrainingBackup? = null,
 )
 
 @Serializable
@@ -100,11 +102,37 @@ data class MeetResults(
 )
 
 @Serializable
+data class CompetitionDetails(
+    val competitionDate: String? = null,
+    val startTime: String? = null,
+    val location: String? = null,
+    val federation: String? = null,
+    val weighInDate: String? = null,
+    val weighInTime: String? = null,
+    val reminderOneWeekEnabled: Boolean = true,
+    val reminder48hEnabled: Boolean = true,
+    val strategyNotes: String? = null,
+)
+
+@Serializable
+data class TrainingBackup(
+    val exercises: List<Exercise> = emptyList(),
+    val parts: List<SessionPart> = emptyList(),
+    val warmup: List<WarmupExercise> = emptyList(),
+    val savedAtMs: Long = 0L,
+)
+
+@Serializable
 data class Exercise(
     val id: String,
     val name: String,
     val exerciseDbId: String? = null,
     val exerciseId: String? = null,
+    val canonicalExerciseId: String? = null,
+    val exerciseFamilyId: String? = null,
+    val relativeToCanonicalExerciseId: String? = null,
+    val relationshipType: ExerciseRelationshipType? = null,
+    val relationshipNotes: String? = null,
     val sets: List<ExerciseSet> = emptyList(),
     val warmupSets: List<WarmupSetDefinition> = emptyList(),
     val restTime: Int? = null,
@@ -135,8 +163,9 @@ data class Exercise(
     val defaultContextProfileIdV3: String? = null,
 )
 
-enum class TrainingMode { REPS, TIME, PERCENT, CUSTOM, DISTANCE }
+enum class TrainingMode { REPS, TIME, RM, CUSTOM, DISTANCE, SOLO_RPE }
 enum class DamageProfile { STRETCH, SQUEEZE, NORMAL }
+enum class ExerciseRelationshipType { VARIATION, ASSISTANCE, OVERLOAD, TECHNIQUE }
 
 @Serializable
 data class ExerciseSet(
@@ -168,6 +197,9 @@ data class ExerciseSet(
     val consolidatedWeight: Double? = null,
     val attemptResult: AttemptResult? = null,
     val judgingLights: List<Boolean?> = emptyList(),
+    val technicalQuality: Int? = null,
+    val discomfortIds: List<String> = emptyList(),
+    val refereeNotes: String? = null,
     val loadModeV2: LoadModeV2? = null,
     val unitModeV2: UnitModeV2? = null,
     val plannedTargetV2: Double? = null,

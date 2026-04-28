@@ -85,7 +85,7 @@ fun MealHistoryScreen(
             .map { (date, logs) ->
                 val dateLabel = try {
                     java.time.LocalDate.parse(date)
-                        .format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", java.util.Locale("es")))
+                        .format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", java.util.Locale.getDefault()))
                         .replaceFirstChar { it.uppercase() }
                 } catch (_: Exception) { date }
                 DaySummary(

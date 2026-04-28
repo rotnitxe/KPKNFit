@@ -2,8 +2,7 @@ package com.example.kpkn.data.repository
 
 import android.content.Context
 import com.example.kpkn.data.db.*
-import com.example.kpkn.data.models.*
-import kotlinx.coroutines.Dispatchers
+import com.example.kpkn.data.models.*import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
@@ -37,6 +36,26 @@ class AugeRepository private constructor(context: Context) {
 
     suspend fun getLastNSleepLogs(n: Int): List<SleepLog> = withContext(Dispatchers.IO) {
         dao.getLastNSleepLogs(n).map { it.toSleepLog() }
+    }
+
+    // ─── SleepLogExtended ─────────────────────────────────────────────────────
+
+    suspend fun saveSleepLogExtended(log: SleepLogExtended) = withContext(Dispatchers.IO) {
+        dao.upsertSleepLogExtended(log.toExtendedEntity())
+        // También guardar en tabla básica para compatibilidad con el motor AUGE
+        dao.upsertSleepLog(log.toSleepLog().toEntity())
+    }
+
+    suspend fun getLastNSleepLogsExtended(n: Int): List<SleepLogExtended> = withContext(Dispatchers.IO) {
+        dao.getLastNSleepLogsExtended(n).map { it.toSleepLogExtended() }
+    }
+
+    suspend fun getAllSleepLogsExtended(): List<SleepLogExtended> = withContext(Dispatchers.IO) {
+        dao.getAllSleepLogsExtended().map { it.toSleepLogExtended() }
+    }
+
+    suspend fun deleteSleepLogExtended(id: String) = withContext(Dispatchers.IO) {
+        dao.deleteSleepLogExtended(id)
     }
 
     // ─── PostSessionFeedback ──────────────────────────────────────────────────

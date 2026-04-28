@@ -16,14 +16,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.R
 import com.example.kpkn.data.models.ApiProvider
 import com.example.kpkn.data.models.AppTheme
 import com.example.kpkn.data.models.HapticIntensity
+import com.example.kpkn.ui.locale.LocaleManager
 import com.example.kpkn.screens.settings.components.SettingsConditionalItem
 import com.example.kpkn.screens.settings.components.SettingsDropdownItem
 import com.example.kpkn.screens.settings.components.SettingsSectionCard
@@ -43,10 +46,10 @@ fun SettingsGeneralScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("General", fontWeight = FontWeight.Black) },
+                title = { Text(stringResource(R.string.screen_settings_general_title), fontWeight = FontWeight.Black) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
             )
@@ -58,45 +61,45 @@ fun SettingsGeneralScreen(
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            item { SettingsSectionHeader("Apariencia") }
+            item { SettingsSectionHeader(stringResource(R.string.screen_settings_general_section_appearance)) }
             item {
                 SettingsSectionCard {
                     SettingsDropdownItem(
-                        title = "Tema de la app",
-                        description = "Prepara el terreno para futuros modos visuales nativos",
+                        title = stringResource(R.string.screen_settings_general_theme),
+                        description = stringResource(R.string.screen_settings_general_theme_desc),
                         options = AppTheme.entries,
                         selected = settings.appTheme,
                         onSelect = { value -> viewModel.update { it.copy(appTheme = value) } },
                         optionLabel = ::appThemeLabel,
                     )
                     SettingsSwitchItem(
-                        title = "Animaciones",
-                        description = "Activa las transiciones y microinteracciones de la interfaz",
+                        title = stringResource(R.string.screen_settings_general_animations),
+                        description = stringResource(R.string.screen_settings_general_animations_desc),
                         checked = settings.enableAnimations,
                         onCheckedChange = { value -> viewModel.update { it.copy(enableAnimations = value) } },
                     )
                     SettingsSwitchItem(
-                        title = "Modo ahorro rendimiento",
-                        description = "Reduce movimiento y efectos pesados para equipos mas justos",
+                        title = stringResource(R.string.screen_settings_general_reduced_motion),
+                        description = stringResource(R.string.screen_settings_general_reduced_motion_desc),
                         checked = settings.reducedMotionMode,
                         onCheckedChange = { value -> viewModel.update { it.copy(reducedMotionMode = value) } },
                     )
                 }
             }
 
-            item { SettingsSectionHeader("Sensorial") }
+            item { SettingsSectionHeader(stringResource(R.string.screen_settings_general_section_sensorial)) }
             item {
                 SettingsSectionCard {
                     SettingsSwitchItem(
-                        title = "Vibracion haptica",
-                        description = "Feedback tactil en acciones clave de la app",
+                        title = stringResource(R.string.screen_settings_general_haptic),
+                        description = stringResource(R.string.screen_settings_general_haptic_desc),
                         checked = settings.hapticFeedbackEnabled,
                         onCheckedChange = { value -> viewModel.update { it.copy(hapticFeedbackEnabled = value) } },
                     )
                     SettingsConditionalItem(visible = settings.hapticFeedbackEnabled) {
                         SettingsDropdownItem(
-                            title = "Intensidad haptica",
-                            description = "Ajusta la fuerza del feedback",
+                            title = stringResource(R.string.screen_settings_general_haptic_intensity),
+                            description = stringResource(R.string.screen_settings_general_haptic_intensity_desc),
                             options = HapticIntensity.entries,
                             selected = settings.hapticIntensity,
                             onSelect = { value -> viewModel.update { it.copy(hapticIntensity = value) } },
@@ -104,33 +107,27 @@ fun SettingsGeneralScreen(
                         )
                     }
                     SettingsSwitchItem(
-                        title = "Sonidos",
-                        description = "Incluye avisos sonoros y celebraciones in-app",
+                        title = stringResource(R.string.screen_settings_general_sounds),
+                        description = stringResource(R.string.screen_settings_general_sounds_desc),
                         checked = settings.soundsEnabled,
                         onCheckedChange = { value -> viewModel.update { it.copy(soundsEnabled = value) } },
                     )
                 }
             }
 
-            item { SettingsSectionHeader("Inteligencia artificial") }
+            item { SettingsSectionHeader(stringResource(R.string.screen_settings_general_section_ai)) }
             item {
                 SettingsSectionCard {
-                    SettingsSwitchItem(
-                        title = "IA local para alimentos",
-                        description = "Prioriza el modelo on-device para parsear comidas",
-                        checked = settings.localAiFoodEnabled,
-                        onCheckedChange = { value -> viewModel.update { it.copy(localAiFoodEnabled = value) } },
-                    )
                     SettingsDropdownItem(
-                        title = "Proveedor IA",
-                        description = "Proveedor principal para funciones asistidas",
+                        title = stringResource(R.string.screen_settings_general_ai_provider),
+                        description = stringResource(R.string.screen_settings_general_ai_provider_desc),
                         options = ApiProvider.entries,
                         selected = settings.apiProvider,
                         onSelect = { value -> viewModel.update { it.copy(apiProvider = value) } },
                         optionLabel = { it.name },
                     )
                     SettingsTextFieldItem(
-                        label = "Clave API Gemini",
+                        label = stringResource(R.string.screen_settings_general_api_key_gemini),
                         value = settings.apiKeys.gemini.orEmpty(),
                         onValueChange = { value ->
                             viewModel.update { it.copy(apiKeys = it.apiKeys.copy(gemini = value.ifBlank { null })) }
@@ -139,7 +136,7 @@ fun SettingsGeneralScreen(
                         visualTransformation = PasswordVisualTransformation(),
                     )
                     SettingsTextFieldItem(
-                        label = "Clave API GPT",
+                        label = stringResource(R.string.screen_settings_general_api_key_gpt),
                         value = settings.apiKeys.gpt.orEmpty(),
                         onValueChange = { value ->
                             viewModel.update { it.copy(apiKeys = it.apiKeys.copy(gpt = value.ifBlank { null })) }
@@ -148,7 +145,7 @@ fun SettingsGeneralScreen(
                         visualTransformation = PasswordVisualTransformation(),
                     )
                     SettingsTextFieldItem(
-                        label = "Clave API DeepSeek",
+                        label = stringResource(R.string.screen_settings_general_api_key_deepseek),
                         value = settings.apiKeys.deepseek.orEmpty(),
                         onValueChange = { value ->
                             viewModel.update { it.copy(apiKeys = it.apiKeys.copy(deepseek = value.ifBlank { null })) }
@@ -157,7 +154,7 @@ fun SettingsGeneralScreen(
                         visualTransformation = PasswordVisualTransformation(),
                     )
                     SettingsSliderItem(
-                        title = "Temperatura IA",
+                        title = stringResource(R.string.screen_settings_general_ai_temperature),
                         value = settings.aiTemperature.toFloat(),
                         onValueChange = { value ->
                             viewModel.update { it.copy(aiTemperature = (value * 10).toInt() / 10.0) }
@@ -167,13 +164,13 @@ fun SettingsGeneralScreen(
                         valueLabel = { "%.1f".format(it) },
                     )
                     SettingsSwitchItem(
-                        title = "Usar fallback IA",
-                        description = "Si falla el proveedor principal, intenta el siguiente",
+                        title = stringResource(R.string.screen_settings_general_ai_fallback),
+                        description = stringResource(R.string.screen_settings_general_ai_fallback_desc),
                         checked = settings.aiFallbackEnabled,
                         onCheckedChange = { value -> viewModel.update { it.copy(aiFallbackEnabled = value) } },
                     )
                     SettingsTextFieldItem(
-                        label = "Tokens maximos",
+                        label = stringResource(R.string.screen_settings_general_ai_max_tokens),
                         value = settings.aiMaxTokens.toString(),
                         onValueChange = { value ->
                             value.filter(Char::isDigit).toIntOrNull()?.let { parsed ->
@@ -181,6 +178,30 @@ fun SettingsGeneralScreen(
                             }
                         },
                         keyboardType = KeyboardType.Number,
+                    )
+                }
+            }
+
+            item { SettingsSectionHeader(stringResource(R.string.screen_settings_general_section_language)) }
+            item {
+                SettingsSectionCard {
+                    val languageOptions = listOf(
+                        LocaleManager.LANGUAGE_SYSTEM,
+                        "es",
+                        "en",
+                    )
+                    val languageLabels = mapOf(
+                        LocaleManager.LANGUAGE_SYSTEM to stringResource(R.string.screen_settings_general_language_system),
+                        "es" to stringResource(R.string.screen_settings_general_language_es),
+                        "en" to stringResource(R.string.screen_settings_general_language_en),
+                    )
+                    SettingsDropdownItem(
+                        title = stringResource(R.string.screen_settings_general_language),
+                        description = stringResource(R.string.screen_settings_general_language_desc),
+                        options = languageOptions,
+                        selected = settings.appLanguage,
+                        onSelect = { lang -> viewModel.update { it.copy(appLanguage = lang) } },
+                        optionLabel = { code -> languageLabels[code] ?: code },
                     )
                 }
             }

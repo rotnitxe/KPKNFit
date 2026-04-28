@@ -20,13 +20,22 @@ private val CONNECTOR_CON = Regex("""\s+con\s+""", RegexOption.IGNORE_CASE)
 
 private val PROTECTED_ENTITIES = listOf(
     "arroz con leche", "arroz con pollo", "pollo con papas", "pan con queso", "pan con palta",
-    "pan con mantequilla", "papas con mayo", "pastel de choclo", "empanada de pino"
+    "pan con mantequilla", "papas con mayo", "pastel de choclo", "empanada de pino",
+    "sandwich de pollo con mayonesa", "sandwich de jamon con mayonesa",
+    "sándwich de pollo con mayonesa", "sándwich de jamón con mayonesa",
+    "hamburguesa con queso", "papas fritas con mayonesa", "papa fritas con mayonesa",
 )
 
 private val LITERAL_QUANTITIES = mapOf(
     "un" to 1.0, "una" to 1.0, "uno" to 1.0, "dos" to 2.0, "tres" to 3.0,
     "cuatro" to 4.0, "cinco" to 5.0, "seis" to 6.0, "siete" to 7.0,
     "ocho" to 8.0, "nueve" to 9.0, "diez" to 10.0,
+    "once" to 11.0, "doce" to 12.0, "trece" to 13.0, "catorce" to 14.0,
+    "quince" to 15.0, "dieciséis" to 16.0, "dieciseis" to 16.0,
+    "diecisiete" to 17.0, "dieciocho" to 18.0, "diecinueve" to 19.0,
+    "veinte" to 20.0, "veintiuno" to 21.0, "veintidós" to 22.0, "veintidos" to 22.0,
+    "veintitrés" to 23.0, "veintitres" to 23.0, "veinticuatro" to 24.0,
+    "veinticinco" to 25.0, "treinta" to 30.0,
     "media" to 0.5, "medio" to 0.5, "mitad" to 0.5,
     "cuarto" to 0.25, "tercio" to 0.33, "doble" to 2.0, "triple" to 3.0,
 )
@@ -37,7 +46,7 @@ private val PORTION_PATTERNS = listOf(
     Triple(Regex("""\bplato\s+mediano\b""", RegexOption.IGNORE_CASE), PortionPreset.MEDIUM, "medium"),
     Triple(Regex("""\bplato\s+(?:chico|pequeño|pequeña)\b""", RegexOption.IGNORE_CASE), PortionPreset.SMALL, "small"),
     Triple(Regex("""\b(mediano|mediana)\b""", RegexOption.IGNORE_CASE), PortionPreset.MEDIUM, "medium"),
-    Triple(Regex("""\b(pequeño|chico|chica)\b""", RegexOption.IGNORE_CASE), PortionPreset.SMALL, "small"),
+    Triple(Regex("""\b(pequeño|pequeña|chico|chica)\b""", RegexOption.IGNORE_CASE), PortionPreset.SMALL, "small"),
 )
 
 private val COOKING_PATTERNS = listOf(
@@ -47,6 +56,12 @@ private val COOKING_PATTERNS = listOf(
     Pair(Regex("""\b(frit[oa]|frito|fritos)\b""", RegexOption.IGNORE_CASE), CookingMethod.FRITO),
     Pair(Regex("""\b(cocid[oa]|cocido|cocidos)\b""", RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
     Pair(Regex("""\b(crud[oa]|crudo|crudos)\b""", RegexOption.IGNORE_CASE), CookingMethod.CRUDO),
+    Pair(Regex("""\bsalte[aá]d[oa]s?\b|\bsofrito\b|\bsoffritos?\b""", RegexOption.IGNORE_CASE), CookingMethod.SALTEADO),
+    Pair(Regex("""\bahumad[oa]s?\b|\bhumad[oa]\b""", RegexOption.IGNORE_CASE), CookingMethod.AHUMADO),
+    Pair(Regex("""\b(al\s+)?vapor\b|\bvaporizad[oa]\b""", RegexOption.IGNORE_CASE), CookingMethod.VAPOR),
+    Pair(Regex("""\b(a\s+la\s+)?olla\b|\bhervid[oa]s?\b|\bestofad[oa]\b""", RegexOption.IGNORE_CASE), CookingMethod.OLLA),
+    Pair(Regex("""\bas[aá]d[oa]s?\b|\ba\s+la\s+parrilla\b|\bparrill[ae]r[oa]?\b""", RegexOption.IGNORE_CASE), CookingMethod.ASADO_PARRILLA),
+    Pair(Regex("""\bguisad[oa]s?\b|\bcazuel[ae]d[oa]?\b""", RegexOption.IGNORE_CASE), CookingMethod.GUISADO),
 )
 
 private val REFERENCE_PATTERNS = listOf(
@@ -56,6 +71,7 @@ private val REFERENCE_PATTERNS = listOf(
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(cucharaditas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "teaspoon"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(tazas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "cup"),
     Pair(Regex("""\b(un|una|1)\s+(taza)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "cup"),
+    Pair(Regex("""\b(media|medio|1/2)\s+(taza)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "cup"),
     Pair(Regex("""\b(un|una|1)\s+(puñado)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "handful"),
     Pair(Regex("""\b(un|1)\s+(puño)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "fist"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(vasos?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "glass"),
@@ -63,6 +79,9 @@ private val REFERENCE_PATTERNS = listOf(
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(latas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "can"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(scoops?|medidas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "scoop"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(porciones?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "portion"),
+    Pair(Regex("""\b(un|una|1)\s+(trozo)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "piece"),
+    Pair(Regex("""\b(un|una|1)\s+(pedazo)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "piece"),
+    Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(trozos?|pedazos?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "piece"),
     // Indicadores subjetivos de cantidad
     Pair(Regex("""\b(un\s+poco)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "little"),
     Pair(Regex("""\b(poquito|poquita)\s+(?:de\s+)?(.+)""", RegexOption.IGNORE_CASE), "little"),
@@ -73,8 +92,10 @@ private val REFERENCE_PATTERNS = listOf(
 // ─── Main Parser ─────────────────────────────────────────────────────────────
 
 fun parseMealDescription(description: String): ParsedMealDescription {
-    val trimmed = description.trim()
-    if (trimmed.isEmpty()) return ParsedMealDescription(rawDescription = "")
+    // Phase G: Normalize user input before parsing
+    val normalized = TextNormalizer.normalize(description)
+    val trimmed = normalized.trim()
+    if (trimmed.isEmpty()) return ParsedMealDescription(rawDescription = description)
 
     val fragments = splitByListConnectors(trimmed)
     val items = mutableListOf<ParsedMealItem>()
@@ -140,6 +161,12 @@ private fun parseFragment(frag: String): ParsedMealItem? {
     val cookingMethod = extractCookingMethod(working)
     working = cookingMethod.second
 
+    // Extract anatomical/preparation modifiers
+    val modifierResult = extractModifiers(working, grams)
+    working = modifierResult.third
+    val modifierMacros = modifierResult.first
+    grams = modifierResult.second
+
     // Extract portion preset
     val portionResult = extractPortionFromFragment(working)
     working = portionResult.second
@@ -152,7 +179,8 @@ private fun parseFragment(frag: String): ParsedMealItem? {
     if (foodName.length < 2) return null
 
     // Canonical resolution
-    val canonical = normalizeFoodName(foodName)
+    val shouldSingularize = Regex("""^\d""").containsMatchIn(working.trim())
+    val canonical = normalizeFoodName(foodName, singularize = shouldSingularize)
 
     return ParsedMealItem(
         tag = canonical,
@@ -161,6 +189,10 @@ private fun parseFragment(frag: String): ParsedMealItem? {
         cookingMethod = cookingMethod.first,
         portion = if (grams != null) PortionPreset.MEDIUM else portionResult.first,
         isFuzzyMatch = false,
+        appliedCookingFactor = COOKING_FACTORS[cookingMethod.first]?.kcal ?: 1.0,
+        modifierScale = modifierMacros?.let {
+            MacroOverrides(calories = it.kcal, protein = it.protein, carbs = it.carbs, fats = it.fats)
+        },
     )
 }
 
@@ -244,8 +276,10 @@ private fun extractReferenceFromFragment(text: String): Pair<Double?, String> {
         val gramsPerUnit = getGramsForReference(refType, food)
         val grams = kotlin.math.round(gramsPerUnit * qty * 10) / 10.0
 
-        val cleaned = text.replace(match.value, " ").replace(Regex("\\s{2,}"), " ").trim()
-        return Pair(grams, cleaned)
+        // Return foodPart as the working text so parseFragment can use it as the food name.
+        // Using `cleaned` (text with match removed) was wrong: when the reference covers the full
+        // fragment (e.g. "una taza de avena") cleaned becomes "" → foodName.length < 2 → null item.
+        return Pair(grams, foodPart)
     }
     return Pair(null, text)
 }
@@ -286,7 +320,7 @@ private fun parseQuantityMultiplier(text: String): Pair<Int, String> {
         val qty2 = rangeMatch.groupValues[2].toDoubleOrNull() ?: 1.0
         val rest = rangeMatch.groupValues[3].trim()
         if (rest.length >= 2) {
-            val avg = kotlin.math.round((qty1 + qty2) / 2).toInt().coerceIn(1, 50)
+            val avg = kotlin.math.floor((qty1 + qty2) / 2.0).toInt().coerceIn(1, 50)
             return Pair(avg, rest)
         }
     }
@@ -302,7 +336,7 @@ private fun parseQuantityMultiplier(text: String): Pair<Int, String> {
     }
 
     // Literal: "dos huevos", "media manzana"
-    val literalMatch = Regex("""^(un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|media|medio|mitad|cuarto|tercio|doble|triple)\s+(.+)$""", RegexOption.IGNORE_CASE).find(trimmed)
+    val literalMatch = Regex("""^(un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciséis|dieciseis|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintidós|veintidos|veintitrés|veintitres|veinticuatro|veinticinco|treinta|media|medio|mitad|cuarto|tercio|doble|triple)\s+(.+)$""", RegexOption.IGNORE_CASE).find(trimmed)
     if (literalMatch != null) {
         val qty = LITERAL_QUANTITIES[literalMatch.groupValues[1].lowercase()]
         val rest = literalMatch.groupValues[2].trim()
@@ -323,10 +357,99 @@ private fun extractGlobalPortion(description: String): PortionPreset {
     return PortionPreset.MEDIUM
 }
 
-private fun normalizeFoodName(name: String): String {
-    return name.trim()
+private fun normalizeFoodName(name: String, singularize: Boolean = false): String {
+    var normalized = name.trim()
         .lowercase()
         .replace(Regex("\\s+"), " ")
         .replace(Regex("^de\\s+"), "")
+        .replace(Regex("^(?:plato|porcion|porción|taza|vaso|bol|bowl|fuente)\\s+de\\s+"), "")
+        .replace(Regex("^(?:un|una)\\s+(?:plato|porcion|porción|taza|vaso|bol|bowl|fuente)\\s+de\\s+"), "")
         .replace(Regex("\\s+de\\s+$"), "")
+
+    // Diminutivos: -ito/-ita/-illo/-illa/-cito/-cita → quitar preservando raíz
+    normalized = normalized
+        .replace(Regex("""(\w+?)(cito|cita|ito|ita|illo|illa|ecito|ecita)$"""), "$1")
+
+    if (singularize) {
+        normalized = when {
+            normalized.endsWith("es") && normalized.length > 4 -> normalized.dropLast(2)
+            normalized.endsWith("s") && normalized.length > 3 -> normalized.dropLast(1)
+            else -> normalized
+        }
+    }
+
+    return normalized
+}
+
+// ─── Anatomical / Preparation Modifiers ────────────────────────────────
+
+private data class ModifierResult(
+    val macroScale: MacroScale?,
+    val grams: Double?,
+    val cleanedText: String,
+)
+
+private data class MacroScale(
+    val kcal: Double = 1.0,
+    val protein: Double = 1.0,
+    val carbs: Double = 1.0,
+    val fats: Double = 1.0,
+)
+
+private val MODIFIER_PATTERNS = listOf(
+    // sin piel / sin grasa → fats ×0.6
+    Pair(Regex("""\bsin\s+(piel|grasa)\b""", RegexOption.IGNORE_CASE),
+        MacroScale(fats = 0.6)),
+    // sin miga (pan) → carbs ×0.6, kcal ×0.65
+    Pair(Regex("""\bsin\s+miga\b""", RegexOption.IGNORE_CASE),
+        MacroScale(kcal = 0.65, carbs = 0.6)),
+    // solo claras → lower protein/fat
+    Pair(Regex("""\bsolo?\s+claras?\b""", RegexOption.IGNORE_CASE),
+        MacroScale(kcal = 0.55, protein = 0.85, carbs = 1.0, fats = 0.05)),
+    // descremado / light / 0% → fats ×0.15 (lácteos)
+    Pair(Regex("""\b(descremad[oa]|light|0\s*%)\b""", RegexOption.IGNORE_CASE),
+        MacroScale(kcal = 0.7, fats = 0.15)),
+    // en almíbar / con azúcar → carbs ×1.4, kcal ×1.3
+    Pair(Regex("""\ben\s+alm[ií]bar\b|\bcon\s+az[uú]car\b""", RegexOption.IGNORE_CASE),
+        MacroScale(kcal = 1.3, carbs = 1.4)),
+    // integral → slight fiber boost (handled by finding integral variant)
+    Pair(Regex("""\bintegral(es)?\b""", RegexOption.IGNORE_CASE),
+        MacroScale(carbs = 0.9, kcal = 0.95)),
+    // grande / colmada → portion ×1.25
+    Pair(Regex("""\b(colmad[oa]|generos[oa])\b""", RegexOption.IGNORE_CASE),
+        MacroScale()), // handled as portion modifier, not macro
+    // rasa / fina / pequeña → portion ×0.75
+    Pair(Regex("""\b(ras[oa]|fin[oa]|pequeñ[oa])\b""", RegexOption.IGNORE_CASE),
+        MacroScale()), // handled as portion modifier
+)
+
+private fun extractModifiers(text: String, currentGrams: Double?): Triple<MacroScale?, Double?, String> {
+    var working = text
+    var resultScale: MacroScale? = null
+    var gramsOverride = currentGrams
+
+    for ((pattern, scale) in MODIFIER_PATTERNS) {
+        val match = pattern.find(working) ?: continue
+        working = working.replace(match.value, " ").replace(Regex("\\s{2,}"), " ").trim()
+
+        // Check if it's a portion modifier (grande/colmada or rasa/pequeña)
+        val matchText = match.value.lowercase()
+        if (matchText.contains("colmad") || matchText.contains("generos")) {
+            gramsOverride = (gramsOverride ?: 100.0) * 1.25
+        } else if (matchText.contains("rasa") || matchText.contains("fina") || matchText.contains("pequeñ")) {
+            gramsOverride = (gramsOverride ?: 100.0) * 0.75
+        } else {
+            // It's a macro modifier - combine scales
+            resultScale = if (resultScale != null) {
+                MacroScale(
+                    kcal = resultScale.kcal * scale.kcal,
+                    protein = resultScale.protein * scale.protein,
+                    carbs = resultScale.carbs * scale.carbs,
+                    fats = resultScale.fats * scale.fats,
+                )
+            } else scale
+        }
+    }
+
+    return Triple(resultScale, gramsOverride, working)
 }

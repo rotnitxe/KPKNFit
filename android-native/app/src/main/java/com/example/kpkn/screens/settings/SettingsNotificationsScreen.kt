@@ -17,9 +17,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.R
 import com.example.kpkn.screens.settings.components.SettingsConditionalItem
 import com.example.kpkn.screens.settings.components.SettingsSectionCard
 import com.example.kpkn.screens.settings.components.SettingsSectionHeader
@@ -39,10 +41,10 @@ fun SettingsNotificationsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Notificaciones", fontWeight = FontWeight.Black) },
+                title = { Text(stringResource(R.string.screen_settings_notif_title), fontWeight = FontWeight.Black) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
             )
@@ -54,18 +56,18 @@ fun SettingsNotificationsScreen(
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            item { SettingsSectionHeader("Entrenamiento") }
+            item { SettingsSectionHeader(stringResource(R.string.screen_settings_notif_section_workout)) }
             item {
                 SettingsSectionCard {
                     SettingsSwitchItem(
-                        title = "Recordatorio de entrenamiento",
-                        description = "Guarda la preferencia horaria para futuras notificaciones",
+                        title = stringResource(R.string.screen_settings_notif_workout_reminder),
+                        description = stringResource(R.string.screen_settings_notif_workout_reminder_desc),
                         checked = settings.workoutReminderEnabled,
                         onCheckedChange = { value -> viewModel.update { it.copy(workoutReminderEnabled = value) } },
                     )
                     SettingsConditionalItem(visible = settings.workoutReminderEnabled) {
                         SettingsTimePickerItem(
-                            title = "Hora del recordatorio",
+                            title = stringResource(R.string.screen_settings_notif_workout_time),
                             value = settings.workoutReminderTime,
                             onValueChange = { value -> viewModel.update { it.copy(workoutReminderTime = value) } },
                         )
@@ -73,32 +75,32 @@ fun SettingsNotificationsScreen(
                 }
             }
 
-            item { SettingsSectionHeader("Comidas") }
+            item { SettingsSectionHeader(stringResource(R.string.screen_settings_notif_section_meals)) }
             item {
                 SettingsSectionCard {
                     SettingsSwitchItem(
-                        title = "Recordatorio de comidas",
-                        description = "Activa horarios para las comidas principales",
+                        title = stringResource(R.string.screen_settings_notif_meal_reminder),
+                        description = stringResource(R.string.screen_settings_notif_meal_reminder_desc),
                         checked = settings.mealReminderEnabled,
                         onCheckedChange = { value -> viewModel.update { it.copy(mealReminderEnabled = value) } },
                     )
                     SettingsConditionalItem(visible = settings.mealReminderEnabled) {
                         SettingsTimePickerItem(
-                            title = "Desayuno",
+                            title = stringResource(R.string.screen_settings_notif_breakfast),
                             value = settings.mealReminderBreakfast,
                             onValueChange = { value -> viewModel.update { it.copy(mealReminderBreakfast = value) } },
                         )
                     }
                     SettingsConditionalItem(visible = settings.mealReminderEnabled) {
                         SettingsTimePickerItem(
-                            title = "Almuerzo",
+                            title = stringResource(R.string.screen_settings_notif_lunch),
                             value = settings.mealReminderLunch,
                             onValueChange = { value -> viewModel.update { it.copy(mealReminderLunch = value) } },
                         )
                     }
                     SettingsConditionalItem(visible = settings.mealReminderEnabled) {
                         SettingsTimePickerItem(
-                            title = "Cena",
+                            title = stringResource(R.string.screen_settings_notif_dinner),
                             value = settings.mealReminderDinner,
                             onValueChange = { value -> viewModel.update { it.copy(mealReminderDinner = value) } },
                         )
@@ -106,18 +108,18 @@ fun SettingsNotificationsScreen(
                 }
             }
 
-            item { SettingsSectionHeader("Sueno") }
+            item { SettingsSectionHeader(stringResource(R.string.screen_settings_notif_section_sleep)) }
             item {
                 SettingsSectionCard {
                     SettingsSwitchItem(
-                        title = "Recordatorio de sueno",
-                        description = "Guarda el horario recomendado para ir cerrando el dia",
+                        title = stringResource(R.string.screen_settings_notif_sleep_reminder),
+                        description = stringResource(R.string.screen_settings_notif_sleep_reminder_desc),
                         checked = settings.sleepReminderEnabled,
                         onCheckedChange = { value -> viewModel.update { it.copy(sleepReminderEnabled = value) } },
                     )
                     SettingsConditionalItem(visible = settings.sleepReminderEnabled) {
                         SettingsTimePickerItem(
-                            title = "Hora recordatorio",
+                            title = stringResource(R.string.screen_settings_notif_sleep_time),
                             value = settings.sleepReminderTime,
                             onValueChange = { value -> viewModel.update { it.copy(sleepReminderTime = value) } },
                         )

@@ -100,6 +100,8 @@ private data class DayDragState(
     val draggedSessionId: String? = null,
     val draggedDayId: Int? = null,
     val offset: Offset = Offset.Zero,
+    val targetDayId: Int? = null,
+    val targetAfterSessionId: String? = null,
 )
 
 @Composable
@@ -182,6 +184,8 @@ fun DayView(
                         draggedSessionId = sessionId,
                         draggedDayId = dayLayout.firstOrNull { it.session.id == sessionId }?.dayId,
                         offset = Offset.Zero,
+                        targetDayId = null,
+                        targetAfterSessionId = null,
                     )
                 },
                 onDrag = { sessionId, delta ->
@@ -189,68 +193,58 @@ fun DayView(
                     val source = dayLayout.firstOrNull { it.session.id == sessionId } ?: return@DayColumn
                     val activeRect = cardBounds[sessionId] ?: return@DayColumn
                     val nextOffset = dragState.offset + delta
-                    dragState = dragState.copy(offset = nextOffset)
 
                     val pointer = Offset(
                         x = activeRect.center.x + nextOffset.x,
                         y = activeRect.center.y + nextOffset.y,
                     )
 
+                    // Find the session card the pointer is over
                     val targetSessionId = cardBounds.entries.firstOrNull { (targetId, rect) ->
                         targetId != sessionId && rect.contains(pointer)
                     }?.key
 
-                    if (targetSessionId != null) {
-                        val targetEntry = dayLayout.firstOrNull { it.session.id == targetSessionId } ?: return@DayColumn
-                        val mutable = dayLayout.toMutableList()
-                        val fromIndex = mutable.indexOfFirst { it.session.id == sessionId }
-                        val toIndex = mutable.indexOfFirst { it.session.id == targetSessionId }
-                        if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
-                            val moved = mutable.removeAt(fromIndex)
-                            mutable.add(toIndex, moved.copy(dayId = targetEntry.dayId))
-                            dayLayout = mutable.toList()
-                            dragState = dragState.copy(
-                                offset = Offset.Zero,
-                                draggedDayId = targetEntry.dayId,
-                            )
-                        }
-                        return@DayColumn
-                    }
-
-                    if (source.dayId == day.id) {
-                        val sameDayIds = dayLayout.filter { it.dayId == day.id }.map { it.session.id }
-                        val fromDayIdx = sameDayIds.indexOf(sessionId)
-                        val targetIdInDay = sameDayIds.firstOrNull { candidateId ->
-                            candidateId != sessionId && (cardBounds[candidateId]?.contains(pointer) == true)
-                        }
-                        val toDayIdx = sameDayIds.indexOf(targetIdInDay)
-                        if (fromDayIdx >= 0 && toDayIdx >= 0 && fromDayIdx != toDayIdx) {
-                            val mutable = dayLayout.toMutableList()
-                            val fromGlobalIndex = mutable.indexOfFirst { it.session.id == sessionId }
-                            val toGlobalIndex = mutable.indexOfFirst { it.session.id == targetIdInDay }
-                            if (fromGlobalIndex >= 0 && toGlobalIndex >= 0) {
-                                val moved = mutable.removeAt(fromGlobalIndex)
-                                mutable.add(toGlobalIndex, moved)
-                                dayLayout = mutable.toList()
-                                dragState = dragState.copy(offset = Offset.Zero)
-                            }
-                            return@DayColumn
-                        }
-                    }
-
+                    // Find the day the pointer is over (for cross-day target)
                     val targetDay = dayBounds.entries.firstOrNull { (_, rect) -> rect.contains(pointer) }?.key
+                        ?: source.dayId
 
-                    if (targetDay != null && targetDay != source.dayId) {
+                    dragState = dragState.copy(
+                        offset = nextOffset,
+                        targetDayId = targetDay,
+                        targetAfterSessionId = targetSessionId,
+                    )
+                },
+                onDragEnd = { sessionId ->
+                    val source = dayLayout.firstOrNull { it.session.id == sessionId } ?: return@DayColumn
+                    val targetDayId = dragState.targetDayId
+                    val targetAfterId = dragState.targetAfterSessionId
+
+                    if (targetDayId != null && targetDayId != source.dayId) {
+                        // Cross-day move: assign session to target day
                         val mutable = dayLayout.toMutableList()
                         val index = mutable.indexOfFirst { it.session.id == sessionId }
                         if (index >= 0) {
-                            mutable[index] = mutable[index].copy(dayId = targetDay)
+                            mutable.removeAt(index)
+                            val lastTargetIdx = mutable.indexOfLast { it.dayId == targetDayId }
+                            val insertIdx = if (lastTargetIdx >= 0) lastTargetIdx + 1 else mutable.size
+                            mutable.add(insertIdx.coerceIn(0, mutable.size), DaySessionEntry(source.session, targetDayId))
                             dayLayout = mutable.toList()
-                            dragState = dragState.copy(draggedDayId = targetDay)
+                        }
+                    } else if (targetAfterId != null) {
+                        // Within-day reorder: move after the target session
+                        val mutable = dayLayout.toMutableList()
+                        val fromIndex = mutable.indexOfFirst { it.session.id == sessionId }
+                        val toIndex = mutable.indexOfFirst { it.session.id == targetAfterId }
+                        if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
+                            val moved = mutable.removeAt(fromIndex)
+                            // Adjust: if moving down, the target index shifted after removal
+                            val adjustedToIndex = if (toIndex > fromIndex) toIndex - 1 else toIndex
+                            mutable.add(adjustedToIndex.coerceIn(0, mutable.size), moved)
+                            dayLayout = mutable.toList()
                         }
                     }
-                },
-                onDragEnd = { sessionId ->
+
+                    // Commit the final layout
                     val updatedSessions = dayLayout.map { entry ->
                         entry.session.copy(
                             dayOfWeek = entry.dayId,
@@ -561,9 +555,7 @@ private fun DayColumn(
                         entries.forEachIndexed { idx, entry ->
                             val session = entry.session
                             val isDragging = dragState.draggedSessionId == session.id
-                            val isDragOver = dragState.draggedSessionId != null &&
-                                dragState.draggedSessionId != session.id &&
-                                dragState.draggedDayId == day.id
+                            val isDragOver = dragState.targetAfterSessionId == session.id && dragState.draggedSessionId != session.id
 
                             DraggableSessionCard(
                                 session = session,

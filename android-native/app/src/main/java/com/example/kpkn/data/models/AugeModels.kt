@@ -118,18 +118,48 @@ data class RecoveryDashboard(
     val channels: List<RecoveryChannelSnapshot> = emptyList(),
 )
 
+fun RecoveryDashboard.channelScore(id: RecoveryChannelId, fallback: Int = 100): Int =
+    (channels.firstOrNull { it.id == id }?.score ?: fallback).coerceIn(0, 100)
+
+fun AugeSnapshot.ringScore(id: RecoveryChannelId): Int = when (id) {
+    RecoveryChannelId.MUSCULAR -> dashboard.channelScore(id, batteries.muscular)
+    RecoveryChannelId.SYSTEM -> dashboard.channelScore(id, batteries.cnc)
+    RecoveryChannelId.STRUCTURE -> dashboard.channelScore(id, batteries.spinal)
+}
+
+data class AugeSnapshot(
+    val batteries: GlobalBatteries = GlobalBatteries(muscular = 100, cnc = 100, spinal = 100),
+    val perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
+    val readiness: AugeReadinessVerdict? = null,
+    val dashboard: RecoveryDashboard,
+    val articular: Map<ArticularBattery, ArticularBatteryState> = emptyMap(),
+    val shouldSuggestAutoDeload: Boolean = false,
+    val cumulativeFatigue: Double = 0.0,
+    val autoDeloadMessage: String? = null,
+    val isLoading: Boolean = true,
+)
+
 // ─── AUGE Metrics (per-exercise) ─────────────────────────────────────────────
 
 data class AugeMetrics(
     val efc: Double = 2.5,  // Metabolic fatigue cost 1-5
     val ssc: Double = 0.5,  // Structural/Spinal cost 0-2
     val cnc: Double = 2.5,  // Central Nervous Cost 1-5
-)
+) {
+    /** SNC (Sistema Nervioso Central) — alias semántico de cnc para consistencia de UI. */
+    val snc: Double get() = cnc
+}
 
 data class BatteryTanks(
     val cns: Double,
     val muscular: Double,
     val spinal: Double,
+)
+
+data class PhysiologicalFloor(
+    val muscular: Int,
+    val cns: Int,
+    val spinal: Int,
 )
 
 data class SetDrain(
@@ -195,3 +225,105 @@ enum class SuggestionType { BIOMECHANICAL, NUTRITION }
 
 enum class MoodState { HAPPY, NEUTRAL, SAD, ANXIOUS, ENERGETIC }
 enum class IntensityLevel { LOW, MEDIUM, HIGH }
+
+// ─── Mesocycle Stress EMA ──────────────────────────────────────────────────────
+
+data class MesocycleStressEMA(
+    val programId: String,
+    val mesoIndex: Int,
+    val emaValue: Double,
+    val sessionCount: Int,
+    val latestStressScore: Double?,
+    val stressTrend: StressTrend,
+    val computedAtMs: Long,
+)
+
+enum class StressTrend { RISING, STABLE, FALLING }
+
+// ─── Mis RINGS: Rankings ──────────────────────────────────────────────────────
+
+/** Ranking de sesiones completadas ordenadas por cuánto drenan los RINGS. */
+data class SessionDrainRanking(
+    val logId: String,
+    val sessionName: String,
+    val date: String,
+    val totalDrain: Double,
+    val cnsDrain: Double,
+    val muscularDrain: Double,
+    val spinalDrain: Double,
+)
+
+/** Ranking de ejercicios agregado por drenaje promedio a lo largo del historial. */
+data class ExerciseDrainRanking(
+    val exerciseName: String,
+    val exerciseDbId: String?,
+    val overallDrain: Double,
+    val muscularDrain: Double,
+    val cnsDrain: Double,
+    val spinalDrain: Double,
+    val sessionCount: Int,
+)
+
+// ─── Mis RINGS: Recuperación personal ─────────────────────────────────────────
+
+/** Estadísticas personales de recuperación del último mes. */
+data class PersonalRecoveryStats(
+    val avgRecoveryHoursOverall: Double,
+    val avgRecoveryHoursMuscular: Double,
+    val avgRecoveryHoursCns: Double,
+    val avgRecoveryHoursSpinal: Double,
+    val fastestRecoverySession: String?,
+    val slowestRecoverySession: String?,
+    val sampleCount: Int,
+)
+
+// ─── Mis RINGS: Interferencia ──────────────────────────────────────────────────
+
+/** Músculo compartido entre dos sesiones con datos de interferencia. */
+data class SharedMuscleInterference(
+    val muscleName: String,
+    val drainFromSessionA: Double,   // % de fatiga residual al comenzar sesión B
+    val usageInSessionB: Double,     // intensidad de uso en sesión B (0-1 por role)
+    val recoveryDeficit: Double,     // déficit combinado (0-1)
+)
+
+/**
+ * Par de sesiones con porcentaje de interferencia calculado.
+ * [isFromHistory] = true → basado en historial real; false → split planificado.
+ */
+data class SessionInterference(
+    val sessionAId: String,
+    val sessionAName: String,
+    val sessionBId: String,
+    val sessionBName: String,
+    val sessionADate: String?,
+    val sessionBDate: String?,
+    val interferencePercent: Int,     // 0-100
+    val sharedMuscles: List<SharedMuscleInterference>,
+    val recommendation: String,
+    val isFromHistory: Boolean,
+    val hoursApart: Double,
+)
+
+// ─── Mis RINGS: Sueño extendido ───────────────────────────────────────────────
+
+/** Log de sueño extendido con calidad y despertares para tracking de RINGS. */
+@kotlinx.serialization.Serializable
+data class SleepLogExtended(
+    val id: String,
+    val date: String,              // "YYYY-MM-DD"
+    val bedTime: String,           // "23:30"
+    val wakeTime: String,          // "07:00"
+    val duration: Double,          // horas calculadas
+    val quality: Int = 3,          // 1-5 (1=muy mal, 5=excelente)
+    val awakenings: Int = 0,       // despertares nocturnos
+    val notes: String? = null,
+) {
+    /** Convierte al SleepLog básico que usa el motor AUGE. */
+    fun toSleepLog(): SleepLog = SleepLog(
+        id = id,
+        date = date,
+        endTime = wakeTime,
+        duration = duration,
+    )
+}

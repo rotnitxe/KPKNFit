@@ -4,13 +4,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,7 +23,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -38,19 +38,19 @@ import kotlin.math.*
 // ─── Ring Constants ──────────────────────────────────────────────────────────
 
 private val RingColors = listOf(Color(0xFFFF5252), Color(0xFF448AFF), Color(0xFFFFD740))
-private val RingLabels = listOf("MÚSCULOS", "SISTEMA", "ESTRUCTURA")
-private val RingLabelsShort = listOf("Músc.", "Sist.", "Estr.")
+private val RingLabels = listOf("MÚSCULOS", "ENERGÍA", "COLUMNA")
+private val RingLabelsShort = listOf("Mús.", "En.", "Col.")
 
 private val RingDescriptions = listOf(
-    "Indica cuánto volumen local toleran hoy tus músculos. Si baja, conviene recortar series duras en la zona más cargada.",
-    "Resume tu frescura neural, tu coordinación y tu capacidad de producir fuerza hoy.",
-    "Mide cómo llegan hoy tu columna, tus tendones y tus articulaciones a la carga.",
+    "Indica el promedio del estado de todos tus músculos: qué tan recuperados y preparados están para entrenar.",
+    "Representa tu energía del día: coordinación, enfoque y capacidad neural para producir fuerza.",
+    "Representa el estado de tu columna ante la carga axial: tolerancia estructural para entrenar con seguridad.",
 )
 
 private val RingQuestions = listOf(
-    "La lectura muscular se interpreta por músculo. El ring global es solo el promedio de tus grupos pilar.",
+    "Puedes recalibrar músculo por músculo si el porcentaje global no te representa.",
     "Corrige este ring solo si tu energía, coordinación o sensación de fuerza no coinciden con la predicción.",
-    "Corrige este ring si la carga axial o la tolerancia de tendones y articulaciones no coinciden con cómo te sientes.",
+    "Corrige este ring si la carga axial o la tolerancia de tu columna no coinciden con cómo te sientes.",
 )
 
 @Composable
@@ -62,7 +62,6 @@ fun HomeRingsSection(
     ringsViewMode: HomeViewModel.RingsViewMode,
     hasActiveProgram: Boolean = true,
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
-    onRingSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val progressValues = remember(muscularProgress, sncProgress, columnaProgress) {
@@ -79,20 +78,34 @@ fun HomeRingsSection(
         pageCount = { 2 }
     )
 
+    var showInfoDialog by remember { mutableStateOf(false) }
+
     Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = "ESTADO DE RECUPERACIÓN",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 1.sp,
-            modifier = Modifier.padding(start = 24.dp, bottom = 12.dp)
-        )
+        Row(
+            modifier = Modifier.padding(start = 24.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "MIS RINGS",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.sp,
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = "¿Qué es esto?",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.clickable { showInfoDialog = true }
+            )
+        }
 
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(230.dp),
+                .height(215.dp),
         ) { page ->
             Box(
                 modifier = Modifier
@@ -100,11 +113,15 @@ fun HomeRingsSection(
                     .padding(horizontal = 24.dp),
             ) {
                 when (page) {
-                    0 -> CombinedRingsView(progressValues, ringColors, onRingSelect, hasActiveProgram)
-                    1 -> IndividualRingsView(progressValues, ringColors, recoveryDashboard, onRingSelect, hasActiveProgram, perMuscle)
+                    0 -> CombinedRingsView(progressValues, ringColors, hasActiveProgram)
+                    1 -> IndividualRingsView(progressValues, ringColors, recoveryDashboard, hasActiveProgram, perMuscle)
                 }
             }
         }
+    }
+
+    if (showInfoDialog) {
+        RingsInfoDialog(onDismiss = { showInfoDialog = false })
     }
 }
 
@@ -112,7 +129,6 @@ fun HomeRingsSection(
 private fun CombinedRingsView(
     progressValues: List<Float>,
     ringColors: List<Color>,
-    onRingSelect: (Int) -> Unit,
     hasActiveProgram: Boolean = true,
 ) {
     Box(
@@ -128,28 +144,18 @@ private fun CombinedRingsView(
             Box(Modifier.height(110.dp).fillMaxWidth()) {
                 AugeRingsCanvas(progressValues[0], progressValues[1], progressValues[2], ringColors)
                 CurvedLabelsCanvas(RingLabels, ringColors)
-
-                Row(Modifier.fillMaxSize()) {
-                    repeat(3) { i ->
-                        Box(
-                            Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .pointerInput(Unit) {
-                                    detectTapGestures(onLongPress = {
-                                        if (hasActiveProgram && i != 0) onRingSelect(i)
-                                    })
-                                }
-                        )
-                    }
-                }
             }
 
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
+            // Porcentajes alineados bajo cada ring (más separados)
+            BoxWithConstraints(
+                Modifier.fillMaxWidth().height(24.dp),
             ) {
+                val widthPx = constraints.maxWidth.toFloat()
+                val r = widthPx / 5.8f
+                val s = r * 1.9f
+                val cx = widthPx / 2f
+                val centerXs = listOf(cx - s, cx, cx + s)
+                val density = LocalDensity.current.density
                 progressValues.forEachIndexed { i, progress ->
                     Text(
                         "${(progress * 100).toInt()}%",
@@ -157,7 +163,9 @@ private fun CombinedRingsView(
                         color = ringColors[i],
                         fontWeight = FontWeight.Black,
                         fontSize = 12.sp,
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .offset { IntOffset((centerXs[i] - 12f * density).toInt(), (8f * density).toInt()) },
                     )
                 }
             }
@@ -170,7 +178,6 @@ private fun IndividualRingsView(
     progressValues: List<Float>,
     ringColors: List<Color>,
     recoveryDashboard: RecoveryDashboard?,
-    onRingSelect: (Int) -> Unit,
     hasActiveProgram: Boolean = true,
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
 ) {
@@ -195,13 +202,7 @@ private fun IndividualRingsView(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
-                    Modifier
-                        .size(140.dp)
-                        .pointerInput(currentIndex) {
-                            detectTapGestures(onLongPress = {
-                                if (hasActiveProgram && currentIndex != 0) onRingSelect(currentIndex)
-                            })
-                        },
+                    Modifier.size(140.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Canvas(Modifier.fillMaxSize()) {
@@ -328,7 +329,7 @@ private fun IndividualRingsView(
 }
 
 @Composable
-private fun SingleRingCanvas(
+internal fun SingleRingCanvas(
     value: Float,
     color: Color,
     ringDiameter: Float = 140f,
@@ -425,7 +426,7 @@ private fun CurvedLabelsCanvas(labels: List<String>, ringColors: List<Color>) {
                         color = ringColors[i].copy(alpha = 0.7f)
                     ),
                     modifier = Modifier
-                        .offset { IntOffset((x / density - 4f).toInt(), (y / density - 6f).toInt()) }
+                        .offset { IntOffset((x - 4f * density).toInt(), (y - 6f * density).toInt()) }
                         .graphicsLayer { rotationZ = angle + 90f }
                 )
             }
@@ -457,7 +458,7 @@ private fun InternalCurvedLabel(label: String, color: Color, ringSize: Float) {
                     color = color.copy(alpha = 0.7f)
                 ),
                 modifier = Modifier
-                    .offset { IntOffset((x / density - 4f).toInt(), (y / density - 6f).toInt()) }
+                    .offset { IntOffset((x - 4f * density).toInt(), (y - 6f * density).toInt()) }
                     .graphicsLayer { rotationZ = angle + 90f }
             )
         }
@@ -486,7 +487,7 @@ private fun MuscleBatteryAccordion(
     ) {
         HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
         Text(
-            "Batería por zona muscular",
+            "RING por zona muscular",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Black,
         )
@@ -548,8 +549,95 @@ private fun MuscleBatteryAccordion(
     }
 }
 
-private fun batteryColor(score: Int): Color = when {
+internal fun batteryColor(score: Int): Color = when {
     score >= 80 -> Color(0xFF22C55E)
     score >= 50 -> Color(0xFFFACC15)
     else        -> Color(0xFFEF4444)
+}
+
+// ─── RINGS Info Dialog ─────────────────────────────────────────────────────
+
+@Composable
+private fun RingsInfoDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                "¿Qué son los RINGS?",
+                fontWeight = FontWeight.Black,
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 360.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    "Tus RINGS son la representación visual del estado de tu cuerpo, dividido en tres áreas relevantes del entrenamiento:",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                )
+
+                Text(
+                    "1. RING Músculos:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFFFF5252),
+                )
+                Text(
+                    "Muestra el promedio del estado de todos tus músculos, puede entenderse de dos formas, qué tan recuperados están o qué tan preparados están para una sesión de entrenamiento. El anillo representa el estado general de todos tus músculos, si deseas corregir el porcentaje porque no representa tu estado real, puedes dirigirte al músculo en específico y corregir.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                )
+
+                Text(
+                    "2. RING Energía:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFF448AFF),
+                )
+                Text(
+                    "Representa qué tan fresco y enfocado te sientes en el día, con ello se busca representar cómo te sientes a nivel neural.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                )
+
+                Text(
+                    "3. RING Columna:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFFFFD740),
+                )
+                Text(
+                    "Representa qué tan preparada está tu columna para un entrenamiento; especialmente relevante si realizas sentadillas libres o peso muerto.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                )
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                Text(
+                    "¿Cómo se actualizan los RINGS?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Black,
+                )
+                Text(
+                    "Los RINGS se recalibran automáticamente en tres momentos clave: antes de cada entrenamiento (donde puedes ajustar tu estado del día), al finalizar una sesión y en el feedback de recuperación que recibirás al día siguiente. Así el algoritmo mejora progresivamente sin que necesites intervenir manualmente.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    "Entendido",
+                    fontWeight = FontWeight.Black,
+                )
+            }
+        }
+    )
 }

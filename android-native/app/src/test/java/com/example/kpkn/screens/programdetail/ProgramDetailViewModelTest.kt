@@ -1,5 +1,7 @@
 package com.example.kpkn.screens.programdetail
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
 import kotlinx.coroutines.Dispatchers
@@ -13,12 +15,17 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest = Config.NONE, sdk = [34])
 class ProgramDetailViewModelTest {
 
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
-    private val repository = ProgramRepository.getInstance()
+    private lateinit var repository: ProgramRepository
 
     private fun nextId(): String = "prog_${System.nanoTime()}"
 
@@ -86,6 +93,12 @@ class ProgramDetailViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        ProgramRepository.init(context)
+        repository = ProgramRepository.getInstance()
+        repository.clearPrograms()
+        repository.clearActiveProgram()
+        repository.clearOngoingWorkout()
     }
 
     @After
@@ -144,16 +157,6 @@ class ProgramDetailViewModelTest {
 
         vm.selectWeek("${id}_w2")
         assertEquals("${id}_w2", vm.uiState.value.selectedWeekId)
-    }
-
-    // ─── Tour ─────────────────────────────────────────────────────────────
-
-    @Test
-    fun dismissTourStep_resets_tour() {
-        val vm = ProgramDetailViewModel(nextId())
-        vm.dismissTourStep()
-        assertEquals(0, vm.uiState.value.tourStep)
-        assertTrue(vm.uiState.value.tourDismissed)
     }
 
     // ─── Program Actions ──────────────────────────────────────────────────

@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.domain.auge.AugeTtcEngine
 import kotlinx.coroutines.Dispatchers
@@ -30,34 +31,87 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     // ─── Public state ─────────────────────────────────────────────────────────
 
-    private val _batteries = MutableStateFlow(GlobalBatteries(muscular = 100, cnc = 100, spinal = 100))
-    val batteries: StateFlow<GlobalBatteries> = _batteries.asStateFlow()
+    private val initialDashboard = RecoveryDashboard(
+        overallScore = 100,
+        headline = "Listo para entrenar",
+        summary = "Tu estado está equilibrado.",
+        recommendation = "Hoy puedes entrenar normal.",
+        confidenceLabel = "Media",
+        channels = listOf(
+            RecoveryChannelSnapshot(
+                id = RecoveryChannelId.MUSCULAR,
+                title = "Músculos",
+                shortTitle = "Mús.",
+                score = 100,
+                band = RecoveryBand.HIGH,
+                description = "Promedio del estado de todos tus músculos hoy.",
+                action = "Puedes entrenar normal.",
+                confidence = 70,
+            ),
+            RecoveryChannelSnapshot(
+                id = RecoveryChannelId.SYSTEM,
+                title = "Energía",
+                shortTitle = "En.",
+                score = 100,
+                band = RecoveryBand.HIGH,
+                description = "Qué tanta intensidad, coordinación y producción de fuerza toleras hoy.",
+                action = "Puedes entrenar normal.",
+                confidence = 70,
+            ),
+            RecoveryChannelSnapshot(
+                id = RecoveryChannelId.STRUCTURE,
+                title = "Columna",
+                shortTitle = "Col.",
+                score = 100,
+                band = RecoveryBand.HIGH,
+                description = "Cómo llega hoy tu columna, tus tendones y tus articulaciones a la carga.",
+                action = "Puedes entrenar normal.",
+                confidence = 70,
+            ),
+        ),
+    )
 
-    private val _perMuscle = MutableStateFlow<Map<String, MuscleRecoveryStatus>>(emptyMap())
-    val perMuscle: StateFlow<Map<String, MuscleRecoveryStatus>> = _perMuscle.asStateFlow()
-
-    private val _readiness = MutableStateFlow<AugeReadinessVerdict?>(null)
-    val readiness: StateFlow<AugeReadinessVerdict?> = _readiness.asStateFlow()
-
-    private val _dashboard = MutableStateFlow(
-        RecoveryDashboard(
-            overallScore = 100,
-            headline = "Listo para entrenar",
-            summary = "Tu estado está equilibrado.",
-            recommendation = "Hoy puedes entrenar normal.",
-            confidenceLabel = "Baja",
+    private val _snapshot = MutableStateFlow(
+        AugeSnapshot(
+            batteries = GlobalBatteries(muscular = 100, cnc = 100, spinal = 100),
+            perMuscle = emptyMap(),
+            readiness = null,
+            dashboard = initialDashboard,
+            articular = emptyMap(),
+            shouldSuggestAutoDeload = false,
+            cumulativeFatigue = 0.0,
+            autoDeloadMessage = null,
+            isLoading = true,
         )
     )
-    val dashboard: StateFlow<RecoveryDashboard> = _dashboard.asStateFlow()
+    val snapshot: StateFlow<AugeSnapshot> = _snapshot.asStateFlow()
+
+    val batteries: StateFlow<GlobalBatteries> = snapshot
+        .map { it.batteries }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.batteries)
+
+    val perMuscle: StateFlow<Map<String, MuscleRecoveryStatus>> = snapshot
+        .map { it.perMuscle }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.perMuscle)
+
+    val readiness: StateFlow<AugeReadinessVerdict?> = snapshot
+        .map { it.readiness }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.readiness)
+
+    val dashboard: StateFlow<RecoveryDashboard> = snapshot
+        .map { it.dashboard }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.dashboard)
 
     private val _pendingQuestionnaire = MutableStateFlow<PendingQuestionnaire?>(null)
     val pendingQuestionnaire: StateFlow<PendingQuestionnaire?> = _pendingQuestionnaire.asStateFlow()
 
-    private val _articular = MutableStateFlow<Map<ArticularBattery, ArticularBatteryState>>(emptyMap())
-    val articular: StateFlow<Map<ArticularBattery, ArticularBatteryState>> = _articular.asStateFlow()
+    val articular: StateFlow<Map<ArticularBattery, ArticularBatteryState>> = snapshot
+        .map { it.articular }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.articular)
 
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    val isLoading: StateFlow<Boolean> = snapshot
+        .map { it.isLoading }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.isLoading)
 
     // ─── Init ─────────────────────────────────────────────────────────────────
 
@@ -65,6 +119,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         // Recompute whenever history or settings change
         viewModelScope.launch {
             programRepo.history.combine(programRepo.settings) { h, s -> Pair(h, s) }
+                .distinctUntilChanged()
                 .collectLatest { (history, settings) ->
                     recompute(history, settings)
                 }
@@ -74,14 +129,31 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     // ─── Core recompute ───────────────────────────────────────────────────────
 
     private suspend fun recompute(history: List<WorkoutLog>, settings: Settings) {
+        _snapshot.update { it.copy(isLoading = true) }
         val wellbeing = augeRepo.getTodayWellbeing()
         val feedbacks = augeRepo.getPostSessionFeedbacks()
         val sleepLogs = augeRepo.getLastNSleepLogs(7)
         val nutritionLogs = nutritionRepo.nutritionLogs.value
 
         val (batteries, perMuscle, dashboard, readiness, pending, articular) = withContext(Dispatchers.Default) {
-            val bat = AugeRecoveryEngine.calculateGlobalBatteries(history, wellbeing, settings, exerciseDb, sleepLogs, nutritionLogs)
-            val muscles = AugeRecoveryEngine.getPerMuscleBatteries(history, wellbeing, settings, exerciseDb, sleepLogs, nutritionLogs)
+            val bat = AugeRecoveryEngine.calculateGlobalBatteries(
+                history = history,
+                wellbeing = wellbeing,
+                settings = settings,
+                exerciseDb = exerciseDb,
+                sleepLogs = sleepLogs,
+                nutritionLogs = nutritionLogs,
+                feedbacks = feedbacks,
+            )
+            val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
+                history = history,
+                wellbeing = wellbeing,
+                settings = settings,
+                exerciseDb = exerciseDb,
+                sleepLogs = sleepLogs,
+                nutritionLogs = nutritionLogs,
+                feedbacks = feedbacks,
+            )
             val articular = AugeTtcEngine.calculateArticularBatteries(history, exerciseDb)
             val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
                 batteries = bat,
@@ -96,13 +168,62 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             Sextuple(bat, muscles, dashboard, verdict, pending, articular)
         }
 
-        _batteries.value = batteries
-        _perMuscle.value = perMuscle
-        _dashboard.value = dashboard
-        _readiness.value = readiness
-        _pendingQuestionnaire.value = pending ?: augeRepo.getPendingQuestionnaire()
-        _articular.value = articular
-        _isLoading.value = false
+        val resolvedPending = pending ?: augeRepo.getPendingQuestionnaire()
+        exposePendingIfDue(resolvedPending)
+        val cumulativeFatigue = AugeFatigueEngine.calculateCompletedSessionStress(
+            completedExercises = history.firstOrNull()?.completedExercises ?: emptyList(),
+            exerciseDb = exerciseDb,
+            settings = settings,
+        )
+        val readinessScore = readiness?.score ?: dashboard.overallScore
+        val shouldSuggestAutoDeload = AugeFatigueEngine.shouldSuggestAutoDeload(
+            cumulativeFatigue = cumulativeFatigue,
+            readinessScore = readinessScore,
+            settings = settings,
+        )
+        val autoDeloadMessage = if (shouldSuggestAutoDeload) {
+            "Fatiga alta detectada: considera una semana de descarga para recuperar mejor."
+        } else {
+            null
+        }
+        _snapshot.value = _snapshot.value.copy(
+            batteries = batteries,
+            perMuscle = perMuscle,
+            dashboard = dashboard,
+            readiness = readiness,
+            articular = articular,
+            shouldSuggestAutoDeload = shouldSuggestAutoDeload,
+            cumulativeFatigue = cumulativeFatigue,
+            autoDeloadMessage = autoDeloadMessage,
+            isLoading = false,
+        )
+    }
+
+    /**
+     * Exposes [q] to [pendingQuestionnaire] only when its scheduled time has passed.
+     * If not yet due, schedules a coroutine to reveal it at the right moment.
+     * This prevents the post-session feedback sheet from appearing immediately after
+     * finishing a workout — it should only appear ~24h later.
+     */
+    private fun exposePendingIfDue(q: PendingQuestionnaire?) {
+        if (q == null) {
+            if (_pendingQuestionnaire.value != null) _pendingQuestionnaire.value = null
+            return
+        }
+        val remaining = q.scheduledTimeMs - System.currentTimeMillis()
+        if (remaining <= 0L) {
+            if (_pendingQuestionnaire.value != q) _pendingQuestionnaire.value = q
+        } else {
+            // Not due yet — keep hidden and reveal after the remaining time
+            _pendingQuestionnaire.value = null
+            viewModelScope.launch {
+                kotlinx.coroutines.delay(remaining.coerceAtMost(24 * 60 * 60_000L))
+                val stillPending = augeRepo.getPendingQuestionnaire()
+                if (stillPending != null && System.currentTimeMillis() >= stillPending.scheduledTimeMs) {
+                    _pendingQuestionnaire.value = stillPending
+                }
+            }
+        }
     }
 
     // ─── Public actions ───────────────────────────────────────────────────────
@@ -125,11 +246,12 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Schedule a post-session questionnaire to appear 2h after workout. */
+    /** Schedule a post-session questionnaire to appear after [q.scheduledTimeMs] (typically 24h). */
     fun schedulePendingQuestionnaire(q: PendingQuestionnaire) {
         viewModelScope.launch {
             augeRepo.setPendingQuestionnaire(q)
-            _pendingQuestionnaire.value = q
+            // Do NOT expose immediately — exposePendingIfDue handles the delay
+            exposePendingIfDue(q)
         }
     }
 
@@ -158,6 +280,11 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     ) {
         viewModelScope.launch {
             val base = augeRepo.getTodayWellbeing()
+            val derivedMuscular = if (perMuscle.isEmpty()) {
+                null
+            } else {
+                perMuscle.values.average().toInt().coerceIn(0, 100)
+            }
             val updated = DailyWellbeingLog(
                 id = base?.id ?: UUID.randomUUID().toString(),
                 date = LocalDate.now().toString(),
@@ -169,7 +296,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 moodState = base?.moodState,
                 workIntensity = base?.workIntensity,
                 studyIntensity = base?.studyIntensity,
-                manualMuscularBattery = null,
+                manualMuscularBattery = derivedMuscular,
                 manualNeuralBattery = neural.coerceIn(0, 100),
                 manualSpinalBattery = spinal.coerceIn(0, 100),
                 manualMuscleBatteries = perMuscle.mapValues { (_, value) -> value.coerceIn(0, 100) },

@@ -40,6 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.domain.exercises.analyticsExerciseKey
+import com.example.kpkn.domain.exercises.displayLabel
+import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import java.time.Duration
 import java.time.Instant
 
@@ -53,6 +56,8 @@ private data class ProgressPoint(
 private data class ExerciseProgressDetail(
     val key: String,
     val exerciseName: String,
+    val anchorLabel: String?,
+    val relationLabel: String?,
     val isStar: Boolean,
     val goal1RM: Double?,
     val bestEstimated1RM: Double,
@@ -61,6 +66,14 @@ private data class ExerciseProgressDetail(
     val averageWeeklyGain: Double,
     val relativeStrength: Double?,
     val points: List<ProgressPoint>,
+)
+
+private data class PlannedExerciseMeta(
+    val name: String,
+    val goal1RM: Double?,
+    val isStar: Boolean,
+    val anchorCanonicalId: String?,
+    val relationLabel: String?,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -196,6 +209,13 @@ private fun RelativeStrengthSection(
 
             if (selectedExercise != null) {
                 val ratio = selectedExercise.relativeStrength
+                selectedExercise.anchorLabel?.let { anchor ->
+                    Text(
+                        text = selectedExercise.relationLabel?.let { "$it de $anchor" } ?: "Vinculado a $anchor",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -355,12 +375,21 @@ private fun GoalRmSection(
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                                     Text("★", color = Color(0xFFF59E0B), fontWeight = FontWeight.Black)
                                     Spacer(Modifier.width(6.dp))
-                                    Text(
-                                        exercise.exerciseName,
-                                        fontWeight = FontWeight.Bold,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            exercise.exerciseName,
+                                            fontWeight = FontWeight.Bold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                        exercise.anchorLabel?.let { anchor ->
+                                            Text(
+                                                text = exercise.relationLabel?.let { "$it de $anchor" } ?: "Vinculado a $anchor",
+                                                fontSize = 10.sp,
+                                                color = MaterialTheme.colorScheme.primary,
+                                            )
+                                        }
+                                    }
                                 }
                                 Row {
                                     TextButton(onClick = { onEditGoal(exercise.key) }) {
@@ -424,13 +453,22 @@ private fun GoalRmSection(
                                     fontWeight = FontWeight.Bold,
                                 )
                                 Spacer(Modifier.width(6.dp))
-                                Text(
-                                    exercise.exerciseName,
-                                    fontSize = 12.sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        exercise.exerciseName,
+                                        fontSize = 12.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    exercise.anchorLabel?.let { anchor ->
+                                        Text(
+                                            text = exercise.relationLabel?.let { "$it de $anchor" } ?: "Vinculado a $anchor",
+                                            fontSize = 10.sp,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                }
                             }
                             TextButton(onClick = { onToggleStar(exercise.key, true) }) {
                                 Text("★ Añadir")
@@ -554,15 +592,16 @@ private fun buildExerciseProgressDetails(
     userBodyWeightKg: Double?,
 ): List<ExerciseProgressDetail> {
     val planned = collectProgramExerciseGoals(program)
+    val exerciseNames = buildCanonicalExerciseNameIndex(program, logs)
     val groupedLogs = logs
         .flatMap { log ->
             log.completedExercises.mapNotNull { exercise ->
-                val key = exerciseStableKey(exercise.exerciseDbId, exercise.exerciseName, exercise.exerciseId)
+                val key = exercise.analyticsExerciseKey()
                 val bestSet = exercise.sets.maxByOrNull { it.weight * it.reps } ?: return@mapNotNull null
                 val estimated1RM = calculateEpley1RM(bestSet.weight, bestSet.reps)
                 Triple(
                     key,
-                    exercise.exerciseName,
+                    exercise,
                     ProgressPoint(
                         date = log.date,
                         estimated1RM = estimated1RM,
@@ -576,16 +615,21 @@ private fun buildExerciseProgressDetails(
 
     return (groupedLogs.keys + planned.keys).map { key ->
         val values = groupedLogs[key].orEmpty()
-        val displayName = values.lastOrNull()?.second ?: planned[key]?.first ?: key
+        val displayExercise = values.lastOrNull()?.second
+        val planMeta = planned[key]
+        val displayName = displayExercise?.exerciseName ?: planMeta?.name ?: key.removePrefix("exercise:")
         val points = values.map { it.third }.sortedBy { it.date }
         val bestEstimated1RM = points.maxOfOrNull { it.estimated1RM } ?: 0.0
         val bestPrVolume = points.maxOfOrNull { it.bestLoad * it.reps } ?: 0.0
         val averageWeeklyGain = computeWeeklyGain(points)
-        val goal = planned[key]?.second
-        val isStar = planned[key]?.third == true
+        val goal = planMeta?.goal1RM
+        val isStar = planMeta?.isStar == true
+        val anchorCanonicalId = displayExercise?.relativeToCanonicalExerciseId ?: planMeta?.anchorCanonicalId
         ExerciseProgressDetail(
             key = key,
             exerciseName = displayName,
+            anchorLabel = resolveAnchorLabel(anchorCanonicalId, exerciseNames),
+            relationLabel = planMeta?.relationLabel,
             isStar = isStar,
             goal1RM = goal,
             bestEstimated1RM = bestEstimated1RM,
@@ -600,8 +644,8 @@ private fun buildExerciseProgressDetails(
 
 private fun collectProgramExerciseGoals(
     program: Program,
-): Map<String, Triple<String, Double?, Boolean>> {
-    val map = mutableMapOf<String, Triple<String, Double?, Boolean>>()
+): Map<String, PlannedExerciseMeta> {
+    val map = mutableMapOf<String, PlannedExerciseMeta>()
     program.macrocycles
         .flatMap { it.blocks }
         .flatMap { it.mesocycles }
@@ -617,15 +661,45 @@ private fun collectProgramExerciseGoals(
             }
         }
         .forEach { exercise ->
-            val key = exerciseStableKey(exercise.exerciseDbId, exercise.name, exercise.id)
+            val key = exercise.analyticsExerciseKey()
             val current = map[key]
-            map[key] = Triple(
-                current?.first ?: exercise.name,
-                exercise.goal1RM ?: current?.second,
-                exercise.isStarTarget || current?.third == true,
+            map[key] = PlannedExerciseMeta(
+                name = current?.name ?: exercise.name,
+                goal1RM = exercise.goal1RM ?: current?.goal1RM,
+                isStar = exercise.isStarTarget || current?.isStar == true,
+                anchorCanonicalId = exercise.relativeToCanonicalExerciseId ?: current?.anchorCanonicalId,
+                relationLabel = exercise.relationshipType?.displayLabel() ?: current?.relationLabel,
             )
         }
     return map
+}
+
+private fun buildCanonicalExerciseNameIndex(
+    program: Program,
+    logs: List<WorkoutLog>,
+): Map<String, String> {
+    val names = mutableMapOf<String, String>()
+    program.macrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .flatMap { it.sessions }
+        .flatMap { it.exercises + it.parts.flatMap { part -> part.exercises } }
+        .forEach { exercise ->
+            names.putIfAbsent(exercise.resolvedCanonicalExerciseId(), exercise.name)
+        }
+    logs.flatMap { it.completedExercises }.forEach { exercise ->
+        names.putIfAbsent(exercise.resolvedCanonicalExerciseId(), exercise.exerciseName)
+    }
+    return names
+}
+
+private fun resolveAnchorLabel(
+    anchorCanonicalId: String?,
+    exerciseNames: Map<String, String>,
+): String? {
+    val id = anchorCanonicalId ?: return null
+    return exerciseNames[id] ?: id
 }
 
 private fun updateGoalForExercise(
@@ -647,7 +721,7 @@ private fun updateGoalForExercise(
                                                 parts = session.parts.map { part ->
                                                     part.copy(
                                                         exercises = part.exercises.map { exercise ->
-                                                            if (exerciseStableKey(exercise.exerciseDbId, exercise.name, exercise.id) == exerciseKey) {
+                                                            if (exercise.analyticsExerciseKey() == exerciseKey) {
                                                                 exercise.copy(goal1RM = goal1RM, isStarTarget = true)
                                                             } else {
                                                                 exercise
@@ -656,7 +730,7 @@ private fun updateGoalForExercise(
                                                     )
                                                 },
                                                 exercises = session.exercises.map { exercise ->
-                                                    if (exerciseStableKey(exercise.exerciseDbId, exercise.name, exercise.id) == exerciseKey) {
+                                                    if (exercise.analyticsExerciseKey() == exerciseKey) {
                                                         exercise.copy(goal1RM = goal1RM, isStarTarget = true)
                                                     } else {
                                                         exercise
@@ -694,7 +768,7 @@ private fun updateStarForExercise(
                                                 parts = session.parts.map { part ->
                                                     part.copy(
                                                         exercises = part.exercises.map { exercise ->
-                                                            if (exerciseStableKey(exercise.exerciseDbId, exercise.name, exercise.id) == exerciseKey) {
+                                                            if (exercise.analyticsExerciseKey() == exerciseKey) {
                                                                 exercise.copy(isStarTarget = isStar)
                                                             } else {
                                                                 exercise
@@ -703,7 +777,7 @@ private fun updateStarForExercise(
                                                     )
                                                 },
                                                 exercises = session.exercises.map { exercise ->
-                                                    if (exerciseStableKey(exercise.exerciseDbId, exercise.name, exercise.id) == exerciseKey) {
+                                                    if (exercise.analyticsExerciseKey() == exerciseKey) {
                                                         exercise.copy(isStarTarget = isStar)
                                                     } else {
                                                         exercise
@@ -720,18 +794,6 @@ private fun updateStarForExercise(
             )
         }
     )
-}
-
-private fun exerciseStableKey(
-    exerciseDbId: String?,
-    exerciseName: String,
-    fallbackId: String,
-): String {
-    return when {
-        !exerciseDbId.isNullOrBlank() -> "db:${exerciseDbId.lowercase()}"
-        exerciseName.isNotBlank() -> "name:${exerciseName.trim().lowercase()}"
-        else -> "id:$fallbackId"
-    }
 }
 
 private fun computeWeeklyGain(points: List<ProgressPoint>): Double {

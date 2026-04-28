@@ -21,6 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.kpkn.R
 import com.example.kpkn.data.models.Session
 
 @Composable
@@ -48,7 +50,7 @@ fun SessionCard(
                     if (showDragHandle) {
                         Icon(
                             Icons.Default.DragHandle,
-                            "Reordenar",
+                            stringResource(R.string.common_reorder),
                             modifier = Modifier.size(20.dp).padding(end = 4.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (isDragging) 1f else 0.4f),
                         )
@@ -78,10 +80,10 @@ fun SessionCard(
                 }
                 // Intensity badge — uses M3 tonal containers
                 val (badgeContainer, badgeOnContainer, fatigueLabel) = when {
-                    exercises.isEmpty() -> Triple(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant, "Sin datos")
-                    exercises.size <= 3 -> Triple(MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer, "Baja")
-                    exercises.size <= 7 -> Triple(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer, "Moderada")
-                    else               -> Triple(MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.onErrorContainer, "Alta")
+                    exercises.isEmpty() -> Triple(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant, stringResource(R.string.common_no_data))
+                    exercises.size <= 3 -> Triple(MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer, stringResource(R.string.session_fatigue_low))
+                    exercises.size <= 7 -> Triple(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer, stringResource(R.string.session_fatigue_moderate))
+                    else               -> Triple(MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.onErrorContainer, stringResource(R.string.session_fatigue_high))
                 }
                 Box(
                     Modifier
@@ -119,17 +121,17 @@ fun SessionCard(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                 if (onDelete != null) {
                     IconButton(onClick = onDelete) {
-                        Icon(Icons.Default.Delete, "Eliminar", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.Delete, stringResource(R.string.common_delete), tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
                     }
                 }
                 IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, "Editar", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                 }
                 Spacer(Modifier.width(4.dp))
                 FilledTonalButton(onClick = onStart, shape = RoundedCornerShape(10.dp)) {
                     Icon(Icons.Default.PlayArrow, null, Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Iniciar", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.common_start), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

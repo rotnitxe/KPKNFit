@@ -1,24 +1,43 @@
 package com.example.kpkn.screens.workout
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.RadialGradient
 import android.net.Uri
+import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.example.kpkn.data.models.CompletedExercise
+import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.R
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Locale
 import kotlin.math.abs
 
 object WorkoutShareService {
 
+    private data class StoryExerciseBlock(
+        val name: String,
+        val meta: String,
+        val detail: String,
+    )
+
     fun shareToInstagramStory(
         context: Context,
         sessionName: String,
+        completedExercises: List<CompletedExercise> = emptyList(),
         durationMinutes: Int,
         totalVolume: Double,
         totalSets: Int,
@@ -28,50 +47,78 @@ object WorkoutShareService {
         previousBestEstimated1RM: Double? = null,
         currentBestEstimated1RM: Double? = null,
     ) {
-        val bitmap = renderStoryCard(
-            context = context,
-            sessionName = sessionName,
-            durationMinutes = durationMinutes,
-            totalVolume = totalVolume,
-            totalSets = totalSets,
-            previousTotalSets = previousTotalSets,
-            previousVolume = previousVolume,
-            previousDurationMinutes = previousDurationMinutes,
-            previousBestEstimated1RM = previousBestEstimated1RM,
-            currentBestEstimated1RM = currentBestEstimated1RM,
-        )
-        val file = File(context.cacheDir, "workout-story-${System.currentTimeMillis()}.png")
-        FileOutputStream(file).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-        }
-
-        val uri: Uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            file,
-        )
-
-        val intent = Intent("com.instagram.share.ADD_TO_STORY").apply {
-            setDataAndType(uri, "image/png")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            putExtra("source_application", context.packageName)
-        }
-
-        if (intent.resolveActivity(context.packageManager) != null) {
-            context.startActivity(intent)
-        } else {
-            val fallback = Intent(Intent.ACTION_SEND).apply {
-                type = "image/png"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        runCatching {
+            val bitmap = renderStoryCard(
+                context = context,
+                sessionName = sessionName,
+                completedExercises = completedExercises,
+                durationMinutes = durationMinutes,
+                totalVolume = totalVolume,
+                totalSets = totalSets,
+                previousTotalSets = previousTotalSets,
+                previousVolume = previousVolume,
+                previousDurationMinutes = previousDurationMinutes,
+                previousBestEstimated1RM = previousBestEstimated1RM,
+                currentBestEstimated1RM = currentBestEstimated1RM,
+            )
+            val file = File(context.cacheDir, "workout-story-${System.currentTimeMillis()}.png")
+            FileOutputStream(file).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
-            context.startActivity(Intent.createChooser(fallback, "Compartir entrenamiento"))
+
+            val uri: Uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file,
+            )
+
+            val instagramIntent = Intent("com.instagram.share.ADD_TO_STORY").apply {
+                setDataAndType(uri, "image/png")
+                setPackage(INSTAGRAM_PACKAGE)
+                clipData = ClipData.newRawUri("workout_story", uri)
+                putExtra("source_application", context.packageName)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            if (instagramIntent.resolveActivity(context.packageManager) != null) {
+                context.grantUriPermission(
+                    INSTAGRAM_PACKAGE,
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+                context.startActivity(instagramIntent)
+            } else {
+                val fallback = Intent(Intent.ACTION_SEND).apply {
+                    type = "image/png"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    clipData = ClipData.newRawUri("workout_story", uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                val chooser = Intent.createChooser(fallback, "Compartir entrenamiento").apply {
+                    if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(chooser)
+            }
+        }.onFailure { error ->
+            if (error !is ActivityNotFoundException) {
+                error.printStackTrace()
+            }
+            Toast.makeText(
+                context,
+                "No se pudo abrir la pantalla para compartir.",
+                Toast.LENGTH_SHORT,
+            ).show()
         }
     }
+
+    private const val INSTAGRAM_PACKAGE = "com.instagram.android"
 
     private fun renderStoryCard(
         context: Context,
         sessionName: String,
+        completedExercises: List<CompletedExercise>,
         durationMinutes: Int,
         totalVolume: Double,
         totalSets: Int,
@@ -86,73 +133,208 @@ object WorkoutShareService {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
-        val bg = Paint().apply { color = Color.parseColor("#040404") }
-        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bg)
+        val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = LinearGradient(
+                0f,
+                0f,
+                width.toFloat(),
+                height.toFloat(),
+                intArrayOf(
+                    Color.parseColor("#030303"),
+                    Color.parseColor("#0A1110"),
+                    Color.parseColor("#050505"),
+                ),
+                null,
+                android.graphics.Shader.TileMode.CLAMP,
+            )
+        }
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), backgroundPaint)
+
+        val topGlowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = RadialGradient(
+                width * 0.78f,
+                170f,
+                420f,
+                intArrayOf(Color.argb(120, 0, 229, 168), Color.argb(0, 0, 229, 168)),
+                floatArrayOf(0f, 1f),
+                android.graphics.Shader.TileMode.CLAMP,
+            )
+        }
+        val leftGlowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = RadialGradient(
+                120f,
+                1280f,
+                380f,
+                intArrayOf(Color.argb(70, 0, 163, 255), Color.argb(0, 0, 163, 255)),
+                floatArrayOf(0f, 1f),
+                android.graphics.Shader.TileMode.CLAMP,
+            )
+        }
+        canvas.drawCircle(width * 0.78f, 170f, 420f, topGlowPaint)
+        canvas.drawCircle(120f, 1280f, 380f, leftGlowPaint)
 
         val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#101010")
+            color = Color.argb(40, 255, 255, 255)
             strokeWidth = 1f
         }
-        var y = 260f
-        while (y < height.toFloat()) {
-            canvas.drawLine(48f, y, width - 48f, y, gridPaint)
-            y += 96f
+        var gridY = 220f
+        while (gridY < height.toFloat()) {
+            canvas.drawLine(60f, gridY, width - 60f, gridY, gridPaint)
+            gridY += 86f
         }
 
-        val accent = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#00E5A8") }
-        canvas.drawRect(0f, 0f, width.toFloat(), 18f, accent)
+        val diagonalBand = Path().apply {
+            moveTo(0f, 340f)
+            lineTo(width.toFloat(), 520f)
+            lineTo(width.toFloat(), 970f)
+            lineTo(0f, 790f)
+            close()
+        }
+        val diagonalBandPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(28, 255, 255, 255)
+        }
+        canvas.drawPath(diagonalBand, diagonalBandPaint)
 
         val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
-            textSize = 56f
+            textSize = 72f
             isFakeBoldText = true
         }
-        val bodyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#BDBDBD")
-            textSize = 34f
+        val eyebrowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#C6FFF0")
+            textSize = 28f
+            isFakeBoldText = true
+            letterSpacing = 0.08f
         }
-        val valuePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        val subtitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#ADB6B4")
+            textSize = 31f
+        }
+        val statValuePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
-            textSize = 54f
+            textSize = 44f
             isFakeBoldText = true
+        }
+        val statLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#8F9A97")
+            textSize = 24f
         }
         val deltaUpPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#00E676")
-            textSize = 30f
+            color = Color.parseColor("#5EFFB8")
+            textSize = 26f
             isFakeBoldText = true
         }
         val deltaDownPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#FF5252")
-            textSize = 30f
+            color = Color.parseColor("#FF7272")
+            textSize = 26f
             isFakeBoldText = true
         }
         val deltaNeutralPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#BDBDBD")
-            textSize = 30f
+            color = Color.parseColor("#B7BDBB")
+            textSize = 26f
             isFakeBoldText = true
         }
-
-        val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#0F0F0F") }
-        val cardStroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.STROKE
-            color = Color.parseColor("#1F1F1F")
-            strokeWidth = 2f
+        val sectionTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            textSize = 34f
+            isFakeBoldText = true
+        }
+        val exerciseNamePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            textSize = 34f
+            isFakeBoldText = true
+        }
+        val exerciseMetaPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#8F9A97")
+            textSize = 24f
+        }
+        val exerciseDetailPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#DDF7EF")
+            textSize = 28f
+        }
+        val footerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#9CA5A2")
+            textSize = 26f
         }
 
-        val logo = androidx.core.content.ContextCompat.getDrawable(context, R.drawable.kpknicon)
-        logo?.setBounds(64, 54, 164, 154)
-        logo?.draw(canvas)
+        val chipPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(28, 198, 255, 240)
+        }
+        val chipStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(70, 198, 255, 240)
+            style = Paint.Style.STROKE
+            strokeWidth = 2f
+        }
+        val statCardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(175, 14, 18, 18)
+        }
+        val statStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(70, 255, 255, 255)
+            style = Paint.Style.STROKE
+            strokeWidth = 2f
+        }
+        val sectionCardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(185, 10, 12, 12)
+        }
+        val sectionStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(55, 255, 255, 255)
+            style = Paint.Style.STROKE
+            strokeWidth = 2f
+        }
+        val rowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(205, 19, 23, 23)
+        }
+        val accentStripPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = LinearGradient(
+                0f,
+                0f,
+                0f,
+                160f,
+                intArrayOf(Color.parseColor("#D8FFF4"), Color.parseColor("#2DE1A6")),
+                null,
+                android.graphics.Shader.TileMode.CLAMP,
+            )
+        }
 
-        canvas.drawText("KPKN", 188f, 118f, titlePaint)
-        canvas.drawText("Entrena en KPKN", 188f, 162f, bodyPaint)
+        val logoFilter = buildNegativeFilter()
+        drawLogo(context, canvas, 64, 56, 176, 168, 255, logoFilter)
+        drawLogo(context, canvas, 548, 230, 1060, 760, 30, logoFilter)
 
-        canvas.drawText(sessionName.take(30), 64f, 252f, titlePaint)
-        canvas.drawText("Resumen de sesión", 64f, 298f, bodyPaint)
+        val chipRect = RectF(202f, 70f, 430f, 118f)
+        canvas.drawRoundRect(chipRect, 22f, 22f, chipPaint)
+        canvas.drawRoundRect(chipRect, 22f, 22f, chipStrokePaint)
+        canvas.drawText("COMPARTIR SESION", 224f, 102f, eyebrowPaint)
+        canvas.drawText("KPKN", 202f, 162f, titlePaint)
+        canvas.drawText("Entrena en KPKN", 204f, 205f, subtitlePaint)
 
-        val statsTop = 348f
-        val gap = 16f
-        val cardWidth = (width - 64f * 2f - gap) / 2f
-        val cardHeight = 220f
+        val titleEndY = drawWrappedText(
+            canvas = canvas,
+            text = sessionName.uppercase(Locale.getDefault()),
+            startX = 64f,
+            startY = 286f,
+            maxWidth = 780f,
+            paint = titlePaint,
+            lineHeight = 82f,
+            maxLines = 2,
+        )
+        val exerciseBlocks = buildExerciseBlocks(completedExercises)
+        val exerciseCount = exerciseBlocks.size
+        val headerSummary = buildString {
+            append(exerciseCount)
+            append(if (exerciseCount == 1) " ejercicio" else " ejercicios")
+            append("  ·  ")
+            append(totalSets)
+            append(if (totalSets == 1) " serie" else " series")
+            append("  ·  ")
+            append(durationMinutes)
+            append(" min")
+        }
+        canvas.drawText(headerSummary, 64f, titleEndY + 24f, subtitlePaint)
+
+        val statsTop = titleEndY + 80f
+        val statsGap = 16f
+        val statCardWidth = (width - 64f * 2f - statsGap * 2f) / 3f
+        val statCardHeight = 146f
 
         fun drawStatCard(
             left: Float,
@@ -162,18 +344,18 @@ object WorkoutShareService {
             deltaText: String?,
             deltaSign: Int,
         ) {
-            val rect = RectF(left, top, left + cardWidth, top + cardHeight)
-            canvas.drawRoundRect(rect, 26f, 26f, cardPaint)
-            canvas.drawRoundRect(rect, 26f, 26f, cardStroke)
-            canvas.drawText(label, left + 22f, top + 54f, bodyPaint)
-            canvas.drawText(value, left + 22f, top + 132f, valuePaint)
+            val rect = RectF(left, top, left + statCardWidth, top + statCardHeight)
+            canvas.drawRoundRect(rect, 28f, 28f, statCardPaint)
+            canvas.drawRoundRect(rect, 28f, 28f, statStrokePaint)
+            canvas.drawText(label, left + 22f, top + 42f, statLabelPaint)
+            canvas.drawText(value, left + 22f, top + 96f, statValuePaint)
             if (!deltaText.isNullOrBlank()) {
                 val paint = when {
                     deltaSign > 0 -> deltaUpPaint
                     deltaSign < 0 -> deltaDownPaint
                     else -> deltaNeutralPaint
                 }
-                canvas.drawText(deltaText, left + 22f, top + 186f, paint)
+                canvas.drawText(deltaText, left + 22f, top + 128f, paint)
             }
         }
 
@@ -203,47 +385,226 @@ object WorkoutShareService {
             deltaSign = setsSign,
         )
         drawStatCard(
-            left = 64f + cardWidth + gap,
+            left = 64f + statCardWidth + statsGap,
             top = statsTop,
             label = "Volumen",
-            value = "${"%.0f".format(totalVolume)} kg",
+            value = "${totalVolume.toDisplayString()} kg",
             deltaText = volumeDelta,
             deltaSign = volumeSign,
         )
         drawStatCard(
-            left = 64f,
-            top = statsTop + cardHeight + gap,
+            left = 64f + (statCardWidth + statsGap) * 2f,
+            top = statsTop,
             label = "Duración",
             value = "${durationMinutes} min",
             deltaText = durationDelta,
             deltaSign = durationSign,
         )
-        drawStatCard(
-            left = 64f + cardWidth + gap,
-            top = statsTop + cardHeight + gap,
-            label = "Mejor e1RM",
-            value = currentBestEstimated1RM?.let { "${"%.1f".format(it)} kg" } ?: "Sin dato",
-            deltaText = ermDelta,
-            deltaSign = ermSign,
+
+        val e1rmChipRect = RectF(64f, statsTop + statCardHeight + 18f, 408f, statsTop + statCardHeight + 74f)
+        canvas.drawRoundRect(e1rmChipRect, 24f, 24f, chipPaint)
+        canvas.drawRoundRect(e1rmChipRect, 24f, 24f, chipStrokePaint)
+        canvas.drawText(
+            currentBestEstimated1RM?.let { "Mejor e1RM  ${it.toDisplayString()} kg" } ?: "Mejor e1RM  Sin dato",
+            88f,
+            statsTop + statCardHeight + 55f,
+            exerciseDetailPaint,
         )
+        val e1rmDeltaPaint = when {
+            ermSign > 0 -> deltaUpPaint
+            ermSign < 0 -> deltaDownPaint
+            else -> deltaNeutralPaint
+        }
+        ermDelta?.let {
+            canvas.drawText(it, 432f, statsTop + statCardHeight + 55f, e1rmDeltaPaint)
+        }
 
-        val detailsTop = statsTop + (cardHeight + gap) * 2f + 26f
-        val detailsRect = RectF(64f, detailsTop, width - 64f, detailsTop + 330f)
-        canvas.drawRoundRect(detailsRect, 30f, 30f, cardPaint)
-        canvas.drawRoundRect(detailsRect, 30f, 30f, cardStroke)
+        val sectionTop = statsTop + statCardHeight + 112f
+        val sectionBottom = height - 170f
+        val sectionRect = RectF(64f, sectionTop, width - 64f, sectionBottom)
+        canvas.drawRoundRect(sectionRect, 36f, 36f, sectionCardPaint)
+        canvas.drawRoundRect(sectionRect, 36f, 36f, sectionStrokePaint)
+        canvas.drawText("Ejercicios realizados", 96f, sectionTop + 54f, sectionTitlePaint)
+        canvas.drawText("Series, repeticiones y carga real", 96f, sectionTop + 92f, subtitlePaint)
 
-        canvas.drawText("Detalle rápido", 88f, detailsTop + 58f, valuePaint)
-        canvas.drawText("• Sesión: ${sessionName.take(34)}", 88f, detailsTop + 122f, bodyPaint)
-        canvas.drawText("• Enfoque: rendimiento + consistencia", 88f, detailsTop + 166f, bodyPaint)
-        canvas.drawText("• Progresión respecto a tu sesión anterior", 88f, detailsTop + 210f, bodyPaint)
-        canvas.drawText("• Compartido desde KPKN", 88f, detailsTop + 254f, bodyPaint)
+        val visibleBlocks = exerciseBlocks.take(5)
+        val rowTopStart = sectionTop + 120f
+        val rowGap = 16f
+        val rowHeight = 148f
+        visibleBlocks.forEachIndexed { index, block ->
+            val top = rowTopStart + index * (rowHeight + rowGap)
+            val rect = RectF(88f, top, width - 88f, top + rowHeight)
+            canvas.drawRoundRect(rect, 28f, 28f, rowPaint)
+            canvas.drawRoundRect(rect, 28f, 28f, statStrokePaint)
+            canvas.drawRoundRect(RectF(rect.left, rect.top, rect.left + 10f, rect.bottom), 8f, 8f, accentStripPaint)
 
-        logo?.setBounds(width - 188, height - 226, width - 72, height - 110)
-        logo?.draw(canvas)
+            canvas.drawText(ellipsize(block.name, exerciseNamePaint, 760f), rect.left + 34f, top + 46f, exerciseNamePaint)
+            canvas.drawText(ellipsize(block.meta, exerciseMetaPaint, 760f), rect.left + 34f, top + 80f, exerciseMetaPaint)
+            drawWrappedText(
+                canvas = canvas,
+                text = block.detail,
+                startX = rect.left + 34f,
+                startY = top + 116f,
+                maxWidth = 820f,
+                paint = exerciseDetailPaint,
+                lineHeight = 30f,
+                maxLines = 2,
+            )
+        }
 
-        canvas.drawText("Entrena en KPKN", 64f, height - 122f, titlePaint)
-        canvas.drawText("kpkn.fit", 64f, height - 76f, bodyPaint)
+        if (exerciseBlocks.size > visibleBlocks.size) {
+            val remaining = exerciseBlocks.size - visibleBlocks.size
+            canvas.drawText(
+                "+$remaining ejercicios más",
+                96f,
+                sectionBottom - 38f,
+                subtitlePaint,
+            )
+        }
+
+        drawLogo(context, canvas, width - 164, height - 132, width - 92, height - 60, 210, logoFilter)
+        canvas.drawText("Compartido desde KPKN", 64f, height - 92f, sectionTitlePaint)
+        canvas.drawText("kpkn.fit", 64f, height - 56f, footerPaint)
 
         return bitmap
+    }
+
+    private fun buildExerciseBlocks(completedExercises: List<CompletedExercise>): List<StoryExerciseBlock> =
+        completedExercises.mapNotNull { exercise ->
+            val workingSets = exercise.sets.filterNot { it.isWarmup }
+            if (workingSets.isEmpty()) return@mapNotNull null
+
+            val meta = buildString {
+                append(workingSets.size)
+                append(if (workingSets.size == 1) " serie" else " series")
+                val exerciseVolume = workingSets.sumOf { it.weight * it.reps }
+                if (exerciseVolume > 0.0) {
+                    append("  ·  ")
+                    append(exerciseVolume.toDisplayString())
+                    append(" kg")
+                }
+            }
+
+            val grouped = workingSets.groupBy { Triple(it.reps, it.weight, it.timeSeconds) }
+            val detail = if (grouped.size == 1) {
+                val key = grouped.keys.first()
+                formatUniformSummary(workingSets.size, key.first, key.second, key.third)
+            } else {
+                workingSets.take(4).joinToString("  •  ") { formatSetToken(it) }
+            }
+
+            StoryExerciseBlock(
+                name = exercise.exerciseName,
+                meta = meta,
+                detail = detail,
+            )
+        }
+
+    private fun formatUniformSummary(setCount: Int, reps: Int, weight: Double, timeSeconds: Int?): String {
+        val effort = when {
+            timeSeconds != null && timeSeconds > 0 -> "$setCount x ${timeSeconds}s"
+            reps > 0 -> "$setCount x $reps reps"
+            else -> "$setCount series"
+        }
+        return if (weight > 0.0) "$effort x ${weight.toDisplayString()} kg" else effort
+    }
+
+    private fun formatSetToken(set: CompletedSet): String {
+        val sidePrefix = when (set.side?.lowercase(Locale.getDefault())) {
+            "left" -> "L "
+            "right" -> "R "
+            else -> ""
+        }
+        val effort = when {
+            set.timeSeconds != null && set.timeSeconds > 0 -> "${set.timeSeconds}s"
+            set.reps > 0 -> "${set.reps}r"
+            else -> "set"
+        }
+        val load = if (set.weight > 0.0) "${set.weight.toDisplayString()}kg" else "BW"
+        return "$sidePrefix$effort x $load"
+    }
+
+    private fun drawLogo(
+        context: Context,
+        canvas: Canvas,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+        alpha: Int,
+        colorFilter: ColorMatrixColorFilter,
+    ) {
+        ContextCompat.getDrawable(context, R.drawable.kpknicon)
+            ?.mutate()
+            ?.apply {
+                this.alpha = alpha.coerceIn(0, 255)
+                this.colorFilter = colorFilter
+                setBounds(left, top, right, bottom)
+                draw(canvas)
+            }
+    }
+
+    private fun buildNegativeFilter(): ColorMatrixColorFilter = ColorMatrixColorFilter(
+        floatArrayOf(
+            -1f, 0f, 0f, 0f, 255f,
+            0f, -1f, 0f, 0f, 255f,
+            0f, 0f, -1f, 0f, 255f,
+            0f, 0f, 0f, 1f, 0f,
+        ),
+    )
+
+    private fun drawWrappedText(
+        canvas: Canvas,
+        text: String,
+        startX: Float,
+        startY: Float,
+        maxWidth: Float,
+        paint: Paint,
+        lineHeight: Float,
+        maxLines: Int,
+    ): Float {
+        val words = text.split(Regex("\\s+"))
+        val lines = mutableListOf<String>()
+        var currentLine = ""
+        words.forEach { word ->
+            val candidate = if (currentLine.isEmpty()) word else "$currentLine $word"
+            if (paint.measureText(candidate) <= maxWidth) {
+                currentLine = candidate
+            } else {
+                if (currentLine.isNotEmpty()) lines += currentLine
+                currentLine = word
+            }
+        }
+        if (currentLine.isNotEmpty()) lines += currentLine
+
+        val visibleLines = if (lines.size > maxLines) {
+            lines.take(maxLines - 1) + ellipsize(lines[maxLines - 1], paint, maxWidth)
+        } else {
+            lines
+        }
+
+        visibleLines.forEachIndexed { index, line ->
+            canvas.drawText(line, startX, startY + index * lineHeight, paint)
+        }
+        return startY + (visibleLines.size - 1).coerceAtLeast(0) * lineHeight
+    }
+
+    private fun ellipsize(text: String, paint: Paint, maxWidth: Float): String {
+        if (paint.measureText(text) <= maxWidth) return text
+        var trimmed = text
+        while (trimmed.isNotEmpty() && paint.measureText("$trimmed…") > maxWidth) {
+            trimmed = trimmed.dropLast(1)
+        }
+        return if (trimmed.isEmpty()) "…" else "$trimmed…"
+    }
+
+    private fun Double.toDisplayString(): String {
+        val rounded = kotlin.math.round(this * 10.0) / 10.0
+        val whole = rounded.toInt().toDouble()
+        return if (abs(rounded - whole) < 0.001) {
+            whole.toInt().toString()
+        } else {
+            String.format(Locale.US, "%.1f", rounded)
+        }
     }
 }

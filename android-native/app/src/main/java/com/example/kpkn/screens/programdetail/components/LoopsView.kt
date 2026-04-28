@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -28,6 +29,7 @@ import com.example.kpkn.data.models.Loop
 import com.example.kpkn.data.models.LoopState
 import com.example.kpkn.data.models.LoopType
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.LoopProjection
 
@@ -50,6 +52,8 @@ private val LOOP_TEMPLATES = listOf(
 fun LoopsView(
     program: Program,
     onUpdateProgram: (Program) -> Unit,
+    onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
+    onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     val loops = program.loops
@@ -59,6 +63,12 @@ fun LoopsView(
     val cancelledSet = remember(program) { (program.loopState?.cancelled ?: emptyList()).toSet() }
     val legacyEvents = remember(program) { program.events.filter { it.repeatEveryXCycles != null } }
     val hasLegacy = legacyEvents.isNotEmpty() && loops.isEmpty()
+    val normalizedProgram = remember(program) {
+        if (program.loops.isNotEmpty()) program else LoopEngine.migrateEventsToLoops(program)
+    }
+    val actionableOccurrences = remember(normalizedProgram, currentCycle) {
+        buildLoopOccurrences(normalizedProgram, currentCycle)
+    }
 
     var showAddModal by remember { mutableStateOf(false) }
     var editingLoop by remember { mutableStateOf<Loop?>(null) }
@@ -166,6 +176,63 @@ fun LoopsView(
         }
 
         // Timeline projections
+        if (actionableOccurrences.isNotEmpty()) {
+            Text("Acciones sugeridas", fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+            Spacer(Modifier.height(6.dp))
+            actionableOccurrences.forEach { occurrence ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                ) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(
+                                    "${LoopEngine.getLoopTypeEmoji(occurrence.loop.type)} ${occurrence.loop.title}",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Text(
+                                    "Ciclo ${occurrence.projection.cycle} · ${occurrence.weekLabel} · ${occurrence.dayLabel}",
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    occurrence.statusLabel,
+                                    fontSize = 9.sp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                            AssistChip(
+                                onClick = {},
+                                enabled = false,
+                                label = { Text(occurrence.countdownLabel, fontSize = 9.sp) },
+                            )
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = { onFocusWeek(occurrence.blockId, occurrence.weekId) }) {
+                                Icon(Icons.Default.CalendarMonth, contentDescription = null)
+                                Spacer(Modifier.width(6.dp))
+                                Text("Ver semana")
+                            }
+                            Button(onClick = { onCreateSessionForWeek(occurrence.weekId, occurrence.preferredDayOfWeek) }) {
+                                Icon(Icons.Default.PlayArrow, contentDescription = null)
+                                Spacer(Modifier.width(6.dp))
+                                Text(occurrence.ctaLabel)
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+            Spacer(Modifier.height(8.dp))
+        }
+
         if (projections.isNotEmpty()) {
             Text("Proyecciones (12 ciclos)", fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
             Spacer(Modifier.height(6.dp))
@@ -214,6 +281,85 @@ fun LoopsView(
             onDismiss = { showAddModal = false; editingLoop = null },
         )
     }
+}
+
+private data class LoopActionOccurrence(
+    val loop: Loop,
+    val projection: LoopProjection,
+    val blockId: String,
+    val weekId: String,
+    val weekLabel: String,
+    val dayLabel: String,
+    val preferredDayOfWeek: Int,
+    val existingSession: Session?,
+) {
+    val statusLabel: String
+        get() = if (existingSession != null) {
+            "Ya hay una sesión en ese día: ${existingSession.name}"
+        } else {
+            "Todavía no hay sesión para este loop"
+        }
+
+    val countdownLabel: String
+        get() = LoopEngine.formatLoopCountdown(projection.daysUntil)
+
+    val ctaLabel: String
+        get() = if (existingSession != null) "Crear adicional" else "Crear sesión"
+}
+
+private fun buildLoopOccurrences(program: Program, currentCycle: Int): List<LoopActionOccurrence> {
+    val baseBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull() ?: return emptyList()
+    val orderedWeeks = baseBlock.mesocycles.flatMap { it.weeks }
+    if (orderedWeeks.isEmpty()) return emptyList()
+
+    val projections = LoopEngine.projectLoops(program, currentCycle, 6)
+    return projections.mapNotNull { projection ->
+        val weekIndex = preferredLoopWeekIndex(projection.loop, orderedWeeks.lastIndex)
+        val targetWeek = orderedWeeks.getOrNull(weekIndex) ?: return@mapNotNull null
+        val preferredDay = preferredLoopDay(projection.loop, program.startDay ?: 1)
+        val existingSession = targetWeek.sessions.firstOrNull { it.dayOfWeek == preferredDay }
+        LoopActionOccurrence(
+            loop = projection.loop,
+            projection = projection,
+            blockId = baseBlock.id,
+            weekId = targetWeek.id,
+            weekLabel = targetWeek.name,
+            dayLabel = dayLabel(preferredDay),
+            preferredDayOfWeek = preferredDay,
+            existingSession = existingSession,
+        )
+    }
+}
+
+private fun preferredLoopWeekIndex(loop: Loop, lastWeekIndex: Int): Int {
+    return when (loop.type) {
+        LoopType.COMPETITION -> lastWeekIndex
+        LoopType.ONE_RM_TEST -> lastWeekIndex
+        LoopType.DELOAD -> 0
+        LoopType.CUSTOM -> lastWeekIndex
+    }
+}
+
+private fun preferredLoopDay(loop: Loop, startDay: Int): Int {
+    val explicitDay = loop.dayOfWeek?.takeIf { it in 1..7 }
+    if (explicitDay != null) return explicitDay
+    return when (loop.type) {
+        LoopType.COMPETITION -> ((startDay - 1 + 5) % 7) + 1
+        LoopType.ONE_RM_TEST -> ((startDay - 1 + 2) % 7) + 1
+        LoopType.DELOAD -> startDay.coerceIn(1, 7)
+        LoopType.CUSTOM -> startDay.coerceIn(1, 7)
+    }
+}
+
+private fun dayLabel(dayOfWeek: Int): String = when (dayOfWeek) {
+    1 -> "Lunes"
+    2 -> "Martes"
+    3 -> "Miércoles"
+    4 -> "Jueves"
+    5 -> "Viernes"
+    6 -> "Sábado"
+    7 -> "Domingo"
+    else -> "Día $dayOfWeek"
 }
 
 @Composable

@@ -1,0 +1,232 @@
+package com.example.kpkn.domain.exercises
+
+import com.example.kpkn.data.exercises.resolveExerciseId
+import com.example.kpkn.data.models.CompletedExercise
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.ExerciseRelationshipType
+import com.example.kpkn.data.models.ExerciseDiscomfortReport
+import com.example.kpkn.data.models.ExerciseSetupDetails
+import com.example.kpkn.data.models.OngoingWorkoutState
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.WorkoutLog
+import java.text.Normalizer
+
+private val exerciseIdentityStripRegex = Regex("\\p{Mn}+")
+private val exerciseIdentitySeparatorRegex = Regex("[^\\p{L}\\p{Nd}]+")
+
+fun normalizeExerciseIdentityToken(value: String): String {
+    if (value.isBlank()) return ""
+    val stripped = Normalizer.normalize(value.trim(), Normalizer.Form.NFD)
+        .replace(exerciseIdentityStripRegex, "")
+    return stripped
+        .lowercase()
+        .replace(exerciseIdentitySeparatorRegex, " ")
+        .trim()
+}
+
+private fun normalizeCanonicalId(value: String?): String? =
+    value
+        ?.trim()
+        ?.lowercase()
+        ?.takeIf { it.isNotBlank() }
+
+fun resolveCanonicalExerciseId(
+    explicitCanonicalId: String?,
+    exerciseDbId: String?,
+    exerciseId: String?,
+    exerciseName: String,
+    fallbackId: String? = null,
+): String {
+    normalizeCanonicalId(explicitCanonicalId)?.let { return it }
+
+    resolveExerciseId(exerciseDbId ?: exerciseId)?.let { return it }
+
+    normalizeCanonicalId(exerciseDbId)?.let { return it }
+
+    val normalizedName = normalizeExerciseIdentityToken(exerciseName)
+    if (normalizedName.isNotBlank()) {
+        return "custom:$normalizedName"
+    }
+
+    normalizeCanonicalId(exerciseId)?.let { return "legacy:$it" }
+    normalizeCanonicalId(fallbackId)?.let { return "local:$it" }
+    return "unknown"
+}
+
+private fun normalizeRelationAnchorId(value: String?): String? =
+    value
+        ?.trim()
+        ?.lowercase()
+        ?.takeIf { it.isNotBlank() }
+
+fun Exercise.resolvedCanonicalExerciseId(): String = resolveCanonicalExerciseId(
+    explicitCanonicalId = canonicalExerciseId,
+    exerciseDbId = exerciseDbId,
+    exerciseId = exerciseId,
+    exerciseName = name,
+    fallbackId = id,
+)
+
+fun CompletedExercise.resolvedCanonicalExerciseId(): String = resolveCanonicalExerciseId(
+    explicitCanonicalId = canonicalExerciseId,
+    exerciseDbId = exerciseDbId,
+    exerciseId = exerciseId,
+    exerciseName = exerciseName,
+    fallbackId = exerciseId,
+)
+
+fun Exercise.resolvedExerciseFamilyId(): String =
+    normalizeRelationAnchorId(exerciseFamilyId) ?: resolvedCanonicalExerciseId()
+
+fun Exercise.resolvedRelationAnchorId(): String =
+    normalizeRelationAnchorId(relativeToCanonicalExerciseId) ?: resolvedCanonicalExerciseId()
+
+fun CompletedExercise.resolvedRelationAnchorId(): String =
+    normalizeRelationAnchorId(relativeToCanonicalExerciseId) ?: resolvedCanonicalExerciseId()
+
+fun Exercise.analyticsExerciseKey(): String = "exercise:${resolvedCanonicalExerciseId()}"
+
+fun CompletedExercise.analyticsExerciseKey(): String = "exercise:${resolvedCanonicalExerciseId()}"
+
+fun Exercise.analyticsAnchorKey(): String = "anchor:${resolvedRelationAnchorId()}"
+
+fun CompletedExercise.analyticsAnchorKey(): String = "anchor:${resolvedRelationAnchorId()}"
+
+fun Exercise.normalizedIdentityFields(): Exercise {
+    val canonicalId = resolvedCanonicalExerciseId()
+    val relationAnchor = normalizeRelationAnchorId(relativeToCanonicalExerciseId)
+        ?.takeIf { it != canonicalId }
+    return copy(
+        canonicalExerciseId = canonicalId,
+        exerciseFamilyId = normalizeRelationAnchorId(exerciseFamilyId) ?: canonicalId,
+        relativeToCanonicalExerciseId = relationAnchor,
+        relationshipNotes = relationshipNotes?.trim()?.takeIf { it.isNotBlank() },
+    )
+}
+
+fun CompletedExercise.normalizedIdentityFields(): CompletedExercise {
+    val canonicalId = resolvedCanonicalExerciseId()
+    val relationAnchor = normalizeRelationAnchorId(relativeToCanonicalExerciseId)
+        ?.takeIf { it != canonicalId }
+    return copy(
+        canonicalExerciseId = canonicalId,
+        relativeToCanonicalExerciseId = relationAnchor,
+    )
+}
+
+fun ExerciseDiscomfortReport.normalizedIdentityFields(): ExerciseDiscomfortReport {
+    val canonicalId = resolveCanonicalExerciseId(
+        explicitCanonicalId = canonicalExerciseId,
+        exerciseDbId = exerciseDbId,
+        exerciseId = exerciseId,
+        exerciseName = exerciseName,
+        fallbackId = exerciseId,
+    )
+    return copy(canonicalExerciseId = canonicalId)
+}
+
+fun Session.normalizedIdentityFields(): Session = copy(
+    exercises = exercises.map { it.normalizedIdentityFields() },
+    parts = parts.map { part ->
+        SessionPart(
+            id = part.id,
+            name = part.name,
+            exercises = part.exercises.map { it.normalizedIdentityFields() },
+            color = part.color,
+        )
+    },
+    sessionB = sessionB?.normalizedIdentityFields(),
+    sessionC = sessionC?.normalizedIdentityFields(),
+    sessionD = sessionD?.normalizedIdentityFields(),
+    trainingBackup = trainingBackup?.copy(
+        exercises = trainingBackup.exercises.map { it.normalizedIdentityFields() },
+        parts = trainingBackup.parts.map { backupPart ->
+            SessionPart(
+                id = backupPart.id,
+                name = backupPart.name,
+                exercises = backupPart.exercises.map { it.normalizedIdentityFields() },
+                color = backupPart.color,
+            )
+        },
+    ),
+)
+
+fun Program.normalizedIdentityFields(): Program = copy(
+    macrocycles = macrocycles.map { macro ->
+        macro.copy(
+            blocks = macro.blocks.map { block ->
+                block.copy(
+                    mesocycles = block.mesocycles.map { meso ->
+                        meso.copy(
+                            weeks = meso.weeks.map { week ->
+                                week.copy(
+                                    sessions = week.sessions.map { it.normalizedIdentityFields() },
+                                )
+                            },
+                        )
+                    },
+                )
+            },
+        )
+    },
+)
+
+fun WorkoutLog.normalizedIdentityFields(): WorkoutLog = copy(
+    completedExercises = completedExercises.map { it.normalizedIdentityFields() },
+    postExerciseReports = postExerciseReports.map { it.normalizedIdentityFields() },
+)
+
+fun OngoingWorkoutState.normalizedIdentityFields(): OngoingWorkoutState = copy(
+    session = session.normalizedIdentityFields(),
+)
+
+fun Exercise.replacedWithCatalogExercise(info: ExerciseMuscleInfo): Exercise {
+    val setup = info.setupDetails?.let {
+        ExerciseSetupDetails(
+            seatPosition = it.seatPosition,
+            pinPosition = it.pinPosition,
+            equipmentNotes = it.equipmentNotes,
+        )
+    }
+    val canonicalId = resolveCanonicalExerciseId(
+        explicitCanonicalId = info.id,
+        exerciseDbId = info.id,
+        exerciseId = info.id,
+        exerciseName = info.name,
+        fallbackId = id,
+    )
+    return copy(
+        name = info.name,
+        exerciseDbId = info.id,
+        exerciseId = info.id,
+        canonicalExerciseId = canonicalId,
+        exerciseFamilyId = canonicalId,
+        relativeToCanonicalExerciseId = null,
+        relationshipType = null,
+        relationshipNotes = null,
+        reference1RM = null,
+        targetSessionGoal = null,
+        isStarTarget = false,
+        setupDetails = setup,
+        variantName = null,
+        prFor1RM = null,
+        consolidatedWeight = null,
+        brandEquivalencies = emptyList(),
+        goal1RM = null,
+        calculated1RM = null,
+        setupCues = info.setupCues.orEmpty(),
+        executionCues = info.executionCues.orEmpty(),
+        contextProfilesV3 = emptyList(),
+        defaultContextProfileIdV3 = null,
+    ).normalizedIdentityFields()
+}
+
+fun ExerciseRelationshipType.displayLabel(): String = when (this) {
+    ExerciseRelationshipType.VARIATION -> "Variacion"
+    ExerciseRelationshipType.ASSISTANCE -> "Asistencia"
+    ExerciseRelationshipType.OVERLOAD -> "Sobrecarga"
+    ExerciseRelationshipType.TECHNIQUE -> "Tecnica"
+}

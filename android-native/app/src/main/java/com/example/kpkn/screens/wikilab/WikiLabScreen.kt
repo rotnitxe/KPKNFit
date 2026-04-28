@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.repository.CustomExerciseRepository
 
 // ═══════════════════════════════════════════════════════════════════════
 private fun muscleColor(name: String): Color = wikilabMuscleColor(name)
@@ -52,14 +53,23 @@ private val CATEGORIES = listOf(
 @Composable
 fun WikiLabScreen(
     modifier: Modifier = Modifier,
+    onCreateExercise: () -> Unit = {},
     onOpenExercise: (String) -> Unit,
 ) {
     var query by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableIntStateOf(0) }
 
-    val filtered = remember(query, selectedCategory) {
+    val customExercises by CustomExerciseRepository.customExercises.collectAsState()
+    val exerciseCatalog = remember(customExercises) {
+        (EXERCISE_DATABASE + customExercises)
+            .associateBy { it.id.lowercase() }
+            .values
+            .toList()
+    }
+
+    val filtered = remember(query, selectedCategory, exerciseCatalog) {
         val cat = CATEGORIES[selectedCategory]
-        EXERCISE_DATABASE.filter { ex ->
+        exerciseCatalog.filter { ex ->
             val canonicalInvolved = collapseInvolvedMusclesToCanonical(ex.involvedMuscles)
             val catMatch = cat.keywords.isEmpty() || ex.involvedMuscles.any { m ->
                 cat.keywords.any { kw -> canonicalMuscleDisplayName(m.muscle, m.emphasis).contains(kw, ignoreCase = true) }
@@ -102,7 +112,7 @@ fun WikiLabScreen(
                             fontWeight = FontWeight.Black,
                         )
                 Text(
-                    "${EXERCISE_DATABASE.size} ejercicios con métricas AUGE",
+                    "${exerciseCatalog.size} ejercicios con métricas AUGE",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -179,6 +189,17 @@ fun WikiLabScreen(
                 ExerciseCard(exercise = exercise, onClick = { onOpenExercise(exercise.id) })
             }
             item { Spacer(Modifier.height(80.dp)) }
+        }
+
+        FloatingActionButton(
+            onClick = onCreateExercise,
+            modifier = Modifier
+                .align(Alignment.End)
+                .padding(16.dp),
+            containerColor = Color(0xFFE53935),
+            contentColor = Color.White,
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Crear ejercicio")
         }
     }
 }

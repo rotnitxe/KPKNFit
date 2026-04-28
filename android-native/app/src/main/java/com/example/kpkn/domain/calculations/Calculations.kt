@@ -1,7 +1,11 @@
 package com.example.kpkn.domain.calculations
 
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import kotlin.math.exp
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -92,6 +96,173 @@ fun calculateWeightFrom1RMAndIntensity(reference1RM: Double, set: ExerciseSet): 
     if (effectiveReps <= 0) return null
     val weight = calculateWeightFrom1RM(reference1RM, effectiveReps)
     return if (weight > 0) weight else null
+}
+
+fun calculateGeneralizedCapacity(load: Double, metric: Double): Double {
+    if (load <= 0 || metric <= 0) return 0.0
+    if (metric <= 1.0) return load
+    val normalizedMetric = metric.coerceAtMost(300.0)
+    val capacity = when {
+        normalizedMetric <= 10.0 -> load * (36.0 / (37.0 - normalizedMetric))
+        normalizedMetric <= 20.0 -> load * (1.0 + normalizedMetric / 30.0)
+        else -> load * (1 + 20.0 / 30.0) * (1 + (normalizedMetric - 20.0) / 80.0).pow(0.9)
+    }
+    return (capacity * 10).toLong() / 10.0
+}
+
+fun calculateLoadFromGeneralizedCapacity(capacity: Double, metric: Double): Double {
+    if (capacity <= 0 || metric <= 0) return 0.0
+    if (metric <= 1.0) return capacity
+    val normalizedMetric = metric.coerceAtMost(300.0)
+    val load = when {
+        normalizedMetric <= 10.0 -> capacity * ((37.0 - normalizedMetric) / 36.0)
+        normalizedMetric <= 20.0 -> capacity / (1.0 + normalizedMetric / 30.0)
+        else -> capacity / ((1 + 20.0 / 30.0) * (1 + (normalizedMetric - 20.0) / 80.0).pow(0.9))
+    }
+    return (load * 10).toLong() / 10.0
+}
+
+fun estimateRepsFromPercent1RM(percent: Double): Int {
+    val boundedPercent = percent.coerceIn(45.0, 100.0)
+    return (1..30).minByOrNull { reps ->
+        kotlin.math.abs(estimatePercent1RM(reps) - boundedPercent)
+    } ?: 1
+}
+
+private fun roundSuggestedLoad(weight: Double): Double = (weight * 4.0).roundToInt() / 4.0
+
+private fun plannedMetricForMode(set: ExerciseSet, trainingMode: TrainingMode): Double? = when (trainingMode) {
+    TrainingMode.TIME -> set.targetDuration?.toDouble()
+    TrainingMode.SOLO_RPE -> null
+    else -> set.targetReps?.toDouble()
+}
+
+private fun effectiveMetricForSuggestion(set: ExerciseSet, trainingMode: TrainingMode): Double? {
+    if (trainingMode == TrainingMode.RM) {
+        val percent = set.targetPercentageRM ?: return null
+        return estimateRepsFromPercent1RM(percent).toDouble()
+    }
+    val baseMetric = plannedMetricForMode(set, trainingMode) ?: return null
+    return when (trainingMode) {
+        TrainingMode.REPS -> when {
+            set.intensityMode == IntensityMode.FAILURE ||
+                set.intensityMode == IntensityMode.AMRAP ||
+                set.intensityMode == IntensityMode.SOLO_RM -> baseMetric
+            set.targetRIR != null -> baseMetric + set.targetRIR
+            set.targetRPE != null -> baseMetric + (10 - set.targetRPE).roundToInt()
+            else -> baseMetric + 2.0
+        }
+        TrainingMode.TIME,
+        TrainingMode.DISTANCE,
+        TrainingMode.CUSTOM,
+        -> {
+            val multiplier = when {
+                set.intensityMode == IntensityMode.FAILURE ||
+                    set.intensityMode == IntensityMode.AMRAP -> 1.0
+                set.targetRIR != null -> 1.0 + (set.targetRIR * 0.05)
+                set.targetRPE != null -> 1.0 + ((10.0 - set.targetRPE).coerceAtLeast(0.0) * 0.05)
+                else -> 1.10
+            }
+            (baseMetric * multiplier).coerceAtLeast(1.0)
+        }
+        TrainingMode.SOLO_RPE -> null
+        TrainingMode.RM -> null
+    }
+}
+
+fun resolveReferenceCapacity(exercise: Exercise): Double? {
+    exercise.reference1RM?.takeIf { it > 0.0 }?.let { return it }
+    val pr = exercise.prFor1RM ?: return null
+    if (pr.weight <= 0 || pr.reps <= 0) return null
+    return when (exercise.trainingMode) {
+        TrainingMode.REPS,
+        TrainingMode.RM,
+        -> calculateHybrid1RM(pr.weight, pr.reps)
+        TrainingMode.TIME,
+        TrainingMode.DISTANCE,
+        TrainingMode.CUSTOM,
+        -> calculateGeneralizedCapacity(pr.weight, pr.reps.toDouble())
+        TrainingMode.SOLO_RPE -> null
+    }
+}
+
+fun resolveReferenceCapacity(
+    exercise: Exercise,
+    history: List<WorkoutLog>,
+): Double? {
+    resolveReferenceCapacity(exercise)?.let { return it }
+
+    val canonicalId = exercise.resolvedCanonicalExerciseId()
+    return history.asSequence()
+        .flatMap { it.completedExercises.asSequence() }
+        .filter { completed -> completed.resolvedCanonicalExerciseId() == canonicalId }
+        .flatMap { completed -> completed.sets.asSequence() }
+        .filter { set -> !set.isWarmup && set.weight > 0.0 && set.reps > 0 }
+        .map { set -> calculateHybrid1RM(set.weight, set.reps) }
+        .maxOrNull()
+}
+
+fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
+    val referenceCapacity = resolveReferenceCapacity(exercise) ?: return null
+    val suggested = when (exercise.trainingMode) {
+        TrainingMode.RM -> {
+            val percent = (set.targetPercentageRM ?: estimatePercent1RM(set.targetReps ?: 1)).coerceIn(40.0, 100.0)
+            referenceCapacity * percent / 100.0
+        }
+        TrainingMode.SOLO_RPE -> null
+        TrainingMode.REPS -> {
+            val effectiveMetric = effectiveMetricForSuggestion(set, exercise.trainingMode)?.roundToInt() ?: return null
+            calculateWeightFrom1RM(referenceCapacity, effectiveMetric)
+        }
+        TrainingMode.TIME,
+        TrainingMode.DISTANCE,
+        TrainingMode.CUSTOM,
+        -> {
+            val effectiveMetric = effectiveMetricForSuggestion(set, exercise.trainingMode) ?: return null
+            calculateLoadFromGeneralizedCapacity(referenceCapacity, effectiveMetric)
+        }
+    } ?: return null
+    return if (suggested > 0.0) roundSuggestedLoad(suggested) else null
+}
+
+fun calculateSuggestedLoad(
+    exercise: Exercise,
+    set: ExerciseSet,
+    history: List<WorkoutLog>,
+): Double? {
+    val referenceCapacity = resolveReferenceCapacity(exercise, history) ?: return null
+    val suggested = when (exercise.trainingMode) {
+        TrainingMode.RM -> {
+            val percent = (set.targetPercentageRM ?: estimatePercent1RM(set.targetReps ?: 1)).coerceIn(40.0, 100.0)
+            referenceCapacity * percent / 100.0
+        }
+        TrainingMode.SOLO_RPE -> null
+        TrainingMode.REPS -> {
+            val effectiveMetric = effectiveMetricForSuggestion(set, exercise.trainingMode)?.roundToInt() ?: return null
+            calculateWeightFrom1RM(referenceCapacity, effectiveMetric)
+        }
+        TrainingMode.TIME,
+        TrainingMode.DISTANCE,
+        TrainingMode.CUSTOM,
+        -> {
+            val effectiveMetric = effectiveMetricForSuggestion(set, exercise.trainingMode) ?: return null
+            calculateLoadFromGeneralizedCapacity(referenceCapacity, effectiveMetric)
+        }
+    } ?: return null
+    return if (suggested > 0.0) roundSuggestedLoad(suggested) else null
+}
+
+fun calculateEstimatedMetric(exercise: Exercise, set: ExerciseSet): Double? = when (exercise.trainingMode) {
+    TrainingMode.RM -> {
+        val percent = set.targetPercentageRM ?: return null
+        estimateRepsFromPercent1RM(percent).toDouble()
+    }
+    TrainingMode.TIME -> set.targetDuration?.toDouble()
+    TrainingMode.DISTANCE,
+    TrainingMode.CUSTOM,
+    TrainingMode.REPS,
+    -> set.targetReps?.toDouble()
+    TrainingMode.SOLO_RPE -> null
 }
 
 // ─── RPE / RIR conversions ───────────────────────────────────────────────────

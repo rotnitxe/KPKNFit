@@ -103,7 +103,11 @@ fun BodyProgressScreen(
     val height = vitals.height
     val bodyFat = vitals.bodyFatPercentage
     val muscle = vitals.muscleMassPercentage
-    val targetWeight = vitals.targetWeight ?: activePlan?.goalValue
+    val goalType = activePlan?.goalType ?: GoalMetric.WEIGHT
+    // Target value interpreted by goalType: kg for WEIGHT, % for BODY_FAT/MUSCLE_MASS
+    val targetWeight = if (goalType == GoalMetric.WEIGHT) vitals.targetWeight ?: activePlan?.goalValue else null
+    val targetBodyFat = if (goalType == GoalMetric.BODY_FAT) activePlan?.goalValue else null
+    val targetMuscle = if (goalType == GoalMetric.MUSCLE_MASS) activePlan?.goalValue else null
 
     val bmi = if (weight != null && height != null && height > 0)
         weight / ((height / 100) * (height / 100)) else null
@@ -151,13 +155,39 @@ fun BodyProgressScreen(
             }
 
             // ── Goal Progress ───────────────────────────────────────────
-            if (targetWeight != null && weight != null) {
-                item {
-                    GoalProgressCard(
-                        currentWeight = weight,
-                        targetWeight = targetWeight,
-                        plan = activePlan,
-                    )
+            when (goalType) {
+                GoalMetric.WEIGHT -> if (targetWeight != null && weight != null) {
+                    item {
+                        GoalProgressCard(
+                            currentValue = weight,
+                            targetValue = targetWeight,
+                            goalType = GoalMetric.WEIGHT,
+                            plan = activePlan,
+                            currentWeight = weight,
+                        )
+                    }
+                }
+                GoalMetric.BODY_FAT -> if (targetBodyFat != null && bodyFat != null) {
+                    item {
+                        GoalProgressCard(
+                            currentValue = bodyFat,
+                            targetValue = targetBodyFat,
+                            goalType = GoalMetric.BODY_FAT,
+                            plan = activePlan,
+                            currentWeight = weight,
+                        )
+                    }
+                }
+                GoalMetric.MUSCLE_MASS -> if (targetMuscle != null && muscle != null) {
+                    item {
+                        GoalProgressCard(
+                            currentValue = muscle,
+                            targetValue = targetMuscle,
+                            goalType = GoalMetric.MUSCLE_MASS,
+                            plan = activePlan,
+                            currentWeight = weight,
+                        )
+                    }
                 }
             }
 
@@ -383,14 +413,53 @@ private fun HeroMetric(label: String, value: String, color: Color) {
 
 @Composable
 private fun GoalProgressCard(
-    currentWeight: Double,
-    targetWeight: Double,
+    currentValue: Double,
+    targetValue: Double,
+    goalType: GoalMetric = GoalMetric.WEIGHT,
     plan: NutritionPlan?,
+    currentWeight: Double? = null, // needed for body fat % → kg rate conversion
 ) {
-    val isLosing = targetWeight < currentWeight
-    val totalDelta = kotlin.math.abs(currentWeight - targetWeight)
-    // We don't have history, so show remaining
-    val pct = 0.0 // placeholder until we have weight history
+    // Direction: for MUSCLE goal, "losing" means moving away from target
+    val isDecreasing = when (goalType) {
+        GoalMetric.MUSCLE_MASS -> targetValue < currentValue // shouldn't happen normally
+        else -> targetValue < currentValue
+    }
+    val totalDelta = kotlin.math.abs(currentValue - targetValue)
+
+    val accentColor = when (goalType) {
+        GoalMetric.WEIGHT -> WEIGHT_COLOR
+        GoalMetric.BODY_FAT -> BODYFAT_COLOR
+        GoalMetric.MUSCLE_MASS -> MUSCLE_COLOR
+    }
+    val titleLabel = when (goalType) {
+        GoalMetric.WEIGHT -> "META DE PESO"
+        GoalMetric.BODY_FAT -> "META DE % GRASA"
+        GoalMetric.MUSCLE_MASS -> "META DE % MÚSCULO"
+    }
+    val unit = when (goalType) {
+        GoalMetric.WEIGHT -> "kg"
+        else -> "%"
+    }
+    val deltaLabel = when (goalType) {
+        GoalMetric.WEIGHT -> if (isDecreasing) "Perder ${r1(totalDelta)} kg" else "Ganar ${r1(totalDelta)} kg"
+        GoalMetric.BODY_FAT -> if (isDecreasing) "Reducir ${r1(totalDelta)}% grasa" else "Aumentar ${r1(totalDelta)}% grasa"
+        GoalMetric.MUSCLE_MASS -> if (!isDecreasing) "Ganar ${r1(totalDelta)}% músculo" else "Reducir ${r1(totalDelta)}% músculo"
+    }
+
+    val weeklyRateKg = plan?.weeklyChangeKg ?: 0.5
+    // For body fat / muscle goals, express weekly rate in % units per week
+    val weeklyRateInUnit = when (goalType) {
+        GoalMetric.WEIGHT -> weeklyRateKg
+        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> {
+            val wt = currentWeight ?: 70.0
+            if (wt > 0) weeklyRateKg / wt * 100.0 else weeklyRateKg
+        }
+    }
+    val weeklyRateLabel = when (goalType) {
+        GoalMetric.WEIGHT -> "${r1(weeklyRateKg)} kg/sem"
+        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> "${r1(weeklyRateInUnit)} %/sem"
+    }
+    val weeksToGoal = if (weeklyRateInUnit > 0) (totalDelta / weeklyRateInUnit) else 0.0
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
@@ -400,14 +469,14 @@ private fun GoalProgressCard(
         Column(modifier = Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    if (isLosing) Icons.Default.TrendingDown else Icons.Default.TrendingUp,
+                    if (isDecreasing) Icons.Default.TrendingDown else Icons.Default.TrendingUp,
                     null,
-                    tint = TEAL,
+                    tint = accentColor,
                     modifier = Modifier.size(18.dp),
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "META DE PESO",
+                    titleLabel,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.ExtraBold,
                     letterSpacing = 1.sp,
@@ -423,40 +492,37 @@ private fun GoalProgressCard(
             ) {
                 Column {
                     Text("Actual", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("${r1(currentWeight)} kg", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                    Text("${r1(currentValue)} $unit", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         Icons.Default.ArrowForward,
                         null,
-                        tint = TEAL,
+                        tint = accentColor,
                         modifier = Modifier.size(20.dp),
                     )
                     Text(
-                        if (isLosing) "Perder ${r1(totalDelta)} kg" else "Ganar ${r1(totalDelta)} kg",
+                        deltaLabel,
                         style = MaterialTheme.typography.labelSmall,
-                        color = TEAL,
+                        color = accentColor,
                         fontWeight = FontWeight.Bold,
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text("Meta", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("${r1(targetWeight)} kg", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = TEAL)
+                    Text("${r1(targetValue)} $unit", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = accentColor)
                 }
             }
 
             Spacer(Modifier.height(12.dp))
 
-            // Weekly rate
-            val weeklyRate = plan?.weeklyChangeKg ?: 0.5
-            val weeksToGoal = if (weeklyRate > 0) (totalDelta / weeklyRate) else 0.0
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                InfoChip("Ritmo", "${r1(weeklyRate)} kg/sem", Modifier.weight(1f))
+                InfoChip("Ritmo", weeklyRateLabel, Modifier.weight(1f))
                 InfoChip("Estimado", "${kotlin.math.round(weeksToGoal).toInt()} sem", Modifier.weight(1f))
-                InfoChip("Δ kcal/día", "${kotlin.math.round(weeklyRate * 7700 / 7).toInt()}", Modifier.weight(1f))
+                InfoChip("Δ kcal/día", "${kotlin.math.round(weeklyRateKg * 7700 / 7).toInt()}", Modifier.weight(1f))
             }
         }
     }
@@ -910,7 +976,7 @@ private fun MeasurementScheduleCard(
                     Spacer(Modifier.height(10.dp))
                     val label = try {
                         java.time.LocalDate.parse(schedule.nextDate)
-                            .format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", java.util.Locale("es")))
+                            .format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", java.util.Locale.getDefault()))
                             .replaceFirstChar { it.uppercase() }
                     } catch (_: Exception) { schedule.nextDate }
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -949,7 +1015,7 @@ private fun MeasurementEntryCard(
 ) {
     val dateLabel = try {
         java.time.LocalDate.parse(entry.date)
-            .format(java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", java.util.Locale("es")))
+            .format(java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", java.util.Locale.getDefault()))
     } catch (_: Exception) { entry.date }
 
     Card(
@@ -1054,7 +1120,7 @@ private fun AddMeasurementSheet(
                 Text("Registrar Medición", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
                 Text(
                     java.time.LocalDate.now().format(
-                        java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM yyyy", java.util.Locale("es"))
+                        java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM yyyy", java.util.Locale.getDefault())
                     ).replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

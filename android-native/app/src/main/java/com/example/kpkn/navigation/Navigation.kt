@@ -82,6 +82,7 @@ sealed class KpknRoute(val route: String) {
     // ─── WikiLab Sub-screens ────────────────────────────────────────────
 
     object WikiLabExercises : KpknRoute("wikilab/exercises")
+    object WikiLabExerciseCreator : KpknRoute("wikilab/exercise-creator")
     object WikiLabMuscleAnatomy : KpknRoute("wikilab/muscles")
     object WikiLabMuscleDetail : KpknRoute("wikilab/muscle/{muscleId}") {
         fun create(muscleId: String) = "wikilab/muscle/$muscleId"
@@ -115,6 +116,10 @@ sealed class KpknRoute(val route: String) {
     object NutritionWizard : KpknRoute("nutrition/wizard")
     object BodyProgress : KpknRoute("nutrition/body-progress")
     object MealHistory : KpknRoute("nutrition/meal-history")
+    object NutritionAction : KpknRoute("nutrition/action/{action}") {
+        fun create(action: String) = "nutrition/action/$action"
+        const val ARG_ACTION = "action"
+    }
 
     // ─── WikiLab Concepts ──────────────────────────────────────────────
 
@@ -123,6 +128,34 @@ sealed class KpknRoute(val route: String) {
         fun create(conceptId: String) = "wikilab/concept/$conceptId"
         const val ARG_CONCEPT_ID = "conceptId"
     }
+
+    // ─── Learn (Cursos) ───────────────────────────────────────────────
+
+    object Learn : KpknRoute("learn")
+    object LearnCourse : KpknRoute("learn/course/{courseId}") {
+        fun create(courseId: String) = "learn/course/$courseId"
+        const val ARG_COURSE_ID = "courseId"
+    }
+    object LearnReader : KpknRoute("learn/reader/{courseId}/{submoduleIndex}") {
+        fun create(courseId: String, submoduleIndex: Int) = "learn/reader/$courseId/$submoduleIndex"
+        const val ARG_COURSE_ID = "courseId"
+        const val ARG_SUBMODULE_INDEX = "submoduleIndex"
+    }
+    object LearnQuiz : KpknRoute("learn/quiz/{courseId}/{submoduleIndex}") {
+        fun create(courseId: String, submoduleIndex: Int = -1) = "learn/quiz/$courseId/$submoduleIndex"
+        const val ARG_COURSE_ID = "courseId"
+        const val ARG_SUBMODULE_INDEX = "submoduleIndex"
+    }
+    object LearnBadge : KpknRoute("learn/badge/{courseId}") {
+        fun create(courseId: String) = "learn/badge/$courseId"
+        const val ARG_COURSE_ID = "courseId"
+    }
+    
+    // ─── Health Connect ───────────────────────────────────────────────
+    object HealthConnect : KpknRoute("settings/health-connect")
+
+    // ─── Mis RINGS ────────────────────────────────────────────────────
+    object MyRings : KpknRoute("my-rings")
 }
 
 // ─── Bottom Nav Items ────────────────────────────────────────────────────────
@@ -137,5 +170,5 @@ val bottomNavItems = listOf(
     BottomNavItem(KpknRoute.Home.route, "Inicio", Icons.Default.Home),
     BottomNavItem(KpknRoute.Training.route, "Entreno", Icons.Default.Home),
     BottomNavItem(KpknRoute.Nutrition.route, "Nutrición", Icons.Default.ShoppingCart),
-    BottomNavItem(KpknRoute.WikiLab.route, "WikiLab", Icons.Default.Info),
+    BottomNavItem(KpknRoute.WikiLab.route, "Learn", Icons.Default.Info),
 )

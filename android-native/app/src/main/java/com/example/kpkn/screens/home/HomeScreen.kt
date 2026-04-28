@@ -1,17 +1,20 @@
 package com.example.kpkn.screens.home
 
+import android.graphics.BlurMaskFilter
 import androidx.compose.foundation.Image
 import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -19,30 +22,42 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.R
 import com.example.kpkn.data.models.MuscleFeedbackEntry
+import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.RecoveryDashboard
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.ringScore
+import com.example.kpkn.data.models.TodaySessionItem
+import com.example.kpkn.domain.calculations.getCurrentDayOfWeek
+import com.example.kpkn.data.models.MealType
+import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.screens.auge.AugeViewModel
+import com.example.kpkn.screens.nutrition.NutritionViewModel
+import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.ui.theme.AppThemeMode
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
 
@@ -61,29 +76,32 @@ fun HomeScreen(
     onResumeWorkout: () -> Unit = {},
     onNavigateToCard: (String) -> Unit = {},
     onNavigate: (String) -> Unit = {},
-    viewModel: HomeViewModel = viewModel { HomeViewModel() },
+    viewModel: HomeViewModel = viewModel(),
     augeViewModel: AugeViewModel = viewModel(),
+    nutritionViewModel: NutritionViewModel? = null,
 ) {
     // AUGE batteries (0-100) → ring progress (0-1)
     val augePerMuscle by augeViewModel.perMuscle.collectAsState()
     val augePending by augeViewModel.pendingQuestionnaire.collectAsState()
     val augeDashboard by augeViewModel.dashboard.collectAsState()
-    val augeBatteries by augeViewModel.batteries.collectAsState()
+    val augeSnapshot by augeViewModel.snapshot.collectAsState()
 
     // Rings are rendered straight from AUGE so they react immediately to new logs.
-    val muscularProgress = augeBatteries.muscular / 100f
-    val sncProgress = (augeDashboard.channels.firstOrNull { it.id == RecoveryChannelId.SYSTEM }?.score ?: augeBatteries.cnc) / 100f
-    val columnaProgress = (augeDashboard.channels.firstOrNull { it.id == RecoveryChannelId.STRUCTURE }?.score ?: augeBatteries.spinal) / 100f
+    val muscularProgress = augeSnapshot.ringScore(RecoveryChannelId.MUSCULAR) / 100f
+    val sncProgress = augeSnapshot.ringScore(RecoveryChannelId.SYSTEM) / 100f
+    val columnaProgress = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE) / 100f
     val userName by viewModel.userName.collectAsState()
     val ringsViewMode by viewModel.ringsViewMode.collectAsState()
-    val programs by viewModel.programs.collectAsState()
     val todaySessions by viewModel.todaySessions.collectAsState()
     val activeProgramId by viewModel.activeProgramId.collectAsState()
     val hasActiveProgram by viewModel.hasActiveProgram.collectAsState()
     val dailyCalorieGoal by viewModel.dailyCalorieGoal.collectAsState()
     val todayNutritionTotals by viewModel.todayNutritionTotals.collectAsState()
     val greeting = viewModel.getGreeting()
-
+    val nutritionRepo = remember { NutritionRepository.getInstance() }
+    val foodDatabase by nutritionRepo.foodDatabase.collectAsState()
+    var showFoodLogger by remember { mutableStateOf(false) }
+    var selectedMealForLogger by remember { mutableStateOf(MealType.LUNCH) }
     val listState = rememberLazyListState()
     val density = LocalDensity.current
 
@@ -173,8 +191,8 @@ fun HomeScreen(
                     onSettingsClick = onNavigateToSettings,
                     onStartWorkout = onStartWorkout,
                     onCreateProgram = onCreateProgram,
-                    onAddMeal = { onNavigate("nutrition") },
-                    onNavigate = onNavigate,
+                    onAddMeal = { showFoodLogger = true },
+                    onNavigateToProfile = onNavigateToProfile,
                 )
             },
         ) { innerPadding ->
@@ -200,6 +218,8 @@ fun HomeScreen(
                 onCreateProgram = onCreateProgram,
                 onNavigateToCard = onNavigateToCard,
                 onNavigate = onNavigate,
+                autoDeloadMessage = augeSnapshot.autoDeloadMessage,
+                onAddMeal = { showFoodLogger = true },
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -226,6 +246,23 @@ fun HomeScreen(
             )
         }
 
+        FoodLoggerDrawer(
+            nutritionRepo = nutritionRepo,
+            isOpen = showFoodLogger,
+            onDismiss = {
+                showFoodLogger = false
+            },
+            onSave = { log ->
+                nutritionRepo.addNutritionLog(log)
+                showFoodLogger = false
+            },
+            foodDatabase = foodDatabase,
+            initialDate = LocalDate.now().toString(),
+            initialMealType = selectedMealForLogger,
+            initialDescription = null,
+            initialTab = 0,
+        )
+
     }
 }
 
@@ -236,9 +273,9 @@ private fun HomeWithProgram(
     sncProgress: Float,
     columnaProgress: Float,
     recoveryDashboard: RecoveryDashboard,
-    perMuscle: Map<String, com.example.kpkn.data.models.MuscleRecoveryStatus> = emptyMap(),
+    perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
     ringsViewMode: HomeViewModel.RingsViewMode,
-    todaySessions: List<com.example.kpkn.data.models.TodaySessionItem>,
+    todaySessions: List<TodaySessionItem>,
     hasActiveProgram: Boolean,
     activeProgramId: String?,
     listState: androidx.compose.foundation.lazy.LazyListState,
@@ -246,20 +283,47 @@ private fun HomeWithProgram(
     greeting: String,
     onRingsViewChange: (HomeViewModel.RingsViewMode) -> Unit,
     onSettingsClick: () -> Unit,
-    onStartWorkout: (com.example.kpkn.data.models.Session, com.example.kpkn.data.models.Program) -> Unit,
+    onStartWorkout: (Session, Program) -> Unit,
     onResumeWorkout: () -> Unit,
     onNavigateToProgram: (String) -> Unit,
     onCreateProgram: () -> Unit,
     onNavigateToCard: (String) -> Unit,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
+    listModifier: Modifier = Modifier,
+    autoDeloadMessage: String? = null,
+    onAddMeal: () -> Unit = {},
 ) {
     val programs by viewModel.programs.collectAsState()
 
     LazyColumn(
         state = listState,
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .drawWithContent {
+                drawContent()
+
+                val glassHeight = 88.dp.toPx()
+                val blurPaint = android.graphics.Paint().apply {
+                    maskFilter = BlurMaskFilter(24f, BlurMaskFilter.Blur.NORMAL)
+                }
+
+                clipRect(left = 0f, top = 0f, right = size.width, bottom = glassHeight) {
+                    drawIntoCanvas { canvas ->
+                        val checkpoint = canvas.nativeCanvas.saveLayer(
+                            0f,
+                            0f,
+                            size.width,
+                            glassHeight,
+                            blurPaint,
+                        )
+                        this@drawWithContent.drawContent()
+                        canvas.nativeCanvas.restoreToCount(checkpoint)
+                    }
+                }
+            }
+            .then(listModifier),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         item {
             HomeHeaderSection(
@@ -284,11 +348,40 @@ private fun HomeWithProgram(
             )
         }
 
+        if (!autoDeloadMessage.isNullOrBlank()) {
+            item {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.45f),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(
+                            "Auto-deload sugerido",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            autoDeloadMessage,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    }
+                }
+            }
+        }
+
         item {
             HomeSessionSection(
                 sessions = todaySessions,
                 hasActiveProgram = hasActiveProgram,
-                currentDayOfWeek = com.example.kpkn.domain.calculations.getCurrentDayOfWeek(),
+                currentDayOfWeek = getCurrentDayOfWeek(),
+                perMuscle = perMuscle,
                 onStartWorkout = onStartWorkout,
                 onResumeWorkout = onResumeWorkout,
             )
@@ -299,6 +392,7 @@ private fun HomeWithProgram(
             HomeCardsSection(
                 viewModel = viewModel,
                 onNavigateToCard = onNavigateToCard,
+                onAddMeal = onAddMeal,
             )
         }
 
@@ -315,11 +409,6 @@ private fun HomeWithProgram(
         item {
             Spacer(Modifier.height(16.dp))
             HomeWikiLabSection(onNavigate = onNavigate)
-        }
-
-        item {
-            Spacer(Modifier.height(16.dp))
-            HomeCornersSection(onNavigate = onNavigate)
             Spacer(Modifier.height(80.dp))
         }
     }
@@ -339,18 +428,18 @@ private fun HomeTopBar(
     muscularProgress: Float,
     sncProgress: Float,
     columnaProgress: Float,
-    todaySessions: List<com.example.kpkn.data.models.TodaySessionItem>,
+    todaySessions: List<TodaySessionItem>,
     dailyCalorieGoal: Int,
     consumedCalories: Int,
     onSettingsClick: () -> Unit,
-    onStartWorkout: (com.example.kpkn.data.models.Session, com.example.kpkn.data.models.Program) -> Unit,
+    onStartWorkout: (Session, Program) -> Unit,
     onCreateProgram: () -> Unit,
     onAddMeal: () -> Unit,
-    onNavigate: (String) -> Unit = {},
+    onNavigateToProfile: () -> Unit,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+        color = Color.Black.copy(alpha = 0.56f),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
@@ -437,7 +526,7 @@ private fun HomeTopBar(
                         fontWeight = FontWeight.Black,
                         fontSize = 16.sp,
                         maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.graphicsLayer {
                             alpha = greetingAlpha
                             translationY = greetingSlide
@@ -479,10 +568,10 @@ private fun HomeTopBar(
             }
 
             Row {
-                IconButton(onClick = { onNavigate(com.example.kpkn.navigation.KpknRoute.SettingsNotifications.route) }) {
+                IconButton(onClick = onNavigateToProfile) {
                     Icon(
-                        Icons.Default.Notifications,
-                        contentDescription = "Notificaciones",
+                        Icons.Default.Person,
+                        contentDescription = "Perfil del atleta",
                         modifier = Modifier.size(22.dp),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
@@ -505,8 +594,8 @@ private fun MiniRingsWidget(
     muscularProgress: Float,
     sncProgress: Float,
     columnaProgress: Float,
-    hasActiveProgram: Boolean = true,
     modifier: Modifier = Modifier,
+    hasActiveProgram: Boolean = true,
 ) {
     val ringColors = if (hasActiveProgram)
         listOf(Color(0xFFFF5252), Color(0xFF448AFF), Color(0xFFFFD740))
@@ -561,8 +650,8 @@ private fun MiniRingsWidget(
 @Composable
 private fun MiniSessionCard(
     hasPrograms: Boolean,
-    todaySessions: List<com.example.kpkn.data.models.TodaySessionItem>,
-    onStartWorkout: (com.example.kpkn.data.models.Session, com.example.kpkn.data.models.Program) -> Unit,
+    todaySessions: List<TodaySessionItem>,
+    onStartWorkout: (Session, Program) -> Unit,
     onCreateProgram: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -584,7 +673,7 @@ private fun MiniSessionCard(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                     ),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(8.dp),
                 ) {
                     Text(
                         "Crear programa",
@@ -684,7 +773,7 @@ private fun MiniNutritionCard(
                     .padding(top = 2.dp, end = 8.dp)
                     .fillMaxWidth()
                     .height(3.dp)
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(50)),
+                    .clip(RoundedCornerShape(50)),
                 color = progressColor,
                 trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
             )
@@ -783,10 +872,10 @@ private fun PostSessionFeedbackSheet(
                                     3 -> Color(0xFFFACC15)
                                     else -> MaterialTheme.colorScheme.error
                                 }
-                                androidx.compose.foundation.layout.Box(
+                                Box(
                                     modifier = Modifier
                                         .size(28.dp)
-                                        .clip(androidx.compose.foundation.shape.CircleShape)
+                                        .clip(CircleShape)
                                         .background(if (active) color else MaterialTheme.colorScheme.surfaceVariant)
                                         .clickable { muscleDoms[muscle] = level },
                                     contentAlignment = Alignment.Center,
