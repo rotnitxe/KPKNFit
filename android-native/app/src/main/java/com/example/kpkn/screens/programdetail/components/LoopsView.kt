@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -53,13 +54,10 @@ fun LoopsView(
     program: Program,
     onUpdateProgram: (Program) -> Unit,
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
-    onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     val loops = program.loops
     val currentCycle = LoopEngine.getCurrentCycle(program)
-    val projections = remember(program, currentCycle) { LoopEngine.projectLoops(program, currentCycle, 12) }
-    val collisions = remember(projections) { LoopEngine.detectLoopCollisions(projections) }
     val cancelledSet = remember(program) { (program.loopState?.cancelled ?: emptyList()).toSet() }
     val legacyEvents = remember(program) { program.events.filter { it.repeatEveryXCycles != null } }
     val hasLegacy = legacyEvents.isNotEmpty() && loops.isEmpty()
@@ -73,6 +71,7 @@ fun LoopsView(
     var showAddModal by remember { mutableStateOf(false) }
     var editingLoop by remember { mutableStateOf<Loop?>(null) }
     var showTemplates by remember { mutableStateOf(false) }
+    var showInfo by remember { mutableStateOf(false) }
 
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         // Legacy migration banner
@@ -93,8 +92,20 @@ fun LoopsView(
         }
 
         // Header
-        Text("Loops", fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-        Text("${loops.size} loop${if (loops.size != 1) "s" else ""} activo${if (loops.size != 1) "s" else ""} · Ciclo $currentCycle", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column {
+                Text("Loops", fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                Text("${loops.size} loop${if (loops.size != 1) "s" else ""} activo${if (loops.size != 1) "s" else ""} · Ciclo $currentCycle", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            IconButton(onClick = { showInfo = true }) {
+                Icon(Icons.Default.Info, contentDescription = "Qué son los loops")
+            }
+        }
+        Text(
+            "Cada loop crea una semana especial completa que se activa según ciclos, no por una fecha fija.",
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.primary,
+        )
         Spacer(Modifier.height(8.dp))
 
         // Action buttons
@@ -125,16 +136,19 @@ fun LoopsView(
                         items(LOOP_TEMPLATES) { template ->
                             Card(
                                 modifier = Modifier.width(200.dp).clickable {
-                                    val newLoops = template.loops.mapIndexed { i, (title, type) ->
+                                    val usedCadences = program.loops.map { it.repeatEveryXLoops.coerceAtLeast(1) }.toSet()
+                                    val newLoops = template.loops.mapIndexedNotNull { i, (title, type) ->
+                                        val cadence = if (type == LoopType.ONE_RM_TEST || type == LoopType.COMPETITION) 8 else 4
+                                        if (cadence in usedCadences) return@mapIndexedNotNull null
                                         Loop(
                                             id = "loop_${System.nanoTime()}_$i",
                                             title = title,
                                             type = type,
-                                            repeatEveryXLoops = if (type == LoopType.ONE_RM_TEST) 8 else 4,
+                                            repeatEveryXLoops = cadence,
                                             durationType = com.example.kpkn.data.models.DurationType.WEEK,
                                         )
                                     }
-                                    onUpdateProgram(program.copy(loops = program.loops + newLoops))
+                                    onUpdateProgram(LoopEngine.materializeLoopWeeks(program.copy(loops = program.loops + newLoops)))
                                     showTemplates = false
                                 },
                                 shape = RoundedCornerShape(10.dp),
@@ -161,7 +175,7 @@ fun LoopsView(
                     isCancelled = loop.id in cancelledSet,
                     onEdit = { editingLoop = loop },
                     onDelete = {
-                        onUpdateProgram(program.copy(loops = program.loops.filter { it.id != loop.id }))
+                        onUpdateProgram(LoopEngine.deleteLoop(program, loop.id))
                     },
                     onCancel = {
                         onUpdateProgram(LoopEngine.cancelLoop(program, loop.id))
@@ -175,9 +189,8 @@ fun LoopsView(
             Spacer(Modifier.height(12.dp))
         }
 
-        // Timeline projections
         if (actionableOccurrences.isNotEmpty()) {
-            Text("Acciones sugeridas", fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+            Text("Semanas de loop", fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
             Spacer(Modifier.height(6.dp))
             actionableOccurrences.forEach { occurrence ->
                 Card(
@@ -198,15 +211,11 @@ fun LoopsView(
                                     fontWeight = FontWeight.Bold,
                                 )
                                 Text(
-                                    "Ciclo ${occurrence.projection.cycle} · ${occurrence.weekLabel} · ${occurrence.dayLabel}",
+                                    "${occurrence.weekLabel} · ${occurrence.dayLabel} · cada ${occurrence.loop.repeatEveryXLoops} ciclos",
                                     fontSize = 10.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
-                                Text(
-                                    occurrence.statusLabel,
-                                    fontSize = 9.sp,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
+                                Text("Semana especial completa", fontSize = 9.sp, color = MaterialTheme.colorScheme.primary)
                             }
                             AssistChip(
                                 onClick = {},
@@ -214,52 +223,16 @@ fun LoopsView(
                                 label = { Text(occurrence.countdownLabel, fontSize = 9.sp) },
                             )
                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = { onFocusWeek(occurrence.blockId, occurrence.weekId) }) {
-                                Icon(Icons.Default.CalendarMonth, contentDescription = null)
-                                Spacer(Modifier.width(6.dp))
-                                Text("Ver semana")
-                            }
-                            Button(onClick = { onCreateSessionForWeek(occurrence.weekId, occurrence.preferredDayOfWeek) }) {
-                                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                                Spacer(Modifier.width(6.dp))
-                                Text(occurrence.ctaLabel)
-                            }
+                        OutlinedButton(onClick = { onFocusWeek(occurrence.blockId, occurrence.weekId) }) {
+                            Icon(Icons.Default.CalendarMonth, contentDescription = null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Ver semana")
                         }
                     }
                 }
                 Spacer(Modifier.height(8.dp))
             }
             Spacer(Modifier.height(8.dp))
-        }
-
-        if (projections.isNotEmpty()) {
-            Text("Proyecciones (12 ciclos)", fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-            Spacer(Modifier.height(6.dp))
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                items(projections.take(24)) { proj ->
-                    val isCollision = collisions.containsKey(proj.cycle) && collisions[proj.cycle]!!.any { it.loop.id == proj.loop.id }
-                    val bgColor = when {
-                        proj.isCancelled -> Color(0xFFEF4444).copy(alpha = 0.2f)
-                        proj.isPostponed -> Color(0xFFFBBF24).copy(alpha = 0.2f)
-                        isCollision -> Color(0xFFFBBF24).copy(alpha = 0.3f)
-                        else -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                    }
-                    Column(
-                        modifier = Modifier
-                            .width(52.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(bgColor)
-                            .padding(6.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text(LoopEngine.getLoopTypeEmoji(proj.loop.type), fontSize = 12.sp)
-                        Text("C${proj.cycle}", fontSize = 7.sp, fontWeight = FontWeight.Bold)
-                        Text(LoopEngine.formatLoopCountdown(proj.daysUntil), fontSize = 7.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        if (isCollision) Text("⚠️", fontSize = 8.sp)
-                    }
-                }
-            }
         }
 
         Spacer(Modifier.height(120.dp))
@@ -269,16 +242,29 @@ fun LoopsView(
     if (showAddModal || editingLoop != null) {
         LoopEditorModal(
             loop = editingLoop,
+            existingLoops = program.loops,
             onSave = { loop ->
-                if (editingLoop != null) {
-                    onUpdateProgram(program.copy(loops = program.loops.map { if (it.id == loop.id) loop else it }))
-                } else {
-                    onUpdateProgram(program.copy(loops = program.loops + loop))
-                }
+                onUpdateProgram(LoopEngine.upsertLoop(program, loop))
                 showAddModal = false
                 editingLoop = null
             },
             onDismiss = { showAddModal = false; editingLoop = null },
+        )
+    }
+
+    if (showInfo) {
+        AlertDialog(
+            onDismissRequest = { showInfo = false },
+            title = { Text("Para qué sirven los loops", fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Un loop es una semana especial que se repite cada cierta cantidad de ciclos.")
+                    Text("Al crearlo, aparece como una semana real especial del ciclo. Entra a Ver semana para editarla completa.")
+                    Text("KPKN evita cadencias duplicadas para que dos loops no compitan por el mismo lugar del ciclo.")
+                    Text("Ejemplos: descarga cada 4 ciclos, test 1RM cada 8 ciclos, competición cada 12 ciclos.")
+                }
+            },
+            confirmButton = { TextButton(onClick = { showInfo = false }) { Text("Entendido") } },
         )
     }
 }
@@ -290,7 +276,6 @@ private data class LoopActionOccurrence(
     val weekId: String,
     val weekLabel: String,
     val dayLabel: String,
-    val preferredDayOfWeek: Int,
     val existingSession: Session?,
 ) {
     val statusLabel: String
@@ -302,41 +287,33 @@ private data class LoopActionOccurrence(
 
     val countdownLabel: String
         get() = LoopEngine.formatLoopCountdown(projection.daysUntil)
-
-    val ctaLabel: String
-        get() = if (existingSession != null) "Crear adicional" else "Crear sesión"
 }
 
 private fun buildLoopOccurrences(program: Program, currentCycle: Int): List<LoopActionOccurrence> {
     val baseBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull() ?: return emptyList()
-    val orderedWeeks = baseBlock.mesocycles.flatMap { it.weeks }
-    if (orderedWeeks.isEmpty()) return emptyList()
+    val loopWeeks = baseBlock.mesocycles.flatMap { it.weeks }.filter { it.isLoopWeek && it.loopId != null }
+    if (loopWeeks.isEmpty()) return emptyList()
 
-    val projections = LoopEngine.projectLoops(program, currentCycle, 6)
-    return projections.mapNotNull { projection ->
-        val weekIndex = preferredLoopWeekIndex(projection.loop, orderedWeeks.lastIndex)
-        val targetWeek = orderedWeeks.getOrNull(weekIndex) ?: return@mapNotNull null
-        val preferredDay = preferredLoopDay(projection.loop, program.startDay ?: 1)
+    return loopWeeks.mapNotNull { targetWeek ->
+        val loop = program.loops.firstOrNull { it.id == targetWeek.loopId } ?: return@mapNotNull null
+        val preferredDay = preferredLoopDay(loop, program.startDay ?: 1)
         val existingSession = targetWeek.sessions.firstOrNull { it.dayOfWeek == preferredDay }
         LoopActionOccurrence(
-            loop = projection.loop,
-            projection = projection,
+            loop = loop,
+            projection = LoopProjection(
+                loop = loop,
+                cycle = loop.repeatEveryXLoops.coerceAtLeast(1),
+                isPostponed = false,
+                isCancelled = false,
+                daysUntil = 0,
+                weekInCycle = 1,
+            ),
             blockId = baseBlock.id,
             weekId = targetWeek.id,
             weekLabel = targetWeek.name,
             dayLabel = dayLabel(preferredDay),
-            preferredDayOfWeek = preferredDay,
             existingSession = existingSession,
         )
-    }
-}
-
-private fun preferredLoopWeekIndex(loop: Loop, lastWeekIndex: Int): Int {
-    return when (loop.type) {
-        LoopType.COMPETITION -> lastWeekIndex
-        LoopType.ONE_RM_TEST -> lastWeekIndex
-        LoopType.DELOAD -> 0
-        LoopType.CUSTOM -> lastWeekIndex
     }
 }
 
@@ -413,12 +390,17 @@ private fun LoopCard(
 @Composable
 private fun LoopEditorModal(
     loop: Loop?,
+    existingLoops: List<Loop>,
     onSave: (Loop) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var title by remember { mutableStateOf(loop?.title ?: "") }
     var type by remember { mutableStateOf(loop?.type ?: LoopType.CUSTOM) }
     var repeatEvery by remember { mutableStateOf(loop?.repeatEveryXLoops?.toString() ?: "4") }
+    val repeatValue = repeatEvery.toIntOrNull()?.coerceAtLeast(1) ?: 0
+    val conflict = existingLoops.firstOrNull { candidate ->
+        candidate.id != loop?.id && candidate.repeatEveryXLoops.coerceAtLeast(1) == repeatValue
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -437,6 +419,13 @@ private fun LoopEditorModal(
                     }
                 }
                 OutlinedTextField(value = repeatEvery, onValueChange = { repeatEvery = it.filter { c -> c.isDigit() } }, label = { Text("Repetir cada X ciclos") }, singleLine = true)
+                if (conflict != null) {
+                    Text(
+                        "Conflicto: ${conflict.title} ya usa cada $repeatValue ciclos. Cambia la cadencia para evitar que dos loops compitan por la misma semana.",
+                        fontSize = 10.sp,
+                        color = Color(0xFFEF4444),
+                    )
+                }
             }
         },
         confirmButton = {
@@ -451,11 +440,11 @@ private fun LoopEditorModal(
                     )).copy(
                         title = title,
                         type = type,
-                        repeatEveryXLoops = repeatEvery.toIntOrNull() ?: 4,
+                        repeatEveryXLoops = repeatValue.coerceAtLeast(1),
                     )
                     onSave(newLoop)
                 },
-                enabled = title.isNotBlank(),
+                enabled = title.isNotBlank() && repeatValue > 0 && conflict == null,
             ) { Text("Guardar") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },

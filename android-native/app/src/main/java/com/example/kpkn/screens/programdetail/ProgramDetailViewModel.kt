@@ -5,16 +5,26 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
 import com.example.kpkn.data.models.ActiveProgramState
+import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.HYPERTROPHY_ROLE_MULTIPLIERS
+import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.data.models.normalizedTemporalStructure
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ProgramDetailHelpers
 import com.example.kpkn.domain.training.RoadmapBlock
+import com.example.kpkn.domain.training.RoadmapLoopMarker
+import com.example.kpkn.domain.training.SplitApplicationEngine
+import com.example.kpkn.domain.training.StartDaySessionMode
+import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.WeekAdherence
 import com.example.kpkn.domain.training.WeekWithMeta
@@ -77,6 +87,11 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     val roadmapBlocks: StateFlow<List<RoadmapBlock>> = program
         .map { p -> p?.let { ProgramDetailHelpers.buildRoadmapBlocks(it) } ?: emptyList() }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    val simpleRoadmapLoopMarkers: StateFlow<List<RoadmapLoopMarker>> = program
+        .map { p -> p?.let { ProgramDetailHelpers.buildSimpleRoadmapLoopMarkers(it) } ?: emptyList() }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -227,6 +242,184 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         repository.updateProgram(current.copy(startDay = day))
     }
 
+    fun updateStartDay(
+        day: Int,
+        temporalScope: StartDayTemporalScope,
+        sessionMode: StartDaySessionMode,
+    ) {
+        val current = program.value ?: return
+        repository.updateProgram(
+            SplitApplicationEngine.applyStartDayChange(
+                program = current,
+                selectedWeekId = _uiState.value.selectedWeekId,
+                newStartDay = day,
+                temporalScope = temporalScope,
+                sessionMode = sessionMode,
+            )
+        )
+    }
+
+    fun addWeekToSimpleProgram(sourceWeekId: String? = null, name: String? = null, description: String? = null) {
+        val current = program.value ?: return
+        if (!current.isSimpleTemporalProgram) return
+
+        val macroIndex = current.macrocycles.indexOfFirst { it.blocks.isNotEmpty() }.takeIf { it >= 0 } ?: return
+        val block = current.macrocycles[macroIndex].blocks.firstOrNull() ?: return
+        val mesoIndex = block.mesocycles.indexOfLast { true }.takeIf { it >= 0 } ?: return
+        val newWeek = ProgramWeek(
+            id = UUID.randomUUID().toString(),
+            name = name?.trim()?.takeIf { it.isNotEmpty() } ?: "Semana ${ProgramDetailHelpers.getTotalWeeks(current) + 1}",
+            description = description?.trim()?.takeIf { it.isNotEmpty() },
+            sessions = sourceWeekId
+                ?.let { id -> findWeek(current, id)?.sessions }
+                ?.let { SplitApplicationEngine.copySessionsWithNewIds(it) }
+                ?: emptyList(),
+        )
+
+        val updated = current.copy(
+            macrocycles = current.macrocycles.mapIndexed { currentMacroIndex, macro ->
+                if (currentMacroIndex != macroIndex) macro
+                else macro.copy(
+                    blocks = macro.blocks.mapIndexed { blockIndex, currentBlock ->
+                        if (blockIndex != 0) currentBlock
+                        else currentBlock.copy(
+                            mesocycles = currentBlock.mesocycles.mapIndexed { currentMesoIndex, meso ->
+                                if (currentMesoIndex != mesoIndex) meso
+                                else meso.copy(weeks = meso.weeks + newWeek)
+                            }
+                        )
+                    }
+                )
+            }
+        ).normalizedTemporalStructure()
+
+        repository.updateProgram(updated)
+        _uiState.update { it.copy(selectedBlockId = block.id, selectedWeekId = newWeek.id) }
+    }
+
+    fun addWeekToSelectedAdvancedBlock(name: String? = null, description: String? = null) {
+        val current = program.value ?: return
+        if (current.isSimpleTemporalProgram) return
+
+        val blocks = ProgramDetailHelpers.buildRoadmapBlocks(current)
+        val target = blocks.find { it.id == _uiState.value.selectedBlockId } ?: blocks.firstOrNull() ?: return
+        val macro = current.macrocycles.getOrNull(target.macroIndex) ?: return
+        val block = macro.blocks.getOrNull(target.blockIndex) ?: return
+        val newWeek = defaultRoadmapWeek(
+            name = name?.trim()?.takeIf { it.isNotEmpty() }
+                ?: "Semana ${countWeeksBeforeAppendingToBlock(current, target.macroIndex, target.blockIndex) + 1}",
+            description = description,
+        )
+        val lastMesoIndex = block.mesocycles.lastIndex
+
+        val updated = current.copy(
+            macrocycles = current.macrocycles.mapIndexed { macroIndex, currentMacro ->
+                if (macroIndex != target.macroIndex) currentMacro
+                else currentMacro.copy(
+                    blocks = currentMacro.blocks.mapIndexed { blockIndex, currentBlock ->
+                        if (blockIndex != target.blockIndex) currentBlock
+                        else if (lastMesoIndex < 0) {
+                            currentBlock.copy(mesocycles = listOf(defaultRoadmapMesocycle(newWeek)))
+                        } else {
+                            currentBlock.copy(
+                                mesocycles = currentBlock.mesocycles.mapIndexed { mesoIndex, meso ->
+                                    if (mesoIndex == lastMesoIndex) meso.copy(weeks = meso.weeks + newWeek) else meso
+                                }
+                            )
+                        }
+                    }
+                )
+            }
+        ).normalizedTemporalStructure()
+
+        repository.updateProgram(updated)
+        _uiState.update {
+            it.copy(
+                selectedBlockId = target.id,
+                selectedWeekId = newWeek.id,
+                structureSubTab = StructureSubTab.SEMANA,
+            )
+        }
+    }
+
+    fun addAdvancedBlockFromRoadmap(name: String? = null, description: String? = null) {
+        val current = program.value ?: return
+        if (current.isSimpleTemporalProgram) return
+
+        val blocks = ProgramDetailHelpers.buildRoadmapBlocks(current)
+        val targetMacroIndex = blocks.lastOrNull()?.macroIndex ?: current.macrocycles.lastIndex.takeIf { it >= 0 } ?: return
+        val newWeek = defaultRoadmapWeek("Semana ${ProgramDetailHelpers.getTotalWeeks(current) + 1}")
+        val newBlock = defaultRoadmapBlock(
+            name = name?.trim()?.takeIf { it.isNotEmpty() } ?: "Bloque ${blocks.size + 1}",
+            description = description,
+            firstWeek = newWeek,
+        )
+
+        val updated = current.copy(
+            macrocycles = current.macrocycles.mapIndexed { macroIndex, macro ->
+                if (macroIndex == targetMacroIndex) macro.copy(blocks = macro.blocks + newBlock) else macro
+            }
+        ).normalizedTemporalStructure()
+
+        repository.updateProgram(updated)
+        _uiState.update {
+            it.copy(
+                selectedBlockId = newBlock.id,
+                selectedWeekId = newWeek.id,
+                structureSubTab = StructureSubTab.SEMANA,
+            )
+        }
+    }
+
+    private fun defaultRoadmapWeek(name: String, description: String? = null): ProgramWeek {
+        return ProgramWeek(
+            id = UUID.randomUUID().toString(),
+            name = name,
+            description = description?.trim()?.takeIf { it.isNotEmpty() },
+        )
+    }
+
+    private fun defaultRoadmapMesocycle(firstWeek: ProgramWeek): Mesocycle {
+        return Mesocycle(
+            id = UUID.randomUUID().toString(),
+            name = "Mesociclo 1",
+            goal = MesocycleGoal.ACCUMULATION,
+            weeks = listOf(firstWeek),
+        )
+    }
+
+    private fun defaultRoadmapBlock(name: String, description: String?, firstWeek: ProgramWeek): Block {
+        return Block(
+            id = UUID.randomUUID().toString(),
+            name = name,
+            description = description?.trim()?.takeIf { it.isNotEmpty() },
+            mesocycles = listOf(defaultRoadmapMesocycle(firstWeek)),
+        )
+    }
+
+    private fun countWeeksBeforeAppendingToBlock(program: Program, targetMacroIndex: Int, targetBlockIndex: Int): Int {
+        var count = 0
+        program.macrocycles.forEachIndexed { macroIndex, macro ->
+            if (macroIndex > targetMacroIndex) return count
+            macro.blocks.forEachIndexed { blockIndex, block ->
+                if (macroIndex == targetMacroIndex && blockIndex > targetBlockIndex) return count
+                count += block.mesocycles.sumOf { it.weeks.size }
+            }
+        }
+        return count
+    }
+
+    private fun findWeek(program: Program, weekId: String): ProgramWeek? {
+        program.macrocycles.forEach { macro ->
+            macro.blocks.forEach { block ->
+                block.mesocycles.forEach { meso ->
+                    meso.weeks.firstOrNull { it.id == weekId }?.let { return it }
+                }
+            }
+        }
+        return null
+    }
+
     fun updateWeekMetadata(weekId: String, name: String, description: String?) {
         val current = program.value ?: return
         val normalizedDescription = description?.trim()?.takeIf { it.isNotEmpty() }
@@ -253,6 +446,81 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             }
         )
         repository.updateProgram(updated)
+    }
+
+    fun updateBlockMetadata(blockId: String, name: String, description: String?) {
+        val current = program.value ?: return
+        val normalizedDescription = description?.trim()?.takeIf { it.isNotEmpty() }
+        val updated = current.copy(
+            macrocycles = current.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = macro.blocks.map { block ->
+                        if (block.id == blockId) {
+                            block.copy(
+                                name = name.trim().ifBlank { block.name },
+                                description = normalizedDescription,
+                            )
+                        } else block
+                    }
+                )
+            }
+        )
+        repository.updateProgram(updated)
+    }
+
+    fun deleteWeekFromRoadmap(weekId: String) {
+        val current = program.value ?: return
+        if (ProgramDetailHelpers.getTotalWeeks(current) <= 1) return
+
+        val updated = current.copy(
+            macrocycles = current.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = macro.blocks.map { block ->
+                        block.copy(
+                            mesocycles = block.mesocycles.map { meso ->
+                                meso.copy(weeks = meso.weeks.filterNot { it.id == weekId })
+                            }.filter { it.weeks.isNotEmpty() }
+                        )
+                    }.filter { block -> block.mesocycles.any { it.weeks.isNotEmpty() } }
+                )
+            }.filter { macro -> macro.blocks.isNotEmpty() }
+        ).normalizedTemporalStructure()
+
+        repository.updateProgram(updated)
+        val blocks = ProgramDetailHelpers.buildRoadmapBlocks(updated)
+        val selectedBlock = blocks.firstOrNull { it.id == _uiState.value.selectedBlockId } ?: blocks.firstOrNull()
+        val nextWeek = ProgramDetailHelpers.getWeeksForBlock(selectedBlock?.id, blocks, updated).firstOrNull()
+        _uiState.update {
+            it.copy(
+                selectedBlockId = selectedBlock?.id,
+                selectedWeekId = nextWeek?.id,
+                structureSubTab = StructureSubTab.SEMANA,
+            )
+        }
+    }
+
+    fun deleteBlockFromRoadmap(blockId: String) {
+        val current = program.value ?: return
+        val blocksBefore = ProgramDetailHelpers.buildRoadmapBlocks(current)
+        if (blocksBefore.size <= 1) return
+
+        val updated = current.copy(
+            macrocycles = current.macrocycles.map { macro ->
+                macro.copy(blocks = macro.blocks.filterNot { it.id == blockId })
+            }.filter { it.blocks.isNotEmpty() }
+        ).normalizedTemporalStructure()
+
+        repository.updateProgram(updated)
+        val blocks = ProgramDetailHelpers.buildRoadmapBlocks(updated)
+        val selectedBlock = blocks.firstOrNull()
+        val nextWeek = ProgramDetailHelpers.getWeeksForBlock(selectedBlock?.id, blocks, updated).firstOrNull()
+        _uiState.update {
+            it.copy(
+                selectedBlockId = selectedBlock?.id,
+                selectedWeekId = nextWeek?.id,
+                structureSubTab = StructureSubTab.SEMANA,
+            )
+        }
     }
 
     fun reduceCurrentWeekVolumeBy20Percent(): VolumeAdjustmentResult {

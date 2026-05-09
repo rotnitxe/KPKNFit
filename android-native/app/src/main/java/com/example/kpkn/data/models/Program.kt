@@ -27,6 +27,8 @@ data class Program(
     val weekDays: Int? = null,
     val selectedSplitId: String? = null,
     val customSplitPattern: List<String> = emptyList(),
+    val customSplitName: String? = null,
+    val customSplitDescription: String? = null,
     val blockSplitSelections: Map<String, String> = emptyMap(),
     val structureTemplateId: String? = null,
     val timelineStartDate: String? = null,
@@ -99,6 +101,7 @@ data class Macrocycle(
 data class Block(
     val id: String,
     val name: String,
+    val description: String? = null,
     val mesocycles: List<Mesocycle> = emptyList(),
 )
 
@@ -220,10 +223,27 @@ val Program.primaryLoopLengthWeeks: Int?
 
 fun Program.normalizedTemporalStructure(): Program {
     val shouldBeSimple = isSimpleTemporalProgram
+    val cleanMacrocycles = macrocycles.map { macro ->
+        macro.copy(
+            blocks = macro.blocks.map { block ->
+                block.copy(
+                    mesocycles = block.mesocycles.map { meso ->
+                        meso.copy(
+                            weeks = meso.weeks.map { week ->
+                                if (week.isLoopWeek && !shouldBeSimple) week.copy(isLoopWeek = false, loopId = null)
+                                else week
+                            }
+                        )
+                    }
+                )
+            }
+        )
+    }
     return copy(
         structure = if (shouldBeSimple) ProgramStructure.SIMPLE else ProgramStructure.COMPLEX,
         loops = if (shouldBeSimple) loops else emptyList(),
         loopState = if (shouldBeSimple) loopState else null,
         events = if (shouldBeSimple) events else emptyList(),
+        macrocycles = cleanMacrocycles,
     )
 }

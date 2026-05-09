@@ -1718,41 +1718,36 @@ private fun WorkoutV2Body(
                     }
                 }
 
-                Row(
+                WorkoutExerciseTabs(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    WorkoutExerciseTabs(
-                        modifier = Modifier.fillMaxWidth(),
-                        currentExercise = currentExercise,
-                        currentSet = currentSet,
-                        currentExerciseInfo = currentExerciseInfo,
-                        drain = currentExerciseDrain,
-                        exerciseTag = uiState.exerciseTags[currentExercise.id],
-                        profiles = viewModel.profilesForExercise(currentExercise),
-                        activeProfileId = uiState.activeContextProfileByExerciseId[currentExercise.id],
-                        selectedTab = selectedContextTab,
-                        onSelectedTabChange = onSelectedContextTabChange,
-                        onTagSet = { tag -> if (tag.isBlank()) viewModel.clearExerciseTag(currentExercise.id) else viewModel.setExerciseTag(currentExercise.id, tag) },
-                        onSelectProfile = { profileId -> viewModel.setActiveContextProfile(currentExercise.id, profileId) },
-                        onSaveProfile = { profile -> viewModel.upsertContextProfile(currentExercise, profile) },
-                        onUpdateExercise = { transform ->
-                            viewModel.updateExerciseDefinition(currentExercise.id) { exercise ->
-                                transform(exercise)
-                            }
-                        },
-                        onUpdateCurrentSetPlan = { setId, transform ->
-                            viewModel.updateExerciseSetPlan(currentExercise.id, setId, transform)
-                        },
-                        onExpandHistory = onExpandHistory,
-                        onExpandTags = onExpandTags,
-                        onExpandSetup = onExpandSetup,
-                        onExpandReplace = onExpandReplace,
-                        onExpandEdit = onExpandEdit,
-                        sessionAccentColor = sessionAccentColor,
-                        sessionEnergy = uiState.liveEnergySummary,
-                    )
-                }
+                    currentExercise = currentExercise,
+                    currentSet = currentSet,
+                    currentExerciseInfo = currentExerciseInfo,
+                    drain = currentExerciseDrain,
+                    exerciseTag = uiState.exerciseTags[currentExercise.id],
+                    profiles = viewModel.profilesForExercise(currentExercise),
+                    activeProfileId = uiState.activeContextProfileByExerciseId[currentExercise.id],
+                    selectedTab = selectedContextTab,
+                    onSelectedTabChange = onSelectedContextTabChange,
+                    onTagSet = { tag -> if (tag.isBlank()) viewModel.clearExerciseTag(currentExercise.id) else viewModel.setExerciseTag(currentExercise.id, tag) },
+                    onSelectProfile = { profileId -> viewModel.setActiveContextProfile(currentExercise.id, profileId) },
+                    onSaveProfile = { profile -> viewModel.upsertContextProfile(currentExercise, profile) },
+                    onUpdateExercise = { transform ->
+                        viewModel.updateExerciseDefinition(currentExercise.id) { exercise ->
+                            transform(exercise)
+                        }
+                    },
+                    onUpdateCurrentSetPlan = { setId, transform ->
+                        viewModel.updateExerciseSetPlan(currentExercise.id, setId, transform)
+                    },
+                    onExpandHistory = onExpandHistory,
+                    onExpandTags = onExpandTags,
+                    onExpandSetup = onExpandSetup,
+                    onExpandReplace = onExpandReplace,
+                    onExpandEdit = onExpandEdit,
+                    sessionAccentColor = sessionAccentColor,
+                    sessionEnergy = uiState.liveEnergySummary,
+                )
 
                 if (!showingPostExerciseCard) {
                     val totalSetPages = currentExercise.sets.size.coerceAtLeast(1)
@@ -3298,7 +3293,7 @@ private fun ExerciseRoadmapCard(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun SetInputCardV2(
     exercise: Exercise,
@@ -3378,14 +3373,18 @@ internal fun SetInputCardV2(
     var isAmrap by remember(exercise.id, setIndex) { mutableStateOf(currentSet.isAmrap) }
     var dropSetEnabled by remember(exercise.id, setIndex) { mutableStateOf(false) }
     var restPauseEnabled by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var partialRepsCount by remember(exercise.id, setIndex) { mutableIntStateOf(0) }
     var showPartialsMode by remember(exercise.id, setIndex) { mutableStateOf(false) }
+    var adjustmentsTab by remember(exercise.id, setIndex) { mutableIntStateOf(0) }
     var loadModeMenuExpanded by remember(exercise.id, setIndex) { mutableStateOf(false) }
     var dropSets by remember(exercise.id, setIndex) {
         mutableStateOf(listOf(DropSetEntry(weight = 0.0, reps = 0)))
     }
-    var restPauseRepsText by remember(exercise.id, setIndex) { mutableStateOf("") }
-    var restPauseRestText by remember(exercise.id, setIndex) { mutableStateOf("") }
+    var restPauseSets by remember(exercise.id, setIndex) {
+        mutableStateOf(listOf(RestPauseData(restTime = 20, reps = 0)))
+    }
+    var partialSets by remember(exercise.id, setIndex) {
+        mutableStateOf(listOf(0))
+    }
     var showAdvancedControls by remember(exercise.id, setIndex) { mutableStateOf(true) }
     var reportedIntensityMode by remember(exercise.id, setIndex) {
         mutableStateOf(
@@ -3825,146 +3824,53 @@ internal fun SetInputCardV2(
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White.copy(alpha = 0.6f),
                                     )
-                                    if (!isTimeMode) {
-                                        Spacer(Modifier.width(4.dp))
-                                        Text(
-                                            "½",
-                                            modifier = Modifier.clickable { showPartialsMode = !showPartialsMode }.padding(horizontal = 6.dp, vertical = 2.dp),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (showPartialsMode) Color(0xFFD500F9) else Color.White.copy(alpha = 0.5f),
-                                        )
-                                    }
                                 }
                                 Spacer(Modifier.height(4.dp))
-                                if (!showPartialsMode) {
-                                    Surface(
-                                        shape = RoundedCornerShape(14.dp),
-                                        color = Color(0xFF2A2A2A),
-                                        modifier = Modifier.fillMaxWidth(),
+                                Surface(
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = Color(0xFF2A2A2A),
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.height(48.dp),
                                     ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.height(48.dp),
+                                        Box(
+                                            modifier = Modifier.width(36.dp).fillMaxHeight().clickable {
+                                                val current = valueText.toIntOrNull() ?: 0
+                                                valueText = (current - 1).coerceAtLeast(0).toString()
+                                            },
+                                            contentAlignment = Alignment.Center,
                                         ) {
-                                            Box(
-                                                modifier = Modifier.width(36.dp).fillMaxHeight().clickable {
-                                                    val current = valueText.toIntOrNull() ?: 0
-                                                    valueText = (current - 1).coerceAtLeast(0).toString()
-                                                },
-                                                contentAlignment = Alignment.Center,
-                                            ) {
-                                                Icon(Icons.Default.Remove, null, Modifier.size(16.dp), tint = Color.White.copy(alpha = 0.7f))
-                                            }
-                                            BasicTextField(
-                                                value = valueText,
-                                                onValueChange = {
-                                                    valueText = if (isTimeMode) it.filter { ch -> ch.isDigit() } else it.filter { ch -> ch.isDigit() }
-                                                },
-                                                modifier = Modifier.weight(1f).fillMaxHeight(),
-                                                singleLine = true,
-                                                textStyle = MaterialTheme.typography.headlineSmall.copy(
-                                                    textAlign = TextAlign.Center,
-                                                    fontWeight = FontWeight.Black,
-                                                    color = if (debt > 0 && !isTimeMode) Color(0xFFFF5252) else Color.White,
-                                                ),
-                                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                                decorationBox = { innerTextField ->
-                                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                                        innerTextField()
-                                                    }
-                                                },
-                                            )
-                                            Box(
-                                                modifier = Modifier.width(36.dp).fillMaxHeight().clickable {
-                                                    val current = valueText.toIntOrNull() ?: 0
-                                                    valueText = (current + 1).toString()
-                                                },
-                                                contentAlignment = Alignment.Center,
-                                            ) {
-                                                Icon(Icons.Default.Add, null, Modifier.size(16.dp), tint = sessionAccentColor)
-                                            }
+                                            Icon(Icons.Default.Remove, null, Modifier.size(16.dp), tint = Color.White.copy(alpha = 0.7f))
                                         }
-                                    }
-                                } else {
-                                    Surface(
-                                        shape = RoundedCornerShape(14.dp),
-                                        color = Color(0xFF2A2A2A),
-                                        modifier = Modifier.fillMaxWidth(),
-                                    ) {
-                                        Column {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier.height(44.dp),
-                                            ) {
-                                                Box(
-                                                    modifier = Modifier.width(36.dp).fillMaxHeight().clickable {
-                                                        val current = valueText.toIntOrNull() ?: 0
-                                                        valueText = (current - 1).coerceAtLeast(0).toString()
-                                                    },
-                                                    contentAlignment = Alignment.Center,
-                                                ) { Icon(Icons.Default.Remove, null, Modifier.size(14.dp), tint = Color.White.copy(alpha = 0.7f)) }
-                                                BasicTextField(
-                                                    value = valueText,
-                                                    onValueChange = { valueText = it.filter { ch -> ch.isDigit() } },
-                                                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                                                    singleLine = true,
-                                                    textStyle = MaterialTheme.typography.headlineSmall.copy(
-                                                        textAlign = TextAlign.Center,
-                                                        fontWeight = FontWeight.Black,
-                                                        color = Color.White,
-                                                    ),
-                                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                                    decorationBox = { innerTextField ->
-                                                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { innerTextField() }
-                                                    },
-                                                )
-                                                Box(
-                                                    modifier = Modifier.width(36.dp).fillMaxHeight().clickable {
-                                                        val current = valueText.toIntOrNull() ?: 0
-                                                        valueText = (current + 1).toString()
-                                                    },
-                                                    contentAlignment = Alignment.Center,
-                                                ) { Icon(Icons.Default.Add, null, Modifier.size(14.dp), tint = sessionAccentColor) }
-                                            }
-                                            HorizontalDivider(
-                                                modifier = Modifier.padding(horizontal = 12.dp),
-                                                color = Color(0xFF3A3A3A),
-                                                thickness = 1.dp,
-                                            )
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier.height(36.dp),
-                                            ) {
-                                                Text(
-                                                    "½",
-                                                    modifier = Modifier.padding(start = 10.dp),
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = Color.White.copy(alpha = 0.5f),
-                                                )
-                                                Spacer(Modifier.weight(1f))
-                                                Box(
-                                                    modifier = Modifier.width(32.dp).fillMaxHeight().clickable {
-                                                        if (partialRepsCount > 0) partialRepsCount--
-                                                    },
-                                                    contentAlignment = Alignment.Center,
-                                                ) { Icon(Icons.Default.Remove, null, Modifier.size(12.dp), tint = Color.White.copy(alpha = 0.7f)) }
-                                                Text(
-                                                    "${partialRepsCount}/4",
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    fontWeight = FontWeight.Bold,
-                                                    modifier = Modifier.widthIn(min = 28.dp),
-                                                    textAlign = TextAlign.Center,
-                                                    color = Color.White,
-                                                )
-                                                Box(
-                                                    modifier = Modifier.width(32.dp).fillMaxHeight().clickable {
-                                                        if (partialRepsCount < 3) partialRepsCount++
-                                                    },
-                                                    contentAlignment = Alignment.Center,
-                                                ) { Icon(Icons.Default.Add, null, Modifier.size(12.dp), tint = sessionAccentColor) }
-                                            }
+                                        BasicTextField(
+                                            value = valueText,
+                                            onValueChange = {
+                                                valueText = it.filter { ch -> ch.isDigit() }
+                                            },
+                                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                                            singleLine = true,
+                                            textStyle = MaterialTheme.typography.headlineSmall.copy(
+                                                textAlign = TextAlign.Center,
+                                                fontWeight = FontWeight.Black,
+                                                color = if (debt > 0 && !isTimeMode) Color(0xFFFF5252) else Color.White,
+                                            ),
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                            decorationBox = { innerTextField ->
+                                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                                    innerTextField()
+                                                }
+                                            },
+                                        )
+                                        Box(
+                                            modifier = Modifier.width(36.dp).fillMaxHeight().clickable {
+                                                val current = valueText.toIntOrNull() ?: 0
+                                                valueText = (current + 1).toString()
+                                            },
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Icon(Icons.Default.Add, null, Modifier.size(16.dp), tint = sessionAccentColor)
                                         }
                                     }
                                 }
@@ -4127,7 +4033,7 @@ internal fun SetInputCardV2(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            "Cambio de planes o error de ejecución",
+                            "Ajustes de serie",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White.copy(alpha = 0.7f),
@@ -4168,228 +4074,281 @@ internal fun SetInputCardV2(
                             modifier = Modifier.padding(12.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                FilterChip(
-                                    selected = isFailedSet,
-                                    onClick = {
-                                        isFailedSet = !isFailedSet
-                                        if (isFailedSet) reachedFailure = false
-                                    },
-                                    label = { Text("Error de ejecución", fontWeight = FontWeight.SemiBold) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Color(0xFFFF5252),
-                                        selectedLabelColor = Color.Black,
-                                        containerColor = Color(0xFF2A2A2A),
-                                        labelColor = Color.White,
-                                    ),
-                                )
-                                FilterChip(
-                                    selected = reachedFailure,
-                                    onClick = {
-                                        reachedFailure = !reachedFailure
-                                        if (reachedFailure) {
-                                            isFailedSet = false
-                                            intensityText = ""
-                                        }
-                                    },
-                                    label = {
-                                        Text(
-                                            if (plannedIntensityMode == IntensityMode.FAILURE) "No llegué al fallo" else "Llegué al fallo",
-                                            fontWeight = FontWeight.SemiBold,
+                            TabRow(
+                                selectedTabIndex = adjustmentsTab,
+                                containerColor = Color.Transparent,
+                                contentColor = sessionAccentColor,
+                                divider = {},
+                            ) {
+                                listOf("Cambio de planes", "Técnicas de intensidad").forEachIndexed { index, title ->
+                                    Tab(
+                                        selected = adjustmentsTab == index,
+                                        onClick = { adjustmentsTab = index },
+                                        text = {
+                                            Text(
+                                                text = title,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                fontWeight = if (adjustmentsTab == index) FontWeight.Black else FontWeight.SemiBold,
+                                                color = if (adjustmentsTab == index) sessionAccentColor else Color.White.copy(alpha = 0.55f),
+                                            )
+                                        },
+                                    )
+                                }
+                            }
+
+                            when (adjustmentsTab) {
+                                0 -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        FilterChip(
+                                            selected = isFailedSet,
+                                            onClick = {
+                                                isFailedSet = !isFailedSet
+                                                if (isFailedSet) reachedFailure = false
+                                            },
+                                            label = { Text("Error de ejecución", fontWeight = FontWeight.SemiBold) },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = Color(0xFFFF5252),
+                                                selectedLabelColor = Color.Black,
+                                                containerColor = Color(0xFF2A2A2A),
+                                                labelColor = Color.White,
+                                            ),
                                         )
-                                    },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Color(0xFFFF5252),
-                                        selectedLabelColor = Color.Black,
-                                        containerColor = Color(0xFF2A2A2A),
-                                        labelColor = Color.White,
-                                    ),
-                                )
-                                FilterChip(
-                                    selected = isAmrap,
-                                    onClick = { isAmrap = !isAmrap },
-                                    label = { Text("AMRAP", fontWeight = FontWeight.SemiBold) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Color(0xFFD500F9),
-                                        selectedLabelColor = Color.Black,
-                                        containerColor = Color(0xFF2A2A2A),
-                                        labelColor = Color.White,
-                                    ),
-                                )
-                            }
-
-                            if (plannedIntensityMode == IntensityMode.FAILURE && !reachedFailure) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Text("Intensidad real", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = Color.White.copy(alpha = 0.6f))
-                                    FilterChip(
-                                        selected = reportedIntensityMode == IntensityMode.RPE,
-                                        onClick = { reportedIntensityMode = IntensityMode.RPE },
-                                        label = { Text("RPE", fontWeight = FontWeight.SemiBold) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = sessionAccentColor,
-                                            selectedLabelColor = Color.Black,
-                                            containerColor = Color(0xFF2A2A2A),
-                                            labelColor = Color.White,
-                                        ),
-                                    )
-                                    FilterChip(
-                                        selected = reportedIntensityMode == IntensityMode.RIR,
-                                        onClick = { reportedIntensityMode = IntensityMode.RIR },
-                                        label = { Text("RIR", fontWeight = FontWeight.SemiBold) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = sessionAccentColor,
-                                            selectedLabelColor = Color.Black,
-                                            containerColor = Color(0xFF2A2A2A),
-                                            labelColor = Color.White,
-                                        ),
-                                    )
-                                }
-                            }
-
-                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                FilterChip(
-                                    selected = dropSetEnabled,
-                                    onClick = { dropSetEnabled = !dropSetEnabled },
-                                    label = { Text("Drop-set", fontWeight = FontWeight.SemiBold) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Color(0xFF00BCD4),
-                                        selectedLabelColor = Color.Black,
-                                        containerColor = Color(0xFF2A2A2A),
-                                        labelColor = Color.White,
-                                    ),
-                                )
-                                FilterChip(
-                                    selected = restPauseEnabled,
-                                    onClick = { restPauseEnabled = !restPauseEnabled },
-                                    label = { Text("Rest-pause", fontWeight = FontWeight.SemiBold) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Color(0xFF00BCD4),
-                                        selectedLabelColor = Color.Black,
-                                        containerColor = Color(0xFF2A2A2A),
-                                        labelColor = Color.White,
-                                    ),
-                                )
-                            }
-
-                            if (isAmrap && plannedTarget != null) {
-                                Text(
-                                    "AMRAP mínimo: $plannedTarget ${if (isTimeMode) "s" else "reps"}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color(0xFFD500F9),
-                                )
-                            }
-
-                            if (dropSetEnabled) {
-                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    dropSets.forEachIndexed { idx, entry ->
-                                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                            OutlinedTextField(
-                                                value = if (entry.weight == 0.0) "" else entry.weight.toTrimmedNumberString(),
-                                                onValueChange = { v ->
-                                                    val parsed = v.toDoubleOrNull() ?: 0.0
-                                                    dropSets = dropSets.toMutableList().also { it[idx] = entry.copy(weight = parsed) }
-                                                },
-                                                label = { Text("Peso", fontWeight = FontWeight.SemiBold) },
-                                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                                singleLine = true,
-                                                modifier = Modifier.weight(1f),
-                                                textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                                                colors = OutlinedTextFieldDefaults.colors(
-                                                    focusedBorderColor = Color(0xFF00BCD4),
-                                                    unfocusedBorderColor = Color(0xFF555555),
-                                                    focusedLabelColor = Color(0xFF00BCD4),
-                                                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                                                    cursorColor = Color.White,
-                                                    focusedContainerColor = Color(0xFF2A2A2A),
-                                                    unfocusedContainerColor = Color(0xFF2A2A2A),
-                                                ),
-                                            )
-                                            OutlinedTextField(
-                                                value = if (entry.reps == 0) "" else entry.reps.toString(),
-                                                onValueChange = { v ->
-                                                    val parsed = v.toIntOrNull() ?: 0
-                                                    dropSets = dropSets.toMutableList().also { it[idx] = entry.copy(reps = parsed) }
-                                                },
-                                                label = { Text("Reps", fontWeight = FontWeight.SemiBold) },
-                                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                                singleLine = true,
-                                                modifier = Modifier.weight(1f),
-                                                textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                                                colors = OutlinedTextFieldDefaults.colors(
-                                                    focusedBorderColor = Color(0xFF00BCD4),
-                                                    unfocusedBorderColor = Color(0xFF555555),
-                                                    focusedLabelColor = Color(0xFF00BCD4),
-                                                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                                                    cursorColor = Color.White,
-                                                    focusedContainerColor = Color(0xFF2A2A2A),
-                                                    unfocusedContainerColor = Color(0xFF2A2A2A),
-                                                ),
-                                            )
-                                            IconButton(onClick = {
-                                                if (dropSets.size > 1) {
-                                                    dropSets = dropSets.toMutableList().also { it.removeAt(idx) }
+                                        FilterChip(
+                                            selected = reachedFailure,
+                                            onClick = {
+                                                reachedFailure = !reachedFailure
+                                                if (reachedFailure) {
+                                                    isFailedSet = false
+                                                    intensityText = ""
                                                 }
-                                            }, modifier = Modifier.size(32.dp)) { Icon(Icons.Default.Delete, null, Modifier.size(16.dp), tint = Color(0xFFFF5252)) }
+                                            },
+                                            label = {
+                                                Text(
+                                                    if (plannedIntensityMode == IntensityMode.FAILURE) "No llegué al fallo" else "Llegué al fallo",
+                                                    fontWeight = FontWeight.SemiBold,
+                                                )
+                                            },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = Color(0xFFFF5252),
+                                                selectedLabelColor = Color.Black,
+                                                containerColor = Color(0xFF2A2A2A),
+                                                labelColor = Color.White,
+                                            ),
+                                        )
+                                        FilterChip(
+                                            selected = isAmrap,
+                                            onClick = { isAmrap = !isAmrap },
+                                            label = { Text("AMRAP", fontWeight = FontWeight.SemiBold) },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = Color(0xFFD500F9),
+                                                selectedLabelColor = Color.Black,
+                                                containerColor = Color(0xFF2A2A2A),
+                                                labelColor = Color.White,
+                                            ),
+                                        )
+                                    }
+
+                                    if (plannedIntensityMode == IntensityMode.FAILURE && !reachedFailure) {
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            Text("Intensidad real", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = Color.White.copy(alpha = 0.6f))
+                                            FilterChip(
+                                                selected = reportedIntensityMode == IntensityMode.RPE,
+                                                onClick = { reportedIntensityMode = IntensityMode.RPE },
+                                                label = { Text("RPE", fontWeight = FontWeight.SemiBold) },
+                                                colors = FilterChipDefaults.filterChipColors(
+                                                    selectedContainerColor = sessionAccentColor,
+                                                    selectedLabelColor = Color.Black,
+                                                    containerColor = Color(0xFF2A2A2A),
+                                                    labelColor = Color.White,
+                                                ),
+                                            )
+                                            FilterChip(
+                                                selected = reportedIntensityMode == IntensityMode.RIR,
+                                                onClick = { reportedIntensityMode = IntensityMode.RIR },
+                                                label = { Text("RIR", fontWeight = FontWeight.SemiBold) },
+                                                colors = FilterChipDefaults.filterChipColors(
+                                                    selectedContainerColor = sessionAccentColor,
+                                                    selectedLabelColor = Color.Black,
+                                                    containerColor = Color(0xFF2A2A2A),
+                                                    labelColor = Color.White,
+                                                ),
+                                            )
                                         }
                                     }
-                                    Button(
-                                        onClick = { dropSets = dropSets + DropSetEntry(weight = 0.0, reps = 0) },
-                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color(0xFF00BCD4),
-                                            contentColor = Color.Black,
-                                        ),
-                                    ) {
-                                        Icon(Icons.Default.Add, null, Modifier.size(16.dp))
-                                        Spacer(Modifier.width(4.dp))
-                                        Text("Agregar", fontWeight = FontWeight.Bold)
+
+                                    if (isAmrap && plannedTarget != null) {
+                                        Text(
+                                            "AMRAP mínimo: $plannedTarget ${if (isTimeMode) "s" else "reps"}",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color(0xFFD500F9),
+                                        )
                                     }
                                 }
-                            }
 
-                            if (restPauseEnabled) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    OutlinedTextField(
-                                        value = restPauseRepsText,
-                                        onValueChange = { restPauseRepsText = it },
-                                        label = { Text("Reps/mini-set", fontWeight = FontWeight.SemiBold) },
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        singleLine = true,
-                                        modifier = Modifier.weight(1f),
-                                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = Color(0xFF00BCD4),
-                                            unfocusedBorderColor = Color(0xFF555555),
-                                            focusedLabelColor = Color(0xFF00BCD4),
-                                            unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                                            cursorColor = Color.White,
-                                            focusedContainerColor = Color(0xFF2A2A2A),
-                                            unfocusedContainerColor = Color(0xFF2A2A2A),
+                                1 -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    FilterChip(
+                                        selected = showPartialsMode,
+                                        onClick = {
+                                            showPartialsMode = !showPartialsMode
+                                            if (showPartialsMode && partialSets.isEmpty()) partialSets = listOf(0)
+                                        },
+                                        label = { Text("Parciales", fontWeight = FontWeight.SemiBold) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = Color(0xFF9C27B0),
+                                            selectedLabelColor = Color.Black,
+                                            containerColor = Color(0xFF2A2A2A),
+                                            labelColor = Color.White,
                                         ),
                                     )
-                                    OutlinedTextField(
-                                        value = restPauseRestText,
-                                        onValueChange = { restPauseRestText = it },
-                                        label = { Text("Descanso (s)", fontWeight = FontWeight.SemiBold) },
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        singleLine = true,
-                                        modifier = Modifier.weight(1f),
-                                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = Color(0xFF00BCD4),
-                                            unfocusedBorderColor = Color(0xFF555555),
-                                            focusedLabelColor = Color(0xFF00BCD4),
-                                            unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                                            cursorColor = Color.White,
-                                            focusedContainerColor = Color(0xFF2A2A2A),
-                                            unfocusedContainerColor = Color(0xFF2A2A2A),
+                                    if (showPartialsMode) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            partialSets.forEachIndexed { idx, reps ->
+                                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                                    Text(
+                                                        "Parcial ${idx + 1}",
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = Color.White.copy(alpha = 0.7f),
+                                                        modifier = Modifier.widthIn(min = 64.dp),
+                                                    )
+                                                    IconButton(onClick = { partialSets = partialSets.toMutableList().also { it[idx] = (reps - 1).coerceAtLeast(0) } }, modifier = Modifier.size(32.dp)) {
+                                                        Icon(Icons.Default.Remove, null, Modifier.size(16.dp), tint = Color.White.copy(alpha = 0.7f))
+                                                    }
+                                                    Text(
+                                                        "$reps reps",
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color.White,
+                                                        textAlign = TextAlign.Center,
+                                                        modifier = Modifier.widthIn(min = 52.dp),
+                                                    )
+                                                    IconButton(onClick = { partialSets = partialSets.toMutableList().also { it[idx] = (reps + 1).coerceAtMost(20) } }, modifier = Modifier.size(32.dp)) {
+                                                        Icon(Icons.Default.Add, null, Modifier.size(16.dp), tint = Color(0xFF9C27B0))
+                                                    }
+                                                    IconButton(onClick = { if (partialSets.size > 1) partialSets = partialSets.toMutableList().also { it.removeAt(idx) } }, modifier = Modifier.size(32.dp)) {
+                                                        Icon(Icons.Default.Delete, null, Modifier.size(16.dp), tint = Color(0xFFFF5252))
+                                                    }
+                                                }
+                                            }
+                                            TextButton(onClick = { partialSets = partialSets + 0 }) {
+                                                Icon(Icons.Default.Add, null, Modifier.size(16.dp))
+                                                Spacer(Modifier.width(4.dp))
+                                                Text("Agregar parcial", fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
+
+                                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+
+                                    FilterChip(
+                                        selected = dropSetEnabled,
+                                        onClick = { dropSetEnabled = !dropSetEnabled },
+                                        label = { Text("Drop-set", fontWeight = FontWeight.SemiBold) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = Color(0xFF00BCD4),
+                                            selectedLabelColor = Color.Black,
+                                            containerColor = Color(0xFF2A2A2A),
+                                            labelColor = Color.White,
                                         ),
                                     )
+                                    if (dropSetEnabled) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            dropSets.forEachIndexed { idx, entry ->
+                                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                                    OutlinedTextField(
+                                                        value = if (entry.weight == 0.0) "" else entry.weight.toTrimmedNumberString(),
+                                                        onValueChange = { v -> dropSets = dropSets.toMutableList().also { it[idx] = entry.copy(weight = v.toDoubleOrNull() ?: 0.0) } },
+                                                        label = { Text("Peso", fontWeight = FontWeight.SemiBold) },
+                                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                                        singleLine = true,
+                                                        modifier = Modifier.weight(1f),
+                                                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
+                                                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF00BCD4), unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color(0xFF00BCD4), unfocusedLabelColor = Color.White.copy(alpha = 0.7f), cursorColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)),
+                                                    )
+                                                    OutlinedTextField(
+                                                        value = if (entry.reps == 0) "" else entry.reps.toString(),
+                                                        onValueChange = { v -> dropSets = dropSets.toMutableList().also { it[idx] = entry.copy(reps = v.toIntOrNull() ?: 0) } },
+                                                        label = { Text("Reps", fontWeight = FontWeight.SemiBold) },
+                                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                                        singleLine = true,
+                                                        modifier = Modifier.weight(1f),
+                                                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
+                                                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF00BCD4), unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color(0xFF00BCD4), unfocusedLabelColor = Color.White.copy(alpha = 0.7f), cursorColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)),
+                                                    )
+                                                    IconButton(onClick = { if (dropSets.size > 1) dropSets = dropSets.toMutableList().also { it.removeAt(idx) } }, modifier = Modifier.size(32.dp)) {
+                                                        Icon(Icons.Default.Delete, null, Modifier.size(16.dp), tint = Color(0xFFFF5252))
+                                                    }
+                                                }
+                                            }
+                                            TextButton(onClick = { dropSets = dropSets + DropSetEntry(weight = 0.0, reps = 0) }) {
+                                                Icon(Icons.Default.Add, null, Modifier.size(16.dp))
+                                                Spacer(Modifier.width(4.dp))
+                                                Text("Agregar drop-set", fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
+
+                                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+
+                                    FilterChip(
+                                        selected = restPauseEnabled,
+                                        onClick = { restPauseEnabled = !restPauseEnabled },
+                                        label = { Text("Rest-Pause", fontWeight = FontWeight.SemiBold) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = Color(0xFF00BCD4),
+                                            selectedLabelColor = Color.Black,
+                                            containerColor = Color(0xFF2A2A2A),
+                                            labelColor = Color.White,
+                                        ),
+                                    )
+                                    if (restPauseEnabled) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            restPauseSets.forEachIndexed { idx, entry ->
+                                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                                    OutlinedTextField(
+                                                        value = if (entry.reps == 0) "" else entry.reps.toString(),
+                                                        onValueChange = { v -> restPauseSets = restPauseSets.toMutableList().also { it[idx] = entry.copy(reps = v.toIntOrNull() ?: 0) } },
+                                                        label = { Text("Reps/mini-set", fontWeight = FontWeight.SemiBold) },
+                                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                                        singleLine = true,
+                                                        modifier = Modifier.weight(1f),
+                                                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
+                                                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF00BCD4), unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color(0xFF00BCD4), unfocusedLabelColor = Color.White.copy(alpha = 0.7f), cursorColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)),
+                                                    )
+                                                    OutlinedTextField(
+                                                        value = if (entry.restTime == 0) "" else entry.restTime.toString(),
+                                                        onValueChange = { v -> restPauseSets = restPauseSets.toMutableList().also { it[idx] = entry.copy(restTime = v.toIntOrNull() ?: 0) } },
+                                                        label = { Text("Descanso (s)", fontWeight = FontWeight.SemiBold) },
+                                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                                        singleLine = true,
+                                                        modifier = Modifier.weight(1f),
+                                                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
+                                                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF00BCD4), unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color(0xFF00BCD4), unfocusedLabelColor = Color.White.copy(alpha = 0.7f), cursorColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)),
+                                                    )
+                                                    IconButton(onClick = { if (restPauseSets.size > 1) restPauseSets = restPauseSets.toMutableList().also { it.removeAt(idx) } }, modifier = Modifier.size(32.dp)) {
+                                                        Icon(Icons.Default.Delete, null, Modifier.size(16.dp), tint = Color(0xFFFF5252))
+                                                    }
+                                                }
+                                            }
+                                            TextButton(onClick = { restPauseSets = restPauseSets + RestPauseData(restTime = 20, reps = 0) }) {
+                                                Icon(Icons.Default.Add, null, Modifier.size(16.dp))
+                                                Spacer(Modifier.width(4.dp))
+                                                Text("Agregar rest-pause", fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                }
+
+                val partialRepsTotal = if (showPartialsMode) {
+                    partialSets.sum().coerceAtLeast(0)
+                } else {
+                    0
                 }
 
                 val advanced = SetAdvancedFeedback(
@@ -4397,21 +4356,15 @@ internal fun SetInputCardV2(
                     reachedFailure = reachedFailure,
                     isFailedSet = isFailedSet,
                     failureReason = if (isFailedSet) "Serie marcada como fallida" else null,
-                    isPartial = showPartialsMode && partialRepsCount > 0,
-                    partialReps = if (showPartialsMode) partialRepsCount.takeIf { it > 0 } else null,
+                    isPartial = partialRepsTotal > 0,
+                    partialReps = partialRepsTotal.takeIf { it > 0 },
                     dropSets = if (dropSetEnabled) {
                         dropSets.filter { it.weight > 0 && it.reps > 0 }.map { DropSetData(weight = it.weight, reps = it.reps) }
                     } else {
                         emptyList()
                     },
                     restPauses = if (restPauseEnabled) {
-                        val repsPerMini = restPauseRepsText.toIntOrNull() ?: 0
-                        val restSec = restPauseRestText.toIntOrNull() ?: 20
-                        if (repsPerMini > 0) {
-                            listOf(RestPauseData(restTime = restSec.coerceAtLeast(0), reps = repsPerMini))
-                        } else {
-                            emptyList()
-                        }
+                        restPauseSets.filter { it.reps > 0 }.map { it.copy(restTime = it.restTime.coerceAtLeast(0)) }
                     } else {
                         emptyList()
                     },
@@ -4460,14 +4413,11 @@ internal fun SetInputCardV2(
                         )
                         if (exercise.isUnilateral) {
                             selectedSide = if (selectedSide == "left") "right" else "left"
+                        }
+                    }
+                }
             }
         }
-    }
-
-}
-    }
-
-
 }
 
 @Composable

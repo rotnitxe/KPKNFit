@@ -6,24 +6,34 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.programdetail.components.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.example.kpkn.services.workout.LoopNotificationManager
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
@@ -37,7 +47,7 @@ fun ProgramDetailScreen(
     onStartWorkout: (Session, Program) -> Unit,
     onEditSession: (String) -> Unit,
     onCreateSession: (String, String, Int, Int, Int) -> Unit,
-    onEditProgram: (String) -> Unit,
+    onContextTabStateChange: (MainTab, (MainTab) -> Unit) -> Unit = { _, _ -> },
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
 ) {
     val augeViewModel: AugeViewModel = viewModel()
@@ -51,15 +61,23 @@ fun ProgramDetailScreen(
     val totalWeeks by viewModel.totalWeeks.collectAsState()
     val currentWeekIndex by viewModel.currentWeekIndex.collectAsState()
     val roadmapBlocks by viewModel.roadmapBlocks.collectAsState()
+    val simpleRoadmapLoopMarkers by viewModel.simpleRoadmapLoopMarkers.collectAsState()
     val programLogs by viewModel.programLogs.collectAsState()
     val isSimpleProgram by viewModel.isSimpleProgram.collectAsState()
+    val activeProgramState by viewModel.activeProgramState.collectAsState()
     val batteries by augeViewModel.batteries.collectAsState()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(uiState.activeTab) {
+        onContextTabStateChange(uiState.activeTab) { viewModel.setActiveTab(it) }
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var showVolumeSetupNotice by remember { mutableStateOf(false) }
     var openVolumeSheetToken by remember { mutableIntStateOf(0) }
+    var notifiedLoopWeekId by remember { mutableStateOf<String?>(null) }
 
     // Edge case: program not found
     val p = program
@@ -92,7 +110,7 @@ fun ProgramDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = padding.calculateBottomPadding()),
+                .padding(bottom = padding.calculateBottomPadding() + 120.dp),
         ) {
             // Hero Banner
             CompactHeroBanner(
@@ -107,10 +125,12 @@ fun ProgramDetailScreen(
                 spinalBattery = batteries.spinal,
                 isVolumeCalibrated = p.volumeRecommendations.isNotEmpty() && p.athleteProfileScore != null,
                 onBack = onBack,
-                onEdit = { onEditProgram(programId) },
                 onStartPause = {
                     if (isActive) viewModel.pauseProgram()
                     else viewModel.startProgram()
+                },
+                onTitleDescriptionChange = { name, description ->
+                    viewModel.updateProgram(p.copy(name = name, description = description))
                 },
                 onFocusChange = { mode ->
                     val programMode = try {
@@ -182,27 +202,13 @@ fun ProgramDetailScreen(
                 openVolumeSheetToken = openVolumeSheetToken,
             )
 
-            // Integrated Tabs
-            val activeSubTabName = when (uiState.activeTab) {
-                MainTab.TRAINING -> uiState.structureSubTab.name
-                MainTab.ANALYTICS -> uiState.analyticsSubTab.name
-            }
-
-            IntegratedTabs(
+            CompactSubTabs(
                 activeMainTab = uiState.activeTab,
-                onMainTabChange = { viewModel.setActiveTab(it) },
-                activeSubTab = activeSubTabName,
-                onSubTabChange = { tabName ->
-                    if (uiState.activeTab == MainTab.TRAINING) {
-                        try { viewModel.setStructureSubTab(StructureSubTab.valueOf(tabName)) } catch (_: Exception) {}
-                    } else {
-                        try { viewModel.setAnalyticsSubTab(AnalyticsSubTab.valueOf(tabName)) } catch (_: Exception) {}
-                    }
-                },
-                isSimpleProgram = isSimpleProgram,
+                structureSubTab = uiState.structureSubTab,
+                analyticsSubTab = uiState.analyticsSubTab,
+                onStructureSubTabChange = { viewModel.setStructureSubTab(it) },
+                onAnalyticsSubTabChange = { viewModel.setAnalyticsSubTab(it) },
             )
-
-            Spacer(Modifier.height(8.dp))
 
             // Tab Content with animation
             AnimatedContent(
@@ -217,11 +223,12 @@ fun ProgramDetailScreen(
                         viewModel = viewModel,
                         program = p,
                         roadmapBlocks = roadmapBlocks,
-                currentWeeks = currentWeeks,
-                displayedSessions = displayedSessions,
-                selectedWeekMeta = selectedWeekMeta,
-                selectedBlockId = uiState.selectedBlockId,
-                selectedWeekId = uiState.selectedWeekId,
+                        currentWeeks = currentWeeks,
+                        displayedSessions = displayedSessions,
+                        selectedWeekMeta = selectedWeekMeta,
+                        selectedBlockId = uiState.selectedBlockId,
+                        selectedWeekId = uiState.selectedWeekId,
+                        simpleRoadmapLoopMarkers = simpleRoadmapLoopMarkers,
                         structureSubTab = uiState.structureSubTab,
                         onStartWorkout = onStartWorkout,
                         onEditSession = onEditSession,
@@ -238,6 +245,22 @@ fun ProgramDetailScreen(
                 }
             }
         }
+    }
+
+    LaunchedEffect(p.id, p.loops, p.macrocycles) {
+        if (p.isSimpleTemporalProgram && p.loops.isNotEmpty()) {
+            val materialized = LoopEngine.materializeLoopWeeks(p)
+            if (materialized != p) viewModel.updateProgram(materialized)
+        }
+    }
+
+    LaunchedEffect(p.id, activeProgramState?.currentWeekId, currentWeeks) {
+        val activeWeekId = activeProgramState?.takeIf { it.programId == p.id }?.currentWeekId ?: return@LaunchedEffect
+        val loopWeek = currentWeeks.firstOrNull { it.id == activeWeekId && it.isLoopWeek } ?: return@LaunchedEffect
+        if (notifiedLoopWeekId == loopWeek.id) return@LaunchedEffect
+        notifiedLoopWeekId = loopWeek.id
+        snackbarHostState.showKpknSnackbar("Loop activo: ${loopWeek.name}. Ya puedes programar sus sesiones.", SnackbarType.SUGGESTION)
+        LoopNotificationManager(context).notifyLoopActive(p.name, loopWeek.name)
     }
 
     if (showVolumeSetupNotice) {
@@ -266,6 +289,85 @@ fun ProgramDetailScreen(
     }
 }
 
+@Composable
+private fun CompactSubTabs(
+    activeMainTab: MainTab,
+    structureSubTab: StructureSubTab,
+    analyticsSubTab: AnalyticsSubTab,
+    onStructureSubTabChange: (StructureSubTab) -> Unit,
+    onAnalyticsSubTabChange: (AnalyticsSubTab) -> Unit,
+) {
+    val items = if (activeMainTab == MainTab.TRAINING) {
+        listOf(
+            "Semana" to StructureSubTab.SEMANA,
+            "Split" to StructureSubTab.SPLIT,
+            "Macrociclo" to StructureSubTab.MACROCICLO,
+        )
+    } else {
+        listOf(
+            "Volumen" to AnalyticsSubTab.VOLUMEN,
+            "Progreso" to AnalyticsSubTab.PROGRESO,
+            "Historiales" to AnalyticsSubTab.HISTORIALES,
+        )
+    }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .border(
+                width = 1.dp,
+                brush = Brush.horizontalGradient(
+                    listOf(
+                        Color.White.copy(alpha = 0.38f),
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
+                        Color.White.copy(alpha = 0.12f),
+                    )
+                ),
+                shape = RoundedCornerShape(18.dp),
+            ),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.58f),
+        tonalElevation = 6.dp,
+    ) {
+        Row(
+            modifier = Modifier.padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            items.forEach { (label, value) ->
+                val selected = when (value) {
+                    is StructureSubTab -> structureSubTab == value || (value == StructureSubTab.MACROCICLO && structureSubTab == StructureSubTab.LOOPS)
+                    is AnalyticsSubTab -> analyticsSubTab == value
+                    else -> false
+                }
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(14.dp))
+                        .clickable {
+                            when (value) {
+                                is StructureSubTab -> onStructureSubTabChange(value)
+                                is AnalyticsSubTab -> onAnalyticsSubTabChange(value)
+                            }
+                        },
+                    shape = RoundedCornerShape(14.dp),
+                    color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.74f) else Color.White.copy(alpha = 0.05f),
+                ) {
+                    Text(
+                        text = label,
+                        modifier = Modifier.padding(vertical = 9.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
+                        color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        }
+    }
+}
+
+
 // ─── Training Panel ─────────────────────────────────────────────────────────
 
 @Composable
@@ -278,6 +380,7 @@ private fun TrainingPanel(
     selectedWeekMeta: com.example.kpkn.domain.training.WeekWithMeta?,
     selectedBlockId: String?,
     selectedWeekId: String?,
+    simpleRoadmapLoopMarkers: List<com.example.kpkn.domain.training.RoadmapLoopMarker>,
     structureSubTab: StructureSubTab,
     onStartWorkout: (Session, Program) -> Unit,
     onEditSession: (String) -> Unit,
@@ -327,8 +430,17 @@ private fun TrainingPanel(
             selectedBlockId = selectedBlockId,
             selectedWeekId = selectedWeekId,
             currentWeekId = currentWeekId?.currentWeekId,
+            isSimpleProgram = program.isSimpleTemporalProgram,
+            simpleLoopMarkers = simpleRoadmapLoopMarkers,
             onSelectBlock = { viewModel.selectBlock(it) },
             onSelectWeek = { viewModel.selectWeek(it) },
+            onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },
+            onAddAdvancedWeek = { name, description -> viewModel.addWeekToSelectedAdvancedBlock(name, description) },
+            onAddAdvancedBlock = { name, description -> viewModel.addAdvancedBlockFromRoadmap(name, description) },
+            onUpdateWeek = { weekId, name, description -> viewModel.updateWeekMetadata(weekId, name, description) },
+            onDeleteWeek = { weekId -> viewModel.deleteWeekFromRoadmap(weekId) },
+            onUpdateBlock = { blockId, name, description -> viewModel.updateBlockMetadata(blockId, name, description) },
+            onDeleteBlock = { blockId -> viewModel.deleteBlockFromRoadmap(blockId) },
         )
 
         Spacer(Modifier.height(8.dp))
@@ -337,6 +449,7 @@ private fun TrainingPanel(
             StructureSubTab.SEMANA -> {
                 DayView(
                     program = program,
+                    isSimpleProgram = program.isSimpleTemporalProgram,
                     selectedWeek = selectedWeekMeta,
                     sessions = displayedSessions,
                     onEditSession = onEditSession,
@@ -368,8 +481,8 @@ private fun TrainingPanel(
                             viewModel.replaceWeekSessions(weekId, updatedSessions)
                         }
                     },
-                    onUpdateStartDay = { startDay ->
-                        viewModel.updateStartDay(startDay)
+                    onUpdateStartDay = { startDay, scope, sessionMode ->
+                        viewModel.updateStartDay(startDay, scope, sessionMode)
                     },
                     onUpdateWeekMetadata = { weekId, name, description ->
                         viewModel.updateWeekMetadata(weekId, name, description)

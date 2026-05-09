@@ -90,12 +90,14 @@ fun MacrocycleEditor(
 ) {
     var expandedBlocks by remember { mutableStateOf(setOf("0")) }
     var editingBlock by remember { mutableStateOf<EditingItem?>(null) }
-    var editingMeso by remember { mutableStateOf<EditingItem?>(null) }
     var editingWeek by remember { mutableStateOf<EditingItem?>(null) }
     var editingKeyDate by remember { mutableStateOf<ProgramKeyDate?>(null) }
     var pendingDelete by remember { mutableStateOf<DeleteTarget?>(null) }
     var pendingSimpleToAdvanced by remember { mutableStateOf(false) }
     var editingTimelineStartDate by remember { mutableStateOf(program.timelineStartDate ?: "") }
+    var editingCompetitionDate by remember(program.keyDates) {
+        mutableStateOf(program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }?.startDate.orEmpty())
+    }
     var showKeyDatesSheet by remember { mutableStateOf(false) }
     var showAdvancedRoadmap by remember { mutableStateOf(false) }
     var showLibrarySheet by remember { mutableStateOf(false) }
@@ -111,12 +113,11 @@ fun MacrocycleEditor(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        MacrocycleSummaryCard(
+        MacrocycleToolbar(
             insight = temporalInsight,
             stats = stats,
             keyDatesCount = program.keyDates.size,
             hasTimelineStartDate = !program.timelineStartDate.isNullOrBlank(),
-            showAdvancedActions = !temporalInsight.isSimple,
             showRoadmap = showAdvancedRoadmap,
             onToggleRoadmap = { showAdvancedRoadmap = !showAdvancedRoadmap },
             onOpenKeyDates = { showKeyDatesSheet = true },
@@ -129,18 +130,6 @@ fun MacrocycleEditor(
                 onFocusWeek = onFocusWeek,
                 onCreateSessionForWeek = onCreateSessionForWeek,
             )
-        }
-
-        OutlinedButton(
-            onClick = {
-                if (temporalInsight.isSimple) pendingSimpleToAdvanced = true
-                else editingBlock = EditingItem(type = EditType.ADD, macroIndex = 0)
-            },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Icon(Icons.Default.Add, null)
-            Spacer(Modifier.width(8.dp))
-            Text(if (temporalInsight.isSimple) "Agregar bloque y convertir a avanzado" else "Agregar bloque")
         }
 
         program.ensureMacrocycle().macrocycles.forEachIndexed { macroIdx, macro ->
@@ -167,31 +156,28 @@ fun MacrocycleEditor(
                         )
                     },
                     onDeleteBlock = { pendingDelete = DeleteTarget.Block(macroIdx, blockIdx) },
-                    onAddMeso = {
-                        editingMeso = EditingItem(type = EditType.ADD, macroIndex = macroIdx, blockIndex = blockIdx)
-                    },
-                    onEditMeso = { mesoIdx, meso ->
-                        editingMeso = EditingItem(
-                            type = EditType.EDIT,
-                            macroIndex = macroIdx,
-                            blockIndex = blockIdx,
-                            mesoIndex = mesoIdx,
-                            data = meso,
-                        )
-                    },
-                    onDeleteMeso = { mesoIdx -> pendingDelete = DeleteTarget.Mesocycle(macroIdx, blockIdx, mesoIdx) },
-                    onAddWeek = { mesoIdx ->
-                        editingWeek = EditingItem(
-                            type = EditType.ADD,
-                            macroIndex = macroIdx,
-                            blockIndex = blockIdx,
-                            mesoIndex = mesoIdx,
-                        )
+                    onAddWeek = {
+                        val weekName = "Semana ${program.countWeeksBeforeAppendingToBlock(macroIdx, blockIdx) + 1}"
+                        onUpdateProgram(program.addWeekToBlock(macroIdx, blockIdx, weekName).normalizedTemporalStructure())
                     },
                     onDeleteWeek = { mesoIdx, weekIdx ->
                         pendingDelete = DeleteTarget.Week(macroIdx, blockIdx, mesoIdx, weekIdx)
                     },
                 )
+            }
+
+            OutlinedButton(
+                onClick = {
+                    if (temporalInsight.isSimple) pendingSimpleToAdvanced = true
+                    else editingBlock = EditingItem(type = EditType.ADD, macroIndex = macroIdx)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 8.dp),
+            ) {
+                Icon(Icons.Default.Add, null)
+                Spacer(Modifier.width(8.dp))
+                Text(if (temporalInsight.isSimple) "Agregar bloque y convertir a avanzado" else "Agregar bloque")
             }
         }
 
@@ -214,26 +200,10 @@ fun MacrocycleEditor(
         )
     }
 
-    editingMeso?.let { item ->
-        MesoEditDialog(
-            meso = item.data as? Mesocycle,
-            onSave = { name, goal ->
-                val updated = if (item.type == EditType.ADD) {
-                    program.addMesocycle(item.macroIndex ?: 0, item.blockIndex ?: 0, name, goal)
-                } else {
-                    program.renameMesocycle(item.macroIndex ?: 0, item.blockIndex ?: 0, item.mesoIndex ?: 0, name, goal)
-                }
-                onUpdateProgram(updated.normalizedTemporalStructure())
-                editingMeso = null
-            },
-            onDismiss = { editingMeso = null },
-        )
-    }
-
     editingWeek?.let { item ->
         WeekEditDialog(
             onSave = { name ->
-                val updated = program.addWeek(item.macroIndex ?: 0, item.blockIndex ?: 0, item.mesoIndex ?: 0, name)
+                val updated = program.addWeekToBlock(item.macroIndex ?: 0, item.blockIndex ?: 0, name)
                 onUpdateProgram(updated.normalizedTemporalStructure())
                 editingWeek = null
             },
@@ -265,7 +235,6 @@ fun MacrocycleEditor(
                 Text(
                     when (target) {
                         is DeleteTarget.Block -> "Eliminar este bloque puede cambiar la lógica temporal del programa."
-                        is DeleteTarget.Mesocycle -> "Eliminar este mesociclo quitará sus semanas y sesiones."
                         is DeleteTarget.Week -> "Eliminar esta semana quitará sus sesiones."
                     }
                 )
@@ -275,7 +244,6 @@ fun MacrocycleEditor(
                     onClick = {
                         val updated = when (target) {
                             is DeleteTarget.Block -> program.removeBlock(target.macroIndex, target.blockIndex)
-                            is DeleteTarget.Mesocycle -> program.removeMesocycle(target.macroIndex, target.blockIndex, target.mesoIndex)
                             is DeleteTarget.Week -> program.removeWeek(target.macroIndex, target.blockIndex, target.mesoIndex, target.weekIndex)
                         }.normalizedTemporalStructure()
                         onUpdateProgram(updated)
@@ -317,21 +285,26 @@ fun MacrocycleEditor(
     if (!temporalInsight.isSimple && showKeyDatesSheet && editingKeyDate == null) {
         KeyDatesManagementSheet(
             timelineStartDate = editingTimelineStartDate,
-            keyDates = program.keyDates,
+            competitionDate = editingCompetitionDate,
             onTimelineStartDateChange = { editingTimelineStartDate = it },
-            onSaveTimeline = {
-                onUpdateProgram(program.copy(timelineStartDate = editingTimelineStartDate.trim().ifBlank { null }))
-            },
-            onAddKeyDate = {
-                editingKeyDate = ProgramKeyDate(
-                    id = "keydate_${System.nanoTime()}",
-                    title = "",
-                    startDate = editingTimelineStartDate,
+            onCompetitionDateChange = { editingCompetitionDate = it },
+            onSave = {
+                val competition = editingCompetitionDate.trim().takeIf { it.isNotBlank() }?.let { date ->
+                    ProgramKeyDate(
+                        id = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }?.id ?: "competition_${System.nanoTime()}",
+                        title = "Competición",
+                        type = KeyDateType.COMPETITION,
+                        startDate = date,
+                        endDate = null,
+                    )
+                }
+                onUpdateProgram(
+                    program.copy(
+                        timelineStartDate = editingTimelineStartDate.trim().ifBlank { null },
+                        keyDates = program.keyDates.filterNot { it.type == KeyDateType.COMPETITION } + listOfNotNull(competition),
+                    )
                 )
-            },
-            onEditKeyDate = { editingKeyDate = it },
-            onDeleteKeyDate = { keyDateId ->
-                onUpdateProgram(program.copy(keyDates = program.keyDates.filterNot { it.id == keyDateId }))
+                showKeyDatesSheet = false
             },
             onDismiss = { showKeyDatesSheet = false },
         )
@@ -382,7 +355,6 @@ fun MacrocycleEditor(
                     program = program,
                     onUpdateProgram = onUpdateProgram,
                     onFocusWeek = onFocusWeek,
-                    onCreateSessionForWeek = onCreateSessionForWeek,
                 )
             }
         }
@@ -390,72 +362,71 @@ fun MacrocycleEditor(
 }
 
 @Composable
-private fun MacrocycleSummaryCard(
+private fun MacrocycleToolbar(
     insight: TemporalInsight,
     stats: ProgramStats,
     keyDatesCount: Int,
     hasTimelineStartDate: Boolean,
-    showAdvancedActions: Boolean,
     showRoadmap: Boolean,
     onToggleRoadmap: () -> Unit,
     onOpenKeyDates: () -> Unit,
     onOpenLibrary: () -> Unit,
     onOpenLoops: () -> Unit,
 ) {
-    val container = if (insight.isSimple) Color(0xFF1E3A2F) else Color(0xFF271C3D)
-    val accent = if (insight.isSimple) Color(0xFF6EE7B7) else Color(0xFFC4B5FD)
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = container),
-    ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text("Macrociclo", fontWeight = FontWeight.Black, fontSize = 18.sp)
+                Text(
+                    if (insight.isSimple) "Simple · ${insight.cycleWeeks ?: 0} sem/ciclo"
+                    else if (hasTimelineStartDate) "Avanzado · $keyDatesCount fechas clave"
+                    else "Avanzado · sin calendario",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(999.dp))
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
             ) {
                 Text(
-                    if (insight.isSimple) "Programa simple" else "Programa avanzado",
-                    fontSize = 17.sp,
+                    if (insight.isSimple) "Simple" else "Avanzado",
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Black,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
-                if (insight.isSimple) {
-                    Text(
-                        "${insight.cycleWeeks ?: 0} sem/ciclo",
-                        color = accent,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                    )
-                } else {
-                    Text(
-                        if (hasTimelineStartDate) "$keyDatesCount fechas clave" else "Sin calendario",
-                        color = accent,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                    )
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                InsightChip("Bloques", "${stats.blocks}", accent)
-                InsightChip("Mesos", "${stats.mesos}", accent)
-                InsightChip("Semanas", "${stats.weeks}", accent)
-                InsightChip("Sesiones", "${stats.sessions}", accent)
-            }
-            if (insight.isSimple) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = onOpenLoops) { Text("Crear/ver loops") }
-                }
-            } else if (showAdvancedActions) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = onOpenLibrary) { Text("Plantillas / protocolos") }
-                    OutlinedButton(onClick = onOpenKeyDates) { Text("Fechas clave") }
-                    OutlinedButton(onClick = onToggleRoadmap) { Text(if (showRoadmap) "Ocultar roadmap" else "Ver roadmap") }
-                }
             }
         }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ToolbarStatChip("Bloques", "${stats.blocks}")
+            ToolbarStatChip("Semanas", "${stats.weeks}")
+            ToolbarStatChip("Sesiones", "${stats.sessions}")
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (insight.isSimple) {
+                OutlinedButton(onClick = onOpenLoops) { Text("Loops") }
+            } else {
+                OutlinedButton(onClick = onOpenLibrary) { Text("Plantillas") }
+                OutlinedButton(onClick = onOpenKeyDates) { Text("Fechas clave") }
+                OutlinedButton(onClick = onToggleRoadmap) { Text(if (showRoadmap) "Ocultar roadmap" else "Roadmap") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ToolbarStatChip(label: String, value: String) {
+    Box(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f), RoundedCornerShape(999.dp))
+            .padding(horizontal = 10.dp, vertical = 7.dp),
+    ) {
+        Text("$label $value", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -463,12 +434,10 @@ private fun MacrocycleSummaryCard(
 @Composable
 private fun KeyDatesManagementSheet(
     timelineStartDate: String,
-    keyDates: List<ProgramKeyDate>,
+    competitionDate: String,
     onTimelineStartDateChange: (String) -> Unit,
-    onSaveTimeline: () -> Unit,
-    onAddKeyDate: () -> Unit,
-    onEditKeyDate: (ProgramKeyDate) -> Unit,
-    onDeleteKeyDate: (String) -> Unit,
+    onCompetitionDateChange: (String) -> Unit,
+    onSave: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -478,58 +447,27 @@ private fun KeyDatesManagementSheet(
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Fechas clave", fontWeight = FontWeight.Black, fontSize = 18.sp)
+            Text("Calendario del programa", fontWeight = FontWeight.Black, fontSize = 18.sp)
+            Text(
+                "Define un inicio estimado y una competición estática. El fin se calcula automáticamente según las semanas del programa.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             OutlinedTextField(
                 value = timelineStartDate,
                 onValueChange = onTimelineStartDateChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Inicio del macrociclo (YYYY-MM-DD)") },
+                label = { Text("Inicio estimado (YYYY-MM-DD)") },
                 singleLine = true,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onSaveTimeline) { Text("Guardar inicio") }
-                OutlinedButton(onClick = onAddKeyDate) {
-                    Icon(Icons.Default.Add, null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Agregar fecha clave")
-                }
-            }
-            if (keyDates.isEmpty()) {
-                Text(
-                    "Todavía no hay fechas clave.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            } else {
-                keyDates.sortedBy { it.startDate }.forEach { keyDate ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text(keyDate.title.ifBlank { "Fecha clave" }, fontWeight = FontWeight.Bold)
-                                Text(
-                                    keyDate.dateSummary(),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                KeyDateTypeBadge(type = keyDate.type)
-                            }
-                            IconButton(onClick = { onEditKeyDate(keyDate) }) { Icon(Icons.Default.Edit, "Editar") }
-                            IconButton(onClick = { onDeleteKeyDate(keyDate.id) }) {
-                                Icon(Icons.Default.Delete, "Eliminar", tint = Color(0xFFEF4444))
-                            }
-                        }
-                    }
-                }
-            }
+            OutlinedTextField(
+                value = competitionDate,
+                onValueChange = onCompetitionDateChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Fecha de competición (YYYY-MM-DD)") },
+                singleLine = true,
+            )
+            Button(onClick = onSave, modifier = Modifier.fillMaxWidth()) { Text("Guardar calendario") }
             Spacer(Modifier.height(16.dp))
         }
     }
@@ -547,144 +485,61 @@ private fun AdvancedRoadmapCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
         Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Roadmap interactivo", fontWeight = FontWeight.Black, fontSize = 16.sp)
+            Text("Roadmap visual", fontWeight = FontWeight.Black, fontSize = 16.sp)
             if (roadmap.startDate == null) {
                 Text(
                     "Guarda primero la fecha de inicio.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            } else if (roadmap.keyDateTracks.isNotEmpty()) {
-                roadmap.keyDateTracks.forEach { track ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            } else {
+                val segments = roadmap.blockSegments()
+                val totalWeeks = roadmap.weekSlots.size.coerceAtLeast(1)
+                val programEnd = roadmap.weekSlots.lastOrNull()?.weekEnd
+                val competition = roadmap.competitionDate
+                Text(
+                    "${roadmap.startDate} → ${programEnd ?: roadmap.startDate} · $totalWeeks semanas",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Box(modifier = Modifier.fillMaxWidth().height(68.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(24.dp).align(Alignment.Center),
                     ) {
-                        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
+                        segments.forEachIndexed { index, segment ->
+                            Box(
+                                modifier = Modifier
+                                    .weight(segment.weeks.toFloat().coerceAtLeast(1f))
+                                    .height(24.dp)
+                                    .background(roadmapSegmentColor(index), RoundedCornerShape(999.dp))
+                                    .clickable { onFocusWeek(segment.firstBlockId, segment.firstWeekId) },
+                                contentAlignment = Alignment.Center,
                             ) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(track.keyDate.title, fontWeight = FontWeight.Bold)
-                                    Text(
-                                        track.keyDate.dateSummary(),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                                KeyDateTypeBadge(track.keyDate.type)
+                                Text(segment.blockName, fontSize = 9.sp, fontWeight = FontWeight.Black, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
-                            track.slots.forEach { slot ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clickable { onFocusWeek(slot.blockId, slot.weekId) },
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                    ) {
-                                        Text(
-                                            slot.relativeLabel,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.width(56.dp),
-                                        )
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(16.dp)
-                                                .background(
-                                                    when (slot.trackKind) {
-                                                        KeyDateTrackKind.BEFORE -> MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)
-                                                        KeyDateTrackKind.INSIDE -> Color(0xFFF59E0B)
-                                                        KeyDateTrackKind.AFTER -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.28f)
-                                                    },
-                                                    RoundedCornerShape(999.dp),
-                                                )
-                                        )
-                                        Text(
-                                            slot.weekName,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            modifier = Modifier.width(104.dp),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                    }
-                                    if (slot.trackKind == KeyDateTrackKind.INSIDE) {
-                                        IconButton(onClick = { onCreateSessionForWeek(slot.weekId, preferredDayOfWeek(track.keyDate.type)) }) {
-                                            Icon(Icons.Default.PlayArrow, contentDescription = "Crear sesión")
-                                        }
-                                    }
-                                }
+                        }
+                    }
+                    if (competition != null && roadmap.startDate != null) {
+                        val competitionWeekStart = competition.minusDays((competition.dayOfWeek.value - 1).toLong())
+                        val rawIndex = java.time.temporal.ChronoUnit.WEEKS.between(roadmap.startDate, competitionWeekStart).toInt()
+                        val markerBefore = rawIndex.coerceIn(0, totalWeeks)
+                        Row(modifier = Modifier.fillMaxWidth().height(60.dp).align(Alignment.TopStart), verticalAlignment = Alignment.Top) {
+                            if (markerBefore > 0) Spacer(Modifier.weight(markerBefore.toFloat()))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Box(Modifier.width(3.dp).height(44.dp).background(Color(0xFFF59E0B), RoundedCornerShape(999.dp)))
+                                Text("Comp", fontSize = 9.sp, fontWeight = FontWeight.Black, color = Color(0xFFF59E0B))
                             }
+                            val after = (totalWeeks - markerBefore).coerceAtLeast(0)
+                            if (after > 0) Spacer(Modifier.weight(after.toFloat()))
                         }
                     }
                 }
-            } else {
-                roadmap.weekSlots.forEach { slot ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onFocusWeek(slot.blockId, slot.weekId) },
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    ) {
-                        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(slot.weekName, fontWeight = FontWeight.Bold)
-                                    Text(
-                                        "${slot.blockName} · ${slot.dateRangeLabel}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                                if (slot.marks.any { it.kind == KeyDateMarkKind.SPECIAL_WEEK }) {
-                                    Text("Semana especial", color = Color(0xFFF59E0B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                } else if (slot.marks.any { it.kind == KeyDateMarkKind.SPECIAL_SESSION }) {
-                                    Text("Sesión especial", color = Color(0xFF38BDF8), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                            slot.marks.forEach { mark ->
-                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    KeyDateTypeBadge(type = mark.type)
-                                    Text(
-                                        mark.title,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                            val actionableMark = slot.marks.firstOrNull { it.isActionable }
-                            if (actionableMark != null) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    OutlinedButton(onClick = { onFocusWeek(slot.blockId, slot.weekId) }) {
-                                        Icon(Icons.Default.CalendarMonth, contentDescription = null)
-                                        Spacer(Modifier.width(6.dp))
-                                        Text("Ir a semana")
-                                    }
-                                    Button(onClick = { onCreateSessionForWeek(slot.weekId, actionableMark.preferredDayOfWeek) }) {
-                                        Icon(Icons.Default.PlayArrow, contentDescription = null)
-                                        Spacer(Modifier.width(6.dp))
-                                        Text(actionableMark.ctaLabel)
-                                    }
-                                }
-                            }
-                        }
-                    }
+                competition?.let {
+                    Text(
+                        "Competición: semana que contiene $it. Es estática y puede solaparse con un bloque si el calendario no calza.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFF59E0B),
+                    )
                 }
             }
         }
@@ -875,12 +730,12 @@ private fun BlockNode(
     onToggle: () -> Unit,
     onEditBlock: () -> Unit,
     onDeleteBlock: () -> Unit,
-    onAddMeso: () -> Unit,
-    onEditMeso: (Int, Mesocycle) -> Unit,
-    onDeleteMeso: (Int) -> Unit,
-    onAddWeek: (Int) -> Unit,
+    onAddWeek: () -> Unit,
     onDeleteWeek: (Int, Int) -> Unit,
 ) {
+    val flatWeeks = block.mesocycles.flatMapIndexed { mesoIndex, meso ->
+        meso.weeks.mapIndexed { weekIndex, week -> Triple(mesoIndex, weekIndex, week) }
+    }
     Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
         Column {
             Row(
@@ -899,7 +754,7 @@ private fun BlockNode(
                 Column(Modifier.weight(1f)) {
                     Text(block.name, fontSize = 14.sp, fontWeight = FontWeight.Black)
                     Text(
-                        "${block.mesocycles.size} meso${if (block.mesocycles.size != 1) "s" else ""} · ${block.mesocycles.sumOf { it.weeks.size }} semanas",
+                        "${flatWeeks.size} semana${if (flatWeeks.size != 1) "s" else ""}",
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -910,20 +765,15 @@ private fun BlockNode(
 
             AnimatedVisibility(visible = isExpanded, enter = expandVertically(), exit = shrinkVertically()) {
                 Column(modifier = Modifier.padding(start = 24.dp, end = 14.dp, bottom = 14.dp)) {
-                    block.mesocycles.forEachIndexed { mesoIdx, meso ->
-                        MesoNode(
-                            meso = meso,
-                            onEdit = { onEditMeso(mesoIdx, meso) },
-                            onDelete = { onDeleteMeso(mesoIdx) },
-                            onAddWeek = { onAddWeek(mesoIdx) },
-                            onDeleteWeek = { weekIdx -> onDeleteWeek(mesoIdx, weekIdx) },
-                        )
-                        Spacer(Modifier.height(8.dp))
-                    }
-                    OutlinedButton(onClick = onAddMeso, modifier = Modifier.fillMaxWidth()) {
+                    WeekPillGrid(
+                        weeks = flatWeeks,
+                        onDeleteWeek = { mesoIdx, weekIdx -> onDeleteWeek(mesoIdx, weekIdx) },
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(onClick = onAddWeek, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.Add, null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Agregar mesociclo")
+                        Text("Agregar semana")
                     }
                 }
             }
@@ -932,12 +782,9 @@ private fun BlockNode(
 }
 
 @Composable
-private fun MesoNode(
-    meso: Mesocycle,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-    onAddWeek: () -> Unit,
-    onDeleteWeek: (Int) -> Unit,
+private fun WeekPillGrid(
+    weeks: List<Triple<Int, Int, ProgramWeek>>,
+    onDeleteWeek: (Int, Int) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -945,30 +792,26 @@ private fun MesoNode(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {
         Column(Modifier.padding(12.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(meso.name, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text(
-                        "${meso.goal.label} · ${meso.weeks.size} semanas",
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                IconButton(onClick = onEdit) { Icon(Icons.Default.Edit, "Editar") }
-                IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, "Eliminar", tint = Color(0xFFEF4444)) }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
-                meso.weeks.forEachIndexed { idx, week ->
-                    Box(
-                        modifier = Modifier
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), RoundedCornerShape(999.dp))
-                            .clickable { onDeleteWeek(idx) }
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                    ) {
-                        Text(week.name, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text("Semanas del bloque", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
+                weeks.chunked(3).forEach { rowWeeks ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        rowWeeks.forEach { (mesoIdx, weekIdx, week) ->
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        if (week.isLoopWeek) MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f)
+                                        else MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                        RoundedCornerShape(999.dp),
+                                    )
+                                    .clickable { onDeleteWeek(mesoIdx, weekIdx) }
+                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                            ) {
+                                Text(if (week.isLoopWeek) "Loop · ${week.name}" else week.name, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
-                IconButton(onClick = onAddWeek) { Icon(Icons.Default.Add, "Agregar semana") }
             }
         }
     }
@@ -1088,7 +931,6 @@ private data class EditingItem(
 
 private sealed class DeleteTarget {
     data class Block(val macroIndex: Int, val blockIndex: Int) : DeleteTarget()
-    data class Mesocycle(val macroIndex: Int, val blockIndex: Int, val mesoIndex: Int) : DeleteTarget()
     data class Week(val macroIndex: Int, val blockIndex: Int, val mesoIndex: Int, val weekIndex: Int) : DeleteTarget()
 }
 
@@ -1217,7 +1059,7 @@ private fun Program.renameMesocycle(
     )
 }
 
-private fun Program.addWeek(macroIndex: Int, blockIndex: Int, mesoIndex: Int, name: String): Program {
+private fun Program.addWeekToBlock(macroIndex: Int, blockIndex: Int, name: String): Program {
     val week = defaultWeek(name)
     return copy(
         macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
@@ -1227,7 +1069,7 @@ private fun Program.addWeek(macroIndex: Int, blockIndex: Int, mesoIndex: Int, na
                     if (currentBlockIndex != blockIndex) block
                     else block.copy(
                         mesocycles = block.mesocycles.mapIndexed { currentMesoIndex, meso ->
-                            if (currentMesoIndex != mesoIndex) meso
+                            if (currentMesoIndex != 0) meso
                             else meso.copy(weeks = meso.weeks + week)
                         }
                     )
@@ -1235,6 +1077,18 @@ private fun Program.addWeek(macroIndex: Int, blockIndex: Int, mesoIndex: Int, na
             )
         }
     )
+}
+
+private fun Program.countWeeksBeforeAppendingToBlock(targetMacroIndex: Int, targetBlockIndex: Int): Int {
+    var count = 0
+    macrocycles.forEachIndexed { macroIndex, macro ->
+        if (macroIndex > targetMacroIndex) return count
+        macro.blocks.forEachIndexed { blockIndex, block ->
+            if (macroIndex == targetMacroIndex && blockIndex > targetBlockIndex) return count
+            count += block.mesocycles.sumOf { it.weeks.size }
+        }
+    }
+    return count
 }
 
 private fun Program.removeBlock(macroIndex: Int, blockIndex: Int): Program {
@@ -1283,6 +1137,14 @@ private data class AdvancedRoadmap(
     val startDate: LocalDate?,
     val weekSlots: List<AdvancedWeekSlot>,
     val keyDateTracks: List<KeyDateTrack> = emptyList(),
+    val competitionDate: LocalDate? = null,
+)
+
+private data class RoadmapBlockSegment(
+    val blockName: String,
+    val firstBlockId: String,
+    val firstWeekId: String,
+    val weeks: Int,
 )
 
 private data class AdvancedWeekSlot(
@@ -1371,7 +1233,41 @@ private fun buildAdvancedRoadmap(program: Program): AdvancedRoadmap {
         buildKeyDateTrack(keyDate, slots)
     }
 
-    return AdvancedRoadmap(startDate = startDate, weekSlots = slots, keyDateTracks = tracks)
+    return AdvancedRoadmap(
+        startDate = startDate,
+        weekSlots = slots,
+        keyDateTracks = tracks,
+        competitionDate = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }?.startDate?.let(::parseProgramDate),
+    )
+}
+
+private fun AdvancedRoadmap.blockSegments(): List<RoadmapBlockSegment> {
+    val segments = mutableListOf<RoadmapBlockSegment>()
+    weekSlots.forEach { slot ->
+        val last = segments.lastOrNull()
+        if (last != null && last.firstBlockId == slot.blockId) {
+            segments[segments.lastIndex] = last.copy(weeks = last.weeks + 1)
+        } else {
+            segments += RoadmapBlockSegment(
+                blockName = slot.blockName,
+                firstBlockId = slot.blockId,
+                firstWeekId = slot.weekId,
+                weeks = 1,
+            )
+        }
+    }
+    return segments
+}
+
+private fun roadmapSegmentColor(index: Int): Color {
+    val colors = listOf(
+        Color(0xFF2563EB),
+        Color(0xFF7C3AED),
+        Color(0xFF059669),
+        Color(0xFFEA580C),
+        Color(0xFFDC2626),
+    )
+    return colors[index % colors.size]
 }
 
 private fun buildKeyDateMark(

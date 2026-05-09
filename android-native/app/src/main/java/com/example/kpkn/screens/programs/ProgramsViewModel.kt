@@ -72,6 +72,10 @@ class ProgramsViewModel : ViewModel() {
         all.filter { it.id != activeId }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    val programQueue: StateFlow<List<Program>> = combine(repository.programQueue, programs) { queue, all ->
+        queue.mapNotNull { id -> all.find { it.id == id } }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
     // ─── Business Logic ────────────────────────────────────────────────────
 
     /**
@@ -107,6 +111,18 @@ class ProgramsViewModel : ViewModel() {
      */
     fun deleteProgram(programId: String) {
         repository.deleteProgram(programId)
+    }
+
+    fun addToQueue(programId: String) {
+        repository.addProgramToQueue(programId)
+    }
+
+    fun removeFromQueue(programId: String) {
+        repository.removeProgramFromQueue(programId)
+    }
+
+    fun moveQueuedProgram(programId: String, direction: Int) {
+        repository.moveQueuedProgram(programId, direction)
     }
 
     /**

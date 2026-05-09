@@ -7,26 +7,18 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.totalProgramWeeks
 import com.example.kpkn.ui.components.SectionHeader
-import com.example.kpkn.ui.components.icons.CaupolicanIcon
-
-// ─── Programs Section ───────────────────────────────────────────────────────
-// Parity with PWA "Tus Programas" horizontal scroll.
 
 @Composable
 fun HomeProgramsSection(
@@ -61,41 +53,55 @@ fun HomeProgramsSection(
     }
 }
 
-// ─── Program Card ───────────────────────────────────────────────────────────
-
 @Composable
 private fun ProgramCard(program: Program, isActive: Boolean, onClick: () -> Unit) {
+    val bgColors = programCardCoverColors(program.coverImage)
     Column(modifier = Modifier.width(176.dp)) {
         Card(
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(112.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            ),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         ) {
             Box(Modifier.fillMaxSize()) {
-                ProgramCardBackground(program.coverImage)
-
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.18f)),
+                        .background(Brush.linearGradient(bgColors)),
                 )
-
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.38f)),
+                )
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .padding(14.dp),
                     verticalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.Top,
                     ) {
+                        if (isActive) {
+                            Surface(
+                                shape = RoundedCornerShape(999.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.92f),
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                            ) {
+                                Text(
+                                    "ACTIVO",
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 9.sp,
+                                )
+                            }
+                        }
                         Text(
                             when (program.mode) {
                                 com.example.kpkn.data.models.ProgramMode.POWERLIFTING -> "Powerlifting"
@@ -103,15 +109,15 @@ private fun ProgramCard(program: Program, isActive: Boolean, onClick: () -> Unit
                                 com.example.kpkn.data.models.ProgramMode.HYPERTROPHY -> "Hipertrofia"
                             },
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.72f),
+                            color = Color.White.copy(alpha = 0.64f),
                             maxLines = 1,
+                            fontSize = 9.sp,
                         )
                     }
-
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
                             program.name,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Black,
                             color = Color.White,
                             maxLines = 2,
@@ -120,7 +126,7 @@ private fun ProgramCard(program: Program, isActive: Boolean, onClick: () -> Unit
                         Text(
                             "${program.totalProgramWeeks.coerceAtLeast(1)} semanas",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.74f),
+                            color = Color.White.copy(alpha = 0.62f),
                         )
                     }
                 }
@@ -129,76 +135,39 @@ private fun ProgramCard(program: Program, isActive: Boolean, onClick: () -> Unit
     }
 }
 
-@Composable
-private fun ProgramCardBackground(coverValue: String?) {
-    val context = LocalContext.current
-    val coverRequest = remember(coverValue, context) {
-        if (coverValue.isNullOrBlank() || coverValue.startsWith("gradient://")) return@remember null
-        ImageRequest.Builder(context)
-            .data(coverValue)
-            .size(640, 360)
-            .build()
-    }
-    when {
-        coverValue.isNullOrBlank() || coverValue.startsWith("gradient://") -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Brush.linearGradient(programCardGradientColors(coverValue))),
-            ) {
-                CaupolicanIcon(
-                    tint = Color.White.copy(alpha = 0.08f),
-                    size = 48.dp,
-                    modifier = Modifier.align(Alignment.Center),
-                )
-            }
-        }
-        else -> {
-            AsyncImage(
-                model = coverRequest,
-                contentDescription = "Portada del programa",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-            )
-        }
-    }
-}
-
-private fun programCardGradientColors(coverValue: String?): List<Color> = when (coverValue) {
+private fun programCardCoverColors(coverValue: String?): List<Color> = when (coverValue) {
     "gradient://lagoon" -> listOf(Color(0xFF0D1B2A), Color(0xFF1B4965), Color(0xFF5FA8D3))
     "gradient://velvet" -> listOf(Color(0xFF1C1024), Color(0xFF5B2A86), Color(0xFFE26D5A))
     "gradient://forest" -> listOf(Color(0xFF102A1F), Color(0xFF2D6A4F), Color(0xFF95D5B2))
     else -> listOf(Color(0xFF20110F), Color(0xFF8D3D2E), Color(0xFFE08E45))
 }
 
-// ─── Empty State ────────────────────────────────────────────────────────────
+private val CardDark = Color(0xFF1C1C1E)
 
 @Composable
 private fun EmptyProgramsCard(modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        ),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = CardDark),
     ) {
         Box(
-            Modifier.fillMaxWidth().padding(32.dp),
+            modifier = Modifier.fillMaxWidth().padding(28.dp),
             contentAlignment = Alignment.Center,
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     "Crea tu primer programa",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    color = Color.White,
                     fontWeight = FontWeight.Bold,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     "La Home se llenará con tus sesiones y métricas cuando lo actives.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    color = Color.White.copy(alpha = 0.5f),
                 )
             }
         }

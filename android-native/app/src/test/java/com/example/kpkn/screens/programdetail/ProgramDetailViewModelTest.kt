@@ -257,6 +257,22 @@ class ProgramDetailViewModelTest {
     }
 
     @Test
+    fun addWeekToSimpleProgram_appends_week_and_keeps_program_simple() {
+        val id = nextId()
+        repository.addProgram(makeSimpleProgram(id))
+        val vm = ProgramDetailViewModel(id)
+
+        vm.addWeekToSimpleProgram()
+
+        val updated = repository.getProgramById(id)!!
+        val weeks = updated.macrocycles[0].blocks[0].mesocycles[0].weeks
+        assertEquals(2, weeks.size)
+        assertEquals("Semana 2", weeks[1].name)
+        assertEquals(ProgramStructure.SIMPLE, updated.structure)
+        assertEquals(weeks[1].id, vm.uiState.value.selectedWeekId)
+    }
+
+    @Test
     fun reorderSessions_swaps_positions() {
         val id = nextId()
         repository.addProgram(makeProgram(id))

@@ -5,14 +5,17 @@ import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -21,13 +24,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledIconButton
@@ -49,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +60,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -108,8 +110,8 @@ fun CompactHeroBanner(
     spinalBattery: Int,
     isVolumeCalibrated: Boolean,
     onBack: () -> Unit,
-    onEdit: () -> Unit,
     onStartPause: () -> Unit,
+    onTitleDescriptionChange: (String, String?) -> Unit,
     onFocusChange: (String) -> Unit,
     onCoverChange: (String) -> Unit,
     onApplyVolumeCalibration: (ProgramMode, AthleteProfileScore, List<VolumeRecommendation>) -> Unit,
@@ -144,6 +146,8 @@ fun CompactHeroBanner(
     var showVolumeSheet by remember { mutableStateOf(false) }
     var pendingFocusMode by remember { mutableStateOf<ProgramMode?>(null) }
     var showFocusRecalibrationDialog by remember { mutableStateOf(false) }
+    var draftName by remember(programName) { mutableStateOf(programName) }
+    var draftDescription by remember(programDescription) { mutableStateOf(programDescription.orEmpty()) }
 
     LaunchedEffect(openVolumeSheetToken) {
         if (openVolumeSheetToken > 0) {
@@ -154,9 +158,9 @@ fun CompactHeroBanner(
     HeroSystemBars(darkIcons = darkIcons)
 
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
+            modifier = modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp))
             .background(Color.Transparent),
     ) {
         HeroBackground(
@@ -169,7 +173,7 @@ fun CompactHeroBanner(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 18.dp),
+                .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 18.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -177,8 +181,8 @@ fun CompactHeroBanner(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(42.dp)
+                        modifier = Modifier
+                        .size(32.dp)
                         .clip(CircleShape)
                         .background(actionContainer)
                         .clickable(onClick = onBack),
@@ -193,15 +197,39 @@ fun CompactHeroBanner(
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    StatusPill(
+                    CompactHeroPill(
                         label = statusText,
                         accent = statusAccent,
                         contentColor = primaryTextColor,
                         containerColor = glassColor,
                         borderColor = strokeColor,
                     )
+
+                    Box {
+                        CompactFocusPill(
+                            onClick = { showFocusMenu = true },
+                            label = focusOptions.find { it.mode.name.equals(focusMode, ignoreCase = true) }?.label
+                                ?: focusMode.replaceFirstChar { it.uppercase() },
+                            contentColor = primaryTextColor,
+                            containerColor = glassColor,
+                            borderColor = strokeColor,
+                        )
+
+                        FocusDropdownMenu(
+                            expanded = showFocusMenu,
+                            focusMode = focusMode,
+                            onDismiss = { showFocusMenu = false },
+                            onSelect = { option ->
+                                if (!option.mode.name.equals(focusMode, ignoreCase = true)) {
+                                    pendingFocusMode = option.mode
+                                    showFocusRecalibrationDialog = true
+                                }
+                                showFocusMenu = false
+                            },
+                        )
+                    }
 
                     HeroIconAction(
                         onClick = { showCoverSheet = true },
@@ -211,16 +239,9 @@ fun CompactHeroBanner(
                         contentDescription = "Cambiar color",
                     )
 
-                    HeroIconAction(
-                        onClick = onEdit,
-                        containerColor = actionContainer,
-                        contentColor = actionContent,
-                        icon = Icons.Default.Edit,
-                        contentDescription = "Editar programa",
-                    )
-
                     FilledIconButton(
                         onClick = onStartPause,
+                        modifier = Modifier.size(32.dp),
                         colors = IconButtonDefaults.filledIconButtonColors(
                             containerColor = if (darkIcons) MaterialTheme.colorScheme.primary else Color.White,
                             contentColor = if (darkIcons) MaterialTheme.colorScheme.onPrimary else Color(0xFF141218),
@@ -234,95 +255,44 @@ fun CompactHeroBanner(
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(18.dp))
 
-            Text(
-                text = programName,
-                color = primaryTextColor,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Black,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
+            InlineHeroTextField(
+                value = draftName,
+                onValueChange = {
+                    draftName = it
+                    onTitleDescriptionChange(it.trim().ifBlank { programName }, draftDescription.trim().takeIf { desc -> desc.isNotEmpty() })
+                },
+                textStyle = MaterialTheme.typography.headlineSmall.copy(
+                    fontFamily = FontFamily.Default,
+                    fontWeight = FontWeight.SemiBold,
+                    color = primaryTextColor,
+                    letterSpacing = 0.sp,
+                    lineHeight = 29.sp,
+                ),
+                placeholder = "Nombre del programa",
+                placeholderColor = labelColor,
+                singleLine = true,
             )
 
-            if (!programDescription.isNullOrBlank()) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = programDescription,
+            Spacer(Modifier.height(8.dp))
+
+            InlineHeroTextField(
+                value = draftDescription,
+                onValueChange = {
+                    draftDescription = it
+                    onTitleDescriptionChange(draftName.trim().ifBlank { programName }, it.trim().takeIf { desc -> desc.isNotEmpty() })
+                },
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    fontFamily = FontFamily.Default,
+                    fontWeight = FontWeight.Normal,
                     color = labelColor,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-
-            Spacer(Modifier.height(14.dp))
-
-            Box {
-                AssistChip(
-                    onClick = { showFocusMenu = true },
-                    label = {
-                        Text(
-                            text = focusOptions.find { it.mode.name.equals(focusMode, ignoreCase = true) }?.label
-                                ?: focusMode.replaceFirstChar { it.uppercase() },
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    },
-                    leadingIcon = {
-                        Text(
-                            text = "Enfoque",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = labelColor,
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                        )
-                    },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = glassColor,
-                        labelColor = primaryTextColor,
-                        leadingIconContentColor = primaryTextColor,
-                        trailingIconContentColor = primaryTextColor,
-                    ),
-                    border = AssistChipDefaults.assistChipBorder(
-                        borderColor = strokeColor,
-                        enabled = true,
-                    ),
-                )
-
-                DropdownMenu(
-                    expanded = showFocusMenu,
-                    onDismissRequest = { showFocusMenu = false },
-                ) {
-                    focusOptions.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option.label) },
-                            onClick = {
-                                if (!option.mode.name.equals(focusMode, ignoreCase = true)) {
-                                    pendingFocusMode = option.mode
-                                    showFocusRecalibrationDialog = true
-                                }
-                                showFocusMenu = false
-                            },
-                        )
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(14.dp))
-
-            HeroWidgetsSection(
-                muscularBattery = muscularBattery,
-                sncBattery = sncBattery,
-                spinalBattery = spinalBattery,
-                isVolumeCalibrated = isVolumeCalibrated,
-                onOpenVolumeSetup = { showVolumeSheet = true },
-                onIncreaseVolumeCurrentWeek = onIncreaseVolumeCurrentWeek,
-                onReduceVolumeCurrentWeek = onReduceVolumeCurrentWeek,
+                    letterSpacing = 0.1.sp,
+                    lineHeight = 20.sp,
+                ),
+                placeholder = "Descripción del programa",
+                placeholderColor = labelColor.copy(alpha = 0.7f),
+                singleLine = false,
             )
         }
     }
@@ -460,7 +430,61 @@ fun CompactHeroBanner(
 }
 
 @Composable
-private fun HeroBackground(
+private fun InlineHeroTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    textStyle: TextStyle,
+    placeholder: String,
+    placeholderColor: Color,
+    singleLine: Boolean,
+) {
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = if (singleLine) 34.dp else 44.dp),
+        textStyle = textStyle,
+        singleLine = singleLine,
+        maxLines = if (singleLine) 1 else 2,
+        cursorBrush = Brush.verticalGradient(listOf(textStyle.color, textStyle.color)),
+        decorationBox = { innerTextField ->
+            if (value.isBlank()) {
+                Text(
+                    text = placeholder,
+                    style = textStyle,
+                    color = placeholderColor,
+                    maxLines = if (singleLine) 1 else 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            innerTextField()
+        },
+    )
+}
+
+@Composable
+private fun FocusDropdownMenu(
+    expanded: Boolean,
+    focusMode: String,
+    onDismiss: () -> Unit,
+    onSelect: (FocusOption) -> Unit,
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+    ) {
+        focusOptions.forEach { option ->
+            DropdownMenuItem(
+                text = { Text(option.label) },
+                onClick = { onSelect(option) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.HeroBackground(
     coverValue: String?,
     coverGradient: CoverGradient,
     usesGradient: Boolean,
@@ -473,11 +497,11 @@ private fun HeroBackground(
             .size(1280, 720)
             .build()
     }
-    Box(modifier = Modifier.fillMaxWidth().height(360.dp)) {
+    Box(modifier = Modifier.matchParentSize()) {
         if (usesGradient) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .matchParentSize()
                     .background(
                         brush = Brush.linearGradient(
                             colors = coverGradient.colors,
@@ -490,14 +514,14 @@ private fun HeroBackground(
             AsyncImage(
                 model = coverRequest,
                 contentDescription = "Portada del programa",
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.matchParentSize(),
                 contentScale = ContentScale.Crop,
             )
         }
 
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .matchParentSize()
                 .background(
                     Brush.verticalGradient(
                         listOf(
@@ -513,7 +537,7 @@ private fun HeroBackground(
 }
 
 @Composable
-private fun StatusPill(
+private fun CompactHeroPill(
     label: String,
     accent: Color,
     contentColor: Color,
@@ -528,13 +552,13 @@ private fun StatusPill(
         modifier = Modifier.border(1.dp, borderColor, RoundedCornerShape(999.dp)),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Box(
                 modifier = Modifier
-                    .size(8.dp)
+                    .size(6.dp)
                     .clip(CircleShape)
                     .background(accent),
             )
@@ -542,7 +566,47 @@ private fun StatusPill(
                 text = label,
                 color = contentColor,
                 fontWeight = FontWeight.Bold,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompactFocusPill(
+    onClick: () -> Unit,
+    label: String,
+    contentColor: Color,
+    containerColor: Color,
+    borderColor: Color,
+) {
+    Surface(
+        modifier = Modifier
+            .border(1.dp, borderColor, RoundedCornerShape(999.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(999.dp),
+        color = containerColor,
+        shadowElevation = 0.dp,
+        tonalElevation = 0.dp,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = label,
+                color = contentColor,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 11.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(13.dp),
             )
         }
     }
@@ -557,7 +621,7 @@ private fun HeroIconAction(
     contentDescription: String,
 ) {
     Surface(
-        modifier = Modifier.size(40.dp),
+        modifier = Modifier.size(36.dp),
         shape = CircleShape,
         color = containerColor,
         tonalElevation = 0.dp,

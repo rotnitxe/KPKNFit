@@ -177,6 +177,43 @@ class ProgramDetailHelpersTest {
         assertTrue(sessions.isEmpty())
     }
 
+    @Test
+    fun buildSimpleRoadmapLoopMarkers_empty_without_loops() {
+        val program = makeProgram()
+        val result = ProgramDetailHelpers.buildSimpleRoadmapLoopMarkers(program)
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun buildSimpleRoadmapLoopMarkers_includes_loop() {
+        val program = makeProgram().copy(
+            loops = listOf(
+                Loop(id = "loop1", title = "Descarga", type = LoopType.DELOAD, repeatEveryXLoops = 4),
+            ),
+        )
+        val result = ProgramDetailHelpers.buildSimpleRoadmapLoopMarkers(program)
+
+        assertEquals(1, result.size)
+        assertEquals("loop1", result[0].id)
+        assertEquals("Deload", result[0].label)
+        assertEquals(4, result[0].repeatEveryCycles)
+    }
+
+    @Test
+    fun buildSimpleRoadmapLoopMarkers_includes_legacy_cyclic_event() {
+        val program = makeProgram().copy(
+            events = listOf(
+                ProgramEvent(id = "event1", title = "Competencia", type = "competition", date = "2026-01-01", calculatedWeek = 4, repeatEveryXCycles = 8),
+            ),
+        )
+        val result = ProgramDetailHelpers.buildSimpleRoadmapLoopMarkers(program)
+
+        assertEquals(1, result.size)
+        assertEquals("event1", result[0].id)
+        assertEquals("Comp", result[0].label)
+        assertEquals(8, result[0].repeatEveryCycles)
+    }
+
     // ─── computeProgramDiscomforts ───
 
     @Test

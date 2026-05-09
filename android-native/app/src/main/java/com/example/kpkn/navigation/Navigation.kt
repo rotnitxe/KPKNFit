@@ -64,11 +64,6 @@ sealed class KpknRoute(val route: String) {
         const val ARG_SESSION_ID = "sessionId"
     }
 
-    object ProgramEditor : KpknRoute("program-editor/{programId}") {
-        fun create(programId: String) = "program-editor/$programId"
-        const val ARG_PROGRAM_ID = "programId"
-    }
-
     object Settings : KpknRoute("settings")
     object SettingsGeneral : KpknRoute("settings/general")
     object SettingsProfile : KpknRoute("settings/profile")

@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.ActiveProgramState
+import com.example.kpkn.data.models.LoopType
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Program
@@ -13,6 +14,7 @@ import com.example.kpkn.domain.calculations.getTotalWeeks
 data class RoadmapBlock(
     val id: String,
     val name: String,
+    val description: String? = null,
     val macroIndex: Int,
     val blockIndex: Int,
     val totalWeeks: Int,
@@ -47,6 +49,13 @@ data class WeekAdherence(
     val pct: Int,
 )
 
+data class RoadmapLoopMarker(
+    val id: String,
+    val label: String,
+    val title: String,
+    val repeatEveryCycles: Int,
+)
+
 object ProgramDetailHelpers {
 
     fun isSimpleProgram(program: Program): Boolean {
@@ -59,6 +68,7 @@ object ProgramDetailHelpers {
                 RoadmapBlock(
                     id = block.id,
                     name = block.name,
+                    description = block.description,
                     macroIndex = macroIdx,
                     blockIndex = blockIdx,
                     totalWeeks = block.mesocycles.sumOf { it.weeks.size },
@@ -120,6 +130,48 @@ object ProgramDetailHelpers {
     ): List<Session> {
         if (selectedWeekId == null) return emptyList()
         return weeks.find { it.id == selectedWeekId }?.sessions ?: emptyList()
+    }
+
+    fun buildSimpleRoadmapLoopMarkers(program: Program): List<RoadmapLoopMarker> {
+        if (!program.isSimpleTemporalProgram) return emptyList()
+
+        val loopMarkers = program.loops.map { loop ->
+            RoadmapLoopMarker(
+                id = loop.id,
+                label = loopTypeLabel(loop.type),
+                title = loop.title,
+                repeatEveryCycles = loop.repeatEveryXLoops.coerceAtLeast(1),
+            )
+        }
+
+        val legacyMarkers = program.events
+            .filter { it.repeatEveryXCycles != null }
+            .map { event ->
+                RoadmapLoopMarker(
+                    id = event.id ?: event.title,
+                    label = eventTypeLabel(event.type),
+                    title = event.title,
+                    repeatEveryCycles = event.repeatEveryXCycles?.coerceAtLeast(1) ?: 1,
+                )
+            }
+
+        return (loopMarkers + legacyMarkers)
+            .distinctBy { it.id }
+            .sortedWith(compareBy<RoadmapLoopMarker> { it.repeatEveryCycles }.thenBy { it.title })
+    }
+
+    private fun loopTypeLabel(type: LoopType): String = when (type) {
+        LoopType.ONE_RM_TEST -> "1RM"
+        LoopType.DELOAD -> "Deload"
+        LoopType.COMPETITION -> "Comp"
+        LoopType.CUSTOM -> "Loop"
+    }
+
+    private fun eventTypeLabel(type: String): String = when (type.trim().lowercase()) {
+        "one_rm_test", "1rm", "test" -> "1RM"
+        "deload", "descarga" -> "Deload"
+        "competition", "competicion", "competición" -> "Comp"
+        else -> "Evento"
     }
 
     fun computeProgramDiscomforts(

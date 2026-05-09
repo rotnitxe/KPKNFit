@@ -575,9 +575,106 @@ internal fun WorkoutExerciseEditContent(
     exercise: Exercise,
     maxVisibleSets: Int? = null,
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
+    onUpdateExercise: (((Exercise) -> Exercise) -> Unit)? = null,
+    onSave: (() -> Unit)? = null,
 ) {
     val sets = maxVisibleSets?.let { exercise.sets.take(it) } ?: exercise.sets
+    var trainingMode by remember(exercise.id) { mutableStateOf(exercise.trainingMode ?: TrainingMode.REPS) }
+    val consolidatedWeight = exercise.consolidatedWeight?.weightKg
+    var weightText by remember(exercise.id) { mutableStateOf(consolidatedWeight?.toTrimmedNumberString().orEmpty()) }
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("Datos del ejercicio", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black, color = Color.White)
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFF1E1E1E),
+            ) {
+                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Carga base (kg)", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
+                    OutlinedTextField(
+                        value = weightText,
+                        onValueChange = { weightText = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                        ),
+                    )
+                }
+            }
+
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFF1E1E1E),
+            ) {
+                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Modo", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        TrainingMode.entries.take(4).forEach { mode ->
+                            FilterChip(
+                                selected = trainingMode == mode,
+                                onClick = {
+                                    trainingMode = mode
+                                    onUpdateExercise?.invoke { it.copy(trainingMode = mode) }
+                                },
+                                label = {
+                                    Text(
+                                        when (mode) {
+                                            TrainingMode.REPS -> "Carga"
+                                            TrainingMode.TIME -> "Tiempo"
+                                            TrainingMode.DISTANCE -> "Dist"
+                                            TrainingMode.RM -> "RM"
+                                            else -> mode.name
+                                        },
+                                        fontSize = 10.sp,
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                    containerColor = Color(0xFF2A2A2A),
+                                    labelColor = Color.White,
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if (consolidatedWeight != null) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text("RM estimado", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
+                    Text(
+                        "${consolidatedWeight.toTrimmedNumberString()} kg",
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
+
         sets.forEachIndexed { index, set ->
             WorkoutSetEditCard(
                 exercise = exercise,
@@ -585,6 +682,23 @@ internal fun WorkoutExerciseEditContent(
                 index = index,
                 onUpdate = { transform -> onUpdateSet(set.id, transform) },
             )
+        }
+
+        if (onSave != null) {
+            Spacer(Modifier.height(4.dp))
+            Button(
+                onClick = onSave,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+            ) {
+                Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Guardar cambios", fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
@@ -943,7 +1057,7 @@ internal fun WorkoutSessionEnergyContent(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
-            text = "gasto calórico de la sesión",
+            text = "calorías de la sesión",
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -951,7 +1065,7 @@ internal fun WorkoutSessionEnergyContent(
 
         if (!hasSets) {
             Text(
-                "Completa series para estimar el gasto",
+                "Completa series para estimar las calorías",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             )
@@ -1081,7 +1195,7 @@ internal fun WorkoutSessionEnergyContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        "Barra de gasto total",
+                        "Barra de calorías totales",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

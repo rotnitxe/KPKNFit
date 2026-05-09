@@ -11,20 +11,41 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.*
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -43,7 +64,7 @@ import com.example.kpkn.screens.nutrition.NutritionScreen
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.profile.ProfileScreen
 import com.example.kpkn.screens.programdetail.ProgramDetailScreen
-import com.example.kpkn.screens.programeditor.ProgramEditorScreen
+import com.example.kpkn.screens.programdetail.MainTab
 import com.example.kpkn.screens.programs.ProgramsScreen
 import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.screens.sessioneditor.SessionEditorScreen
@@ -66,6 +87,12 @@ import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.icons.NutritionIcon
 import com.example.kpkn.ui.components.icons.RingsTabIcon
 import com.example.kpkn.ui.components.icons.WikiIcon
+import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramWeek
+import java.util.UUID
 import com.example.kpkn.screens.myrings.MyRingsScreen
 import com.example.kpkn.ui.locale.LocaleManager
 import com.example.kpkn.ui.theme.AppThemeMode
@@ -141,6 +168,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             val workoutReminderManager = com.example.kpkn.services.workout.WorkoutReminderManager(this)
             workoutReminderManager.createChannels()
+            com.example.kpkn.services.workout.LoopNotificationManager(this).createChannels()
             val settings = com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value
             if (settings.workoutReminderEnabled) {
                 workoutReminderManager.scheduleWorkoutReminder(settings.workoutReminderTime)
@@ -304,9 +332,7 @@ fun KPKNApp(
         }
     }
     
-    val isFullscreenWizard = (currentRoute == KpknRoute.ProgramEditor.route &&
-        currentBackStack?.arguments?.getString(KpknRoute.ProgramEditor.ARG_PROGRAM_ID) == "new") ||
-        currentRoute == KpknRoute.NutritionWizard.route ||
+    val isFullscreenWizard = currentRoute == KpknRoute.NutritionWizard.route ||
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("readiness-gate") == true ||
         currentRoute?.startsWith("workout") == true
@@ -330,6 +356,13 @@ fun KPKNApp(
     }
 
     val ongoingWorkout by ProgramRepository.getInstance().ongoingWorkout.collectAsState()
+    var programContextTab by remember { mutableStateOf(MainTab.TRAINING) }
+    var onProgramContextTabChange by remember { mutableStateOf<(MainTab) -> Unit>({}) }
+    var programContextReady by remember { mutableStateOf(false) }
+
+    LaunchedEffect(currentRoute) {
+        programContextReady = currentRoute != KpknRoute.ProgramDetail.route
+    }
 
     LaunchedEffect(pendingDeepLinkRoute) {
         val route = pendingDeepLinkRoute ?: return@LaunchedEffect
@@ -377,6 +410,20 @@ fun KPKNApp(
         }
     }
 
+    val showSubtabbar = currentTab == KpknRoute.Training.route &&
+            currentRoute == KpknRoute.ProgramDetail.route &&
+            programContextReady
+
+    val hazeState = remember { HazeState() }
+    val bottomBarGlassStyle = remember {
+        HazeStyle(
+            blurRadius = 20.dp,
+            tint = HazeTint(Color.Black.copy(alpha = 0.30f)),
+            backgroundColor = Color.Black.copy(alpha = 0.34f),
+            noiseFactor = 0.03f,
+        )
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (isFullscreenWizard) {
             KPKNNavGraph(
@@ -385,25 +432,217 @@ fun KPKNApp(
                 onThemeChange = onThemeChange,
                 primaryProgramId = primaryProgramId,
                 nutritionViewModel = nutritionViewModel,
+                onProgramContextTabStateChange = { activeTab, onChange ->
+                    programContextTab = activeTab
+                    onProgramContextTabChange = onChange
+                },
             )
         } else {
-            NavigationSuiteScaffold(
-                navigationSuiteItems = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .hazeSource(state = hazeState),
+            ) {
+                CompositionLocalProvider(
+                    LocalContentColor provides MaterialTheme.colorScheme.onSurface,
+                ) {
+                KPKNNavGraph(
+                    navController = navController,
+                    themeMode = themeMode,
+                    onThemeChange = onThemeChange,
+                    primaryProgramId = primaryProgramId,
+                    nutritionViewModel = nutritionViewModel,
+                    onProgramContextTabStateChange = { activeTab, onChange ->
+                        programContextTab = activeTab
+                        onProgramContextTabChange = onChange
+                        programContextReady = true
+                    },
+                )
+                }
 
-                    item(
-                        icon = { Icon(Icons.Default.Home, null, tint = navIconTint(currentTab == KpknRoute.Home.route)) },
-                        label = { Text(stringResource(R.string.nav_home)) },
-                        selected = currentTab == KpknRoute.Home.route,
-                        onClick = { 
-                            telemetryHelper.logNavigation(currentTab, KpknRoute.Home.route)
-                            navController.navigate(KpknRoute.Home.route) { launchSingleTop = true } 
+                // ─── Session in progress banner ─────────────────────────────
+                AnimatedVisibility(
+                    visible = ongoingWorkout != null,
+                    enter = slideInVertically { it } + fadeIn(),
+                    exit = slideOutVertically { it } + fadeOut(),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 16.dp, vertical = 130.dp),
+                ) {
+                    Card(
+                        onClick = {
+                            val state = ongoingWorkout ?: return@Card
+                            navController.navigate(
+                                KpknRoute.Workout.create(state.programId, state.session.id)
+                            ) { launchSingleTop = true }
                         },
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    "Sesión en curso",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                )
+                                Text(
+                                    ongoingWorkout?.session?.name ?: "Entrenamiento activo",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                            FilledTonalButton(
+                                onClick = {
+                                    val state = ongoingWorkout ?: return@FilledTonalButton
+                                    navController.navigate(
+                                        KpknRoute.Workout.create(state.programId, state.session.id)
+                                    ) { launchSingleTop = true }
+                                },
+                            ) {
+                                Text("Reanudar")
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ─── Glass bottom bar with blur ────────────────────────────────
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .hazeEffect(
+                        state = hazeState,
+                        style = bottomBarGlassStyle,
                     )
-                    item(
-                        icon = { DumbbellIcon(tint = navIconTint(currentTab == KpknRoute.Training.route)) },
-                        label = { Text(stringResource(R.string.nav_training)) },
-                        selected = currentTab == KpknRoute.Training.route,
-                        onClick = { 
+                    .border(
+                        width = 1.dp,
+                        brush = Brush.horizontalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.38f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+                                Color.White.copy(alpha = 0.10f),
+                            )
+                        ),
+                        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                    ),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                color = Color.Black.copy(alpha = 0.18f),
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp,
+            ) {
+                Column(Modifier.fillMaxWidth()) {
+                // ─── Subtabbar contextual extension (animated) ─────────────
+                AnimatedVisibility(
+                    visible = showSubtabbar,
+                    enter = expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
+                    exit = shrinkVertically(shrinkTowards = Alignment.Bottom) + fadeOut(),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 2.dp)
+                    ) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(44.dp)
+                                .border(
+                                    width = 1.dp,
+                                    brush = Brush.horizontalGradient(
+                                        listOf(
+                                            Color.White.copy(alpha = 0.42f),
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.28f),
+                                            Color.White.copy(alpha = 0.16f),
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(22.dp),
+                                ),
+                            shape = RoundedCornerShape(22.dp),
+                            color = Color.Black.copy(alpha = 0.24f),
+                            tonalElevation = 0.dp,
+                            shadowElevation = 0.dp,
+                        ) {
+                            TabRow(
+                                selectedTabIndex = MainTab.entries.indexOf(programContextTab).coerceAtLeast(0),
+                                modifier = Modifier.fillMaxSize(),
+                                containerColor = Color.Transparent,
+                                contentColor = MaterialTheme.colorScheme.primary,
+                                indicator = { tabPositions ->
+                                    val idx = MainTab.entries.indexOf(programContextTab).coerceAtLeast(0)
+                                    TabRowDefaults.SecondaryIndicator(
+                                        modifier = Modifier.tabIndicatorOffset(tabPositions[idx]),
+                                        height = 3.dp,
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                                    )
+                                },
+                                divider = {},
+                            ) {
+                                MainTab.entries.forEach { tab ->
+                                    val selected = programContextTab == tab
+                                    Tab(
+                                        selected = selected,
+                                        onClick = { onProgramContextTabChange(tab) },
+                                        text = {
+                                            Text(
+                                                text = when (tab) {
+                                                    MainTab.TRAINING -> "Estructura"
+                                                    MainTab.ANALYTICS -> "Analíticas"
+                                                },
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
+                                            )
+                                        },
+                                        selectedContentColor = MaterialTheme.colorScheme.primary,
+                                        unselectedContentColor = Color.White,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ─── Main navigation bar ───────────────────────────────────
+                val navItemColors = NavigationBarItemDefaults.colors(
+                    indicatorColor = Color.Transparent,
+                )
+                NavigationBar(
+                    containerColor = Color.Black.copy(alpha = 0.10f),
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    tonalElevation = 0.dp,
+                    modifier = Modifier.navigationBarsPadding(),
+                ) {
+                    val homeSel = currentTab == KpknRoute.Home.route
+                    NavigationBarItem(
+                        selected = homeSel,
+                        onClick = {
+                            telemetryHelper.logNavigation(currentTab, KpknRoute.Home.route)
+                            navController.navigate(KpknRoute.Home.route) { launchSingleTop = true }
+                        },
+                        icon = { Icon(Icons.Default.Home, null, tint = navIconTint(homeSel)) },
+                        label = { Text(stringResource(R.string.nav_home), color = if (homeSel) MaterialTheme.colorScheme.primary else Color.White) },
+                        colors = navItemColors,
+                    )
+                    val trainSel = currentTab == KpknRoute.Training.route
+                    NavigationBarItem(
+                        selected = trainSel,
+                        onClick = {
                             telemetryHelper.logNavigation(currentTab, KpknRoute.Training.route)
                             val activeProgramId = activeProgram?.id
                             if (activeProgramId != null) {
@@ -414,107 +653,45 @@ fun KPKNApp(
                                 navController.navigate(KpknRoute.Training.route) { launchSingleTop = true }
                             }
                         },
+                        icon = { DumbbellIcon(tint = navIconTint(trainSel)) },
+                        label = { Text(stringResource(R.string.nav_training), color = if (trainSel) MaterialTheme.colorScheme.primary else Color.White) },
+                        colors = navItemColors,
                     )
-                    item(
-                        icon = { NutritionIcon(tint = navIconTint(currentTab == KpknRoute.Nutrition.route)) },
-                        label = { Text(stringResource(R.string.nav_nutrition)) },
-                        selected = currentTab == KpknRoute.Nutrition.route,
-                        onClick = { 
+                    val nutSel = currentTab == KpknRoute.Nutrition.route
+                    NavigationBarItem(
+                        selected = nutSel,
+                        onClick = {
                             telemetryHelper.logNutritionOpen()
                             telemetryHelper.logNavigation(currentTab, KpknRoute.Nutrition.route)
-                            navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true } 
+                            navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
                         },
+                        icon = { NutritionIcon(tint = navIconTint(nutSel)) },
+                        label = { Text(stringResource(R.string.nav_nutrition), color = if (nutSel) MaterialTheme.colorScheme.primary else Color.White) },
+                        colors = navItemColors,
                     )
-                    item(
-                        icon = { RingsTabIcon(tint = navIconTint(currentTab == KpknRoute.MyRings.route)) },
-                        label = { Text(stringResource(R.string.nav_my_rings)) },
-                        selected = currentTab == KpknRoute.MyRings.route,
+                    val ringSel = currentTab == KpknRoute.MyRings.route
+                    NavigationBarItem(
+                        selected = ringSel,
                         onClick = {
                             telemetryHelper.logNavigation(currentTab, KpknRoute.MyRings.route)
                             navController.navigate(KpknRoute.MyRings.route) { launchSingleTop = true }
                         },
+                        icon = { RingsTabIcon(tint = navIconTint(ringSel)) },
+                        label = { Text(stringResource(R.string.nav_my_rings), color = if (ringSel) MaterialTheme.colorScheme.primary else Color.White) },
+                        colors = navItemColors,
                     )
-                    item(
-                        icon = { WikiIcon(tint = navIconTint(currentTab == KpknRoute.WikiLab.route)) },
-                        label = { Text(stringResource(R.string.nav_wikilab)) },
-                        selected = currentTab == KpknRoute.WikiLab.route,
-                        onClick = { 
+                    val wikiSel = currentTab == KpknRoute.WikiLab.route
+                    NavigationBarItem(
+                        selected = wikiSel,
+                        onClick = {
                             telemetryHelper.logNavigation(currentTab, KpknRoute.WikiLab.route)
-                            navController.navigate(KpknRoute.WikiLab.route) { launchSingleTop = true } 
+                            navController.navigate(KpknRoute.WikiLab.route) { launchSingleTop = true }
                         },
+                        icon = { WikiIcon(tint = navIconTint(wikiSel)) },
+                        label = { Text(stringResource(R.string.nav_wikilab), color = if (wikiSel) MaterialTheme.colorScheme.primary else Color.White) },
+                        colors = navItemColors,
                     )
-                },
-            ) {
-                KPKNNavGraph(
-                    navController = navController,
-                    themeMode = themeMode,
-                    onThemeChange = onThemeChange,
-                    primaryProgramId = primaryProgramId,
-                    nutritionViewModel = nutritionViewModel,
-                )
-            }
-        }
-
-        // ─── Floating "session in progress" banner ─────────────────────────────
-        // Appears on top of navigation when a workout is active but the user
-        // has navigated away. Hidden during workout/readiness screens (isFullscreenWizard).
-        if (!isFullscreenWizard) {
-            androidx.compose.animation.AnimatedVisibility(
-                visible = ongoingWorkout != null,
-                enter = androidx.compose.animation.slideInVertically { it } + androidx.compose.animation.fadeIn(),
-                exit = androidx.compose.animation.slideOutVertically { it } + androidx.compose.animation.fadeOut(),
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 16.dp, vertical = 80.dp),
-            ) {
-                Card(
-                    onClick = {
-                        val state = ongoingWorkout ?: return@Card
-                        navController.navigate(
-                            KpknRoute.Workout.create(state.programId, state.session.id)
-                        ) { launchSingleTop = true }
-                    },
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            Icons.Default.PlayArrow,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(
-                                "Sesión en curso",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                            )
-                            Text(
-                                ongoingWorkout?.session?.name ?: "Entrenamiento activo",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
-                        FilledTonalButton(
-                            onClick = {
-                                val state = ongoingWorkout ?: return@FilledTonalButton
-                                navController.navigate(
-                                    KpknRoute.Workout.create(state.programId, state.session.id)
-                                ) { launchSingleTop = true }
-                            },
-                        ) {
-                            Text("Reanudar")
-                        }
-                    }
+                }
                 }
             }
         }
@@ -528,6 +705,7 @@ private fun KPKNNavGraph(
     onThemeChange: (AppThemeMode) -> Unit,
     primaryProgramId: String?,
     nutritionViewModel: NutritionViewModel,
+    onProgramContextTabStateChange: (MainTab, (MainTab) -> Unit) -> Unit,
 ) {
     NavHost(navController = navController, startDestination = KpknRoute.Home.route) {
         composable(KpknRoute.Home.route) {
@@ -540,9 +718,7 @@ private fun KPKNNavGraph(
                 onNavigateToProgram = { programId ->
                     navController.navigate(KpknRoute.ProgramDetail.create(programId))
                 },
-                onCreateProgram = {
-                    navController.navigate(KpknRoute.ProgramEditor.create("new"))
-                },
+                onCreateProgram = { createProgramAndOpen(navController) },
                 onStartWorkout = { session, program ->
                     navController.navigate(KpknRoute.Workout.create(program.id, session.id))
                 },
@@ -551,6 +727,9 @@ private fun KPKNNavGraph(
                     if (ongoing != null) {
                         navController.navigate(KpknRoute.Workout.create(ongoing.programId, ongoing.session.id))
                     }
+                },
+                onEditSession = { session, program ->
+                    navController.navigate(KpknRoute.SessionEditor.create(program.id, session.id))
                 },
                 onNavigateToCard = { cardId ->
                     when (cardId) {
@@ -603,9 +782,7 @@ private fun KPKNNavGraph(
                 onNavigateToProgram = { programId ->
                     navController.navigate(KpknRoute.ProgramDetail.create(programId))
                 },
-                onCreateProgram = {
-                    navController.navigate(KpknRoute.ProgramEditor.create("new"))
-                }
+                onCreateProgram = { createProgramAndOpen(navController) }
             )
         }
         composable(KpknRoute.Nutrition.route) {
@@ -707,7 +884,12 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.WikiLabExerciseCreator.route) {
             CustomExerciseCreatorScreen(
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    navController.navigate(KpknRoute.Training.route) {
+                        popUpTo(KpknRoute.Training.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
                 onSaved = { exerciseId ->
                     val previous = navController.previousBackStackEntry?.destination?.route.orEmpty()
                     if (previous.contains("session-editor")) {
@@ -721,7 +903,12 @@ private fun KPKNNavGraph(
         composable(KpknRoute.WikiLabMuscleAnatomy.route) {
             MuscleCategoryScreen(
                 onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    navController.navigate(KpknRoute.Training.route) {
+                        popUpTo(KpknRoute.Training.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
             )
         }
         composable(KpknRoute.WikiLabMuscleDetail.route) { backStack ->
@@ -953,11 +1140,8 @@ private fun KPKNNavGraph(
                         )
                     )
                 },
-                onEditProgram = { targetId ->
-                    val exists = ProgramRepository.getInstance().getProgramById(targetId) != null
-                    if (exists) {
-                        navController.navigate(KpknRoute.ProgramEditor.create(targetId))
-                    }
+                onContextTabStateChange = { activeTab, onChange ->
+                    onProgramContextTabStateChange(activeTab, onChange)
                 },
             )
         }
@@ -1003,24 +1187,51 @@ private fun KPKNNavGraph(
                 },
             )
         }
-        composable(KpknRoute.ProgramEditor.route) { backStack ->
-            val programId = backStack.arguments?.getString(KpknRoute.ProgramEditor.ARG_PROGRAM_ID) ?: ""
-            ProgramEditorScreen(
-                programId = programId,
-                onNavigateToDetail = { id ->
-                    navController.navigate(KpknRoute.ProgramDetail.create(id)) {
-                        popUpTo(KpknRoute.ProgramEditor.route) { inclusive = true }
-                    }
-                },
-                onBack = { navController.popBackStack() },
-            )
-        }
     }
+}
+
+private fun createProgramAndOpen(navController: androidx.navigation.NavHostController) {
+    val repository = ProgramRepository.getInstance()
+    val nextNumber = repository.programs.value.count { it.name.startsWith("Nuevo programa") } + 1
+    val programId = UUID.randomUUID().toString()
+    repository.addProgram(
+        Program(
+            id = programId,
+            name = "Nuevo programa $nextNumber",
+            coverImage = "gradient://ember",
+            macrocycles = listOf(
+                Macrocycle(
+                    id = UUID.randomUUID().toString(),
+                    name = "Macrociclo 1",
+                    blocks = listOf(
+                        Block(
+                            id = UUID.randomUUID().toString(),
+                            name = "Bloque 1",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = UUID.randomUUID().toString(),
+                                    name = "Mesociclo 1",
+                                    weeks = listOf(
+                                        ProgramWeek(
+                                            id = UUID.randomUUID().toString(),
+                                            name = "Semana 1",
+                                        )
+                                    ),
+                                )
+                            ),
+                        )
+                    ),
+                )
+            ),
+        )
+    )
+    navController.navigate(KpknRoute.ProgramDetail.create(programId))
 }
 
 @Composable
 private fun navIconTint(selected: Boolean): Color =
     if (selected) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.onSurfaceVariant
+    else Color.White
+
 
 @Composable fun GenericScreen(t: String) { Column(Modifier.fillMaxSize(), Arrangement.Center, Alignment.CenterHorizontally) { Text(t, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) } }

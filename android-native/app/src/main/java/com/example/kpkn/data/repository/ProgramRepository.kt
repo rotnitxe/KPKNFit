@@ -36,6 +36,9 @@ class ProgramRepository private constructor(context: Context) {
     private val _programs = MutableStateFlow<List<Program>>(emptyList())
     val programs: StateFlow<List<Program>> = _programs.asStateFlow()
 
+    private val _programQueue = MutableStateFlow<List<String>>(emptyList())
+    val programQueue: StateFlow<List<String>> = _programQueue.asStateFlow()
+
     fun addProgram(program: Program) {
         val normalized = program.normalizedIdentityFields()
         _programs.update { it + normalized }
@@ -50,7 +53,29 @@ class ProgramRepository private constructor(context: Context) {
 
     fun deleteProgram(programId: String) {
         _programs.update { list -> list.filter { it.id != programId } }
+        _programQueue.update { queue -> queue.filterNot { it == programId } }
         scope.launch { db.programDao().delete(programId) }
+    }
+
+    fun addProgramToQueue(programId: String) {
+        if (_programs.value.none { it.id == programId }) return
+        _programQueue.update { queue -> if (programId in queue) queue else queue + programId }
+    }
+
+    fun removeProgramFromQueue(programId: String) {
+        _programQueue.update { queue -> queue.filterNot { it == programId } }
+    }
+
+    fun moveQueuedProgram(programId: String, direction: Int) {
+        _programQueue.update { queue ->
+            val from = queue.indexOf(programId)
+            val to = (from + direction).coerceIn(0, queue.lastIndex)
+            if (from < 0 || from == to) queue
+            else queue.toMutableList().apply {
+                val item = removeAt(from)
+                add(to, item)
+            }
+        }
     }
 
     fun clearPrograms() {

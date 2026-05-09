@@ -1,6 +1,5 @@
 package com.example.kpkn.screens.home
 
-import android.graphics.BlurMaskFilter
 import androidx.compose.foundation.Image
 import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
@@ -22,16 +21,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -74,6 +69,7 @@ fun HomeScreen(
     onCreateProgram: () -> Unit = {},
     onStartWorkout: (Session, Program) -> Unit = { _, _ -> },
     onResumeWorkout: () -> Unit = {},
+    onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToCard: (String) -> Unit = {},
     onNavigate: (String) -> Unit = {},
     viewModel: HomeViewModel = viewModel(),
@@ -106,7 +102,9 @@ fun HomeScreen(
     val density = LocalDensity.current
 
     val item0TopMarginPx = with(density) { 16.dp.roundToPx() }
-    val item1TopMarginPx = 0
+    val item1TopMarginPx = with(density) { 4.dp.roundToPx() }
+    val item2TopMarginPx = with(density) { 4.dp.roundToPx() }
+    val item3TopMarginPx = with(density) { 8.dp.roundToPx() }
 
     val greetingProgress by remember(item0TopMarginPx) {
         derivedStateOf {
@@ -138,31 +136,31 @@ fun HomeScreen(
         }
     }
 
-    val sessionProgress by remember {
+    val sessionProgress by remember(item2TopMarginPx) {
         derivedStateOf {
             val item2 = listState.layoutInfo.visibleItemsInfo.find { it.index == 2 }
             when {
                 item2 == null -> 1f
-                item2.offset > 0 -> 0f
+                item2.offset > -item2TopMarginPx -> 0f
                 else -> {
-                    val cut = (-item2.offset).toFloat()
-                    val visibleHeight = item2.size.toFloat().coerceAtLeast(1f)
-                    ((cut / visibleHeight) * 2.0f).coerceIn(0f, 1f)
+                    val cut = (-item2.offset - item2TopMarginPx).toFloat()
+                    val visibleHeight = (item2.size - item2TopMarginPx).toFloat().coerceAtLeast(1f)
+                    (cut / visibleHeight * 2.0f).coerceIn(0f, 1f)
                 }
             }
         }
     }
 
-    val nutritionProgress by remember {
+    val nutritionProgress by remember(item3TopMarginPx) {
         derivedStateOf {
             val item3 = listState.layoutInfo.visibleItemsInfo.find { it.index == 3 }
             when {
                 item3 == null -> 1f
-                item3.offset > 0 -> 0f
+                item3.offset > -item3TopMarginPx -> 0f
                 else -> {
-                    val cut = (-item3.offset).toFloat()
-                    val visibleHeight = item3.size.toFloat().coerceAtLeast(1f)
-                    ((cut / visibleHeight) * 2.0f).coerceIn(0f, 1f)
+                    val cut = (-item3.offset - item3TopMarginPx).toFloat()
+                    val visibleHeight = (item3.size - item3TopMarginPx).toFloat().coerceAtLeast(1f)
+                    (cut / visibleHeight * 3.0f).coerceIn(0f, 1f)
                 }
             }
         }
@@ -214,6 +212,7 @@ fun HomeScreen(
                 onSettingsClick = onNavigateToSettings,
                 onStartWorkout = onStartWorkout,
                 onResumeWorkout = onResumeWorkout,
+                onEditSession = onEditSession,
                 onNavigateToProgram = onNavigateToProgram,
                 onCreateProgram = onCreateProgram,
                 onNavigateToCard = onNavigateToCard,
@@ -285,6 +284,7 @@ private fun HomeWithProgram(
     onSettingsClick: () -> Unit,
     onStartWorkout: (Session, Program) -> Unit,
     onResumeWorkout: () -> Unit,
+    onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToProgram: (String) -> Unit,
     onCreateProgram: () -> Unit,
     onNavigateToCard: (String) -> Unit,
@@ -300,28 +300,6 @@ private fun HomeWithProgram(
         state = listState,
         modifier = modifier
             .fillMaxSize()
-            .drawWithContent {
-                drawContent()
-
-                val glassHeight = 88.dp.toPx()
-                val blurPaint = android.graphics.Paint().apply {
-                    maskFilter = BlurMaskFilter(24f, BlurMaskFilter.Blur.NORMAL)
-                }
-
-                clipRect(left = 0f, top = 0f, right = size.width, bottom = glassHeight) {
-                    drawIntoCanvas { canvas ->
-                        val checkpoint = canvas.nativeCanvas.saveLayer(
-                            0f,
-                            0f,
-                            size.width,
-                            glassHeight,
-                            blurPaint,
-                        )
-                        this@drawWithContent.drawContent()
-                        canvas.nativeCanvas.restoreToCount(checkpoint)
-                    }
-                }
-            }
             .then(listModifier),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -464,7 +442,7 @@ private fun HomeTopBar(
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                 )
 
-                val boxHeightDp = 44.dp
+                val boxHeightDp = 32.dp
                 val topBarDensity = LocalDensity.current
                 val boxHeightPx = with(topBarDensity) { boxHeightDp.toPx() }
 

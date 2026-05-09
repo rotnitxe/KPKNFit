@@ -1327,8 +1327,8 @@ class WorkoutViewModel(
                 it.copy(
                     voiceSessionEnabled = false,
                     voiceSessionState = VoiceSessionState(
-                        stage = VoicePipelineStage.DISABLED,
-                        errorMessage = if (!hasPerm) "Permiso de micrófono no concedido" else "Reconocimiento no disponible",
+                        stage = VoicePipelineStage.ERROR_RECOVERY,
+                        errorMessage = if (!hasPerm) "Permiso de micrófono no concedido" else "Reconocimiento no disponible por voz",
                     ),
                 )
             }
@@ -2252,6 +2252,34 @@ class WorkoutViewModel(
                 }
             )
         }
+    }
+
+    fun addSetToCurrentExercise() {
+        val currentExerciseIdx = _uiState.value.currentExerciseIdx
+        val currentExerciseId = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)?.id ?: return
+        updateExerciseDefinition(currentExerciseId) { exercise ->
+            val lastSet = exercise.sets.lastOrNull()
+            val newSet = ExerciseSet(
+                id = UUID.randomUUID().toString(),
+                targetReps = lastSet?.targetReps,
+                targetRPE = lastSet?.targetRPE,
+                targetRIR = lastSet?.targetRIR,
+                weight = lastSet?.weight,
+                loadModeV2 = lastSet?.loadModeV2,
+                unitModeV2 = lastSet?.unitModeV2,
+                intensityMode = lastSet?.intensityMode,
+                targetDuration = lastSet?.targetDuration,
+                targetPercentageRM = lastSet?.targetPercentageRM,
+                isAmrap = false,
+            )
+            exercise.copy(sets = exercise.sets + newSet)
+        }
+    }
+
+    fun persistExerciseChangesToPlan(exerciseId: String) {
+    }
+
+    fun persistExerciseChangesToBlock(exerciseId: String) {
     }
 
     private fun applySessionMutation(

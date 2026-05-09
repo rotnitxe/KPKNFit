@@ -1,7 +1,11 @@
 package com.example.kpkn.screens.programdetail.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -12,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +29,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,8 +41,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -50,32 +59,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Program
-import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTag
 import com.example.kpkn.data.splits.SplitTemplate
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
-import com.example.kpkn.domain.auge.SessionMuscleFilter
-import com.example.kpkn.domain.training.VolumeCalculator
-import java.util.UUID
+import com.example.kpkn.domain.training.AdvancedSplitMode
+import com.example.kpkn.domain.training.SessionMigrationMode
+import com.example.kpkn.domain.training.SplitApplicationEngine
+import com.example.kpkn.domain.training.SplitApplicationRequest
+import com.example.kpkn.domain.training.SplitBlockOption
+import com.example.kpkn.domain.training.SplitImpactSummary
+import com.example.kpkn.domain.training.SplitTemporalScope
+import com.example.kpkn.domain.training.SplitWeekOption
 
-private enum class TemporalSplitScope { CURRENT_WEEK, ALL_WEEKS }
-private enum class AdvancedSplitMode { GLOBAL, PER_BLOCK }
-private enum class SessionMigrationMode { MIGRATE, CLEAN }
-
-private data class SplitBlockOption(
-    val id: String,
-    val name: String,
-    val macroName: String,
-)
-
-private data class SplitPatternDay(
-    val label: String,
-    val dayOfWeek: Int,
-)
+private const val SPLIT_PAGE_SIZE = 5
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,17 +85,21 @@ fun SplitView(
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedTag by rememberSaveable { mutableStateOf<SplitTag?>(null) }
+    var currentPage by rememberSaveable { mutableStateOf(1) }
     var infoSplitId by rememberSaveable { mutableStateOf<String?>(null) }
     var sheetSplitId by rememberSaveable { mutableStateOf<String?>(null) }
+    var showCustomEditor by rememberSaveable { mutableStateOf(false) }
     var showCompare by rememberSaveable { mutableStateOf(false) }
+    var multiSelectMode by rememberSaveable { mutableStateOf(false) }
+    var showMultiApply by rememberSaveable { mutableStateOf(false) }
     val comparedIds = remember { mutableStateListOf<String>() }
+    val multiSelectedIds = remember { mutableStateListOf<String>() }
 
     val blocks = remember(program.id, program.macrocycles) {
-        program.macrocycles.flatMap { macro ->
-            macro.blocks.map { block ->
-                SplitBlockOption(block.id, block.name, macro.name)
-            }
-        }
+        SplitApplicationEngine.buildBlockOptions(program)
+    }
+    val weekOptions = remember(program.id, program.macrocycles) {
+        SplitApplicationEngine.buildWeekOptions(program)
     }
     val totalWeeks = remember(program.id, program.macrocycles) {
         program.macrocycles.sumOf { macro -> macro.blocks.sumOf { block -> block.mesocycles.sumOf { meso -> meso.weeks.size } } }
@@ -108,6 +109,7 @@ fun SplitView(
     val filteredSplits = remember(searchQuery, selectedTag) {
         SPLIT_TEMPLATES.filter { split ->
             if (split.id == "custom") return@filter false
+            if (selectedTag == SplitTag.PERSONALIZADO) return@filter false
             val matchesTag = selectedTag == null || split.tags.contains(selectedTag)
             val query = searchQuery.trim().lowercase()
             val matchesSearch = query.isBlank() ||
@@ -119,13 +121,23 @@ fun SplitView(
         }
     }
 
+    LaunchedEffect(searchQuery, selectedTag) { currentPage = 1 }
+    val totalPages = ((filteredSplits.size + SPLIT_PAGE_SIZE - 1) / SPLIT_PAGE_SIZE).coerceAtLeast(1)
+    LaunchedEffect(totalPages) {
+        if (currentPage > totalPages) currentPage = totalPages
+    }
+    val visibleSplits = remember(filteredSplits, currentPage, selectedTag) {
+        if (selectedTag == null) filteredSplits.drop((currentPage - 1) * SPLIT_PAGE_SIZE).take(SPLIT_PAGE_SIZE)
+        else filteredSplits
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        SplitHeaderCard(program = program, isAdvancedProgram = isAdvancedProgram)
+        CompactSplitHeader(isAdvancedProgram = isAdvancedProgram)
 
         OutlinedTextField(
             value = searchQuery,
@@ -139,6 +151,32 @@ fun SplitView(
 
         SplitTagBar(selectedTag = selectedTag, onSelectTag = { selectedTag = it })
 
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                if (filteredSplits.isEmpty()) "Sin resultados" else "${filteredSplits.size} splits disponibles",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TextButton(
+                onClick = {
+                    multiSelectMode = !multiSelectMode
+                    if (!multiSelectMode) multiSelectedIds.clear()
+                },
+            ) {
+                Text(if (multiSelectMode) "Cancelar selección" else "Seleccionar varios")
+            }
+        }
+
+        if (multiSelectMode && multiSelectedIds.isNotEmpty()) {
+            Button(onClick = { showMultiApply = true }, modifier = Modifier.fillMaxWidth()) {
+                Text("Aplicar ${multiSelectedIds.size} splits", fontWeight = FontWeight.Black)
+            }
+        }
+
         if (comparedIds.isNotEmpty()) {
             CompareStrip(
                 comparedIds = comparedIds,
@@ -147,24 +185,45 @@ fun SplitView(
             )
         }
 
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            filteredSplits.forEach { split ->
-                SplitCatalogCard(
-                    split = split,
-                    isCurrent = program.selectedSplitId == split.id || program.blockSplitSelections.containsValue(split.id),
-                    isCompared = split.id in comparedIds,
-                    onToggleCompare = {
-                        if (split.id in comparedIds) comparedIds.remove(split.id)
-                        else if (comparedIds.size < 3) comparedIds.add(split.id)
-                    },
-                    onShowInfo = { infoSplitId = split.id },
-                    onSelect = { sheetSplitId = split.id },
-                )
+        if (selectedTag == SplitTag.PERSONALIZADO) {
+            CustomSplitCatalogCard(
+                program = program,
+                isCurrent = program.selectedSplitId == "custom",
+                onCreate = { showCustomEditor = true },
+            )
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                visibleSplits.forEach { split ->
+                    SplitCatalogCard(
+                        split = split,
+                        isCurrent = program.selectedSplitId == split.id || program.blockSplitSelections.containsValue(split.id),
+                        isCompared = split.id in comparedIds,
+                        isMultiSelectMode = multiSelectMode,
+                        isMultiSelected = split.id in multiSelectedIds,
+                        onToggleCompare = {
+                            if (split.id in comparedIds) comparedIds.remove(split.id)
+                            else if (comparedIds.size < 3) comparedIds.add(split.id)
+                        },
+                        onToggleMultiSelect = {
+                            if (split.id in multiSelectedIds) multiSelectedIds.remove(split.id)
+                            else multiSelectedIds.add(split.id)
+                        },
+                        onShowInfo = { infoSplitId = split.id },
+                        onSelect = { sheetSplitId = split.id },
+                    )
+                }
+                if (selectedTag == null && totalPages > 1) {
+                    SplitPagination(
+                        currentPage = currentPage,
+                        totalPages = totalPages,
+                        onPageChange = { currentPage = it },
+                    )
+                }
+                Spacer(Modifier.height(96.dp))
             }
-            Spacer(Modifier.height(96.dp))
         }
     }
 
@@ -190,6 +249,7 @@ fun SplitView(
                 blocks = blocks,
                 selectedBlockId = selectedBlockId,
                 selectedWeekId = selectedWeekId,
+                weeks = weekOptions,
                 defaultStartDay = program.startDay ?: 1,
                 isAdvancedProgram = isAdvancedProgram,
                 totalWeeks = totalWeeks,
@@ -201,37 +261,64 @@ fun SplitView(
             )
         }
     }
+
+    if (showCustomEditor) {
+        CustomSplitEditorSheet(
+            program = program,
+            defaultStartDay = program.startDay ?: 1,
+            onDismiss = { showCustomEditor = false },
+            onApply = { customSplit, startDay ->
+                onUpdateProgram(
+                    SplitApplicationEngine.apply(
+                        SplitApplicationRequest(
+                        program = program,
+                        selectedSplit = customSplit,
+                        selectedBlockId = selectedBlockId,
+                        selectedWeekId = selectedWeekId,
+                        startDay = startDay,
+                        temporalScope = if (totalWeeks > 1) SplitTemporalScope.WHOLE_PROGRAM else SplitTemporalScope.CURRENT_WEEK,
+                        advancedMode = AdvancedSplitMode.GLOBAL,
+                        migrationMode = SessionMigrationMode.CLEAN,
+                        perBlockSelections = emptyMap(),
+                        )
+                    )
+                )
+                showCustomEditor = false
+            },
+        )
+    }
+
+    if (showMultiApply) {
+        MultiSplitApplySheet(
+            program = program,
+            splits = multiSelectedIds.mapNotNull { id -> SPLIT_TEMPLATES.firstOrNull { it.id == id } },
+            blocks = blocks,
+            weeks = weekOptions,
+            selectedBlockId = selectedBlockId,
+            defaultStartDay = program.startDay ?: 1,
+            onDismiss = { showMultiApply = false },
+            onApply = {
+                onUpdateProgram(it)
+                showMultiApply = false
+                multiSelectMode = false
+                multiSelectedIds.clear()
+            },
+        )
+    }
 }
 
 @Composable
-private fun SplitHeaderCard(
-    program: Program,
+private fun CompactSplitHeader(
     isAdvancedProgram: Boolean,
 ) {
-    val label = when {
-        program.blockSplitSelections.isNotEmpty() -> "Por bloque · ${program.blockSplitSelections.size} configurados"
-        program.selectedSplitId != null -> SPLIT_TEMPLATES.firstOrNull { it.id == program.selectedSplitId }?.name ?: "Split activo"
-        else -> "Sin split definido"
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-    ) {
-        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Catálogo de Splits", fontWeight = FontWeight.Black, fontSize = 18.sp)
-            Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
-            Text(
-                if (isAdvancedProgram) {
-                    "Compara plantillas y decide si usar un split global o uno distinto por bloque."
-                } else {
-                    "Explora plantillas, compáralas y aplícalas con ayuda de migración si ya hay sesiones creadas."
-                },
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("Catálogo de Splits", fontWeight = FontWeight.Black, fontSize = 18.sp)
+        Text(
+            if (isAdvancedProgram) "Filtra, compara y aplica una estructura global o por bloque."
+            else "Elige una estructura semanal o crea una propia desde cero.",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+        )
     }
 }
 
@@ -252,10 +339,21 @@ private fun SplitTagBar(
             androidx.compose.material3.FilterChip(
                 selected = selectedTag == tag,
                 onClick = { onSelectTag(if (selectedTag == tag) null else tag) },
-                label = { Text(tag.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() }) },
+                label = { Text(splitTagLabel(tag)) },
             )
         }
     }
+}
+
+private fun splitTagLabel(tag: SplitTag): String = when (tag) {
+    SplitTag.RECOMENDADO_KPKN -> "Recomendado KPKN"
+    SplitTag.ALTA_FRECUENCIA -> "Alta frecuencia"
+    SplitTag.BAJA_FRECUENCIA -> "Baja frecuencia"
+    SplitTag.BALANCEADO -> "Balanceado"
+    SplitTag.ALTO_VOLUMEN -> "Alto volumen"
+    SplitTag.ALTA_TOLERANCIA -> "Alta tolerancia"
+    SplitTag.PERSONALIZADO -> "Personalizado"
+    SplitTag.POWERLIFTING -> "Powerlifting"
 }
 
 @Composable
@@ -303,26 +401,45 @@ private fun CompareStrip(
     }
 }
 
+@Composable
+private fun SplitPagination(
+    currentPage: Int,
+    totalPages: Int,
+    onPageChange: (Int) -> Unit,
+) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        items((1..totalPages).toList()) { page ->
+            androidx.compose.material3.FilterChip(
+                selected = currentPage == page,
+                onClick = { onPageChange(page) },
+                label = { Text(page.toString()) },
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SplitCatalogCard(
     split: SplitTemplate,
     isCurrent: Boolean,
     isCompared: Boolean,
+    isMultiSelectMode: Boolean,
+    isMultiSelected: Boolean,
     onToggleCompare: () -> Unit,
+    onToggleMultiSelect: () -> Unit,
     onShowInfo: () -> Unit,
     onSelect: () -> Unit,
 ) {
-    var expanded by rememberSaveable(split.id) { mutableStateOf(false) }
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
+        border = if (isCurrent) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.65f)) else null,
         colors = CardDefaults.cardColors(
-            containerColor = if (isCurrent) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f) else MaterialTheme.colorScheme.surface,
+            containerColor = if (isCurrent) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceContainerHigh,
         ),
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -353,6 +470,9 @@ private fun SplitCatalogCard(
                     )
                 }
                 Row {
+                    if (isMultiSelectMode) {
+                        Checkbox(checked = isMultiSelected, onCheckedChange = { onToggleMultiSelect() })
+                    }
                     IconButton(onClick = onShowInfo) { Icon(Icons.Default.Info, contentDescription = "Info") }
                     IconButton(onClick = onToggleCompare) {
                         Icon(
@@ -367,24 +487,161 @@ private fun SplitCatalogCard(
             SplitPatternPreview(pattern = split.pattern)
 
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                DifficultyPill(split.difficulty)
-                split.tags.take(4).forEach { tag -> TagPill(tag) }
-            }
-
-            if (expanded) {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SplitExplainer(title = "En qué consiste", items = listOf(split.description))
-                    SplitExplainer(title = "Beneficios", items = split.pros.take(3))
-                    SplitExplainer(title = "Precauciones", items = split.cons.take(3))
+                AvailabilityPill(split)
+                split.tags.take(3).forEach { tag -> TagPill(tag) }
+                if (split.tags.size > 3) {
+                    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)) {
+                        Text(
+                            "+${split.tags.size - 3}",
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = { expanded = !expanded }) {
-                    Text(if (expanded) "Ver menos" else "Ver más")
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                Button(onClick = if (isMultiSelectMode) onToggleMultiSelect else onSelect) {
+                    Text(if (isMultiSelectMode) if (isMultiSelected) "Quitar" else "Marcar" else "Seleccionar")
                 }
-                Button(onClick = onSelect) { Text("Seleccionar") }
             }
+        }
+    }
+}
+
+@Composable
+private fun CustomSplitCatalogCard(
+    program: Program,
+    isCurrent: Boolean,
+    onCreate: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        border = if (isCurrent) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.65f)) else null,
+        colors = CardDefaults.cardColors(
+            containerColor = if (isCurrent) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceContainerHigh,
+        ),
+    ) {
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+                Column(Modifier.weight(1f)) {
+                    Text(program.customSplitName ?: "Crear split personalizado", fontWeight = FontWeight.Black, fontSize = 16.sp)
+                    Text(
+                        program.customSplitDescription ?: "Parte desde un lienzo en blanco, define el inicio de semana y guarda tu propia distribución.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                if (isCurrent) {
+                    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primary) {
+                        Text(
+                            "Actual",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Black,
+                        )
+                    }
+                }
+            }
+            SplitPatternPreview(pattern = program.customSplitPattern.ifEmpty { List(7) { "Descanso" } })
+            Button(onClick = onCreate, modifier = Modifier.fillMaxWidth()) {
+                Text(if (isCurrent) "Editar personalizado" else "Crear y usar")
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CustomSplitEditorSheet(
+    program: Program,
+    defaultStartDay: Int,
+    onDismiss: () -> Unit,
+    onApply: (SplitTemplate, Int) -> Unit,
+) {
+    var name by rememberSaveable { mutableStateOf(program.customSplitName ?: "Mi split") }
+    var description by rememberSaveable { mutableStateOf(program.customSplitDescription ?: "") }
+    var startDay by rememberSaveable { mutableStateOf(defaultStartDay) }
+    val pattern = remember(program.id) {
+        mutableStateListOf<String>().apply {
+            addAll(program.customSplitPattern.takeIf { it.size == 7 } ?: List(7) { "Descanso" })
+        }
+    }
+
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("Split personalizado", fontWeight = FontWeight.Black, fontSize = 20.sp)
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Nombre") },
+                singleLine = true,
+                shape = RoundedCornerShape(18.dp),
+            )
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Descripción") },
+                minLines = 2,
+                maxLines = 3,
+                shape = RoundedCornerShape(18.dp),
+            )
+            WeekStartMenu(startDay = startDay, onSelect = { startDay = it })
+            Text("Distribución semanal", fontWeight = FontWeight.Black)
+            pattern.forEachIndexed { index, label ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                        Text(
+                            "D${index + 1}",
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                            fontWeight = FontWeight.Black,
+                            fontSize = 11.sp,
+                        )
+                    }
+                    OutlinedTextField(
+                        value = label,
+                        onValueChange = { pattern[index] = it },
+                        modifier = Modifier.weight(1f),
+                        label = { Text("Sesión o Descanso") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                    )
+                }
+            }
+            Button(
+                onClick = {
+                    val normalizedPattern = pattern.map { it.trim().ifBlank { "Descanso" } }
+                    onApply(
+                        SplitTemplate(
+                            id = "custom",
+                            name = name.trim().ifBlank { "Mi split" },
+                            description = description.trim().ifBlank { "Split personalizado" },
+                            tags = listOf(SplitTag.PERSONALIZADO),
+                            pattern = normalizedPattern,
+                            difficulty = Difficulty.INTERMEDIO,
+                            pros = listOf("Diseñado según tus reglas"),
+                            cons = listOf("Depende de una buena distribución de fatiga"),
+                        ),
+                        startDay,
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = name.isNotBlank(),
+            ) {
+                Text("Guardar y usar", fontWeight = FontWeight.Black)
+            }
+            Spacer(Modifier.height(18.dp))
         }
     }
 }
@@ -411,17 +668,13 @@ private fun SplitPatternPreview(pattern: List<String>) {
 }
 
 @Composable
-private fun DifficultyPill(difficulty: Difficulty) {
-    val color = when (difficulty) {
-        Difficulty.PRINCIPIANTE -> Color(0xFF10B981)
-        Difficulty.INTERMEDIO -> Color(0xFFF59E0B)
-        Difficulty.AVANZADO -> Color(0xFFEF4444)
-    }
-    Surface(shape = RoundedCornerShape(999.dp), color = color.copy(alpha = 0.15f)) {
+private fun AvailabilityPill(split: SplitTemplate) {
+    val trainingDays = split.pattern.count { !it.equals("Descanso", ignoreCase = true) }
+    Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFF0EA5E9).copy(alpha = 0.15f)) {
         Text(
-            difficulty.name.lowercase().replaceFirstChar { it.uppercase() },
+            "$trainingDays días/semana",
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            color = color,
+            color = Color(0xFF0284C7),
             fontSize = 10.sp,
             fontWeight = FontWeight.Black,
         )
@@ -432,7 +685,7 @@ private fun DifficultyPill(difficulty: Difficulty) {
 private fun TagPill(tag: SplitTag) {
     Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)) {
         Text(
-            tag.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() },
+            splitTagLabel(tag),
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
             fontSize = 10.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -520,6 +773,7 @@ private fun SplitApplySheet(
     program: Program,
     selectedSplit: SplitTemplate,
     blocks: List<SplitBlockOption>,
+    weeks: List<SplitWeekOption>,
     selectedBlockId: String?,
     selectedWeekId: String?,
     defaultStartDay: Int,
@@ -528,22 +782,51 @@ private fun SplitApplySheet(
     onDismiss: () -> Unit,
     onApply: (Program) -> Unit,
 ) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var startDay by rememberSaveable { mutableStateOf(defaultStartDay) }
-    var temporalScope by rememberSaveable { mutableStateOf(TemporalSplitScope.CURRENT_WEEK) }
+    var temporalScope by rememberSaveable { mutableStateOf(SplitTemporalScope.CURRENT_WEEK) }
     var advancedMode by rememberSaveable { mutableStateOf(AdvancedSplitMode.GLOBAL) }
     var migrationMode by rememberSaveable { mutableStateOf(SessionMigrationMode.MIGRATE) }
+    var destructiveAccepted by rememberSaveable { mutableStateOf(false) }
+    var showFinalConfirm by rememberSaveable { mutableStateOf(false) }
     val blockSelections = remember {
-        blocks.associate { it.id to selectedSplit.id }.toMutableMap()
+        mutableStateMapOf<String, String>().apply {
+            putAll(blocks.associate { it.id to selectedSplit.id })
+        }
+    }
+    val selectedWeekIds = remember(selectedWeekId) {
+        mutableStateListOf<String>().apply { selectedWeekId?.let(::add) }
     }
 
-    val targetHasSessions = remember(program, selectedBlockId, selectedWeekId, temporalScope, advancedMode) {
-        hasSessionsInTarget(program, selectedBlockId, selectedWeekId, temporalScope, advancedMode)
+    LaunchedEffect(temporalScope, migrationMode, advancedMode, selectedWeekIds.toList()) {
+        destructiveAccepted = false
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    val request = SplitApplicationRequest(
+        program = program,
+        selectedSplit = selectedSplit,
+        selectedBlockId = selectedBlockId,
+        selectedWeekId = selectedWeekId,
+        startDay = startDay,
+        temporalScope = temporalScope,
+        selectedWeekIds = selectedWeekIds.toSet(),
+        advancedMode = advancedMode,
+        migrationMode = migrationMode,
+        perBlockSelections = blockSelections,
+    )
+
+    val impact = remember(request) {
+        SplitApplicationEngine.impactSummary(request)
+    }
+    val targetHasSessions = impact.affectedSessions > 0
+    val canApply = !impact.willReplaceSessions || destructiveAccepted
+
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(max = 720.dp)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -568,10 +851,23 @@ private fun SplitApplySheet(
                     title = "Alcance temporal",
                     currentValue = temporalScope.name,
                     options = listOf(
-                        "CURRENT_WEEK" to "Solo semana seleccionada",
-                        "ALL_WEEKS" to "Todas las semanas",
+                        "CURRENT_WEEK" to "Semana seleccionada",
+                        "SELECTED_WEEKS" to "Elegir semanas",
+                        "CURRENT_BLOCK" to "Bloque completo",
+                        "WHOLE_PROGRAM" to "Todo el programa",
                     ),
-                    onSelect = { temporalScope = TemporalSplitScope.valueOf(it) },
+                    onSelect = { temporalScope = SplitTemporalScope.valueOf(it) },
+                )
+            }
+
+            if (temporalScope == SplitTemporalScope.SELECTED_WEEKS) {
+                WeekMultiSelector(
+                    weeks = weeks.filter { selectedBlockId == null || it.blockId == selectedBlockId },
+                    selectedWeekIds = selectedWeekIds,
+                    onToggle = { weekId ->
+                        if (weekId in selectedWeekIds) selectedWeekIds.remove(weekId)
+                        else selectedWeekIds.add(weekId)
+                    },
                 )
             }
 
@@ -611,37 +907,239 @@ private fun SplitApplySheet(
                     )
                     SplitModeCard(
                         title = "Empezar de cero",
-                        description = "Genera sesiones base vacías según el split nuevo.",
+                        description = "Reemplaza sesiones existentes por sesiones base vacías del split nuevo.",
                         selected = migrationMode == SessionMigrationMode.CLEAN,
                         onClick = { migrationMode = SessionMigrationMode.CLEAN },
                     )
                 }
             }
 
+            if (impact.willReplaceSessions) {
+                DestructiveImpactCard(
+                    impact = impact,
+                    accepted = destructiveAccepted,
+                    onAcceptedChange = { destructiveAccepted = it },
+                )
+            }
+
             Button(
                 onClick = {
-                    onApply(
-                        applySplitSelection(
-                            program = program,
-                            selectedSplit = selectedSplit,
-                            selectedBlockId = selectedBlockId,
-                            selectedWeekId = selectedWeekId,
-                            startDay = startDay,
-                            temporalScope = temporalScope,
-                            advancedMode = advancedMode,
-                            migrationMode = migrationMode,
-                            perBlockSelections = blockSelections,
-                        )
-                    )
+                    if (impact.isLargeDestructiveChange) showFinalConfirm = true
+                    else onApply(SplitApplicationEngine.apply(request))
                 },
                 modifier = Modifier.fillMaxWidth(),
+                enabled = canApply,
             ) {
-                Text("Aplicar split", fontWeight = FontWeight.Black)
+                Text(
+                    if (impact.willReplaceSessions) "Reemplazar ${impact.affectedSessions} sesiones" else "Aplicar split",
+                    fontWeight = FontWeight.Black,
+                )
             }
 
             Spacer(Modifier.height(18.dp))
         }
     }
+
+    if (showFinalConfirm) {
+        AlertDialog(
+            onDismissRequest = { showFinalConfirm = false },
+            title = { Text("Confirmar reemplazo", fontWeight = FontWeight.Black) },
+            text = { Text("Se reemplazarán ${impact.affectedSessions} sesiones en ${impact.affectedWeeks} semanas. Esta acción no se puede deshacer automáticamente.") },
+            confirmButton = {
+                Button(onClick = {
+                    showFinalConfirm = false
+                    onApply(SplitApplicationEngine.apply(request))
+                }) { Text("Sí, reemplazar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showFinalConfirm = false }) { Text("Cancelar") }
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun MultiSplitApplySheet(
+    program: Program,
+    splits: List<SplitTemplate>,
+    blocks: List<SplitBlockOption>,
+    weeks: List<SplitWeekOption>,
+    selectedBlockId: String?,
+    defaultStartDay: Int,
+    onDismiss: () -> Unit,
+    onApply: (Program) -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var startDay by rememberSaveable { mutableStateOf(defaultStartDay) }
+    var temporalScope by rememberSaveable { mutableStateOf(SplitTemporalScope.CURRENT_BLOCK) }
+    var migrationMode by rememberSaveable { mutableStateOf(SessionMigrationMode.MIGRATE) }
+    var destructiveAccepted by rememberSaveable { mutableStateOf(false) }
+    var showFinalConfirm by rememberSaveable { mutableStateOf(false) }
+    val selectedWeekIds = remember(selectedBlockId) {
+        mutableStateListOf<String>().apply {
+            addAll(weeks.filter { selectedBlockId == null || it.blockId == selectedBlockId }.map { it.id })
+        }
+    }
+
+    val targetWeeks = when (temporalScope) {
+        SplitTemporalScope.SELECTED_WEEKS -> weeks.filter { it.id in selectedWeekIds }
+        SplitTemporalScope.CURRENT_BLOCK -> weeks.filter { selectedBlockId == null || it.blockId == selectedBlockId }
+        SplitTemporalScope.WHOLE_PROGRAM -> weeks
+        SplitTemporalScope.CURRENT_WEEK -> weeks.filter { it.id in selectedWeekIds.take(1) }
+    }
+    val affectedSessions = targetWeeks.sumOf { it.sessions.size }
+    val willReplace = migrationMode == SessionMigrationMode.CLEAN && affectedSessions > 0
+    val canApply = splits.isNotEmpty() && targetWeeks.isNotEmpty() && (!willReplace || destructiveAccepted)
+
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 720.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text("Aplicar varios splits", fontWeight = FontWeight.Black, fontSize = 20.sp)
+            Text(
+                "Los splits seleccionados se distribuirán por las semanas destino en el mismo orden. Si hay más semanas que splits, se repiten en ciclo.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                splits.forEach { split -> TagLikeText(split.name) }
+            }
+
+            WeekStartMenu(startDay = startDay, onSelect = { startDay = it })
+
+            ScopeSelector(
+                title = "Destino",
+                currentValue = temporalScope.name,
+                options = listOf(
+                    "SELECTED_WEEKS" to "Elegir semanas",
+                    "CURRENT_BLOCK" to "Bloque actual",
+                    "WHOLE_PROGRAM" to "Todo el programa",
+                ),
+                onSelect = { temporalScope = SplitTemporalScope.valueOf(it) },
+            )
+
+            if (temporalScope == SplitTemporalScope.SELECTED_WEEKS) {
+                WeekMultiSelector(
+                    weeks = weeks.filter { selectedBlockId == null || it.blockId == selectedBlockId },
+                    selectedWeekIds = selectedWeekIds,
+                    onToggle = { weekId ->
+                        if (weekId in selectedWeekIds) selectedWeekIds.remove(weekId)
+                        else selectedWeekIds.add(weekId)
+                    },
+                )
+            }
+
+            if (blocks.size > 1 && selectedBlockId != null && temporalScope == SplitTemporalScope.CURRENT_BLOCK) {
+                Text("Destino: bloque actual", fontWeight = FontWeight.Bold)
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Migración de sesiones", fontWeight = FontWeight.Black)
+                SplitModeCard(
+                    title = "Migrar sesiones",
+                    description = "Mantiene sesiones y las reubica según el split que toque en cada semana.",
+                    selected = migrationMode == SessionMigrationMode.MIGRATE,
+                    onClick = { migrationMode = SessionMigrationMode.MIGRATE },
+                )
+                SplitModeCard(
+                    title = "Empezar de cero",
+                    description = "Reemplaza las semanas destino por sesiones base vacías.",
+                    selected = migrationMode == SessionMigrationMode.CLEAN,
+                    onClick = { migrationMode = SessionMigrationMode.CLEAN },
+                )
+            }
+
+            if (willReplace) {
+                DestructiveImpactCard(
+                    impact = SplitImpactSummary(targetWeeks.size, affectedSessions, willReplaceSessions = true),
+                    accepted = destructiveAccepted,
+                    onAcceptedChange = { destructiveAccepted = it },
+                )
+            }
+
+            Button(
+                onClick = {
+                    if (willReplace && (targetWeeks.size > 1 || affectedSessions > 4)) {
+                        showFinalConfirm = true
+                    } else {
+                        onApply(applyMultipleSplits(program, splits, targetWeeks, selectedBlockId, startDay, migrationMode))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = canApply,
+            ) {
+                Text(if (willReplace) "Reemplazar $affectedSessions sesiones" else "Aplicar splits", fontWeight = FontWeight.Black)
+            }
+
+            Spacer(Modifier.height(18.dp))
+        }
+    }
+
+    if (showFinalConfirm) {
+        AlertDialog(
+            onDismissRequest = { showFinalConfirm = false },
+            title = { Text("Confirmar aplicación múltiple", fontWeight = FontWeight.Black) },
+            text = { Text("Se reemplazarán $affectedSessions sesiones en ${targetWeeks.size} semanas usando ${splits.size} splits.") },
+            confirmButton = {
+                Button(onClick = {
+                    showFinalConfirm = false
+                    onApply(applyMultipleSplits(program, splits, targetWeeks, selectedBlockId, startDay, migrationMode))
+                }) { Text("Sí, aplicar") }
+            },
+            dismissButton = { TextButton(onClick = { showFinalConfirm = false }) { Text("Cancelar") } },
+        )
+    }
+}
+
+@Composable
+private fun TagLikeText(text: String) {
+    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+        Text(
+            text,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            fontWeight = FontWeight.Bold,
+            fontSize = 11.sp,
+        )
+    }
+}
+
+private fun applyMultipleSplits(
+    program: Program,
+    splits: List<SplitTemplate>,
+    targetWeeks: List<SplitWeekOption>,
+    selectedBlockId: String?,
+    startDay: Int,
+    migrationMode: SessionMigrationMode,
+): Program {
+    if (splits.isEmpty() || targetWeeks.isEmpty()) return program
+    var updated = program
+    splits.forEachIndexed { splitIndex, split ->
+        val weekIds = targetWeeks.filterIndexed { index, _ -> index % splits.size == splitIndex }.map { it.id }.toSet()
+        if (weekIds.isNotEmpty()) {
+            updated = SplitApplicationEngine.apply(
+                SplitApplicationRequest(
+                    program = updated,
+                    selectedSplit = split,
+                    selectedBlockId = selectedBlockId,
+                    selectedWeekId = weekIds.first(),
+                    startDay = startDay,
+                    temporalScope = SplitTemporalScope.SELECTED_WEEKS,
+                    selectedWeekIds = weekIds,
+                    advancedMode = AdvancedSplitMode.GLOBAL,
+                    migrationMode = migrationMode,
+                )
+            )
+        }
+    }
+    return updated
 }
 
 @Composable
@@ -682,6 +1180,7 @@ private fun WeekStartMenu(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ScopeSelector(
     title: String,
@@ -697,6 +1196,57 @@ private fun ScopeSelector(
                     selected = currentValue == value,
                     onClick = { onSelect(value) },
                     label = { Text(label) },
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun WeekMultiSelector(
+    weeks: List<SplitWeekOption>,
+    selectedWeekIds: List<String>,
+    onToggle: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Semanas del bloque", fontWeight = FontWeight.Black)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            weeks.forEach { week ->
+                androidx.compose.material3.FilterChip(
+                    selected = week.id in selectedWeekIds,
+                    onClick = { onToggle(week.id) },
+                    label = { Text(week.name) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DestructiveImpactCard(
+    impact: SplitImpactSummary,
+    accepted: Boolean,
+    onAcceptedChange: (Boolean) -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f),
+    ) {
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Atención: empezar desde cero", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onErrorContainer)
+            Text(
+                "Se reemplazarán ${impact.affectedSessions} sesiones en ${impact.affectedWeeks} semanas. Revisa el alcance antes de continuar.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(checked = accepted, onCheckedChange = onAcceptedChange)
+                Text(
+                    "Entiendo que se reemplazarán estas sesiones",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
                 )
             }
         }
@@ -757,286 +1307,5 @@ private fun BlockSplitSelector(
                 }
             }
         }
-    }
-}
-
-private fun hasSessionsInTarget(
-    program: Program,
-    selectedBlockId: String?,
-    selectedWeekId: String?,
-    temporalScope: TemporalSplitScope,
-    advancedMode: AdvancedSplitMode,
-): Boolean {
-    return program.macrocycles.any { macro ->
-        macro.blocks.any { block ->
-            val blockMatches = when {
-                advancedMode == AdvancedSplitMode.PER_BLOCK -> true
-                temporalScope == TemporalSplitScope.CURRENT_WEEK -> block.id == selectedBlockId
-                else -> true
-            }
-
-            if (!blockMatches) return@any false
-
-            block.mesocycles.any { meso ->
-                meso.weeks.any { week ->
-                    val weekMatches = when (temporalScope) {
-                        TemporalSplitScope.CURRENT_WEEK -> week.id == selectedWeekId
-                        TemporalSplitScope.ALL_WEEKS -> true
-                    }
-                    weekMatches && week.sessions.isNotEmpty()
-                }
-            }
-        }
-    }
-}
-
-private fun applySplitSelection(
-    program: Program,
-    selectedSplit: SplitTemplate,
-    selectedBlockId: String?,
-    selectedWeekId: String?,
-    startDay: Int,
-    temporalScope: TemporalSplitScope,
-    advancedMode: AdvancedSplitMode,
-    migrationMode: SessionMigrationMode,
-    perBlockSelections: Map<String, String>,
-): Program {
-    val blockAssignments = if (advancedMode == AdvancedSplitMode.PER_BLOCK) perBlockSelections else emptyMap()
-
-    return program.copy(
-        startDay = startDay,
-        selectedSplitId = if (advancedMode == AdvancedSplitMode.GLOBAL) selectedSplit.id else program.selectedSplitId,
-        customSplitPattern = if (advancedMode == AdvancedSplitMode.GLOBAL) selectedSplit.pattern else program.customSplitPattern,
-        blockSplitSelections = if (advancedMode == AdvancedSplitMode.PER_BLOCK) blockAssignments else emptyMap(),
-        splitTrialSeen = false,
-        macrocycles = program.macrocycles.map { macro ->
-            macro.copy(
-                blocks = macro.blocks.map { block ->
-                    val blockSplit = if (advancedMode == AdvancedSplitMode.PER_BLOCK) {
-                        SPLIT_TEMPLATES.firstOrNull { it.id == blockAssignments[block.id] } ?: selectedSplit
-                    } else {
-                        selectedSplit
-                    }
-
-                    block.copy(
-                        mesocycles = block.mesocycles.map { meso ->
-                            meso.copy(
-                                weeks = meso.weeks.map { week ->
-                                    val shouldApply = when (temporalScope) {
-                                        TemporalSplitScope.CURRENT_WEEK -> week.id == selectedWeekId
-                                        TemporalSplitScope.ALL_WEEKS -> {
-                                            when {
-                                                advancedMode == AdvancedSplitMode.PER_BLOCK -> true
-                                                selectedBlockId != null && program.macrocycles.sumOf { it.blocks.size } > 1 -> true
-                                                else -> true
-                                            }
-                                        }
-                                    }
-
-                                    if (!shouldApply) {
-                                        week
-                                    } else {
-                                        week.copy(
-                                            sessions = buildSessionsForSplit(
-                                                pattern = blockSplit.pattern,
-                                                startDay = startDay,
-                                                existingSessions = week.sessions,
-                                                migrationMode = migrationMode,
-                                            )
-                                        )
-                                    }
-                                }
-                            )
-                        }
-                    )
-                }
-            )
-        }
-    )
-}
-
-private fun buildSessionsForSplit(
-    pattern: List<String>,
-    startDay: Int,
-    existingSessions: List<Session>,
-    migrationMode: SessionMigrationMode,
-): List<Session> {
-    val trainingDays = patternToTrainingDays(pattern, startDay)
-    if (trainingDays.isEmpty()) return emptyList()
-
-    if (existingSessions.isEmpty() || migrationMode == SessionMigrationMode.CLEAN) {
-        return normalizeMainSessions(
-            trainingDays.map { day ->
-                Session(
-                    id = UUID.randomUUID().toString(),
-                    name = day.label,
-                    exercises = emptyList(),
-                    parts = emptyList(),
-                    dayOfWeek = day.dayOfWeek,
-                    scheduleLabel = day.label,
-                    isMainSession = true,
-                )
-            }
-        )
-    }
-
-    val reassigned = existingSessions.map { session ->
-        val target = bestTrainingDayForSession(session, trainingDays)
-        session.copy(
-            dayOfWeek = target.dayOfWeek,
-            scheduleLabel = target.label,
-        )
-    }.toMutableList()
-
-    val coveredDays = reassigned.mapNotNull { it.dayOfWeek }.toSet()
-    trainingDays.filterNot { it.dayOfWeek in coveredDays }.forEach { missingDay ->
-        reassigned.add(
-            Session(
-                id = UUID.randomUUID().toString(),
-                name = missingDay.label,
-                exercises = emptyList(),
-                parts = emptyList(),
-                dayOfWeek = missingDay.dayOfWeek,
-                scheduleLabel = missingDay.label,
-                isMainSession = false,
-            )
-        )
-    }
-
-    return normalizeMainSessions(reassigned)
-}
-
-private fun patternToTrainingDays(
-    pattern: List<String>,
-    startDay: Int,
-): List<SplitPatternDay> {
-    val orderedDays = listOf(1, 2, 3, 4, 5, 6, 7)
-    val offset = (startDay - 1).coerceIn(0, 6)
-    val rotated = orderedDays.drop(offset) + orderedDays.take(offset)
-
-    return pattern.mapIndexedNotNull { index, label ->
-        if (label.equals("Descanso", ignoreCase = true)) null
-        else SplitPatternDay(label = label, dayOfWeek = rotated[index % rotated.size])
-    }
-}
-
-private fun bestTrainingDayForSession(
-    session: Session,
-    trainingDays: List<SplitPatternDay>,
-): SplitPatternDay {
-    val sessionMuscles = collectSessionMuscles(session)
-    val sessionText = buildString {
-        append(session.name.lowercase())
-        append(' ')
-        append(session.description.orEmpty().lowercase())
-    }
-
-    return trainingDays.maxByOrNull { day ->
-        scoreSplitDay(day.label, sessionMuscles, sessionText)
-    } ?: trainingDays.first()
-}
-
-private fun collectSessionMuscles(session: Session): Set<String> {
-    val muscles = linkedSetOf<String>()
-
-    fun collectFromExercises(exercises: List<Exercise>) {
-        exercises.forEach { exercise ->
-            val info = exercise.exerciseDbId?.lowercase()?.let { EXERCISE_DATABASE_BY_ID[it] }
-            SessionMuscleFilter.relevantMusclesFor(info).forEach { involved ->
-                muscles.add(
-                    normalizeCanonicalMuscle(
-                        VolumeCalculator.normalizeMuscleGroup(
-                            specificMuscle = involved.muscle,
-                            emphasis = involved.emphasis,
-                        )
-                    )
-                )
-            }
-        }
-    }
-
-    collectFromExercises(session.exercises)
-    session.parts.forEach { part: SessionPart -> collectFromExercises(part.exercises) }
-    listOfNotNull(session.sessionB, session.sessionC, session.sessionD).forEach { nested ->
-        muscles.addAll(collectSessionMuscles(nested))
-    }
-
-    return muscles
-}
-
-private fun normalizeCanonicalMuscle(muscle: String): String {
-    return when (muscle.lowercase()) {
-        "cuadriceps", "cuádriceps" -> "Cuádriceps"
-        "gluteos", "glúteos" -> "Glúteos"
-        "biceps", "bíceps" -> "Bíceps"
-        "triceps", "tríceps" -> "Tríceps"
-        else -> muscle
-    }
-}
-
-private val upperBodyKeywords = setOf("Pectorales", "Dorsales", "Trapecio", "Bíceps", "Tríceps", "Deltoides Anterior", "Deltoides Lateral", "Deltoides Posterior")
-private val lowerBodyKeywords = setOf("Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas", "Aductores")
-
-private fun scoreSplitDay(
-    label: String,
-    sessionMuscles: Set<String>,
-    sessionText: String,
-): Int {
-    val keywords = splitKeywords(label)
-    val textBonus = keywords.count { sessionText.contains(it.lowercase()) } * 3
-    val muscleBonus = sessionMuscles.count { muscle ->
-        keywords.any { keyword ->
-            muscle.lowercase().contains(keyword.lowercase()) || keyword.lowercase().contains(muscle.lowercase())
-        }
-    } * 4
-    val genericBonus = when {
-        label.contains("Torso", ignoreCase = true) && sessionMuscles.any { it in upperBodyKeywords } -> 5
-        label.contains("Full", ignoreCase = true) && sessionMuscles.isNotEmpty() -> 4
-        label.contains("Pierna", ignoreCase = true) && sessionMuscles.any { it in lowerBodyKeywords } -> 5
-        else -> 0
-    }
-    return textBonus + muscleBonus + genericBonus
-}
-
-private fun splitKeywords(label: String): Set<String> {
-    val lower = label.lowercase()
-    val keywords = linkedSetOf<String>()
-    if ("empuje" in lower || "push" in lower) keywords.addAll(listOf("Pectorales", "Tríceps", "Deltoides"))
-    if ("tirón" in lower || "tiron" in lower || "pull" in lower || "tracción" in lower || "traccion" in lower) keywords.addAll(listOf("Dorsales", "Trapecio", "Bíceps", "Deltoides Posterior"))
-    if ("pierna" in lower || "lower" in lower) keywords.addAll(listOf("Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas"))
-    if ("torso" in lower || "upper" in lower) keywords.addAll(upperBodyKeywords)
-    if ("full" in lower || "sbd" in lower) keywords.addAll(upperBodyKeywords + lowerBodyKeywords)
-    if ("pecho" in lower || "banca" in lower) keywords.add("Pectorales")
-    if ("espalda" in lower) keywords.addAll(listOf("Dorsales", "Trapecio", "Erectores Espinales"))
-    if ("hombro" in lower) keywords.addAll(listOf("Deltoides Anterior", "Deltoides Lateral", "Deltoides Posterior"))
-    if ("brazo" in lower) keywords.addAll(listOf("Bíceps", "Tríceps"))
-    if ("cuádriceps" in lower || "cuadriceps" in lower) keywords.add("Cuádriceps")
-    if ("isquios" in lower || "femoral" in lower) keywords.add("Isquiosurales")
-    if ("glúteo" in lower || "gluteo" in lower) keywords.add("Glúteos")
-    if ("peso muerto" in lower || "deadlift" in lower) keywords.addAll(listOf("Isquiosurales", "Glúteos", "Erectores Espinales", "Trapecio"))
-    if ("sentadilla" in lower || "squat" in lower) keywords.addAll(listOf("Cuádriceps", "Glúteos"))
-    if (keywords.isEmpty()) keywords.add(label.replaceFirstChar { it.uppercase() })
-    return keywords
-}
-
-private fun normalizeMainSessions(sessions: List<Session>): List<Session> {
-    val mainByDay = mutableMapOf<Int, String>()
-    val fallbackByDay = mutableMapOf<Int, String>()
-
-    sessions.forEach { session ->
-        val day = session.dayOfWeek ?: 1
-        fallbackByDay.putIfAbsent(day, session.id)
-        if (session.isMainSession && day !in mainByDay) {
-            mainByDay[day] = session.id
-        }
-    }
-
-    fallbackByDay.forEach { (day, sessionId) ->
-        mainByDay.putIfAbsent(day, sessionId)
-    }
-
-    return sessions.map { session ->
-        val day = session.dayOfWeek ?: 1
-        session.copy(isMainSession = mainByDay[day] == session.id)
     }
 }
