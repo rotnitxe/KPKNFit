@@ -123,6 +123,7 @@ data class OngoingWorkoutState(
     val activeExerciseId: String? = null,
     val activeSetId: String? = null,
     val activeSetIndex: Int = 0,
+    val activeExerciseIndex: Int = 0,
     val activeMode: WeekVariant = WeekVariant.A,
     val completedSets: Map<String, CompletedSet> = emptyMap(),
     val dynamicWeights: Map<String, Double> = emptyMap(),

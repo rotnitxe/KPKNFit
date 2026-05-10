@@ -23,6 +23,7 @@ data class WorkoutHeaderWidgets(
 enum class LoadModeV2 {
     LOAD,
     BODYWEIGHT,
+    LASTRE,
     ASSISTED,
 }
 

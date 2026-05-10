@@ -1,15 +1,21 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.ActiveProgramState
+import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.LoopType
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.domain.calculations.getTotalWeeks
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.util.Locale
 
 data class RoadmapBlock(
     val id: String,
@@ -18,6 +24,7 @@ data class RoadmapBlock(
     val macroIndex: Int,
     val blockIndex: Int,
     val totalWeeks: Int,
+    val dateRangeLabel: String? = null,
 )
 
 data class WeekWithMeta(
@@ -30,6 +37,9 @@ data class WeekWithMeta(
     val variant: WeekVariant? = null,
     val isLoopWeek: Boolean = false,
     val loopId: String? = null,
+    val dateRangeLabel: String? = null,
+    val keyDateLabel: String? = null,
+    val keyDateType: KeyDateType? = null,
 )
 
 data class DiscomfortEntry(
@@ -63,6 +73,7 @@ object ProgramDetailHelpers {
     }
 
     fun buildRoadmapBlocks(program: Program): List<RoadmapBlock> {
+        val blockDateRanges = buildBlockDateRanges(program)
         return program.macrocycles.flatMapIndexed { macroIdx, macro ->
             macro.blocks.mapIndexed { blockIdx, block ->
                 RoadmapBlock(
@@ -72,6 +83,7 @@ object ProgramDetailHelpers {
                     macroIndex = macroIdx,
                     blockIndex = blockIdx,
                     totalWeeks = block.mesocycles.sumOf { it.weeks.size },
+                    dateRangeLabel = blockDateRanges[block.id],
                 )
             }
         }
@@ -97,6 +109,7 @@ object ProgramDetailHelpers {
         if (selectedBlockId == null) return emptyList()
         val block = roadmapBlocks.find { it.id == selectedBlockId } ?: return emptyList()
         val macro = program.macrocycles.getOrNull(block.macroIndex) ?: return emptyList()
+        val weekDateMeta = buildWeekDateMeta(program)
 
         var mesoOffset = 0
         for (b in macro.blocks) {
@@ -118,6 +131,9 @@ object ProgramDetailHelpers {
                         variant = week.variant,
                         isLoopWeek = week.isLoopWeek,
                         loopId = week.loopId,
+                        dateRangeLabel = weekDateMeta[week.id]?.dateRangeLabel,
+                        keyDateLabel = weekDateMeta[week.id]?.keyDateLabel,
+                        keyDateType = weekDateMeta[week.id]?.keyDateType,
                     )
                 }
             }
@@ -172,6 +188,80 @@ object ProgramDetailHelpers {
         "deload", "descarga" -> "Deload"
         "competition", "competicion", "competición" -> "Comp"
         else -> "Evento"
+    }
+
+    private data class WeekDateMeta(
+        val dateRangeLabel: String?,
+        val keyDateLabel: String?,
+        val keyDateType: KeyDateType?,
+    )
+
+    private fun buildBlockDateRanges(program: Program): Map<String, String> {
+        var cursor = parseProgramDate(program.timelineStartDate) ?: return emptyMap()
+        val ranges = mutableMapOf<String, String>()
+        program.macrocycles.forEach { macro ->
+            macro.blocks.forEach { block ->
+                val weeks = block.mesocycles.sumOf { it.weeks.size }
+                if (weeks > 0) {
+                    val start = cursor
+                    val end = cursor.plusWeeks(weeks.toLong()).minusDays(1)
+                    ranges[block.id] = formatDateRange(start, end)
+                    cursor = cursor.plusWeeks(weeks.toLong())
+                }
+            }
+        }
+        return ranges
+    }
+
+    private fun buildWeekDateMeta(program: Program): Map<String, WeekDateMeta> {
+        var cursor = parseProgramDate(program.timelineStartDate) ?: return emptyMap()
+        val meta = mutableMapOf<String, WeekDateMeta>()
+        program.macrocycles.forEach { macro ->
+            macro.blocks.forEach { block ->
+                block.mesocycles.forEach { meso ->
+                    meso.weeks.forEach { week ->
+                        val weekStart = cursor
+                        val weekEnd = cursor.plusDays(6)
+                        val keyDate = program.keyDates.firstOrNull { it.intersectsWeek(weekStart, weekEnd) }
+                        meta[week.id] = WeekDateMeta(
+                            dateRangeLabel = formatDateRange(weekStart, weekEnd),
+                            keyDateLabel = keyDate?.roadmapLabel(),
+                            keyDateType = keyDate?.type,
+                        )
+                        cursor = cursor.plusWeeks(1)
+                    }
+                }
+            }
+        }
+        return meta
+    }
+
+    private fun ProgramKeyDate.intersectsWeek(weekStart: LocalDate, weekEnd: LocalDate): Boolean {
+        val start = parseProgramDate(startDate) ?: parseProgramDate(eventDate) ?: return false
+        val end = parseProgramDate(endDate) ?: start
+        return end >= weekStart && start <= weekEnd
+    }
+
+    private fun ProgramKeyDate.roadmapLabel(): String = when (type) {
+        KeyDateType.COMPETITION -> "Comp"
+        KeyDateType.EXAMS -> "Examen"
+        KeyDateType.VACATION -> "Libre"
+        KeyDateType.TRAVEL -> "Viaje"
+        KeyDateType.CUSTOM -> title.take(8).ifBlank { "Clave" }
+    }
+
+    private fun parseProgramDate(raw: String?): LocalDate? {
+        if (raw.isNullOrBlank()) return null
+        return try {
+            LocalDate.parse(raw, DateTimeFormatter.ISO_LOCAL_DATE)
+        } catch (_: DateTimeParseException) {
+            null
+        }
+    }
+
+    private fun formatDateRange(start: LocalDate, end: LocalDate): String {
+        val formatter = DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es-CL"))
+        return "${start.format(formatter)}-${end.format(formatter)}"
     }
 
     fun computeProgramDiscomforts(

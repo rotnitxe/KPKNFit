@@ -39,6 +39,7 @@ fun BlockRoadmap(
     currentWeekId: String?,
     isSimpleProgram: Boolean,
     simpleLoopMarkers: List<RoadmapLoopMarker> = emptyList(),
+    currentCycle: Int = 0,
     onSelectBlock: (String) -> Unit,
     onSelectWeek: (String) -> Unit,
     onAddSimpleWeek: (() -> Unit)? = null,
@@ -62,6 +63,7 @@ fun BlockRoadmap(
                     loopMarkers = simpleLoopMarkers,
                     selectedWeekId = selectedWeekId,
                     currentWeekId = currentWeekId,
+                    currentCycle = currentCycle,
                     onSelectWeek = onSelectWeek,
                     onAddWeek = onAddSimpleWeek,
                     onLongPressWeek = { editingWeek = it },
@@ -117,7 +119,12 @@ fun BlockRoadmap(
                         ) {
                             Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(block.name, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                                Text("${block.totalWeeks}sem", fontSize = 8.sp, color = if (isSelected) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                                Text(
+                                    block.dateRangeLabel?.let { "${block.totalWeeks}sem · $it" } ?: "${block.totalWeeks}sem",
+                                    fontSize = 8.sp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    maxLines = 1,
+                                )
                             }
                         }
                     }
@@ -168,9 +175,12 @@ fun BlockRoadmap(
                 itemsIndexed(currentWeeks, key = { _, week -> week.id }) { index, week ->
                     SimpleWeekCircle(
                         label = "S${index + 1}",
+                        subtitle = week.circleSubtitle(),
                         isSelected = week.id == selectedWeekId,
                         isCurrent = week.id == currentWeekId,
                         isLoopWeek = week.isLoopWeek,
+                        isKeyDateWeek = week.keyDateType != null,
+                        keyDateLabel = week.keyDateLabel,
                         onClick = { onSelectWeek(week.id) },
                         onLongClick = { editingWeek = week },
                     )
@@ -241,6 +251,7 @@ private fun CycleBasedRoadmap(
     loopMarkers: List<RoadmapLoopMarker>,
     selectedWeekId: String?,
     currentWeekId: String?,
+    currentCycle: Int,
     onSelectWeek: (String) -> Unit,
     onAddWeek: (() -> Unit)?,
     onLongPressWeek: (WeekWithMeta) -> Unit,
@@ -249,118 +260,133 @@ private fun CycleBasedRoadmap(
     val baseWeeks = weeks.filterNot { it.isLoopWeek }
     val loopWeeks = weeks.filter { it.isLoopWeek }
     val cycleLength = baseWeeks.size.coerceAtLeast(1)
-    val cycleCount = loopMarkers.firstOrNull()?.repeatEveryCycles?.coerceAtLeast(1) ?: 1
-    val eventPills = loopWeeks.associateBy { id -> id.loopId }
-        .let { weeksByLoopId ->
-            loopMarkers.filter { it.id in weeksByLoopId }
-        }
-
-    var selectedPillIndex by remember(cycleLength, cycleCount) { mutableIntStateOf(0) }
-
-    // ─── Cycle + Event Pills row (like block pills) ──────────────────────
-    val listStatePills = rememberLazyListState()
-    LazyRow(
-        state = listStatePills,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        items(cycleCount + eventPills.size, key = { pillIndex -> "pill-$pillIndex" }) { pillIndex ->
-            val isEvent = pillIndex >= cycleCount
-            val localEventIdx = pillIndex - cycleCount
-            val isSelected = selectedPillIndex == pillIndex
-            val marker = if (isEvent) eventPills.getOrNull(localEventIdx) else null
-
-            if (isEvent) {
-                // Event pill — visually distinct
-                Surface(
-                    modifier = Modifier
-                        .height(42.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .combinedClickable(
-                            onClick = { selectedPillIndex = pillIndex },
-                            onLongClick = null,
-                        ),
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
-                    contentColor = if (isSelected) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onTertiaryContainer,
-                ) {
-                    Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(marker?.label ?: "Evento", fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                        Text("evento", fontSize = 8.sp, color = (if (isSelected) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onTertiaryContainer).copy(alpha = 0.7f))
-                    }
-                }
-            } else {
-                // Cycle pill — like a block pill
-                Surface(
-                    modifier = Modifier
-                        .height(42.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .combinedClickable(
-                            onClick = { selectedPillIndex = pillIndex },
-                            onLongClick = null,
-                        ),
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                ) {
-                    Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Ciclo ${pillIndex + 1}", fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                        Text("${cycleLength}sem", fontSize = 8.sp, color = (if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant).copy(alpha = 0.7f))
-                    }
-                }
-            }
+    val cycleCount = loopMarkers.maxOfOrNull { it.repeatEveryCycles.coerceAtLeast(1) } ?: 1
+    val eventPills = loopMarkers.mapIndexedNotNull { index, marker ->
+        loopWeeks.firstOrNull { it.loopId == marker.id }?.let { week ->
+            SimpleEventPill(index = index + 1, marker = marker, week = week)
         }
     }
 
-    Spacer(Modifier.height(8.dp))
+    val currentCycleIndex = if (currentCycle > 0) currentCycle % cycleCount else 0
+    var selectedPillIndex by remember(cycleLength, cycleCount, currentCycleIndex) { mutableIntStateOf(currentCycleIndex) }
 
-    // ─── Week circles row ─────────────────────────────────────────────────
-    val isEventView = selectedPillIndex >= cycleCount
-    val displayWeeks = if (isEventView) loopWeeks else baseWeeks
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            "Loop = $cycleCount ciclos espejo + evento. Editar S1/S2 afecta esa misma semana en todos los ciclos; el evento aparece como E1, E2... y es una semana especial editable.",
+            modifier = Modifier.padding(horizontal = 16.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
 
-    if (displayWeeks.isNotEmpty() || onAddWeek != null) {
-        val listStateWeeks = rememberLazyListState()
-        LaunchedEffect(currentWeekId, displayWeeks.size) {
-            val currentIdx = displayWeeks.indexOfFirst { it.id == currentWeekId }
-            if (currentIdx >= 0) listStateWeeks.animateScrollToItem(maxOf(0, currentIdx - 2))
-        }
-
+        // ─── Cycle + Event Pills row (like block pills) ──────────────────────
+        val listStatePills = rememberLazyListState()
         LazyRow(
-            state = listStateWeeks,
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            state = listStatePills,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (isEventView) {
-                itemsIndexed(displayWeeks, key = { _, week -> week.id }) { index, week ->
-                    val marker = week.loopId?.let { loopId -> loopMarkers.firstOrNull { it.id == loopId } }
-                    SimpleWeekCircle(
-                        label = marker?.label?.take(6) ?: "L${index + 1}",
-                        subtitle = marker?.let { "x${it.repeatEveryCycles}c" },
-                        isSelected = week.id == selectedWeekId,
-                        isCurrent = week.id == currentWeekId,
-                        isLoopWeek = true,
-                        onClick = { onSelectWeek(week.id) },
-                        onLongClick = { onLongPressWeek(week) },
-                    )
-                }
-            } else {
-                itemsIndexed(displayWeeks, key = { _, week -> week.id }) { index, week ->
-                    SimpleWeekCircle(
-                        label = "S${index + 1}",
-                        isSelected = week.id == selectedWeekId,
-                        isCurrent = week.id == currentWeekId,
-                        isLoopWeek = false,
-                        onClick = { onSelectWeek(week.id) },
-                        onLongClick = { onLongPressWeek(week) },
-                    )
+            items(cycleCount + eventPills.size, key = { pillIndex -> "pill-$pillIndex" }) { pillIndex ->
+                val isEvent = pillIndex >= cycleCount
+                val localEventIdx = pillIndex - cycleCount
+                val isSelected = selectedPillIndex == pillIndex
+                val eventPill = if (isEvent) eventPills.getOrNull(localEventIdx) else null
+                val isCurrentCycle = !isEvent && pillIndex == currentCycleIndex
+
+                if (isEvent) {
+                    Surface(
+                        modifier = Modifier
+                            .height(42.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .combinedClickable(
+                                onClick = { selectedPillIndex = pillIndex },
+                                onLongClick = null,
+                            ),
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+                        contentColor = if (isSelected) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onTertiaryContainer,
+                    ) {
+                        Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("E${eventPill?.index ?: localEventIdx + 1}", fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                            Text(eventPill?.marker?.label ?: "evento", fontSize = 8.sp, color = (if (isSelected) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onTertiaryContainer).copy(alpha = 0.7f))
+                        }
+                    }
+                } else {
+                    Surface(
+                        modifier = Modifier
+                            .height(42.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .combinedClickable(
+                                onClick = { selectedPillIndex = pillIndex },
+                                onLongClick = null,
+                            ),
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        border = if (isCurrentCycle && !isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary) else null,
+                    ) {
+                        Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Ciclo ${pillIndex + 1}", fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                            Text(
+                                if (isCurrentCycle) "actual · ${cycleLength}sem" else "${cycleLength}sem",
+                                fontSize = 8.sp,
+                                color = (if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant).copy(alpha = 0.7f),
+                            )
+                        }
+                    }
                 }
             }
-            if (onAddWeek != null) {
-                item(key = "add-week") {
-                    AddPlusButton(contentDescription = "Agregar semana", onClick = onAddWeek)
+        }
+
+        Spacer(Modifier.height(2.dp))
+
+        // ─── Week circles row ─────────────────────────────────────────────────
+        val isEventView = selectedPillIndex >= cycleCount
+        val selectedEvent = if (isEventView) eventPills.getOrNull(selectedPillIndex - cycleCount) else null
+        val displayWeeks = if (isEventView) selectedEvent?.week?.let(::listOf).orEmpty() else baseWeeks
+
+        if (displayWeeks.isNotEmpty() || onAddWeek != null) {
+            val listStateWeeks = rememberLazyListState()
+            LaunchedEffect(currentWeekId, displayWeeks.size) {
+                val currentIdx = displayWeeks.indexOfFirst { it.id == currentWeekId }
+                if (currentIdx >= 0) listStateWeeks.animateScrollToItem(maxOf(0, currentIdx - 2))
+            }
+
+            LazyRow(
+                state = listStateWeeks,
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (isEventView) {
+                    itemsIndexed(displayWeeks, key = { _, week -> week.id }) { _, week ->
+                        SimpleWeekCircle(
+                            label = "E${selectedEvent?.index ?: 1}",
+                            subtitle = selectedEvent?.marker?.label,
+                            isSelected = week.id == selectedWeekId,
+                            isCurrent = week.id == currentWeekId,
+                            isLoopWeek = true,
+                            onClick = { onSelectWeek(week.id) },
+                            onLongClick = { onLongPressWeek(week) },
+                        )
+                    }
+                } else {
+                    itemsIndexed(displayWeeks, key = { _, week -> week.id }) { index, week ->
+                        SimpleWeekCircle(
+                            label = "S${index + 1}",
+                            isSelected = week.id == selectedWeekId,
+                            isCurrent = week.id == currentWeekId,
+                            isLoopWeek = false,
+                            onClick = { onSelectWeek(week.id) },
+                            onLongClick = { onLongPressWeek(week) },
+                        )
+                    }
+                }
+                if (onAddWeek != null && !isEventView) {
+                    item(key = "add-week") {
+                        AddPlusButton(contentDescription = "Agregar semana", onClick = onAddWeek)
+                    }
                 }
             }
         }
@@ -465,27 +491,35 @@ private fun SimpleWeekCircle(
     isSelected: Boolean,
     isCurrent: Boolean,
     isLoopWeek: Boolean,
+    isKeyDateWeek: Boolean = false,
+    keyDateLabel: String? = null,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
 ) {
+    val keyDateColor = when (keyDateLabel) {
+        "Comp" -> Color(0xFFF59E0B)
+        else -> MaterialTheme.colorScheme.tertiary
+    }
     val bgColor = when {
         isCurrent -> MaterialTheme.colorScheme.tertiary
         isSelected -> MaterialTheme.colorScheme.primary
+        isKeyDateWeek -> keyDateColor.copy(alpha = 0.82f)
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
     val contentColor = when {
         isCurrent -> MaterialTheme.colorScheme.onTertiary
         isSelected -> MaterialTheme.colorScheme.onPrimary
+        isKeyDateWeek -> Color.Black
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Box(
-        modifier = Modifier.size(46.dp),
+        modifier = Modifier.size(52.dp),
         contentAlignment = Alignment.Center,
     ) {
         Surface(
             modifier = Modifier
-                .size(42.dp)
+                .size(46.dp)
                 .clip(CircleShape)
                 .combinedClickable(
                     onClick = onClick,
@@ -493,6 +527,7 @@ private fun SimpleWeekCircle(
                 )
                 .then(
                     if (isCurrent) Modifier.border(2.dp, Color.Green.copy(alpha = 0.85f), CircleShape)
+                    else if (isKeyDateWeek) Modifier.border(2.dp, keyDateColor, CircleShape)
                     else Modifier
                 ),
             shape = CircleShape,
@@ -506,7 +541,18 @@ private fun SimpleWeekCircle(
                 }
             }
         }
-        if (isLoopWeek && !label.startsWith("L")) {
+        if (isKeyDateWeek) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(16.dp)
+                    .clip(CircleShape)
+                    .background(keyDateColor),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(keyDateLabel?.take(1) ?: "K", fontSize = 8.sp, fontWeight = FontWeight.Black, color = Color.Black)
+            }
+        } else if (isLoopWeek && !label.startsWith("L") && !label.startsWith("E")) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -518,6 +564,20 @@ private fun SimpleWeekCircle(
                 Text("L", fontSize = 7.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onTertiary)
             }
         }
+    }
+}
+
+private data class SimpleEventPill(
+    val index: Int,
+    val marker: RoadmapLoopMarker,
+    val week: WeekWithMeta,
+)
+
+private fun WeekWithMeta.circleSubtitle(): String? {
+    return when {
+        keyDateLabel != null -> keyDateLabel
+        dateRangeLabel != null -> dateRangeLabel.substringBefore("-").trim()
+        else -> null
     }
 }
 

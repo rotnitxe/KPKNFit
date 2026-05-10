@@ -102,7 +102,7 @@ fun LoopsView(
             }
         }
         Text(
-            "Cada loop crea una semana especial completa que se activa según ciclos, no por una fecha fija.",
+            "Un loop es un conjunto de ciclos espejo que termina en una semana de evento editable (E1, E2...).",
             fontSize = 10.sp,
             color = MaterialTheme.colorScheme.primary,
         )
@@ -258,10 +258,10 @@ fun LoopsView(
             title = { Text("Para qué sirven los loops", fontWeight = FontWeight.Black) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Un loop es una semana especial que se repite cada cierta cantidad de ciclos.")
-                    Text("Al crearlo, aparece como una semana real especial del ciclo. Entra a Ver semana para editarla completa.")
-                    Text("KPKN evita cadencias duplicadas para que dos loops no compitan por el mismo lugar del ciclo.")
-                    Text("Ejemplos: descarga cada 4 ciclos, test 1RM cada 8 ciclos, competición cada 12 ciclos.")
+                    Text("Un loop no es el evento: es el tramo completo de ciclos que llevan a ese evento.")
+                    Text("Las semanas S1, S2, etc. son espejo en cada ciclo; si editas S1, cambia S1 en todos los ciclos.")
+                    Text("El evento se muestra como E1, E2... y es una semana real donde puedes crear sesiones.")
+                    Text("Ejemplos: 5 ciclos hasta E1, descarga cada 4 ciclos o competición cada 12 ciclos.")
                 }
             },
             confirmButton = { TextButton(onClick = { showInfo = false }) { Text("Entendido") } },

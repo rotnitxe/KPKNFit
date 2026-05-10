@@ -300,12 +300,28 @@ class WorkoutViewModel(
                 putIfAbsent(exerciseId, profileTag)
             }
         }
-        val (restoredExerciseIdx, restoredSetIdx) = resolveResumePosition(
-            exercises = exercisesForMode,
-            completedSets = restoredCompletedSets,
-            preferredExerciseId = resumedState?.activeExerciseId,
-            preferredSetId = resumedState?.activeSetId,
-        )
+        val restoredSetIdx: Int
+        val restoredExerciseIdx: Int
+        if (resumedState != null) {
+            val directIdx = resumedState.activeExerciseIndex
+                .takeIf { it in exercisesForMode.indices }
+            if (directIdx != null) {
+                restoredExerciseIdx = directIdx
+                restoredSetIdx = resumedState.activeSetIndex.coerceIn(0, exercisesForMode[directIdx].sets.indices.lastOrNull() ?: 0)
+            } else {
+                val (exIdx, setIdx) = resolveResumePosition(
+                    exercises = exercisesForMode,
+                    completedSets = restoredCompletedSets,
+                    preferredExerciseId = resumedState.activeExerciseId,
+                    preferredSetId = resumedState.activeSetId,
+                )
+                restoredExerciseIdx = exIdx
+                restoredSetIdx = setIdx
+            }
+        } else {
+            restoredExerciseIdx = 0
+            restoredSetIdx = 0
+        }
         val restoredStartTime = resumedState?.startTime ?: System.currentTimeMillis()
         val settings = repository.settings.value
         val featureFlags = settings.workoutFeatureFlags
@@ -386,6 +402,7 @@ class WorkoutViewModel(
                     activeExerciseId = initialExercise?.id,
                     activeSetId = initialExercise?.sets?.firstOrNull()?.id,
                     activeSetIndex = 0,
+                    activeExerciseIndex = 0,
                     macroIndex = foundMacroIdx,
                     mesoIndex = foundMesoIdx,
                     weekId = foundWeekId,
@@ -689,6 +706,9 @@ class WorkoutViewModel(
         if (resolvedLoadMode == LoadModeV2.ASSISTED && weight <= 0.0) {
             resolvedLoadMode = LoadModeV2.BODYWEIGHT
         }
+        if (resolvedLoadMode == LoadModeV2.LASTRE && weight <= 0.0) {
+            resolvedLoadMode = LoadModeV2.BODYWEIGHT
+        }
         val resolvedBodyWeight = bodyWeight ?: currentBodyWeight()
         val resolvedTagId = tagId ?: activeProfile?.tagId ?: state.exerciseTags[exercise.id]
         val resolvedSetupId = setupId ?: activeProfile?.setupProfileId ?: plannedSet?.defaultSetupProfileIdV3 ?: plannedSet?.setupId
@@ -754,6 +774,7 @@ class WorkoutViewModel(
             externalLoad = when (resolvedLoadMode) {
                 LoadModeV2.LOAD,
                 LoadModeV2.BODYWEIGHT,
+                LoadModeV2.LASTRE,
                 -> weight.takeIf { it > 0.0 }
 
                 LoadModeV2.ASSISTED -> null
@@ -1981,6 +2002,7 @@ class WorkoutViewModel(
                     activeExerciseId = activeExercise?.id,
                     activeSetId = activeSetId,
                     activeSetIndex = state.currentSetIdx,
+                    activeExerciseIndex = state.currentExerciseIdx,
                     completedSets = state.completedSets,
                     dynamicWeights = state.loadSuggestions.mapValues { it.value.suggestedWeight },
                     loadSuggestionReasons = state.loadSuggestions.mapValues { it.value.reason },
@@ -3851,7 +3873,7 @@ class WorkoutViewModel(
             }
             val loadMode = exercise.sets.getOrNull(setIdx)?.let { inferLoadMode(it) }
             val targetReps = exercise.sets.getOrNull(setIdx)?.targetReps ?: lastSet.reps
-            val lastSetWeight = if (loadMode == LoadModeV2.BODYWEIGHT) {
+            val lastSetWeight = if (loadMode == LoadModeV2.BODYWEIGHT || loadMode == LoadModeV2.LASTRE) {
                 val bodyW = currentBodyWeight() ?: 0.0
                 (lastSet.weight - bodyW).coerceAtLeast(0.0)
             } else {

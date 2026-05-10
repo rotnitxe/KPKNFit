@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import kotlin.math.round
 import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -323,6 +324,38 @@ object WorkoutPerformanceHomologationEngine {
             }
 
             LoadModeV2.BODYWEIGHT -> {
+                val bodyW = entry.bodyWeight
+                if (bodyW == null || bodyW <= 0.0) {
+                    return Suggestion(
+                        suggestedLoad = 0.0,
+                        reason = "Registra tu peso en Nutrición para guía de lastre",
+                        isFailure = entry.reachedFailure,
+                    )
+                }
+                val reps = round(entry.actualValue).toInt().coerceAtLeast(1)
+                val safeReps = reps.coerceAtMost(36)
+                // Brzycki: 1RM = w * 36 / (37 - r)
+                // Can do 4+ reps with +5kg? Derivation: r >= 37 - 33 * bw / (bw + 5)
+                val minRepsFor5kg = 37.0 - 33.0 * bodyW / (bodyW + 5.0)
+                val ready = safeReps.toDouble() >= minRepsFor5kg && score >= 55.0
+                if (ready) {
+                    val projectedReps = round(37.0 - (bodyW + 5.0) * (37.0 - safeReps) / bodyW).toInt()
+                    return Suggestion(
+                        suggestedLoad = 5.0,
+                        reason = "¡Listo para lastre! ~${projectedReps} reps con +5kg",
+                        suggestedLoadMode = LoadModeV2.LASTRE,
+                        isFailure = entry.reachedFailure,
+                    )
+                }
+                val targetMinReps = round(minRepsFor5kg).toInt().coerceAtLeast(safeReps + 1)
+                Suggestion(
+                    suggestedLoad = 0.0,
+                    reason = if (targetMinReps > safeReps) "Progresar reps (meta ~${targetMinReps} para lastre)" else "Solo peso corporal",
+                    isFailure = entry.reachedFailure,
+                )
+            }
+
+            LoadModeV2.LASTRE -> {
                 val external = currentLoad ?: 0.0
                 if (external > 0.0 && (historyColor == HistoryColorV2.YELLOW || score >= 65)) {
                     return Suggestion(
@@ -368,7 +401,7 @@ object WorkoutPerformanceHomologationEngine {
                         return Suggestion(
                             suggestedLoad = 2.5,
                             reason = "Cruce a lastre (BODYWEIGHT + 2.5kg)",
-                            suggestedLoadMode = LoadModeV2.BODYWEIGHT,
+                            suggestedLoadMode = LoadModeV2.LASTRE,
                             isFailure = entry.reachedFailure,
                         )
                     }
@@ -394,6 +427,7 @@ object WorkoutPerformanceHomologationEngine {
     fun computeNormalizedLoad(entry: SetEntryV2): Double = when (entry.loadMode) {
         LoadModeV2.LOAD -> entry.loggedLoad ?: 0.0
         LoadModeV2.BODYWEIGHT -> entry.loggedLoad ?: 0.0
+        LoadModeV2.LASTRE -> entry.loggedLoad ?: 0.0
         LoadModeV2.ASSISTED -> -(entry.loggedLoad ?: 0.0)
     }
 
@@ -423,7 +457,8 @@ object WorkoutPerformanceHomologationEngine {
 
     private fun normalizeLoad(entry: SetEntryV2): Double = when (entry.loadMode) {
         LoadModeV2.LOAD -> entry.loggedLoad ?: 0.0
-        LoadModeV2.BODYWEIGHT -> (entry.bodyWeight ?: 0.0) + (entry.loggedLoad ?: 0.0)
+        LoadModeV2.BODYWEIGHT -> entry.bodyWeight ?: 0.0
+        LoadModeV2.LASTRE -> (entry.bodyWeight ?: 0.0) + (entry.loggedLoad ?: 0.0)
         LoadModeV2.ASSISTED -> max(0.0, (entry.bodyWeight ?: 0.0) - (entry.loggedLoad ?: 0.0))
     }
 

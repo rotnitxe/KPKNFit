@@ -156,6 +156,31 @@ class ProgramDetailHelpersTest {
         assertEquals(2, weeks[1].mesoIndex)
     }
 
+    @Test
+    fun getWeeksForBlock_marks_competition_week_from_assigned_range() {
+        val program = makeMultiBlockProgram().copy(
+            structure = ProgramStructure.COMPLEX,
+            timelineStartDate = "2026-01-05",
+            keyDates = listOf(
+                ProgramKeyDate(
+                    id = "comp1",
+                    title = "Competición",
+                    type = KeyDateType.COMPETITION,
+                    startDate = "2026-01-19",
+                    endDate = "2026-01-25",
+                    eventDate = "2026-01-22",
+                )
+            ),
+        )
+        val roadmap = ProgramDetailHelpers.buildRoadmapBlocks(program)
+        val weeks = ProgramDetailHelpers.getWeeksForBlock("b2", roadmap, program)
+
+        assertEquals("19 ene-8 feb", roadmap[1].dateRangeLabel)
+        assertEquals("19 ene-25 ene", weeks[0].dateRangeLabel)
+        assertEquals("Comp", weeks[0].keyDateLabel)
+        assertEquals(KeyDateType.COMPETITION, weeks[0].keyDateType)
+    }
+
     // ─── getDisplayedSessions ───
 
     @Test

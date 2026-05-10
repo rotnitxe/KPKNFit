@@ -432,6 +432,7 @@ private fun TrainingPanel(
             currentWeekId = currentWeekId?.currentWeekId,
             isSimpleProgram = program.isSimpleTemporalProgram,
             simpleLoopMarkers = simpleRoadmapLoopMarkers,
+            currentCycle = program.loopState?.currentCycle ?: 0,
             onSelectBlock = { viewModel.selectBlock(it) },
             onSelectWeek = { viewModel.selectWeek(it) },
             onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },

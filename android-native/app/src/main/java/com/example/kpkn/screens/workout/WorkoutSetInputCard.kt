@@ -405,7 +405,7 @@ internal fun SetInputCardV2(
             (valueText.toIntOrNull() ?: 0).toDouble()
         }
         
-        if (weight <= 0.0 && loadMode == LoadModeV2.LOAD) {
+        if (weight <= 0.0 && (loadMode == LoadModeV2.LOAD || loadMode == LoadModeV2.LASTRE)) {
             weightError = true
         }
         if (value <= 0.0) {
@@ -1568,19 +1568,22 @@ private fun plannedWorkoutIntensityLabel(set: ExerciseSet): String = when {
 
 private fun workoutLoadFieldLabel(mode: LoadModeV2): String = when (mode) {
     LoadModeV2.LOAD -> "Carga (kg)"
-    LoadModeV2.BODYWEIGHT -> "Lastre (kg)"
+    LoadModeV2.BODYWEIGHT -> "Peso corporal"
+    LoadModeV2.LASTRE -> "Lastre (kg)"
     LoadModeV2.ASSISTED -> "Asistencia (kg)"
 }
 
 private fun loadModeButtonLabel(mode: LoadModeV2): String = when (mode) {
     LoadModeV2.LOAD -> "Carga"
-    LoadModeV2.BODYWEIGHT -> "Lastre"
+    LoadModeV2.BODYWEIGHT -> "Peso corp."
+    LoadModeV2.LASTRE -> "Lastre"
     LoadModeV2.ASSISTED -> "Asistencia"
 }
 
 private fun nextWorkoutLoadMode(mode: LoadModeV2): LoadModeV2 = when (mode) {
     LoadModeV2.LOAD -> LoadModeV2.BODYWEIGHT
-    LoadModeV2.BODYWEIGHT -> LoadModeV2.ASSISTED
+    LoadModeV2.BODYWEIGHT -> LoadModeV2.LASTRE
+    LoadModeV2.LASTRE -> LoadModeV2.ASSISTED
     LoadModeV2.ASSISTED -> LoadModeV2.LOAD
 }
 

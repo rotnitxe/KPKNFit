@@ -91,6 +91,7 @@ fun HomeScreen(
     val todaySessions by viewModel.todaySessions.collectAsState()
     val activeProgramId by viewModel.activeProgramId.collectAsState()
     val hasActiveProgram by viewModel.hasActiveProgram.collectAsState()
+    val competitionCountdown by viewModel.competitionCountdown.collectAsState()
     val dailyCalorieGoal by viewModel.dailyCalorieGoal.collectAsState()
     val todayNutritionTotals by viewModel.todayNutritionTotals.collectAsState()
     val greeting = viewModel.getGreeting()
@@ -203,6 +204,7 @@ fun HomeScreen(
                 perMuscle = augePerMuscle,
                 ringsViewMode = ringsViewMode,
                 todaySessions = todaySessions,
+                competitionCountdown = competitionCountdown,
                 hasActiveProgram = hasActiveProgram,
                 activeProgramId = activeProgramId,
                 listState = listState,
@@ -275,6 +277,7 @@ private fun HomeWithProgram(
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
     ringsViewMode: HomeViewModel.RingsViewMode,
     todaySessions: List<TodaySessionItem>,
+    competitionCountdown: CompetitionCountdown?,
     hasActiveProgram: Boolean,
     activeProgramId: String?,
     listState: androidx.compose.foundation.lazy.LazyListState,
@@ -354,6 +357,15 @@ private fun HomeWithProgram(
             }
         }
 
+        competitionCountdown?.let { countdown ->
+            item {
+                CompetitionCountdownCard(
+                    countdown = countdown,
+                    onClick = { onNavigateToProgram(countdown.programId) },
+                )
+            }
+        }
+
         item {
             HomeSessionSection(
                 sessions = todaySessions,
@@ -388,6 +400,66 @@ private fun HomeWithProgram(
             Spacer(Modifier.height(16.dp))
             HomeWikiLabSection(onNavigate = onNavigate)
             Spacer(Modifier.height(80.dp))
+        }
+    }
+}
+
+@Composable
+private fun CompetitionCountdownCard(
+    countdown: CompetitionCountdown,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
+        color = Color(0xFFF59E0B).copy(alpha = 0.14f),
+        tonalElevation = 2.dp,
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(58.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFFF59E0B)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        countdown.countdownLabel.substringBefore(" "),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color.Black,
+                        maxLines = 1,
+                    )
+                    Text("COMP", fontSize = 9.sp, fontWeight = FontWeight.Black, color = Color.Black.copy(alpha = 0.76f))
+                }
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text("Cuenta atrás de competición", fontWeight = FontWeight.Black, fontSize = 13.sp)
+                Text(countdown.programName, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "${countdown.countdownLabel} · ${countdown.competitionDateLabel}",
+                    fontSize = 11.sp,
+                    color = Color(0xFFF59E0B),
+                    fontWeight = FontWeight.Bold,
+                )
+                countdown.competitionWeekLabel?.let { week ->
+                    Text(
+                        "Semana reservada: $week",
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Text("Ver", fontSize = 11.sp, fontWeight = FontWeight.Black, color = Color(0xFFF59E0B))
         }
     }
 }

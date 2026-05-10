@@ -169,6 +169,7 @@ data class ProgramKeyDate(
     val type: KeyDateType = KeyDateType.CUSTOM,
     val startDate: String,
     val endDate: String? = null,
+    val eventDate: String? = null,
     val notes: String? = null,
 )
 

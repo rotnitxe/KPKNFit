@@ -4,12 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.ActiveProgramState
+import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.models.NutritionStatus
+import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.domain.nutrition.deriveMacroGoals
@@ -24,7 +26,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
 import java.util.Calendar
+import java.util.Locale
 
 /**
  * HomeViewModel — State management for Home Screen.
@@ -54,6 +61,11 @@ class HomeViewModel : ViewModel() {
         .map { it != null }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
+
+    val competitionCountdown: StateFlow<CompetitionCountdown?> = activeProgram
+        .map { program -> program?.let(::buildCompetitionCountdown) }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     // ─── AUGE batteries (wired from AugeViewModel at composition) ─────────
 
@@ -114,6 +126,52 @@ class HomeViewModel : ViewModel() {
     private fun currentDayOfWeek(): Int {
         val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
         return if (today == Calendar.SUNDAY) 7 else today - 1
+    }
+
+    private fun buildCompetitionCountdown(program: Program): CompetitionCountdown? {
+        if (program.isSimpleTemporalProgram) return null
+        val keyDate = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION } ?: return null
+        val competitionDate = parseProgramDate(keyDate.eventDate ?: keyDate.startDate) ?: return null
+        val weekStart = parseProgramDate(keyDate.startDate)
+        val weekEnd = parseProgramDate(keyDate.endDate)
+        val daysUntil = ChronoUnit.DAYS.between(LocalDate.now(), competitionDate)
+
+        return CompetitionCountdown(
+            programId = program.id,
+            programName = program.name,
+            competitionDate = competitionDate.toString(),
+            competitionDateLabel = formatHomeDate(competitionDate),
+            daysUntil = daysUntil,
+            countdownLabel = formatCountdown(daysUntil),
+            competitionWeekLabel = if (weekStart != null && weekEnd != null) {
+                "${formatHomeDate(weekStart)} → ${formatHomeDate(weekEnd)}"
+            } else null,
+        )
+    }
+
+    private fun parseProgramDate(raw: String?): LocalDate? {
+        if (raw.isNullOrBlank()) return null
+        return try {
+            LocalDate.parse(raw, DateTimeFormatter.ISO_LOCAL_DATE)
+        } catch (_: DateTimeParseException) {
+            null
+        }
+    }
+
+    private fun formatHomeDate(date: LocalDate): String {
+        return date.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("es-CL")))
+    }
+
+    private fun formatCountdown(days: Long): String = when {
+        days < 0 -> "Hace ${kotlin.math.abs(days)} días"
+        days == 0L -> "Hoy"
+        days == 1L -> "1 día"
+        days < 7 -> "$days días"
+        else -> {
+            val weeks = days / 7
+            val rest = days % 7
+            if (rest == 0L) "$weeks semanas" else "$weeks sem $rest días"
+        }
     }
 
     private fun resolveWeekLocation(
@@ -428,6 +486,16 @@ data class RelativeStrengthData(
     val deadliftRM: Double,
     val totalKg: Double,
     val relativeStrength: Double,
+)
+
+data class CompetitionCountdown(
+    val programId: String,
+    val programName: String,
+    val competitionDate: String,
+    val competitionDateLabel: String,
+    val daysUntil: Long,
+    val countdownLabel: String,
+    val competitionWeekLabel: String?,
 )
 
 data class HomeNutritionSnapshot(

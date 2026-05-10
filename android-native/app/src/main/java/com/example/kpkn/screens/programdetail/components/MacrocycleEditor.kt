@@ -1,19 +1,18 @@
 package com.example.kpkn.screens.programdetail.components
 
+import android.app.DatePickerDialog
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -38,6 +37,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,8 +45,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,6 +81,8 @@ import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -91,12 +96,14 @@ fun MacrocycleEditor(
     var expandedBlocks by remember { mutableStateOf(setOf("0")) }
     var editingBlock by remember { mutableStateOf<EditingItem?>(null) }
     var editingWeek by remember { mutableStateOf<EditingItem?>(null) }
+    var editingExistingWeek by remember { mutableStateOf<EditingWeekTarget?>(null) }
     var editingKeyDate by remember { mutableStateOf<ProgramKeyDate?>(null) }
     var pendingDelete by remember { mutableStateOf<DeleteTarget?>(null) }
     var pendingSimpleToAdvanced by remember { mutableStateOf(false) }
-    var editingTimelineStartDate by remember { mutableStateOf(program.timelineStartDate ?: "") }
+    var editingTimelineStartDate by remember(program.timelineStartDate) { mutableStateOf(program.timelineStartDate ?: "") }
     var editingCompetitionDate by remember(program.keyDates) {
-        mutableStateOf(program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }?.startDate.orEmpty())
+        val competition = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }
+        mutableStateOf((competition?.eventDate ?: competition?.startDate).orEmpty())
     }
     var showKeyDatesSheet by remember { mutableStateOf(false) }
     var showAdvancedRoadmap by remember { mutableStateOf(false) }
@@ -160,8 +167,9 @@ fun MacrocycleEditor(
                         val weekName = "Semana ${program.countWeeksBeforeAppendingToBlock(macroIdx, blockIdx) + 1}"
                         onUpdateProgram(program.addWeekToBlock(macroIdx, blockIdx, weekName).normalizedTemporalStructure())
                     },
-                    onDeleteWeek = { mesoIdx, weekIdx ->
-                        pendingDelete = DeleteTarget.Week(macroIdx, blockIdx, mesoIdx, weekIdx)
+                    onSelectWeek = { weekId -> onFocusWeek(block.id, weekId) },
+                    onEditWeek = { mesoIdx, weekIdx, week ->
+                        editingExistingWeek = EditingWeekTarget(macroIdx, blockIdx, mesoIdx, weekIdx, week)
                     },
                 )
             }
@@ -208,6 +216,33 @@ fun MacrocycleEditor(
                 editingWeek = null
             },
             onDismiss = { editingWeek = null },
+        )
+    }
+
+    editingExistingWeek?.let { target ->
+        WeekMetadataDialog(
+            week = target.week,
+            canDelete = program.totalProgramWeeks > 1,
+            onSave = { name, description ->
+                val updated = program.updateWeekAt(
+                    macroIndex = target.macroIndex,
+                    blockIndex = target.blockIndex,
+                    mesoIndex = target.mesoIndex,
+                    weekIndex = target.weekIndex,
+                ) { week ->
+                    week.copy(
+                        name = name.trim().ifBlank { week.name },
+                        description = description?.trim()?.takeIf { it.isNotBlank() },
+                    )
+                }
+                onUpdateProgram(updated.normalizedTemporalStructure())
+                editingExistingWeek = null
+            },
+            onDelete = {
+                pendingDelete = DeleteTarget.Week(target.macroIndex, target.blockIndex, target.mesoIndex, target.weekIndex)
+                editingExistingWeek = null
+            },
+            onDismiss = { editingExistingWeek = null },
         )
     }
 
@@ -284,18 +319,26 @@ fun MacrocycleEditor(
 
     if (!temporalInsight.isSimple && showKeyDatesSheet && editingKeyDate == null) {
         KeyDatesManagementSheet(
+            program = program,
             timelineStartDate = editingTimelineStartDate,
             competitionDate = editingCompetitionDate,
             onTimelineStartDateChange = { editingTimelineStartDate = it },
             onCompetitionDateChange = { editingCompetitionDate = it },
             onSave = {
                 val competition = editingCompetitionDate.trim().takeIf { it.isNotBlank() }?.let { date ->
+                    val calendarProgram = program.copy(
+                        timelineStartDate = editingTimelineStartDate.trim().ifBlank { null },
+                        keyDates = program.keyDates.filterNot { it.type == KeyDateType.COMPETITION },
+                    )
+                    val competitionDay = parseProgramDate(date)
+                    val assignedWeek = competitionDay?.let { findProgramWeekRange(calendarProgram, it) }
                     ProgramKeyDate(
                         id = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }?.id ?: "competition_${System.nanoTime()}",
                         title = "Competición",
                         type = KeyDateType.COMPETITION,
-                        startDate = date,
-                        endDate = null,
+                        startDate = assignedWeek?.first?.toString() ?: date,
+                        endDate = assignedWeek?.second?.toString(),
+                        eventDate = date,
                     )
                 }
                 onUpdateProgram(
@@ -433,6 +476,7 @@ private fun ToolbarStatChip(label: String, value: String) {
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 private fun KeyDatesManagementSheet(
+    program: Program,
     timelineStartDate: String,
     competitionDate: String,
     onTimelineStartDateChange: (String) -> Unit,
@@ -440,6 +484,12 @@ private fun KeyDatesManagementSheet(
     onSave: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val preview = remember(program, timelineStartDate, competitionDate) {
+        buildCalendarPreview(program, timelineStartDate, competitionDate)
+    }
+    val canSave = timelineStartDate.isBlank() || parseProgramDate(timelineStartDate) != null
+    val canSaveCompetition = competitionDate.isBlank() || parseProgramDate(competitionDate) != null
+
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -449,27 +499,140 @@ private fun KeyDatesManagementSheet(
         ) {
             Text("Calendario del programa", fontWeight = FontWeight.Black, fontSize = 18.sp)
             Text(
-                "Define un inicio estimado y una competición estática. El fin se calcula automáticamente según las semanas del programa.",
+                "Elige fechas con el selector nativo de Android. La competición se asigna a la semana completa que contiene ese día para que puedas programarla en la vista de Semana.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            OutlinedTextField(
+
+            NativeDateField(
+                label = "Inicio estimado",
                 value = timelineStartDate,
+                emptyLabel = "Seleccionar inicio",
                 onValueChange = onTimelineStartDateChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Inicio estimado (YYYY-MM-DD)") },
-                singleLine = true,
             )
-            OutlinedTextField(
+            NativeDateField(
+                label = "Día de competición",
                 value = competitionDate,
+                emptyLabel = "Seleccionar competición",
                 onValueChange = onCompetitionDateChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Fecha de competición (YYYY-MM-DD)") },
-                singleLine = true,
             )
-            Button(onClick = onSave, modifier = Modifier.fillMaxWidth()) { Text("Guardar calendario") }
+
+            CalendarPreviewCard(preview = preview)
+
+            Button(
+                onClick = onSave,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = canSave && canSaveCompetition,
+            ) { Text("Guardar calendario") }
             Spacer(Modifier.height(16.dp))
         }
+    }
+}
+
+@Composable
+private fun NativeDateField(
+    label: String,
+    value: String,
+    emptyLabel: String,
+    onValueChange: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    val parsed = parseProgramDate(value)
+    val initialDate = parsed ?: LocalDate.now()
+
+    fun showPicker() {
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                onValueChange(LocalDate.of(year, month + 1, dayOfMonth).toString())
+            },
+            initialDate.year,
+            initialDate.monthValue - 1,
+            initialDate.dayOfMonth,
+        ).show()
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = parsed?.let { formatFullDate(it) } ?: "",
+                onValueChange = {},
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(label) },
+                placeholder = { Text(emptyLabel) },
+                readOnly = true,
+                singleLine = true,
+                trailingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable { showPicker() },
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = { showPicker() }) { Text("Abrir calendario") }
+            if (parsed != null) {
+                TextButton(onClick = { onValueChange("") }) { Text("Limpiar") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CalendarPreviewCard(preview: CalendarPreview) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("Fechas estimadas", fontWeight = FontWeight.Black, fontSize = 13.sp)
+            when {
+                preview.startDate == null -> Text(
+                    "Selecciona un inicio estimado para calcular cuándo comienza cada bloque.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                preview.blockStarts.isEmpty() -> Text(
+                    "El programa aún no tiene semanas suficientes para proyectar bloques.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                else -> {
+                    preview.programEnd?.let { end ->
+                        CalendarPreviewLine("Duración estimada", "${formatFullDate(preview.startDate!!)} → ${formatFullDate(end)}")
+                    }
+                    preview.daysUntilCompetition?.let { days ->
+                        CalendarPreviewLine("Falta para competir", formatDaysUntil(days))
+                    }
+                    preview.competitionWeekRange?.let { range ->
+                        CalendarPreviewLine("Semana asignada", "${formatFullDate(range.first)} → ${formatFullDate(range.second)}")
+                    }
+                    preview.blockStarts.take(5).forEach { block ->
+                        CalendarPreviewLine(
+                            block.blockName,
+                            "inicia ${formatFullDate(block.startDate)} · ${block.weeks} sem",
+                        )
+                    }
+                }
+            }
+            preview.messages.forEach { message ->
+                Text(
+                    message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFFF59E0B),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CalendarPreviewLine(label: String, value: String) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, textAlign = TextAlign.End)
     }
 }
 
@@ -496,21 +659,26 @@ private fun AdvancedRoadmapCard(
                 val segments = roadmap.blockSegments()
                 val totalWeeks = roadmap.weekSlots.size.coerceAtLeast(1)
                 val programEnd = roadmap.weekSlots.lastOrNull()?.weekEnd
-                val competition = roadmap.competitionDate
+                val competitionSlot = roadmap.competitionSlot()
+                val competitionMark = competitionSlot?.marks?.firstOrNull { it.type == KeyDateType.COMPETITION }
+                val competition = competitionMark?.eventDate ?: roadmap.competitionDate
                 Text(
-                    "${roadmap.startDate} → ${programEnd ?: roadmap.startDate} · $totalWeeks semanas",
+                    "${formatFullDate(roadmap.startDate)} → ${programEnd?.let { formatFullDate(it) } ?: formatFullDate(roadmap.startDate)} · $totalWeeks semanas",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Box(modifier = Modifier.fillMaxWidth().height(68.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().height(24.dp).align(Alignment.Center),
-                    ) {
+                Text(
+                    "Guía: los bloques muestran el plan completo y los puntos son semanas reales. La competición se reserva como semana completa para que puedas entrar y programar el día exacto.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth().height(26.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                         segments.forEachIndexed { index, segment ->
                             Box(
                                 modifier = Modifier
                                     .weight(segment.weeks.toFloat().coerceAtLeast(1f))
-                                    .height(24.dp)
+                                    .height(26.dp)
                                     .background(roadmapSegmentColor(index), RoundedCornerShape(999.dp))
                                     .clickable { onFocusWeek(segment.firstBlockId, segment.firstWeekId) },
                                 contentAlignment = Alignment.Center,
@@ -519,28 +687,142 @@ private fun AdvancedRoadmapCard(
                             }
                         }
                     }
-                    if (competition != null && roadmap.startDate != null) {
-                        val competitionWeekStart = competition.minusDays((competition.dayOfWeek.value - 1).toLong())
-                        val rawIndex = java.time.temporal.ChronoUnit.WEEKS.between(roadmap.startDate, competitionWeekStart).toInt()
-                        val markerBefore = rawIndex.coerceIn(0, totalWeeks)
-                        Row(modifier = Modifier.fillMaxWidth().height(60.dp).align(Alignment.TopStart), verticalAlignment = Alignment.Top) {
-                            if (markerBefore > 0) Spacer(Modifier.weight(markerBefore.toFloat()))
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Box(Modifier.width(3.dp).height(44.dp).background(Color(0xFFF59E0B), RoundedCornerShape(999.dp)))
-                                Text("Comp", fontSize = 9.sp, fontWeight = FontWeight.Black, color = Color(0xFFF59E0B))
-                            }
-                            val after = (totalWeeks - markerBefore).coerceAtLeast(0)
-                            if (after > 0) Spacer(Modifier.weight(after.toFloat()))
+
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(vertical = 4.dp),
+                    ) {
+                        itemsIndexed(roadmap.weekSlots, key = { _, slot -> slot.weekId }) { index, slot ->
+                            RoadmapWeekDot(
+                                index = index + 1,
+                                slot = slot,
+                                onClick = { onFocusWeek(slot.blockId, slot.weekId) },
+                            )
                         }
                     }
                 }
-                competition?.let {
-                    Text(
-                        "Competición: semana que contiene $it. Es estática y puede solaparse con un bloque si el calendario no calza.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFFF59E0B),
+
+                if (competitionSlot != null && competitionMark != null) {
+                    CompetitionWeekCard(
+                        weekIndex = roadmap.weekSlots.indexOf(competitionSlot) + 1,
+                        slot = competitionSlot,
+                        mark = competitionMark,
+                        onFocusWeek = { onFocusWeek(competitionSlot.blockId, competitionSlot.weekId) },
+                        onCreateCompetitionSession = {
+                            val preferredDay = (competitionMark.eventDate ?: competitionSlot.weekStart).dayOfWeek.value
+                            onCreateSessionForWeek(competitionSlot.weekId, preferredDay)
+                        },
                     )
+                } else if (competition != null) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF59E0B).copy(alpha = 0.13f)),
+                        border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.42f)),
+                    ) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("Competición fuera del programa", fontWeight = FontWeight.Black, color = Color(0xFFF59E0B))
+                            Text(
+                                "${formatFullDate(competition)} no cae dentro de las $totalWeeks semanas proyectadas. Ajusta el inicio estimado, añade semanas o cambia la fecha para que KPKN pueda reservar la semana completa.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                 }
+
+                roadmap.weekSlots.filter { slot -> slot.marks.any { it.type != KeyDateType.COMPETITION } }.take(2).forEach { slot ->
+                    val mark = slot.marks.first { it.type != KeyDateType.COMPETITION }
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)),
+                    ) {
+                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            KeyDateTypeBadge(mark.type)
+                            Column(Modifier.weight(1f)) {
+                                Text(mark.title, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                Text("Semana ${slot.weekName} · ${slot.dateRangeLabel}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RoadmapWeekDot(
+    index: Int,
+    slot: AdvancedWeekSlot,
+    onClick: () -> Unit,
+) {
+    val competitionMark = slot.marks.firstOrNull { it.type == KeyDateType.COMPETITION }
+    val hasKeyDate = slot.marks.isNotEmpty()
+    val accent = if (competitionMark != null) Color(0xFFF59E0B) else MaterialTheme.colorScheme.tertiary
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Surface(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onClick),
+            shape = CircleShape,
+            color = if (hasKeyDate) accent else MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = if (hasKeyDate) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
+            border = if (hasKeyDate) BorderStroke(2.dp, accent.copy(alpha = 0.9f)) else null,
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                Text("S$index", fontSize = 10.sp, fontWeight = FontWeight.Black)
+                if (competitionMark != null) Text("Comp", fontSize = 7.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+        Text(
+            slot.weekStart.format(DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es-CL"))),
+            fontSize = 8.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun CompetitionWeekCard(
+    weekIndex: Int,
+    slot: AdvancedWeekSlot,
+    mark: KeyDateMark,
+    onFocusWeek: () -> Unit,
+    onCreateCompetitionSession: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF59E0B).copy(alpha = 0.15f)),
+        border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.55f)),
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .background(Color(0xFFF59E0B), RoundedCornerShape(999.dp))
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                ) {
+                    Text("Comp", fontWeight = FontWeight.Black, fontSize = 10.sp, color = Color.Black)
+                }
+                Column(Modifier.weight(1f)) {
+                    Text("Semana de competición · S$weekIndex", fontWeight = FontWeight.Black)
+                    Text(slot.blockName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Text(
+                "Día clave: ${formatFullDate(mark.eventDate ?: slot.weekStart)}. Semana reservada: ${formatFullDate(slot.weekStart)} → ${formatFullDate(slot.weekEnd)}.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onFocusWeek, modifier = Modifier.weight(1f)) { Text("Ver semana") }
+                OutlinedButton(onClick = onCreateCompetitionSession, modifier = Modifier.weight(1f)) { Text("Crear día") }
             }
         }
     }
@@ -605,6 +887,7 @@ private fun KeyDateEditSheet(
                                 type = type,
                                 startDate = startDate.trim(),
                                 endDate = endDate.trim().ifBlank { null },
+                                eventDate = if (type == KeyDateType.COMPETITION) startDate.trim() else keyDate.eventDate,
                                 notes = notes.trim().ifBlank { null },
                             )
                         )
@@ -731,7 +1014,8 @@ private fun BlockNode(
     onEditBlock: () -> Unit,
     onDeleteBlock: () -> Unit,
     onAddWeek: () -> Unit,
-    onDeleteWeek: (Int, Int) -> Unit,
+    onSelectWeek: (String) -> Unit,
+    onEditWeek: (Int, Int, ProgramWeek) -> Unit,
 ) {
     val flatWeeks = block.mesocycles.flatMapIndexed { mesoIndex, meso ->
         meso.weeks.mapIndexed { weekIndex, week -> Triple(mesoIndex, weekIndex, week) }
@@ -767,7 +1051,8 @@ private fun BlockNode(
                 Column(modifier = Modifier.padding(start = 24.dp, end = 14.dp, bottom = 14.dp)) {
                     WeekPillGrid(
                         weeks = flatWeeks,
-                        onDeleteWeek = { mesoIdx, weekIdx -> onDeleteWeek(mesoIdx, weekIdx) },
+                        onSelectWeek = onSelectWeek,
+                        onEditWeek = onEditWeek,
                     )
                     Spacer(Modifier.height(8.dp))
                     OutlinedButton(onClick = onAddWeek, modifier = Modifier.fillMaxWidth()) {
@@ -784,7 +1069,8 @@ private fun BlockNode(
 @Composable
 private fun WeekPillGrid(
     weeks: List<Triple<Int, Int, ProgramWeek>>,
-    onDeleteWeek: (Int, Int) -> Unit,
+    onSelectWeek: (String) -> Unit,
+    onEditWeek: (Int, Int, ProgramWeek) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -804,7 +1090,10 @@ private fun WeekPillGrid(
                                         else MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                                         RoundedCornerShape(999.dp),
                                     )
-                                    .clickable { onDeleteWeek(mesoIdx, weekIdx) }
+                                    .combinedClickable(
+                                        onClick = { onSelectWeek(week.id) },
+                                        onLongClick = { onEditWeek(mesoIdx, weekIdx, week) },
+                                    )
                                     .padding(horizontal = 10.dp, vertical = 6.dp),
                             ) {
                                 Text(if (week.isLoopWeek) "Loop · ${week.name}" else week.name, fontSize = 10.sp, fontWeight = FontWeight.Bold)
@@ -899,6 +1188,63 @@ private fun WeekEditDialog(
 }
 
 @Composable
+private fun WeekMetadataDialog(
+    week: ProgramWeek,
+    canDelete: Boolean,
+    onSave: (String, String?) -> Unit,
+    onDelete: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var name by remember(week.id) { mutableStateOf(week.name) }
+    var description by remember(week.id) { mutableStateOf(week.description.orEmpty()) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Editar semana", fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    "Toca una semana para verla. Mantener presionado abre esta edición segura.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nombre") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Descripción de la semana") },
+                    minLines = 2,
+                    maxLines = 4,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSave(name, description) },
+                enabled = name.isNotBlank(),
+            ) { Text("Guardar") }
+        },
+        dismissButton = {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (canDelete) {
+                    TextButton(onClick = onDelete) {
+                        Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    }
+                }
+                TextButton(onClick = onDismiss) { Text("Cancelar") }
+            }
+        },
+    )
+}
+
+@Composable
 private fun StatChip(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(value, fontSize = 16.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
@@ -907,6 +1253,23 @@ private fun StatChip(label: String, value: String) {
 }
 
 private data class ProgramStats(val weeks: Int, val sessions: Int, val mesos: Int, val blocks: Int)
+
+private data class CalendarPreview(
+    val startDate: LocalDate?,
+    val programEnd: LocalDate?,
+    val competitionDate: LocalDate?,
+    val competitionWeekRange: Pair<LocalDate, LocalDate>?,
+    val daysUntilCompetition: Long?,
+    val blockStarts: List<BlockStartPreview>,
+    val messages: List<String>,
+)
+
+private data class BlockStartPreview(
+    val blockName: String,
+    val startDate: LocalDate,
+    val endDate: LocalDate,
+    val weeks: Int,
+)
 
 private data class TemporalInsight(
     val isSimple: Boolean,
@@ -927,6 +1290,14 @@ private data class EditingItem(
     val blockIndex: Int? = null,
     val mesoIndex: Int? = null,
     val data: Any? = null,
+)
+
+private data class EditingWeekTarget(
+    val macroIndex: Int,
+    val blockIndex: Int,
+    val mesoIndex: Int,
+    val weekIndex: Int,
+    val week: ProgramWeek,
 )
 
 private sealed class DeleteTarget {
@@ -1133,6 +1504,35 @@ private fun Program.removeWeek(macroIndex: Int, blockIndex: Int, mesoIndex: Int,
     )
 }
 
+private fun Program.updateWeekAt(
+    macroIndex: Int,
+    blockIndex: Int,
+    mesoIndex: Int,
+    weekIndex: Int,
+    update: (ProgramWeek) -> ProgramWeek,
+): Program {
+    return copy(
+        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
+            if (currentMacroIndex != macroIndex) macro
+            else macro.copy(
+                blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
+                    if (currentBlockIndex != blockIndex) block
+                    else block.copy(
+                        mesocycles = block.mesocycles.mapIndexed { currentMesoIndex, meso ->
+                            if (currentMesoIndex != mesoIndex) meso
+                            else meso.copy(
+                                weeks = meso.weeks.mapIndexed { currentWeekIndex, week ->
+                                    if (currentWeekIndex == weekIndex) update(week) else week
+                                }
+                            )
+                        }
+                    )
+                }
+            )
+        }
+    )
+}
+
 private data class AdvancedRoadmap(
     val startDate: LocalDate?,
     val weekSlots: List<AdvancedWeekSlot>,
@@ -1157,7 +1557,7 @@ private data class AdvancedWeekSlot(
     val marks: List<KeyDateMark>,
 ) {
     val dateRangeLabel: String
-        get() = "${weekStart} → ${weekEnd}"
+        get() = "${formatFullDate(weekStart)} → ${formatFullDate(weekEnd)}"
 }
 
 private data class KeyDateMark(
@@ -1165,6 +1565,7 @@ private data class KeyDateMark(
     val title: String,
     val type: KeyDateType,
     val kind: KeyDateMarkKind,
+    val eventDate: LocalDate?,
 ) {
     val isActionable: Boolean
         get() = true
@@ -1237,7 +1638,9 @@ private fun buildAdvancedRoadmap(program: Program): AdvancedRoadmap {
         startDate = startDate,
         weekSlots = slots,
         keyDateTracks = tracks,
-        competitionDate = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }?.startDate?.let(::parseProgramDate),
+        competitionDate = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }?.let { keyDate ->
+            parseProgramDate(keyDate.eventDate) ?: parseProgramDate(keyDate.startDate)
+        },
     )
 }
 
@@ -1275,15 +1678,17 @@ private fun buildKeyDateMark(
     weekStart: LocalDate,
     weekEnd: LocalDate,
 ): KeyDateMark? {
-    val start = parseProgramDate(keyDate.startDate) ?: return null
+    val eventDate = parseProgramDate(keyDate.eventDate)
+    val start = parseProgramDate(keyDate.startDate) ?: eventDate ?: return null
     val end = parseProgramDate(keyDate.endDate) ?: start
     if (end < weekStart || start > weekEnd) return null
-    val kind = if (start == end) KeyDateMarkKind.SPECIAL_SESSION else KeyDateMarkKind.SPECIAL_WEEK
+    val kind = KeyDateMarkKind.SPECIAL_WEEK
     return KeyDateMark(
         keyDateId = keyDate.id,
         title = keyDate.title,
         type = keyDate.type,
         kind = kind,
+        eventDate = eventDate ?: start,
     )
 }
 
@@ -1293,6 +1698,100 @@ private fun parseProgramDate(raw: String?): LocalDate? {
         LocalDate.parse(raw, DateTimeFormatter.ISO_LOCAL_DATE)
     } catch (_: DateTimeParseException) {
         null
+    }
+}
+
+private fun buildCalendarPreview(
+    program: Program,
+    timelineStartDate: String,
+    competitionDate: String,
+): CalendarPreview {
+    val start = parseProgramDate(timelineStartDate)
+    val competition = parseProgramDate(competitionDate)
+    val blockStarts = mutableListOf<BlockStartPreview>()
+    val messages = mutableListOf<String>()
+    var programEnd: LocalDate? = null
+
+    if (start != null) {
+        var cursor: LocalDate = start
+        program.macrocycles.forEach { macro ->
+            macro.blocks.forEach { block ->
+                val weeks = block.mesocycles.sumOf { it.weeks.size }
+                if (weeks > 0) {
+                    val blockStart = cursor
+                    val blockEnd = cursor.plusWeeks(weeks.toLong()).minusDays(1)
+                    blockStarts += BlockStartPreview(
+                        blockName = block.name,
+                        startDate = blockStart,
+                        endDate = blockEnd,
+                        weeks = weeks,
+                    )
+                    cursor = cursor.plusWeeks(weeks.toLong())
+                    programEnd = blockEnd
+                }
+            }
+        }
+    }
+
+    val projectedProgram = program.copy(timelineStartDate = start?.toString())
+    val competitionWeekRange = competition?.let { findProgramWeekRange(projectedProgram, it) }
+    val daysUntilCompetition = competition?.let { ChronoUnit.DAYS.between(LocalDate.now(), it) }
+
+    if (competition != null && start == null) {
+        messages += "Selecciona inicio estimado para asignar la competición a una semana del programa."
+    }
+    if (competition != null && start != null && competitionWeekRange == null) {
+        messages += "La competición no cae dentro de las semanas actuales del programa. Ajusta fechas o agrega semanas."
+    }
+    if (competitionWeekRange != null) {
+        messages += "La semana completa de competición se marcará como especial en el roadmap y en los puntos superiores."
+    }
+
+    return CalendarPreview(
+        startDate = start,
+        programEnd = programEnd,
+        competitionDate = competition,
+        competitionWeekRange = competitionWeekRange,
+        daysUntilCompetition = daysUntilCompetition,
+        blockStarts = blockStarts,
+        messages = messages,
+    )
+}
+
+private fun findProgramWeekRange(program: Program, targetDate: LocalDate): Pair<LocalDate, LocalDate>? {
+    var cursor = parseProgramDate(program.timelineStartDate) ?: return null
+    program.macrocycles.forEach { macro ->
+        macro.blocks.forEach { block ->
+            block.mesocycles.forEach { meso ->
+                meso.weeks.forEach { _ ->
+                    val weekStart = cursor
+                    val weekEnd = cursor.plusDays(6)
+                    if (targetDate in weekStart..weekEnd) return weekStart to weekEnd
+                    cursor = cursor.plusWeeks(1)
+                }
+            }
+        }
+    }
+    return null
+}
+
+private fun AdvancedRoadmap.competitionSlot(): AdvancedWeekSlot? {
+    return weekSlots.firstOrNull { slot -> slot.marks.any { it.type == KeyDateType.COMPETITION } }
+}
+
+private fun formatFullDate(date: LocalDate): String {
+    return date.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("es-CL")))
+}
+
+private fun formatDaysUntil(days: Long): String = when {
+    days < 0 -> "hace ${kotlin.math.abs(days)} días"
+    days == 0L -> "hoy"
+    days == 1L -> "1 día"
+    days < 7 -> "$days días"
+    else -> {
+        val weeks = days / 7
+        val rest = days % 7
+        if (rest == 0L) "$weeks semanas" else "$weeks semanas y $rest días"
     }
 }
 
@@ -1332,10 +1831,11 @@ private fun buildKeyDateTrack(
 }
 
 private fun ProgramKeyDate.dateSummary(): String {
+    val displayDate = eventDate ?: startDate
     return if (endDate.isNullOrBlank() || endDate == startDate) {
-        startDate
+        displayDate
     } else {
-        "$startDate → $endDate"
+        "$displayDate · semana $startDate → $endDate"
     }
 }
 
