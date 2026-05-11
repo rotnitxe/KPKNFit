@@ -228,6 +228,7 @@ data class ExerciseSetupDetails(
     val seatPosition: String? = null,
     val pinPosition: String? = null,
     val equipmentNotes: String? = null,
+    val barWeightKg: Double? = null,
 )
 
 @Serializable

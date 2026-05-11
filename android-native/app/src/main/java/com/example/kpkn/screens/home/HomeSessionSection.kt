@@ -1,24 +1,23 @@
 package com.example.kpkn.screens.home
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.expandVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,12 +27,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.resolveExercise
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.MuscleRecoveryStatus
-import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TodaySessionItem
@@ -51,10 +50,10 @@ fun HomeSessionSection(
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
     onStartWorkout: (Session, Program) -> Unit,
     onResumeWorkout: () -> Unit,
+    onEditSession: (Session, Program) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     var activeIndex by remember { mutableIntStateOf(0) }
-    var isRestDayToday by remember { mutableStateOf(false) }
 
     LaunchedEffect(sessions.size) { activeIndex = 0 }
 
@@ -63,11 +62,8 @@ fun HomeSessionSection(
 
         if (!hasActiveProgram) {
             NoProgramSessionCard(Modifier.padding(horizontal = 24.dp))
-        } else if (sessions.isEmpty() || isRestDayToday) {
-            RestDayCard(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                onCancelRestDay = { isRestDayToday = false }
-            )
+        } else if (sessions.isEmpty()) {
+            RestDayCard(modifier = Modifier.padding(horizontal = 24.dp))
         } else {
             val current = sessions.getOrElse(activeIndex) { sessions.first() }
 
@@ -77,19 +73,17 @@ fun HomeSessionSection(
                 perMuscle = perMuscle,
                 onStart = { onStartWorkout(current.session, current.program) },
                 onResume = onResumeWorkout,
-                onSetRestDay = { isRestDayToday = true },
+                onEdit = { onEditSession(current.session, current.program) },
                 modifier = Modifier.padding(horizontal = 24.dp),
             )
 
-            if (sessions.size > 1) {
-                SessionCarousel(
-                    sessions = sessions,
-                    activeIndex = activeIndex,
-                    perMuscle = perMuscle,
-                    onIndexChange = { activeIndex = it },
-                    modifier = Modifier.padding(top = 12.dp)
-                )
-            }
+            SessionCarousel(
+                sessions = sessions,
+                activeIndex = activeIndex,
+                perMuscle = perMuscle,
+                onIndexChange = { activeIndex = it },
+                modifier = Modifier.padding(top = 16.dp)
+            )
         }
     }
 }
@@ -101,11 +95,10 @@ private fun SessionCard(
     perMuscle: Map<String, MuscleRecoveryStatus>,
     onStart: () -> Unit,
     onResume: () -> Unit,
-    onSetRestDay: () -> Unit,
+    onEdit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isToday = item.dayOfWeek == currentDayOfWeek
-    var musclesExpanded by remember { mutableStateOf(false) }
 
     val sessionMuscles = remember(item.session) {
         getSessionInvolvedMuscles(item.session)
@@ -124,7 +117,7 @@ private fun SessionCard(
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .aspectRatio(16f / 7.2f)
+                    .aspectRatio(16f / 5.5f)
             ) {
                 Box(
                     Modifier
@@ -148,13 +141,13 @@ private fun SessionCard(
                 Surface(
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .padding(16.dp),
+                        .padding(12.dp),
                     shape = RoundedCornerShape(50),
                     color = Color.White.copy(alpha = 0.15f),
                 ) {
                     Text(
                         if (isToday) "Sesión de hoy" else "Próxima sesión",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         color = Color.White,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
@@ -165,13 +158,13 @@ private fun SessionCard(
                 Row(
                     Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .padding(12.dp),
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Column(
-                        Modifier.weight(1f).padding(end = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        Modifier.weight(1f).padding(end = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
                             item.program.name,
@@ -183,82 +176,88 @@ private fun SessionCard(
                         Text(
                             item.session.name,
                             color = Color.White,
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Black,
                             maxLines = 2,
                         )
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.padding(top = 4.dp)
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.AccessTime,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp),
-                                    tint = Color.White.copy(alpha = 0.7f)
-                                )
-                                Text(
-                                    durationDisplay,
-                                    color = Color.White.copy(alpha = 0.7f),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Medium,
-                                )
-                            }
+                            Icon(
+                                Icons.Default.AccessTime,
+                                contentDescription = null,
+                                modifier = Modifier.size(12.dp),
+                                tint = Color.White.copy(alpha = 0.7f)
+                            )
+                            Text(
+                                durationDisplay,
+                                color = Color.White.copy(alpha = 0.7f),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Medium,
+                            )
                         }
                     }
 
-                    FilledIconButton(
-                        onClick = if (item.isOngoing) onResume else onStart,
-                        modifier = Modifier.size(48.dp),
-                        colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = Color.White,
-                        ),
-                    ) {
-                        Icon(
-                            Icons.Filled.PlayArrow,
-                            contentDescription = if (item.isOngoing) "Reanudar" else "Iniciar",
-                            modifier = Modifier.size(24.dp),
-                            tint = Color.Black,
-                        )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilledIconButton(
+                            onClick = onEdit,
+                            modifier = Modifier.size(36.dp),
+                            colors = IconButtonDefaults.filledIconButtonColors(
+                                containerColor = Color.White.copy(alpha = 0.20f),
+                            ),
+                        ) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Editar",
+                                modifier = Modifier.size(18.dp),
+                                tint = Color.White,
+                            )
+                        }
+                        FilledIconButton(
+                            onClick = if (item.isOngoing) onResume else onStart,
+                            modifier = Modifier.size(48.dp),
+                            colors = IconButtonDefaults.filledIconButtonColors(
+                                containerColor = Color.White,
+                            ),
+                        ) {
+                            Icon(
+                                Icons.Filled.PlayArrow,
+                                contentDescription = if (item.isOngoing) "Reanudar" else "Iniciar",
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.Black,
+                            )
+                        }
                     }
                 }
             }
 
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                    .clickable { musclesExpanded = !musclesExpanded }
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+            var musclesExpanded by remember { mutableStateOf(false) }
+
+            if (sessionMuscles.isNotEmpty()) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                        .clickable { musclesExpanded = !musclesExpanded }
+                        .padding(horizontal = 12.dp, vertical = 10.dp)
                 ) {
-                    Text(
-                        "Músculos involucrados",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        if (sessionMuscles.isEmpty()) {
-                            Text(
-                                "Sin datos",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                            )
-                        } else {
+                        Text(
+                            "Músculos involucrados",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
                             val avgRecovery = sessionMuscles.mapNotNull { perMuscle[it]?.recoveryScore }.average()
                             Text(
                                 if (avgRecovery.isNaN()) "--%" else "${avgRecovery.toInt()}%",
@@ -270,117 +269,65 @@ private fun SessionCard(
                                     batteryColor(avgRecovery.toInt())
                                 },
                             )
+                            Icon(
+                                if (musclesExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = if (musclesExpanded) "Contraer" else "Expandir",
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            )
                         }
-                        Icon(
-                            if (musclesExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (musclesExpanded) "Contraer" else "Expandir",
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        )
                     }
                 }
-            }
 
-            AnimatedVisibility(
-                visible = musclesExpanded,
-                enter = expandHorizontally(),
-                exit = shrinkHorizontally(),
-            ) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.75f))
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                ) {
-                    if (sessionMuscles.isEmpty()) {
-                        Text(
-                            "No hay datos de músculos para esta sesión",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.5f),
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                        )
-                    } else {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                        sessionMuscles.chunked(3).forEach { muscleRow ->
+                AnimatedVisibility(visible = musclesExpanded) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f))
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        sessionMuscles.chunked(3).forEach { row ->
                             Row(
                                 Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
-                                muscleRow.forEach { muscle ->
-                                    val status = perMuscle[muscle]
-                                    val score = status?.recoveryScore ?: 100
-
-                                    Column(
+                                row.forEach { muscle ->
+                                    val score = perMuscle[muscle]?.recoveryScore ?: 100
+                                    Row(
                                         Modifier.weight(1f),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                                     ) {
+                                        Box(
+                                            Modifier
+                                                .size(6.dp)
+                                                .clip(CircleShape)
+                                                .background(batteryColor(score))
+                                        )
                                         Text(
                                             muscle,
                                             style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White.copy(alpha = 0.6f),
-                                            textAlign = TextAlign.Center,
+                                            fontSize = 10.sp,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                            fontWeight = FontWeight.Medium,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
                                         )
                                         Text(
-                                            "${score}%",
-                                            style = MaterialTheme.typography.titleMedium,
+                                            "$score%",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontSize = 10.sp,
+                                            color = batteryColor(score),
                                             fontWeight = FontWeight.Black,
-                                            color = batteryColor(score),
-                                        )
-                                        LinearProgressIndicator(
-                                            progress = { score / 100f },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(3.dp)
-                                                .clip(RoundedCornerShape(50)),
-                                            color = batteryColor(score),
-                                            trackColor = Color.White.copy(alpha = 0.1f),
                                         )
                                     }
                                 }
-                                repeat(3 - muscleRow.size) {
-                                    Spacer(Modifier.weight(1f))
-                                }
+                                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                             }
-                        }
                         }
                     }
                 }
-            }
-
-            OutlinedButton(
-                onClick = onSetRestDay,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                ),
-                border = ButtonDefaults.outlinedButtonBorder.copy(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        )
-                    )
-                ),
-            ) {
-                Icon(
-                    Icons.Default.RestartAlt,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    "No entrenaré hoy",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Medium,
-                )
             }
         }
     }
@@ -394,111 +341,48 @@ private fun SessionCarousel(
     onIndexChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val listState = rememberLazyListState()
-
-    LaunchedEffect(activeIndex) {
-        listState.animateScrollToItem(activeIndex)
-    }
-
-    Column(modifier) {
-        LazyRow(
-            state = listState,
-            contentPadding = PaddingValues(horizontal = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.fillMaxWidth(),
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(
+            onClick = { onIndexChange(if (activeIndex > 0) activeIndex - 1 else sessions.size - 1) },
+            modifier = Modifier.size(32.dp),
         ) {
-            itemsIndexed(sessions) { index, item ->
-                val sessionMuscles = remember(item.session) { getSessionInvolvedMuscles(item.session) }
-                val avgRecovery = sessionMuscles.mapNotNull { perMuscle[it]?.recoveryScore }.average()
-                val isSelected = index == activeIndex
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Anterior",
+                modifier = Modifier.size(18.dp),
+            )
+        }
 
-                Surface(
-                    onClick = { onIndexChange(index) },
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    },
-                    modifier = Modifier.width(100.dp),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(10.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(
-                            item.session.name.take(15),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isSelected) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                            maxLines = 2,
-                            textAlign = TextAlign.Center,
-                        )
-                        if (sessionMuscles.isNotEmpty() && !avgRecovery.isNaN()) {
-                            Text(
-                                "${avgRecovery.toInt()}%",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Black,
-                                color = if (isSelected) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    batteryColor(avgRecovery.toInt())
-                                },
-                            )
-                        }
-                    }
-                }
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            repeat(sessions.size) { i ->
+                val isActive = i == activeIndex
+                Box(
+                    Modifier
+                        .size(if (isActive) 8.dp else 6.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (isActive) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                        ),
+                )
             }
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
+        IconButton(
+            onClick = { onIndexChange(if (activeIndex < sessions.size - 1) activeIndex + 1 else 0) },
+            modifier = Modifier.size(32.dp),
         ) {
-            IconButton(
-                onClick = { onIndexChange(if (activeIndex > 0) activeIndex - 1 else sessions.size - 1) },
-                modifier = Modifier.size(32.dp),
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Anterior",
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                repeat(sessions.size) { i ->
-                    val isActive = i == activeIndex
-                    Box(
-                        Modifier
-                            .size(if (isActive) 8.dp else 6.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (isActive) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                            ),
-                    )
-                }
-            }
-
-            IconButton(
-                onClick = { onIndexChange(if (activeIndex < sessions.size - 1) activeIndex + 1 else 0) },
-                modifier = Modifier.size(32.dp),
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = "Siguiente",
-                    modifier = Modifier.size(18.dp),
-                )
-            }
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "Siguiente",
+                modifier = Modifier.size(18.dp),
+            )
         }
     }
 }
@@ -573,7 +457,6 @@ private fun NoProgramSessionCard(modifier: Modifier = Modifier) {
 @Composable
 private fun RestDayCard(
     modifier: Modifier = Modifier,
-    onCancelRestDay: () -> Unit,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -599,12 +482,6 @@ private fun RestDayCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             )
-            OutlinedButton(
-                onClick = onCancelRestDay,
-                shape = RoundedCornerShape(12.dp),
-            ) {
-                Text("Cancelar descanso")
-            }
         }
     }
 }

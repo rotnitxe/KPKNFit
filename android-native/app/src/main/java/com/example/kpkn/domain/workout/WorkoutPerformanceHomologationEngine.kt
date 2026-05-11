@@ -155,6 +155,7 @@ object WorkoutPerformanceHomologationEngine {
             suggestionReason = suggestion.reason,
             augeEquivalentLoad = normalizedLoad,
             augeEquivalentReps = normalizedReps,
+            suggestedLoadMode = suggestion.suggestedLoadMode,
         )
 
         val outcome = SetOutcomeV2(
@@ -189,6 +190,7 @@ object WorkoutPerformanceHomologationEngine {
             suggestionReason = suggestion.reason,
             augeEquivalentLoad = normalizedLoad,
             augeEquivalentReps = normalizedReps,
+            suggestedLoadMode = suggestion.suggestedLoadMode,
         )
 
         return EvaluationResult(
@@ -458,7 +460,7 @@ object WorkoutPerformanceHomologationEngine {
     private fun normalizeLoad(entry: SetEntryV2): Double = when (entry.loadMode) {
         LoadModeV2.LOAD -> entry.loggedLoad ?: 0.0
         LoadModeV2.BODYWEIGHT -> entry.bodyWeight ?: 0.0
-        LoadModeV2.LASTRE -> (entry.bodyWeight ?: 0.0) + (entry.loggedLoad ?: 0.0)
+        LoadModeV2.LASTRE -> (entry.bodyWeight ?: 0.0) + (entry.loggedLoad ?: 0.0) + (entry.barWeightKg ?: 0.0)
         LoadModeV2.ASSISTED -> max(0.0, (entry.bodyWeight ?: 0.0) - (entry.loggedLoad ?: 0.0))
     }
 

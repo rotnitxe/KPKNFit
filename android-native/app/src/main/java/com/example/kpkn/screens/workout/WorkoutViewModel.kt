@@ -28,6 +28,7 @@ import com.example.kpkn.data.db.toEntity as rangeToEntity
 import com.example.kpkn.domain.performance.PerformanceRangeCalculator
 import com.example.kpkn.domain.performance.PerformanceRangeResult
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine
 import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
 import com.example.kpkn.services.workout.ActiveWorkoutHolder
 import com.example.kpkn.services.workout.TimerAction
@@ -143,6 +144,10 @@ data class WorkoutUiState(
     // sleepQuality (1-5) del último DailyWellbeingLog — para el sleep modifier de carga
     val sleepQuality: Int? = null,
     val liveEnergySummary: SessionEnergySummary = SessionEnergySummary(),
+    val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
+    val previousSessionDiscomforts: List<String> = emptyList(),
+    val showExecutionErrorDiscomfortSheet: Boolean = false,
+    val amrapCalibrationMessage: String? = null,
 )
 
 data class WorkoutShareSnapshot(
@@ -294,10 +299,31 @@ class WorkoutViewModel(
             exercises = exercisesForMode,
             resumedState = resumedState,
         )
+        val restoredActiveProfiles = hydratedProfiles.second.toMutableMap()
         val restoredTags = (resumedState?.exerciseTags ?: emptyMap()).toMutableMap().apply {
             hydratedProfiles.second.forEach { (exerciseId, profileId) ->
                 val profileTag = hydratedProfiles.first[profileId]?.tagId ?: return@forEach
                 putIfAbsent(exerciseId, profileTag)
+            }
+        }
+        if (resumedState == null) {
+            val historicalLogs = repository.history.value
+            val dayOfWeek = java.time.LocalDate.now().dayOfWeek
+            for (exercise in exercisesForMode) {
+                val exerciseDbId = canonicalExerciseKey(exercise)
+                val recurrence = WorkoutContextRecurrenceEngine.detectDayRecurrence(
+                    exerciseDbId = exerciseDbId,
+                    dayOfWeek = dayOfWeek,
+                    logs = historicalLogs,
+                )
+                if (recurrence.confidence >= 2) {
+                    if (recurrence.tagId != null) {
+                        restoredTags.putIfAbsent(exercise.id, recurrence.tagId)
+                    }
+                    if (recurrence.profileId != null && hydratedProfiles.first.containsKey(recurrence.profileId)) {
+                        restoredActiveProfiles[exercise.id] = recurrence.profileId
+                    }
+                }
             }
         }
         val restoredSetIdx: Int
@@ -356,7 +382,7 @@ class WorkoutViewModel(
                 contextualPerformanceCache = repository.contextPerformance.value,
                 globalPerformanceCache = repository.globalPerformance.value,
                 contextProfilesV3 = hydratedProfiles.first,
-                activeContextProfileByExerciseId = hydratedProfiles.second,
+                activeContextProfileByExerciseId = restoredActiveProfiles,
                 headerWidgets = headerWidgets,
                 readinessNeuralOverride = resumedState?.readinessNeuralOverride,
                 readinessMuscularOverride = resumedState?.readinessMuscularOverride,
@@ -366,6 +392,7 @@ class WorkoutViewModel(
                 manualLoadOverrides = resumedState?.manualLoadOverrides ?: emptyMap(),
                 restModalState = resumedState?.restModalState,
                 editingState = restoredEditingState,
+                persistedLoadModeByExercise = resumedState?.persistedLoadModeByExercise ?: emptyMap(),
             )
         }
 
@@ -408,7 +435,7 @@ class WorkoutViewModel(
                     weekId = foundWeekId,
                     activeMode = restoredMode,
                     contextProfilesV3 = hydratedProfiles.first,
-                    activeContextProfileByExerciseId = hydratedProfiles.second,
+                    activeContextProfileByExerciseId = restoredActiveProfiles,
                     skippedExerciseIds = restoredSkippedExerciseIds,
                     warmupCompletedExerciseIds = restoredWarmupCompletedExerciseIds,
                     readinessNeuralOverride = resumedState?.readinessNeuralOverride,
@@ -435,6 +462,15 @@ class WorkoutViewModel(
             setDrain = SetDrain(cnsDrainPct = 0.0, muscularDrainPct = 0.0, spinalDrainPct = 0.0),
             sessionProgress = 0.0,
         )
+        val lastLog = repository.history.value.firstOrNull { it.programId == programId && it.id != sessionId }
+        val lastDiscomforts = lastLog?.postExerciseReports
+            ?.flatMap { it.discomfortIds }
+            ?.filter { it != "none" }
+            ?.distinct()
+            ?: emptyList()
+        if (lastDiscomforts.isNotEmpty()) {
+            _uiState.update { it.copy(previousSessionDiscomforts = lastDiscomforts) }
+        }
         return true
     }
 
@@ -798,6 +834,9 @@ class WorkoutViewModel(
             superSetWithExerciseId = advanced.superSetWithExerciseId,
         )
 
+        val resolvedBarWeightKg = activeProfile?.setupDetails?.barWeightKg
+            ?: exercise.setupDetails?.barWeightKg
+
         val entry = SetEntryV2(
             exerciseId = exercise.id,
             exerciseDbId = canonicalExerciseKey(exercise),
@@ -821,6 +860,7 @@ class WorkoutViewModel(
             machineBrand = resolvedMachineBrand,
             contextKey = contextKey,
             timeProgressionStrategy = plannedSet?.timeProgressionStrategyV3 ?: TimeProgressionStrategyV3.LOAD_THEN_TIME,
+            barWeightKg = resolvedBarWeightKg,
         )
 
         val evaluation = if (
@@ -936,11 +976,19 @@ class WorkoutViewModel(
             )
         }
         clearDraftForSet(exercise.id, targetSetIdx, resolvedSide)
+        _uiState.update { current ->
+            current.copy(
+                persistedLoadModeByExercise = current.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode)
+            )
+        }
         if (weight > 0.0) {
             registerManualLoadOverride(exercise.id, targetSetIdx, resolvedSide, weight)
         }
         refreshLoadSuggestions(_uiState.value)
         persistOngoingState()
+
+        val wasLastSet = state.currentSetIdx == exercise.sets.size - 1
+        val isExecutionError = advanced.isFailedSet || advanced.executionError
 
         val shouldAutoRest = shouldAutoRestAfterSet(allExercises, state.currentExerciseIdx, targetSetIdx)
         val unilateralPendingOtherSide = exercise.isUnilateral && resolvedSide != null && updatedCompletedSets[buildCompletedSetKey(exercise.id, targetSetIdx, counterpartSide(resolvedSide))] == null
@@ -993,17 +1041,35 @@ class WorkoutViewModel(
             ),
         )
         if (!wasExistingSet) {
-            val restSeconds = if (shouldAutoRest || repository.settings.value.restTimerAutoStart) {
-                adaptiveRest.coerceAtLeast(10)
-            } else {
-                baseRest.coerceAtLeast(10)
-            }
-            startRestTimer(
-                seconds = restSeconds,
-                advanceOnFinish = false,
+            val plannedRest = baseRest.coerceAtLeast(10)
+            val pendingSuggestion = PendingRestSuggestion(
+                plannedSeconds = plannedRest,
+                adaptiveSeconds = adaptiveRest.coerceAtLeast(10),
+                exerciseName = exercise.name,
+                exerciseId = exercise.id,
                 lastSet = completedSet,
                 advancedFeedback = advanced,
             )
+            _uiState.update { it.copy(pendingRestSuggestion = pendingSuggestion) }
+            if ((shouldAutoRest || repository.settings.value.restTimerAutoStart) && !(isExecutionError && !wasLastSet)) {
+                startRestTimer(
+                    seconds = plannedRest,
+                    advanceOnFinish = false,
+                    lastSet = completedSet,
+                    advancedFeedback = advanced,
+                )
+            }
+        }
+
+        if (isExecutionError && !wasLastSet && !_uiState.value.showPostExerciseSheet) {
+            _uiState.update {
+                it.copy(
+                    showExecutionErrorDiscomfortSheet = true,
+                    isRestTimerRunning = false,
+                    restModalState = null,
+                    pendingRestSuggestion = null,
+                )
+            }
         }
 
         computeAndStoreAutoRegulation(
@@ -1013,6 +1079,23 @@ class WorkoutViewModel(
             effectiveRpe = effectiveRpe,
             sessionProgress = sessionProgress,
         )
+        if (amrapOverride) {
+            val contextPerformance = state.contextualPerformanceCache[contextKey]
+            val ewma = contextPerformance?.ewma ?: 0.0
+            val amrapVolume = weight * actualValue
+            val calibratorMsg = if (ewma > 0 && amrapVolume > 0) {
+                val ratio = amrapVolume / ewma
+                val pct = (kotlin.math.abs(ratio - 1.0) * 100).toInt().coerceAtLeast(1)
+                when {
+                    ratio > 1.10 -> "AMRAP: +$pct% vs histórico. Sugerencia: aumentar carga."
+                    ratio < 0.90 -> "AMRAP: -$pct% vs histórico. Sugerencia: reducir carga."
+                    else -> null
+                }
+            } else {
+                null
+            }
+            _uiState.update { it.copy(amrapCalibrationMessage = calibratorMsg) }
+        }
         updateCoachMessage(
             setDrain = setDrain,
             sessionProgress = sessionProgress,
@@ -2019,6 +2102,7 @@ class WorkoutViewModel(
                     manualLoadOverrides = state.manualLoadOverrides,
                     editingSetKey = state.editingState?.setKey,
                     restModalState = state.restModalState,
+                    persistedLoadModeByExercise = state.persistedLoadModeByExercise,
                 )
             }
         }
@@ -2350,6 +2434,36 @@ class WorkoutViewModel(
         if (updatedProgram != program) {
             repository.updateProgram(updatedProgram)
         }
+    }
+
+    fun addMobilityExerciseToSession(name: String, durationSeconds: Int = 60) {
+        val mobilityExercise = Exercise(
+            id = UUID.randomUUID().toString(),
+            name = name,
+            exerciseDbId = "mobility_custom_${UUID.randomUUID()}",
+            trainingMode = TrainingMode.TIME,
+            restTime = 30,
+            sets = listOf(
+                ExerciseSet(
+                    id = UUID.randomUUID().toString(),
+                    targetDuration = durationSeconds,
+                    unitModeV2 = UnitModeV2.TIME,
+                )
+            ),
+        )
+        _uiState.update { state ->
+            val session = state.session ?: return@update state
+            val updatedSession = if (session.parts.isNotEmpty()) {
+                session.copy(parts = session.parts.mapIndexed { idx, part ->
+                    if (idx == 0) part.copy(exercises = listOf(mobilityExercise) + part.exercises) else part
+                })
+            } else {
+                session.copy(exercises = listOf(mobilityExercise) + session.exercises)
+            }
+            state.copy(session = updatedSession)
+        }
+        persistOngoingState()
+        persistSessionToProgram(_uiState.value.session ?: return)
     }
 
     private data class SessionLocationCursor(
@@ -3340,6 +3454,35 @@ class WorkoutViewModel(
         persistOngoingState()
     }
 
+    fun dismissExecutionErrorDiscomfortSheet(discomfortIds: List<String>) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: run {
+            _uiState.update { it.copy(showExecutionErrorDiscomfortSheet = false) }
+            return
+        }
+        _uiState.update {
+            it.copy(
+                postExerciseFeedbackByExerciseId = it.postExerciseFeedbackByExerciseId + (exercise.id to PostExerciseFeedback(
+                    exerciseId = exercise.id,
+                    exerciseDbId = canonicalExerciseKey(exercise),
+                    exerciseName = exercise.name,
+                    technicalQuality = 5,
+                    discomfortIds = discomfortIds,
+                )),
+                showExecutionErrorDiscomfortSheet = false,
+            )
+        }
+        val pending = state.pendingRestSuggestion
+        if (pending != null) {
+            startRestTimer(
+                seconds = pending.plannedSeconds,
+                advanceOnFinish = false,
+                lastSet = pending.lastSet,
+                advancedFeedback = pending.advancedFeedback,
+            )
+        }
+    }
+
     fun dismissPostExerciseSheet() {
         val exerciseId = visibleExercises(_uiState.value)
             .getOrNull(_uiState.value.postExerciseTargetIdx)
@@ -3409,7 +3552,18 @@ class WorkoutViewModel(
 
     fun setExerciseTag(exerciseId: String, tag: String) {
         _uiState.update { it.copy(exerciseTags = it.exerciseTags + (exerciseId to tag)) }
-        syncActiveProfileTag(exerciseId, tag)
+        val state = _uiState.value
+        val exerciseKey = visibleExercises(state).firstOrNull { it.id == exerciseId }?.let { canonicalExerciseKey(it) }
+        val bestProfile = exerciseKey?.let { key ->
+            state.contextProfilesV3.values
+                .filter { it.tagId == tag && it.exerciseKey == key }
+                .maxByOrNull { it.usageCount }
+        }
+        if (bestProfile != null) {
+            setActiveContextProfile(exerciseId, bestProfile.id)
+        } else {
+            syncActiveProfileTag(exerciseId, tag)
+        }
         persistOngoingState()
     }
 
@@ -3869,6 +4023,7 @@ class WorkoutViewModel(
                 return WeightSuggestion(
                     suggestedWeight = adjusted,
                     reason = appendTechniqueReason(baseReason),
+                    suggestedLoadMode = lastSet.homologatedResultV3?.suggestedLoadMode,
                 )
             }
             val loadMode = exercise.sets.getOrNull(setIdx)?.let { inferLoadMode(it) }
@@ -3904,6 +4059,7 @@ class WorkoutViewModel(
             return WeightSuggestion(
                 suggestedWeight = premiumSuggestion.suggestedWeight,
                 reason = premiumSuggestion.reason,
+                suggestedLoadMode = null,
             )
         }
         val state = _uiState.value

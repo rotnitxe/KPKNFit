@@ -215,10 +215,8 @@ class HomeViewModel : ViewModel() {
     ): List<TodaySessionItem> {
         val weekLocation = resolveWeekLocation(program, active, currentDayOfWeek) ?: return emptyList()
         val sessions = weekLocation.week.sessions
-        val todaySessions = sessions.filter { it.matchesDay(currentDayOfWeek) }
-            .ifEmpty { sessions }
 
-        return todaySessions.map { session ->
+        return sessions.map { session ->
             val logForToday = history.find { log ->
                 log.sessionId == session.id &&
                     log.date.startsWith(java.time.LocalDate.now().toString())
@@ -261,15 +259,6 @@ class HomeViewModel : ViewModel() {
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    // ─── Rings View Mode ───────────────────────────────────────────────────────
-
-    enum class RingsViewMode { RINGS, INDIVIDUAL }
-
-    private val _ringsViewMode = MutableStateFlow(RingsViewMode.RINGS)
-    val ringsViewMode: StateFlow<RingsViewMode> = _ringsViewMode.asStateFlow()
-
-    fun setRingsViewMode(mode: RingsViewMode) { _ringsViewMode.value = mode }
 
     // ─── Macro Goals ──────────────────────────────────────────────────────────
 

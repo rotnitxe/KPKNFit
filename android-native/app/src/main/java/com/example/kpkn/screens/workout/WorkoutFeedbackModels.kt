@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.MuscleFeedbackEntry
 import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.HistoryColorV2
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.auge.AugeFatigueEngine
@@ -74,6 +75,7 @@ data class ExerciseHistoryEntry(
 data class WeightSuggestion(
     val suggestedWeight: Double,
     val reason: String,
+    val suggestedLoadMode: LoadModeV2? = null,
 )
 
 data class WorkoutLoadSuggestionUi(
