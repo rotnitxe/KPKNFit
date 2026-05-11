@@ -41,10 +41,6 @@ fun HomeHeaderSection(
     modifier: Modifier = Modifier,
     greeting: String,
     userName: String,
-    ringsViewMode: HomeViewModel.RingsViewMode,
-    onThemeToggle: () -> Unit,
-    onSettingsClick: () -> Unit,
-    onRingsViewChange: (HomeViewModel.RingsViewMode) -> Unit,
 ) {
     Column(modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(top = 16.dp, bottom = 20.dp)) {
         // Solo el saludo — "Tus RINGS" está en HomeRingsSection

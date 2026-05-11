@@ -88,6 +88,7 @@ data class WorkoutContextProfile(
     val machineBrand: String? = null,
     val linkStrategy: WorkoutContextLinkStrategyV3 = WorkoutContextLinkStrategyV3.LINKED_EDITABLE,
     val setupDetails: ExerciseSetupDetails? = null,
+    val barWeightKg: Double? = null,
     val notes: String? = null,
     val createdAtIso: String? = null,
     val lastUsedAtIso: String? = null,
@@ -171,6 +172,7 @@ data class HomologatedPerformanceResult(
     val augeEquivalentReps: Int,
     val ermRangeMin: Double = 0.0,
     val ermRangeMax: Double = 0.0,
+    val suggestedLoadMode: LoadModeV2? = null,
 )
 
 @Serializable
@@ -197,6 +199,7 @@ data class SetEntryV2(
     val machineBrand: String? = null,
     val contextKey: String,
     val timeProgressionStrategy: TimeProgressionStrategyV3 = TimeProgressionStrategyV3.LOAD_THEN_TIME,
+    val barWeightKg: Double? = null,
 )
 
 @Serializable
@@ -232,6 +235,7 @@ data class SetOutcomeV2(
     val suggestionReason: String? = null,
     val augeEquivalentLoad: Double,
     val augeEquivalentReps: Int,
+    val suggestedLoadMode: LoadModeV2? = null,
 )
 
 @Serializable

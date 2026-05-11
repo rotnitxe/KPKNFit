@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -34,6 +35,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.LocalContentColor
@@ -41,11 +43,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -462,61 +469,82 @@ fun KPKNApp(
                 }
 
                 // ─── Session in progress banner ─────────────────────────────
-                AnimatedVisibility(
-                    visible = ongoingWorkout != null,
-                    enter = slideInVertically { it } + fadeIn(),
-                    exit = slideOutVertically { it } + fadeOut(),
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = 16.dp, vertical = 130.dp),
-                ) {
-                    Card(
-                        onClick = {
-                            val state = ongoingWorkout ?: return@Card
-                            navController.navigate(
-                                KpknRoute.Workout.create(state.programId, state.session.id)
-                            ) { launchSingleTop = true }
-                        },
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                        modifier = Modifier.fillMaxWidth(),
+                if (ongoingWorkout != null) {
+                    val bgValue = ongoingWorkout?.session?.background?.value
+                    val bgColors = remember(bgValue) {
+                        when (bgValue) {
+                            "gradient://ember" -> listOf(Color(0xFF20110F), Color(0xFF8D3D2E), Color(0xFFE08E45))
+                            "gradient://lagoon" -> listOf(Color(0xFF0D1B2A), Color(0xFF1B4965), Color(0xFF5FA8D3))
+                            "gradient://velvet" -> listOf(Color(0xFF1C1024), Color(0xFF5B2A86), Color(0xFFE26D5A))
+                            "gradient://forest" -> listOf(Color(0xFF102A1F), Color(0xFF2D6A4F), Color(0xFF95D5B2))
+                            "solid://obsidian" -> listOf(Color(0xFF111318), Color(0xFF111318), Color(0xFF111318))
+                            "solid://steel" -> listOf(Color(0xFF334155), Color(0xFF334155), Color(0xFF334155))
+                            "solid://ember-red" -> listOf(Color(0xFF7F1D1D), Color(0xFF7F1D1D), Color(0xFF7F1D1D))
+                            "solid://ocean" -> listOf(Color(0xFF0F3D5E), Color(0xFF0F3D5E), Color(0xFF0F3D5E))
+                            "solid://moss" -> listOf(Color(0xFF244B3C), Color(0xFF244B3C), Color(0xFF244B3C))
+                            else -> listOf(Color(0xFF20110F), Color(0xFF8D3D2E), Color(0xFFE08E45))
+                        }
+                    }
+                    val accentColor = remember(bgValue) {
+                        when (bgValue) {
+                            "gradient://ember" -> Color(0xFFE08E45)
+                            "gradient://lagoon" -> Color(0xFF5FA8D3)
+                            "gradient://velvet" -> Color(0xFFE26D5A)
+                            "gradient://forest" -> Color(0xFF95D5B2)
+                            "solid://obsidian" -> Color(0xFF3B82F6)
+                            "solid://steel" -> Color(0xFF94A3B8)
+                            "solid://ember-red" -> Color(0xFFEF4444)
+                            "solid://ocean" -> Color(0xFF38BDF8)
+                            "solid://moss" -> Color(0xFF4ADE80)
+                            else -> Color(0xFFE08E45)
+                        }
+                    }
+                    var offsetY by remember { mutableFloatStateOf(0f) }
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .offset { IntOffset(0, offsetY.toInt()) }
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 100.dp)
+                            .fillMaxWidth()
+                            .draggable(
+                                orientation = Orientation.Vertical,
+                                state = rememberDraggableState { delta ->
+                                    offsetY = (offsetY + delta).coerceIn(-300f, 100f)
+                                },
+                            )
+                            .shadow(16.dp, RoundedCornerShape(20.dp))
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Brush.linearGradient(bgColors))
+                            .border(1.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(20.dp))
+                            .zIndex(10f)
+                            .clickable {
+                                val state = ongoingWorkout ?: return@clickable
+                                navController.navigate(KpknRoute.Workout.create(state.programId, state.session.id)) { launchSingleTop = true }
+                            },
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(
-                                Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                            Spacer(Modifier.width(8.dp))
+                            Surface(shape = CircleShape, color = accentColor.copy(alpha = 0.25f), modifier = Modifier.size(36.dp)) {
+                                Icon(Icons.Default.PlayArrow, null, Modifier.padding(6.dp), tint = accentColor)
+                            }
+                            Spacer(Modifier.width(10.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(
-                                    "Sesión en curso",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                                )
-                                Text(
-                                    ongoingWorkout?.session?.name ?: "Entrenamiento activo",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                )
+                                Text("Sesión en curso", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.7f))
+                                Text(ongoingWorkout?.session?.name ?: "Entrenamiento activo", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White)
                             }
                             FilledTonalButton(
                                 onClick = {
                                     val state = ongoingWorkout ?: return@FilledTonalButton
-                                    navController.navigate(
-                                        KpknRoute.Workout.create(state.programId, state.session.id)
-                                    ) { launchSingleTop = true }
+                                    navController.navigate(KpknRoute.Workout.create(state.programId, state.session.id)) { launchSingleTop = true }
                                 },
-                            ) {
-                                Text("Reanudar")
-                            }
+                                colors = ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = accentColor.copy(alpha = 0.20f),
+                                    contentColor = accentColor,
+                                ),
+                            ) { Text("Reanudar") }
                         }
                     }
                 }
@@ -983,7 +1011,7 @@ private fun KPKNNavGraph(
                     onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
                     onNavigateToJoint = { navController.navigate(KpknRoute.WikiLabJointDetail.create(it)) },
                     onNavigateToExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
-                    onBack = { navController.popBackStack() },
+                onBack = { navController.popBackStack() },
                 )
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -1121,7 +1149,14 @@ private fun KPKNNavGraph(
             val id = backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_PROGRAM_ID) ?: ""
             ProgramDetailScreen(
                 programId = id,
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    if (!navController.popBackStack(KpknRoute.Training.route, inclusive = false)) {
+                        navController.navigate(KpknRoute.Training.route) {
+                            popUpTo(KpknRoute.Home.route) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                },
                 onStartWorkout = { session, program ->
                     navController.navigate(KpknRoute.Workout.create(program.id, session.id))
                 },

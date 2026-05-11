@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,6 +70,10 @@ internal fun WorkoutExerciseTabs(
     onExpandEdit: () -> Unit,
     sessionAccentColor: Color,
     sessionEnergy: SessionEnergySummary = SessionEnergySummary(),
+    ghostSet: CompletedSet? = null,
+    rmBodyWeight: Double? = null,
+    rmCurrentLoadMode: LoadModeV2? = null,
+    onRmWeightSelected: ((Double) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val tagsOverflow = WORKOUT_COMMON_TAGS.size > 6
@@ -78,13 +84,40 @@ internal fun WorkoutExerciseTabs(
         WorkoutExerciseContextTab.TAGS to "Etiquetas",
         WorkoutExerciseContextTab.SETUP to "Set-Up",
         WorkoutExerciseContextTab.DRAIN to "Drenaje",
-        WorkoutExerciseContextTab.ENERGY to "Gasto",
+        WorkoutExerciseContextTab.ENERGY to "Gasto calórico",
         WorkoutExerciseContextTab.REPLACE to "Reemplazar",
         WorkoutExerciseContextTab.EDIT to "Editar",
         WorkoutExerciseContextTab.RM_CALC to "Calc. RM",
     )
 
     Column(modifier = modifier) {
+        if (selectedTab != WorkoutExerciseContextTab.HISTORY && ghostSet != null && (ghostSet.weight > 0 || ghostSet.reps > 0)) {
+            Surface(
+                onClick = onExpandHistory,
+                shape = RoundedCornerShape(8.dp),
+                color = Color(0xFF448AFF).copy(alpha = 0.1f),
+                modifier = Modifier.padding(bottom = 4.dp),
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Default.History, null, Modifier.size(14.dp), tint = Color(0xFF448AFF))
+                    Text(
+                        buildString {
+                            append("Última ")
+                            if (ghostSet.weight > 0) append("${ghostSet.weight.toTrimmedNumberString()}kg")
+                            if (ghostSet.weight > 0 && ghostSet.reps > 0) append(" · ")
+                            if (ghostSet.reps > 0) append(ghostSet.reps)
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF448AFF),
+                    )
+                }
+            }
+        }
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -141,12 +174,8 @@ internal fun WorkoutExerciseTabs(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 4.dp),
-                color = MaterialTheme.colorScheme.surface,
+                color = Color(0xFF2A2A2A),
                 shape = RoundedCornerShape(16.dp),
-                border = androidx.compose.foundation.BorderStroke(
-                    width = 1.dp,
-                    color = sessionAccentColor.copy(alpha = 0.25f)
-                ),
                 tonalElevation = 0.dp,
             ) {
                 Column(
@@ -186,6 +215,7 @@ internal fun WorkoutExerciseTabs(
                                 onUpdateSet = onUpdateCurrentSetPlan,
                                 sessionAccentColor = sessionAccentColor,
                                 maxVisibleCues = 4,
+                                exerciseTag = exerciseTag,
                             )
                             if (setupOverflow) {
                                 TextButton(
@@ -204,7 +234,14 @@ internal fun WorkoutExerciseTabs(
                             )
                         }
                         WorkoutExerciseContextTab.RM_CALC -> {
-                            WorkoutRmCalcContent()
+                            WorkoutRmCalcContent(
+                                bodyWeight = rmBodyWeight,
+                                currentLoadMode = rmCurrentLoadMode,
+                                onWeightSelected = if (onRmWeightSelected != null)
+                                    { w: Double, _: LoadModeV2? -> onRmWeightSelected(w) }
+                                    else null,
+                                sessionAccentColor = sessionAccentColor,
+                            )
                         }
                         WorkoutExerciseContextTab.ENERGY -> {
                             WorkoutSessionEnergyContent(sessionEnergy = sessionEnergy)
@@ -400,8 +437,10 @@ internal fun WorkoutExerciseSetupContent(
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     sessionAccentColor: Color,
     maxVisibleCues: Int = Int.MAX_VALUE,
+    exerciseTag: String? = null,
 ) {
     var showNewProfileDialog by remember { mutableStateOf(false) }
+    var hasSetupChanges by remember { mutableStateOf(false) }
     val activeProfile = remember(activeProfileId, profiles) { profiles.firstOrNull { it.id == activeProfileId } }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -457,6 +496,9 @@ internal fun WorkoutExerciseSetupContent(
         val currentSeat = activeProfile?.setupDetails?.seatPosition ?: exercise.setupDetails?.seatPosition.orEmpty()
         val currentPin = activeProfile?.setupDetails?.pinPosition ?: exercise.setupDetails?.pinPosition.orEmpty()
         val currentNotes = activeProfile?.setupDetails?.equipmentNotes ?: exercise.setupDetails?.equipmentNotes.orEmpty()
+        val currentBarWeightKg = activeProfile?.barWeightKg
+            ?: activeProfile?.setupDetails?.barWeightKg
+            ?: exercise.setupDetails?.barWeightKg
 
         OutlinedTextField(
             value = currentMachine,
@@ -506,6 +548,28 @@ internal fun WorkoutExerciseSetupContent(
         }
 
         OutlinedTextField(
+            value = currentBarWeightKg?.toTrimmedNumberString().orEmpty(),
+            onValueChange = { value ->
+                val parsed = value.toDoubleOrNull()
+                if (activeProfile != null) {
+                    onSaveProfile(activeProfile.copy(
+                        setupDetails = (activeProfile.setupDetails ?: ExerciseSetupDetails()).copy(barWeightKg = parsed)
+                    ))
+                } else {
+                    onUpdateExercise { exercise ->
+                        exercise.copy(
+                            setupDetails = (exercise.setupDetails ?: ExerciseSetupDetails()).copy(barWeightKg = parsed)
+                        )
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Peso de barra (kg)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
+        )
+
+        OutlinedTextField(
             value = currentNotes,
             onValueChange = { newValue ->
                 if (activeProfile != null) {
@@ -528,6 +592,48 @@ internal fun WorkoutExerciseSetupContent(
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 cues.take(maxVisibleCues.coerceAtLeast(0)).forEach { cue ->
                     Text("- $cue", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        if (exerciseTag != null) {
+            Spacer(Modifier.height(4.dp))
+            Surface(
+                onClick = {
+                    val currentSetupDetails = ExerciseSetupDetails(
+                        seatPosition = currentSeat.ifBlank { null },
+                        pinPosition = currentPin.ifBlank { null },
+                        equipmentNotes = currentNotes.ifBlank { null },
+                        barWeightKg = currentBarWeightKg,
+                    )
+                    onSaveProfile(
+                        WorkoutContextProfile(
+                            id = java.util.UUID.randomUUID().toString(),
+                            exerciseKey = "",
+                            tagId = exerciseTag,
+                            setupDetails = currentSetupDetails,
+                            machineBrand = currentMachine.ifBlank { null },
+                            barWeightKg = currentBarWeightKg,
+                        )
+                    )
+                    hasSetupChanges = false
+                },
+                shape = RoundedCornerShape(12.dp),
+                color = sessionAccentColor.copy(alpha = 0.1f),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Default.Link, null, Modifier.size(16.dp), tint = sessionAccentColor)
+                    Text(
+                        "Asociar set-up a \"$exerciseTag\"",
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = sessionAccentColor,
+                    )
                 }
             }
         }
@@ -577,6 +683,7 @@ internal fun WorkoutExerciseEditContent(
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onUpdateExercise: (((Exercise) -> Exercise) -> Unit)? = null,
     onSave: (() -> Unit)? = null,
+    sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
 ) {
     val sets = maxVisibleSets?.let { exercise.sets.take(it) } ?: exercise.sets
     var trainingMode by remember(exercise.id) { mutableStateOf(exercise.trainingMode ?: TrainingMode.REPS) }
@@ -677,10 +784,10 @@ internal fun WorkoutExerciseEditContent(
 
         sets.forEachIndexed { index, set ->
             WorkoutSetEditCard(
-                exercise = exercise,
                 set = set,
                 index = index,
-                onUpdate = { transform -> onUpdateSet(set.id, transform) },
+                onUpdateSet = onUpdateSet,
+                sessionAccentColor = sessionAccentColor,
             )
         }
 
@@ -763,6 +870,7 @@ internal fun ExerciseSetupSheetContent(
                 onUpdateSet = onUpdateSet,
                 sessionAccentColor = sessionAccentColor,
                 maxVisibleCues = maxVisibleCues,
+                exerciseTag = currentTag,
             )
         }
 
@@ -774,122 +882,150 @@ internal fun ExerciseSetupSheetContent(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun WorkoutSetEditCard(
-    exercise: Exercise,
+private fun WorkoutSetEditCard(
     set: ExerciseSet,
     index: Int,
-    onUpdate: ((ExerciseSet) -> ExerciseSet) -> Unit,
+    onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
+    sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
 ) {
-    val metricLabel = if (exercise.trainingMode == TrainingMode.TIME) "Tiempo" else "Reps"
-    var metricText by rememberSaveable(set.id, set.targetReps, set.targetDuration) {
-        mutableStateOf(if (exercise.trainingMode == TrainingMode.TIME) set.targetDuration?.toString().orEmpty() else set.targetReps?.toString().orEmpty())
-    }
-    var weightText by rememberSaveable(set.id, set.weight) { mutableStateOf(set.weight?.toTrimmedNumberString().orEmpty()) }
-    var intensityText by rememberSaveable(set.id, set.targetRPE, set.targetRIR, set.targetPercentageRM) {
-        mutableStateOf(
-            when (set.intensityMode ?: IntensityMode.RPE) {
-                IntensityMode.RIR -> set.targetRIR?.toString().orEmpty()
-                IntensityMode.SOLO_RM -> set.targetPercentageRM?.toTrimmedNumberString().orEmpty()
-                IntensityMode.FAILURE -> ""
-                else -> set.targetRPE?.toTrimmedNumberString().orEmpty()
-            }
-        )
-    }
+    var expanded by remember { mutableStateOf(false) }
 
     Surface(
         shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surface,
+        color = Color(0xFF1A1A1A),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("Serie ${index + 1}", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = metricText,
-                    onValueChange = {
-                        metricText = it
-                        onUpdate { current ->
-                            if (exercise.trainingMode == TrainingMode.TIME) current.copy(targetDuration = it.toIntOrNull())
-                            else current.copy(targetReps = it.toIntOrNull())
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                    label = { Text(metricLabel) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                )
-                OutlinedTextField(
-                    value = weightText,
-                    onValueChange = {
-                        weightText = it
-                        onUpdate { current -> current.copy(weight = it.toDoubleOrNull()) }
-                    },
-                    modifier = Modifier.weight(1f),
-                    label = { Text("Carga") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("SERIE ${index + 1}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = sessionAccentColor, letterSpacing = 2.sp)
+                Spacer(Modifier.weight(1f))
+                FilterChip(selected = set.isAmrap, onClick = { onUpdateSet(set.id) { it.copy(isAmrap = !it.isAmrap) } }, label = { Text("AMRAP", style = MaterialTheme.typography.labelSmall, maxLines = 1) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f), selectedLabelColor = sessionAccentColor))
+                Spacer(Modifier.width(4.dp))
+                FilterChip(selected = set.isFailure || set.intensityMode == IntensityMode.FAILURE, onClick = { onUpdateSet(set.id) { if (it.intensityMode == IntensityMode.FAILURE) it.copy(intensityMode = IntensityMode.RPE, isFailure = false) else it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true) } }, label = { Text("Fallo", style = MaterialTheme.typography.labelSmall, maxLines = 1) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFFF5252).copy(alpha = 0.2f), selectedLabelColor = Color(0xFFFF5252)))
+                Spacer(Modifier.width(4.dp))
+                IconButton(onClick = { expanded = !expanded }, modifier = Modifier.size(22.dp)) { Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, Modifier.size(14.dp), tint = Color.White.copy(alpha = 0.4f)) }
             }
 
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf(IntensityMode.RPE, IntensityMode.RIR, IntensityMode.FAILURE).forEach { mode ->
-                    val label = when (mode) {
-                        IntensityMode.RPE -> "RPE"
-                        IntensityMode.RIR -> "RIR"
-                        IntensityMode.FAILURE -> "Fallo"
-                        else -> mode.name
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(Modifier.weight(1f)) {
+                    Text(if (set.unitModeV2 == UnitModeV2.TIME || set.targetDuration != null) "TIEMPO" else "REPS", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Spacer(Modifier.height(4.dp))
+                    Surface(shape = RoundedCornerShape(10.dp), color = Color(0xFF252525), modifier = Modifier.fillMaxWidth()) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(40.dp)) {
+                            Box(Modifier.width(30.dp).fillMaxHeight().clickable { val c = (set.targetDuration ?: set.targetReps) ?: 0; onUpdateSet(set.id) { if (set.targetDuration != null) it.copy(targetDuration = (c - 1).coerceAtLeast(0)) else it.copy(targetReps = (c - 1).coerceAtLeast(0)) } }, contentAlignment = Alignment.Center) { Icon(Icons.Default.Remove, null, Modifier.size(14.dp), tint = Color.White.copy(alpha = 0.6f)) }
+                            Text(text = (set.targetDuration ?: set.targetReps)?.toString() ?: "-", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Box(Modifier.width(30.dp).fillMaxHeight().clickable { val c = (set.targetDuration ?: set.targetReps) ?: 0; onUpdateSet(set.id) { if (set.targetDuration != null) it.copy(targetDuration = c + 1) else it.copy(targetReps = c + 1) } }, contentAlignment = Alignment.Center) { Icon(Icons.Default.Add, null, Modifier.size(14.dp), tint = sessionAccentColor) }
+                        }
                     }
-                    FilterChip(
-                        selected = (set.intensityMode ?: IntensityMode.RPE) == mode,
-                        onClick = {
-                            onUpdate { current ->
-                                when (mode) {
-                                    IntensityMode.RPE -> current.copy(intensityMode = IntensityMode.RPE, isFailure = false, targetRPE = current.targetRPE ?: 8.0, targetRIR = null)
-                                    IntensityMode.RIR -> current.copy(intensityMode = IntensityMode.RIR, isFailure = false, targetRIR = current.targetRIR ?: 2, targetRPE = null)
-                                    IntensityMode.FAILURE -> current.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, targetRIR = 0, targetRPE = null)
-                                    else -> current
-                                }
-                            }
-                        },
-                        label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-                    )
+                }
+                Column(Modifier.weight(1f)) {
+                    Text("CARGA", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Spacer(Modifier.height(4.dp))
+                    Surface(shape = RoundedCornerShape(10.dp), color = Color(0xFF252525), modifier = Modifier.fillMaxWidth()) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(40.dp)) {
+                            Box(Modifier.width(30.dp).fillMaxHeight().clickable { val c = set.weight ?: 0.0; onUpdateSet(set.id) { it.copy(weight = (c - 2.5).coerceAtLeast(0.0)) } }, contentAlignment = Alignment.Center) { Icon(Icons.Default.Remove, null, Modifier.size(14.dp), tint = Color.White.copy(alpha = 0.6f)) }
+                            Text(text = set.weight?.toTrimmedNumberString() ?: "-", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Box(Modifier.width(30.dp).fillMaxHeight().clickable { val c = set.weight ?: 0.0; onUpdateSet(set.id) { it.copy(weight = c + 2.5) } }, contentAlignment = Alignment.Center) { Icon(Icons.Default.Add, null, Modifier.size(14.dp), tint = sessionAccentColor) }
+                        }
+                    }
                 }
             }
 
-            if ((set.intensityMode ?: IntensityMode.RPE) != IntensityMode.FAILURE) {
-                OutlinedTextField(
-                    value = intensityText,
-                    onValueChange = {
-                        intensityText = it
-                        onUpdate { current ->
-                            when (current.intensityMode ?: IntensityMode.RPE) {
-                                IntensityMode.RIR -> current.copy(targetRIR = it.toIntOrNull())
-                                else -> current.copy(targetRPE = it.toDoubleOrNull(), intensityMode = IntensityMode.RPE)
+            Surface(shape = RoundedCornerShape(10.dp), color = Color(0xFF252525), modifier = Modifier.fillMaxWidth()) {
+                Row(Modifier.padding(horizontal = 8.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Modo:", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.5f), maxLines = 1)
+                    Spacer(Modifier.width(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        listOf(IntensityMode.RPE to "RPE", IntensityMode.RIR to "RIR", IntensityMode.FAILURE to "Fallo").forEach { (mode, label) ->
+                            FilterChip(selected = set.intensityMode == mode || (mode == IntensityMode.FAILURE && set.isFailure), onClick = { onUpdateSet(set.id) { when (mode) { IntensityMode.FAILURE -> it.copy(intensityMode = mode, isFailure = true, targetRPE = null, targetRIR = null); IntensityMode.RIR -> it.copy(intensityMode = mode, isFailure = false, targetRPE = null); IntensityMode.RPE -> it.copy(intensityMode = mode, isFailure = false, targetRIR = null); else -> it } } }, label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252).copy(alpha = 0.2f) else sessionAccentColor.copy(alpha = 0.2f), selectedLabelColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252) else sessionAccentColor))
+                        }
+                    }
+                    if (set.intensityMode != IntensityMode.FAILURE) {
+                        Spacer(Modifier.weight(1f))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(26.dp).clickable { val c = if (set.intensityMode == IntensityMode.RIR) (set.targetRIR ?: 2).toDouble() else (set.targetRPE ?: 8.0); val s = if (set.intensityMode == IntensityMode.RIR) 1.0 else 0.5; val n = (c - s).coerceAtLeast(0.0); onUpdateSet(set.id) { if (set.intensityMode == IntensityMode.RIR) it.copy(targetRIR = n.toInt()) else it.copy(targetRPE = n) } }, contentAlignment = Alignment.Center) { Icon(Icons.Default.Remove, null, Modifier.size(12.dp), tint = Color.White.copy(alpha = 0.6f)) }
+                            Text(text = (if (set.intensityMode == IntensityMode.RIR) set.targetRIR?.toString() else set.targetRPE?.toTrimmedNumberString()) ?: "-", modifier = Modifier.widthIn(min = 28.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1)
+                            Box(Modifier.size(26.dp).clickable { val c = if (set.intensityMode == IntensityMode.RIR) (set.targetRIR ?: 2).toDouble() else (set.targetRPE ?: 8.0); val s = if (set.intensityMode == IntensityMode.RIR) 1.0 else 0.5; val n = (c + s).coerceAtMost(10.0); onUpdateSet(set.id) { if (set.intensityMode == IntensityMode.RIR) it.copy(targetRIR = n.toInt()) else it.copy(targetRPE = n) } }, contentAlignment = Alignment.Center) { Icon(Icons.Default.Add, null, Modifier.size(12.dp), tint = sessionAccentColor) }
+                        }
+                    }
+                }
+            }
+
+            AnimatedVisibility(visible = expanded, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.06f), thickness = 0.5.dp)
+
+                    Text("MODO DE CARGA", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp, maxLines = 1)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        LoadModeV2.values().forEach { mode -> FilterChip(selected = set.loadModeV2 == mode, onClick = { onUpdateSet(set.id) { it.copy(loadModeV2 = mode) } }, label = { Text(when(mode) { LoadModeV2.LOAD -> "Carga"; LoadModeV2.BODYWEIGHT -> "Peso corporal"; LoadModeV2.LASTRE -> "Lastre"; LoadModeV2.ASSISTED -> "Asistido" }, style = MaterialTheme.typography.labelSmall, maxLines = 1) }) }
+                    }
+
+                    Text("UNIDAD", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp, maxLines = 1)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(UnitModeV2.REPS to "Reps", UnitModeV2.TIME to "Tiempo", UnitModeV2.DISTANCE to "Distancia").forEach { (mode, label) -> FilterChip(selected = set.unitModeV2 == mode, onClick = { onUpdateSet(set.id) { it.copy(unitModeV2 = mode) } }, label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) }) }
+                    }
+
+                    Surface(shape = RoundedCornerShape(8.dp), color = Color(0xFF252525), modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("% RM", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), modifier = Modifier.width(60.dp), maxLines = 1)
+                                Text(":", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.3f))
+                                Spacer(Modifier.width(8.dp))
+                                Text(text = set.targetPercentageRM?.toTrimmedNumberString() ?: "-", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Spacer(Modifier.weight(1f))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(Modifier.size(28.dp).clickable { onUpdateSet(set.id) { it.copy(targetPercentageRM = ((set.targetPercentageRM ?: 50.0) - 5.0).coerceAtLeast(10.0)) } }, contentAlignment = Alignment.Center) { Icon(Icons.Default.Remove, null, Modifier.size(12.dp), tint = Color.White.copy(alpha = 0.6f)) }
+                                    Box(Modifier.size(28.dp).clickable { onUpdateSet(set.id) { it.copy(targetPercentageRM = ((set.targetPercentageRM ?: 50.0) + 5.0).coerceAtMost(100.0)) } }, contentAlignment = Alignment.Center) { Icon(Icons.Default.Add, null, Modifier.size(12.dp), tint = sessionAccentColor) }
+                                }
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Máquina", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), modifier = Modifier.width(60.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(":", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.3f))
+                                Spacer(Modifier.width(8.dp))
+                                Text(text = set.machineBrand ?: "—", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(if ((set.intensityMode ?: IntensityMode.RPE) == IntensityMode.RIR) "RIR" else "RPE") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = if ((set.intensityMode ?: IntensityMode.RPE) == IntensityMode.RIR) KeyboardType.Number else KeyboardType.Decimal,
-                    ),
-                )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun WorkoutRmCalcContent() {
+private fun WorkoutRmCalcContent(
+    bodyWeight: Double? = null,
+    currentLoadMode: LoadModeV2? = null,
+    onWeightSelected: ((weight: Double, loadMode: LoadModeV2?) -> Unit)? = null,
+    sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
+) {
     var rmWeightText by remember { mutableStateOf("") }
     var rmRepsText by remember { mutableStateOf("") }
-    val rmResult = remember(rmWeightText, rmRepsText) {
+    val isAssisted = currentLoadMode == LoadModeV2.ASSISTED
+    val rmResult = remember(rmWeightText, rmRepsText, isAssisted, bodyWeight) {
         val w = rmWeightText.toDoubleOrNull() ?: 0.0
         val r = rmRepsText.toIntOrNull() ?: 0
         if (w > 0 && r > 0) calculateHybrid1RM(w, r) else null
+    }
+    val rmTable = remember(rmResult, isAssisted, bodyWeight) {
+        if (rmResult == null) emptyList()
+        else {
+            val estRms = (1..10).map { reps ->
+                val estLoad = rmResult / (1.0 + reps / 30.0) // Epley inverse
+                reps to estLoad
+            }
+            if (isAssisted && bodyWeight != null && bodyWeight > 0) {
+                estRms.map { (reps, load) ->
+                    val assistance = (bodyWeight - load).coerceAtLeast(0.0)
+                    reps to Pair(load, assistance)
+                }
+            } else {
+                estRms.map { (reps, load) -> reps to Pair(load, null) }
+            }
+        }
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -910,23 +1046,46 @@ private fun WorkoutRmCalcContent() {
                 modifier = Modifier.weight(1f),
             )
         }
-        if (rmResult != null) {
+        if (rmResult != null && rmTable.isNotEmpty()) {
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
+                color = Color(0xFF1A3A1A),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("e1RM estimado", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                    Text(
-                        "${"%.1f".format(rmResult)} kg",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
+                    Text("e1RM: ${"%.1f".format(rmResult)} kg", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color(0xFF4CAF50))
+                    if (isAssisted && bodyWeight != null) {
+                        Text("Peso corporal: ${bodyWeight.toTrimmedNumberString()} kg", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
+                    }
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+            Text("Tabla RM", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                rmTable.forEach { (reps, pair) ->
+                    val (estLoad, assistance) = pair
+                    val displayWeight = if (assistance != null) assistance else estLoad
+                    val suffix = if (assistance != null) "kg asistencia" else "kg"
+                    Surface(
+                        onClick = { onWeightSelected?.invoke(displayWeight, currentLoadMode) },
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFF2A2A2A),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                        modifier = Modifier.widthIn(min = 72.dp),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Text("${reps}RM", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = sessionAccentColor)
+                            Text("${"%.1f".format(displayWeight)}", style = MaterialTheme.typography.labelSmall, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(suffix, style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = Color.White.copy(alpha = 0.5f), maxLines = 1)
+                        }
+                    }
                 }
             }
         }
@@ -1057,7 +1216,7 @@ internal fun WorkoutSessionEnergyContent(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
-            text = "calorías de la sesión",
+            text = "Calorías de la sesión",
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

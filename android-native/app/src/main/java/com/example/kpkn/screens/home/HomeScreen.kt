@@ -39,7 +39,6 @@ import com.example.kpkn.data.models.MuscleFeedbackEntry
 import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
-import com.example.kpkn.data.models.RecoveryDashboard
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.ringScore
@@ -87,7 +86,6 @@ fun HomeScreen(
     val sncProgress = augeSnapshot.ringScore(RecoveryChannelId.SYSTEM) / 100f
     val columnaProgress = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE) / 100f
     val userName by viewModel.userName.collectAsState()
-    val ringsViewMode by viewModel.ringsViewMode.collectAsState()
     val todaySessions by viewModel.todaySessions.collectAsState()
     val activeProgramId by viewModel.activeProgramId.collectAsState()
     val hasActiveProgram by viewModel.hasActiveProgram.collectAsState()
@@ -200,9 +198,7 @@ fun HomeScreen(
                 muscularProgress = muscularProgress,
                 sncProgress = sncProgress,
                 columnaProgress = columnaProgress,
-                recoveryDashboard = augeDashboard,
                 perMuscle = augePerMuscle,
-                ringsViewMode = ringsViewMode,
                 todaySessions = todaySessions,
                 competitionCountdown = competitionCountdown,
                 hasActiveProgram = hasActiveProgram,
@@ -210,7 +206,6 @@ fun HomeScreen(
                 listState = listState,
                 userName = userName,
                 greeting = greeting,
-                onRingsViewChange = { viewModel.setRingsViewMode(it) },
                 onSettingsClick = onNavigateToSettings,
                 onStartWorkout = onStartWorkout,
                 onResumeWorkout = onResumeWorkout,
@@ -273,9 +268,7 @@ private fun HomeWithProgram(
     muscularProgress: Float,
     sncProgress: Float,
     columnaProgress: Float,
-    recoveryDashboard: RecoveryDashboard,
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
-    ringsViewMode: HomeViewModel.RingsViewMode,
     todaySessions: List<TodaySessionItem>,
     competitionCountdown: CompetitionCountdown?,
     hasActiveProgram: Boolean,
@@ -283,7 +276,6 @@ private fun HomeWithProgram(
     listState: androidx.compose.foundation.lazy.LazyListState,
     userName: String,
     greeting: String,
-    onRingsViewChange: (HomeViewModel.RingsViewMode) -> Unit,
     onSettingsClick: () -> Unit,
     onStartWorkout: (Session, Program) -> Unit,
     onResumeWorkout: () -> Unit,
@@ -304,16 +296,12 @@ private fun HomeWithProgram(
         modifier = modifier
             .fillMaxSize()
             .then(listModifier),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
             HomeHeaderSection(
                 greeting = greeting,
                 userName = userName,
-                ringsViewMode = ringsViewMode,
-                onThemeToggle = { /* Obsolete */ },
-                onSettingsClick = onSettingsClick,
-                onRingsViewChange = onRingsViewChange,
             )
         }
 
@@ -322,10 +310,7 @@ private fun HomeWithProgram(
                 muscularProgress = muscularProgress,
                 sncProgress = sncProgress,
                 columnaProgress = columnaProgress,
-                recoveryDashboard = recoveryDashboard,
-                ringsViewMode = ringsViewMode,
                 hasActiveProgram = hasActiveProgram,
-                perMuscle = perMuscle,
             )
         }
 
@@ -374,6 +359,7 @@ private fun HomeWithProgram(
                 perMuscle = perMuscle,
                 onStartWorkout = onStartWorkout,
                 onResumeWorkout = onResumeWorkout,
+                onEditSession = onEditSession,
             )
         }
 

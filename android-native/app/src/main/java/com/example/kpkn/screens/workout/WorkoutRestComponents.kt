@@ -14,10 +14,13 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Stop
@@ -25,13 +28,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -41,18 +46,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
 
 @Composable
 internal fun RestTimerOverlay(
     state: WorkoutRestModalState,
     remainingSeconds: Int,
+    hazeState: HazeState,
     recoveryStatus: RestRecoveryStatus? = null,
     coachMessage: CoachMessage? = null,
+    pendingRestSuggestion: PendingRestSuggestion? = null,
+    isAdaptiveActive: Boolean = false,
+    sessionAccentColor: Color = Color.White,
     onDecrease: () -> Unit,
     onIncrease: () -> Unit,
     onSkip: () -> Unit,
     onSkipExercise: (() -> Unit)? = null,
-    onUsePlanned: (() -> Unit)? = null,
     onUseAdaptive: (() -> Unit)? = null,
 ) {
     val totalSeconds = state.activeSeconds.coerceAtLeast(1)
@@ -61,8 +73,15 @@ internal fun RestTimerOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.72f))
-            .blur(0.dp)
+            .hazeEffect(
+                state = hazeState,
+                style = HazeStyle(
+                    blurRadius = 24.dp,
+                    tint = HazeTint(Color.Black.copy(alpha = 0.55f)),
+                    backgroundColor = Color(0xFF0A0A0A).copy(alpha = 0.65f),
+                    noiseFactor = 0.04f,
+                ),
+            )
             .zIndex(6f),
         contentAlignment = Alignment.Center,
     ) {
@@ -157,6 +176,105 @@ internal fun RestTimerOverlay(
                         contentDescription = "Aumentar",
                         tint = Color.White,
                     )
+                }
+            }
+
+            if (recoveryStatus != null) {
+                Spacer(Modifier.height(20.dp))
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color.White.copy(alpha = 0.08f),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Favorite, null, Modifier.size(16.dp), tint = Color(0xFF4CAF50))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Recuperación", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White)
+                            Spacer(Modifier.weight(1f))
+                            Text("${(recoveryStatus.recoveryPercent * 100).toInt()}%",
+                                style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black,
+                                color = when {
+                                    recoveryStatus.isReady -> Color(0xFF4CAF50)
+                                    recoveryStatus.recoveryPercent >= 0.5f -> Color(0xFFFFD740)
+                                    else -> Color(0xFFFF5252)
+                                })
+                        }
+                        LinearProgressIndicator(
+                            progress = { recoveryStatus.recoveryPercent.toFloat() / 100f },
+                            modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
+                            color = when {
+                                recoveryStatus.isReady -> Color(0xFF4CAF50)
+                                recoveryStatus.recoveryPercent >= 0.5f -> Color(0xFFFFD740)
+                                else -> Color(0xFFFF5252)
+                            },
+                            trackColor = Color.White.copy(alpha = 0.1f),
+                        )
+                        if (recoveryStatus.isReady) {
+                            Text("Listo para continuar", style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFF4CAF50), fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+            }
+
+            if (coachMessage != null) {
+                Spacer(Modifier.height(4.dp))
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = sessionAccentColor.copy(alpha = 0.1f),
+                ) {
+                    Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                        Icon(Icons.Default.Lightbulb, null, Modifier.size(14.dp), tint = sessionAccentColor)
+                        Spacer(Modifier.width(6.dp))
+                        Text(coachMessage.body, style = MaterialTheme.typography.labelSmall,
+                            color = sessionAccentColor, fontWeight = FontWeight.Medium)
+                    }
+                }
+            }
+
+            if (pendingRestSuggestion != null) {
+                Spacer(Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (isAdaptiveActive) Color.White.copy(alpha = 0.06f)
+                                else sessionAccentColor.copy(alpha = 0.12f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, if (isAdaptiveActive) Color.White.copy(alpha = 0.2f)
+                                                                       else sessionAccentColor.copy(alpha = 0.3f)),
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+                            Text(if (isAdaptiveActive) "Dinámico" else "Plan",
+                                style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold,
+                                color = if (isAdaptiveActive) Color.White.copy(alpha = 0.6f) else sessionAccentColor)
+                            Text(formatTime(state.activeSeconds),
+                                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black,
+                                color = Color.White)
+                        }
+                    }
+
+                    if (!isAdaptiveActive && onUseAdaptive != null) {
+                        OutlinedButton(
+                            onClick = onUseAdaptive,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFD740)),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD740).copy(alpha = 0.4f)),
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("Dinámico", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                Text(formatTime(pendingRestSuggestion.adaptiveSeconds),
+                                    style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                            }
+                        }
+                    }
                 }
             }
 

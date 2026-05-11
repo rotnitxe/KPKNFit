@@ -145,6 +145,7 @@ data class OngoingWorkoutState(
     val readinessSpinalOverride: Int? = null,
     val readinessMuscleOverrides: Map<String, Int> = emptyMap(),
     val restModalState: com.example.kpkn.screens.workout.WorkoutRestModalState? = null,
+    val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
 )
 
 /** Summary card data for the Home screen "Sesión de hoy" */
