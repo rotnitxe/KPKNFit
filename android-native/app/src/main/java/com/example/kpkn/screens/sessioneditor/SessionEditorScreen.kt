@@ -93,6 +93,7 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -130,6 +131,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -171,6 +173,11 @@ import androidx.compose.ui.zIndex
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.viewinterop.AndroidView
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
@@ -332,6 +339,24 @@ fun SessionEditorScreen(
         }
     }
 
+    val hazeState = remember { HazeState() }
+    val roadmapGlassStyle = remember {
+        HazeStyle(
+            blurRadius = 20.dp,
+            tint = HazeTint(Color.Black.copy(alpha = 0.30f)),
+            backgroundColor = Color.Black.copy(alpha = 0.34f),
+            noiseFactor = 0.03f,
+        )
+    }
+
+    // Snackbar for auto-save and navigation messages from ViewModel
+    LaunchedEffect(uiState.snackbarMessage) {
+        uiState.snackbarMessage?.let { msg ->
+            snackbarHostState.showKpknSnackbar(msg, SnackbarType.SUCCESS)
+            viewModel.clearSnackbarMessage()
+        }
+    }
+
     val isCompactHeader by remember(listState) {
         derivedStateOf {
             listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 160
@@ -370,7 +395,7 @@ fun SessionEditorScreen(
         if (uiState.hasUnsavedChanges) showDiscardDialog = true else onBack()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -395,28 +420,21 @@ fun SessionEditorScreen(
                         weekStartDay = uiState.weekStartDay,
                         activeDayOfWeek = uiState.dayOfWeek,
                         onSelectDay = { day ->
-                            val result = viewModel.selectRoadmapDay(day)
-                            if (result.message.isNotBlank()) {
-                                scope.launch {
-                                    snackbarHostState.showKpknSnackbar(
-                                        result.message,
-                                        if (result.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
-                                    )
-                                }
-                            }
+                            viewModel.selectRoadmapDay(day)
                         },
                         roadmapOptions = uiState.roadmapOptions,
                         onSelectRoadmapOption = viewModel::selectRoadmapOption,
                         onCreateSessionForDay = { day ->
-                            val result = viewModel.createSessionForDay(day)
-                            scope.launch {
-                                snackbarHostState.showKpknSnackbar(
-                                result.message,
-                                if (result.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
-                            )
-                        }
-                    },
-                )
+                            viewModel.createSessionForDay(day)
+                        },
+                        isSimpleProgram = uiState.isSimpleProgram,
+                        hasActiveLoops = uiState.hasActiveLoops,
+                        hazeState = hazeState,
+                        hazeStyle = roadmapGlassStyle,
+                        onSetMainSessionForDay = viewModel::setMainSessionForDay,
+                        currentSessionId = session.id,
+                        currentDayOfWeek = uiState.dayOfWeek,
+                    )
             },
         ) { padding ->
         LazyColumn(
@@ -430,6 +448,7 @@ fun SessionEditorScreen(
                 SessionHero(
                     session = session,
                     hasChanges = uiState.hasUnsavedChanges,
+                    autoSaveEnabled = uiState.autoSaveEnabled,
                     latestBodyMeasurement = uiState.latestBodyMeasurement,
                     onNameChange = viewModel::updateSessionName,
                     onDescriptionChange = viewModel::updateSessionDescription,
@@ -447,14 +466,15 @@ fun SessionEditorScreen(
                             )
                         }
                     },
-                    onClose = {
-                        if (uiState.hasUnsavedChanges) showDiscardDialog = true else onBack()
-                    },
                     onSave = { viewModel.openSheet(SessionEditorSheet.SAVE) },
                     onOpenBackgroundSheet = { viewModel.openSheet(SessionEditorSheet.BACKGROUND) },
                     onOpenTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
                     onOpenHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
                     onOpenRules = { viewModel.openSheet(SessionEditorSheet.RULES) },
+                    onAutoSaveToggle = { viewModel.setAutoSaveEnabled(!uiState.autoSaveEnabled) },
+                    sessionsOnSameDay = uiState.siblingSessions.filter { it.dayOfWeek == session.dayOfWeek },
+                    onSwitchSession = viewModel::requestSessionSwitch,
+                    onSetMainSession = viewModel::setMainSessionForDay,
                 )
             }
 
@@ -1043,7 +1063,7 @@ fun SessionEditorScreen(
             title = { Text("Salir del editor", fontWeight = FontWeight.Black) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Tienes cambios sin guardar. Puedes guardar un borrador local antes de salir.")
+                    Text("Tienes cambios sin guardar.")
                     OutlinedButton(
                         onClick = {
                             showDiscardDialog = false
@@ -1052,24 +1072,27 @@ fun SessionEditorScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text("Salir sin guardar")
+                        Text("Cerrar sin guardar")
+                    }
+                    Button(
+                        onClick = {
+                            val result = viewModel.saveSession()
+                            scope.launch {
+                                if (result.success) {
+                                    showDiscardDialog = false
+                                    onSavedAndExit()
+                                } else {
+                                    snackbarHostState.showKpknSnackbar(result.message, SnackbarType.DANGER)
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Guardar y salir")
                     }
                 }
             },
-            confirmButton = {
-                Button(onClick = {
-                    val saved = viewModel.saveDraftForExit()
-                    scope.launch {
-                        if (saved) {
-                            snackbarHostState.showKpknSnackbar("Borrador guardado", SnackbarType.SUCCESS)
-                            showDiscardDialog = false
-                            onBack()
-                        } else {
-                            snackbarHostState.showKpknSnackbar("No pudimos guardar el borrador", SnackbarType.DANGER)
-                        }
-                    }
-                }) { Text("Guardar borrador y salir") }
-            },
+            confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showDiscardDialog = false }) { Text("Continuar editando") }
             },
@@ -1127,18 +1150,22 @@ fun SessionEditorScreen(
 private fun SessionHero(
     session: Session,
     hasChanges: Boolean,
+    autoSaveEnabled: Boolean,
     latestBodyMeasurement: BodyMeasurementEntry?,
     onNameChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onMeetDayChange: (Boolean) -> Unit,
     onMeetBodyweightChange: (Double?) -> Unit,
     onSyncMeetBodyweight: () -> Unit,
-    onClose: () -> Unit,
     onSave: () -> Unit,
     onOpenBackgroundSheet: () -> Unit,
     onOpenTransfer: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenRules: () -> Unit,
+    onAutoSaveToggle: () -> Unit,
+    sessionsOnSameDay: List<Session> = emptyList(),
+    onSwitchSession: (String) -> Unit = {},
+    onSetMainSession: (String) -> Unit = {},
 ) {
       val background = session.background
       val brightness = background?.style?.brightness ?: 0.92f
@@ -1178,6 +1205,56 @@ private fun SessionHero(
                   modifier = Modifier.fillMaxWidth(),
                   verticalArrangement = Arrangement.spacedBy(4.dp),
               ) {
+                  Row(
+                      modifier = Modifier.fillMaxWidth(),
+                      horizontalArrangement = Arrangement.End,
+                      verticalAlignment = Alignment.CenterVertically,
+                  ) {
+                      SuggestionChip(
+                          onClick = onAutoSaveToggle,
+                          label = {
+                              Text(
+                                  if (autoSaveEnabled) "Auto: On" else "Auto: Off",
+                                  style = MaterialTheme.typography.labelSmall,
+                              )
+                          },
+                          icon = {
+                              Icon(
+                                  if (autoSaveEnabled) Icons.Default.CheckCircle else Icons.Default.Close,
+                                  contentDescription = null,
+                                  modifier = Modifier.size(14.dp),
+                              )
+                          },
+                          shape = RoundedCornerShape(999.dp),
+                      )
+                      Spacer(Modifier.width(6.dp))
+                      Surface(
+                          onClick = onOpenBackgroundSheet,
+                          shape = CircleShape,
+                          color = Color.Black.copy(alpha = 0.24f),
+                          border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)),
+                      ) {
+                          Box(
+                              modifier = Modifier.size(34.dp),
+                              contentAlignment = Alignment.Center,
+                          ) {
+                              Icon(
+                                  Icons.Default.Palette,
+                                  "Editar fondo",
+                                  tint = Color.White,
+                                  modifier = Modifier.size(18.dp),
+                              )
+                          }
+                      }
+                      Spacer(Modifier.width(6.dp))
+                      HeroGlassIconButton(
+                          icon = Icons.Default.Save,
+                          contentDescription = "Guardar sesión",
+                          onClick = onSave,
+                          showUnsavedDot = hasChanges,
+                      )
+                  }
+
                   val titleFontSize = when {
                       session.name.length < 15 -> 36.sp
                       session.name.length < 25 -> 28.sp
@@ -1231,77 +1308,85 @@ private fun SessionHero(
                       ),
                   )
 
-                  // Action buttons row - combined top and bottom buttons
+                  // Action chips row
                   Row(
                      modifier = Modifier
                          .fillMaxWidth()
+                         .horizontalScroll(rememberScrollState())
                          .padding(horizontal = 4.dp),
-                     horizontalArrangement = Arrangement.spacedBy(12.dp),
+                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                      verticalAlignment = Alignment.CenterVertically,
                  ) {
-                     // Close button (red, prominent)
-                     Box(
-                         modifier = Modifier
-                             .size(36.dp)
-                             .clip(CircleShape)
-                             .background(Color(0xFFB3261E).copy(alpha = 0.9f))
-                             .clickable { onClose() },
-                         contentAlignment = Alignment.Center,
-                     ) {
-                         Icon(
-                             imageVector = Icons.Default.Close,
-                             contentDescription = "Salir",
-                             tint = Color.White,
-                             modifier = Modifier.size(18.dp),
-                         )
-                     }
-
-                     // Transfer
-                     HeroActionIcon(
-                         icon = Icons.Default.SwapHoriz,
-                         contentDescription = "Transferir",
+                     SuggestionChip(
                          onClick = onOpenTransfer,
+                         icon = { Icon(Icons.Default.SwapHoriz, null, modifier = Modifier.size(14.dp)) },
+                         label = { Text("Transferir", style = MaterialTheme.typography.labelSmall) },
+                         shape = RoundedCornerShape(999.dp),
                      )
-
-                     // History
-                     HeroActionIcon(
-                         icon = Icons.Default.History,
-                         contentDescription = "Historial",
+                     SuggestionChip(
                          onClick = onOpenHistory,
+                         icon = { Icon(Icons.Default.History, null, modifier = Modifier.size(14.dp)) },
+                         label = { Text("Historial", style = MaterialTheme.typography.labelSmall) },
+                         shape = RoundedCornerShape(999.dp),
                      )
-
-                     // Rules
-                     HeroActionIcon(
-                         icon = Icons.Default.Settings,
-                         contentDescription = "Reglas",
+                     SuggestionChip(
                          onClick = onOpenRules,
+                         icon = { Icon(Icons.Default.Settings, null, modifier = Modifier.size(14.dp)) },
+                         label = { Text("Reglas", style = MaterialTheme.typography.labelSmall) },
+                         shape = RoundedCornerShape(999.dp),
                      )
-
-                     // Meet day (competition mode)
-                     HeroActionIcon(
-                         icon = Icons.Default.WorkspacePremium,
-                         contentDescription = "Modo competición",
+                     SuggestionChip(
                          onClick = { onMeetDayChange(!session.isMeetDay) },
-                         selected = session.isMeetDay,
-                     )
-
-                     Spacer(Modifier.weight(1f))
-
-                     // Save button
-                     HeroGlassIconButton(
-                         icon = Icons.Default.Save,
-                         contentDescription = "Guardar sesión",
-                         onClick = onSave,
-                         showUnsavedDot = hasChanges,
-                     )
-
-                     // Palette (edit background)
-                     HeroGlassIconButton(
-                         icon = Icons.Default.Palette,
-                         contentDescription = "Editar fondo",
-                         onClick = onOpenBackgroundSheet,
+                         icon = { Icon(Icons.Default.WorkspacePremium, null, modifier = Modifier.size(14.dp)) },
+                         label = { Text("Cambiar a sesión de competición", style = MaterialTheme.typography.labelSmall) },
+                         shape = RoundedCornerShape(999.dp),
                      )
                  }
+
+                // Multi-session day: session switcher row
+                if (sessionsOnSameDay.size > 1) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        sessionsOnSameDay.forEach { ssn ->
+                            val isCurrent = ssn.id == session.id
+                            val isPrimary = ssn.isMainSession
+                            AssistChip(
+                                onClick = { if (!isCurrent) onSwitchSession(ssn.id) },
+                                label = {
+                                    Text(
+                                        if (isPrimary) "★ ${ssn.name.ifBlank { "Sesión" }}" else ssn.name.ifBlank { "Sesión" },
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                                    )
+                                },
+                                leadingIcon = {
+                                    if (isCurrent) {
+                                        Icon(Icons.Default.Check, null, Modifier.size(14.dp))
+                                    } else if (!isPrimary) {
+                                        Icon(
+                                            Icons.Default.StarBorder,
+                                            "Marcar como principal",
+                                            Modifier.size(14.dp).clickable { onSetMainSession(ssn.id) },
+                                        )
+                                    } else {
+                                        Icon(Icons.Default.Star, null, Modifier.size(14.dp), tint = Color(0xFFFBBF24))
+                                    }
+                                },
+                                shape = RoundedCornerShape(999.dp),
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = if (isCurrent) Color.White.copy(alpha = 0.25f)
+                                    else Color.White.copy(alpha = 0.10f),
+                                    labelColor = Color.White,
+                                ),
+                            )
+                        }
+                    }
+                }
 
                 if (session.isMeetDay) {
                     OutlinedTextField(
@@ -1490,6 +1575,13 @@ private fun SessionContextNavigator(
     roadmapOptions: List<SessionRoadmapOption>,
     onSelectRoadmapOption: (SessionRoadmapOption) -> Unit,
     onCreateSessionForDay: (Int) -> Unit,
+    isSimpleProgram: Boolean,
+    hasActiveLoops: Boolean,
+    hazeState: HazeState?,
+    hazeStyle: HazeStyle,
+    onSetMainSessionForDay: (String) -> Unit,
+    currentSessionId: String,
+    currentDayOfWeek: Int?,
 ) {
     val orderedDays = remember(weekStartDay) {
         val safeStart = weekStartDay.coerceIn(1, 7)
@@ -1503,24 +1595,89 @@ private fun SessionContextNavigator(
     var selectedDay by remember(activeDayOfWeek, selectedSessionDay, orderedDays) {
         mutableStateOf(activeDayOfWeek ?: selectedSessionDay ?: orderedDays.first())
     }
-    val selectedDayHasSession = remember(sessions, selectedDay) {
-        sessions.any { it.dayOfWeek == selectedDay }
-    }
     var showRoadmapMenu by remember { mutableStateOf(false) }
     val showRoadmapMenuButton = roadmapOptions.size > 1
 
+    // Sessions grouped by day
+    val sessionsByDay = remember(sessions) {
+        sessions.groupBy { it.dayOfWeek ?: 99 }
+    }
+    val sessionsOnSelectedDay = remember(sessionsByDay, selectedDay) {
+        sessionsByDay[selectedDay].orEmpty()
+    }
+
+    // Block chips (advanced programs only)
+    val uniqueBlocks = remember(roadmapOptions) {
+        roadmapOptions.map { it.blockIndex to it.blockName }.distinctBy { it.first }
+    }
+    var selectedBlockIndex by rememberSaveable { mutableStateOf(-1) }
+
+    // Create session dialog state
+    var showCreateSessionDialog by remember { mutableStateOf(false) }
+    var pendingCreateDay by remember { mutableIntStateOf(-1) }
+
+    val navModifier = if (hazeState != null) {
+        Modifier.fillMaxWidth().hazeEffect(state = hazeState, style = hazeStyle)
+    } else {
+        Modifier.fillMaxWidth()
+    }
     Surface(
-        shadowElevation = 14.dp,
-        tonalElevation = 8.dp,
-        color = MaterialTheme.colorScheme.surface,
+        modifier = navModifier,
+        shadowElevation = 0.dp,
+        tonalElevation = 0.dp,
+        color = Color.Black.copy(alpha = 0.18f),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
+            // Block chips for advanced programs
+            if (!isSimpleProgram && uniqueBlocks.size > 1) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    uniqueBlocks.forEach { (blockIndex, blockName) ->
+                        FilterChip(
+                            selected = selectedBlockIndex == blockIndex,
+                            onClick = {
+                                selectedBlockIndex = blockIndex
+                                val option = roadmapOptions.firstOrNull { it.blockIndex == blockIndex }
+                                if (option != null) onSelectRoadmapOption(option)
+                            },
+                            label = {
+                                Text(blockName, style = MaterialTheme.typography.labelSmall)
+                            },
+                            shape = RoundedCornerShape(999.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            ),
+                        )
+                    }
+                }
+            }
+
+            // Week info for simple programs with active loops
+            if (isSimpleProgram && hasActiveLoops) {
+                val currentOpt = roadmapOptions.firstOrNull { it.weekId.isNotBlank() }
+                if (currentOpt != null) {
+                    Text(
+                        text = "Semana ${currentOpt.weekIndex + 1} · ${currentOpt.weekName}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                    )
+                }
+            }
+
+            // Day circles row
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -1532,19 +1689,32 @@ private fun SessionContextNavigator(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         orderedDays.forEach { day ->
-                            val hasSession = sessions.any { it.dayOfWeek == day }
+                            val daySessions = sessionsByDay[day].orEmpty()
+                            val hasSession = daySessions.isNotEmpty()
+                            val sessionCount = daySessions.size
+                            val isMultiSession = sessionCount > 1
                             val selectedDayChip = selectedDay == day
                             val selectedDayColor = Color(0xFF2563EB)
-                            val backgroundColor = if (selectedDayChip && hasSession) selectedDayColor else Color.White
+                            val isDimmed = !hasSession
+                            val alphaFactor = if (isDimmed) 0.35f else 1f
+
+                            val backgroundColor = when {
+                                selectedDayChip && hasSession -> selectedDayColor
+                                selectedDayChip -> selectedDayColor.copy(alpha = 0.35f)
+                                isDimmed -> Color.White.copy(alpha = 0.2f)
+                                else -> Color.White
+                            }
                             val borderColor = when {
                                 selectedDayChip && hasSession -> Color.Transparent
                                 selectedDayChip -> selectedDayColor
+                                isDimmed -> MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                                 else -> MaterialTheme.colorScheme.outline
                             }
                             val borderWidth = if (selectedDayChip) 1.8.dp else 1.dp
                             val textColor = when {
                                 selectedDayChip && hasSession -> Color.White
                                 selectedDayChip -> selectedDayColor
+                                isDimmed -> Color.Black.copy(alpha = 0.4f)
                                 else -> Color.Black
                             }
 
@@ -1558,18 +1728,16 @@ private fun SessionContextNavigator(
                                         color = borderColor,
                                         shape = CircleShape,
                                     )
-                                    .combinedClickable(
-                                        onClick = {
-                                            selectedDay = day
-                                            sessions.firstOrNull { it.dayOfWeek == day }?.let { onSelectSession(it.id) } ?: onSelectDay(day)
-                                        },
-                                        onLongClick = {
-                                            if (!hasSession) {
-                                                selectedDay = day
-                                                onCreateSessionForDay(day)
-                                            }
-                                        },
-                                    ),
+                                    .clickable {
+                                        selectedDay = day
+                                        if (hasSession) {
+                                            val primaryOrFirst = daySessions.firstOrNull { it.isMainSession } ?: daySessions.first()
+                                            onSelectSession(primaryOrFirst.id)
+                                        } else {
+                                            pendingCreateDay = day
+                                            showCreateSessionDialog = true
+                                        }
+                                    },
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
@@ -1578,6 +1746,7 @@ private fun SessionContextNavigator(
                                     fontWeight = FontWeight.Bold,
                                     color = textColor,
                                 )
+                                // Small dot for days with sessions (not selected)
                                 if (hasSession && !selectedDayChip) {
                                     Box(
                                         modifier = Modifier
@@ -1588,30 +1757,30 @@ private fun SessionContextNavigator(
                                             .background(selectedDayColor),
                                     )
                                 }
+                                // Session count badge for multi-session days
+                                if (isMultiSession && selectedDayChip) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .offset(x = 4.dp, y = (-4).dp)
+                                            .size(16.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFFEF4444)),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Text(
+                                            "$sessionCount",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                        )
+                                    }
+                                }
                             }
                         }
 
-                        Surface(
-                            onClick = { onCreateSessionForDay(selectedDay) },
-                            shape = CircleShape,
-                            color = if (selectedDayHasSession) Color.Transparent else Color(0xFF2563EB),
-                            border = androidx.compose.foundation.BorderStroke(
-                                1.dp,
-                                if (selectedDayHasSession) MaterialTheme.colorScheme.outline else Color.Transparent,
-                            ),
-                        ) {
-                            Box(
-                                modifier = Modifier.size(38.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Crear sesión en día seleccionado",
-                                    tint = if (selectedDayHasSession) MaterialTheme.colorScheme.onSurfaceVariant else Color.White,
-                                )
-                            }
-                        }
-
+                        // Roadmap menu button (three dots)
                         if (showRoadmapMenuButton) {
                             Box(
                                 modifier = Modifier
@@ -1623,6 +1792,7 @@ private fun SessionContextNavigator(
                                 Icon(
                                     imageVector = Icons.Default.MoreVert,
                                     contentDescription = "Cambiar roadmap",
+                                    tint = Color.White.copy(alpha = 0.7f),
                                 )
                                 DropdownMenu(
                                     expanded = showRoadmapMenu,
@@ -1655,7 +1825,77 @@ private fun SessionContextNavigator(
                     }
                 }
             }
+
+            // Multi-session day: session switcher pills
+            if (sessionsOnSelectedDay.size > 1) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    sessionsOnSelectedDay.forEach { ssn ->
+                        val isCurrent = ssn.id == currentSessionId
+                        val isPrimary = ssn.isMainSession
+                        AssistChip(
+                            onClick = { if (!isCurrent) onSelectSession(ssn.id) },
+                            label = {
+                                Text(
+                                    if (isPrimary) "★ ${ssn.name.ifBlank { "Sesión" }}" else ssn.name.ifBlank { "Sesión" },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                                )
+                            },
+                            leadingIcon = {
+                                if (isCurrent) {
+                                    Icon(Icons.Default.Check, null, Modifier.size(14.dp))
+                                } else if (!isPrimary) {
+                                    Icon(
+                                        Icons.Default.StarBorder,
+                                        "Marcar como principal",
+                                        Modifier.size(14.dp).clickable { onSetMainSessionForDay(ssn.id) },
+                                    )
+                                } else {
+                                    Icon(Icons.Default.Star, null, Modifier.size(14.dp), tint = Color(0xFFFBBF24))
+                                }
+                            },
+                            shape = RoundedCornerShape(999.dp),
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = if (isCurrent) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                labelColor = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            ),
+                        )
+                    }
+                }
+            }
         }
+    }
+
+    // Create session dialog
+    if (showCreateSessionDialog && pendingCreateDay > 0) {
+        AlertDialog(
+            onDismissRequest = { showCreateSessionDialog = false },
+            icon = { Icon(Icons.Default.Add, null, tint = MaterialTheme.colorScheme.primary) },
+            title = { Text("¿Crear sesión para ${dayLabel(pendingCreateDay)}?") },
+            text = {
+                Text("Este día no tiene una sesión asignada. ¿Deseas crear una nueva sesión aquí?")
+            },
+            confirmButton = {
+                Button(onClick = {
+                    showCreateSessionDialog = false
+                    onCreateSessionForDay(pendingCreateDay)
+                }) {
+                    Text("Crear sesión")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showCreateSessionDialog = false }) {
+                    Text("Cancelar")
+                }
+            },
+        )
     }
 }
 
@@ -3288,7 +3528,7 @@ private fun SessionEditorSheets(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
         when (uiState.sheet) {
             SessionEditorSheet.EXERCISE_PICKER -> Unit
@@ -3543,7 +3783,7 @@ private fun TemplatesSheet(
     onCancelApply: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -5177,44 +5417,48 @@ private fun SessionClonerSheet(
         uiState.cloneSourceOptions.firstOrNull { it.sessionId == selectedSourceSessionId }
     }
 
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        Text("Clonador de sesiones", fontWeight = FontWeight.Black, fontSize = 18.sp)
-        Text(
-            "Copia esta sesión a varios días o trae una sesión de otro día/semana/bloque.",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = mode == SessionClonerMode.CLONE_TO_DAYS,
-                onClick = { mode = SessionClonerMode.CLONE_TO_DAYS },
-                label = { Text("Copiar hacia") },
+    Column(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text("Clonador de sesiones", fontWeight = FontWeight.Black, fontSize = 18.sp)
+            Text(
+                "Copia esta sesión a varios días o trae una sesión de otro día/semana/bloque.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            FilterChip(
-                selected = mode == SessionClonerMode.IMPORT_FROM_DAY,
-                onClick = { mode = SessionClonerMode.IMPORT_FROM_DAY },
-                label = { Text("Traer desde") },
-            )
-        }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SessionCloneApplyMode.entries.forEach { candidate ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
-                    selected = applyMode == candidate,
-                    onClick = { applyModeName = candidate.name },
-                    label = { Text(if (candidate == SessionCloneApplyMode.APPEND) "Agregar" else "Reemplazar") },
+                    selected = mode == SessionClonerMode.CLONE_TO_DAYS,
+                    onClick = { mode = SessionClonerMode.CLONE_TO_DAYS },
+                    label = { Text("Copiar hacia") },
                 )
+                FilterChip(
+                    selected = mode == SessionClonerMode.IMPORT_FROM_DAY,
+                    onClick = { mode = SessionClonerMode.IMPORT_FROM_DAY },
+                    label = { Text("Traer desde") },
+                )
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SessionCloneApplyMode.entries.forEach { candidate ->
+                    FilterChip(
+                        selected = applyMode == candidate,
+                        onClick = { applyModeName = candidate.name },
+                        label = { Text(if (candidate == SessionCloneApplyMode.APPEND) "Agregar" else "Reemplazar") },
+                    )
+                }
             }
         }
 
         if (mode == SessionClonerMode.CLONE_TO_DAYS) {
-            Text("Selecciona días destino", fontWeight = FontWeight.Bold)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.heightIn(max = 220.dp).verticalScroll(rememberScrollState())) {
+            Column(
+                modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text("Selecciona días destino", fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(2.dp))
                 uiState.cloneDayOptions
                     .filterNot { it.isCurrentSessionDay }
                     .forEach { target ->
@@ -5241,37 +5485,42 @@ private fun SessionClonerSheet(
                                 else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                             ),
                         ) {
-                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text(
-                                    "${dayLabel(target.dayOfWeek)} · ${target.weekName}",
-                                    fontWeight = FontWeight.Black,
-                                )
-                                Text(
-                                    "${target.blockName} · ${target.mesoName}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
+                            Row(
+                                Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(
+                                        "${dayLabel(target.dayOfWeek)} · ${target.weekName}",
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 14.sp,
+                                    )
+                                    Text(
+                                        "${target.blockName} · ${target.mesoName}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                                 Text(
                                     if (target.existingSessionId != null) {
-                                        "Destino actual: ${target.existingSessionName?.ifBlank { "Sesión" } ?: "Sesión"}"
+                                        "Destino: ${target.existingSessionName?.ifBlank { "Sesión" } ?: "Sesión"}"
                                     } else {
-                                        "Día sin sesión asignada"
+                                        "Sin sesión"
                                     },
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = if (target.existingSessionId != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                 )
                             }
                         }
                     }
-            }
+                Spacer(Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Checkbox(checked = clonePartial, onCheckedChange = { clonePartial = it })
+                    Text("Clonación parcial (ejercicios seleccionados)")
+                }
 
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Checkbox(checked = clonePartial, onCheckedChange = { clonePartial = it })
-                Text("Clonación parcial (ejercicios seleccionados)")
-            }
-
-            if (clonePartial) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.heightIn(max = 180.dp).verticalScroll(rememberScrollState())) {
+                if (clonePartial) {
                     availableExercises.forEach { exercise ->
                         val selected = exercise.exerciseId in selectedCloneExerciseIds
                         Row(
@@ -5285,7 +5534,7 @@ private fun SessionClonerSheet(
                                         selectedCloneExerciseIds + exercise.exerciseId
                                     }
                                 }
-                                .padding(horizontal = 8.dp, vertical = 6.dp),
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
@@ -5299,21 +5548,31 @@ private fun SessionClonerSheet(
                 }
             }
 
-            Button(
-                onClick = {
-                    onCloneCurrentToTargets(
-                        selectedTargetKeys,
-                        if (clonePartial) selectedCloneExerciseIds else null,
-                        applyMode,
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
             ) {
-                Text("Clonar hacia días seleccionados", fontWeight = FontWeight.Black)
+                Button(
+                    onClick = {
+                        onCloneCurrentToTargets(
+                            selectedTargetKeys,
+                            if (clonePartial) selectedCloneExerciseIds else null,
+                            applyMode,
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Clonar hacia días seleccionados", fontWeight = FontWeight.Black)
+                }
             }
         } else {
-            Text("Selecciona sesión origen", fontWeight = FontWeight.Bold)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.heightIn(max = 220.dp).verticalScroll(rememberScrollState())) {
+            Column(
+                modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text("Selecciona sesión origen", fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(2.dp))
                 uiState.cloneSourceOptions.forEach { source ->
                     val selected = selectedSourceSessionId == source.sessionId
                     Card(
@@ -5332,30 +5591,34 @@ private fun SessionClonerSheet(
                             else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                         ),
                     ) {
-                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(source.sessionName, fontWeight = FontWeight.Black)
+                        Row(
+                            Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(source.sessionName, fontWeight = FontWeight.Black, fontSize = 14.sp)
+                                Text(
+                                    "${dayLabel(source.dayOfWeek)} · ${source.weekName} · ${source.blockName} · ${source.mesoName}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             Text(
-                                "${dayLabel(source.dayOfWeek)} · ${source.weekName}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            Text(
-                                "${source.blockName} · ${source.mesoName} · ${source.exerciseCount} ejercicios",
+                                "${source.exerciseCount} ejercicios",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
                 }
-            }
+                Spacer(Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Checkbox(checked = importPartial, onCheckedChange = { importPartial = it })
+                    Text("Importación parcial (ejercicios seleccionados)")
+                }
 
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Checkbox(checked = importPartial, onCheckedChange = { importPartial = it })
-                Text("Importación parcial (ejercicios seleccionados)")
-            }
-
-            if (importPartial && sourceOption != null) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.heightIn(max = 180.dp).verticalScroll(rememberScrollState())) {
+                if (importPartial && sourceOption != null) {
                     sourceOption.exercises.forEach { exercise ->
                         val selected = exercise.exerciseId in selectedImportExerciseIds
                         Row(
@@ -5369,7 +5632,7 @@ private fun SessionClonerSheet(
                                         selectedImportExerciseIds + exercise.exerciseId
                                     }
                                 }
-                                .padding(horizontal = 8.dp, vertical = 6.dp),
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
@@ -5383,19 +5646,25 @@ private fun SessionClonerSheet(
                 }
             }
 
-            Button(
-                onClick = {
-                    val sourceId = selectedSourceSessionId ?: return@Button
-                    onImportFromSource(
-                        sourceId,
-                        if (importPartial) selectedImportExerciseIds else null,
-                        applyMode,
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = selectedSourceSessionId != null,
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
             ) {
-                Text("Traer sesión al editor actual", fontWeight = FontWeight.Black)
+                Button(
+                    onClick = {
+                        val sourceId = selectedSourceSessionId ?: return@Button
+                        onImportFromSource(
+                            sourceId,
+                            if (importPartial) selectedImportExerciseIds else null,
+                            applyMode,
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = selectedSourceSessionId != null,
+                ) {
+                    Text("Traer sesión al editor actual", fontWeight = FontWeight.Black)
+                }
             }
         }
     }
