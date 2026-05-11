@@ -24,9 +24,9 @@ object SessionTemplateEngine {
     /**
      * Applies [template] to [targetSession] according to [mode].
      *
-     * - [SessionTemplateApplyMode.REPLACE]: replaces exercises, parts, and warmup.
-     *   The session's identity fields (id, name, description, background, etc.)
-     *   are preserved unchanged.
+ * - [SessionTemplateApplyMode.REPLACE]: replaces exercises, parts, warmup,
+ *   name, and description.  The session's id and background image are
+ *   preserved; name and description come from the template.
      * - [SessionTemplateApplyMode.APPEND]: appends template parts and loose
      *   exercises at the end of the existing content.
      */
@@ -75,6 +75,8 @@ object SessionTemplateEngine {
     private fun applyReplace(template: SessionTemplate, target: Session): Session {
         val cloned = cloneSessionContent(template.session)
         return target.copy(
+            name = cloned.name,
+            description = cloned.description,
             exercises = cloned.exercises,
             parts = cloned.parts,
             warmup = cloned.warmup,
@@ -84,6 +86,8 @@ object SessionTemplateEngine {
     private fun applyAppend(template: SessionTemplate, target: Session): Session {
         val cloned = cloneSessionContent(template.session)
         return target.copy(
+            name = cloned.name,
+            description = cloned.description,
             parts = target.parts + cloned.parts,
             exercises = target.exercises + cloned.exercises,
             warmup = target.warmup + cloned.warmup,
