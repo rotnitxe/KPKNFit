@@ -51,8 +51,7 @@ data class Session(
         }
     }
 
-    fun allExercises(): List<Exercise> =
-        if (parts.isNotEmpty()) parts.flatMap { it.exercises } else exercises
+    fun allExercises(): List<Exercise> = exercises + parts.flatMap { it.exercises }
 }
 
 @Serializable
@@ -296,6 +295,7 @@ data class WarmupSetDefinition(
     val percentageOfWorkingWeight: Double,
     val targetReps: Int,
     val matchRPE: Double? = null,
+    val restBetween: Int? = null,
 )
 
 @Serializable

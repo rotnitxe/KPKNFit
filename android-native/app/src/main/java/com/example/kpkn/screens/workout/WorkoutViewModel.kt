@@ -1672,15 +1672,46 @@ class WorkoutViewModel(
         setIdx: Int,
         completedSets: Map<String, CompletedSet>,
     ): String? {
+        if (exercise.unilateralMode == UnilateralMode.BILATERAL && !exercise.isUnilateral) return null
         val left = completedSets[buildCompletedSetKey(exercise.id, setIdx, "left")] ?: return null
         val right = completedSets[buildCompletedSetKey(exercise.id, setIdx, "right")] ?: return null
+        val reasons = mutableListOf<String>()
+
+        // RPE asymmetry
+        val leftRpe = left.rpe
+        val rightRpe = right.rpe
+        if (leftRpe != null && rightRpe != null && kotlin.math.abs(leftRpe - rightRpe) > 1.0) {
+            val dominant = if (leftRpe > rightRpe) "izquierdo" else "derecho"
+            reasons.add("RPE $dominant mayor (${"%.1f".format(maxOf(leftRpe, rightRpe))} vs ${"%.1f".format(minOf(leftRpe, rightRpe))})")
+        }
+
+        // RIR asymmetry
+        val leftRir = left.rir
+        val rightRir = right.rir
+        if (leftRir != null && rightRir != null && kotlin.math.abs(leftRir - rightRir) > 1) {
+            val dominant = if ((leftRir ?: 0) < (rightRir ?: 0)) "izquierdo" else "derecho"
+            reasons.add("Menos reserva lado $dominant (RIR ${minOf(leftRir, rightRir)} vs ${maxOf(leftRir, rightRir)})")
+        }
+
+        // Reps asymmetry
+        if (left.reps > 0 && right.reps > 0 && kotlin.math.abs(left.reps - right.reps) > 2) {
+            val dominant = if (left.reps > right.reps) "izquierdo" else "derecho"
+            reasons.add("Reps $dominant mayor (${maxOf(left.reps, right.reps)} vs ${minOf(left.reps, right.reps)})")
+        }
+
+        // Weight/eRM asymmetry
         val leftWork = unilateralWorkScore(left)
         val rightWork = unilateralWorkScore(right)
-        if (leftWork <= 0.0 || rightWork <= 0.0) return null
-        val ratio = kotlin.math.abs(leftWork - rightWork) / maxOf(leftWork, rightWork)
-        if (ratio < 0.15) return null
-        val dominant = if (leftWork > rightWork) "izquierdo" else "derecho"
-        return "Desbalance detectado en ${exercise.name}: lado $dominant ${(ratio * 100).toInt()}% por encima."
+        if (leftWork > 0.0 && rightWork > 0.0) {
+            val ratio = kotlin.math.abs(leftWork - rightWork) / maxOf(leftWork, rightWork)
+            if (ratio > 0.10) {
+                val dominant = if (leftWork > rightWork) "izquierdo" else "derecho"
+                reasons.add("Carga $dominant ${(ratio * 100).toInt()}% mayor")
+            }
+        }
+
+        if (reasons.isEmpty()) return null
+        return "Desbalance en ${exercise.name}: ${reasons.joinToString("; ")}. Considera trabajo unilateral."
     }
 
     private fun unilateralWorkScore(set: CompletedSet): Double {
@@ -2166,6 +2197,38 @@ class WorkoutViewModel(
         return copy(exercises = mutable)
     }
 
+    private fun Session.reorderExercisesByIds(partId: String?, orderedExerciseIds: List<String>): Session {
+        fun reorderList(exercises: List<Exercise>): List<Exercise> {
+            if (exercises.size < 2 || orderedExerciseIds.isEmpty()) return exercises
+            val lookup = exercises.associateBy { it.id }
+            val ordered = orderedExerciseIds.mapNotNull(lookup::get).toMutableList()
+            if (ordered.size != exercises.size) {
+                exercises.forEach { exercise ->
+                    if (exercise.id !in orderedExerciseIds) {
+                        ordered.add(exercise)
+                    }
+                }
+            }
+            return ordered
+        }
+
+        return if (partId == null) {
+            val reordered = reorderList(exercises)
+            if (reordered == exercises) this else copy(exercises = reordered)
+        } else {
+            var changed = false
+            val updatedParts = parts.map { part ->
+                if (part.id != partId) part
+                else {
+                    changed = true
+                    val reordered = reorderList(part.exercises)
+                    part.copy(exercises = reordered)
+                }
+            }
+            if (changed) copy(parts = updatedParts) else this
+        }
+    }
+
     private fun ExerciseSet.normalizeWorkoutSet(exercise: Exercise): ExerciseSet {
         val normalized = when (exercise.trainingMode) {
             TrainingMode.RM -> copy(
@@ -2320,6 +2383,56 @@ class WorkoutViewModel(
         persistOngoingState()
     }
 
+    fun createLiveSuperset(exerciseIds: List<String>, partId: String? = null, restBetween: Int = 60, restAfter: Int = 120) {
+        val state = _uiState.value
+        val base = state.session ?: return
+        val targetIds = exerciseIds.distinct()
+        if (targetIds.size < 2) return
+        val groupId = java.util.UUID.randomUUID().toString()
+        val group = SupersetGroup(
+            id = groupId,
+            exerciseOrder = targetIds,
+            restBetweenExercises = restBetween,
+            restAfterSuperset = restAfter,
+            rounds = null,
+        )
+        val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
+            exercises.map { ex ->
+                if (ex.id in targetIds) ex.copy(
+                    supersetGroupRef = groupId,
+                    supersetId = groupId,
+                    supersetRestBetween = restBetween,
+                    supersetRestAfter = restAfter,
+                ) else ex
+            }
+        }
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            val explicitPartRequested = partId != null
+            val resolvedPart = partId
+                ?.let { id -> modeSession.parts.firstOrNull { it.id == id } }
+                ?: modeSession.parts.firstOrNull { part ->
+                    targetIds.all { id -> part.exercises.any { it.id == id } }
+                }
+            when {
+                resolvedPart != null && targetIds.all { id -> resolvedPart.exercises.any { it.id == id } } -> modeSession.copy(
+                    parts = modeSession.parts.map { part ->
+                        if (part.id == resolvedPart.id) part.copy(exercises = updater(part.exercises)) else part
+                    },
+                    supersetGroups = modeSession.supersetGroups + group,
+                )
+                !explicitPartRequested && targetIds.all { id -> modeSession.exercises.any { it.id == id } } -> modeSession.copy(
+                    exercises = updater(modeSession.exercises),
+                    supersetGroups = modeSession.supersetGroups + group,
+                )
+                else -> modeSession
+            }
+        }
+        if (updatedSession == base) return
+        _uiState.update { it.copy(session = updatedSession) }
+        persistOngoingState()
+        persistSessionToProgram(updatedSession)
+    }
+
     fun moveExercise(exerciseId: String, direction: Int) {
         val state = _uiState.value
         val base = state.session ?: return
@@ -2338,6 +2451,18 @@ class WorkoutViewModel(
             )
         }
         persistOngoingState()
+    }
+
+    fun reorderExercises(partId: String?, orderedExerciseIds: List<String>) {
+        val state = _uiState.value
+        val base = state.session ?: return
+        val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            modeSession.reorderExercisesByIds(partId, orderedExerciseIds.distinct())
+        }
+        if (updatedSession == base) return
+
+        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId)
     }
 
     fun updateExerciseDefinition(exerciseId: String, transform: (Exercise) -> Exercise) {
@@ -4495,6 +4620,3 @@ class WorkoutViewModel(
     }
 }
 
-// Extension to flatten exercises from session parts or direct list
-fun Session.allExercises(): List<Exercise> =
-    if (parts.isNotEmpty()) parts.flatMap { it.exercises } else exercises

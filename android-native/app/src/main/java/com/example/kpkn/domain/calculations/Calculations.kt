@@ -167,6 +167,7 @@ private fun effectiveMetricForSuggestion(set: ExerciseSet, trainingMode: Trainin
         }
         TrainingMode.SOLO_RPE -> null
         TrainingMode.RM -> null
+        TrainingMode.AMRAP -> baseMetric
     }
 }
 
@@ -183,6 +184,7 @@ fun resolveReferenceCapacity(exercise: Exercise): Double? {
         TrainingMode.CUSTOM,
         -> calculateGeneralizedCapacity(pr.weight, pr.reps.toDouble())
         TrainingMode.SOLO_RPE -> null
+        TrainingMode.AMRAP -> calculateHybrid1RM(pr.weight, pr.reps)
     }
 }
 
@@ -221,6 +223,10 @@ fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
             val effectiveMetric = effectiveMetricForSuggestion(set, exercise.trainingMode) ?: return null
             calculateLoadFromGeneralizedCapacity(referenceCapacity, effectiveMetric)
         }
+        TrainingMode.AMRAP -> {
+            val effectiveMetric = effectiveMetricForSuggestion(set, exercise.trainingMode)?.roundToInt() ?: return null
+            calculateWeightFrom1RM(referenceCapacity, effectiveMetric)
+        }
     } ?: return null
     return if (suggested > 0.0) roundSuggestedLoad(suggested) else null
 }
@@ -248,6 +254,10 @@ fun calculateSuggestedLoad(
             val effectiveMetric = effectiveMetricForSuggestion(set, exercise.trainingMode) ?: return null
             calculateLoadFromGeneralizedCapacity(referenceCapacity, effectiveMetric)
         }
+        TrainingMode.AMRAP -> {
+            val effectiveMetric = effectiveMetricForSuggestion(set, exercise.trainingMode)?.roundToInt() ?: return null
+            calculateWeightFrom1RM(referenceCapacity, effectiveMetric)
+        }
     } ?: return null
     return if (suggested > 0.0) roundSuggestedLoad(suggested) else null
 }
@@ -263,6 +273,7 @@ fun calculateEstimatedMetric(exercise: Exercise, set: ExerciseSet): Double? = wh
     TrainingMode.REPS,
     -> set.targetReps?.toDouble()
     TrainingMode.SOLO_RPE -> null
+    TrainingMode.AMRAP -> set.targetReps?.toDouble()
 }
 
 // ─── RPE / RIR conversions ───────────────────────────────────────────────────

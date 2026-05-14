@@ -217,6 +217,7 @@ data class SessionEditorUiState(
     val pendingMesoIndex: Int? = null,
     val supersetManagerPartId: String? = null,
     val supersetManagerSupersetId: String? = null,
+    val supersetDraft: SupersetDraft? = null,
     val isSimpleProgram: Boolean = false,
     val latestBodyMeasurement: BodyMeasurementEntry? = null,
     val allProgramExerciseCandidates: List<ProgramExerciseCandidate> = emptyList(),
@@ -813,6 +814,7 @@ class SessionEditorViewModel(
                 quickActionsExerciseId = null,
                 supersetManagerPartId = null,
                 supersetManagerSupersetId = null,
+                supersetDraft = null,
                 templateSearchQuery = "",
                 templateApplyDecision = null,
             )
@@ -1505,6 +1507,181 @@ class SessionEditorViewModel(
 
     fun removeFromSuperset(partId: String?, exerciseId: String) = updateExercise(partId, exerciseId) {
         it.copy(supersetId = null, supersetRestBetween = null, supersetRestAfter = null)
+    }
+
+    // ─── New SupersetGroup API ──────────────────────────────────────────────────
+
+    fun openSupersetCreator(partId: String?, exerciseIds: List<String>) {
+        _uiState.update {
+            it.copy(
+                sheet = SessionEditorSheet.SUPERSET_CREATOR,
+                supersetDraft = SupersetDraft(partId = partId, exerciseIds = exerciseIds),
+                quickActionsPartId = null,
+                quickActionsExerciseId = null,
+            )
+        }
+    }
+
+    fun updateSupersetDraft(draft: SupersetDraft) {
+        _uiState.update { it.copy(supersetDraft = draft) }
+    }
+
+    fun createSupersetGroupFromDraft() = updateSession { session ->
+        val draft = _uiState.value.supersetDraft ?: return@updateSession session
+        val partId = draft.partId ?: _uiState.value.supersetManagerPartId
+        val groupId = UUID.randomUUID().toString()
+        val group = SupersetGroup(
+            id = groupId,
+            exerciseOrder = draft.exerciseIds,
+            restBetweenExercises = draft.restBetweenExercises,
+            restAfterSuperset = draft.restAfterSuperset,
+            rounds = draft.rounds,
+        )
+
+        val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
+            exercises.map { ex ->
+                if (ex.id in draft.exerciseIds) ex.copy(
+                    supersetGroupRef = groupId,
+                    supersetId = groupId,
+                    supersetRestBetween = draft.restBetweenExercises,
+                    supersetRestAfter = draft.restAfterSuperset,
+                ) else ex
+            }
+        }
+
+        val updatedSession = if (partId == null) {
+            session.copy(
+                exercises = updater(session.exercises),
+                supersetGroups = session.supersetGroups + group,
+            )
+        } else {
+            session.copy(
+                parts = session.parts.map { part ->
+                    if (part.id == partId) part.copy(exercises = updater(part.exercises)) else part
+                },
+                supersetGroups = session.supersetGroups + group,
+            )
+        }
+
+        _uiState.update { it.copy(sheet = SessionEditorSheet.NONE, supersetDraft = null) }
+        updatedSession
+    }
+
+    fun updateSupersetRest(groupId: String, restBetween: Int?, restAfter: Int?, rounds: Int?) = updateSession { session ->
+        val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
+            exercises.map { ex ->
+                if ((ex.supersetGroupRef ?: ex.supersetId) == groupId) ex.copy(
+                    supersetRestBetween = restBetween,
+                    supersetRestAfter = restAfter,
+                ) else ex
+            }
+        }
+        session.copy(
+            exercises = updater(session.exercises),
+            parts = session.parts.map { part -> part.copy(exercises = updater(part.exercises)) },
+            supersetGroups = session.supersetGroups.map { group ->
+                if (group.id == groupId) group.copy(
+                    restBetweenExercises = restBetween ?: group.restBetweenExercises,
+                    restAfterSuperset = restAfter ?: group.restAfterSuperset,
+                    rounds = rounds ?: group.rounds,
+                ) else group
+            },
+        )
+    }
+
+    fun updateSupersetOrder(groupId: String, newOrder: List<String>) = updateSession { session ->
+        session.copy(
+            supersetGroups = session.supersetGroups.map { group ->
+                if (group.id == groupId) group.copy(exerciseOrder = newOrder) else group
+            },
+        )
+    }
+
+    fun addExerciseToSuperset(groupId: String, partId: String?, exerciseId: String) = updateSession { session ->
+        val group = session.supersetGroups.firstOrNull { it.id == groupId } ?: return@updateSession session
+        val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
+            exercises.map { ex ->
+                if (ex.id == exerciseId) ex.copy(
+                    supersetGroupRef = groupId,
+                    supersetId = groupId,
+                    supersetRestBetween = group.restBetweenExercises,
+                    supersetRestAfter = group.restAfterSuperset,
+                ) else ex
+            }
+        }
+        val updatedGroup = group.copy(exerciseOrder = group.exerciseOrder + exerciseId)
+        if (partId == null) {
+            session.copy(exercises = updater(session.exercises), supersetGroups = session.supersetGroups.map { if (it.id == groupId) updatedGroup else it })
+        } else {
+            session.copy(
+                parts = session.parts.map { part ->
+                    if (part.id == partId) part.copy(exercises = updater(part.exercises)) else part
+                },
+                supersetGroups = session.supersetGroups.map { if (it.id == groupId) updatedGroup else it },
+            )
+        }
+    }
+
+    fun removeExerciseFromSupersetGroup(groupId: String, partId: String?, exerciseId: String) = updateSession { session ->
+        val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
+            exercises.map { ex ->
+                if (ex.id == exerciseId) ex.copy(supersetGroupRef = null, supersetId = null, supersetRestBetween = null, supersetRestAfter = null) else ex
+            }
+        }
+        val group = session.supersetGroups.firstOrNull { it.id == groupId } ?: return@updateSession session
+        val remainingIds = group.exerciseOrder - exerciseId
+        val updatedGroups = if (remainingIds.size <= 1) {
+            session.supersetGroups.filterNot { it.id == groupId }
+        } else {
+            session.supersetGroups.map { if (it.id == groupId) it.copy(exerciseOrder = remainingIds) else it }
+        }
+        if (partId == null) {
+            session.copy(exercises = updater(session.exercises), supersetGroups = updatedGroups)
+        } else {
+            session.copy(
+                parts = session.parts.map { part ->
+                    if (part.id == partId) part.copy(exercises = updater(part.exercises)) else part
+                },
+                supersetGroups = updatedGroups,
+            )
+        }
+    }
+
+    fun dissolveSupersetGroup(groupId: String) = updateSession { session ->
+        val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
+            exercises.map { ex ->
+                if ((ex.supersetGroupRef ?: ex.supersetId) == groupId) ex.copy(
+                    supersetGroupRef = null, supersetId = null,
+                    supersetRestBetween = null, supersetRestAfter = null,
+                ) else ex
+            }
+        }
+        session.copy(
+            exercises = updater(session.exercises),
+            parts = session.parts.map { part -> part.copy(exercises = updater(part.exercises)) },
+            supersetGroups = session.supersetGroups.filterNot { it.id == groupId },
+        )
+    }
+
+    fun triggerQuickActionCreateSuperset() {
+        val state = _uiState.value
+        val exerciseId = state.quickActionsExerciseId ?: return
+        openSupersetCreator(state.quickActionsPartId, listOf(exerciseId))
+    }
+
+    fun triggerQuickActionManageSuperset() {
+        val state = _uiState.value
+        val exerciseId = state.quickActionsExerciseId ?: return
+        val exercise = state.session?.allExercises()?.firstOrNull { it.id == exerciseId } ?: return
+        val groupId = exercise.supersetGroupRefOrLegacyId() ?: return
+        openSupersetManager(state.quickActionsPartId, groupId)
+        _uiState.update {
+            it.copy(
+                sheet = SessionEditorSheet.SUPERSERIE_MANAGER,
+                quickActionsPartId = null,
+                quickActionsExerciseId = null,
+            )
+        }
     }
 
     fun moveExerciseFreely(fromPartId: String?, fromIndex: Int, toPartId: String?, toIndex: Int) = updateSession { session ->
@@ -3535,7 +3712,6 @@ private fun Exercise.asCompetitionMovement(): Exercise {
     )
 }
 
-private fun Session.allExercises(): List<Exercise> = exercises + parts.flatMap { it.exercises }
 
 private fun SessionPart.isUncategorized(): Boolean {
     val normalized = name.trim().lowercase()

@@ -848,9 +848,6 @@ object SessionAssistantEngine {
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    internal fun Session.allExercises(): List<Exercise> =
-        exercises + parts.flatMap { it.exercises }
-
     internal fun Exercise.validAugeSets(): List<ExerciseSet> =
         sets.filterNot { it.isIneffective }
 

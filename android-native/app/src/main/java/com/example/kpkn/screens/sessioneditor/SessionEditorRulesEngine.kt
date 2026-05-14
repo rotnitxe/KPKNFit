@@ -355,4 +355,3 @@ object SessionEditorRulesEngine {
     private fun formatOneDecimal(value: Double): String = "%.1f".format(value)
 }
 
-private fun Session.allExercises(): List<Exercise> = exercises + parts.flatMap { it.exercises }

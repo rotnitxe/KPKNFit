@@ -13,10 +13,19 @@ enum class SessionEditorSheet {
     WARMUP,
     MOBILITY_PICKER,
     SUPERSERIE_MANAGER,
+    SUPERSET_CREATOR,
     RELATIONSHIP_PICKER,
     /** Session template browser/picker. Opened from the Templates FAB. */
     TEMPLATES,
 }
+
+data class SupersetDraft(
+    val partId: String? = null,
+    val exerciseIds: List<String> = emptyList(),
+    val restBetweenExercises: Int = 60,
+    val restAfterSuperset: Int = 120,
+    val rounds: Int? = null,
+)
 
 data class SessionDraftBundle(
     val sessionId: String,

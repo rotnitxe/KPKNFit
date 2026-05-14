@@ -100,6 +100,8 @@ import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.isInSuperset
+import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.WorkoutContextProfile
@@ -357,6 +359,11 @@ fun WorkoutScreen(
     var selectedExerciseContextTab by remember { mutableStateOf<WorkoutExerciseContextTab?>(null) }
     var editSheetExerciseId by remember { mutableStateOf<String?>(null) }
     val rmSelectedWeight = remember { mutableStateOf<Double?>(null) }
+    var showWorkoutSupersetCreator by remember { mutableStateOf(false) }
+    var workoutSupersetSelectedExerciseId by remember { mutableStateOf<String?>(null) }
+    var showReorderSheet by remember { mutableStateOf(false) }
+    var reorderSheetPartId by remember { mutableStateOf<String?>(null) }
+    var reorderSheetExerciseIds by remember { mutableStateOf<List<String>>(emptyList()) }
 
     val renderedParts = remember(modeSession) {
         if (modeSession.parts.isNotEmpty()) {
@@ -429,94 +436,6 @@ fun WorkoutScreen(
                         .navigationBarsPadding()
                         .padding(horizontal = 16.dp, vertical = 10.dp),
                 ) {
-                    if (currentExercise != null && currentSet != null) {
-                        val tabsGhostSet = remember(currentExercise.id, uiState.currentSetIdx, uiState.exerciseTags[currentExercise.id]) {
-                            viewModel.getGhostForSet(
-                                exerciseId = currentExercise.id,
-                                setIdx = uiState.currentSetIdx,
-                                exerciseDbId = currentExercise.exerciseDbId ?: currentExercise.exerciseId,
-                                activeTag = uiState.exerciseTags[currentExercise.id],
-                            )
-                        }
-                        val tabsExerciseInfo = remember(currentExercise.id, currentExercise.exerciseDbId, currentExercise.exerciseId) {
-                            EXERCISE_DATABASE_BY_ID[currentExercise.exerciseDbId ?: currentExercise.exerciseId]
-                                ?: EXERCISE_DATABASE.firstOrNull { it.id == (currentExercise.exerciseDbId ?: currentExercise.exerciseId) }
-                                ?: EXERCISE_DATABASE.firstOrNull { it.name.equals(currentExercise.name, ignoreCase = true) }
-                        }
-                        val tabsCompletedExercise = remember(currentExercise, uiState.completedSets) {
-                            CompletedExercise(
-                                exerciseId = currentExercise.id,
-                                exerciseName = currentExercise.name,
-                                exerciseDbId = currentExercise.exerciseDbId ?: currentExercise.exerciseId,
-                                restTime = currentExercise.restTime ?: 90,
-                                supersetId = currentExercise.supersetId,
-                                sets = currentExercise.sets.indices.flatMap { setIdx ->
-                                    listOfNotNull(
-                                        uiState.completedSets["${currentExercise.id}_$setIdx"],
-                                        uiState.completedSets["${currentExercise.id}_${setIdx}_L"],
-                                        uiState.completedSets["${currentExercise.id}_${setIdx}_R"],
-                                    )
-                                },
-                            )
-                        }
-                        val tabsDrain = remember(tabsCompletedExercise, settings) {
-                            if (tabsCompletedExercise.sets.isEmpty()) {
-                                PredictedDrain(cns = 0, muscular = 0, spinal = 0)
-                            } else {
-                                AugeFatigueEngine.calculateCompletedSessionDrain(
-                                    completedExercises = listOf(tabsCompletedExercise),
-                                    exerciseDb = EXERCISE_DATABASE_BY_ID,
-                                    settings = settings,
-                                )
-                            }
-                        }
-
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .hazeEffect(state = bottomHazeState, style = glassStyle),
-                            color = Color(0xFF2A2A2A),
-                            shape = RoundedCornerShape(12.dp),
-                        ) {
-                            WorkoutExerciseTabs(
-                                modifier = Modifier.fillMaxWidth(),
-                                currentExercise = currentExercise,
-                                currentSet = currentSet,
-                                currentExerciseInfo = tabsExerciseInfo,
-                                drain = tabsDrain,
-                                exerciseTag = uiState.exerciseTags[currentExercise.id],
-                                profiles = viewModel.profilesForExercise(currentExercise),
-                                activeProfileId = uiState.activeContextProfileByExerciseId[currentExercise.id],
-                                selectedTab = selectedExerciseContextTab,
-                                onSelectedTabChange = { selectedExerciseContextTab = it },
-                                onTagSet = { tag -> if (tag.isBlank()) viewModel.clearExerciseTag(currentExercise.id) else viewModel.setExerciseTag(currentExercise.id, tag) },
-                                onSelectProfile = { profileId -> viewModel.setActiveContextProfile(currentExercise.id, profileId) },
-                                onSaveProfile = { profile -> viewModel.upsertContextProfile(currentExercise, profile) },
-                                onUpdateExercise = { transform -> viewModel.updateExerciseDefinition(currentExercise.id) { exercise -> transform(exercise) } },
-                                onUpdateCurrentSetPlan = { setId, transform -> viewModel.updateExerciseSetPlan(currentExercise.id, setId, transform) },
-                                onExpandHistory = {
-                                    currentExercise?.let { viewModel.showHistoryFor(it.exerciseDbId ?: it.exerciseId ?: "") }
-                                },
-                                onExpandTags = { currentExercise?.id?.let { tagSheetExerciseId = it } },
-                                onExpandSetup = { currentExercise?.id?.let { setupSheetExerciseId = it } },
-                                onExpandReplace = {
-                                    currentExercise?.id?.let {
-                                        replaceTargetExerciseId = it
-                                        showReplaceExercisePicker = true
-                                    }
-                                },
-                                onExpandEdit = { currentExercise?.id?.let { editSheetExerciseId = it } },
-                                sessionAccentColor = sessionAccentColor,
-                                sessionEnergy = uiState.liveEnergySummary,
-                                ghostSet = tabsGhostSet,
-                                rmBodyWeight = viewModel.currentBodyWeight(),
-                                rmCurrentLoadMode = currentSet?.loadModeV2,
-                                onRmWeightSelected = { w -> rmSelectedWeight.value = w },
-                            )
-                        }
-                        Spacer(Modifier.height(6.dp))
-                    }
-
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -991,34 +910,17 @@ fun WorkoutScreen(
             onDismiss = { exerciseContextExerciseId = null },
         ) {
             FilledTonalButton(
-                onClick = { viewModel.moveExercise(exerciseId, -1); exerciseContextExerciseId = null },
-                modifier = Modifier.fillMaxWidth(),
-            ) { Icon(Icons.Default.KeyboardArrowUp, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Mover arriba") }
-            FilledTonalButton(
-                onClick = { viewModel.moveExercise(exerciseId, 1); exerciseContextExerciseId = null },
-                modifier = Modifier.fillMaxWidth(),
-            ) { Icon(Icons.Default.KeyboardArrowDown, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Mover abajo") }
-            OutlinedButton(
                 onClick = {
-                    visibleExercises.indexOfFirst { it.id == exerciseId }
-                        .takeIf { it >= 0 }
-                        ?.let(viewModel::selectExercise)
-                    selectedExerciseContextTab = WorkoutExerciseContextTab.REPLACE
-                    replaceSearchQuery = ""
+                    val targetExerciseId = contextExercise?.id ?: return@FilledTonalButton
+                    val targetPart = renderedParts.firstOrNull { part -> part.exercises.any { it.id == targetExerciseId } }
+                    val targetExercises = targetPart?.exercises ?: modeSession.exercises
+                    reorderSheetPartId = targetPart?.id?.takeIf { it != "default" }
+                    reorderSheetExerciseIds = targetExercises.map { it.id }
+                    showReorderSheet = true
                     exerciseContextExerciseId = null
                 },
                 modifier = Modifier.fillMaxWidth(),
-            ) { Icon(Icons.Default.SwapHoriz, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Reemplazar") }
-            OutlinedButton(
-                onClick = {
-                    visibleExercises.indexOfFirst { it.id == exerciseId }
-                        .takeIf { it >= 0 }
-                        ?.let(viewModel::selectExercise)
-                    selectedExerciseContextTab = WorkoutExerciseContextTab.HISTORY
-                    exerciseContextExerciseId = null
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) { Icon(Icons.Default.History, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Ver historial") }
+            ) { Icon(Icons.Default.Reorder, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Reordenar ejercicios") }
             OutlinedButton(
                 onClick = {
                     val dbId = contextExercise?.exerciseDbId ?: contextExercise?.exerciseId
@@ -1028,20 +930,199 @@ fun WorkoutScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) { Icon(Icons.Default.Info, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Ver en WikiLab") }
             OutlinedButton(
-                onClick = {
-                    visibleExercises.indexOfFirst { it.id == exerciseId }
-                        .takeIf { it >= 0 }
-                        ?.let(viewModel::selectExercise)
-                    selectedExerciseContextTab = WorkoutExerciseContextTab.SETUP
-                    exerciseContextExerciseId = null
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) { Icon(Icons.Default.Settings, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Editar tag / setup") }
-            OutlinedButton(
                 onClick = { viewModel.skipExercise(exerciseId); exerciseContextExerciseId = null },
                 modifier = Modifier.fillMaxWidth(),
             ) { Icon(Icons.Default.SkipNext, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Omitir ejercicio") }
+            if (contextExercise?.isInSuperset() == false) {
+                OutlinedButton(
+                    onClick = {
+                        workoutSupersetSelectedExerciseId = contextExercise.id
+                        showWorkoutSupersetCreator = true
+                        exerciseContextExerciseId = null
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Icon(Icons.Default.Link, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Crear superserie") }
+            }
         }
+    }
+
+    if (showReorderSheet) {
+        fun closeReorderSheet() {
+            showReorderSheet = false
+            reorderSheetPartId = null
+            reorderSheetExerciseIds = emptyList()
+        }
+
+        fun moveReorderItem(fromIndex: Int, delta: Int) {
+            if (reorderSheetExerciseIds.isEmpty() || fromIndex !in reorderSheetExerciseIds.indices) return
+            val targetIndex = (fromIndex + delta).coerceIn(0, reorderSheetExerciseIds.lastIndex)
+            if (targetIndex == fromIndex) return
+            reorderSheetExerciseIds = reorderSheetExerciseIds.toMutableList().also { list ->
+                val moved = list.removeAt(fromIndex)
+                list.add(targetIndex, moved)
+            }
+        }
+
+        val reorderExercises = when (reorderSheetPartId) {
+            null -> modeSession.exercises
+            else -> modeSession.parts.firstOrNull { it.id == reorderSheetPartId }?.exercises.orEmpty()
+        }
+        val reorderExerciseLookup = remember(reorderSheetPartId, reorderExercises) { reorderExercises.associateBy { it.id } }
+        val reorderScopeLabel = remember(reorderSheetPartId, renderedParts) {
+            when (val partId = reorderSheetPartId) {
+                null -> "la sesión principal"
+                else -> renderedParts.firstOrNull { it.id == partId }?.name ?: "este grupo"
+            }
+        }
+        AlertDialog(
+            onDismissRequest = { closeReorderSheet() },
+            title = { Text("Reordenar ejercicios", fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Reordena los ejercicios de $reorderScopeLabel.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    if (reorderSheetExerciseIds.isEmpty()) {
+                        Text(
+                            "No hay ejercicios para mover.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
+                            itemsIndexed(reorderSheetExerciseIds, key = { _, exId -> exId }) { index, exId ->
+                                val ex = reorderExerciseLookup[exId]
+                                if (ex != null) {
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Text("${index + 1}", modifier = Modifier.width(20.dp), fontWeight = FontWeight.Black)
+                                            Spacer(Modifier.width(8.dp))
+                                            Text(ex.name, modifier = Modifier.weight(1f))
+                                            IconButton(
+                                                onClick = { moveReorderItem(index, -1) },
+                                                enabled = index > 0,
+                                            ) {
+                                                Icon(Icons.Default.KeyboardArrowUp, null)
+                                            }
+                                            IconButton(
+                                                onClick = { moveReorderItem(index, 1) },
+                                                enabled = index < reorderSheetExerciseIds.lastIndex,
+                                            ) {
+                                                Icon(Icons.Default.KeyboardArrowDown, null)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.reorderExercises(reorderSheetPartId, reorderSheetExerciseIds)
+                        closeReorderSheet()
+                    },
+                    enabled = reorderSheetExerciseIds.size >= 2,
+                ) { Text("Guardar", fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { closeReorderSheet() }) { Text("Cancelar") }
+            },
+        )
+    }
+
+    if (showWorkoutSupersetCreator) {
+        val supersetAnchorId = workoutSupersetSelectedExerciseId
+        val supersetAnchorPart = remember(supersetAnchorId, renderedParts) {
+            supersetAnchorId?.let { anchorId -> renderedParts.firstOrNull { part -> part.exercises.any { it.id == anchorId } } }
+        }
+        val supersetAnchorPartId = supersetAnchorPart?.id?.takeIf { it != "default" }
+        val supersetCandidateExercises = remember(supersetAnchorId, supersetAnchorPart, modeSession, visibleExercises) {
+            val scoped = supersetAnchorPart?.exercises ?: modeSession.exercises
+            val visibleIds = visibleExercises.map { it.id }.toSet()
+            scoped.filter { exercise ->
+                exercise.id in visibleIds && (!exercise.isInSuperset() || exercise.id == supersetAnchorId)
+            }
+        }
+        var supersetSelectedIds by remember(supersetAnchorId) { mutableStateOf(listOfNotNull(supersetAnchorId)) }
+        fun closeWorkoutSupersetCreator() {
+            showWorkoutSupersetCreator = false
+            workoutSupersetSelectedExerciseId = null
+        }
+        AlertDialog(
+            onDismissRequest = { closeWorkoutSupersetCreator() },
+            title = { Text("Crear superserie", fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Selecciona ejercicios del mismo grupo para evitar cambios ambiguos.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    if (supersetCandidateExercises.size < 2) {
+                        Text(
+                            "No hay otro ejercicio disponible en este grupo.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    supersetCandidateExercises.forEach { ex ->
+                        val isSelected = ex.id in supersetSelectedIds
+                        val isAnchor = ex.id == supersetAnchorId
+                        Row(
+                            modifier = Modifier.fillMaxWidth().clickable {
+                                if (isAnchor) return@clickable
+                                supersetSelectedIds = if (isSelected) {
+                                    supersetSelectedIds.filterNot { it == ex.id }
+                                } else {
+                                    supersetSelectedIds + ex.id
+                                }
+                            }.padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Checkbox(checked = isSelected, onCheckedChange = { c ->
+                                if (!isAnchor) {
+                                    supersetSelectedIds = if (c) (supersetSelectedIds + ex.id).distinct() else supersetSelectedIds.filterNot { it == ex.id }
+                                }
+                            })
+                            Spacer(Modifier.width(8.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(ex.name, style = MaterialTheme.typography.bodyMedium)
+                                if (isAnchor) {
+                                    Text(
+                                        "Origen",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = supersetSelectedIds.size >= 2,
+                    onClick = {
+                        viewModel.createLiveSuperset(supersetSelectedIds, partId = supersetAnchorPartId)
+                        closeWorkoutSupersetCreator()
+                    },
+                ) { Text("Crear superserie", fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { closeWorkoutSupersetCreator() }) { Text("Cancelar") }
+            },
+        )
     }
 
     if (editSheetExerciseId != null) {
@@ -1177,7 +1258,7 @@ fun WorkoutScreen(
                         )
                         selectedExerciseContextTab = WorkoutExerciseContextTab.EDIT
                     },
-                    onMultiSelect = {},
+                    onMultiSelect = { emptyList() },
                     onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
                     onOpenExerciseCreator = { },
                     onDismiss = {
@@ -2809,22 +2890,34 @@ internal fun WorkoutWarmupSheet(
             Surface(
                 shape = RoundedCornerShape(10.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Aproximacion ${index + 1}", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                    Text(
-                        listOfNotNull(
-                            "${set.percentage.toTrimmedNumberString()}%",
-                            "${set.reps} reps",
-                            set.targetWeight?.let { "${it.toTrimmedNumberString()} kg" },
-                        ).joinToString(" · "),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("Aproximacion ${index + 1}", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                        Text(
+                            listOfNotNull(
+                                "${set.percentage.toTrimmedNumberString()}%",
+                                "${set.reps} reps",
+                                set.targetWeight?.let { "${it.toTrimmedNumberString()} kg" },
+                            ).joinToString(" · "),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    val rest = exercise.warmupSets.getOrNull(index)?.restBetween
+                    if (rest != null && rest > 0) {
+                        Text(
+                            "Descanso: ${rest}s",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
                 }
             }
         }
@@ -3560,6 +3653,11 @@ internal fun SetInputCardV2(
     var weightText by remember(exercise.id, setIndex) { mutableStateOf(defaultWeight) }
     var lastAutoFilledWeight by remember(exercise.id, setIndex) { mutableStateOf(defaultWeight) }
     var valueText by remember(exercise.id, setIndex) { mutableStateOf(defaultValue) }
+    val supportsIndependentSides = exercise.isEffectivelyUnilateral()
+    var leftWeightText by remember(exercise.id, setIndex) { mutableStateOf(defaultWeight) }
+    var rightWeightText by remember(exercise.id, setIndex) { mutableStateOf(defaultWeight) }
+    var leftValueText by remember(exercise.id, setIndex) { mutableStateOf(defaultValue) }
+    var rightValueText by remember(exercise.id, setIndex) { mutableStateOf(defaultValue) }
     var intensityText by remember(exercise.id, setIndex) {
         mutableStateOf(
             currentSet.targetRPE?.toTrimmedNumberString()
@@ -3569,6 +3667,36 @@ internal fun SetInputCardV2(
     var bodyWeightText by remember(exercise.id) { mutableStateOf(initialBodyWeight?.toTrimmedNumberString().orEmpty()) }
     var showBodyWeightPrompt by remember(exercise.id) { mutableStateOf(false) }
     var selectedSide by remember(exercise.id, setIndex) { mutableStateOf("left") }
+
+    fun valueTextForSide(side: String): String = if (side == "left") leftValueText else rightValueText
+    fun weightTextForSide(side: String): String = if (side == "left") leftWeightText else rightWeightText
+    fun updateActiveValueText(newValue: String) {
+        valueText = newValue
+        if (supportsIndependentSides) {
+            if (selectedSide == "left") {
+                leftValueText = newValue
+            } else {
+                rightValueText = newValue
+            }
+        }
+    }
+    fun updateActiveWeightText(newWeight: String) {
+        weightText = newWeight
+        if (supportsIndependentSides) {
+            if (selectedSide == "left") {
+                leftWeightText = newWeight
+            } else {
+                rightWeightText = newWeight
+            }
+        }
+    }
+    fun selectSide(side: String) {
+        selectedSide = side
+        if (supportsIndependentSides) {
+            valueText = valueTextForSide(side)
+            weightText = weightTextForSide(side)
+        }
+    }
 
     var loadMode by remember(exercise.id, setIndex) {
         mutableStateOf(currentSet.loadModeV2 ?: LoadModeV2.LOAD)
@@ -3673,7 +3801,7 @@ internal fun SetInputCardV2(
     }
     LaunchedEffect(rmSuggestedWeight) {
         if (rmSuggestedWeight != null) {
-            weightText = rmSuggestedWeight.toTrimmedNumberString()
+            updateActiveWeightText(rmSuggestedWeight.toTrimmedNumberString())
             onRmWeightConsumed?.invoke()
         }
     }
@@ -3684,23 +3812,23 @@ internal fun SetInputCardV2(
             currentWeight != previousAutoFill &&
             currentWeight != defaultWeight
         if (!hasManualOverride) {
-            weightText = defaultWeight
+            updateActiveWeightText(defaultWeight)
             lastAutoFilledWeight = defaultWeight
         }
     }
     LaunchedEffect(timerRunning, timerRemainingSeconds) {
-        if (timerRunning && timerRemainingSeconds > 0) {
-            kotlinx.coroutines.delay(1000)
-            timerRemainingSeconds -= 1
-            timerElapsedSeconds += 1
-            if (timerRemainingSeconds <= 0) {
-                timerRunning = false
-                if (timerElapsedSeconds > 0) {
-                    valueText = timerElapsedSeconds.toString()
+            if (timerRunning && timerRemainingSeconds > 0) {
+                kotlinx.coroutines.delay(1000)
+                timerRemainingSeconds -= 1
+                timerElapsedSeconds += 1
+                if (timerRemainingSeconds <= 0) {
+                    timerRunning = false
+                    if (timerElapsedSeconds > 0) {
+                        updateActiveValueText(timerElapsedSeconds.toString())
+                    }
                 }
             }
         }
-    }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -3715,30 +3843,36 @@ internal fun SetInputCardV2(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
 
-                if (exercise.isUnilateral) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("Lado", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
-                        FilterChip(
-                            selected = selectedSide == "left",
-                            onClick = { selectedSide = "left" },
-                            label = { Text("Izquierdo", fontWeight = FontWeight.SemiBold) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = sessionAccentColor,
-                                selectedLabelColor = Color.Black,
-                                containerColor = Color(0xFF2A2A2A),
-                                labelColor = Color.White,
-                            ),
+                if (supportsIndependentSides) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        SideInputCard(
+                            side = "left",
+                            label = "L",
+                            set = currentSet,
+                            valueText = valueTextForSide("left"),
+                            weightText = weightTextForSide("left"),
+                            onValueChange = { if (selectedSide == "left") updateActiveValueText(it) },
+                            onWeightChange = { if (selectedSide == "left") updateActiveWeightText(it) },
+                            accentColor = sessionAccentColor,
+                            modifier = Modifier.weight(1f),
+                            isSelected = selectedSide == "left",
+                            onSelect = { selectSide("left") },
                         )
-                        FilterChip(
-                            selected = selectedSide == "right",
-                            onClick = { selectedSide = "right" },
-                            label = { Text("Derecho", fontWeight = FontWeight.SemiBold) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = sessionAccentColor,
-                                selectedLabelColor = Color.Black,
-                                containerColor = Color(0xFF2A2A2A),
-                                labelColor = Color.White,
-                            ),
+                        SideInputCard(
+                            side = "right",
+                            label = "R",
+                            set = currentSet,
+                            valueText = valueTextForSide("right"),
+                            weightText = weightTextForSide("right"),
+                            onValueChange = { if (selectedSide == "right") updateActiveValueText(it) },
+                            onWeightChange = { if (selectedSide == "right") updateActiveWeightText(it) },
+                            accentColor = sessionAccentColor,
+                            modifier = Modifier.weight(1f),
+                            isSelected = selectedSide == "right",
+                            onSelect = { selectSide("right") },
                         )
                     }
                 }
@@ -3970,7 +4104,7 @@ internal fun SetInputCardV2(
                         ) {
                             OutlinedTextField(
                                 value = weightText,
-                                onValueChange = { weightText = it },
+                                onValueChange = { updateActiveWeightText(it) },
                                 label = { Text(loadFieldLabel, fontWeight = FontWeight.SemiBold) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                 singleLine = true,
@@ -4066,7 +4200,7 @@ internal fun SetInputCardV2(
                                         Box(
                                             modifier = Modifier.width(30.dp).fillMaxHeight().clickable(enabled = !isFailedSet) {
                                                 val current = valueText.toIntOrNull() ?: 0
-                                                valueText = (current - 1).coerceAtLeast(0).toString()
+                                                updateActiveValueText((current - 1).coerceAtLeast(0).toString())
                                             },
                                             contentAlignment = Alignment.Center,
                                         ) {
@@ -4074,7 +4208,7 @@ internal fun SetInputCardV2(
                                         }
                                         BasicTextField(
                                             value = if (isFailedSet) "0" else valueText,
-                                            onValueChange = { if (!isFailedSet) valueText = it.filter { ch -> ch.isDigit() } },
+                                            onValueChange = { if (!isFailedSet) updateActiveValueText(it.filter { ch -> ch.isDigit() }) },
                                             modifier = Modifier.weight(1f).fillMaxHeight(),
                                             singleLine = true,
                                             enabled = !isFailedSet,
@@ -4091,7 +4225,7 @@ internal fun SetInputCardV2(
                                         Box(
                                             modifier = Modifier.width(30.dp).fillMaxHeight().clickable(enabled = !isFailedSet) {
                                                 val current = valueText.toIntOrNull() ?: 0
-                                                valueText = (current + 1).toString()
+                                                updateActiveValueText((current + 1).toString())
                                             },
                                             contentAlignment = Alignment.Center,
                                         ) {
@@ -4101,17 +4235,17 @@ internal fun SetInputCardV2(
                                 }
                                 if (isTimeMode) {
                                     Spacer(Modifier.height(4.dp))
-                                    Box(
-                                        modifier = Modifier.size(32.dp).clickable {
-                                            if (timerRunning) {
-                                                timerRunning = false
-                                                if (timerElapsedSeconds > 0) {
-                                                    valueText = timerElapsedSeconds.toString()
-                                                }
-                                            } else if (timerTargetSeconds > 0) {
-                                                timerElapsedSeconds = 0
-                                                timerRemainingSeconds = timerTargetSeconds
-                                                timerRunning = true
+                                        Box(
+                                            modifier = Modifier.size(32.dp).clickable {
+                                                if (timerRunning) {
+                                                    timerRunning = false
+                                                    if (timerElapsedSeconds > 0) {
+                                                        updateActiveValueText(timerElapsedSeconds.toString())
+                                                    }
+                                                } else if (timerTargetSeconds > 0) {
+                                                    timerElapsedSeconds = 0
+                                                    timerRemainingSeconds = timerTargetSeconds
+                                                    timerRunning = true
                                             }
                                         },
                                         contentAlignment = Alignment.Center,
@@ -4272,9 +4406,9 @@ internal fun SetInputCardV2(
                 weightSuggestion?.let { suggestion ->
                     if (suggestion.suggestedLoadMode != null && suggestion.suggestedLoadMode != loadMode) {
                         Surface(
-                            modifier = Modifier.fillMaxWidth().clickable {
+                                modifier = Modifier.fillMaxWidth().clickable {
                                 loadMode = suggestion.suggestedLoadMode
-                                weightText = suggestion.suggestedWeight.toTrimmedNumberString()
+                                updateActiveWeightText(suggestion.suggestedWeight.toTrimmedNumberString())
                             },
                             shape = RoundedCornerShape(14.dp),
                             color = sessionAccentColor.copy(alpha = 0.1f),
@@ -4599,7 +4733,7 @@ internal fun SetInputCardV2(
                             isAmrap = true
                             amrapReachFailure = reachFailure
                             amrapReserveReps = reserveReps
-                            if (minReps != null) valueText = minReps.toString()
+                            if (minReps != null) updateActiveValueText(minReps.toString())
                             showAmrapSheet = false
                         },
                         onDismiss = { showAmrapSheet = false },
@@ -4679,16 +4813,75 @@ internal fun SetInputCardV2(
                             advanced,
                             isAmrap,
                             resolvedBodyWeight,
-                            if (exercise.isUnilateral) selectedSide else null,
+                            if (supportsIndependentSides) selectedSide else null,
                         )
-                        if (exercise.isUnilateral) {
-                            selectedSide = if (selectedSide == "left") "right" else "left"
+                        if (supportsIndependentSides) {
+                            selectSide(if (selectedSide == "left") "right" else "left")
                         }
                     }
-                }
             }
         }
+    }
 }
+
+@Composable
+private fun SideInputCard(
+    side: String,
+    label: String,
+    set: ExerciseSet,
+    valueText: String,
+    weightText: String,
+    onValueChange: (String) -> Unit,
+    onWeightChange: (String) -> Unit,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    isSelected: Boolean = false,
+    onSelect: () -> Unit = {},
+) {
+    Surface(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onSelect() },
+        color = if (isSelected) accentColor.copy(alpha = 0.15f) else Color(0xFF2A2A2A),
+        border = BorderStroke(
+            1.dp,
+            if (isSelected) accentColor.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.08f),
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) accentColor else Color.White.copy(alpha = 0.6f),
+            )
+            OutlinedTextField(
+                value = weightText,
+                onValueChange = onWeightChange,
+                label = { Text("Peso", style = MaterialTheme.typography.labelSmall) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                textStyle = MaterialTheme.typography.bodyMedium,
+                shape = RoundedCornerShape(8.dp),
+            )
+            OutlinedTextField(
+                value = valueText,
+                onValueChange = onValueChange,
+                label = { Text("Reps", style = MaterialTheme.typography.labelSmall) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                textStyle = MaterialTheme.typography.bodyMedium,
+                shape = RoundedCornerShape(8.dp),
+            )
+        }
+    }
+}
+
 
 // ─── Warmup Inline Card ────────────────────────────────────────────────
 
@@ -5595,8 +5788,9 @@ private fun ExerciseHistoryContent(
                 date.isAfter(now.minusWeeks(2)) -> "Semana pasada"
                 date.isAfter(now.withDayOfMonth(1)) -> "Este mes"
                 else -> {
-                    val month = date.month.getDisplayName(java.time.format.TextStyle.FULL, Locale("es", "CL"))
-                        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale("es", "CL")) else it.toString() }
+                    val spanishChile = Locale.Builder().setLanguage("es").setRegion("CL").build()
+                    val month = date.month.getDisplayName(java.time.format.TextStyle.FULL, spanishChile)
+                        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(spanishChile) else it.toString() }
                     "$month ${date.year}"
                 }
             }
