@@ -49,7 +49,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PerformanceRangeEntity::class,
         PerformanceSnapshotEntity::class,
     ],
-    version = 16,
+    version = 17,
     exportSchema = false,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -405,6 +405,23 @@ abstract class KpknDatabase : RoomDatabase() {
             }
         }
 
+        // v17: Nuevos campos de modelo para Superserie avanzada, Unilateralidad, Técnicas de
+        // Intensidad, y AMRAP como modo. Todos los campos nuevos tienen valores por defecto en
+        // las data classes (@Serializable), por lo que la deserialización de datos existentes
+        // los asignará automáticamente sin necesidad de transformación de datos.
+        // Campos añadidos:
+        //   - Session.supersetGroups: List<SupersetGroup>
+        //   - Exercise.supersetGroupRef, Exercise.unilateralMode, Exercise.timeStrategy
+        //   - ExerciseSet.leftTarget, rightTarget, restBetweenSides, plannedIntensityTechniques
+        //   - UnilateralMode, UnilateralTarget, PlannedTechnique, TechniqueType, TimeStrategy
+        //   - TrainingMode.AMRAP
+        // Schema SQL sin cambios (todo vive en JSON blobs).
+        val MIGRATION_16_17 = object : Migration(16, 17) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // No-op: todos los campos nuevos tienen defaults en kotlinx.serialization.
+            }
+        }
+
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -428,6 +445,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_13_14,
                     MIGRATION_14_15,
                     MIGRATION_15_16,
+                    MIGRATION_16_17,
                 )
                 .build()
                 .also { INSTANCE = it }

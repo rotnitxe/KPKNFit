@@ -2,6 +2,7 @@ package com.example.kpkn.screens.sessioneditor
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -177,6 +178,7 @@ data class SessionEditorAugeSummary(
 data class SessionEditorUiState(
     val session: Session? = null,
     val originalSession: Session? = null,
+    val loadErrorMessage: String? = null,
     val programId: String = "",
     val draftBundle: SessionDraftBundle? = null,
     val weekId: String = "",
@@ -304,7 +306,7 @@ class SessionEditorViewModel(
             delay(2000)
             if (!_uiState.value.autoSaveEnabled) return@launch
             withContext(Dispatchers.IO) {
-                persistDraft()
+                persistRecoverableSession()
             }
         }
     }
@@ -390,6 +392,21 @@ class SessionEditorViewModel(
         }.isSuccess
     }
 
+    private fun persistRecoverableSession(state: SessionEditorUiState = _uiState.value): Boolean {
+        val session = state.session?.ensureModifiedTimestamp() ?: return false
+        val draftOk = persistDraft(state.copy(session = session))
+        if (state.weekId.isNotBlank()) {
+            repository.upsertSessionInProgram(
+                programId = programId,
+                weekId = state.weekId,
+                macroIndex = state.macroIndex,
+                mesoIndex = state.mesoIndex,
+                session = session,
+            )
+        }
+        return draftOk
+    }
+
     private fun clearPersistedDraft(
         weekId: String,
         macroIndex: Int,
@@ -406,11 +423,16 @@ class SessionEditorViewModel(
     }
 
     fun saveDraftForExit(): Boolean {
-        val ok = persistDraft()
+        val ok = persistRecoverableSession()
         if (ok) {
             _uiState.update { it.copy(hasUnsavedChanges = false) }
         }
         return ok
+    }
+
+    fun retryLoadSession() {
+        _uiState.update { it.copy(loadErrorMessage = null) }
+        loadSession()
     }
 
     fun discardDraftForCurrentSession() {
@@ -426,7 +448,26 @@ class SessionEditorViewModel(
 
     init {
         observeBodyMeasurements()
+        observeRepositoryRecovery()
         loadSession()
+    }
+
+    private fun observeRepositoryRecovery() {
+        viewModelScope.launch {
+            repository.programs.collect {
+                val state = _uiState.value
+                if (state.session == null || state.loadErrorMessage != null) {
+                    loadSession()
+                }
+            }
+        }
+        viewModelScope.launch {
+            repository.isReady.collect { ready ->
+                if (ready && (_uiState.value.session == null || _uiState.value.loadErrorMessage != null)) {
+                    loadSession()
+                }
+            }
+        }
     }
 
     private fun observeBodyMeasurements() {
@@ -452,12 +493,24 @@ class SessionEditorViewModel(
     }
 
     private fun loadSession() {
-        val program = repository.getProgramById(programId) ?: return
+        val program = repository.getProgramById(programId)
+        if (program == null) {
+            if (repository.isReady.value) {
+                Log.w("SessionEditor", "Program not found. programId=$programId sessionId=$sessionId")
+                _uiState.update { it.copy(loadErrorMessage = "No pudimos recuperar este programa.") }
+            }
+            return
+        }
         val located = locateSession(program, sessionId, draftWeekId, draftMacroIndex, draftMesoIndex)
         val targetWeekId = located?.week?.id ?: draftWeekId.orEmpty()
         val targetMacroIndex = draftMacroIndex ?: located?.macroIndex ?: 0
         val targetMesoIndex = draftMesoIndex ?: located?.mesoIndex ?: 0
         val week = located?.week ?: findWeek(program, targetMacroIndex, targetMesoIndex, targetWeekId)
+        if (week == null && targetWeekId.isNotBlank() && repository.isReady.value) {
+            Log.w("SessionEditor", "Week not found. programId=$programId weekId=$targetWeekId sessionId=$sessionId")
+            _uiState.update { it.copy(loadErrorMessage = "No pudimos recuperar la semana de esta sesión.") }
+            return
+        }
         val existing = located?.session
         val fallbackDraft = existing ?: createDraftSession(sessionId, draftDayOfWeek)
         val persistedDraft = persistedDraftFor(
@@ -466,10 +519,20 @@ class SessionEditorViewModel(
             mesoIndex = targetMesoIndex,
             sessionId = fallbackDraft.id,
         )
-        val draft = (persistedDraft?.session ?: fallbackDraft).normalizedIdentityFields()
+        val draft = resolveNewestSession(existing, fallbackDraft, persistedDraft).normalizedIdentityFields()
+        val weekSessions = ensureSessionInList(week?.sessions.orEmpty(), draft)
+        if (existing == null && week != null && targetWeekId.isNotBlank()) {
+            repository.upsertSessionInProgram(
+                programId = programId,
+                weekId = targetWeekId,
+                macroIndex = targetMacroIndex,
+                mesoIndex = targetMesoIndex,
+                session = draft.ensureModifiedTimestamp(),
+            )
+        }
         val resolvedRuleDefaults = persistedDraft?.ruleDefaults ?: SessionEditorRuleDefaults()
         val resolvedRuleLimits = persistedDraft?.ruleLimits ?: SessionEditorRuleLimits()
-        val loadedFromDraft = persistedDraft != null
+        val loadedFromDraft = persistedDraft != null && persistedDraft.session != existing
         val roadmapOptions = buildRoadmapOptions(program)
         val cloneDayOptions = buildCloneDayOptions(program, currentSessionId = draft.id)
         val cloneSourceOptions = buildCloneSourceOptions(program, currentSessionId = draft.id)
@@ -511,6 +574,7 @@ class SessionEditorViewModel(
         _uiState.value = SessionEditorUiState(
             session = draft,
             originalSession = (existing ?: draft).normalizedIdentityFields(),
+            loadErrorMessage = null,
             programId = programId,
             draftBundle = SessionDraftBundle(
                 sessionId = draft.id,
@@ -518,16 +582,16 @@ class SessionEditorViewModel(
                 macroIndex = targetMacroIndex,
                 mesoIndex = targetMesoIndex,
                 dayOfWeek = draft.dayOfWeek ?: draftDayOfWeek,
-                siblingSessionIds = week?.sessions.orEmpty().map { it.id },
-                weekSessionIds = week?.sessions.orEmpty().map { it.id },
+                siblingSessionIds = weekSessions.map { it.id },
+                weekSessionIds = weekSessions.map { it.id },
             ),
             weekId = targetWeekId,
             macroIndex = targetMacroIndex,
             mesoIndex = targetMesoIndex,
             dayOfWeek = draft.dayOfWeek ?: draftDayOfWeek,
             isNewSession = existing == null,
-            siblingSessions = week?.sessions.orEmpty().sortedBy { it.dayOfWeek ?: 99 },
-            weekSessions = week?.sessions.orEmpty(),
+            siblingSessions = weekSessions.sortedBy { it.dayOfWeek ?: 99 },
+            weekSessions = weekSessions,
             weekStartDay = (program.startDay ?: 1).coerceIn(1, 7),
             roadmapOptions = roadmapOptions,
             cloneDayOptions = cloneDayOptions,
@@ -567,7 +631,12 @@ class SessionEditorViewModel(
             ))
         }
         _uiState.update { state ->
-            val updated = transform(current)
+            val transformed = transform(current)
+            val updated = if (transformed != current) {
+                transformed.copy(lastModifiedAtMs = System.currentTimeMillis())
+            } else {
+                transformed
+            }
             state.copy(
                 session = updated,
                 dayOfWeek = updated.dayOfWeek ?: state.dayOfWeek,
@@ -1212,6 +1281,42 @@ class SessionEditorViewModel(
         openWarmup(exerciseId)
     }
 
+    fun triggerQuickActionOpenMobility() {
+        val state = _uiState.value
+        if (state.quickActionsExerciseId == null) return
+        _uiState.update {
+            it.copy(
+                sheet = SessionEditorSheet.MOBILITY_PICKER,
+                searchQuery = "",
+            )
+        }
+    }
+
+    fun addMobilityToQuickActionExercise(info: MobilityExercise) {
+        val state = _uiState.value
+        val exerciseId = state.quickActionsExerciseId ?: return
+        updateExercise(state.quickActionsPartId, exerciseId) { exercise ->
+            val mobility = MobilitySeries(
+                id = UUID.randomUUID().toString(),
+                exerciseDbId = info.id,
+                name = info.name,
+                sets = 1,
+                durationSeconds = info.durationSeconds,
+                notes = "Movilidad asociada a ${exercise.name}",
+                associatedDiscomforts = info.discomfortIds,
+                bodyZones = listOf(info.bodyRegion),
+                movementPatterns = listOf(info.category),
+            )
+            exercise.copy(mobilitySeries = (exercise.mobilitySeries + mobility).distinctBy { it.id })
+        }
+    }
+
+    fun removeMobilitySeries(partId: String?, exerciseId: String, mobilityId: String) {
+        updateExercise(partId, exerciseId) { exercise ->
+            exercise.copy(mobilitySeries = exercise.mobilitySeries.filterNot { it.id == mobilityId })
+        }
+    }
+
     fun triggerQuickActionDelete() {
         val state = _uiState.value
         val exerciseId = state.quickActionsExerciseId ?: return
@@ -1689,12 +1794,11 @@ class SessionEditorViewModel(
         val state = _uiState.value
         if (state.session?.id == targetSessionId) return
         if (state.hasUnsavedChanges) {
-            val saveResult = saveSession(skipRefresh = true)
-            if (!saveResult.success) {
-                _uiState.update { it.copy(snackbarMessage = "Error al guardar: ${saveResult.message}") }
+            if (!persistRecoverableSession(state)) {
+                _uiState.update { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
                 return
             }
-            _uiState.update { it.copy(snackbarMessage = "Sesión guardada con éxito") }
+            _uiState.update { it.copy(snackbarMessage = "Sesión preservada") }
         }
         switchToSession(targetSessionId, targetWeekId, targetMacroIndex, targetMesoIndex)
     }
@@ -1715,9 +1819,8 @@ class SessionEditorViewModel(
     fun createSessionForDay(dayOfWeek: Int): SessionEditorSaveResult {
         val state = _uiState.value
         if (state.hasUnsavedChanges) {
-            val saveResult = saveSession()
-            if (!saveResult.success) {
-                _uiState.update { it.copy(snackbarMessage = "Error al guardar: ${saveResult.message}") }
+            if (!persistRecoverableSession(state)) {
+                _uiState.update { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
                 return SessionEditorSaveResult(success = false, message = "")
             }
         }
@@ -1731,15 +1834,22 @@ class SessionEditorViewModel(
         val newSession = createDraftSession(UUID.randomUUID().toString(), dayOfWeek).copy(
             name = "Sesión ${dayLabelShort(dayOfWeek)}",
             isMainSession = true,
+            lastModifiedAtMs = System.currentTimeMillis(),
         )
+        if (!repository.upsertSessionInProgram(programId, state.weekId, state.macroIndex, state.mesoIndex, newSession)) {
+            return SessionEditorSaveResult(success = false, message = "No pudimos crear la sesión en esta semana.")
+        }
 
         _uiState.update {
+            val updatedWeekSessions = ensureSessionInList(it.weekSessions, newSession)
             it.copy(
                 session = newSession,
                 originalSession = newSession,
                 dayOfWeek = dayOfWeek,
                 isNewSession = true,
                 selectedSiblingSessionId = newSession.id,
+                siblingSessions = updatedWeekSessions.sortedBy { session -> session.dayOfWeek ?: 99 },
+                weekSessions = updatedWeekSessions,
                 localDraftHistory = listOf(buildDraftSnapshot(session = newSession, previous = null, reason = "Nueva sesión")),
                 hasUnsavedChanges = false,
                 draftBundle = it.draftBundle?.copy(sessionId = newSession.id, dayOfWeek = dayOfWeek),
@@ -1781,7 +1891,24 @@ class SessionEditorViewModel(
         val program = repository.getProgramById(programId) ?: return
         val week = findWeek(program, option.macroIndex, option.mesoIndex, option.weekId) ?: return
         val preferredDay = _uiState.value.dayOfWeek
-        val targetSession = week.sessions.firstOrNull { it.dayOfWeek == preferredDay } ?: week.sessions.firstOrNull() ?: return
+        val targetSession = week.sessions.firstOrNull { it.dayOfWeek == preferredDay } ?: week.sessions.firstOrNull()
+        if (targetSession == null) {
+            val day = preferredDay ?: 1
+            val newSession = createDraftSession(UUID.randomUUID().toString(), day).copy(
+                name = "Sesión ${dayLabelShort(day)}",
+                isMainSession = true,
+                lastModifiedAtMs = System.currentTimeMillis(),
+            )
+            if (repository.upsertSessionInProgram(programId, option.weekId, option.macroIndex, option.mesoIndex, newSession)) {
+                requestSessionSwitch(
+                    targetSessionId = newSession.id,
+                    targetWeekId = option.weekId,
+                    targetMacroIndex = option.macroIndex,
+                    targetMesoIndex = option.mesoIndex,
+                )
+            }
+            return
+        }
         // Use requestSessionSwitch so unsaved changes trigger the save guard instead of
         // silently discarding them when the user changes weeks via the roadmap menu.
         requestSessionSwitch(
@@ -1816,7 +1943,8 @@ class SessionEditorViewModel(
             mesoIndex = resolvedMesoIndex,
             sessionId = located.session.id,
         )
-        val resolvedSession = persistedDraft?.session ?: located.session
+        val resolvedSession = resolveNewestSession(located.session, located.session, persistedDraft)
+        val resolvedWeekSessions = ensureSessionInList(weekSessions, resolvedSession)
         val roadmapOptions = buildRoadmapOptions(program)
         val cloneDayOptions = buildCloneDayOptions(program, currentSessionId = resolvedSession.id)
         val cloneSourceOptions = buildCloneSourceOptions(program, currentSessionId = resolvedSession.id)
@@ -1833,12 +1961,12 @@ class SessionEditorViewModel(
                     macroIndex = resolvedMacroIndex,
                     mesoIndex = resolvedMesoIndex,
                     dayOfWeek = resolvedSession.dayOfWeek,
-                    siblingSessionIds = weekSessions.map(Session::id),
-                    weekSessionIds = weekSessions.map(Session::id),
+                    siblingSessionIds = resolvedWeekSessions.map(Session::id),
+                    weekSessionIds = resolvedWeekSessions.map(Session::id),
                 ),
                 dayOfWeek = resolvedSession.dayOfWeek,
-                siblingSessions = weekSessions.sortedBy { session -> session.dayOfWeek ?: 99 },
-                weekSessions = weekSessions,
+                siblingSessions = resolvedWeekSessions.sortedBy { session -> session.dayOfWeek ?: 99 },
+                weekSessions = resolvedWeekSessions,
                 roadmapOptions = roadmapOptions,
                 cloneDayOptions = cloneDayOptions,
                 cloneSourceOptions = cloneSourceOptions,
@@ -1858,7 +1986,7 @@ class SessionEditorViewModel(
     fun saveSession(scope: SessionSaveScope = SessionSaveScope.SESSION_ONLY, skipRefresh: Boolean = false): SessionEditorSaveResult {
         val state = _uiState.value
         val rawDraft = state.session ?: return SessionEditorSaveResult(false, "No hay una sesión activa para guardar.")
-        val draft = rawDraft.normalizeSession()
+        val draft = rawDraft.normalizeSession().copy(lastModifiedAtMs = System.currentTimeMillis())
         val program = repository.getProgramById(programId) ?: return SessionEditorSaveResult(false, "No pudimos encontrar el programa activo.")
         if (state.weekId.isBlank()) return SessionEditorSaveResult(false, "No pudimos identificar la semana para guardar.")
 
@@ -1974,9 +2102,12 @@ class SessionEditorViewModel(
         return program.copy(
             macrocycles = program.macrocycles.mapIndexed { macroIndex, macro ->
                 if (macroIndex != state.macroIndex) return@mapIndexed macro
+                var globalMesoIndex = 0
                 macro.copy(blocks = macro.blocks.map { block ->
-                    block.copy(mesocycles = block.mesocycles.mapIndexed { mesoIndex, meso ->
-                        if (mesoIndex != state.mesoIndex) return@mapIndexed meso
+                    block.copy(mesocycles = block.mesocycles.map { meso ->
+                        val matchesMeso = globalMesoIndex == state.mesoIndex
+                        globalMesoIndex += 1
+                        if (!matchesMeso) return@map meso
                         meso.copy(weeks = meso.weeks.map { week ->
                             val cloneForWeek = if (week.id == state.weekId) draft else draft.copy(id = UUID.randomUUID().toString())
                             val updatedSessions = week.sessions.toMutableList()
@@ -1998,15 +2129,16 @@ class SessionEditorViewModel(
     }
 
     private fun normalizeMainSessions(sessions: List<Session>): List<Session> {
+        val distinctSessions = sessions.distinctBy { it.id }
         val mainByDay = mutableMapOf<Int, String>()
         val fallbackByDay = mutableMapOf<Int, String>()
-        sessions.forEach { session ->
+        distinctSessions.forEach { session ->
             val day = session.dayOfWeek ?: 1
             fallbackByDay.putIfAbsent(day, session.id)
             if (session.isMainSession && day !in mainByDay) mainByDay[day] = session.id
         }
         fallbackByDay.forEach { (day, id) -> mainByDay.putIfAbsent(day, id) }
-        return sessions.map { session ->
+        return distinctSessions.map { session ->
             val day = session.dayOfWeek ?: 1
             session.copy(isMainSession = mainByDay[day] == session.id)
         }
@@ -3163,8 +3295,10 @@ private fun SessionEditorViewModel.locateSession(
     targetMesoIndex: Int?,
 ): LocatedSession? {
     program.macrocycles.forEachIndexed { macroIndex, macro ->
+        var globalMesoIndex = 0
         macro.blocks.forEach { block ->
-            block.mesocycles.forEachIndexed { mesoIndex, meso ->
+            block.mesocycles.forEach { meso ->
+                val mesoIndex = globalMesoIndex++
                 meso.weeks.forEach { week ->
                     if (targetWeekId != null && week.id != targetWeekId) return@forEach
                     val found = week.sessions.find { it.id == targetSessionId }
@@ -3194,6 +3328,7 @@ private fun SessionEditorViewModel.findWeek(
 private fun createDraftSession(sessionId: String, dayOfWeek: Int?): Session = Session(
     id = sessionId,
     name = "",
+    lastModifiedAtMs = System.currentTimeMillis(),
     description = "",
     parts = emptyList(),
     dayOfWeek = dayOfWeek,
@@ -3205,6 +3340,25 @@ private fun createDraftSession(sessionId: String, dayOfWeek: Int?): Session = Se
     coverStyle = CoverStyle(filters = CoverFilters(), labelPosition = LabelPosition.BOTTOM_LEFT),
     isMainSession = true,
 )
+
+private fun resolveNewestSession(
+    existing: Session?,
+    fallback: Session,
+    persistedDraft: PersistedSessionEditorDraft?,
+): Session {
+    val persisted = persistedDraft?.session
+    if (persisted == null) return existing ?: fallback
+    val existingTimestamp = (existing ?: fallback).lastModifiedAtMs
+    return if (persistedDraft.savedAtMs >= existingTimestamp) persisted else (existing ?: fallback)
+}
+
+private fun ensureSessionInList(sessions: List<Session>, session: Session): List<Session> {
+    val replaced = sessions.map { if (it.id == session.id) session else it }
+    return if (replaced.any { it.id == session.id }) replaced else replaced + session
+}
+
+private fun Session.ensureModifiedTimestamp(): Session =
+    if (lastModifiedAtMs > 0L) this else copy(lastModifiedAtMs = System.currentTimeMillis())
 
 private fun SessionEditorViewModel.buildRoadmapOptions(program: Program): List<SessionRoadmapOption> {
     return program.macrocycles.flatMapIndexed { macroIndex, macro ->

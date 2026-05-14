@@ -201,12 +201,14 @@ object ProgramDetailHelpers {
         val ranges = mutableMapOf<String, String>()
         program.macrocycles.forEach { macro ->
             macro.blocks.forEach { block ->
-                val weeks = block.mesocycles.sumOf { it.weeks.size }
-                if (weeks > 0) {
-                    val start = cursor
-                    val end = cursor.plusWeeks(weeks.toLong()).minusDays(1)
+                val weeks = block.mesocycles.flatMap { it.weeks }
+                if (weeks.isNotEmpty()) {
+                    val explicitStart = weeks.mapNotNull { parseProgramDate(it.startDate) }.minOrNull()
+                    val explicitEnd = weeks.mapNotNull { parseProgramDate(it.endDate) }.maxOrNull()
+                    val start = explicitStart ?: cursor
+                    val end = explicitEnd ?: cursor.plusWeeks(weeks.size.toLong()).minusDays(1)
                     ranges[block.id] = formatDateRange(start, end)
-                    cursor = cursor.plusWeeks(weeks.toLong())
+                    cursor = end.plusDays(1)
                 }
             }
         }
@@ -220,15 +222,15 @@ object ProgramDetailHelpers {
             macro.blocks.forEach { block ->
                 block.mesocycles.forEach { meso ->
                     meso.weeks.forEach { week ->
-                        val weekStart = cursor
-                        val weekEnd = cursor.plusDays(6)
+                        val weekStart = parseProgramDate(week.startDate) ?: cursor
+                        val weekEnd = parseProgramDate(week.endDate) ?: weekStart.plusDays(6)
                         val keyDate = program.keyDates.firstOrNull { it.intersectsWeek(weekStart, weekEnd) }
                         meta[week.id] = WeekDateMeta(
                             dateRangeLabel = formatDateRange(weekStart, weekEnd),
                             keyDateLabel = keyDate?.roadmapLabel(),
                             keyDateType = keyDate?.type,
                         )
-                        cursor = cursor.plusWeeks(1)
+                        cursor = weekEnd.plusDays(1)
                     }
                 }
             }

@@ -131,6 +131,9 @@ data class ProgramWeek(
     val variant: WeekVariant? = null,
     val isLoopWeek: Boolean = false,
     val loopId: String? = null,
+    val startDate: String? = null,
+    val endDate: String? = null,
+    val trainingDayDates: Map<Int, String> = emptyMap(),
 )
 
 enum class WeekVariant { A, B, C, D }

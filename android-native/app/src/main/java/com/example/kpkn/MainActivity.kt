@@ -912,12 +912,7 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.WikiLabExerciseCreator.route) {
             CustomExerciseCreatorScreen(
-                onBack = {
-                    navController.navigate(KpknRoute.Training.route) {
-                        popUpTo(KpknRoute.Training.route) { inclusive = false }
-                        launchSingleTop = true
-                    }
-                },
+                onBack = { navController.popBackStack() },
                 onSaved = { exerciseId ->
                     val previous = navController.previousBackStackEntry?.destination?.route.orEmpty()
                     if (previous.contains("session-editor")) {

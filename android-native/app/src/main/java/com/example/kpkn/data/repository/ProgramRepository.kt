@@ -39,6 +39,9 @@ class ProgramRepository private constructor(context: Context) {
     private val _programQueue = MutableStateFlow<List<String>>(emptyList())
     val programQueue: StateFlow<List<String>> = _programQueue.asStateFlow()
 
+    private val _isReady = MutableStateFlow(false)
+    val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
+
     fun addProgram(program: Program) {
         val normalized = program.normalizedIdentityFields()
         _programs.update { it + normalized }
@@ -49,6 +52,48 @@ class ProgramRepository private constructor(context: Context) {
         val normalized = program.normalizedIdentityFields()
         _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
         scope.launch { db.programDao().upsert(normalized.toEntity()) }
+    }
+
+    suspend fun updateProgramNow(program: Program) {
+        val normalized = program.normalizedIdentityFields()
+        _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
+        withContext(Dispatchers.IO) { db.programDao().upsert(normalized.toEntity()) }
+    }
+
+    fun upsertSessionInProgram(
+        programId: String,
+        weekId: String,
+        macroIndex: Int,
+        mesoIndex: Int,
+        session: Session,
+    ): Boolean {
+        val current = getProgramById(programId) ?: return false
+        val updated = current.upsertSessionInWeek(
+            weekId = weekId,
+            macroIndex = macroIndex,
+            mesoIndex = mesoIndex,
+            session = session,
+        ) ?: return false
+        updateProgram(updated)
+        return true
+    }
+
+    suspend fun upsertSessionInProgramNow(
+        programId: String,
+        weekId: String,
+        macroIndex: Int,
+        mesoIndex: Int,
+        session: Session,
+    ): Boolean {
+        val current = getProgramById(programId) ?: return false
+        val updated = current.upsertSessionInWeek(
+            weekId = weekId,
+            macroIndex = macroIndex,
+            mesoIndex = mesoIndex,
+            session = session,
+        ) ?: return false
+        updateProgramNow(updated)
+        return true
     }
 
     fun deleteProgram(programId: String) {
@@ -162,10 +207,18 @@ class ProgramRepository private constructor(context: Context) {
      * before the background write coroutine completes.
      */
     suspend fun flushPendingWrites() {
-        val current = _ongoingWorkout.value
-        if (current != null) {
-            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                db.stateDao().upsertOngoingWorkout(current.toEntity())
+        val currentWorkout = _ongoingWorkout.value
+        val currentPrograms = _programs.value
+        val currentActiveProgram = _activeProgramState.value
+        withContext(Dispatchers.IO) {
+            currentPrograms.forEach { program ->
+                db.programDao().upsert(program.normalizedIdentityFields().toEntity())
+            }
+            if (currentWorkout != null) {
+                db.stateDao().upsertOngoingWorkout(currentWorkout.toEntity())
+            }
+            if (currentActiveProgram != null) {
+                db.stateDao().upsertActiveProgram(currentActiveProgram.toEntity())
             }
         }
     }
@@ -266,56 +319,129 @@ class ProgramRepository private constructor(context: Context) {
     /** Carga el estado persistido de Room en los StateFlows. Llamar al arrancar. */
     private fun loadFromDb() {
         scope.launch {
-            val programEntities = db.programDao().getAll()
-            val programs = programEntities.map { entity -> entity.toProgram().normalizedIdentityFields() }
-            val logEntities = db.workoutLogDao().getAll()
-            val logs = logEntities.map { entity -> entity.toWorkoutLog().normalizedIdentityFields() }
-            val settings = db.settingsDao().get()?.toSettings() ?: Settings()
-            val activeProgram = db.stateDao().getActiveProgram()?.toActiveProgramState()
-            val ongoingWorkout = db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()?.normalizedIdentityFields()
-            val contextPerformance = db.workoutV2Dao().getAllContextPerformance()
-                .map { it.toContextPerformanceStateV2() }
-                .associateBy { it.contextKey }
-            val globalPerformance = db.workoutV2Dao().getAllGlobalPerformance()
-                .map { it.toGlobalPerformanceStateV3() }
-                .associateBy { it.globalKey }
-            val contextProfiles = db.workoutV2Dao().getAllContextProfiles()
-                .map { it.toWorkoutContextProfile() }
-                .associateBy { it.id }
-            val replacementDecisions = db.workoutV2Dao().getAllReplacementDecisions()
-                .map { it.toExerciseReplacementDecisionV2() }
-            val normalizedActiveProgram = normalizeActiveProgramState(programs, activeProgram)
+            runCatching {
+                val programEntities = db.programDao().getAll()
+                val programs = programEntities.map { entity -> entity.toProgram().normalizedIdentityFields() }
+                val logEntities = db.workoutLogDao().getAll()
+                val logs = logEntities.map { entity -> entity.toWorkoutLog().normalizedIdentityFields() }
+                val settings = db.settingsDao().get()?.toSettings() ?: Settings()
+                val activeProgram = db.stateDao().getActiveProgram()?.toActiveProgramState()
+                val ongoingWorkout = db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()?.normalizedIdentityFields()
+                val contextPerformance = db.workoutV2Dao().getAllContextPerformance()
+                    .map { it.toContextPerformanceStateV2() }
+                    .associateBy { it.contextKey }
+                val globalPerformance = db.workoutV2Dao().getAllGlobalPerformance()
+                    .map { it.toGlobalPerformanceStateV3() }
+                    .associateBy { it.globalKey }
+                val contextProfiles = db.workoutV2Dao().getAllContextProfiles()
+                    .map { it.toWorkoutContextProfile() }
+                    .associateBy { it.id }
+                val replacementDecisions = db.workoutV2Dao().getAllReplacementDecisions()
+                    .map { it.toExerciseReplacementDecisionV2() }
+                val normalizedActiveProgram = normalizeActiveProgramState(programs, activeProgram)
 
-            programEntities.zip(programs).forEach { (entity, normalized) ->
-                if (entity.toProgram() != normalized) {
-                    scope.launch { db.programDao().upsert(normalized.toEntity()) }
+                programEntities.zip(programs).forEach { (entity, normalized) ->
+                    if (entity.toProgram() != normalized) {
+                        scope.launch { db.programDao().upsert(normalized.toEntity()) }
+                    }
                 }
-            }
-            logEntities.zip(logs).forEach { (entity, normalized) ->
-                if (entity.toWorkoutLog() != normalized) {
-                    scope.launch { db.workoutLogDao().insert(normalized.toEntity()) }
+                logEntities.zip(logs).forEach { (entity, normalized) ->
+                    if (entity.toWorkoutLog() != normalized) {
+                        scope.launch { db.workoutLogDao().insert(normalized.toEntity()) }
+                    }
                 }
-            }
-            val persistedOngoing = db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()
-            if (persistedOngoing != null && persistedOngoing != ongoingWorkout && ongoingWorkout != null) {
-                scope.launch { db.stateDao().upsertOngoingWorkout(ongoingWorkout.toEntity()) }
-            }
+                val persistedOngoing = db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()
+                if (persistedOngoing != null && persistedOngoing != ongoingWorkout && ongoingWorkout != null) {
+                    scope.launch { db.stateDao().upsertOngoingWorkout(ongoingWorkout.toEntity()) }
+                }
 
-            if (normalizedActiveProgram != activeProgram && normalizedActiveProgram != null) {
-                scope.launch { db.stateDao().upsertActiveProgram(normalizedActiveProgram.toEntity()) }
-            }
+                if (normalizedActiveProgram != activeProgram && normalizedActiveProgram != null) {
+                    scope.launch { db.stateDao().upsertActiveProgram(normalizedActiveProgram.toEntity()) }
+                }
 
-            withContext(Dispatchers.Main) {
-                _programs.value = programs
-                _history.value = logs
-                _settings.value = settings
-                _activeProgramState.value = normalizedActiveProgram
-                _ongoingWorkout.value = ongoingWorkout
-                _contextPerformance.value = contextPerformance
-                _globalPerformance.value = globalPerformance
-                _contextProfiles.value = contextProfiles
-                _replacementDecisions.value = replacementDecisions
+                withContext(Dispatchers.Main) {
+                    _programs.value = programs
+                    _history.value = logs
+                    _settings.value = settings
+                    _activeProgramState.value = normalizedActiveProgram
+                    _ongoingWorkout.value = ongoingWorkout
+                    _contextPerformance.value = contextPerformance
+                    _globalPerformance.value = globalPerformance
+                    _contextProfiles.value = contextProfiles
+                    _replacementDecisions.value = replacementDecisions
+                    _isReady.value = true
+                }
+            }.onFailure { error ->
+                android.util.Log.e("ProgramRepository", "loadFromDb failed", error)
+                _isReady.value = true
             }
+        }
+    }
+
+    private fun Program.upsertSessionInWeek(
+        weekId: String,
+        macroIndex: Int,
+        mesoIndex: Int,
+        session: Session,
+    ): Program? {
+        var changed = false
+        val updatedMacrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
+            var globalMesoIndex = 0
+            macro.copy(
+                blocks = macro.blocks.map { block ->
+                    block.copy(
+                        mesocycles = block.mesocycles.map { meso ->
+                            val currentGlobalMeso = globalMesoIndex++
+                            if (currentMacroIndex != macroIndex || currentGlobalMeso != mesoIndex) {
+                                meso
+                            } else {
+                                meso.copy(
+                                    weeks = meso.weeks.map { week ->
+                                        if (week.id != weekId) {
+                                            week
+                                        } else {
+                                            changed = true
+                                            val replaced = week.sessions.map { existing ->
+                                                if (existing.id == session.id) session else existing
+                                            }
+                                            val nextSessions = if (replaced.any { it.id == session.id }) {
+                                                replaced
+                                            } else {
+                                                replaced + session
+                                            }
+                                            week.copy(sessions = normalizeMainSessions(nextSessions))
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    )
+                }
+            )
+        }
+        return if (changed) copy(macrocycles = updatedMacrocycles) else null
+    }
+
+    private fun normalizeMainSessions(sessions: List<Session>): List<Session> {
+        val distinct = sessions.distinctBy { it.id }
+        val mainByDay = mutableMapOf<Int, String>()
+        val fallbackByDay = mutableMapOf<Int, String>()
+
+        distinct.forEach { session ->
+            val day = session.dayOfWeek ?: 1
+            fallbackByDay.putIfAbsent(day, session.id)
+            if (session.isMainSession && day !in mainByDay) {
+                mainByDay[day] = session.id
+            }
+        }
+
+        fallbackByDay.forEach { (day, sessionId) ->
+            mainByDay.putIfAbsent(day, sessionId)
+        }
+
+        return distinct.map { session ->
+            val day = session.dayOfWeek ?: 1
+            session.copy(isMainSession = mainByDay[day] == session.id)
         }
     }
 

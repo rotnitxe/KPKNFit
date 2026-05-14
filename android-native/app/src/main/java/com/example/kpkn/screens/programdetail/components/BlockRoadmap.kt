@@ -160,9 +160,10 @@ fun BlockRoadmap(
         // Week indicators
         if (currentWeeks.isNotEmpty() || onAddAdvancedWeek != null) {
             val listState = rememberLazyListState()
-            LaunchedEffect(selectedBlockId, currentWeekId) {
-                val currentIdx = currentWeeks.indexOfFirst { it.id == currentWeekId }
-                if (currentIdx >= 0) listState.animateScrollToItem(maxOf(0, currentIdx - 2))
+            LaunchedEffect(selectedBlockId, selectedWeekId, currentWeekId, currentWeeks.size) {
+                val targetWeekId = selectedWeekId ?: currentWeekId
+                val targetIndex = currentWeeks.indexOfFirst { it.id == targetWeekId }
+                if (targetIndex >= 0) listState.animateScrollToItem(maxOf(0, targetIndex - 2))
             }
 
             LazyRow(
@@ -347,9 +348,10 @@ private fun CycleBasedRoadmap(
 
         if (displayWeeks.isNotEmpty() || onAddWeek != null) {
             val listStateWeeks = rememberLazyListState()
-            LaunchedEffect(currentWeekId, displayWeeks.size) {
-                val currentIdx = displayWeeks.indexOfFirst { it.id == currentWeekId }
-                if (currentIdx >= 0) listStateWeeks.animateScrollToItem(maxOf(0, currentIdx - 2))
+            LaunchedEffect(selectedWeekId, currentWeekId, displayWeeks.size) {
+                val targetWeekId = selectedWeekId ?: currentWeekId
+                val targetIndex = displayWeeks.indexOfFirst { it.id == targetWeekId }
+                if (targetIndex >= 0) listStateWeeks.animateScrollToItem(maxOf(0, targetIndex - 2))
             }
 
             LazyRow(
@@ -408,9 +410,10 @@ private fun SimpleWeekRoadmap(
     val loopWeeks = weeks.filter { it.isLoopWeek }
 
     val listState = rememberLazyListState()
-    LaunchedEffect(currentWeekId, weeks.size) {
-        val currentIdx = weeks.indexOfFirst { it.id == currentWeekId }
-        if (currentIdx >= 0) listState.animateScrollToItem(maxOf(0, currentIdx - 2))
+    LaunchedEffect(selectedWeekId, currentWeekId, weeks.size) {
+        val targetWeekId = selectedWeekId ?: currentWeekId
+        val targetIndex = weeks.indexOfFirst { it.id == targetWeekId }
+        if (targetIndex >= 0) listState.animateScrollToItem(maxOf(0, targetIndex - 2))
     }
 
     LazyRow(

@@ -41,6 +41,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -115,6 +116,7 @@ fun CustomExerciseCreatorScreen(
     val anatomical = remember { mutableStateListOf<AnatomicalConsideration>() }
     val mistakes = remember { mutableStateListOf<CommonMistake>() }
     val editableMuscles = remember { mutableStateListOf<EditableMuscle>() }
+    var muscleSearch by remember { mutableStateOf("") }
 
     var detailsExpanded by remember { mutableStateOf(false) }
     var cuesExpanded by remember { mutableStateOf(false) }
@@ -151,25 +153,16 @@ fun CustomExerciseCreatorScreen(
         }
     }
 
-    // Auto-apply suggestions when empty fields
-    if (suggestions != null && editableMuscles.isEmpty() && suggestions.suggestedMuscles.isNotEmpty()) {
-        editableMuscles.addAll(
-            suggestions.suggestedMuscles.take(5).map {
-                EditableMuscle(
-                    muscle = it.muscle,
-                    role = it.role,
-                    contribution = (it.volumeContribution ?: 1.0).toString(),
-                )
-            }
-        )
+    val muscleOptions = remember {
+        EXERCISE_DATABASE
+            .flatMap { it.involvedMuscles.map { muscle -> muscle.muscle } }
+            .distinct()
+            .sorted()
     }
-    if (suggestions != null) {
-        if (averageRestSeconds == "90" && suggestions.suggestedRestSeconds != 90) {
-            averageRestSeconds = suggestions.suggestedRestSeconds.toString()
-        }
-        if (tier == "T2" && suggestions.suggestedTier != "T2") {
-            tier = suggestions.suggestedTier
-        }
+    val filteredMuscles = remember(muscleSearch, muscleOptions) {
+        val normalized = muscleSearch.trim()
+        if (normalized.isBlank()) muscleOptions.take(12)
+        else muscleOptions.filter { it.contains(normalized, ignoreCase = true) }.take(12)
     }
 
     val matchCount = suggestions?.matchCount ?: 0
@@ -253,7 +246,21 @@ fun CustomExerciseCreatorScreen(
 
             // ── Suggestions card ──
             if (suggestions != null && matchCount > 0) {
-                SuggestionsCard(suggestions = suggestions)
+                SuggestionsCard(
+                    suggestions = suggestions,
+                    onApply = {
+                        if (editableMuscles.isEmpty()) {
+                            editableMuscles.addAll(suggestions.suggestedMuscles.take(5).map {
+                                EditableMuscle(it.muscle, it.role, (it.volumeContribution ?: 1.0).toString())
+                            })
+                        }
+                        averageRestSeconds = suggestions.suggestedRestSeconds.toString()
+                        tier = suggestions.suggestedTier
+                    },
+                    onDismiss = {
+                        editableMuscles.clear()
+                    },
+                )
                 HorizontalDivider()
             }
 
@@ -280,6 +287,33 @@ fun CustomExerciseCreatorScreen(
 
             // ── Muscles ──
             Text("Músculos", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            Text(
+                "Elige desde la lista interna. Las predicciones son sugerencias y no se guardan si no las aceptas.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            OutlinedTextField(
+                value = muscleSearch,
+                onValueChange = { muscleSearch = it },
+                label = { Text("Buscar músculo") },
+                leadingIcon = { Icon(Icons.Default.Search, null) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                filteredMuscles.forEach { muscle ->
+                    FilterChip(
+                        selected = editableMuscles.any { it.muscle == muscle },
+                        onClick = {
+                            if (editableMuscles.none { it.muscle == muscle }) {
+                                editableMuscles.add(EditableMuscle(muscle, MuscleRole.PRIMARY, "1.0"))
+                            }
+                        },
+                        label = { Text(muscle, fontSize = 12.sp) },
+                    )
+                }
+            }
 
             if (editableMuscles.isEmpty() && suggestions != null && suggestions.suggestedMuscles.isNotEmpty()) {
                 OutlinedButton(onClick = {
@@ -306,14 +340,7 @@ fun CustomExerciseCreatorScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            OutlinedTextField(
-                                value = row.muscle,
-                                onValueChange = { editableMuscles[idx] = row.copy(muscle = it) },
-                                label = { Text("Músculo", fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                                modifier = Modifier.weight(1f),
-                                singleLine = true,
-                                textStyle = MaterialTheme.typography.bodySmall,
-                            )
+                            Text(row.muscle, modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
                             IconButton(onClick = { editableMuscles.removeAt(idx) }, modifier = Modifier.size(28.dp)) {
                                 Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
                             }
@@ -352,10 +379,13 @@ fun CustomExerciseCreatorScreen(
                 }
             }
             if (editableMuscles.size < 6) {
-                OutlinedButton(onClick = { editableMuscles.add(EditableMuscle("", MuscleRole.PRIMARY, "1.0")) }, modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = { filteredMuscles.firstOrNull()?.let { editableMuscles.add(EditableMuscle(it, MuscleRole.PRIMARY, "1.0")) } }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
                     Text("  Músculo", fontSize = 12.sp)
                 }
+            }
+            if (editableMuscles.none { it.role == MuscleRole.PRIMARY }) {
+                Text("Advertencia: todavía no hay músculos principales.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
             }
 
             HorizontalDivider()
@@ -406,10 +436,7 @@ fun CustomExerciseCreatorScreen(
                             InvolvedMuscle(muscleName, row.role, row.contribution.toDoubleOrNull() ?: 1.0)
                         }
                         .ifEmpty {
-                            suggestions?.suggestedMuscles ?: listOf(
-                                InvolvedMuscle("Core", MuscleRole.PRIMARY, 1.0),
-                                InvolvedMuscle("Erectores Espinales", MuscleRole.STABILIZER, 0.4),
-                            )
+                            emptyList()
                         }
 
                     val exercise = ExerciseMuscleInfo(
@@ -510,6 +537,8 @@ private fun SectionHeader(
 @Composable
 private fun SuggestionsCard(
     suggestions: InferredSuggestions,
+    onApply: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
     val matchText = suggestions.topMatches.take(3).joinToString(", ") { it.exercise.name }
 
@@ -544,6 +573,14 @@ private fun SuggestionsCard(
                 "EFC ${"%.1f".format(suggestions.efc)} · CNC ${"%.1f".format(suggestions.cnc)} · ${suggestions.suggestedMuscles.size} músc · ${suggestions.suggestedRestSeconds}s",
                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
             )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onApply) {
+                    Text("Aceptar sugerencias")
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("Ignorar")
+                }
+            }
         }
     }
 }

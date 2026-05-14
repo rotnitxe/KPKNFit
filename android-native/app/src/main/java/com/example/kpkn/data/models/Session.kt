@@ -27,6 +27,41 @@ data class Session(
     val meetResults: MeetResults? = null,
     val competitionDetails: CompetitionDetails? = null,
     val trainingBackup: TrainingBackup? = null,
+    val supersetGroups: List<SupersetGroup> = emptyList(),
+    val lastModifiedAtMs: Long = 0L,
+) {
+    fun allSupersetGroups(): List<SupersetGroup> {
+        val local = supersetGroups.ifEmpty { legacySupersetGroups() }
+        if (local.isNotEmpty()) return local
+        return legacySupersetGroups()
+    }
+
+    private fun legacySupersetGroups(): List<SupersetGroup> {
+        val supersetIds = allExercises().mapNotNull { it.supersetId?.takeIf { s -> s.isNotBlank() } }.distinct()
+        if (supersetIds.isEmpty()) return emptyList()
+        return supersetIds.map { id ->
+            val members = allExercises().filter { it.supersetId == id }
+            SupersetGroup(
+                id = id,
+                exerciseOrder = members.map { it.id },
+                restBetweenExercises = members.firstOrNull()?.supersetRestBetween ?: 60,
+                restAfterSuperset = members.firstOrNull()?.supersetRestAfter ?: 120,
+                rounds = null,
+            )
+        }
+    }
+
+    fun allExercises(): List<Exercise> =
+        if (parts.isNotEmpty()) parts.flatMap { it.exercises } else exercises
+}
+
+@Serializable
+data class SupersetGroup(
+    val id: String,
+    val exerciseOrder: List<String>,
+    val restBetweenExercises: Int = 60,
+    val restAfterSuperset: Int = 120,
+    val rounds: Int? = null,
 )
 
 @Serializable
@@ -147,11 +182,13 @@ data class Exercise(
     val supersetId: String? = null,
     val supersetRestBetween: Int? = null,
     val supersetRestAfter: Int? = null,
+    val supersetGroupRef: String? = null,
     val variantName: String? = null,
     val prFor1RM: PrReference? = null,
     val consolidatedWeight: ConsolidatedWeight? = null,
     val brandEquivalencies: List<BrandEquivalency> = emptyList(),
     val isUnilateral: Boolean = false,
+    val unilateralMode: UnilateralMode = UnilateralMode.BILATERAL,
     val isCalibratorAmrap: Boolean = false,
     val goal1RM: Double? = null,
     val calculated1RM: Double? = null,
@@ -161,11 +198,45 @@ data class Exercise(
     val executionCues: List<String> = emptyList(),
     val contextProfilesV3: List<WorkoutContextProfile> = emptyList(),
     val defaultContextProfileIdV3: String? = null,
+    val mobilitySeries: List<MobilitySeries> = emptyList(),
+    val timeStrategy: TimeStrategy? = null,
 )
 
-enum class TrainingMode { REPS, TIME, RM, CUSTOM, DISTANCE, SOLO_RPE }
+@Serializable
+data class MobilitySeries(
+    val id: String,
+    val exerciseDbId: String? = null,
+    val name: String,
+    val sets: Int = 1,
+    val reps: String? = null,
+    val durationSeconds: Int? = null,
+    val notes: String? = null,
+    val associatedDiscomforts: List<String> = emptyList(),
+    val bodyZones: List<String> = emptyList(),
+    val movementPatterns: List<String> = emptyList(),
+)
+
+enum class TrainingMode { REPS, TIME, RM, CUSTOM, DISTANCE, SOLO_RPE, AMRAP }
+enum class TimeStrategy { COUNTDOWN, CHRONOMETER, FREE }
 enum class DamageProfile { STRETCH, SQUEEZE, NORMAL }
 enum class ExerciseRelationshipType { VARIATION, ASSISTANCE, OVERLOAD, TECHNIQUE }
+enum class UnilateralMode { BILATERAL, UNILATERAL_PAIRED, UNILATERAL_DIFFERENTIAL }
+enum class TechniqueType { DROP_SET, REST_PAUSE, PARTIALS, ISO_HOLD, NEGATIVES, CLUSTER_SET }
+
+@Serializable
+data class PlannedTechnique(
+    val type: TechniqueType,
+    val params: Map<String, String> = emptyMap(),
+)
+
+@Serializable
+data class UnilateralTarget(
+    val weight: Double? = null,
+    val targetReps: Int? = null,
+    val targetRPE: Double? = null,
+    val targetRIR: Int? = null,
+    val intensityMode: IntensityMode? = null,
+)
 
 @Serializable
 data class ExerciseSet(
@@ -210,6 +281,10 @@ data class ExerciseSet(
     val defaultTagIdV3: String? = null,
     val defaultSetupProfileIdV3: String? = null,
     val timeProgressionStrategyV3: TimeProgressionStrategyV3 = TimeProgressionStrategyV3.LOAD_THEN_TIME,
+    val leftTarget: UnilateralTarget? = null,
+    val rightTarget: UnilateralTarget? = null,
+    val restBetweenSides: Int? = null,
+    val plannedIntensityTechniques: List<PlannedTechnique> = emptyList(),
 )
 
 enum class IntensityMode { RPE, RIR, FAILURE, AMRAP, LOAD, SOLO_RM }
@@ -276,3 +351,17 @@ enum class LabelPosition { BOTTOM_LEFT, CENTER, BOTTOM_CENTER }
 
 @Serializable
 enum class AttemptResult { GOOD, NO_LIFT, PENDING }
+
+fun Exercise.isInSuperset(): Boolean =
+    supersetGroupRef?.isNotBlank() == true || supersetId?.isNotBlank() == true
+
+fun Exercise.isEffectivelyUnilateral(): Boolean =
+    unilateralMode != UnilateralMode.BILATERAL || isUnilateral
+
+fun Session.effectiveSupersetGroupFor(exercise: Exercise): SupersetGroup? {
+    val ref = exercise.supersetGroupRef ?: exercise.supersetId ?: return null
+    return allSupersetGroups().firstOrNull { it.id == ref }
+}
+
+fun Exercise.supersetGroupRefOrLegacyId(): String? =
+    supersetGroupRef?.takeIf { it.isNotBlank() } ?: supersetId?.takeIf { it.isNotBlank() }

@@ -38,6 +38,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -55,6 +57,12 @@ data class ProgramDetailUiState(
     val analyticsSubTab: AnalyticsSubTab = AnalyticsSubTab.VOLUMEN,
     val selectedBlockId: String? = null,
     val selectedWeekId: String? = null,
+)
+
+data class WeekCopyConflict(
+    val weekId: String,
+    val weekName: String,
+    val dayLabels: List<String>,
 )
 
 class ProgramDetailViewModel(private val programId: String) : ViewModel() {
@@ -610,30 +618,13 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
     }
 
     fun addSession(macroIndex: Int, mesoIndex: Int, weekId: String, session: Session) {
-        val current = program.value ?: return
-        val updated = current.copy(
-            macrocycles = current.macrocycles.mapIndexed { mi, macro ->
-                if (mi != macroIndex) macro
-                else macro.copy(
-                    blocks = macro.blocks.map { block ->
-                        block.copy(
-                            mesocycles = block.mesocycles.mapIndexed { mesoI, meso ->
-                                if (mesoI != mesoIndex) meso
-                                else meso.copy(
-                                    weeks = meso.weeks.map { week ->
-                                        if (week.id != weekId) week
-                                        else week.copy(
-                                            sessions = normalizeMainSessions(week.sessions + session)
-                                        )
-                                    }
-                                )
-                            }
-                        )
-                    }
-                )
-            }
+        repository.upsertSessionInProgram(
+            programId = programId,
+            weekId = weekId,
+            macroIndex = macroIndex,
+            mesoIndex = mesoIndex,
+            session = session,
         )
-        repository.updateProgram(updated)
     }
 
     fun reorderSessions(weekId: String, fromIndex: Int, toIndex: Int) {
@@ -687,11 +678,147 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         repository.updateProgram(updated)
     }
 
+    fun previewWeekCopyConflicts(sourceWeekId: String, targetWeekIds: Set<String>): List<WeekCopyConflict> {
+        val current = program.value ?: return emptyList()
+        return SplitApplicationEngine.buildWeekOptions(current)
+            .filter { it.id in targetWeekIds && it.id != sourceWeekId && it.sessions.isNotEmpty() }
+            .map { week ->
+                WeekCopyConflict(
+                    weekId = week.id,
+                    weekName = week.name,
+                    dayLabels = week.sessions
+                        .mapNotNull { it.dayOfWeek }
+                        .distinct()
+                        .sorted()
+                        .map(::dayLabelShort),
+                )
+            }
+    }
+
+    fun copyWeekSessions(
+        sourceWeekId: String,
+        targetWeekIds: Set<String>,
+        replaceWeekIds: Set<String>,
+    ): Boolean {
+        val current = program.value ?: return false
+        val source = findWeek(current, sourceWeekId) ?: return false
+        val targets = targetWeekIds - sourceWeekId
+        if (source.sessions.isEmpty() || targets.isEmpty()) return false
+
+        val updated = current.copy(
+            macrocycles = current.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = macro.blocks.map { block ->
+                        block.copy(
+                            mesocycles = block.mesocycles.map { meso ->
+                                meso.copy(
+                                    weeks = meso.weeks.map { week ->
+                                        if (week.id !in targets) {
+                                            week
+                                        } else if (week.sessions.isNotEmpty() && week.id !in replaceWeekIds) {
+                                            week
+                                        } else {
+                                            week.copy(
+                                                sessions = SplitApplicationEngine.copySessionsWithNewIds(source.sessions),
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        ).normalizedTemporalStructure()
+
+        repository.updateProgram(updated)
+        return true
+    }
+
+    fun createCalendarWeeks(startDateIso: String, weekCount: Int, trainingDays: Set<Int>) {
+        val current = program.value ?: return
+        val startDate = parseIsoDate(startDateIso) ?: return
+        val safeCount = weekCount.coerceIn(1, 52)
+        val safeDays = trainingDays.filter { it in 1..7 }.toSet()
+        if (current.isSimpleTemporalProgram) {
+            appendCalendarWeeksToSimple(current, startDate, safeCount, safeDays)
+        } else {
+            appendCalendarWeeksToSelectedBlock(current, startDate, safeCount, safeDays)
+        }
+    }
+
+    private fun appendCalendarWeeksToSimple(current: Program, startDate: LocalDate, weekCount: Int, trainingDays: Set<Int>) {
+        val macroIndex = current.macrocycles.indexOfFirst { it.blocks.isNotEmpty() }.takeIf { it >= 0 } ?: return
+        val block = current.macrocycles[macroIndex].blocks.firstOrNull() ?: return
+        val mesoIndex = block.mesocycles.indexOfLast { true }.takeIf { it >= 0 } ?: return
+        val offset = ProgramDetailHelpers.getTotalWeeks(current)
+        val newWeeks = buildCalendarWeeks(startDate, weekCount, trainingDays, offset)
+        val updated = current.copy(
+            timelineStartDate = current.timelineStartDate ?: startDate.toString(),
+            macrocycles = current.macrocycles.mapIndexed { currentMacroIndex, macro ->
+                if (currentMacroIndex != macroIndex) macro else macro.copy(
+                    blocks = macro.blocks.mapIndexed { blockIndex, currentBlock ->
+                        if (blockIndex != 0) currentBlock else currentBlock.copy(
+                            mesocycles = currentBlock.mesocycles.mapIndexed { currentMesoIndex, meso ->
+                                if (currentMesoIndex != mesoIndex) meso else meso.copy(weeks = meso.weeks + newWeeks)
+                            }
+                        )
+                    }
+                )
+            }
+        ).normalizedTemporalStructure()
+        repository.updateProgram(updated)
+        _uiState.update { it.copy(selectedBlockId = block.id, selectedWeekId = newWeeks.lastOrNull()?.id) }
+    }
+
+    private fun appendCalendarWeeksToSelectedBlock(current: Program, startDate: LocalDate, weekCount: Int, trainingDays: Set<Int>) {
+        val blocks = ProgramDetailHelpers.buildRoadmapBlocks(current)
+        val target = blocks.find { it.id == _uiState.value.selectedBlockId } ?: blocks.firstOrNull() ?: return
+        val macro = current.macrocycles.getOrNull(target.macroIndex) ?: return
+        val block = macro.blocks.getOrNull(target.blockIndex) ?: return
+        val offset = countWeeksBeforeAppendingToBlock(current, target.macroIndex, target.blockIndex) + block.mesocycles.sumOf { it.weeks.size }
+        val newWeeks = buildCalendarWeeks(startDate, weekCount, trainingDays, offset)
+        val lastMesoIndex = block.mesocycles.lastIndex
+        val updated = current.copy(
+            timelineStartDate = current.timelineStartDate ?: startDate.toString(),
+            macrocycles = current.macrocycles.mapIndexed { macroIndex, currentMacro ->
+                if (macroIndex != target.macroIndex) currentMacro else currentMacro.copy(
+                    blocks = currentMacro.blocks.mapIndexed { blockIndex, currentBlock ->
+                        if (blockIndex != target.blockIndex) currentBlock
+                        else if (lastMesoIndex < 0) currentBlock.copy(mesocycles = listOf(defaultRoadmapMesocycle(newWeeks.first()).copy(weeks = newWeeks)))
+                        else currentBlock.copy(
+                            mesocycles = currentBlock.mesocycles.mapIndexed { mesoIndex, meso ->
+                                if (mesoIndex == lastMesoIndex) meso.copy(weeks = meso.weeks + newWeeks) else meso
+                            }
+                        )
+                    }
+                )
+            }
+        ).normalizedTemporalStructure()
+        repository.updateProgram(updated)
+        _uiState.update { it.copy(selectedBlockId = target.id, selectedWeekId = newWeeks.lastOrNull()?.id, structureSubTab = StructureSubTab.SEMANA) }
+    }
+
+    private fun buildCalendarWeeks(startDate: LocalDate, weekCount: Int, trainingDays: Set<Int>, weekOffset: Int): List<ProgramWeek> {
+        return (0 until weekCount).map { index ->
+            val weekStart = startDate.plusWeeks(index.toLong())
+            val weekEnd = weekStart.plusDays(6)
+            ProgramWeek(
+                id = UUID.randomUUID().toString(),
+                name = "Semana ${weekOffset + index + 1}",
+                startDate = weekStart.toString(),
+                endDate = weekEnd.toString(),
+                trainingDayDates = trainingDays.associateWith { day -> weekStart.plusDays((day - 1).toLong()).toString() },
+            )
+        }
+    }
+
     private fun normalizeMainSessions(sessions: List<Session>): List<Session> {
+        val distinctSessions = sessions.distinctBy { it.id }
         val mainByDay = mutableMapOf<Int, String>()
         val fallbackByDay = mutableMapOf<Int, String>()
 
-        sessions.forEach { session ->
+        distinctSessions.forEach { session ->
             val day = session.dayOfWeek ?: 1
             fallbackByDay.putIfAbsent(day, session.id)
             if (session.isMainSession && day !in mainByDay) {
@@ -703,10 +830,16 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             mainByDay.putIfAbsent(day, sessionId)
         }
 
-        return sessions.map { session ->
+        return distinctSessions.map { session ->
             val day = session.dayOfWeek ?: 1
             session.copy(isMainSession = mainByDay[day] == session.id)
         }
+    }
+
+    private fun parseIsoDate(raw: String): LocalDate? = try {
+        LocalDate.parse(raw.trim())
+    } catch (_: DateTimeParseException) {
+        null
     }
 
     private fun adjustWeekSessionsByCanonicalMuscle(
@@ -921,4 +1054,15 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             }
         }
     }
+}
+
+private fun dayLabelShort(dayOfWeek: Int): String = when (dayOfWeek) {
+    1 -> "Lun"
+    2 -> "Mar"
+    3 -> "Mié"
+    4 -> "Jue"
+    5 -> "Vie"
+    6 -> "Sáb"
+    7 -> "Dom"
+    else -> "Día"
 }

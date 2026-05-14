@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,6 +39,9 @@ import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -387,6 +391,8 @@ private fun TrainingPanel(
     onCreateSession: (String, String, Int, Int, Int) -> Unit,
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
+    var showCopyWeekDialog by remember { mutableStateOf(false) }
+    var showCalendarWeeksDialog by remember { mutableStateOf(false) }
 
     fun focusWeek(blockId: String, weekId: String) {
         viewModel.selectBlock(blockId)
@@ -404,8 +410,15 @@ private fun TrainingPanel(
         viewModel.selectBlock(located.blockId)
         viewModel.selectWeek(located.weekId)
         viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+        val sessionId = java.util.UUID.randomUUID().toString()
+        viewModel.addSession(
+            macroIndex = located.macroIndex,
+            mesoIndex = located.mesoIndex,
+            weekId = located.weekId,
+            session = createBlankRoadmapSession(sessionId, suggestedDay),
+        )
         onCreateSession(
-            java.util.UUID.randomUUID().toString(),
+            sessionId,
             located.weekId,
             located.macroIndex,
             located.mesoIndex,
@@ -446,6 +459,29 @@ private fun TrainingPanel(
 
         Spacer(Modifier.height(8.dp))
 
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FilledTonalButton(
+                onClick = { showCopyWeekDialog = true },
+                enabled = currentWeeks.size > 1,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text("Copiar semana", maxLines = 1)
+            }
+            OutlinedButton(
+                onClick = { showCalendarWeeksDialog = true },
+                modifier = Modifier.weight(1f),
+            ) {
+                Text("Desde calendario", maxLines = 1)
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
         when (structureSubTab) {
             StructureSubTab.SEMANA -> {
                 DayView(
@@ -459,8 +495,15 @@ private fun TrainingPanel(
                         val weekMeta = currentWeeks.find { it.id == selectedWeekId }
                         val weekId = selectedWeekId
                         if (block != null && weekMeta != null && weekId != null) {
+                            val sessionId = java.util.UUID.randomUUID().toString()
+                            viewModel.addSession(
+                                macroIndex = block.macroIndex,
+                                mesoIndex = weekMeta.mesoIndex,
+                                weekId = weekId,
+                                session = createBlankRoadmapSession(sessionId, dayId),
+                            )
                             onCreateSession(
-                                java.util.UUID.randomUUID().toString(),
+                                sessionId,
                                 weekId,
                                 block.macroIndex,
                                 weekMeta.mesoIndex,
@@ -516,6 +559,242 @@ private fun TrainingPanel(
 
         Spacer(Modifier.height(120.dp))
     }
+
+    if (showCopyWeekDialog) {
+        CopyWeekDialog(
+            weeks = currentWeeks,
+            selectedWeekId = selectedWeekId,
+            selectedBlockId = selectedBlockId,
+            viewModel = viewModel,
+            onDismiss = { showCopyWeekDialog = false },
+        )
+    }
+
+    if (showCalendarWeeksDialog) {
+        CalendarWeeksDialog(
+            onDismiss = { showCalendarWeeksDialog = false },
+            onCreate = { startDate, count, days ->
+                viewModel.createCalendarWeeks(startDate, count, days)
+                showCalendarWeeksDialog = false
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CopyWeekDialog(
+    weeks: List<com.example.kpkn.domain.training.WeekWithMeta>,
+    selectedWeekId: String?,
+    selectedBlockId: String?,
+    viewModel: ProgramDetailViewModel,
+    onDismiss: () -> Unit,
+) {
+    var sourceWeekId by remember(weeks, selectedWeekId) { mutableStateOf(selectedWeekId ?: weeks.firstOrNull()?.id.orEmpty()) }
+    var targetWeekIds by remember(weeks, sourceWeekId) {
+        mutableStateOf(weeks.filter { it.id != sourceWeekId }.take(1).map { it.id }.toSet())
+    }
+    var replaceWeekIds by remember { mutableStateOf(emptySet<String>()) }
+    val conflicts = remember(sourceWeekId, targetWeekIds, weeks) {
+        viewModel.previewWeekCopyConflicts(sourceWeekId, targetWeekIds)
+    }
+    val sourceHasSessions = weeks.firstOrNull { it.id == sourceWeekId }?.sessions?.isNotEmpty() == true
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Copiar sesiones de semana", fontWeight = FontWeight.Black) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Text("Semana origen", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                weeks.forEach { week ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable {
+                                sourceWeekId = week.id
+                                targetWeekIds = targetWeekIds - week.id
+                                replaceWeekIds = emptySet()
+                            }
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = sourceWeekId == week.id, onClick = { sourceWeekId = week.id })
+                        Column {
+                            Text(week.name, fontWeight = FontWeight.SemiBold)
+                            Text("${week.sessions.size} sesiones", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+
+                Text("Destino", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    AssistChip(
+                        onClick = {
+                            targetWeekIds = weeks.filter { it.id != sourceWeekId }.map { it.id }.toSet()
+                            replaceWeekIds = emptySet()
+                        },
+                        label = { Text("Bloque actual") },
+                    )
+                    AssistChip(
+                        onClick = {
+                            targetWeekIds = weeks.filter { it.id != sourceWeekId }.take(1).map { it.id }.toSet()
+                            replaceWeekIds = emptySet()
+                        },
+                        label = { Text("Una semana") },
+                    )
+                }
+                weeks.filter { it.id != sourceWeekId }.forEach { week ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable {
+                                targetWeekIds = if (week.id in targetWeekIds) targetWeekIds - week.id else targetWeekIds + week.id
+                                replaceWeekIds = replaceWeekIds - week.id
+                            }
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(
+                            checked = week.id in targetWeekIds,
+                            onCheckedChange = { checked ->
+                                targetWeekIds = if (checked) targetWeekIds + week.id else targetWeekIds - week.id
+                                replaceWeekIds = replaceWeekIds - week.id
+                            },
+                        )
+                        Column {
+                            Text(week.name, fontWeight = FontWeight.SemiBold)
+                            Text(week.dateRangeLabel ?: "${week.sessions.size} sesiones", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+
+                if (conflicts.isNotEmpty()) {
+                    HorizontalDivider()
+                    Text("Conflictos por semana", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.error)
+                    conflicts.forEach { conflict ->
+                        Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.42f)) {
+                            Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(conflict.weekName, fontWeight = FontWeight.Bold)
+                                Text("Ya tiene sesiones en: ${conflict.dayLabels.joinToString(", ").ifBlank { "días asignados" }}")
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Checkbox(
+                                        checked = conflict.weekId in replaceWeekIds,
+                                        onCheckedChange = { checked ->
+                                            replaceWeekIds = if (checked) replaceWeekIds + conflict.weekId else replaceWeekIds - conflict.weekId
+                                        },
+                                    )
+                                    Text("Reemplazar en esta semana")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!sourceHasSessions) {
+                    Text("La semana origen no tiene sesiones para copiar.", color = MaterialTheme.colorScheme.error)
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                enabled = sourceHasSessions && targetWeekIds.isNotEmpty(),
+                onClick = {
+                    viewModel.copyWeekSessions(sourceWeekId, targetWeekIds, replaceWeekIds)
+                    onDismiss()
+                },
+            ) { Text("Copiar") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CalendarWeeksDialog(
+    onDismiss: () -> Unit,
+    onCreate: (String, Int, Set<Int>) -> Unit,
+) {
+    var startDate by rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
+    var weekCountText by rememberSaveable { mutableStateOf("8") }
+    var selectedDays by rememberSaveable { mutableStateOf(setOf(1, 3, 5)) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    val count = weekCountText.toIntOrNull()?.coerceIn(1, 52) ?: 0
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Crear semanas desde calendario", fontWeight = FontWeight.Black) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text("Inicio: $startDate")
+                }
+                OutlinedTextField(
+                    value = weekCountText,
+                    onValueChange = { input -> weekCountText = input.filter(Char::isDigit).take(2) },
+                    label = { Text("Cantidad de semanas") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text("Días de entrenamiento", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    (1..7).forEach { day ->
+                        FilterChip(
+                            selected = day in selectedDays,
+                            onClick = {
+                                selectedDays = if (day in selectedDays) selectedDays - day else selectedDays + day
+                            },
+                            label = { Text(dayLabelShort(day)) },
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(enabled = count > 0, onClick = { onCreate(startDate, count, selectedDays) }) {
+                Text("Crear")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        },
+    )
+
+    if (showDatePicker) {
+        val initialMillis = remember(startDate) {
+            runCatching {
+                LocalDate.parse(startDate)
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli()
+            }.getOrDefault(System.currentTimeMillis())
+        }
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            startDate = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                                .toString()
+                        }
+                        showDatePicker = false
+                    },
+                ) { Text("Usar fecha") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
+            },
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 }
 
 private data class WeekSessionLocation(
@@ -525,6 +804,26 @@ private data class WeekSessionLocation(
     val mesoIndex: Int,
     val sessions: List<Session>,
 )
+
+private fun createBlankRoadmapSession(sessionId: String, dayOfWeek: Int): Session =
+    Session(
+        id = sessionId,
+        name = "Sesión ${dayLabelShort(dayOfWeek)}",
+        lastModifiedAtMs = System.currentTimeMillis(),
+        dayOfWeek = dayOfWeek,
+        isMainSession = true,
+    )
+
+private fun dayLabelShort(dayOfWeek: Int): String = when (dayOfWeek) {
+    1 -> "Lun"
+    2 -> "Mar"
+    3 -> "Mié"
+    4 -> "Jue"
+    5 -> "Vie"
+    6 -> "Sáb"
+    7 -> "Dom"
+    else -> "Día"
+}
 
 private fun locateWeekForSessionCreation(program: Program, weekId: String): WeekSessionLocation? {
     program.macrocycles.forEachIndexed { macroIndex, macro ->

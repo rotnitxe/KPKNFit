@@ -49,6 +49,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 import java.util.UUID
 import kotlin.math.abs
@@ -3591,6 +3593,23 @@ class WorkoutViewModel(
     }
     fun hideFinish() { _uiState.update { it.copy(showFinishSheet = false) } }
 
+    private fun scheduledDateForSession(weekId: String?, session: Session): String? {
+        if (weekId.isNullOrBlank()) return null
+        val program = repository.getProgramById(programId) ?: return null
+        val week = program.macrocycles
+            .asSequence()
+            .flatMap { macro -> macro.blocks.asSequence() }
+            .flatMap { block -> block.mesocycles.asSequence() }
+            .flatMap { meso -> meso.weeks.asSequence() }
+            .firstOrNull { it.id == weekId }
+            ?: return null
+        val day = session.dayOfWeek?.coerceIn(1, 7)
+        val explicit = day?.let { week.trainingDayDates[it] }
+        if (!explicit.isNullOrBlank()) return explicit
+        val start = runCatching { LocalDate.parse(week.startDate) }.getOrNull() ?: return null
+        return day?.let { start.plusDays((it - 1).toLong()).toString() } ?: week.startDate
+    }
+
     fun finishWorkout(
         notes: String,
         fatigueLevel: Int,
@@ -3707,6 +3726,10 @@ class WorkoutViewModel(
                 settings = repository.settings.value,
                 postExerciseFeedback = state.postExerciseFeedbackByExerciseId,
             )
+            val actualDate = LocalDate.now().toString()
+            val scheduledDate = scheduledDateForSession(state.weekId, session)
+            val scheduleDeltaDays = scheduledDate
+                ?.let { runCatching { ChronoUnit.DAYS.between(LocalDate.parse(it), LocalDate.parse(actualDate)).toInt() }.getOrNull() }
 
             val log = WorkoutLog(
                 id = logId,
@@ -3714,6 +3737,9 @@ class WorkoutViewModel(
                 sessionId = sessionId,
                 sessionName = session.name,
                 date = java.time.Instant.now().toString(),
+                scheduledDate = scheduledDate,
+                actualDate = actualDate,
+                scheduleDeltaDays = scheduleDeltaDays,
                 durationMinutes = durationMinutes,
                 completedExercises = completedExercises,
                 fatigueLevel = fatigueLevel,

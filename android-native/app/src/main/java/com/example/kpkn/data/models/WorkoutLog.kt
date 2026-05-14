@@ -30,6 +30,9 @@ data class WorkoutLog(
     val replacementDecisionsV2: List<ExerciseReplacementDecisionV2> = emptyList(),
     val postExerciseReports: List<ExerciseDiscomfortReport> = emptyList(),
     val omittedExercises: List<OmittedExercise> = emptyList(),
+    val scheduledDate: String? = null,
+    val actualDate: String? = null,
+    val scheduleDeltaDays: Int? = null,
 )
 
 @Serializable

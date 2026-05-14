@@ -445,6 +445,7 @@ object SplitApplicationEngine {
     private fun Session.deepCopyWithNewIds(): Session {
         return copy(
             id = UUID.randomUUID().toString(),
+            lastModifiedAtMs = System.currentTimeMillis(),
             parts = parts.map { part ->
                 part.copy(
                     id = UUID.randomUUID().toString(),

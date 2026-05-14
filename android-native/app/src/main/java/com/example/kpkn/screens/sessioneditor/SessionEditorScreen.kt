@@ -116,6 +116,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SuggestionChip
@@ -126,6 +127,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -165,6 +167,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -179,6 +182,9 @@ import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
 import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
@@ -310,6 +316,23 @@ fun SessionEditorScreen(
     var pendingAutoExpandExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
     var showCompetitionModeConfirm by rememberSaveable { mutableStateOf(false) }
     var competitionToggleTarget by rememberSaveable { mutableStateOf(false) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE,
+                Lifecycle.Event.ON_STOP -> viewModel.saveDraftForExit()
+                Lifecycle.Event.ON_RESUME -> viewModel.retryLoadSession()
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            viewModel.saveDraftForExit()
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     // Auto-scroll al ejercicio recién añadido para que el usuario vea la tarjeta expandida
     LaunchedEffect(pendingAutoExpandExerciseId) {
@@ -379,7 +402,33 @@ fun SessionEditorScreen(
 
     if (session == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            LinearProgressIndicator(modifier = Modifier.width(180.dp))
+            val loadErrorMessage = uiState.loadErrorMessage
+            if (loadErrorMessage != null) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text(
+                        loadErrorMessage,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        "Puedes reintentar la carga o volver al programa.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = onBack) { Text("Volver") }
+                        Button(onClick = viewModel::retryLoadSession) { Text("Reintentar") }
+                    }
+                }
+            } else {
+                LinearProgressIndicator(modifier = Modifier.width(180.dp))
+            }
         }
         return
     }
@@ -392,7 +441,8 @@ fun SessionEditorScreen(
     }
 
     BackHandler(enabled = !showDiscardDialog && uiState.sheet == SessionEditorSheet.NONE) {
-        if (uiState.hasUnsavedChanges) showDiscardDialog = true else onBack()
+        viewModel.saveDraftForExit()
+        onBack()
     }
 
     Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
@@ -620,6 +670,7 @@ fun SessionEditorScreen(
                                     onUpdateSet = { setId, updater -> viewModel.updateSet(null, exercise.id, setId, updater) },
                                     onRemoveSet = { setId -> viewModel.removeSet(null, exercise.id, setId) },
                                     onMoveSet = { setId, dir -> viewModel.moveSet(null, exercise.id, setId, dir) },
+                                    onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(null, exercise.id, mobilityId) },
                                     onOpenQuickActions = { viewModel.openExerciseQuickActions(null, exercise.id) },
                                     relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
                                     onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, exercise.id) },
@@ -851,6 +902,7 @@ fun SessionEditorScreen(
                                             onUpdateSet = { setId, updater -> viewModel.updateSet(part.id, exercise.id, setId, updater) },
                                             onRemoveSet = { setId -> viewModel.removeSet(part.id, exercise.id, setId) },
                                             onMoveSet = { setId, dir -> viewModel.moveSet(part.id, exercise.id, setId, dir) },
+                                            onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(part.id, exercise.id, mobilityId) },
                                             onOpenQuickActions = { viewModel.openExerciseQuickActions(part.id, exercise.id) },
                                             relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
                                             onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, exercise.id) },
@@ -1040,6 +1092,8 @@ fun SessionEditorScreen(
         },
         onQuickActionOpenPicker = viewModel::triggerQuickActionOpenPicker,
         onQuickActionOpenWarmup = viewModel::triggerQuickActionOpenWarmup,
+        onQuickActionOpenMobility = viewModel::triggerQuickActionOpenMobility,
+        onAddMobilityExercise = viewModel::addMobilityToQuickActionExercise,
         onQuickActionDelete = viewModel::triggerQuickActionDelete,
         onQuickActionLinkSuperset = viewModel::triggerQuickActionLinkSuperset,
         onQuickActionUnlinkSuperset = viewModel::triggerQuickActionUnlinkSuperset,
@@ -2179,6 +2233,7 @@ private fun ExerciseEditorCard(
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onRemoveSet: (String) -> Unit,
     onMoveSet: (String, Int) -> Unit,
+    onRemoveMobility: (String) -> Unit,
     onOpenQuickActions: () -> Unit,
     relationshipAnchorName: String?,
     onOpenRelationshipPicker: () -> Unit,
@@ -2369,6 +2424,45 @@ private fun ExerciseEditorCard(
                     val infoText = listOfNotNull(exerciseInfo.category, exerciseInfo.type, exerciseInfo.equipment).joinToString(" · ")
                     if (infoText.isNotBlank()) {
                         Text(infoText, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+
+                if (exercise.mobilitySeries.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Movilidad asociada", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        exercise.mobilitySeries.forEach { mobility ->
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f),
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(mobility.name, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                                        Text(
+                                            listOfNotNull(
+                                                "${mobility.sets} serie${if (mobility.sets == 1) "" else "s"}",
+                                                mobility.reps?.let { "$it reps" },
+                                                mobility.durationSeconds?.let { "${it}s" },
+                                                mobility.notes,
+                                            ).joinToString(" · "),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
+                                    IconButton(onClick = { onRemoveMobility(mobility.id) }, modifier = Modifier.size(32.dp)) {
+                                        Icon(Icons.Default.Close, contentDescription = "Quitar movilidad", modifier = Modifier.size(16.dp))
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -3446,6 +3540,8 @@ private fun SessionEditorSheets(
     onApplyGlobalIntensityAdjustment: (IntensityMode, Double, Set<String>?) -> Unit,
     onQuickActionOpenPicker: () -> Unit,
     onQuickActionOpenWarmup: () -> Unit,
+    onQuickActionOpenMobility: () -> Unit,
+    onAddMobilityExercise: (MobilityExercise) -> Unit,
     onQuickActionDelete: () -> Unit,
     onQuickActionLinkSuperset: () -> Unit,
     onQuickActionUnlinkSuperset: () -> Unit,
@@ -3481,9 +3577,34 @@ private fun SessionEditorSheets(
     }
 
      if (uiState.sheet == SessionEditorSheet.EXERCISE_PICKER) {
-         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+         var pendingPickerSelection by remember { mutableStateOf<List<ExerciseMuscleInfo>>(emptyList()) }
+         var showPickerExitConfirm by remember { mutableStateOf(false) }
+         val requestPickerDismiss = {
+             if (pendingPickerSelection.isNotEmpty()) {
+                 showPickerExitConfirm = true
+             } else {
+                 onDismiss()
+             }
+         }
+         val sheetState = rememberModalBottomSheetState(
+             skipPartiallyExpanded = true,
+             confirmValueChange = { target ->
+                 when (target) {
+                     SheetValue.Hidden -> {
+                         if (pendingPickerSelection.isNotEmpty()) {
+                             showPickerExitConfirm = true
+                             false
+                         } else {
+                             true
+                         }
+                     }
+                     SheetValue.PartiallyExpanded -> false
+                     SheetValue.Expanded -> true
+                 }
+             },
+         )
          ModalBottomSheet(
-              onDismissRequest = onDismiss,
+              onDismissRequest = requestPickerDismiss,
               sheetState = sheetState,
               modifier = Modifier.fillMaxHeight(),
               scrimColor = Color.Black.copy(alpha = 0.32f),
@@ -3519,9 +3640,41 @@ private fun SessionEditorSheets(
                           onOpenExerciseDetail(id)
                       },
                       onOpenExerciseCreator = onOpenExerciseCreator,
-                      onDismiss = onDismiss,
+                      onDismiss = requestPickerDismiss,
+                      onSelectionChange = { pendingPickerSelection = it },
                   )
              }
+         }
+         if (showPickerExitConfirm) {
+             AlertDialog(
+                 onDismissRequest = { showPickerExitConfirm = false },
+                 title = { Text("Ejercicios seleccionados") },
+                 text = { Text("Tienes ejercicios seleccionados. ¿Quieres agregarlos a la sesión antes de salir?") },
+                 confirmButton = {
+                     TextButton(
+                         onClick = {
+                             onMultiSelectExercises(pendingPickerSelection)
+                             pendingPickerSelection = emptyList()
+                             showPickerExitConfirm = false
+                             onDismiss()
+                         },
+                     ) { Text("Agregar") }
+                 },
+                 dismissButton = {
+                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                         TextButton(
+                             onClick = {
+                                 pendingPickerSelection = emptyList()
+                                 showPickerExitConfirm = false
+                                 onDismiss()
+                             },
+                         ) { Text("Descartar") }
+                         TextButton(onClick = { showPickerExitConfirm = false }) {
+                             Text("Cancelar")
+                         }
+                     }
+                 },
+             )
          }
          return
      }
@@ -3572,6 +3725,10 @@ private fun SessionEditorSheets(
                 onApplyAssistantSuggestion = onApplyAssistantSuggestion,
             )
             SessionEditorSheet.WARMUP -> WarmupSheet(exercise = warmupExercise, onSave = onWarmupSave)
+            SessionEditorSheet.MOBILITY_PICKER -> MobilityPickerSheet(
+                onAdd = onAddMobilityExercise,
+                onDismiss = onDismiss,
+            )
             SessionEditorSheet.SUPERSERIE_MANAGER -> {
                 val supersetExercises = session.allExercises().filter { it.supersetId == uiState.supersetManagerSupersetId }
                 SupersetManagerSheet(
@@ -3610,6 +3767,7 @@ private fun SessionEditorSheets(
                 },
                 onOpenPicker = onQuickActionOpenPicker,
                 onOpenWarmup = onQuickActionOpenWarmup,
+                onOpenMobility = onQuickActionOpenMobility,
                 onDelete = onQuickActionDelete,
                 onLinkSuperset = onQuickActionLinkSuperset,
                 onUnlinkSuperset = onQuickActionUnlinkSuperset,
@@ -3972,6 +4130,7 @@ private fun ExerciseQuickActionsSheet(
     onOpenExerciseDetail: (String) -> Unit,
     onOpenPicker: () -> Unit,
     onOpenWarmup: () -> Unit,
+    onOpenMobility: () -> Unit,
     onDelete: () -> Unit,
     onLinkSuperset: () -> Unit,
     onUnlinkSuperset: () -> Unit,
@@ -4025,6 +4184,11 @@ private fun ExerciseQuickActionsSheet(
             Icon(Icons.Default.Timer, null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(8.dp))
             Text("Series de aproximación")
+        }
+        OutlinedButton(onClick = onOpenMobility, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Agregar series de movilidad")
         }
         if (exercise.supersetId != null) {
             OutlinedButton(onClick = onUnlinkSuperset, modifier = Modifier.fillMaxWidth()) {
@@ -4081,6 +4245,93 @@ private fun ExerciseQuickActionsSheet(
         )
     }
 
+}
+
+@Composable
+private fun MobilityPickerSheet(
+    onAdd: (MobilityExercise) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var query by rememberSaveable { mutableStateOf("") }
+    val allMobility = remember { MobilityExerciseCatalog.getAllMobilityExercises() }
+    val results = remember(query, allMobility) {
+        val normalized = query.trim().lowercase()
+        if (normalized.isBlank()) {
+            allMobility
+        } else {
+            allMobility.filter { exercise ->
+                exercise.name.contains(normalized, ignoreCase = true) ||
+                    exercise.description.contains(normalized, ignoreCase = true) ||
+                    exercise.bodyRegion.contains(normalized, ignoreCase = true) ||
+                    exercise.discomfortIds.any { discomfortLabel(it).contains(normalized, ignoreCase = true) }
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Catálogo de movilidad", fontWeight = FontWeight.Black, fontSize = 18.sp)
+                Text(
+                    "${allMobility.size} ejercicios correctivos separados",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = onDismiss) {
+                Icon(Icons.Default.Close, contentDescription = "Cerrar")
+            }
+        }
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            leadingIcon = { Icon(Icons.Default.Search, null) },
+            placeholder = { Text("Buscar movilidad, zona o molestia") },
+        )
+        LazyColumn(
+            modifier = Modifier.heightIn(max = 520.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(results, key = { it.id }) { mobility ->
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.38f),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(mobility.name, fontWeight = FontWeight.Bold)
+                            Text(
+                                "${mobility.durationSeconds}s · ${mobility.bodyRegion} · ${mobility.discomfortIds.joinToString { discomfortLabel(it) }}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                mobility.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        FilledTonalButton(onClick = { onAdd(mobility) }) {
+                            Text("Agregar")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -4167,6 +4418,7 @@ internal fun ExercisePickerSheet(
     onOpenExerciseDetail: (String) -> Unit,
     onOpenExerciseCreator: () -> Unit,
     onDismiss: () -> Unit,
+    onSelectionChange: (List<ExerciseMuscleInfo>) -> Unit = {},
 ) {
     var selectedRegion by rememberSaveable { mutableStateOf<ExerciseCatalogRegion?>(null) }
     var selectedTrait by rememberSaveable { mutableStateOf<ExerciseCatalogTrait?>(null) }
@@ -4177,16 +4429,19 @@ internal fun ExercisePickerSheet(
 
     val normalizedQuery = query.trim()
     val activeRegion = selectedRegion ?: ExerciseCatalogRegion.ALL
+    val showGroupBrowser = false
 
     fun handleSelect(info: ExerciseMuscleInfo) {
         if (editingExisting) {
             onSelect(info)
         } else {
-            selectedExercises = if (selectedExercises.any { it.id == info.id }) {
+            val nextSelection = if (selectedExercises.any { it.id == info.id }) {
                 selectedExercises.filterNot { it.id == info.id }
             } else {
                 selectedExercises + info
             }
+            selectedExercises = nextSelection
+            onSelectionChange(nextSelection)
         }
     }
     val results = remember(query, catalog, activeRegion, selectedTrait, sortMode) {
@@ -4258,7 +4513,7 @@ internal fun ExercisePickerSheet(
              .fillMaxWidth()
              .fillMaxHeight()
              .padding(horizontal = 14.dp, vertical = 12.dp),
-         verticalArrangement = Arrangement.spacedBy(16.dp),
+         verticalArrangement = Arrangement.spacedBy(10.dp),
      ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -4322,7 +4577,17 @@ internal fun ExercisePickerSheet(
             leadingIcon = { Icon(Icons.Default.Search, null) },
         )
 
-     if (selectedRegion == null && normalizedQuery.isBlank()) {
+         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+             items(ExerciseCatalogRegion.values().toList(), key = { it.name }) { region ->
+                 FilterChip(
+                     selected = activeRegion == region,
+                     onClick = { selectedRegion = if (region == ExerciseCatalogRegion.ALL) null else region },
+                     label = { Text(region.label) },
+                 )
+             }
+         }
+
+     if (showGroupBrowser && selectedRegion == null && normalizedQuery.isBlank()) {
          Text(
              "Grupos",
              style = MaterialTheme.typography.labelLarge,
@@ -4493,6 +4758,7 @@ internal fun ExercisePickerSheet(
                     FilledTonalButton(onClick = {
                         onMultiSelect(selectedExercises)
                         selectedExercises = emptyList()
+                        onSelectionChange(emptyList())
                     }) {
                         Text("Agregar ${selectedExercises.size}")
                     }

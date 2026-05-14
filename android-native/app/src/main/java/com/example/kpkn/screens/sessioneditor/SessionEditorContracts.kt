@@ -11,6 +11,7 @@ enum class SessionEditorSheet {
     SAVE,
     AUGE,
     WARMUP,
+    MOBILITY_PICKER,
     SUPERSERIE_MANAGER,
     RELATIONSHIP_PICKER,
     /** Session template browser/picker. Opened from the Templates FAB. */
