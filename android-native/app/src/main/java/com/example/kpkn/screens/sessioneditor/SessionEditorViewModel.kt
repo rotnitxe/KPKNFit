@@ -1505,8 +1505,58 @@ class SessionEditorViewModel(
         }
     }
 
-    fun removeFromSuperset(partId: String?, exerciseId: String) = updateExercise(partId, exerciseId) {
-        it.copy(supersetId = null, supersetRestBetween = null, supersetRestAfter = null)
+    fun removeFromSuperset(partId: String?, exerciseId: String) = updateSession { session ->
+        val sourceExercises = partId?.let { id ->
+            session.parts.firstOrNull { it.id == id }?.exercises
+        } ?: session.exercises
+        val target = sourceExercises.firstOrNull { it.id == exerciseId } ?: return@updateSession session
+        val groupId = target.supersetGroupRefOrLegacyId()
+
+        val groupMembers = groupId?.let { id ->
+            sourceExercises.filter { it.supersetGroupRefOrLegacyId() == id }
+        }.orEmpty()
+        val idsToClear = if (groupId != null && groupMembers.size <= 2) {
+            groupMembers.map { it.id }.toSet()
+        } else {
+            setOf(exerciseId)
+        }
+
+        val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
+            exercises.map { exercise ->
+                if (exercise.id in idsToClear) {
+                    exercise.copy(
+                        supersetGroupRef = null,
+                        supersetId = null,
+                        supersetRestBetween = null,
+                        supersetRestAfter = null,
+                    )
+                } else {
+                    exercise
+                }
+            }
+        }
+
+        val updatedGroups = groupId?.let { id ->
+            session.supersetGroups.mapNotNull { group ->
+                if (group.id != id) {
+                    group
+                } else {
+                    group.copy(exerciseOrder = group.exerciseOrder.filterNot { it in idsToClear })
+                        .takeIf { it.exerciseOrder.size >= 2 }
+                }
+            }
+        } ?: session.supersetGroups
+
+        if (partId == null) {
+            session.copy(exercises = updater(session.exercises), supersetGroups = updatedGroups)
+        } else {
+            session.copy(
+                parts = session.parts.map { part ->
+                    if (part.id == partId) part.copy(exercises = updater(part.exercises)) else part
+                },
+                supersetGroups = updatedGroups,
+            )
+        }
     }
 
     // ─── New SupersetGroup API ──────────────────────────────────────────────────
@@ -1529,10 +1579,16 @@ class SessionEditorViewModel(
     fun createSupersetGroupFromDraft() = updateSession { session ->
         val draft = _uiState.value.supersetDraft ?: return@updateSession session
         val partId = draft.partId ?: _uiState.value.supersetManagerPartId
+        val targetIds = draft.exerciseIds.distinct()
+        if (targetIds.size < 2) return@updateSession session
+        val sourceExercises = partId?.let { id ->
+            session.parts.firstOrNull { it.id == id }?.exercises
+        } ?: session.exercises
+        if (!targetIds.all { id -> sourceExercises.any { it.id == id } }) return@updateSession session
         val groupId = UUID.randomUUID().toString()
         val group = SupersetGroup(
             id = groupId,
-            exerciseOrder = draft.exerciseIds,
+            exerciseOrder = targetIds,
             restBetweenExercises = draft.restBetweenExercises,
             restAfterSuperset = draft.restAfterSuperset,
             rounds = draft.rounds,
@@ -1540,7 +1596,7 @@ class SessionEditorViewModel(
 
         val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
             exercises.map { ex ->
-                if (ex.id in draft.exerciseIds) ex.copy(
+                if (ex.id in targetIds) ex.copy(
                     supersetGroupRef = groupId,
                     supersetId = groupId,
                     supersetRestBetween = draft.restBetweenExercises,
@@ -1623,13 +1679,14 @@ class SessionEditorViewModel(
     }
 
     fun removeExerciseFromSupersetGroup(groupId: String, partId: String?, exerciseId: String) = updateSession { session ->
-        val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
-            exercises.map { ex ->
-                if (ex.id == exerciseId) ex.copy(supersetGroupRef = null, supersetId = null, supersetRestBetween = null, supersetRestAfter = null) else ex
-            }
-        }
         val group = session.supersetGroups.firstOrNull { it.id == groupId } ?: return@updateSession session
         val remainingIds = group.exerciseOrder - exerciseId
+        val idsToClear = if (remainingIds.size <= 1) group.exerciseOrder.toSet() else setOf(exerciseId)
+        val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
+            exercises.map { ex ->
+                if (ex.id in idsToClear) ex.copy(supersetGroupRef = null, supersetId = null, supersetRestBetween = null, supersetRestAfter = null) else ex
+            }
+        }
         val updatedGroups = if (remainingIds.size <= 1) {
             session.supersetGroups.filterNot { it.id == groupId }
         } else {

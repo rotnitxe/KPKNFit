@@ -2249,6 +2249,8 @@ private fun ExerciseEditorCard(
 ) {
     var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
     var showCustomUnitModal by remember { mutableStateOf(false) }
+    var showSmartLoadSheet by remember { mutableStateOf(false) }
+    var showGoalSheet by remember { mutableStateOf(false) }
 
     val resolved1RM = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM) {
         resolveReferenceCapacity(exercise)
@@ -2544,195 +2546,199 @@ private fun ExerciseEditorCard(
                     }
                 }
 
-                if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
-                    Text(
-                        "Carga inteligente",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
+                        FilledTonalButton(
+                            onClick = { showSmartLoadSheet = true },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
+                        ) {
+                            Icon(Icons.Default.FitnessCenter, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Carga inteligente", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                    FilledTonalButton(
+                        onClick = { showGoalSheet = true },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                    ) {
+                        Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Meta / PR", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                 }
 
-                if (exercise.trainingMode == TrainingMode.REPS || exercise.trainingMode == TrainingMode.RM) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        ToggleToken("RM directo", rmInputMode == "direct") { rmInputMode = "direct" }
-                        ToggleToken("Desde PR", rmInputMode == "pr") { rmInputMode = "pr" }
-                    }
-                    if (rmInputMode == "direct") {
-                        EditorMiniField(
-                            label = "RM referencial",
-                            value = directRmInput,
-                            keyboardType = KeyboardType.Decimal,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            directRmInput = it
-                            val parsed = it.safeDoubleOrNull()?.takeIf { value -> value > 0 }
-                            onUpdateExercise { current -> current.copy(reference1RM = parsed) }
-                        }
-                    } else {
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            EditorMiniField(
-                                label = "PR kg",
-                                value = prWeightInput,
-                                keyboardType = KeyboardType.Decimal,
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                prWeightInput = it
-                                val weight = it.safeDoubleOrNull()
-                                val reps = prRepsInput.safeIntOrNull()
-                                onUpdateExercise { current ->
-                                    if (weight != null && weight > 0 && reps != null && reps > 0) {
-                                        current.copy(
-                                            prFor1RM = PrReference(weight, reps),
-                                            reference1RM = calculateHybrid1RM(weight, reps),
-                                        )
-                                    } else {
-                                        current.copy(prFor1RM = null, reference1RM = null)
-                                    }
-                                }
-                            }
-                            EditorMiniField(
-                                label = "PR reps",
-                                value = prRepsInput,
-                                keyboardType = KeyboardType.Number,
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                prRepsInput = it
-                                val weight = prWeightInput.safeDoubleOrNull()
-                                val reps = it.safeIntOrNull()
-                                onUpdateExercise { current ->
-                                    if (weight != null && weight > 0 && reps != null && reps > 0) {
-                                        current.copy(
-                                            prFor1RM = PrReference(weight, reps),
-                                            reference1RM = calculateHybrid1RM(weight, reps),
-                                        )
-                                    } else {
-                                        current.copy(prFor1RM = null, reference1RM = null)
-                                    }
-                                }
-                            }
-                        }
-                        if (localPrEstimatedRm != null) {
-                            Text(
-                                if (exercise.trainingMode == TrainingMode.RM) {
-                                    "RM calculado: ${formatEditableNumber(localPrEstimatedRm)} kg"
-                                } else {
-                                    "Base calculada: ${formatEditableNumber(localPrEstimatedRm)} kg"
-                                },
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
-                    }
-                    val needsRmReference = exercise.sets.any { it.targetPercentageRM != null } && resolved1RM == null
-                    if (needsRmReference) {
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp),
-                            color = accentColor.copy(alpha = 0.12f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.24f)),
-                        ) {
+                if (showSmartLoadSheet) {
+                    AlertDialog(
+                        onDismissRequest = { showSmartLoadSheet = false },
+                        title = { Text("Carga inteligente", fontWeight = FontWeight.Black) },
+                        text = {
                             Column(
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.verticalScroll(rememberScrollState()),
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
                             ) {
                                 Text(
-                                    "Falta referencia para %RM",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = accentColor,
-                                )
-                                Text(
-                                    "Agrega un RM directo o un PR para que las series con %RM autocompleten la carga exacta.",
+                                    "Configura la referencia que alimenta las sugerencias de carga y %RM.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                if (exercise.trainingMode == TrainingMode.REPS || exercise.trainingMode == TrainingMode.RM) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        ToggleToken("RM directo", rmInputMode == "direct") { rmInputMode = "direct" }
+                                        ToggleToken("Desde PR", rmInputMode == "pr") { rmInputMode = "pr" }
+                                    }
+                                    if (rmInputMode == "direct") {
+                                        EditorMiniField(
+                                            label = "RM referencial",
+                                            value = directRmInput,
+                                            keyboardType = KeyboardType.Decimal,
+                                            modifier = Modifier.fillMaxWidth(),
+                                        ) {
+                                            directRmInput = it
+                                            val parsed = it.safeDoubleOrNull()?.takeIf { value -> value > 0 }
+                                            onUpdateExercise { current -> current.copy(reference1RM = parsed) }
+                                        }
+                                    } else {
+                                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                            EditorMiniField(
+                                                label = "PR kg",
+                                                value = prWeightInput,
+                                                keyboardType = KeyboardType.Decimal,
+                                                modifier = Modifier.weight(1f),
+                                            ) {
+                                                prWeightInput = it
+                                                val weight = it.safeDoubleOrNull()
+                                                val reps = prRepsInput.safeIntOrNull()
+                                                onUpdateExercise { current ->
+                                                    if (weight != null && weight > 0 && reps != null && reps > 0) {
+                                                        current.copy(prFor1RM = PrReference(weight, reps), reference1RM = calculateHybrid1RM(weight, reps))
+                                                    } else {
+                                                        current.copy(prFor1RM = null, reference1RM = null)
+                                                    }
+                                                }
+                                            }
+                                            EditorMiniField(
+                                                label = "PR reps",
+                                                value = prRepsInput,
+                                                keyboardType = KeyboardType.Number,
+                                                modifier = Modifier.weight(1f),
+                                            ) {
+                                                prRepsInput = it
+                                                val weight = prWeightInput.safeDoubleOrNull()
+                                                val reps = it.safeIntOrNull()
+                                                onUpdateExercise { current ->
+                                                    if (weight != null && weight > 0 && reps != null && reps > 0) {
+                                                        current.copy(prFor1RM = PrReference(weight, reps), reference1RM = calculateHybrid1RM(weight, reps))
+                                                    } else {
+                                                        current.copy(prFor1RM = null, reference1RM = null)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        localPrEstimatedRm?.let { estimate ->
+                                            Text(
+                                                "RM calculado: ${formatEditableNumber(estimate)} kg",
+                                                style = MaterialTheme.typography.labelLarge,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.Bold,
+                                            )
+                                        }
+                                    }
+                                } else if (exercise.trainingMode == TrainingMode.TIME || exercise.trainingMode == TrainingMode.DISTANCE || exercise.trainingMode == TrainingMode.CUSTOM) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        EditorMiniField(
+                                            label = "Carga base",
+                                            value = prWeightInput,
+                                            keyboardType = KeyboardType.Decimal,
+                                            modifier = Modifier.weight(1f),
+                                        ) {
+                                            prWeightInput = it
+                                            val weight = it.safeDoubleOrNull()
+                                            val metric = prRepsInput.safeIntOrNull()
+                                            if (weight != null && weight > 0 && metric != null && metric > 0) {
+                                                onUpdateExercise { current ->
+                                                    current.copy(prFor1RM = PrReference(weight, metric), reference1RM = calculateGeneralizedCapacity(weight, metric.toDouble()))
+                                                }
+                                            }
+                                        }
+                                        EditorMiniField(
+                                            label = smartReferenceMetricLabel(exercise.trainingMode, customUnitInput),
+                                            value = prRepsInput,
+                                            keyboardType = KeyboardType.Number,
+                                            modifier = Modifier.weight(1f),
+                                        ) {
+                                            prRepsInput = it
+                                            val weight = prWeightInput.safeDoubleOrNull()
+                                            val metric = it.safeIntOrNull()
+                                            if (weight != null && weight > 0 && metric != null && metric > 0) {
+                                                onUpdateExercise { current ->
+                                                    current.copy(prFor1RM = PrReference(weight, metric), reference1RM = calculateGeneralizedCapacity(weight, metric.toDouble()))
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                val needsRmReference = exercise.sets.any { it.targetPercentageRM != null } && resolved1RM == null
+                                if (needsRmReference) {
+                                    Text(
+                                        "Falta referencia para %RM. Agrega RM directo o PR para autocompletar cargas.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { showSmartLoadSheet = false }) { Text("Listo") }
+                        },
+                    )
+                }
+
+                if (showGoalSheet) {
+                    AlertDialog(
+                        onDismissRequest = { showGoalSheet = false },
+                        title = { Text("Meta / PR", fontWeight = FontWeight.Black) },
+                        text = {
+                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text("Marcar como objetivo", fontWeight = FontWeight.SemiBold)
+                                        Text("Activa seguimiento destacado para este ejercicio.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    Switch(
+                                        checked = exercise.isStarTarget,
+                                        onCheckedChange = { checked -> onUpdateExercise { it.copy(isStarTarget = checked) } },
+                                    )
+                                }
+                                EditorMiniField(
+                                    label = "Meta 1RM kg (opcional)",
+                                    value = goalRmInput,
+                                    keyboardType = KeyboardType.Decimal,
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) { input ->
+                                    goalRmInput = input
+                                    onUpdateExercise { ex -> ex.copy(goal1RM = input.safeDoubleOrNull()) }
+                                }
                                 Text(
-                                    "Se usará esa misma referencia para las sugerencias de carga dentro de la sesión.",
+                                    buildString {
+                                        val prText = exercise.prFor1RM?.let { "PR: ${formatEditableNumber(it.weight)} kg × ${it.reps}" }
+                                        val goalText = exercise.goal1RM?.let { "Meta: ${formatEditableNumber(it)} kg" }
+                                        append(listOfNotNull(prText, goalText).ifEmpty { listOf("Sin PR/meta configurada") }.joinToString(" · "))
+                                    },
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                        }
-                    }
-                } else if (exercise.trainingMode == TrainingMode.TIME || exercise.trainingMode == TrainingMode.DISTANCE || exercise.trainingMode == TrainingMode.CUSTOM) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        EditorMiniField(
-                            label = "Carga base",
-                            value = prWeightInput,
-                            keyboardType = KeyboardType.Decimal,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            prWeightInput = it
-                            val weight = it.safeDoubleOrNull()
-                            val metric = prRepsInput.safeIntOrNull()
-                            if (weight != null && weight > 0 && metric != null && metric > 0) {
-                                onUpdateExercise { current ->
-                                    current.copy(
-                                        prFor1RM = PrReference(weight, metric),
-                                        reference1RM = calculateGeneralizedCapacity(weight, metric.toDouble()),
-                                    )
-                                }
-                            }
-                        }
-                        EditorMiniField(
-                            label = smartReferenceMetricLabel(exercise.trainingMode, customUnitInput),
-                            value = prRepsInput,
-                            keyboardType = KeyboardType.Number,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            prRepsInput = it
-                            val weight = prWeightInput.safeDoubleOrNull()
-                            val metric = it.safeIntOrNull()
-                            if (weight != null && weight > 0 && metric != null && metric > 0) {
-                                onUpdateExercise { current ->
-                                    current.copy(
-                                        prFor1RM = PrReference(weight, metric),
-                                        reference1RM = calculateGeneralizedCapacity(weight, metric.toDouble()),
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    if (localPrEstimatedRm != null) {
-                        Text(
-                            "Base calculada: ${formatEditableNumber(localPrEstimatedRm)} kg-equivalentes",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-                }
-
-                // Goal tracking details - only visible when star is active
-                AnimatedVisibility(exercise.isStarTarget) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        EditorMiniField(
-                            label = "Meta 1RM kg (opcional)",
-                            value = goalRmInput,
-                            keyboardType = KeyboardType.Decimal,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { input ->
-                            goalRmInput = input
-                            onUpdateExercise { ex -> ex.copy(goal1RM = input.safeDoubleOrNull()) }
-                        }
-                        // Show PR and goal info
-                        if (exercise.prFor1RM != null || exercise.goal1RM != null) {
-                            Text(
-                                buildString {
-                                    val prText = exercise.prFor1RM?.let { "PR: ${formatEditableNumber(it.weight)} kg × ${it.reps}" }
-                                    val goalText = exercise.goal1RM?.let { "Meta: ${formatEditableNumber(it)} kg" }
-                                    append(listOfNotNull(prText, goalText).joinToString(" · "))
-                                },
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { showGoalSheet = false }) { Text("Listo") }
+                        },
+                    )
                 }
 
                 Column(
@@ -3562,12 +3568,18 @@ private fun SessionEditorSheets(
                       catalog = EXERCISE_DATABASE,
                       workoutLogs = uiState.workoutLogs,
                       editingExisting = uiState.pickerTargetExerciseId != null,
-                      onSearch = onExerciseSearch,
-                      onSelect = onSelectExercise,
-                      onMultiSelect = onMultiSelectExercises,
-                      onOpenExerciseDetail = { id ->
-                          onDismiss()
-                          onOpenExerciseDetail(id)
+                       onSearch = onExerciseSearch,
+                       onSelect = onSelectExercise,
+                       onMultiSelect = onMultiSelectExercises,
+                       onCreateSuperset = { infos ->
+                           val exerciseIds = onMultiSelectExercises(infos)
+                           if (exerciseIds.size >= 2) {
+                               onOpenSupersetCreator(uiState.pickerTargetPartId, exerciseIds)
+                           }
+                       },
+                       onOpenExerciseDetail = { id ->
+                           onDismiss()
+                           onOpenExerciseDetail(id)
                       },
                       onOpenExerciseCreator = onOpenExerciseCreator,
                       onDismiss = requestPickerDismiss,
@@ -3701,9 +3713,12 @@ private fun SessionEditorSheets(
             }
             SessionEditorSheet.SUPERSET_CREATOR -> {
                 val draft = uiState.supersetDraft ?: return@ModalBottomSheet
+                val scopedExercises = draft.partId?.let { partId ->
+                    session.parts.firstOrNull { it.id == partId }?.exercises
+                } ?: session.exercises
                 SupersetCreatorSheet(
                     draft = draft,
-                    sessionExercises = session.allExercises(),
+                    sessionExercises = scopedExercises,
                     onUpdateDraft = onSupersetDraftUpdate,
                     onConfirm = {
                         onCreateSupersetGroup()
@@ -4219,6 +4234,33 @@ private fun SupersetCreatorSheet(
     val selectedExercises = remember(draft.exerciseIds, sessionExercises) {
         draft.exerciseIds.mapNotNull { id -> sessionExercises.find { it.id == id } }
     }
+    val availableExercises = remember(sessionExercises, draft.exerciseIds) {
+        sessionExercises.filter { exercise ->
+            exercise.id in draft.exerciseIds || !exercise.isInSuperset()
+        }
+    }
+
+    fun toggleExercise(exerciseId: String) {
+        val nextIds = if (exerciseId in draft.exerciseIds) {
+            draft.exerciseIds.filterNot { it == exerciseId }
+        } else {
+            draft.exerciseIds + exerciseId
+        }
+        onUpdateDraft(draft.copy(exerciseIds = nextIds.distinct()))
+    }
+
+    fun moveSelectedExercise(exerciseId: String, delta: Int) {
+        val currentIndex = draft.exerciseIds.indexOf(exerciseId)
+        if (currentIndex < 0) return
+        val targetIndex = (currentIndex + delta).coerceIn(0, draft.exerciseIds.lastIndex)
+        if (targetIndex == currentIndex) return
+        val nextIds = draft.exerciseIds.toMutableList().also { ids ->
+            val moved = ids.removeAt(currentIndex)
+            ids.add(targetIndex, moved)
+        }
+        onUpdateDraft(draft.copy(exerciseIds = nextIds))
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -4227,25 +4269,79 @@ private fun SupersetCreatorSheet(
     ) {
         Text("Crear superserie", fontWeight = FontWeight.Black, fontSize = 18.sp)
         Text(
-            "Selecciona el orden y configura los descansos.",
+            "Elige 2 o más ejercicios del mismo grupo, ordena la secuencia y configura descansos.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        // Exercise order
-        Text("Orden de ejercicios", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            selectedExercises.forEachIndexed { index, exercise ->
+        Text("Seleccionar ejercicios", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+        LazyColumn(
+            modifier = Modifier.heightIn(max = 260.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            items(availableExercises, key = { it.id }) { exercise ->
+                val selected = exercise.id in draft.exerciseIds
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                    modifier = Modifier.fillMaxWidth().clickable { toggleExercise(exercise.id) },
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Text("${index + 1}", fontWeight = FontWeight.Black, modifier = Modifier.width(24.dp))
-                        Text(exercise.name, modifier = Modifier.weight(1f))
+                        Checkbox(
+                            checked = selected,
+                            onCheckedChange = { toggleExercise(exercise.id) },
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(exercise.name, fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold)
+                            if (exercise.id in draft.exerciseIds) {
+                                Text(
+                                    "Orden ${draft.exerciseIds.indexOf(exercise.id) + 1}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Text("Orden de la superserie", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+        if (selectedExercises.isEmpty()) {
+            Text(
+                "Selecciona ejercicios arriba para armar la superserie.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                selectedExercises.forEachIndexed { index, exercise ->
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text("${index + 1}", fontWeight = FontWeight.Black, modifier = Modifier.width(24.dp))
+                            Text(exercise.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            IconButton(onClick = { moveSelectedExercise(exercise.id, -1) }, enabled = index > 0) {
+                                Icon(Icons.Default.KeyboardArrowUp, null)
+                            }
+                            IconButton(onClick = { moveSelectedExercise(exercise.id, 1) }, enabled = index < selectedExercises.lastIndex) {
+                                Icon(Icons.Default.KeyboardArrowDown, null)
+                            }
+                            IconButton(onClick = { toggleExercise(exercise.id) }) {
+                                Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error)
+                            }
+                        }
                     }
                 }
             }
@@ -4291,7 +4387,11 @@ private fun SupersetCreatorSheet(
             OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
                 Text("Cancelar")
             }
-            Button(onClick = onConfirm, modifier = Modifier.weight(1f)) {
+            Button(
+                onClick = onConfirm,
+                modifier = Modifier.weight(1f),
+                enabled = draft.exerciseIds.distinct().size >= 2,
+            ) {
                 Text("Crear superserie", fontWeight = FontWeight.Black)
             }
         }
@@ -4484,6 +4584,7 @@ internal fun ExercisePickerSheet(
     onSearch: (String) -> Unit,
     onSelect: (ExerciseMuscleInfo) -> Unit,
     onMultiSelect: (List<ExerciseMuscleInfo>) -> List<String>,
+    onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
     onOpenExerciseDetail: (String) -> Unit,
     onOpenExerciseCreator: () -> Unit,
     onDismiss: () -> Unit,
@@ -4820,10 +4921,19 @@ internal fun ExercisePickerSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("${selectedExercises.size} seleccionados", color = Color.White)
+                    Text("${selectedExercises.size} seleccionados", color = Color.White, modifier = Modifier.weight(1f))
+                    if (selectedExercises.size >= 2 && onCreateSuperset != null) {
+                        Button(onClick = {
+                            onCreateSuperset(selectedExercises)
+                            selectedExercises = emptyList()
+                            onSelectionChange(emptyList())
+                        }) {
+                            Text("Crear superserie")
+                        }
+                    }
                     FilledTonalButton(onClick = {
                         onMultiSelect(selectedExercises)
                         selectedExercises = emptyList()
