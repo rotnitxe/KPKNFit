@@ -102,6 +102,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.isInSuperset
 import com.example.kpkn.data.models.isEffectivelyUnilateral
+import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.WorkoutContextProfile
@@ -1047,11 +1048,20 @@ fun WorkoutScreen(
             supersetAnchorId?.let { anchorId -> renderedParts.firstOrNull { part -> part.exercises.any { it.id == anchorId } } }
         }
         val supersetAnchorPartId = supersetAnchorPart?.id?.takeIf { it != "default" }
-        val supersetCandidateExercises = remember(supersetAnchorId, supersetAnchorPart, modeSession, visibleExercises) {
-            val scoped = supersetAnchorPart?.exercises ?: modeSession.exercises
+        val supersetCandidateExercises = remember(supersetAnchorId, supersetAnchorPart, modeSession, visibleExercises, uiState.completedSets) {
             val visibleIds = visibleExercises.map { it.id }.toSet()
-            scoped.filter { exercise ->
-                exercise.id in visibleIds && (!exercise.isInSuperset() || exercise.id == supersetAnchorId)
+            modeSession.allExercises().filter { exercise ->
+                val completed = exercise.sets.isNotEmpty() && exercise.sets.indices.all { setIdx ->
+                    if (exercise.isEffectivelyUnilateral()) {
+                        uiState.completedSets.containsKey("${exercise.id}_${setIdx}_L") &&
+                            uiState.completedSets.containsKey("${exercise.id}_${setIdx}_R")
+                    } else {
+                        uiState.completedSets.containsKey("${exercise.id}_$setIdx")
+                    }
+                }
+                exercise.id in visibleIds &&
+                    !completed &&
+                    (!exercise.isInSuperset() || exercise.id == supersetAnchorId)
             }
         }
         var supersetSelectedIds by remember(supersetAnchorId) { mutableStateOf(listOfNotNull(supersetAnchorId)) }
@@ -1065,7 +1075,7 @@ fun WorkoutScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "Selecciona ejercicios del mismo grupo para evitar cambios ambiguos.",
+                        "Selecciona ejercicios pendientes de la sesión. La superserie se aplicará solo a este entrenamiento.",
                         style = MaterialTheme.typography.bodySmall,
                     )
                     if (supersetCandidateExercises.size < 2) {
@@ -3467,6 +3477,20 @@ internal fun UnifiedExerciseCarousel(
     LaunchedEffect(currentIdx) {
         listState.animateScrollToItem((currentIdx - 1).coerceAtLeast(0))
     }
+    val roadmapGroups = remember(exercises) {
+        val emitted = mutableSetOf<String>()
+        exercises.mapNotNull { exercise ->
+            val groupId = exercise.supersetGroupRefOrLegacyId()
+            when {
+                groupId == null -> ExerciseRoadmapGroup(null, listOf(exercise))
+                emitted.add(groupId) -> ExerciseRoadmapGroup(
+                    groupId = groupId,
+                    exercises = exercises.filter { it.supersetGroupRefOrLegacyId() == groupId },
+                )
+                else -> null
+            }
+        }
+    }
     LazyRow(
         state = listState,
         modifier = Modifier
@@ -3474,33 +3498,69 @@ internal fun UnifiedExerciseCarousel(
             .padding(horizontal = 8.dp, vertical = 5.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        items(exercises.size) { idx ->
-            val exercise = exercises[idx]
+        items(roadmapGroups.size) { groupIdx ->
+            val group = roadmapGroups[groupIdx]
+            val exercise = group.exercises.firstOrNull() ?: return@items
+            val idx = exercises.indexOfFirst { it.id == exercise.id }.coerceAtLeast(0)
             val part = parts.firstOrNull { it.exercises.any { e -> e.id == exercise.id } }
             val accent = accentByPartId[part?.id] ?: MaterialTheme.colorScheme.primary
             val partName = part?.name?.takeIf { it.isNotBlank() }
-            val completedCount = exercise.sets.indices.count { setIdx ->
-                completedSets.containsKey("${exercise.id}_$setIdx") ||
-                    (exercise.isUnilateral && (
-                        completedSets.containsKey("${exercise.id}_${setIdx}_L") ||
-                        completedSets.containsKey("${exercise.id}_${setIdx}_R")
-                    ))
+            val completedCount = group.exercises.sumOf { member ->
+                if (member.isEffectivelyUnilateral()) {
+                    member.sets.indices.sumOf { setIdx ->
+                        val leftDone = completedSets.containsKey("${member.id}_${setIdx}_L")
+                        val rightDone = completedSets.containsKey("${member.id}_${setIdx}_R")
+                        listOf(leftDone, rightDone).count { it }
+                    }
+                } else {
+                    member.sets.indices.count { setIdx ->
+                        completedSets.containsKey("${member.id}_$setIdx")
+                    }
+                }
             }
-            val isAllDone = completedCount >= exercise.sets.size && exercise.sets.isNotEmpty()
-            val isCurrent = idx == currentIdx
-            ExerciseRoadmapCard(
-                exercise = exercise,
-                completedCount = completedCount,
-                isCurrent = isCurrent,
-                isAllDone = isAllDone,
-                accent = accent,
-                groupName = partName,
-                onClick = { onSelect(idx) },
-                onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
-            )
+            val totalSets = group.exercises.sumOf { member ->
+                if (member.isEffectivelyUnilateral()) member.sets.size * 2 else member.sets.size
+            }
+            val isAllDone = completedCount >= totalSets && totalSets > 0
+            val isCurrent = group.exercises.any { it.id == exercises.getOrNull(currentIdx)?.id }
+            if (group.groupId == null || group.exercises.size == 1) {
+                ExerciseRoadmapCard(
+                    exercise = exercise,
+                    completedCount = completedCount,
+                    isCurrent = isCurrent,
+                    isAllDone = isAllDone,
+                    accent = accent,
+                    groupName = partName,
+                    onClick = { onSelect(idx) },
+                    onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
+                )
+            } else {
+                SupersetRoadmapCard(
+                    exercises = group.exercises,
+                    completedCount = completedCount,
+                    totalSets = totalSets,
+                    isCurrent = isCurrent,
+                    isAllDone = isAllDone,
+                    accent = accent,
+                    groupName = partName,
+                    onClick = {
+                        val targetIdx = group.exercises
+                            .map { member -> exercises.indexOfFirst { it.id == member.id } }
+                            .firstOrNull { it >= 0 }
+                            ?: idx
+                        onSelect(targetIdx)
+                    },
+                    onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
+                )
+            }
         }
     }
 }
+
+private data class ExerciseRoadmapGroup(
+    val groupId: String?,
+    val exercises: List<Exercise>,
+)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -3580,6 +3640,89 @@ private fun ExerciseRoadmapCard(
                         color = contentColor.copy(alpha = 0.7f),
                     )
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun SupersetRoadmapCard(
+    exercises: List<Exercise>,
+    completedCount: Int,
+    totalSets: Int,
+    isCurrent: Boolean,
+    isAllDone: Boolean,
+    accent: Color,
+    groupName: String?,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)?,
+) {
+    val containerColor = when {
+        isCurrent -> accent.copy(alpha = 0.90f)
+        isAllDone -> Color(0xFF1A3A1A)
+        else -> accent.copy(alpha = 0.18f)
+    }
+    val contentColor = if (isCurrent) Color.White else Color.White.copy(alpha = 0.90f)
+    Surface(
+        modifier = Modifier
+            .widthIn(min = 170.dp, max = 240.dp)
+            .heightIn(min = 74.dp)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        shape = RoundedCornerShape(14.dp),
+        color = containerColor,
+        border = BorderStroke(0.7.dp, accent.copy(alpha = if (isCurrent) 0.0f else 0.34f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = Color.White.copy(alpha = if (isCurrent) 0.18f else 0.10f),
+                ) {
+                    Text(
+                        text = if (isAllDone) "✓" else "$completedCount/$totalSets",
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    )
+                }
+                Text(
+                    text = "Superserie",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Black,
+                    color = contentColor,
+                )
+                if (!groupName.isNullOrBlank()) {
+                    Text(
+                        text = groupName,
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = contentColor.copy(alpha = 0.72f),
+                    )
+                }
+            }
+            exercises.take(3).forEachIndexed { index, exercise ->
+                Text(
+                    text = "${index + 1}. ${exercise.name}",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.SemiBold,
+                    color = contentColor,
+                )
+            }
+            if (exercises.size > 3) {
+                Text(
+                    text = "+${exercises.size - 3} mas",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor.copy(alpha = 0.72f),
+                )
             }
         }
     }

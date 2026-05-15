@@ -4,6 +4,15 @@ import com.example.kpkn.data.models.LoadModeV2
 import kotlinx.serialization.Serializable
 
 @Serializable
+enum class RestTimerKind {
+    STANDARD,
+    SUPERSET_INTRA,
+    SUPERSET_ROUND,
+    WARMUP,
+    BETWEEN_SIDES,
+}
+
+@Serializable
 data class WorkoutSetDraft(
     val weightText: String? = null,
     val valueText: String? = null,
@@ -21,6 +30,7 @@ data class WorkoutSetDraft(
 data class WorkoutRestModalState(
     val exerciseId: String? = null,
     val exerciseName: String = "",
+    val kind: RestTimerKind = RestTimerKind.STANDARD,
     val plannedSeconds: Int = 0,
     val suggestedSeconds: Int = 0,
     val activeSeconds: Int = 0,

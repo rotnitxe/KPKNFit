@@ -79,6 +79,10 @@ data class CompletedExercise(
     val sets: List<CompletedSet> = emptyList(),
     val restTime: Int = 90,            // AUGE: rest interval in seconds for drain calc
     val supersetId: String? = null,
+    val supersetExerciseCount: Int = 1,
+    val supersetRounds: Int? = null,
+    val supersetRestBetween: Int? = null,
+    val supersetRestAfter: Int? = null,
 )
 
 @Serializable

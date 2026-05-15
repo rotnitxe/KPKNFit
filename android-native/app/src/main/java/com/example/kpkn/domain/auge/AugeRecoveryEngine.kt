@@ -57,6 +57,15 @@ object AugeRecoveryEngine {
 
     private fun clamp(v: Double, lo: Double, hi: Double) = min(hi, max(lo, v))
 
+    private fun densityMultiplierForCompletedExercise(ex: CompletedExercise): Double =
+        AugeFatigueEngine.getDensityMultiplierForExercise(
+            supersetId = ex.supersetId,
+            restTime = ex.supersetRestBetween ?: ex.restTime,
+            supersetExerciseCount = ex.supersetExerciseCount,
+            supersetRounds = ex.supersetRounds,
+            supersetRestAfter = ex.supersetRestAfter,
+        )
+
     private fun safeExp(v: Double): Double {
         val r = exp(v)
         return if (r.isNaN() || r.isInfinite()) 0.0 else r
@@ -296,7 +305,7 @@ object AugeRecoveryEngine {
                 } ?: return@forEach
 
                 val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
-                val densityMult = AugeFatigueEngine.getDensityMultiplierForExercise(ex.supersetId, ex.restTime)
+                val densityMult = densityMultiplierForCompletedExercise(ex)
 
                 var accumulated = 0
                 val setStress = ex.sets.sumOf { s ->
@@ -407,7 +416,7 @@ object AugeRecoveryEngine {
                 } ?: return@forEach
 
                 val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo.equipment, dbInfo) ?: AugeMetrics()
-                val densityMult = AugeFatigueEngine.getDensityMultiplierForExercise(ex.supersetId, ex.restTime)
+                val densityMult = densityMultiplierForCompletedExercise(ex)
 
                 var accumulated = 0
                 val rawStress = ex.sets.sumOf { s ->
@@ -529,7 +538,7 @@ object AugeRecoveryEngine {
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
                 val primaryMuscle = dbInfo?.involvedMuscles?.find { it.role == MuscleRole.PRIMARY }?.muscle ?: "Core"
                 var accumulated = muscleVolumeMap[primaryMuscle] ?: 0
-                val densityMult = AugeFatigueEngine.getDensityMultiplierForExercise(ex.supersetId, ex.restTime)
+                val densityMult = densityMultiplierForCompletedExercise(ex)
 
                 ex.sets.forEach { s ->
                     if (!isSetEffective(s)) return@forEach
@@ -606,7 +615,7 @@ object AugeRecoveryEngine {
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
                 val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
-                val densityMult = AugeFatigueEngine.getDensityMultiplierForExercise(ex.supersetId, ex.restTime)
+                val densityMult = densityMultiplierForCompletedExercise(ex)
                 var accumulated = 0
 
                 ex.sets.forEach { s ->
@@ -975,7 +984,7 @@ object AugeRecoveryEngine {
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
                 val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
-                val densityMult = AugeFatigueEngine.getDensityMultiplierForExercise(ex.supersetId, ex.restTime)
+                val densityMult = densityMultiplierForCompletedExercise(ex)
                 var accumulated = 0
 
                 ex.sets.forEach { s ->
@@ -1035,7 +1044,7 @@ object AugeRecoveryEngine {
                 val key = (ex.exerciseDbId ?: ex.exerciseName).lowercase().trim()
                 val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
                 val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
-                val densityMult = AugeFatigueEngine.getDensityMultiplierForExercise(ex.supersetId, ex.restTime)
+                val densityMult = densityMultiplierForCompletedExercise(ex)
                 var accumulated = 0
                 var sessMuscular = 0.0
                 var sessCns = 0.0
@@ -1118,7 +1127,7 @@ object AugeRecoveryEngine {
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
                 val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
-                val densityMult = AugeFatigueEngine.getDensityMultiplierForExercise(ex.supersetId, ex.restTime)
+                val densityMult = densityMultiplierForCompletedExercise(ex)
                 var accumulated = 0
                 ex.sets.forEach { s ->
                     if (!isSetEffective(s)) return@forEach

@@ -154,13 +154,30 @@ object AugeFatigueEngine {
     fun getDensityMultiplierForExercise(
         supersetId: String?,
         restTime: Int,
+        supersetExerciseCount: Int = 1,
+        supersetRounds: Int? = null,
+        supersetRestAfter: Int? = null,
     ): Double {
         if (supersetId.isNullOrBlank()) return 1.0
-        return when {
+        val intraRestFactor = when {
             restTime <= 45 -> 1.30
             restTime <= 75 -> 1.24
             else -> 1.18
         }
+        val exerciseCountFactor = 1.0 + ((supersetExerciseCount.coerceAtLeast(2) - 2) * 0.045)
+        val roundFactor = supersetRounds
+            ?.takeIf { it > 0 }
+            ?.let { 1.0 + ((it - 1).coerceAtMost(5) * 0.018) }
+            ?: 1.0
+        val postRestFactor = when {
+            supersetRestAfter == null -> 1.0
+            supersetRestAfter <= 60 -> 1.08
+            supersetRestAfter <= 120 -> 1.03
+            supersetRestAfter >= 240 -> 0.95
+            else -> 1.0
+        }
+        return (intraRestFactor * exerciseCountFactor * roundFactor * postRestFactor)
+            .coerceIn(1.10, 1.45)
     }
 
     private fun calculateSetProgressiveFatigueMultiplier(accumulatedSets: Int): Double {
@@ -372,7 +389,13 @@ object AugeFatigueEngine {
                     )
                     return@forEach
                 }
-            val densityMult = getDensityMultiplierForExercise(ex.supersetId, ex.restTime)
+            val densityMult = getDensityMultiplierForExercise(
+                supersetId = ex.supersetId,
+                restTime = ex.supersetRestBetween ?: ex.restTime,
+                supersetExerciseCount = ex.supersetExerciseCount,
+                supersetRounds = ex.supersetRounds,
+                supersetRestAfter = ex.supersetRestAfter,
+            )
             val primaryMuscle = dbInfo?.involvedMuscles
                 ?.find { it.role == MuscleRole.PRIMARY }
                 ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }

@@ -28,6 +28,7 @@ import com.example.kpkn.data.db.toEntity as rangeToEntity
 import com.example.kpkn.domain.performance.PerformanceRangeCalculator
 import com.example.kpkn.domain.performance.PerformanceRangeResult
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine
 import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
 import com.example.kpkn.services.workout.ActiveWorkoutHolder
@@ -234,7 +235,7 @@ class WorkoutViewModel(
                 setIndex = s.currentSetIdx,
                 totalSets = exercise.sets.size,
                 isTimeMode = exercise.trainingMode == TrainingMode.TIME,
-                isUnilateral = exercise.isUnilateral,
+                isUnilateral = exercise.isEffectivelyUnilateral(),
                 baseIntensityMode = exercise.sets.getOrNull(s.currentSetIdx)?.intensityMode,
                 setDraft = getSetDraft(exercise.id, s.currentSetIdx, null),
                 suggestedWeight = getWeightSuggestionWithAutoRegulation(exercise, s.currentSetIdx)?.suggestedWeight,
@@ -751,7 +752,8 @@ class WorkoutViewModel(
         val resolvedTagId = tagId ?: activeProfile?.tagId ?: state.exerciseTags[exercise.id]
         val resolvedSetupId = setupId ?: activeProfile?.setupProfileId ?: plannedSet?.defaultSetupProfileIdV3 ?: plannedSet?.setupId
         val resolvedMachineBrand = machineBrand ?: activeProfile?.machineBrand ?: plannedSet?.machineBrand
-        val resolvedSide = if (exercise.isUnilateral) side ?: "left" else null
+        val isUnilateralExercise = exercise.isEffectivelyUnilateral()
+        val resolvedSide = if (isUnilateralExercise) side ?: "left" else null
         val actualValue = when (resolvedUnitMode) {
             UnitModeV2.TIME -> value.coerceAtLeast(0.0)
             UnitModeV2.REPS, UnitModeV2.DISTANCE, UnitModeV2.CUSTOM -> value.coerceAtLeast(0.0)
@@ -946,7 +948,7 @@ class WorkoutViewModel(
         } ?: emptyList()
 
         val updatedCompletedSets = state.completedSets + (key to completedSet)
-        val imbalanceNotice = if (exercise.isUnilateral) {
+        val imbalanceNotice = if (isUnilateralExercise) {
             computeImbalanceNotice(exercise, targetSetIdx, updatedCompletedSets)
         } else {
             null
@@ -992,13 +994,34 @@ class WorkoutViewModel(
         val wasLastSet = state.currentSetIdx == exercise.sets.size - 1
         val isExecutionError = advanced.isFailedSet || advanced.executionError
 
-        val shouldAutoRest = shouldAutoRestAfterSet(allExercises, state.currentExerciseIdx, targetSetIdx)
-        val unilateralPendingOtherSide = exercise.isUnilateral && resolvedSide != null && updatedCompletedSets[buildCompletedSetKey(exercise.id, targetSetIdx, counterpartSide(resolvedSide))] == null
+        val unilateralPendingOtherSide = isUnilateralExercise && resolvedSide != null && updatedCompletedSets[buildCompletedSetKey(exercise.id, targetSetIdx, counterpartSide(resolvedSide))] == null
+        val stateAfterLoggedSet = state.copy(completedSets = updatedCompletedSets)
+        val nextStepForRest = nextIncompleteStepAfter(stateAfterLoggedSet)
         if (!unilateralPendingOtherSide && !wasExistingSet) {
             nextSet(stopRest = false)
         }
 
         val baseRest = exercise.restTime?.takeIf { it > 0 } ?: repository.settings.value.restTimerDefaultSeconds
+        val sessionForRest = state.session?.let { sessionForActiveMode(it, state.activeMode) }
+        val supersetGroup = sessionForRest?.effectiveSupersetGroupFor(exercise)
+        val sameSupersetRound = nextStepForRest?.supersetGroupId != null &&
+            nextStepForRest.supersetGroupId == exercise.supersetGroupRefOrLegacyId() &&
+            nextStepForRest.exerciseId != exercise.id &&
+            nextStepForRest.supersetRoundIndex == targetSetIdx
+        val restKind = when {
+            unilateralPendingOtherSide && exercise.restBetweenSidesSeconds != null -> RestTimerKind.BETWEEN_SIDES
+            sameSupersetRound -> RestTimerKind.SUPERSET_INTRA
+            supersetGroup != null -> RestTimerKind.SUPERSET_ROUND
+            else -> RestTimerKind.STANDARD
+        }
+        val plannedRestForKind = when (restKind) {
+            RestTimerKind.BETWEEN_SIDES -> exercise.restBetweenSidesSeconds ?: baseRest
+            RestTimerKind.SUPERSET_INTRA -> supersetGroup?.restBetweenExercises ?: exercise.supersetRestBetween ?: baseRest
+            RestTimerKind.SUPERSET_ROUND -> supersetGroup?.restAfterSuperset ?: exercise.supersetRestAfter ?: baseRest
+            RestTimerKind.WARMUP,
+            RestTimerKind.STANDARD,
+            -> baseRest
+        }
         val exerciseDbId = canonicalExerciseKey(exercise)
         val dbInfo = EXERCISE_DATABASE_BY_ID[exerciseDbId]
         val settings = repository.settings.value
@@ -1043,7 +1066,14 @@ class WorkoutViewModel(
             ),
         )
         if (!wasExistingSet) {
-            val plannedRest = baseRest.coerceAtLeast(10)
+            val plannedRest = when (restKind) {
+                RestTimerKind.SUPERSET_INTRA,
+                RestTimerKind.SUPERSET_ROUND,
+                RestTimerKind.BETWEEN_SIDES,
+                RestTimerKind.WARMUP,
+                -> plannedRestForKind.coerceAtLeast(0)
+                RestTimerKind.STANDARD -> plannedRestForKind.coerceAtLeast(10)
+            }
             val pendingSuggestion = PendingRestSuggestion(
                 plannedSeconds = plannedRest,
                 adaptiveSeconds = adaptiveRest.coerceAtLeast(10),
@@ -1053,12 +1083,13 @@ class WorkoutViewModel(
                 advancedFeedback = advanced,
             )
             _uiState.update { it.copy(pendingRestSuggestion = pendingSuggestion) }
-            if ((shouldAutoRest || repository.settings.value.restTimerAutoStart) && !(isExecutionError && !wasLastSet)) {
+            if (plannedRest > 0 && !(isExecutionError && !wasLastSet)) {
                 startRestTimer(
                     seconds = plannedRest,
                     advanceOnFinish = false,
                     lastSet = completedSet,
                     advancedFeedback = advanced,
+                    kind = restKind,
                 )
             }
         }
@@ -1482,7 +1513,7 @@ class WorkoutViewModel(
         val allExercises = visibleExercises(state)
         val exercise = allExercises.getOrNull(state.currentExerciseIdx) ?: return
         val setIdx = state.currentSetIdx
-        val side = if (exercise.isUnilateral) interpretation.side else null
+        val side = if (exercise.isEffectivelyUnilateral()) interpretation.side else null
 
         val isTimeMode = exercise.trainingMode == TrainingMode.TIME
         val baseIntensityMode = exercise.sets.getOrNull(setIdx)?.intensityMode
@@ -1672,7 +1703,7 @@ class WorkoutViewModel(
         setIdx: Int,
         completedSets: Map<String, CompletedSet>,
     ): String? {
-        if (exercise.unilateralMode == UnilateralMode.BILATERAL && !exercise.isUnilateral) return null
+        if (!exercise.isEffectivelyUnilateral()) return null
         val left = completedSets[buildCompletedSetKey(exercise.id, setIdx, "left")] ?: return null
         val right = completedSets[buildCompletedSetKey(exercise.id, setIdx, "right")] ?: return null
         val reasons = mutableListOf<String>()
@@ -1768,13 +1799,13 @@ class WorkoutViewModel(
                     ?.let { setId -> preferredExercise.sets.indexOfFirst { it.id == setId } }
                     ?.takeIf { it >= 0 }
                 if (preferredSetIdx != null) {
-                    if (!isSetDone(completedSets, preferredExercise.id, preferredSetIdx, preferredExercise.isUnilateral)) {
+                    if (!isSetDone(completedSets, preferredExercise.id, preferredSetIdx, preferredExercise.isEffectivelyUnilateral())) {
                         return preferredExerciseIdx to preferredSetIdx
                     }
                 }
 
                 val fallbackSetIdx = preferredExercise.sets.indices.firstOrNull { setIdx ->
-                    !isSetDone(completedSets, preferredExercise.id, setIdx, preferredExercise.isUnilateral)
+                    !isSetDone(completedSets, preferredExercise.id, setIdx, preferredExercise.isEffectivelyUnilateral())
                 }
                 if (fallbackSetIdx != null) {
                     return preferredExerciseIdx to fallbackSetIdx
@@ -1784,7 +1815,7 @@ class WorkoutViewModel(
 
         for ((exerciseIdx, exercise) in exercises.withIndex()) {
             val pendingSetIdx = exercise.sets.indices.firstOrNull { setIdx ->
-                !isSetDone(completedSets, exercise.id, setIdx, exercise.isUnilateral)
+                !isSetDone(completedSets, exercise.id, setIdx, exercise.isEffectivelyUnilateral())
             }
             if (pendingSetIdx != null) {
                 return exerciseIdx to pendingSetIdx
@@ -2059,8 +2090,8 @@ class WorkoutViewModel(
         val suggestions = buildMap {
             exercises.forEach { exercise ->
                 exercise.sets.indices.forEach { setIdx ->
-                    if (isSetDone(state.completedSets, exercise.id, setIdx, exercise.isUnilateral)) return@forEach
-                    if (exercise.isUnilateral) {
+                    if (isSetDone(state.completedSets, exercise.id, setIdx, exercise.isEffectivelyUnilateral())) return@forEach
+                    if (exercise.isEffectivelyUnilateral()) {
                         listOf("left", "right").forEach { side ->
                             buildLoadSuggestionForSet(exercise, setIdx, state.exerciseTags[exercise.id], side)?.let { suggestion ->
                                 put(workoutSetKey(exercise.id, setIdx, side), suggestion)
@@ -2280,43 +2311,100 @@ class WorkoutViewModel(
         }
     )
 
-    private fun supersetGroupIndices(exercises: List<Exercise>, currentIdx: Int): List<Int> {
-        val groupId = exercises.getOrNull(currentIdx)?.supersetId?.takeIf { it.isNotBlank() } ?: return emptyList()
-        return exercises.indices.filter { exercises[it].supersetId == groupId }
+    private fun workoutStepPositions(state: WorkoutUiState): List<WorkoutStep> {
+        val baseSession = state.session ?: return emptyList()
+        val modeSession = sessionForActiveMode(baseSession, state.activeMode)
+        return WorkoutStepRules.buildWorkingPositions(
+            session = modeSession,
+            visibleExercises = visibleExercises(state),
+        )
     }
 
-    private fun nextSupersetTarget(exercises: List<Exercise>, currentIdx: Int, currentSetIdx: Int): Pair<Int, Int>? {
-        val group = supersetGroupIndices(exercises, currentIdx)
-        if (group.size <= 1) return null
-
-        val pos = group.indexOf(currentIdx)
-        if (pos < 0) return null
-
-        val hasSetAt: (Int, Int) -> Boolean = { exerciseIdx, setIdx ->
-            setIdx >= 0 && setIdx <= exercises[exerciseIdx].sets.lastIndex
-        }
-
-        for (groupPos in (pos + 1) until group.size) {
-            val candidateExerciseIdx = group[groupPos]
-            if (hasSetAt(candidateExerciseIdx, currentSetIdx)) {
-                return candidateExerciseIdx to currentSetIdx
-            }
-        }
-
-        val nextRoundSetIdx = currentSetIdx + 1
-        for (candidateExerciseIdx in group) {
-            if (hasSetAt(candidateExerciseIdx, nextRoundSetIdx)) {
-                return candidateExerciseIdx to nextRoundSetIdx
-            }
-        }
-
-        return null
+    private fun WorkoutStep.positionIn(visible: List<Exercise>): Pair<Int, Int>? {
+        val setIdx = setIndex ?: return null
+        val exerciseIdx = visible.indexOfFirst { it.id == exerciseId }
+        if (exerciseIdx < 0) return null
+        return exerciseIdx to setIdx
     }
 
-    private fun shouldAutoRestAfterSet(exercises: List<Exercise>, currentIdx: Int, currentSetIdx: Int): Boolean {
-        val next = nextSupersetTarget(exercises, currentIdx, currentSetIdx) ?: return true
-        // If we are just switching to a superset partner in the same round, skip rest.
-        return !(next.first != currentIdx && next.second == currentSetIdx)
+    private fun stepPositionIndex(
+        steps: List<WorkoutStep>,
+        visible: List<Exercise>,
+        exerciseIdx: Int,
+        setIdx: Int,
+    ): Int {
+        val exerciseId = visible.getOrNull(exerciseIdx)?.id ?: return -1
+        return steps.indexOfFirst { it.exerciseId == exerciseId && it.setIndex == setIdx }
+    }
+
+    private fun isWorkoutStepDone(
+        step: WorkoutStep,
+        visible: List<Exercise>,
+        completedSets: Map<String, CompletedSet>,
+    ): Boolean {
+        val setIdx = step.setIndex ?: return true
+        val exercise = visible.firstOrNull { it.id == step.exerciseId } ?: return true
+        return isSetDone(completedSets, exercise.id, setIdx, exercise.isEffectivelyUnilateral())
+    }
+
+    private fun firstIncompleteStepForExercise(
+        state: WorkoutUiState,
+        exercise: Exercise,
+    ): WorkoutStep? {
+        val visible = visibleExercises(state)
+        return workoutStepPositions(state).firstOrNull { step ->
+            step.exerciseId == exercise.id &&
+                !isWorkoutStepDone(step, visible, state.completedSets)
+        }
+    }
+
+    private fun isExerciseCompleteInSteps(state: WorkoutUiState, exercise: Exercise): Boolean {
+        val visible = visibleExercises(state)
+        val exerciseSteps = workoutStepPositions(state).filter { it.exerciseId == exercise.id }
+        if (exerciseSteps.isEmpty()) {
+            return exercise.sets.indices.all { setIdx ->
+                isSetDone(state.completedSets, exercise.id, setIdx, exercise.isEffectivelyUnilateral())
+            }
+        }
+        return exerciseSteps.all { step ->
+            isWorkoutStepDone(step, visible, state.completedSets)
+        }
+    }
+
+    private fun nextIncompleteStepAfter(
+        state: WorkoutUiState,
+        includeCurrent: Boolean = false,
+    ): WorkoutStep? {
+        val visible = visibleExercises(state)
+        val steps = workoutStepPositions(state)
+        if (steps.isEmpty()) return null
+        val currentStepIdx = stepPositionIndex(
+            steps = steps,
+            visible = visible,
+            exerciseIdx = state.currentExerciseIdx,
+            setIdx = state.currentSetIdx,
+        )
+        val start = when {
+            currentStepIdx < 0 -> 0
+            includeCurrent -> currentStepIdx
+            else -> currentStepIdx + 1
+        }
+        return steps.drop(start).firstOrNull { step ->
+            !isWorkoutStepDone(step, visible, state.completedSets)
+        }
+    }
+
+    private fun previousStepBefore(state: WorkoutUiState): WorkoutStep? {
+        val visible = visibleExercises(state)
+        val steps = workoutStepPositions(state)
+        val currentStepIdx = stepPositionIndex(
+            steps = steps,
+            visible = visible,
+            exerciseIdx = state.currentExerciseIdx,
+            setIdx = state.currentSetIdx,
+        )
+        if (currentStepIdx <= 0) return null
+        return steps.take(currentStepIdx).lastOrNull()
     }
 
     private fun shouldConfirmAdaptiveRestChange(baseRest: Int, adaptiveRest: Int): Boolean {
@@ -2389,48 +2477,21 @@ class WorkoutViewModel(
         val targetIds = exerciseIds.distinct()
         if (targetIds.size < 2) return
         val groupId = java.util.UUID.randomUUID().toString()
-        val group = SupersetGroup(
-            id = groupId,
-            exerciseOrder = targetIds,
-            restBetweenExercises = restBetween,
-            restAfterSuperset = restAfter,
-            rounds = null,
-        )
-        val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
-            exercises.map { ex ->
-                if (ex.id in targetIds) ex.copy(
-                    supersetGroupRef = groupId,
-                    supersetId = groupId,
-                    supersetRestBetween = restBetween,
-                    supersetRestAfter = restAfter,
-                ) else ex
-            }
-        }
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
-            val explicitPartRequested = partId != null
-            val resolvedPart = partId
-                ?.let { id -> modeSession.parts.firstOrNull { it.id == id } }
-                ?: modeSession.parts.firstOrNull { part ->
-                    targetIds.all { id -> part.exercises.any { it.id == id } }
-                }
-            when {
-                resolvedPart != null && targetIds.all { id -> resolvedPart.exercises.any { it.id == id } } -> modeSession.copy(
-                    parts = modeSession.parts.map { part ->
-                        if (part.id == resolvedPart.id) part.copy(exercises = updater(part.exercises)) else part
-                    },
-                    supersetGroups = modeSession.supersetGroups + group,
-                )
-                !explicitPartRequested && targetIds.all { id -> modeSession.exercises.any { it.id == id } } -> modeSession.copy(
-                    exercises = updater(modeSession.exercises),
-                    supersetGroups = modeSession.supersetGroups + group,
-                )
-                else -> modeSession
-            }
+            SupersetRules.createSuperset(
+                session = modeSession,
+                groupId = groupId,
+                exerciseIds = targetIds,
+                restBetweenExercises = restBetween,
+                restAfterSuperset = restAfter,
+                rounds = null,
+                anchorPartId = partId,
+                anchorExerciseId = targetIds.firstOrNull(),
+            )
         }
         if (updatedSession == base) return
         _uiState.update { it.copy(session = updatedSession) }
         persistOngoingState()
-        persistSessionToProgram(updatedSession)
     }
 
     fun moveExercise(exerciseId: String, direction: Int) {
@@ -2995,7 +3056,7 @@ class WorkoutViewModel(
         stopRestTimer()
         val state = _uiState.value
         val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
-        if (isSetDone(state.completedSets, exercise.id, state.currentSetIdx, exercise.isUnilateral)) {
+        if (isSetDone(state.completedSets, exercise.id, state.currentSetIdx, exercise.isEffectivelyUnilateral())) {
             nextSet(stopRest = false)
             return
         }
@@ -3007,7 +3068,7 @@ class WorkoutViewModel(
         val updatedCompleted = state.completedSets.toMutableMap()
         val updatedAdvanced = state.setAdvancedFeedback.toMutableMap()
 
-        val targets = if (exercise.isUnilateral) {
+        val targets = if (exercise.isEffectivelyUnilateral()) {
             listOf("left", "right")
         } else {
             listOf<String?>(null)
@@ -3025,7 +3086,7 @@ class WorkoutViewModel(
             updatedAdvanced[key] = advanced
         }
 
-        val imbalanceNotice = if (exercise.isUnilateral) {
+        val imbalanceNotice = if (exercise.isEffectivelyUnilateral()) {
             computeImbalanceNotice(exercise, state.currentSetIdx, updatedCompleted)
         } else {
             null
@@ -3079,7 +3140,7 @@ class WorkoutViewModel(
         val currentExerciseOmitted = currentExercise
             ?.takeIf { exercise ->
                 exercise.sets.indices.any { setIdx ->
-                    !isSetDone(state.completedSets, exercise.id, setIdx, exercise.isUnilateral)
+                    !isSetDone(state.completedSets, exercise.id, setIdx, exercise.isEffectivelyUnilateral())
                 }
             }
             ?.id
@@ -3114,9 +3175,8 @@ class WorkoutViewModel(
         _currentAutoRegulation.value = null
         val state = _uiState.value
         val targetExercise = visibleExercises(state).getOrNull(idx)
-        val targetSetIdx = targetExercise?.sets?.indices?.firstOrNull { setIdx ->
-            !isSetDone(state.completedSets, targetExercise.id, setIdx, targetExercise.isUnilateral)
-        } ?: 0
+        val targetStep = targetExercise?.let { firstIncompleteStepForExercise(state, it) }
+        val targetSetIdx = targetStep?.setIndex ?: 0
         _uiState.update {
             it.copy(
                 currentExerciseIdx = idx,
@@ -3137,16 +3197,12 @@ class WorkoutViewModel(
         val state = _uiState.value
         val allExercises = visibleExercises(state)
         val currentEx = allExercises.getOrNull(state.currentExerciseIdx) ?: return
-        val totalSets = currentEx.sets.size
-        val isLastSetOfCurrentExercise = state.currentSetIdx == totalSets - 1
-
-        nextSupersetTarget(allExercises, state.currentExerciseIdx, state.currentSetIdx)?.let { (nextExIdx, nextSetIdx) ->
-            val nextExercise = allExercises.getOrNull(nextExIdx)
+        val nextStep = nextIncompleteStepAfter(state)
+        if (nextStep == null) {
             _uiState.update {
                 it.copy(
-                    currentExerciseIdx = nextExIdx,
-                    currentSetIdx = nextSetIdx,
-                    editingState = buildEditingStateForPosition(it.completedSets, nextExercise, nextSetIdx),
+                    pendingPostExerciseIdx = -2,
+                    editingState = null,
                     continuityTransitionTarget = null,
                     continuityFeedbackExerciseId = null,
                 )
@@ -3155,87 +3211,13 @@ class WorkoutViewModel(
             return
         }
 
-        if (state.currentSetIdx < totalSets - 1) {
-            _uiState.update {
-                val nextSetIdx = it.currentSetIdx + 1
-                it.copy(
-                    currentSetIdx = nextSetIdx,
-                    editingState = buildEditingStateForPosition(it.completedSets, currentEx, nextSetIdx),
-                    continuityTransitionTarget = null,
-                    continuityFeedbackExerciseId = null,
-                )
-            }
-        } else if (isLastSetOfCurrentExercise) {
-            val completedExerciseIdx = state.currentExerciseIdx
-            val hasMoreExercises = completedExerciseIdx < allExercises.size - 1
+        val nextPosition = nextStep.positionIn(allExercises) ?: return
+        val nextExerciseIdx = nextPosition.first
+        val nextSetIdx = nextPosition.second
+        val nextExercise = allExercises.getOrNull(nextExerciseIdx) ?: return
+        val exerciseChanged = nextExerciseIdx != state.currentExerciseIdx
 
-            val lastCompletedSet = state.completedSets.values.lastOrNull()
-            val baseRest = currentEx.restTime?.takeIf { it > 0 } ?: repository.settings.value.restTimerDefaultSeconds
-            val shouldAutoRest = nextSupersetTarget(allExercises, completedExerciseIdx, state.currentSetIdx) == null
-
-            if (shouldAutoRest || repository.settings.value.restTimerAutoStart) {
-                if (hasMoreExercises) {
-                    val nextExercise = allExercises.getOrNull(completedExerciseIdx + 1)
-                    val transitionTarget = state.session?.let {
-                        buildWorkoutContinuityTransitionTarget(
-                            session = it,
-                            visibleExercises = allExercises,
-                            currentExerciseIdx = completedExerciseIdx + 1,
-                        )
-                    }
-                    _uiState.update {
-                        it.copy(
-                            showPostExerciseSheet = true,
-                            postExerciseTargetIdx = completedExerciseIdx,
-                            pendingPostExerciseIdx = completedExerciseIdx + 1,
-                            continuityTransitionTarget = transitionTarget,
-                            continuityFeedbackExerciseId = null,
-                        )
-                    }
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            pendingPostExerciseIdx = -2,
-                            editingState = null,
-                            continuityTransitionTarget = null,
-                            continuityFeedbackExerciseId = null,
-                        )
-                    }
-                }
-            } else {
-                if (hasMoreExercises) {
-                    val nextExerciseIdx = completedExerciseIdx + 1
-                    val nextExercise = allExercises.getOrNull(nextExerciseIdx) ?: return
-                    val transitionTarget = state.session?.let {
-                        buildWorkoutContinuityTransitionTarget(
-                            session = it,
-                            visibleExercises = allExercises,
-                            currentExerciseIdx = nextExerciseIdx,
-                        )
-                    }
-                    _uiState.update {
-                        it.copy(
-                            showPostExerciseSheet = true,
-                            postExerciseTargetIdx = completedExerciseIdx,
-                            pendingPostExerciseIdx = nextExerciseIdx,
-                            continuityTransitionTarget = transitionTarget,
-                        )
-                    }
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            showPostExerciseSheet = true,
-                            postExerciseTargetIdx = completedExerciseIdx,
-                            pendingPostExerciseIdx = -2,
-                            editingState = null,
-                            continuityTransitionTarget = null,
-                            continuityFeedbackExerciseId = null,
-                        )
-                    }
-                }
-            }
-        } else {
-            val nextExerciseIdx = state.currentExerciseIdx + 1
+        if (exerciseChanged && isExerciseCompleteInSteps(state, currentEx)) {
             val transitionTarget = state.session?.let {
                 buildWorkoutContinuityTransitionTarget(
                     session = it,
@@ -3244,15 +3226,25 @@ class WorkoutViewModel(
                 )
             }
             _uiState.update {
-                val nextExercise = allExercises.getOrNull(it.currentExerciseIdx + 1)
                 it.copy(
-                    currentExerciseIdx = it.currentExerciseIdx + 1,
-                    currentSetIdx = 0,
+                    showPostExerciseSheet = true,
+                    postExerciseTargetIdx = state.currentExerciseIdx,
+                    pendingPostExerciseIdx = nextExerciseIdx,
+                    continuityTransitionTarget = transitionTarget,
+                    continuityFeedbackExerciseId = null,
+                )
+            }
+        } else {
+            _uiState.update {
+                it.copy(
+                    currentExerciseIdx = nextExerciseIdx,
+                    currentSetIdx = nextSetIdx,
                     showPostExerciseSheet = false,
                     postExerciseTargetIdx = -1,
                     pendingPostExerciseIdx = -1,
-                    editingState = buildEditingStateForPosition(it.completedSets, nextExercise, 0),
-                    continuityTransitionTarget = transitionTarget,
+                    editingState = buildEditingStateForPosition(it.completedSets, nextExercise, nextSetIdx),
+                    continuityTransitionTarget = null,
+                    continuityFeedbackExerciseId = null,
                 )
             }
         }
@@ -3283,34 +3275,20 @@ class WorkoutViewModel(
         stopRestTimer()
         val state = _uiState.value
         val allExercises = visibleExercises(state)
-        when {
-            state.currentSetIdx > 0 -> _uiState.update {
-                val nextSetIdx = it.currentSetIdx - 1
-                it.copy(
-                    currentSetIdx = nextSetIdx,
-                    editingState = buildEditingStateForPosition(
-                        completedSets = it.completedSets,
-                        exercise = allExercises[state.currentExerciseIdx],
-                        setIdx = nextSetIdx,
-                    ),
-                    continuityTransitionTarget = null,
-                )
-            }
-            state.currentExerciseIdx > 0 -> {
-                val prevEx = allExercises.getOrNull(state.currentExerciseIdx - 1) ?: return
-                _uiState.update {
-                    it.copy(
-                        currentExerciseIdx = it.currentExerciseIdx - 1,
-                        currentSetIdx = prevEx.sets.lastIndex.coerceAtLeast(0),
-                        editingState = buildEditingStateForPosition(
-                            completedSets = it.completedSets,
-                            exercise = prevEx,
-                            setIdx = prevEx.sets.lastIndex.coerceAtLeast(0),
-                        ),
-                        continuityTransitionTarget = null,
-                    )
-                }
-            }
+        val previousStep = previousStepBefore(state) ?: return
+        val (exerciseIdx, setIdx) = previousStep.positionIn(allExercises) ?: return
+        val previousExercise = allExercises.getOrNull(exerciseIdx) ?: return
+        _uiState.update {
+            it.copy(
+                currentExerciseIdx = exerciseIdx,
+                currentSetIdx = setIdx,
+                editingState = buildEditingStateForPosition(
+                    completedSets = it.completedSets,
+                    exercise = previousExercise,
+                    setIdx = setIdx,
+                ),
+                continuityTransitionTarget = null,
+            )
         }
         persistOngoingState()
     }
@@ -3321,6 +3299,7 @@ class WorkoutViewModel(
         lastSet: CompletedSet? = null,
         advancedFeedback: SetAdvancedFeedback? = null,
         preserveElapsed: Boolean = false,
+        kind: RestTimerKind = RestTimerKind.STANDARD,
     ) {
         if (seconds <= 0) return
         timerJob?.cancel()
@@ -3368,6 +3347,7 @@ class WorkoutViewModel(
                 restTimerTotal = seconds,
                 isRestTimerRunning = true,
                 restModalState = it.restModalState?.copy(
+                    kind = kind,
                     activeSeconds = seconds,
                     endsAtMs = endMs,
                     isManualOverride = preserveElapsed || it.restModalState.isManualOverride,
@@ -3377,6 +3357,7 @@ class WorkoutViewModel(
                 ) ?: WorkoutRestModalState(
                     exerciseId = visibleExercises(it).getOrNull(it.currentExerciseIdx)?.id,
                     exerciseName = exerciseName,
+                    kind = kind,
                     plannedSeconds = seconds,
                     suggestedSeconds = seconds,
                     activeSeconds = seconds,
@@ -3563,13 +3544,15 @@ class WorkoutViewModel(
         when {
             pending >= 0 -> {
                 val nextExercise = allExercises.getOrNull(pending)
+                val nextStep = nextExercise?.let { firstIncompleteStepForExercise(state, it) }
+                val nextSetIdx = nextStep?.setIndex ?: 0
                 _uiState.update {
                     it.copy(
                         currentExerciseIdx = pending,
-                        currentSetIdx = 0,
+                        currentSetIdx = nextSetIdx,
                         pendingPostExerciseIdx = -1,
                         editingState = if (nextExercise != null)
-                            buildEditingStateForPosition(it.completedSets, nextExercise, 0)
+                            buildEditingStateForPosition(it.completedSets, nextExercise, nextSetIdx)
                         else null,
                     )
                 }
@@ -3746,7 +3729,8 @@ class WorkoutViewModel(
         val session = state.session ?: return
         val durationMs = System.currentTimeMillis() - state.startTimeMs
         val durationMinutes = (durationMs / 60000).toInt().coerceAtLeast(1)
-        val allExercises = sessionForActiveMode(session, state.activeMode).allExercises()
+        val activeSession = sessionForActiveMode(session, state.activeMode)
+        val allExercises = activeSession.allExercises()
 
         // Collect completed sets from ALL exercises, not just visible ones
         // (a skipped exercise may still have completed sets from before it was skipped)
@@ -3764,7 +3748,14 @@ class WorkoutViewModel(
                 canonicalExerciseId = exercise.canonicalExerciseId ?: canonicalExerciseKey(exercise),
                 relativeToCanonicalExerciseId = exercise.relativeToCanonicalExerciseId,
                 restTime = exercise.restTime ?: 90,
-                supersetId = exercise.supersetId,
+                supersetId = exercise.supersetGroupRefOrLegacyId(),
+                supersetExerciseCount = exercise.supersetGroupRefOrLegacyId()
+                    ?.let { SupersetRules.orderedMembers(activeSession, it).size }
+                    ?: 1,
+                supersetRounds = exercise.supersetGroupRefOrLegacyId()
+                    ?.let { SupersetRules.roundCount(activeSession, it) },
+                supersetRestBetween = exercise.supersetRestBetween,
+                supersetRestAfter = exercise.supersetRestAfter,
                 sets = sets,
             )
         }.filter { it.sets.isNotEmpty() }

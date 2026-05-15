@@ -125,6 +125,10 @@ class SessionSerializationTest {
                             isCompetitionLift = true,
                             isStarTarget = true,
                             goal1RM = 230.0,
+                            goalPr = PrReference(200.0, 6),
+                            unilateralMode = UnilateralMode.UNILATERAL_DIFFERENTIAL,
+                            unilateralSideOrder = UnilateralSideOrder.RIGHT_LEFT,
+                            restBetweenSidesSeconds = 25,
                             sets = listOf(
                                 ExerciseSet(
                                     id = "set-1",
@@ -162,6 +166,9 @@ class SessionSerializationTest {
         assertEquals(true, decoded.competitionDetails?.reminder48hEnabled)
         assertEquals("Rack 12", decoded.parts.first().exercises.first().setupDetails?.seatPosition)
         assertEquals(true, decoded.parts.first().exercises.first().isCompetitionLift)
+        assertEquals(PrReference(200.0, 6), decoded.parts.first().exercises.first().goalPr)
+        assertEquals(UnilateralSideOrder.RIGHT_LEFT, decoded.parts.first().exercises.first().unilateralSideOrder)
+        assertEquals(25, decoded.parts.first().exercises.first().restBetweenSidesSeconds)
         assertEquals(true, decoded.parts.first().exercises.first().sets.first().isCalibrator)
         assertEquals(AttemptResult.GOOD, decoded.parts.first().exercises.first().sets.first().attemptResult)
         assertEquals(9, decoded.parts.first().exercises.first().sets.first().technicalQuality)

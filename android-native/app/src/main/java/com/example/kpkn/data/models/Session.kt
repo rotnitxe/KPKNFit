@@ -61,6 +61,13 @@ data class SupersetGroup(
     val restBetweenExercises: Int = 60,
     val restAfterSuperset: Int = 120,
     val rounds: Int? = null,
+    val visualPlacement: SupersetVisualPlacement? = null,
+)
+
+@Serializable
+data class SupersetVisualPlacement(
+    val partId: String? = null,
+    val anchorExerciseId: String? = null,
 )
 
 @Serializable
@@ -188,8 +195,11 @@ data class Exercise(
     val brandEquivalencies: List<BrandEquivalency> = emptyList(),
     val isUnilateral: Boolean = false,
     val unilateralMode: UnilateralMode = UnilateralMode.BILATERAL,
+    val unilateralSideOrder: UnilateralSideOrder = UnilateralSideOrder.LEFT_RIGHT,
+    val restBetweenSidesSeconds: Int? = null,
     val isCalibratorAmrap: Boolean = false,
     val goal1RM: Double? = null,
+    val goalPr: PrReference? = null,
     val calculated1RM: Double? = null,
     val damageProfile: DamageProfile? = null,
     val isCompetitionLift: Boolean = false,
@@ -220,6 +230,7 @@ enum class TimeStrategy { COUNTDOWN, CHRONOMETER, FREE }
 enum class DamageProfile { STRETCH, SQUEEZE, NORMAL }
 enum class ExerciseRelationshipType { VARIATION, ASSISTANCE, OVERLOAD, TECHNIQUE }
 enum class UnilateralMode { BILATERAL, UNILATERAL_PAIRED, UNILATERAL_DIFFERENTIAL }
+enum class UnilateralSideOrder { LEFT_RIGHT, RIGHT_LEFT }
 enum class TechniqueType { DROP_SET, REST_PAUSE, PARTIALS, ISO_HOLD, NEGATIVES, CLUSTER_SET }
 
 @Serializable

@@ -139,7 +139,13 @@ internal fun RestTimerOverlay(
                         fontSize = 52.sp,
                     )
                     Text(
-                        text = "descanso",
+                        text = when (state.kind) {
+                            RestTimerKind.SUPERSET_INTRA -> "intra superserie"
+                            RestTimerKind.SUPERSET_ROUND -> "entre superseries"
+                            RestTimerKind.WARMUP -> "aproximacion"
+                            RestTimerKind.BETWEEN_SIDES -> "entre lados"
+                            RestTimerKind.STANDARD -> "descanso"
+                        },
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.White.copy(alpha = 0.55f),
                         letterSpacing = 3.sp,

@@ -154,7 +154,10 @@ object TrainingEnergyEngine {
                 val bodyweightPart = bodyweightParticipation(compEx.exerciseName, dbInfo?.equipment)
                 val densityMult = AugeFatigueEngine.getDensityMultiplierForExercise(
                     supersetId = compEx.supersetId,
-                    restTime = compEx.restTime,
+                    restTime = compEx.supersetRestBetween ?: compEx.restTime,
+                    supersetExerciseCount = compEx.supersetExerciseCount,
+                    supersetRounds = compEx.supersetRounds,
+                    supersetRestAfter = compEx.supersetRestAfter,
                 )
 
                 val effSets = compEx.sets.filter { !it.skipped }

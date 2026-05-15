@@ -203,6 +203,7 @@ import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.estimatePercent1RM
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
@@ -2515,6 +2516,37 @@ private fun ExerciseEditorCard(
                     )
                 }
 
+                if (exercise.unilateralMode != UnilateralMode.BILATERAL || exercise.isUnilateral) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        FilterChip(
+                            selected = exercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT,
+                            onClick = {
+                                onUpdateExercise { it.copy(unilateralSideOrder = UnilateralSideOrder.LEFT_RIGHT) }
+                            },
+                            label = { Text("L → R", style = MaterialTheme.typography.labelSmall) },
+                        )
+                        FilterChip(
+                            selected = exercise.unilateralSideOrder == UnilateralSideOrder.RIGHT_LEFT,
+                            onClick = {
+                                onUpdateExercise { it.copy(unilateralSideOrder = UnilateralSideOrder.RIGHT_LEFT) }
+                            },
+                            label = { Text("R → L", style = MaterialTheme.typography.labelSmall) },
+                        )
+                        EditorMiniField(
+                            label = "Descanso lados (s)",
+                            value = exercise.restBetweenSidesSeconds?.toString().orEmpty(),
+                            keyboardType = KeyboardType.Number,
+                            modifier = Modifier.widthIn(min = 140.dp),
+                        ) { input ->
+                            val seconds = input.filter { it.isDigit() }.take(4).toIntOrNull()
+                            onUpdateExercise { it.copy(restBetweenSidesSeconds = seconds) }
+                        }
+                    }
+                }
+
                 if (exercise.trainingMode == TrainingMode.CUSTOM) {
                     Surface(
                         modifier = Modifier
@@ -3700,7 +3732,9 @@ private fun SessionEditorSheets(
                 onDismiss = onDismiss,
             )
             SessionEditorSheet.SUPERSERIE_MANAGER -> {
-                val supersetExercises = session.allExercises().filter { it.supersetId == uiState.supersetManagerSupersetId }
+                val supersetExercises = uiState.supersetManagerSupersetId
+                    ?.let { SupersetRules.orderedMembers(session, it) }
+                    .orEmpty()
                 SupersetManagerSheet(
                     exercises = supersetExercises,
                     partId = uiState.supersetManagerPartId,
@@ -4269,7 +4303,7 @@ private fun SupersetCreatorSheet(
     ) {
         Text("Crear superserie", fontWeight = FontWeight.Black, fontSize = 18.sp)
         Text(
-            "Elige 2 o más ejercicios del mismo grupo, ordena la secuencia y configura descansos.",
+            "Elige 2 o más ejercicios de la sesión, ordena la secuencia y configura descansos.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
