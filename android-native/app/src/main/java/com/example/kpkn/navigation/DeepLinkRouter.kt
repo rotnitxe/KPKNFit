@@ -41,6 +41,7 @@ object DeepLinkRouter {
         return when (first) {
             "home", "inicio" -> ResolvedRoute(KpknRoute.Home.route)
             "training", "entreno" -> ResolvedRoute(KpknRoute.Training.route)
+            "competitions", "competencias", "competicion", "competición" -> ResolvedRoute(KpknRoute.Competitions.route)
             "rings", "mis-rings", "my-rings" -> ResolvedRoute(KpknRoute.MyRings.route)
             "nutrition", "nutricion", "nutrición" -> {
                 when (second) {

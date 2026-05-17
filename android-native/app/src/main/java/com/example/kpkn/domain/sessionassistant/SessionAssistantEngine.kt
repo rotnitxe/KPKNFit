@@ -14,6 +14,7 @@ import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
+import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.models.AugeMetrics
 import com.example.kpkn.domain.auge.AugeClassifiers
@@ -33,33 +34,25 @@ object SessionAssistantEngine {
         val volumeResult = calcularVolumenPorMusculo(input)
         val drain = calcularDrenajeEstimado(input)
         val thresholds = buildVolumeThresholds(input, volumeResult.volumeMap)
-        val weeklyVolume = calcularVolumenSemanal(input)
-        val riesgos = detectarRiesgos(input, volumeResult, drain, thresholds, weeklyVolume)
-        val ajustes = generarAjustes(input, volumeResult, drain, riesgos)
-        val oportunidades = generarOportunidades(input, volumeResult, drain, thresholds, riesgos, weeklyVolume)
-        val tarjetasFantasma = generarTarjetasFantasma(input, volumeResult, drain, thresholds, riesgos, weeklyVolume)
-        val plantillasCompatibles = buscarPlantillasCompatibles(input, allTemplates)
-        val veredicto = clasificarVeredicto(riesgos, drain, input.settings)
-        val score = calcularScore(veredicto, riesgos, drain)
+        val ajustes = generarAjustesPorRings(input, volumeResult, drain)
         val duracion = estimateSessionDurationMinutes(
             volumeResult.totalSets,
             input.allExercisesInSession.mapNotNull { it.restTime }.ifEmpty { listOf(90) }.average().toInt(),
         )
-        val resumen = construirResumen(veredicto, riesgos, ajustes, tarjetasFantasma)
 
         return SessionAssistantReport(
-            veredicto = veredicto,
-            scoreEstimado = score,
-            riesgos = riesgos,
+            veredicto = Verdict.OPTIMAL,
+            scoreEstimado = 0,
+            riesgos = emptyList(),
             ajustes = ajustes,
-            oportunidades = oportunidades,
-            tarjetasFantasma = tarjetasFantasma,
-            plantillasCompatibles = plantillasCompatibles,
+            oportunidades = emptyList(),
+            tarjetasFantasma = emptyList(),
+            plantillasCompatibles = emptyList(),
             volumenPorMusculo = volumeResult.volumeMap.mapValues { it.value.flat },
             umbralesPorMusculo = thresholds,
             drenajeEstimado = drain,
             duracionEstimada = duracion,
-            resumenTexto = resumen,
+            resumenTexto = "",
         )
     }
 
@@ -165,7 +158,7 @@ object SessionAssistantEngine {
                     accumulatedSets = 0,
                     restTime = exercise.restTime ?: 90,
                     densityMultiplier = AugeFatigueEngine.getDensityMultiplierForExercise(
-                        supersetId = exercise.supersetId,
+                        supersetId = exercise.supersetGroupRefOrLegacyId(),
                         restTime = exercise.restTime ?: 90,
                     ),
                 )
@@ -596,6 +589,67 @@ object SessionAssistantEngine {
         }
 
         return ajustes.sortedBy { it.priority }
+    }
+
+    internal fun generarAjustesPorRings(
+        input: SessionAssistantInput,
+        volume: VolumeCalculationResult,
+        drain: PredictedDrain,
+    ): List<AssistantSuggestion> {
+        val ajustes = mutableListOf<AssistantSuggestion>()
+        val heavyExercises = volume.exerciseInsights
+            .filter { it.muscular >= 40.0 || it.cns >= 40.0 || it.spinal >= 40.0 }
+            .sortedWith(compareByDescending<ExerciseInsightData> { maxOf(it.muscular, it.cns, it.spinal) }.thenBy { it.name })
+            .take(2)
+        val targetNames = heavyExercises.joinToString(", ") { it.name }.ifBlank { "los ejercicios más demandantes" }
+
+        if (drain.spinal >= 40) {
+            ajustes += AssistantSuggestion(
+                id = "rings-spinal-moderate",
+                type = AssistantActionType.LOWER_RPE,
+                title = "Moderar carga axial",
+                message = "La batería espinal bajaría ${drain.spinal}%. Mantén la estructura, pero baja 0.5-1 RPE y recorta 1 serie total entre $targetNames.",
+                priority = 1,
+            )
+        }
+
+        if (drain.cns >= 40) {
+            ajustes += AssistantSuggestion(
+                id = "rings-cns-moderate",
+                type = AssistantActionType.LOWER_RPE,
+                title = "Bajar drenaje SNC",
+                message = "La batería SNC bajaría ${drain.cns}%. Reduce levemente la intensidad en los sets duros y evita llevar series al límite en $targetNames.",
+                priority = 2,
+            )
+        }
+
+        if (drain.muscular >= 40) {
+            val muscle = volume.volumeMap.maxByOrNull { it.value.effective }?.key
+            ajustes += AssistantSuggestion(
+                id = "rings-muscular-moderate-${muscle ?: "general"}",
+                type = AssistantActionType.REDUCE_SET,
+                title = "Ajustar volumen efectivo",
+                message = "La batería muscular bajaría ${drain.muscular}%. Recorta 1 serie del bloque principal y baja 0.5 RPE en los sets finales para conservar estímulo.",
+                muscle = muscle,
+                priority = 3,
+            )
+        }
+
+        heavyExercises.forEachIndexed { index, exercise ->
+            val peak = maxOf(exercise.muscular, exercise.cns, exercise.spinal)
+            if (peak < 40.0) return@forEachIndexed
+            ajustes += AssistantSuggestion(
+                id = "rings-exercise-${exercise.exerciseId}",
+                type = AssistantActionType.LOWER_RPE,
+                title = "Suavizar ${exercise.name}",
+                message = "${exercise.name} concentra un drenaje cercano a ${peak.roundToInt()}%. Usa un ajuste moderado: 1 serie menos si hay muchas series, o 0.5-1 RPE menos si el volumen debe mantenerse.",
+                exerciseId = exercise.exerciseId,
+                exerciseName = exercise.name,
+                priority = 4 + index,
+            )
+        }
+
+        return ajustes.distinctBy { it.id }.sortedBy { it.priority }
     }
 
     internal fun generarOportunidades(

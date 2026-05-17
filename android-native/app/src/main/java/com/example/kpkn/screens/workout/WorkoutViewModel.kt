@@ -28,6 +28,7 @@ import com.example.kpkn.data.db.toEntity as rangeToEntity
 import com.example.kpkn.domain.performance.PerformanceRangeCalculator
 import com.example.kpkn.domain.performance.PerformanceRangeResult
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine
 import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
@@ -147,6 +148,7 @@ data class WorkoutUiState(
     // sleepQuality (1-5) del último DailyWellbeingLog — para el sleep modifier de carga
     val sleepQuality: Int? = null,
     val liveEnergySummary: SessionEnergySummary = SessionEnergySummary(),
+    val persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
     val previousSessionDiscomforts: List<String> = emptyList(),
     val showExecutionErrorDiscomfortSheet: Boolean = false,
@@ -292,7 +294,7 @@ class WorkoutViewModel(
         val resumedState = repository.ongoingWorkout.value
             ?.takeIf { it.programId == programId && it.session.id == sessionId }
 
-        val restoredSession = resumedState?.session ?: session
+        val restoredSession = (resumedState?.session ?: session).normalizeSupersetsForWorkout()
         val restoredMode = resumedState?.activeMode ?: WeekVariant.A
         val restoredCompletedSets = resumedState?.completedSets ?: emptyMap()
         val restoredSkippedExerciseIds = resumedState?.skippedExerciseIds ?: emptySet()
@@ -367,9 +369,12 @@ class WorkoutViewModel(
             }
         }
 
+        val currentTimeMs = System.currentTimeMillis()
+        val restoredRestState = resumedState?.restModalState?.takeIf { it.endsAtMs > currentTimeMs }
+
         _uiState.update {
             it.copy(
-                session = restoredSession.normalizedIdentityFields(),
+                session = restoredSession.normalizedIdentityFields().normalizeSupersetsForWorkout(),
                 activeMode = restoredMode,
                 weekId = foundWeekId,
                 macroIndex = foundMacroIdx,
@@ -393,16 +398,17 @@ class WorkoutViewModel(
                 readinessMuscleOverrides = resumedState?.readinessMuscleOverrides ?: emptyMap(),
                 setDrafts = resumedState?.setDrafts ?: emptyMap(),
                 manualLoadOverrides = resumedState?.manualLoadOverrides ?: emptyMap(),
-                restModalState = resumedState?.restModalState,
+                restModalState = restoredRestState,
                 editingState = restoredEditingState,
+                persistedLoadModeBySet = resumedState?.persistedLoadModeBySet ?: emptyMap(),
                 persistedLoadModeByExercise = resumedState?.persistedLoadModeByExercise ?: emptyMap(),
             )
         }
 
-        resumedState?.restModalState?.takeIf { it.endsAtMs > System.currentTimeMillis() }?.let { restoredRestState ->
+        restoredRestState?.let { activeRestState ->
             val capability = restAlertManager.capabilityState(soundsEnabled = settings.soundsEnabled)
-            val restoredSeconds = ((restoredRestState.endsAtMs - System.currentTimeMillis()) / 1000L).toInt().coerceAtLeast(1)
-            val patchedRestState = restoredRestState.copy(
+            val restoredSeconds = ((activeRestState.endsAtMs - currentTimeMs) / 1000L).toInt().coerceAtLeast(1)
+            val patchedRestState = activeRestState.copy(
                 notificationsEnabled = capability.notificationsEnabled,
                 exactAlarmGranted = capability.exactAlarmGranted,
                 soundReady = capability.soundReady,
@@ -663,6 +669,24 @@ class WorkoutViewModel(
 
     private fun inferLoadMode(set: ExerciseSet): LoadModeV2 = set.loadModeV2 ?: LoadModeV2.LOAD
 
+    private fun effectiveLoadModeForExercise(exercise: Exercise, setIdx: Int? = null): LoadModeV2 {
+        val state = _uiState.value
+        if (setIdx != null) {
+            resolvePersistedLoadModeForSet(
+                exerciseId = exercise.id,
+                setIdx = setIdx,
+                persistedLoadModeBySet = state.persistedLoadModeBySet,
+                persistedLoadModeByExercise = state.persistedLoadModeByExercise,
+            )?.let { return it }
+        } else {
+            state.persistedLoadModeByExercise[exercise.id]?.let { return it }
+        }
+        val plannedSet = setIdx?.let { exercise.sets.getOrNull(it) }
+        return plannedSet?.let(::inferLoadMode)
+            ?: exercise.sets.firstOrNull()?.let(::inferLoadMode)
+            ?: LoadModeV2.LOAD
+    }
+
     private fun inferPlannedTarget(set: ExerciseSet, unitMode: UnitModeV2): Double? = when (unitMode) {
         UnitModeV2.TIME -> set.plannedTargetV2 ?: set.targetDuration?.toDouble()
         UnitModeV2.DISTANCE -> set.plannedTargetV2 ?: set.targetReps?.toDouble()
@@ -741,7 +765,7 @@ class WorkoutViewModel(
         val activeProfile = activeContextProfile(exercise.id)
 
         val resolvedUnitMode = unitMode ?: plannedSet?.let { inferUnitMode(exercise, it) } ?: UnitModeV2.REPS
-        var resolvedLoadMode = loadMode ?: plannedSet?.let { inferLoadMode(it) } ?: LoadModeV2.LOAD
+        var resolvedLoadMode = loadMode ?: effectiveLoadModeForExercise(exercise, targetSetIdx)
         if (resolvedLoadMode == LoadModeV2.ASSISTED && weight <= 0.0) {
             resolvedLoadMode = LoadModeV2.BODYWEIGHT
         }
@@ -906,6 +930,9 @@ class WorkoutViewModel(
                 augeEquivalentReps = logicalActualValue.roundToInt().coerceAtLeast(0),
             )
 
+        val currentWorkoutStep = workoutStepPositions(state).firstOrNull { step ->
+            step.exerciseId == exercise.id && step.setIndex == targetSetIdx
+        }
         val completedSet = applyAdvancedFeedback(
             base = CompletedSet(
                 id = UUID.randomUUID().toString(),
@@ -921,6 +948,9 @@ class WorkoutViewModel(
                 tagId = resolvedTagId,
                 setupProfileId = resolvedSetupId,
                 machineBrand = resolvedMachineBrand,
+                supersetId = exercise.supersetGroupRefOrLegacyId(),
+                supersetRoundIndex = currentWorkoutStep?.supersetRoundIndex,
+                restAfterKind = currentWorkoutStep?.restAfterKind?.name,
                 recordedPayloadV3 = recordedPayload,
                 homologatedResultV3 = evaluation?.homologated,
                 setOutcomeV2 = outcome,
@@ -982,7 +1012,8 @@ class WorkoutViewModel(
         clearDraftForSet(exercise.id, targetSetIdx, resolvedSide)
         _uiState.update { current ->
             current.copy(
-                persistedLoadModeByExercise = current.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode)
+                persistedLoadModeBySet = current.persistedLoadModeBySet + (workoutSetKey(exercise.id, targetSetIdx) to resolvedLoadMode),
+                persistedLoadModeByExercise = current.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
             )
         }
         if (weight > 0.0) {
@@ -1009,15 +1040,21 @@ class WorkoutViewModel(
             nextStepForRest.exerciseId != exercise.id &&
             nextStepForRest.supersetRoundIndex == targetSetIdx
         val restKind = when {
-            unilateralPendingOtherSide && exercise.restBetweenSidesSeconds != null -> RestTimerKind.BETWEEN_SIDES
+            unilateralPendingOtherSide && (exercise.restBetweenSidesSeconds ?: 0) > 0 -> RestTimerKind.BETWEEN_SIDES
             sameSupersetRound -> RestTimerKind.SUPERSET_INTRA
             supersetGroup != null -> RestTimerKind.SUPERSET_ROUND
             else -> RestTimerKind.STANDARD
         }
         val plannedRestForKind = when (restKind) {
             RestTimerKind.BETWEEN_SIDES -> exercise.restBetweenSidesSeconds ?: baseRest
-            RestTimerKind.SUPERSET_INTRA -> supersetGroup?.restBetweenExercises ?: exercise.supersetRestBetween ?: baseRest
-            RestTimerKind.SUPERSET_ROUND -> supersetGroup?.restAfterSuperset ?: exercise.supersetRestAfter ?: baseRest
+            RestTimerKind.SUPERSET_INTRA -> supersetGroup?.roundRestBetweenExercises?.get(targetSetIdx)
+                ?: supersetGroup?.restBetweenExercises
+                ?: exercise.supersetRestBetween
+                ?: baseRest
+            RestTimerKind.SUPERSET_ROUND -> supersetGroup?.roundRestAfterSuperset?.get(targetSetIdx)
+                ?: supersetGroup?.restAfterSuperset
+                ?: exercise.supersetRestAfter
+                ?: baseRest
             RestTimerKind.WARMUP,
             RestTimerKind.STANDARD,
             -> baseRest
@@ -1028,7 +1065,11 @@ class WorkoutViewModel(
         val augeMetrics = AugeFatigueEngine.getDynamicAugeMetrics(exercise.name, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
         val augeTanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
         val densityMult = AugeFatigueEngine.getDensityMultiplierForExercise(
-            exercise.supersetId, exercise.restTime ?: 90
+            supersetId = exercise.supersetGroupRefOrLegacyId(),
+            restTime = plannedRestForKind,
+            supersetExerciseCount = supersetGroup?.exerciseOrder?.size ?: 1,
+            supersetRounds = supersetGroup?.rounds,
+            supersetRestAfter = supersetGroup?.restAfterSuperset,
         )
         val completedCount = _uiState.value.completedSets.size
         val setDrain = AugeFatigueEngine.calculateSetBatteryDrain(
@@ -1053,7 +1094,7 @@ class WorkoutViewModel(
             dbInfo?.involvedMuscles != null && dbInfo.involvedMuscles.size <= 1 -> WorkoutAdaptiveRest.ExerciseType.ISOLATION
             else -> WorkoutAdaptiveRest.ExerciseType.UNKNOWN
         }
-        val isSuperset = !exercise.supersetId.isNullOrBlank()
+        val isSuperset = !exercise.supersetGroupRefOrLegacyId().isNullOrBlank()
         val adaptiveRest = WorkoutAdaptiveRest.compute(
             baseRestSeconds = baseRest,
             context = WorkoutAdaptiveRest.AdaptiveRestContext(
@@ -1143,6 +1184,13 @@ class WorkoutViewModel(
         WeekVariant.C -> base.sessionC ?: base
         WeekVariant.D -> base.sessionD ?: base
     }
+
+    private fun Session.normalizeSupersetsForWorkout(): Session =
+        SupersetRules.normalizeSession(this).copy(
+            sessionB = sessionB?.let(SupersetRules::normalizeSession),
+            sessionC = sessionC?.let(SupersetRules::normalizeSession),
+            sessionD = sessionD?.let(SupersetRules::normalizeSession),
+        )
 
     /**
      * Returns true when a set slot is filled, accounting for bilateral (single key)
@@ -1546,11 +1594,10 @@ class WorkoutViewModel(
             )
         }
 
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             val weight = interpretation.weightKg ?: 0.0
             val reps = interpretation.metricValue ?: 0
             val intensity = interpretation.intensityValue
-            val reachedFailure = interpretation.reachedFailure
 
             recordSetV2(
                 weight = weight,
@@ -1559,10 +1606,6 @@ class WorkoutViewModel(
                 advanced = buildVoiceAdvancedFeedback(interpretation),
                 side = resolvedSide,
             )
-
-            nextSet(stopRest = false)
-            refreshLoadSuggestions()
-            persistOngoingState()
         }
     }
 
@@ -1573,7 +1616,7 @@ class WorkoutViewModel(
         val setIdx = state.currentSetIdx
         val interpretation = voiceController.state.value.lastInterpretation ?: return
 
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             val weight = interpretation.weightKg ?: 0.0
             val reps = interpretation.metricValue ?: 0
             val intensity = interpretation.intensityValue
@@ -1585,10 +1628,6 @@ class WorkoutViewModel(
                 advanced = buildVoiceAdvancedFeedback(interpretation),
                 side = interpretation.side,
             )
-
-            nextSet(stopRest = false)
-            refreshLoadSuggestions()
-            persistOngoingState()
 
             _uiState.update {
                 it.copy(
@@ -1646,7 +1685,7 @@ class WorkoutViewModel(
         )
         val weight = suggestion?.suggestedWeight
         if (weight != null && weight > 0.0) {
-            voiceController.onRestTimerFinished(exercise.name, weight)
+            voiceController.speakSuggestedWeight(exercise.name, weight)
         }
         _uiState.update { it.copy(voiceSessionState = voiceController.state.value) }
     }
@@ -1654,14 +1693,7 @@ class WorkoutViewModel(
     private fun handleVoiceRestStatus() {
         val remaining = _restTimerRemaining.value
         if (remaining > 0) {
-            val state = _uiState.value
-            val allExercises = visibleExercises(state)
-            val exercise = allExercises.getOrNull(state.currentExerciseIdx)
-            val nextEx = allExercises.getOrNull(state.currentExerciseIdx + 1)
-            voiceController.onRestTimerFinished(
-                exerciseName = nextEx?.name ?: exercise?.name ?: "siguiente",
-                suggestedWeight = null,
-            )
+            voiceController.speakRestRemaining(remaining)
         }
         _uiState.update { it.copy(voiceSessionState = voiceController.state.value) }
     }
@@ -1675,10 +1707,7 @@ class WorkoutViewModel(
 
         viewModelScope.launch {
             val wc = voiceController
-            wc.onRestTimerFinished(
-                exerciseName = "${exercise.name}, serie $setNum de $totalSets",
-                suggestedWeight = null,
-            )
+            wc.speakCurrentExercise(exercise.name, setNum, totalSets)
         }
         _uiState.update { it.copy(voiceSessionState = voiceController.state.value) }
     }
@@ -1689,10 +1718,7 @@ class WorkoutViewModel(
         val nextEx = allExercises.getOrNull(state.currentExerciseIdx + 1)
         if (nextEx != null) {
             viewModelScope.launch {
-                voiceController.onRestTimerFinished(
-                    exerciseName = nextEx.name,
-                    suggestedWeight = null,
-                )
+                voiceController.speakNextExercise(nextEx.name)
             }
         }
         _uiState.update { it.copy(voiceSessionState = voiceController.state.value) }
@@ -1772,7 +1798,7 @@ class WorkoutViewModel(
                 exerciseDbId = exercise.exerciseDbId ?: exercise.exerciseId,
                 canonicalExerciseId = exercise.canonicalExerciseId ?: canonicalExerciseKey(exercise),
                 restTime = exercise.restTime ?: 90,
-                supersetId = exercise.supersetId,
+                supersetId = exercise.supersetGroupRefOrLegacyId(),
                 sets = sets,
             )
         }.filter { it.sets.any { s -> !s.skipped } }
@@ -1866,7 +1892,7 @@ class WorkoutViewModel(
     }
 
     private fun isAssistedExercise(exercise: Exercise, setIdx: Int): Boolean {
-        return inferLoadMode(exercise.sets.getOrNull(setIdx) ?: return false) == LoadModeV2.ASSISTED
+        return effectiveLoadModeForExercise(exercise, setIdx) == LoadModeV2.ASSISTED
     }
 
     private fun manualOverrideForSet(exerciseId: String, setIdx: Int, side: String? = null): Double? {
@@ -1912,7 +1938,8 @@ class WorkoutViewModel(
         side: String?,
     ): Pair<Double?, WorkoutLoadSuggestionSource> {
         val plannedWeight = plannedWorkingWeightForSet(exercise, setIdx)?.takeIf { it > 0.0 }
-        val historyWeight = getWeightSuggestion(exercise, setIdx, activeTag)?.suggestedWeight?.takeIf { it > 0.0 }
+        val historySuggestion = getWeightSuggestion(exercise, setIdx, activeTag)
+        val historyWeight = historySuggestion?.suggestedWeight?.takeIf { it > 0.0 }
         val sessionSets = completedSessionSetsForExercise(exercise, activeTag)
             .filter { !it.completedSet.skipped }
         val sideFilteredSets = if (side != null) {
@@ -1930,7 +1957,10 @@ class WorkoutViewModel(
             }
         if (manualAnchor != null) return manualAnchor to WorkoutLoadSuggestionSource.MANUAL_BASE
 
-        val firstActual = sideFilteredSets.firstOrNull()?.completedSet?.weight?.takeIf { it > 0.0 }
+        val firstActual = sideFilteredSets.firstOrNull()
+            ?.completedSet
+            ?.let { completed -> inputLoadForSuggestion(completed, effectiveLoadModeForExercise(exercise, setIdx)) }
+            ?.takeIf { it > 0.0 }
         if (firstActual != null && setIdx > 0) {
             return firstActual to WorkoutLoadSuggestionSource.SESSION_ERM
         }
@@ -2010,9 +2040,10 @@ class WorkoutViewModel(
     ): WorkoutLoadSuggestionUi? {
         val manualOverride = manualOverrideForSet(exercise.id, setIdx, side)
         val resolvedBase = determineSessionBaseWeight(exercise, setIdx, activeTag, side)
+        val historySuggestion = getWeightSuggestion(exercise, setIdx, activeTag)
         val baseWeight = (manualOverride ?: resolvedBase.first)?.takeIf { it > 0.0 } ?: return null
         val originalWeight = plannedWorkingWeightForSet(exercise, setIdx)
-            ?: getWeightSuggestion(exercise, setIdx, activeTag)?.suggestedWeight
+            ?: historySuggestion?.suggestedWeight
             ?: baseWeight
         val shouldRespectPlan = shouldUsePlanAsDominantBase(exercise, setIdx)
 
@@ -2029,6 +2060,13 @@ class WorkoutViewModel(
 
         val bestRatio = exerciseHistory.mapNotNull { performanceRatioForSet(it.completedSet) }.maxOrNull()
         val worstRatio = exerciseHistory.mapNotNull { performanceRatioForSet(it.completedSet) }.minOrNull()
+        val latestCompletedSet = exerciseHistory.lastOrNull()?.completedSet
+        val latestRatio = latestCompletedSet?.let(::performanceRatioForSet)
+        val severePerformanceDrop = latestCompletedSet != null && (
+            latestCompletedSet.failureReason == "execution_error" ||
+                (latestCompletedSet.isPartial && (latestRatio ?: 1.0) <= 0.85) ||
+                (latestRatio != null && latestRatio <= 0.70)
+            )
         var reason = when (manualOverride) {
             null -> when (resolvedBase.second) {
                 WorkoutLoadSuggestionSource.MANUAL_BASE -> "Base manual de la sesión"
@@ -2052,6 +2090,13 @@ class WorkoutViewModel(
             reason += " · Fatiga detectada"
         }
 
+        if (!severePerformanceDrop) {
+            computedWeight = maxOf(computedWeight, baseWeight * 0.80)
+        } else {
+            computedWeight = maxOf(computedWeight, baseWeight * 0.70)
+            reason += " · Rendimiento muy bajo"
+        }
+
         val finalWeight = if (isAssistedExercise(exercise, setIdx)) {
             coerceLoadStep(computedWeight).coerceAtLeast(0.5)
         } else {
@@ -2064,6 +2109,7 @@ class WorkoutViewModel(
             isRecalculated = abs(finalWeight - originalWeight) >= 0.25,
             reason = reason,
             source = if (manualOverride != null) WorkoutLoadSuggestionSource.MANUAL_BASE else resolvedBase.second,
+            suggestedLoadMode = historySuggestion?.suggestedLoadMode,
         )
     }
 
@@ -2166,6 +2212,7 @@ class WorkoutViewModel(
                     manualLoadOverrides = state.manualLoadOverrides,
                     editingSetKey = state.editingState?.setKey,
                     restModalState = state.restModalState,
+                    persistedLoadModeBySet = state.persistedLoadModeBySet,
                     persistedLoadModeByExercise = state.persistedLoadModeByExercise,
                 )
             }
@@ -2261,7 +2308,14 @@ class WorkoutViewModel(
     }
 
     private fun ExerciseSet.normalizeWorkoutSet(exercise: Exercise): ExerciseSet {
-        val normalized = when (exercise.trainingMode) {
+        val normalized = if (isFailure || intensityMode == IntensityMode.FAILURE) {
+            copy(
+                intensityMode = IntensityMode.FAILURE,
+                targetRPE = null,
+                targetRIR = null,
+                isFailure = true,
+            )
+        } else when (exercise.trainingMode) {
             TrainingMode.RM -> copy(
                 intensityMode = IntensityMode.LOAD,
                 targetRPE = null,
@@ -2314,7 +2368,7 @@ class WorkoutViewModel(
     private fun workoutStepPositions(state: WorkoutUiState): List<WorkoutStep> {
         val baseSession = state.session ?: return emptyList()
         val modeSession = sessionForActiveMode(baseSession, state.activeMode)
-        return WorkoutStepRules.buildWorkingPositions(
+        return WorkoutStepRules.buildSetPositions(
             session = modeSession,
             visibleExercises = visibleExercises(state),
         )
@@ -2412,6 +2466,24 @@ class WorkoutViewModel(
         return abs(adaptiveRest - baseRest) >= 15
     }
 
+    private fun openFinishSheet() {
+        _uiState.update {
+            it.copy(
+                showFinishSheet = true,
+                postExerciseTargetIdx = -1,
+                pendingPostExerciseIdx = -1,
+                showPostExerciseSheet = false,
+                pendingRestSuggestion = null,
+                restModalState = null,
+                editingState = null,
+                continuityTransitionTarget = null,
+                continuityFeedbackExerciseId = null,
+                isRestTimerRunning = false,
+            )
+        }
+        persistOngoingState()
+    }
+
     private fun skipExerciseAndAdvance(state: WorkoutUiState, exerciseId: String) {
         val currentExerciseId = visibleExercises(state)
             .getOrNull(state.currentExerciseIdx)
@@ -2446,6 +2518,10 @@ class WorkoutViewModel(
             )
         }
         persistOngoingState()
+
+        if (nextIncompleteStepAfter(_uiState.value) == null) {
+            openFinishSheet()
+        }
     }
 
     fun setActiveMode(mode: WeekVariant) {
@@ -2490,8 +2566,34 @@ class WorkoutViewModel(
             )
         }
         if (updatedSession == base) return
-        _uiState.update { it.copy(session = updatedSession) }
-        persistOngoingState()
+        applySessionMutation(updatedSession, preferredExerciseId = targetIds.firstOrNull())
+    }
+
+    fun dissolveLiveSuperset(groupId: String, preferredExerciseId: String? = null) {
+        val state = _uiState.value
+        val base = state.session ?: return
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            SupersetRules.dissolve(modeSession, groupId)
+        }
+        if (updatedSession == base) return
+        applySessionMutation(updatedSession, preferredExerciseId = preferredExerciseId)
+    }
+
+    fun updateLiveSupersetRest(groupId: String, restBetween: Int?, restAfter: Int?, rounds: Int?) {
+        val state = _uiState.value
+        val base = state.session ?: return
+        val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            SupersetRules.updateRest(
+                session = modeSession,
+                groupId = groupId,
+                restBetweenExercises = restBetween,
+                restAfterSuperset = restAfter,
+                rounds = rounds,
+            )
+        }
+        if (updatedSession == base) return
+        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId)
     }
 
     fun moveExercise(exerciseId: String, direction: Int) {
@@ -2582,7 +2684,8 @@ class WorkoutViewModel(
         preferredSetId: String? = null,
     ) {
         val state = _uiState.value
-        val preview = state.copy(session = updatedSession)
+        val normalizedSession = updatedSession.normalizeSupersetsForWorkout()
+        val preview = state.copy(session = normalizedSession)
         val visible = visibleExercises(preview)
         val resolvedExerciseIdx = preferredExerciseId
             ?.let { targetId -> visible.indexOfFirst { it.id == targetId } }
@@ -2602,20 +2705,21 @@ class WorkoutViewModel(
 
         _uiState.update {
             it.copy(
-                session = updatedSession,
+                session = normalizedSession,
                 currentExerciseIdx = resolvedExerciseIdx,
                 currentSetIdx = resolvedSetIdx,
             )
         }
         refreshLoadSuggestions(_uiState.value)
         persistOngoingState()
-        persistSessionToProgram(updatedSession)
+        persistSessionToProgram(normalizedSession)
     }
 
     private fun persistSessionToProgram(updatedSession: Session) {
         val state = _uiState.value
         if (state.weekId.isBlank()) return
         val program = repository.getProgramById(programId) ?: return
+        if (!WorkoutEditingRules.canPersistLiveStructuralChanges(program)) return
         val updatedProgram = program.updateWeekSessions(state.macroIndex, state.mesoIndex, state.weekId) { sessions ->
             sessions.map { session -> if (session.id == sessionId) updatedSession else session }
         }
@@ -3033,23 +3137,21 @@ class WorkoutViewModel(
         val state = _uiState.value
         val currentExercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
         if (currentExercise == null) {
-            _uiState.update { it.copy(showFinishSheet = true) }
+            openFinishSheet()
             return
         }
         skipExerciseAndAdvance(state, currentExercise.id)
-        val updatedState = _uiState.value
-        if (visibleExercises(updatedState).isEmpty()) {
-            _uiState.update {
-                it.copy(
-                    showFinishSheet = true,
-                    pendingPostExerciseIdx = -1,
-                    showPostExerciseSheet = false,
-                    restModalState = null,
-                    isRestTimerRunning = false,
-                )
-            }
-            persistOngoingState()
+    }
+
+    fun deferSkipRemainingCurrentExercise() {
+        val restState = _uiState.value.restModalState ?: return
+        if (restState.skipCurrentExerciseOnFinish) return
+        _uiState.update {
+            it.copy(
+                restModalState = restState.copy(skipCurrentExerciseOnFinish = true),
+            )
         }
+        persistOngoingState()
     }
 
     fun skipSet() {
@@ -3068,13 +3170,23 @@ class WorkoutViewModel(
         val updatedCompleted = state.completedSets.toMutableMap()
         val updatedAdvanced = state.setAdvancedFeedback.toMutableMap()
 
-        val targets = if (exercise.isEffectivelyUnilateral()) {
-            listOf("left", "right")
+        val targetSides = if (exercise.isEffectivelyUnilateral()) {
+            val sideOrder = when (exercise.unilateralSideOrder) {
+                com.example.kpkn.data.models.UnilateralSideOrder.LEFT_RIGHT -> listOf("left", "right")
+                com.example.kpkn.data.models.UnilateralSideOrder.RIGHT_LEFT -> listOf("right", "left")
+            }
+            sideOrder.firstOrNull { side ->
+                !state.completedSets.containsKey(buildCompletedSetKey(exercise.id, state.currentSetIdx, side))
+            }?.let(::listOf).orEmpty()
         } else {
             listOf<String?>(null)
         }
+        if (targetSides.isEmpty()) {
+            nextSet(stopRest = false)
+            return
+        }
 
-        targets.forEach { side ->
+        targetSides.forEach { side ->
             val key = buildCompletedSetKey(exercise.id, state.currentSetIdx, side)
             updatedCompleted[key] = applyAdvancedFeedback(
                 base = CompletedSet(
@@ -3100,12 +3212,18 @@ class WorkoutViewModel(
                 pendingRestSuggestion = null,
             )
         }
-        targets.forEach { side ->
+        targetSides.forEach { side ->
             clearDraftForSet(exercise.id, state.currentSetIdx, side)
         }
         refreshLoadSuggestions(_uiState.value)
         persistOngoingState()
-        nextSet(stopRest = false)
+        val stillPendingSide = exercise.isEffectivelyUnilateral() &&
+            listOf("left", "right").any { side ->
+                !updatedCompleted.containsKey(buildCompletedSetKey(exercise.id, state.currentSetIdx, side))
+            }
+        if (!stillPendingSide) {
+            nextSet(stopRest = false)
+        }
     }
 
     fun markWarmupComplete(exerciseId: String) {
@@ -3155,18 +3273,9 @@ class WorkoutViewModel(
         _uiState.update {
             it.copy(
                 skippedExerciseIds = it.skippedExerciseIds + omittedIds,
-                showPostExerciseSheet = false,
-                postExerciseTargetIdx = -1,
-                pendingPostExerciseIdx = -1,
-                showFinishSheet = true,
-                pendingRestSuggestion = null,
-                restModalState = null,
-                editingState = null,
-                continuityTransitionTarget = null,
-                continuityFeedbackExerciseId = null,
             )
         }
-        persistOngoingState()
+        openFinishSheet()
     }
 
     fun selectExercise(idx: Int) {
@@ -3216,8 +3325,11 @@ class WorkoutViewModel(
         val nextSetIdx = nextPosition.second
         val nextExercise = allExercises.getOrNull(nextExerciseIdx) ?: return
         val exerciseChanged = nextExerciseIdx != state.currentExerciseIdx
+        val staysInSameSuperset = currentEx.supersetGroupRefOrLegacyId()?.let { groupId ->
+            groupId == nextStep.supersetGroupId
+        } == true
 
-        if (exerciseChanged && isExerciseCompleteInSteps(state, currentEx)) {
+        if (exerciseChanged && !staysInSameSuperset && isExerciseCompleteInSteps(state, currentEx)) {
             val transitionTarget = state.session?.let {
                 buildWorkoutContinuityTransitionTarget(
                     session = it,
@@ -3247,6 +3359,34 @@ class WorkoutViewModel(
                     continuityFeedbackExerciseId = null,
                 )
             }
+        }
+        persistOngoingState()
+    }
+
+    fun selectSupersetGroup(groupId: String) {
+        if (_uiState.value.showPostExerciseSheet) return
+        stopRestTimer()
+        _currentAutoRegulation.value = null
+        val state = _uiState.value
+        val visible = visibleExercises(state)
+        val targetStep = workoutStepPositions(state).firstOrNull { step ->
+            step.supersetGroupId == groupId &&
+                !isWorkoutStepDone(step, visible, state.completedSets)
+        } ?: workoutStepPositions(state).firstOrNull { it.supersetGroupId == groupId }
+            ?: return
+        val position = targetStep.positionIn(visible) ?: return
+        val targetExercise = visible.getOrNull(position.first)
+        _uiState.update {
+            it.copy(
+                currentExerciseIdx = position.first,
+                currentSetIdx = position.second,
+                currentAutoRegulation = null,
+                pendingRestSuggestion = null,
+                restModalState = null,
+                editingState = buildEditingStateForPosition(it.completedSets, targetExercise, position.second),
+                continuityTransitionTarget = null,
+                continuityFeedbackExerciseId = null,
+            )
         }
         persistOngoingState()
     }
@@ -3369,6 +3509,7 @@ class WorkoutViewModel(
                 )
             )
         }
+        persistOngoingState()
         _restTimerRemaining.value = seconds
         timerJob = viewModelScope.launch {
             while (true) {
@@ -3384,6 +3525,12 @@ class WorkoutViewModel(
                 if (remaining <= 0) break
             }
             restAlertManager.onTimerFinishedInApp(activeRestTimerId)
+            _uiState.value.restModalState?.exerciseName?.let { nextExerciseName ->
+                voiceController.onRestTimerFinished(
+                    exerciseName = nextExerciseName,
+                    suggestedWeight = suggestedWeightForVoiceAfterRest(),
+                )
+            }
             activeRestTimerId = null
             restReferenceSet = null
             restReferenceAdvanced = null
@@ -3393,29 +3540,50 @@ class WorkoutViewModel(
             if (advanceOnFinish) {
                 nextSet(stopRest = false)
             } else {
-                val pending = _uiState.value.pendingPostExerciseIdx
-                if (pending >= 0) {
-                    val currentExIdx = _uiState.value.currentExerciseIdx
+                val shouldSkipCurrentExercise = _uiState.value.restModalState?.skipCurrentExerciseOnFinish == true
+                if (shouldSkipCurrentExercise) {
                     _uiState.update {
                         it.copy(
                             isRestTimerRunning = false,
                             restModalState = null,
-                            showPostExerciseSheet = true,
-                            postExerciseTargetIdx = currentExIdx,
-                            currentExerciseIdx = currentExIdx,
+                            pendingRestSuggestion = null,
                         )
                     }
-                } else if (pending == -2) {
-                    _uiState.update {
-                        it.copy(
-                            isRestTimerRunning = false,
-                            restModalState = null,
-                            showFinishSheet = true,
-                            pendingPostExerciseIdx = -1,
-                        )
+                    val stateAfterClear = _uiState.value
+                    val currentExercise = visibleExercises(stateAfterClear).getOrNull(stateAfterClear.currentExerciseIdx)
+                    if (currentExercise != null) {
+                        skipExerciseAndAdvance(stateAfterClear, currentExercise.id)
+                    } else {
+                        openFinishSheet()
                     }
                 } else {
-                    _uiState.update { it.copy(isRestTimerRunning = false, restModalState = null) }
+                    val pending = _uiState.value.pendingPostExerciseIdx
+                    if (pending >= 0) {
+                        val currentExIdx = _uiState.value.currentExerciseIdx
+                        _uiState.update {
+                            it.copy(
+                                isRestTimerRunning = false,
+                                restModalState = null,
+                                showPostExerciseSheet = true,
+                                postExerciseTargetIdx = currentExIdx,
+                                currentExerciseIdx = currentExIdx,
+                            )
+                        }
+                        persistOngoingState()
+                    } else if (pending == -2) {
+                        _uiState.update {
+                            it.copy(
+                                isRestTimerRunning = false,
+                                restModalState = null,
+                                showFinishSheet = true,
+                                pendingPostExerciseIdx = -1,
+                            )
+                        }
+                        persistOngoingState()
+                    } else {
+                        _uiState.update { it.copy(isRestTimerRunning = false, restModalState = null) }
+                        persistOngoingState()
+                    }
                 }
             }
         }
@@ -3460,20 +3628,51 @@ class WorkoutViewModel(
     fun stopRestTimer() {
         timerJob?.cancel()
         restAlertManager.cancelRestAlerts()
+        val pending = _uiState.value.pendingPostExerciseIdx
+        val currentExIdx = _uiState.value.currentExerciseIdx
         activeRestTimerId = null
         restReferenceSet = null
         restReferenceAdvanced = null
         restStartedAtMs = null
-        _uiState.update {
-            it.copy(
-                isRestTimerRunning = false,
-                pendingRestSuggestion = null,
-                restModalState = null,
-                continuityTransitionTarget = null,
-            )
+        _uiState.update { state ->
+            when {
+                pending >= 0 -> state.copy(
+                    isRestTimerRunning = false,
+                    pendingRestSuggestion = null,
+                    restModalState = null,
+                    showPostExerciseSheet = true,
+                    postExerciseTargetIdx = currentExIdx,
+                    continuityTransitionTarget = null,
+                )
+                pending == -2 -> state.copy(
+                    isRestTimerRunning = false,
+                    pendingRestSuggestion = null,
+                    restModalState = null,
+                    showFinishSheet = true,
+                    pendingPostExerciseIdx = -1,
+                    continuityTransitionTarget = null,
+                )
+                else -> state.copy(
+                    isRestTimerRunning = false,
+                    pendingRestSuggestion = null,
+                    restModalState = null,
+                    continuityTransitionTarget = null,
+                )
+            }
         }
+        persistOngoingState()
         _restTimerRemaining.value = 0
         _restRecovery.value = null
+    }
+
+    private fun suggestedWeightForVoiceAfterRest(): Double? {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return null
+        return getWeightSuggestionWithAutoRegulation(
+            exercise = exercise,
+            setIdx = state.currentSetIdx,
+            activeTag = state.exerciseTags[exercise.id],
+        )?.suggestedWeight?.takeIf { it > 0.0 }
     }
 
     fun cancelWorkout() {
@@ -3526,7 +3725,9 @@ class WorkoutViewModel(
 
     fun savePostExerciseFeedback(feedback: PostExerciseFeedback) {
         _uiState.update {
+            val updatedCompletedSets = backfillCompletedSetIntensityFromPostExerciseFeedback(it.completedSets, feedback)
             it.copy(
+                completedSets = updatedCompletedSets,
                 postExerciseFeedbackByExerciseId = it.postExerciseFeedbackByExerciseId + (feedback.exerciseId to feedback),
                 showPostExerciseSheet = false,
                 postExerciseTargetIdx = -1,
@@ -3594,13 +3795,24 @@ class WorkoutViewModel(
     }
 
     fun dismissPostExerciseSheet() {
-        val exerciseId = visibleExercises(_uiState.value)
+        val exercise = visibleExercises(_uiState.value)
             .getOrNull(_uiState.value.postExerciseTargetIdx)
-            ?.id
+        val exerciseId = exercise?.id
         _uiState.update {
             it.copy(
                 showPostExerciseSheet = false,
                 postExerciseTargetIdx = -1,
+                postExerciseFeedbackByExerciseId = if (exercise != null && exercise.id !in it.postExerciseFeedbackByExerciseId) {
+                    it.postExerciseFeedbackByExerciseId + (exercise.id to PostExerciseFeedback(
+                        exerciseId = exercise.id,
+                        exerciseDbId = canonicalExerciseKey(exercise),
+                        exerciseName = exercise.name,
+                        technicalQuality = 8,
+                        discomfortIds = listOf("none"),
+                    ))
+                } else {
+                    it.postExerciseFeedbackByExerciseId
+                },
                 continuityFeedbackExerciseId = it.continuityFeedbackExerciseId.takeUnless { id -> id == exerciseId },
             )
         }
@@ -3704,6 +3916,8 @@ class WorkoutViewModel(
     private fun scheduledDateForSession(weekId: String?, session: Session): String? {
         if (weekId.isNullOrBlank()) return null
         val program = repository.getProgramById(programId) ?: return null
+        val projected = ProgramCalendarEngine.project(program).scheduledDateFor(session, weekId)
+        if (projected != null) return projected.toString()
         val week = program.macrocycles
             .asSequence()
             .flatMap { macro -> macro.blocks.asSequence() }
@@ -3891,6 +4105,8 @@ class WorkoutViewModel(
                         technicalQuality = fb.technicalQuality,
                         discomfortIds = fb.discomfortIds.filter { it != "none" },
                         notes = fb.notes,
+                        perceivedIntensityRpe = fb.perceivedIntensityRpe,
+                        perceivedFailure = fb.perceivedFailure,
                     )
                 },
                 omittedExercises = omittedExercises,
@@ -4129,7 +4345,7 @@ class WorkoutViewModel(
         val baseEntry = history.firstOrNull { it.tag == activeTag } ?: history.first()
         val lastSet = baseEntry.sets.filter { !it.isWarmup }
             .getOrNull(setIdx) ?: baseEntry.sets.filter { !it.isWarmup }.lastOrNull()
-        val loadMode = exercise.sets.getOrNull(setIdx)?.let { inferLoadMode(it) }
+        val loadMode = effectiveLoadModeForExercise(exercise, setIdx)
         val techniqueSignal = latestTechniqueSignal(exercise.id, dbId)
 
         fun adjustWithTechnique(baseLoad: Double): Double {
@@ -4168,14 +4384,9 @@ class WorkoutViewModel(
                     suggestedLoadMode = lastSet.homologatedResultV3?.suggestedLoadMode,
                 )
             }
-            val loadMode = exercise.sets.getOrNull(setIdx)?.let { inferLoadMode(it) }
+            val loadMode = effectiveLoadModeForExercise(exercise, setIdx)
             val targetReps = exercise.sets.getOrNull(setIdx)?.targetReps ?: lastSet.reps
-            val lastSetWeight = if (loadMode == LoadModeV2.BODYWEIGHT || loadMode == LoadModeV2.LASTRE) {
-                val bodyW = currentBodyWeight() ?: 0.0
-                (lastSet.weight - bodyW).coerceAtLeast(0.0)
-            } else {
-                lastSet.weight
-            }
+            val lastSetWeight = inputLoadForSuggestion(lastSet, loadMode)
             val suggestedWeight = when {
                 lastSet.isFailedSet || lastSet.isFailure -> lastSetWeight * 0.95
                 lastSet.reps > 0 && targetReps <= lastSet.reps -> lastSetWeight * 1.025
@@ -4190,6 +4401,20 @@ class WorkoutViewModel(
         return null
     }
 
+    private fun inputLoadForSuggestion(set: CompletedSet, loadMode: LoadModeV2): Double {
+        val payload = set.recordedPayloadV3
+        return when (loadMode) {
+            LoadModeV2.ASSISTED -> payload?.assistedLoad ?: set.weight
+            LoadModeV2.BODYWEIGHT,
+            LoadModeV2.LASTRE,
+            -> {
+                val bodyW = payload?.bodyWeightSnapshot ?: currentBodyWeight() ?: 0.0
+                (set.weight - bodyW).coerceAtLeast(0.0)
+            }
+            LoadModeV2.LOAD -> payload?.externalLoad ?: set.weight
+        }
+    }
+
     fun getWeightSuggestionWithAutoRegulation(
         exercise: Exercise,
         setIdx: Int,
@@ -4201,30 +4426,36 @@ class WorkoutViewModel(
             return WeightSuggestion(
                 suggestedWeight = premiumSuggestion.suggestedWeight,
                 reason = premiumSuggestion.reason,
-                suggestedLoadMode = null,
+                suggestedLoadMode = premiumSuggestion.suggestedLoadMode,
             )
         }
         val state = _uiState.value
         val baseSuggestion = getWeightSuggestion(exercise, setIdx, activeTag)
         val autoRegulation = _currentAutoRegulation.value
             ?: state.currentAutoRegulation
+        val currentLoadMode = effectiveLoadModeForExercise(exercise, setIdx)
 
         val sessionSets = completedSessionSetsForExercise(exercise, activeTag)
-        val firstSessionSet = sessionSets.firstOrNull { it.completedSet.weight > 0.0 }
         val lastSessionSet = sessionSets.lastOrNull { it.completedSet.weight > 0.0 }
-        val lastLiftedLoad = lastSessionSet?.completedSet?.weight?.takeIf { it > 0.0 }
-
-        val sessionAnchoredWeight = firstSessionSet?.completedSet?.weight
+        val lastLiftedLoad = lastSessionSet?.completedSet
+            ?.let { inputLoadForSuggestion(it, currentLoadMode) }
             ?.takeIf { it > 0.0 }
-            ?.let { firstLoad ->
-                val firstPlannedLoad = plannedWorkingWeightForSet(exercise, firstSessionSet.setIndex)
+
+        // Use the most recent actual load from this session as the anchor.
+        // This keeps the next set tied to what the user really logged instead of
+        // drifting back toward the first set in the session.
+        val sessionAnchoredWeight = lastSessionSet?.completedSet
+            ?.let { inputLoadForSuggestion(it, currentLoadMode) }
+            ?.takeIf { it > 0.0 }
+            ?.let { lastLoad ->
+                val lastPlannedLoad = plannedWorkingWeightForSet(exercise, lastSessionSet.setIndex)
                 val currentPlannedLoad = plannedWorkingWeightForSet(exercise, setIdx)
                 when {
-                    firstPlannedLoad != null && currentPlannedLoad != null &&
-                        firstPlannedLoad > 0.0 && currentPlannedLoad > 0.0 -> {
-                        firstLoad * (currentPlannedLoad / firstPlannedLoad)
+                    lastPlannedLoad != null && currentPlannedLoad != null &&
+                        lastPlannedLoad > 0.0 && currentPlannedLoad > 0.0 -> {
+                        lastLoad * (currentPlannedLoad / lastPlannedLoad)
                     }
-                    else -> firstLoad
+                    else -> lastLoad
                 }
             }
 
@@ -4237,7 +4468,7 @@ class WorkoutViewModel(
             }
             ?: exercise.reference1RM
 
-        val firstSessionEstimatedRm = firstSessionSet?.completedSet?.let(::estimatedSessionCapacity)
+        val firstSessionEstimatedRm = sessionSets.firstOrNull { it.completedSet.weight > 0.0 }?.completedSet?.let(::estimatedSessionCapacity)
         val sessionBestEstimatedRm = sessionSets
             .mapNotNull { estimatedSessionCapacity(it.completedSet) }
             .maxOrNull()
@@ -4271,8 +4502,8 @@ class WorkoutViewModel(
         ).firstOrNull()?.takeIf { it > 0.0 } ?: return null
 
         val baseReason = when {
-            sessionAnchoredWeight != null && firstSessionSet?.setIndex != null && firstSessionSet.setIndex != setIdx ->
-                "Referencia de la primera serie"
+            sessionAnchoredWeight != null && lastSessionSet?.setIndex != null && lastSessionSet.setIndex != setIdx ->
+                "Referencia de la última serie"
             sessionAnchoredWeight != null -> "Carga base de la sesión"
             baseSuggestion != null -> baseSuggestion.reason
             else -> "Del programa"
@@ -4341,13 +4572,12 @@ class WorkoutViewModel(
 
         val weightedBase = baseWorkingWeight * sessionImprovementFactor * rmsAdjustedFactor * sleepModifier
         val rawAdjustedWeight = weightedBase * combinedFactor
-        val lowerBound = lastLiftedLoad ?: 0.0
-        val upperBound = maxOf(baseWorkingWeight, lowerBound).let { reference ->
+        val upperBound = maxOf(baseWorkingWeight, lastLiftedLoad ?: 0.0).let { reference ->
             if (reference > 0.0) reference * 1.12 else Double.MAX_VALUE
         }
         val adjustedWeight = roundWorkoutLoadSuggestion(
             rawAdjustedWeight
-                .coerceAtLeast(lowerBound)
+                .coerceAtLeast(0.0)
                 .coerceAtMost(upperBound),
         )
 
@@ -4368,7 +4598,6 @@ class WorkoutViewModel(
             if (autoRegReason.isNotBlank()) append(" · $autoRegReason")
             if (readinessReason.isNotBlank()) append(" · $readinessReason")
             if (sleepReason.isNotBlank()) append(sleepReason)
-            if (lastLiftedLoad != null) append(" · Piso ${formatWorkoutWeight(lastLiftedLoad)} kg")
             append(rangeIndicator)
         }
 
@@ -4426,10 +4655,13 @@ class WorkoutViewModel(
 
         // Fase 3: detectar si el RPE excedió el objetivo del set actual y el factor cayó
         val currentExercise = allExercises.getOrNull(state.currentExerciseIdx.coerceAtLeast(0).let { it - 1 }.coerceAtLeast(0))
-        val plannedRpe = currentExercise?.sets?.getOrNull(
+        val plannedSet = currentExercise?.sets?.getOrNull(
             (state.currentSetIdx - 1).coerceAtLeast(0)
-        )?.targetRPE
-        val rpeExceeded = adjustmentFactor < 0.95 &&
+        )
+        val plannedRpe = plannedSet?.targetRPE
+        val plannedSetIsFailure = plannedSet?.isFailure == true || plannedSet?.intensityMode == IntensityMode.FAILURE
+        val rpeExceeded = !plannedSetIsFailure &&
+            adjustmentFactor < 0.95 &&
             plannedRpe != null &&
             effectiveRpe >= plannedRpe + 1.0
         if (rpeExceeded) {

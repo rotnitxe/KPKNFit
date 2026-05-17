@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import dev.chrisbanes.haze.HazeState
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,6 +28,7 @@ class WorkoutRestModalUiTest {
                         activeSeconds = 120,
                     ),
                     remainingSeconds = 64,
+                    hazeState = HazeState(),
                     recoveryStatus = RestRecoveryStatus(
                         recoveryFraction = 0.68,
                         recoveryPercent = 68,
@@ -42,7 +44,6 @@ class WorkoutRestModalUiTest {
                     onDecrease = {},
                     onIncrease = {},
                     onSkip = {},
-                    onUsePlanned = {},
                     onUseAdaptive = {},
                 )
             }
@@ -70,6 +71,7 @@ class WorkoutRestModalUiTest {
                         soundReady = false,
                     ),
                     remainingSeconds = 20,
+                    hazeState = HazeState(),
                     recoveryStatus = null,
                     coachMessage = null,
                     onDecrease = {},
@@ -98,12 +100,12 @@ class WorkoutRestModalUiTest {
                         isManualOverride = true,
                     ),
                     remainingSeconds = 54,
+                    hazeState = HazeState(),
                     recoveryStatus = null,
                     coachMessage = null,
                     onDecrease = {},
                     onIncrease = {},
                     onSkip = {},
-                    onUsePlanned = {},
                     onUseAdaptive = {},
                 )
             }

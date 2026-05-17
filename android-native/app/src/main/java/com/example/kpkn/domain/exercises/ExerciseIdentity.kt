@@ -4,13 +4,16 @@ import com.example.kpkn.data.exercises.resolveExerciseId
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.ExerciseRelationshipType
 import com.example.kpkn.data.models.ExerciseDiscomfortReport
 import com.example.kpkn.data.models.ExerciseSetupDetails
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.OngoingWorkoutState
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WorkoutLog
 import java.text.Normalizer
 
@@ -198,6 +201,7 @@ fun Exercise.replacedWithCatalogExercise(info: ExerciseMuscleInfo): Exercise {
         exerciseName = info.name,
         fallbackId = id,
     )
+    val defaultLoadMode = defaultReplacementLoadMode(info)
     return copy(
         name = info.name,
         exerciseDbId = info.id,
@@ -207,6 +211,8 @@ fun Exercise.replacedWithCatalogExercise(info: ExerciseMuscleInfo): Exercise {
         relativeToCanonicalExerciseId = null,
         relationshipType = null,
         relationshipNotes = null,
+        sets = sets.map { it.resetForCatalogReplacement(defaultLoadMode) },
+        warmupSets = emptyList(),
         reference1RM = null,
         targetSessionGoal = null,
         isStarTarget = false,
@@ -223,6 +229,56 @@ fun Exercise.replacedWithCatalogExercise(info: ExerciseMuscleInfo): Exercise {
         defaultContextProfileIdV3 = null,
     ).normalizedIdentityFields()
 }
+
+private fun defaultReplacementLoadMode(info: ExerciseMuscleInfo): LoadModeV2 {
+    val equipment = info.equipment
+        ?.let(::normalizeExerciseIdentityToken)
+        .orEmpty()
+    return if (
+        equipment.contains("peso corporal") ||
+        equipment.contains("bodyweight") ||
+        equipment.contains("calistenia")
+    ) {
+        LoadModeV2.BODYWEIGHT
+    } else {
+        LoadModeV2.LOAD
+    }
+}
+
+private fun ExerciseSet.resetForCatalogReplacement(defaultLoadMode: LoadModeV2): ExerciseSet =
+    copy(
+        weight = null,
+        targetPercentageRM = null,
+        completedReps = null,
+        completedDuration = null,
+        completedRPE = null,
+        completedRIR = null,
+        machineBrand = null,
+        technicalWeight = null,
+        consolidatedWeight = null,
+        attemptResult = null,
+        judgingLights = emptyList(),
+        technicalQuality = null,
+        discomfortIds = emptyList(),
+        refereeNotes = null,
+        loadModeV2 = defaultLoadMode,
+        unitModeV2 = when {
+            targetDuration != null -> UnitModeV2.TIME
+            else -> UnitModeV2.REPS
+        },
+        plannedTargetV2 = null,
+        tagId = null,
+        setupId = null,
+        contextKeyV2 = null,
+        contextProfileIdV3 = null,
+        defaultTagIdV3 = null,
+        defaultSetupProfileIdV3 = null,
+        leftTarget = leftTarget?.copy(weight = null),
+        rightTarget = rightTarget?.copy(weight = null),
+        dropSets = emptyList(),
+        restPauses = emptyList(),
+        plannedIntensityTechniques = emptyList(),
+    )
 
 fun ExerciseRelationshipType.displayLabel(): String = when (this) {
     ExerciseRelationshipType.VARIATION -> "Variacion"

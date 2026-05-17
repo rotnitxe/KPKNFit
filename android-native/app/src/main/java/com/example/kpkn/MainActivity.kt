@@ -65,6 +65,7 @@ import com.example.kpkn.navigation.KpknRoute
 import com.example.kpkn.navigation.addHealthConnectRoute
 import com.example.kpkn.navigation.NavigationBus
 import com.example.kpkn.screens.home.HomeScreen
+import com.example.kpkn.screens.competitions.CompetitionScreen
 import com.example.kpkn.screens.nutrition.BodyProgressScreen
 import com.example.kpkn.screens.nutrition.MealHistoryScreen
 import com.example.kpkn.screens.nutrition.NutritionScreen
@@ -99,6 +100,7 @@ import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.Session
 import java.util.UUID
 import com.example.kpkn.screens.myrings.MyRingsScreen
 import com.example.kpkn.ui.locale.LocaleManager
@@ -176,6 +178,7 @@ class MainActivity : ComponentActivity() {
             val workoutReminderManager = com.example.kpkn.services.workout.WorkoutReminderManager(this)
             workoutReminderManager.createChannels()
             com.example.kpkn.services.workout.LoopNotificationManager(this).createChannels()
+            com.example.kpkn.services.competition.CompetitionReminderManager(this).createChannels()
             val settings = com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value
             if (settings.workoutReminderEnabled) {
                 workoutReminderManager.scheduleWorkoutReminder(settings.workoutReminderTime)
@@ -188,6 +191,7 @@ class MainActivity : ComponentActivity() {
         // Initialize repositories (loads Room data → StateFlows)
         runCatching {
             com.example.kpkn.data.repository.ProgramRepository.init(this)
+            com.example.kpkn.data.repository.CompetitionRepository.init(this)
             com.example.kpkn.data.repository.AugeRepository.getInstance(this)
             com.example.kpkn.data.repository.NutritionRepository.init(this)
             com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this)
@@ -253,6 +257,10 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 1002)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -353,6 +361,8 @@ fun KPKNApp(
         currentRoute?.startsWith("session-editor") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("readiness-gate") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("workout") == true -> KpknRoute.Training.route
+        currentRoute?.startsWith(KpknRoute.Competitions.route) == true -> KpknRoute.Training.route
+        currentRoute?.startsWith("competition/") == true -> KpknRoute.Training.route
         currentRoute == KpknRoute.ProgramDetail.route -> KpknRoute.Training.route
         currentRoute == "log-workout" -> KpknRoute.Training.route
         currentRoute?.startsWith(KpknRoute.MyRings.route) == true -> KpknRoute.MyRings.route
@@ -558,17 +568,6 @@ fun KPKNApp(
                     .hazeEffect(
                         state = hazeState,
                         style = bottomBarGlassStyle,
-                    )
-                    .border(
-                        width = 1.dp,
-                        brush = Brush.horizontalGradient(
-                            listOf(
-                                Color.White.copy(alpha = 0.38f),
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
-                                Color.White.copy(alpha = 0.10f),
-                            )
-                        ),
-                        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
                     ),
                 shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
                 color = Color.Black.copy(alpha = 0.18f),
@@ -590,18 +589,7 @@ fun KPKNApp(
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(44.dp)
-                                .border(
-                                    width = 1.dp,
-                                    brush = Brush.horizontalGradient(
-                                        listOf(
-                                            Color.White.copy(alpha = 0.42f),
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.28f),
-                                            Color.White.copy(alpha = 0.16f),
-                                        )
-                                    ),
-                                    shape = RoundedCornerShape(22.dp),
-                                ),
+                                .height(44.dp),
                             shape = RoundedCornerShape(22.dp),
                             color = Color.Black.copy(alpha = 0.24f),
                             tonalElevation = 0.dp,
@@ -748,7 +736,7 @@ private fun KPKNNavGraph(
                 },
                 onCreateProgram = { createProgramAndOpen(navController) },
                 onStartWorkout = { session, program ->
-                    navController.navigate(KpknRoute.Workout.create(program.id, session.id))
+                    navigateWorkoutOrCompetition(navController, session, program)
                 },
                 onResumeWorkout = {
                     val ongoing = com.example.kpkn.data.repository.ProgramRepository.getInstance().ongoingWorkout.value
@@ -782,7 +770,7 @@ private fun KPKNNavGraph(
                         "settings/notifications" -> navController.navigate(KpknRoute.SettingsNotifications.route)
                         "learn", "cursos" -> navController.navigate(KpknRoute.Learn.route)
                         "powerlifter-corner" -> {
-                            primaryProgramId?.let { navController.navigate(KpknRoute.ProgramDetail.create(it)) }
+                            navController.navigate(KpknRoute.Competitions.route)
                         }
                         else -> {
                             if (destination.startsWith("wikilab/concept/")) {
@@ -812,6 +800,9 @@ private fun KPKNNavGraph(
                 },
                 onCreateProgram = { createProgramAndOpen(navController) }
             )
+        }
+        composable(KpknRoute.Competitions.route) {
+            CompetitionScreen(onBack = { navController.popBackStack() })
         }
         composable(KpknRoute.Nutrition.route) {
             NutritionScreen(
@@ -1153,12 +1144,12 @@ private fun KPKNNavGraph(
                     }
                 },
                 onStartWorkout = { session, program ->
-                    navController.navigate(KpknRoute.Workout.create(program.id, session.id))
+                    navigateWorkoutOrCompetition(navController, session, program)
                 },
                 onEditSession = { sessionId ->
                     navController.navigate(KpknRoute.SessionEditor.create(id, sessionId))
                 },
-                onCreateSession = { sessionId, weekId, macroIndex, mesoIndex, dayOfWeek ->
+                onCreateSession = { sessionId, weekId, macroIndex, mesoIndex, dayOfWeek, configureCompetition ->
                     navController.navigate(
                         KpknRoute.SessionEditor.create(
                             programId = id,
@@ -1167,6 +1158,7 @@ private fun KPKNNavGraph(
                             macroIndex = macroIndex,
                             mesoIndex = mesoIndex,
                             dayOfWeek = dayOfWeek,
+                            configureCompetition = configureCompetition,
                         )
                     )
                 },
@@ -1182,6 +1174,9 @@ private fun KPKNNavGraph(
             val macroIndex = backStack.arguments?.getString(KpknRoute.SessionEditor.ARG_MACRO_INDEX)?.toIntOrNull()
             val mesoIndex = backStack.arguments?.getString(KpknRoute.SessionEditor.ARG_MESO_INDEX)?.toIntOrNull()
             val dayOfWeek = backStack.arguments?.getString(KpknRoute.SessionEditor.ARG_DAY_OF_WEEK)?.toIntOrNull()
+            val configureCompetition = backStack.arguments
+                ?.getString(KpknRoute.SessionEditor.ARG_CONFIGURE_COMPETITION)
+                ?.toBooleanStrictOrNull() == true
             SessionEditorScreen(
                 programId = programId,
                 sessionId = sessionId,
@@ -1197,6 +1192,7 @@ private fun KPKNNavGraph(
                 draftMacroIndex = macroIndex,
                 draftMesoIndex = mesoIndex,
                 draftDayOfWeek = dayOfWeek,
+                openCompetitionConfig = configureCompetition,
             )
         }
         composable(KpknRoute.Workout.route) { backStack ->
@@ -1217,6 +1213,18 @@ private fun KPKNNavGraph(
                 },
             )
         }
+    }
+}
+
+private fun navigateWorkoutOrCompetition(
+    navController: androidx.navigation.NavHostController,
+    session: Session,
+    program: Program,
+) {
+    if (session.isMeetDay || session.isCompetitionSession) {
+        navController.navigate(KpknRoute.Competitions.route) { launchSingleTop = true }
+    } else {
+        navController.navigate(KpknRoute.Workout.create(program.id, session.id))
     }
 }
 

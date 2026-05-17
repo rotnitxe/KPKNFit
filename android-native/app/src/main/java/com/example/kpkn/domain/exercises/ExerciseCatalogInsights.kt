@@ -569,6 +569,9 @@ fun normalizeCatalogSearchValue(value: String): String =
         .replace("ú", "u")
         .replace("ü", "u")
         .replace("ñ", "n")
+        .replace(Regex("[^a-z0-9]+"), " ")
+        .trim()
+        .replace(Regex("\\s+"), " ")
 
 fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
     val normalizedQuery = normalizeCatalogSearchValue(query.trim())
@@ -595,11 +598,13 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
         ).joinToString(" ")
     )
 
+    if (normalizedName == normalizedQuery) return 10_000
+    if (aliasNormalized == normalizedQuery) return 9_000
+    if (normalizedName.startsWith(normalizedQuery)) return 8_000 + normalizedQuery.length
+    if (aliasNormalized.startsWith(normalizedQuery) && aliasNormalized.isNotBlank()) return 7_000 + normalizedQuery.length
+
     var score = 0
-    if (normalizedName == normalizedQuery) score += 220
-    if (aliasNormalized == normalizedQuery) score += 180
     if (nameTokens.any { it == normalizedQuery }) score += 160
-    if (normalizedName.startsWith(normalizedQuery)) score += 110
     if (normalizedName.contains(normalizedQuery)) score += 90
     if (aliasNormalized.contains(normalizedQuery) && aliasNormalized.isNotBlank()) score += 70
     if (primaryMuscleNormalized.contains(normalizedQuery)) score += 55
@@ -630,4 +635,24 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
     }
 
     return score
+}
+
+fun deduplicateCatalogVisualResults(items: List<ExerciseMuscleInfo>): List<ExerciseMuscleInfo> {
+    val seen = mutableSetOf<String>()
+    return items.filter { info ->
+        val key = visualCatalogDedupKey(info)
+        seen.add(key)
+    }
+}
+
+private fun visualCatalogDedupKey(info: ExerciseMuscleInfo): String {
+    val normalizedName = normalizeCatalogSearchValue(info.name)
+    val aliasTokens = info.alias
+        ?.split(",", ";", "|")
+        ?.map { normalizeCatalogSearchValue(it) }
+        ?.filter { it.isNotBlank() }
+        .orEmpty()
+    return (listOf(normalizedName) + aliasTokens)
+        .minOrNull()
+        ?: normalizedName
 }

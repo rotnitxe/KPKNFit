@@ -20415,5 +20415,126 @@
     "bracingRecommended": true,
     "strapsRecommended": false,
     "bodybuildingScore": 7.5
+  },
+  {
+    "id": "tren_superior_press_inclinado_maquina_convergente",
+    "name": "Press inclinado en máquina convergente",
+    "alias": "press inclinado maquina convergente",
+    "description": "Press inclinado guiado en máquina convergente para pectoral superior con trayectoria estable.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pectorales",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "superior"
+      },
+      {
+        "muscle": "Deltoides",
+        "role": "secondary",
+        "activation": 0.55,
+        "emphasis": "anterior"
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.45
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Básico",
+    "equipment": "Máquina",
+    "force": "Empuje",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 3,
+    "cnc": 2.2,
+    "ssc": 0.3,
+    "ttc": 1.6,
+    "axialLoadFactor": 0,
+    "averageRestSeconds": 90,
+    "coreInvolvement": "low",
+    "bracingRecommended": false,
+    "strapsRecommended": false,
+    "bodybuildingScore": 8.4
+  },
+  {
+    "id": "tren_superior_press_inclinado_smith",
+    "name": "Press inclinado en Smith",
+    "alias": "press inclinado smith",
+    "description": "Press inclinado en multipower para pectoral superior con barra guiada.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pectorales",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "superior"
+      },
+      {
+        "muscle": "Deltoides",
+        "role": "secondary",
+        "activation": 0.6,
+        "emphasis": "anterior"
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Básico",
+    "equipment": "Smith",
+    "force": "Empuje",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 3.2,
+    "cnc": 2.5,
+    "ssc": 0.5,
+    "ttc": 1.8,
+    "axialLoadFactor": 0.1,
+    "averageRestSeconds": 105,
+    "coreInvolvement": "low",
+    "bracingRecommended": true,
+    "strapsRecommended": false,
+    "bodybuildingScore": 8
+  },
+  {
+    "id": "tren_inferior_sentadilla_sissy",
+    "name": "Sentadilla Sissy",
+    "alias": "péndulo sissy, pendulo sissy",
+    "description": "Sentadilla dominante de rodilla para cuádriceps con gran demanda del recto femoral.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.35
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.2
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Peso corporal",
+    "force": "Empuje",
+    "bodyPart": "lower",
+    "chain": "anterior",
+    "efc": 3.3,
+    "cnc": 2,
+    "ssc": 0.4,
+    "ttc": 2.8,
+    "axialLoadFactor": 0,
+    "averageRestSeconds": 75,
+    "coreInvolvement": "medium",
+    "bracingRecommended": true,
+    "strapsRecommended": false,
+    "bodybuildingScore": 8.2
   }
 ]

@@ -60,3 +60,22 @@ internal fun workoutSetPagerAccent(
         WorkoutSetCardVisualState.FUTURE -> colorScheme.surfaceContainerHighest
     }
 }
+
+internal fun resolveWorkoutHeaderGroupLabel(
+    partName: String?,
+    type: String?,
+    category: String?,
+): String? {
+    val explicitPart = partName
+        ?.trim()
+        ?.takeIf { it.isNotBlank() && !it.equals("sesión", ignoreCase = true) && !it.equals("sesion", ignoreCase = true) }
+    return normalizeWorkoutHeaderLabel(explicitPart ?: type?.trim()?.takeIf { it.isNotBlank() } ?: category?.trim())
+}
+
+private fun normalizeWorkoutHeaderLabel(raw: String?): String? {
+    val value = raw?.trim()?.replace(Regex("\\s+"), " ") ?: return null
+    if (value.isBlank()) return null
+    return value
+        .replace(Regex("principales", RegexOption.IGNORE_CASE), "Principales")
+        .replace(Regex("principal", RegexOption.IGNORE_CASE), "Principal")
+}

@@ -39,12 +39,26 @@ data class WorkoutRestModalState(
     val notificationsEnabled: Boolean = true,
     val exactAlarmGranted: Boolean = true,
     val soundReady: Boolean = true,
+    val skipCurrentExerciseOnFinish: Boolean = false,
 )
 
 internal fun workoutSetKey(exerciseId: String, setIdx: Int, side: String? = null): String = when (side) {
     "left" -> "${exerciseId}_${setIdx}_L"
     "right" -> "${exerciseId}_${setIdx}_R"
     else -> "${exerciseId}_${setIdx}"
+}
+
+internal fun resolvePersistedLoadModeForSet(
+    exerciseId: String,
+    setIdx: Int,
+    persistedLoadModeBySet: Map<String, LoadModeV2>,
+    persistedLoadModeByExercise: Map<String, LoadModeV2>,
+): LoadModeV2? {
+    for (candidateIdx in setIdx downTo 0) {
+        val key = workoutSetKey(exerciseId, candidateIdx)
+        persistedLoadModeBySet[key]?.let { return it }
+    }
+    return persistedLoadModeByExercise[exerciseId]
 }
 
 internal fun isWorkoutPulseActive(

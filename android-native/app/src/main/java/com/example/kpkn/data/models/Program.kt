@@ -32,6 +32,9 @@ data class Program(
     val blockSplitSelections: Map<String, String> = emptyMap(),
     val structureTemplateId: String? = null,
     val timelineStartDate: String? = null,
+    val calendarization: ProgramCalendarization? = null,
+    val simpleProgramKind: SimpleProgramKind = SimpleProgramKind.CYCLIC,
+    val pausedCyclicSnapshot: SimpleProgramSnapshot? = null,
     val keyDates: List<ProgramKeyDate> = emptyList(),
     val volumeRecommendations: List<VolumeRecommendation> = emptyList(),
     val athleteProfileScore: AthleteProfileScore? = null,
@@ -45,6 +48,30 @@ enum class ProgramMode { POWERLIFTING, HYPERTROPHY, POWERBUILDING }
 enum class ProgramStructure { SIMPLE, COMPLEX }
 enum class TrainingPhase { ACCUMULATION, TRANSFORMATION, REALIZATION }
 enum class VolumeSystem { ISRAETEL, KPNK, MANUAL }
+enum class ProgramCalendarizationMode { ADVANCED_COMPETITION, SIMPLE_DATED }
+enum class SimpleProgramKind { CYCLIC, CALENDARIZED }
+
+@Serializable
+data class ProgramCalendarization(
+    val mode: ProgramCalendarizationMode,
+    val manualEndDate: String? = null,
+    val strictStart: Boolean = false,
+    val activatedByCompetition: Boolean = false,
+)
+
+@Serializable
+data class SimpleProgramSnapshot(
+    val macrocycles: List<Macrocycle> = emptyList(),
+    val loops: List<Loop> = emptyList(),
+    val loopState: LoopState? = null,
+    val events: List<ProgramEvent> = emptyList(),
+    val selectedSplitId: String? = null,
+    val customSplitPattern: List<String> = emptyList(),
+    val customSplitName: String? = null,
+    val customSplitDescription: String? = null,
+    val blockSplitSelections: Map<String, String> = emptyMap(),
+    val savedAtMs: Long = 0L,
+)
 
 @Serializable
 data class VolumeRecommendation(
@@ -210,6 +237,9 @@ val Program.totalProgramWeeks: Int
 val Program.isSimpleTemporalProgram: Boolean
     get() = macrocycles.size == 1 && totalBlockCount == 1
 
+val Program.isSimpleCalendarizedProgram: Boolean
+    get() = isSimpleTemporalProgram && simpleProgramKind == SimpleProgramKind.CALENDARIZED
+
 val Program.simpleCycleWeeks: Int?
     get() = if (isSimpleTemporalProgram) totalProgramWeeks else null
 
@@ -227,6 +257,12 @@ val Program.primaryLoopLengthWeeks: Int?
 
 fun Program.normalizedTemporalStructure(): Program {
     val shouldBeSimple = isSimpleTemporalProgram
+    val normalizedSimpleKind = when {
+        !shouldBeSimple -> SimpleProgramKind.CYCLIC
+        calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED && !timelineStartDate.isNullOrBlank() ->
+            SimpleProgramKind.CALENDARIZED
+        else -> simpleProgramKind
+    }
     val cleanMacrocycles = macrocycles.map { macro ->
         macro.copy(
             blocks = macro.blocks.map { block ->
@@ -245,9 +281,11 @@ fun Program.normalizedTemporalStructure(): Program {
     }
     return copy(
         structure = if (shouldBeSimple) ProgramStructure.SIMPLE else ProgramStructure.COMPLEX,
-        loops = if (shouldBeSimple) loops else emptyList(),
-        loopState = if (shouldBeSimple) loopState else null,
-        events = if (shouldBeSimple) events else emptyList(),
+        simpleProgramKind = normalizedSimpleKind,
+        loops = if (shouldBeSimple && normalizedSimpleKind == SimpleProgramKind.CYCLIC) loops else emptyList(),
+        loopState = if (shouldBeSimple && normalizedSimpleKind == SimpleProgramKind.CYCLIC) loopState else null,
+        events = if (shouldBeSimple && normalizedSimpleKind == SimpleProgramKind.CYCLIC) events else emptyList(),
+        pausedCyclicSnapshot = if (shouldBeSimple) pausedCyclicSnapshot else null,
         macrocycles = cleanMacrocycles,
     )
 }

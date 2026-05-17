@@ -332,15 +332,15 @@ class WorkoutRestAlertManager(private val context: Context) {
         }
 
         val shouldAttemptManualSound = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext) && !recentAudioFailure
-        val toneSucceeded = if (shouldAttemptManualSound) {
+        if (shouldAttemptManualSound) {
             playToneSequence(
                 steps = workoutCompletionTonePlan(),
             )
-        } else {
-            false
         }
 
-        val preferAudibleNotification = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext) && !toneSucceeded
+        // Keep the finished notification audible when sound is enabled so the
+        // background case always has a reliable completion cue.
+        val preferAudibleNotification = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext)
         postFinishedNotification(
             sessionName = sessionName,
             exerciseName = exerciseName,

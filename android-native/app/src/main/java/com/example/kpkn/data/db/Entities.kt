@@ -47,6 +47,39 @@ data class WorkoutLogEntity(@PrimaryKey val id: String, val programId: String, v
 fun WorkoutLog.toEntity() = WorkoutLogEntity(id = id, programId = programId, sessionId = sessionId, date = date, data = dbJson.encodeToString(this))
 fun WorkoutLogEntity.toWorkoutLog(): WorkoutLog = dbJson.decodeFromString(data)
 
+@Entity(
+    tableName = "competition_records",
+    indices = [
+        Index("eventDate"),
+        Index("status"),
+        Index("sportType"),
+        Index("plannedSessionId"),
+    ],
+)
+data class CompetitionRecordEntity(
+    @PrimaryKey val id: String,
+    val title: String,
+    val eventDate: String,
+    val status: String,
+    val sportType: String,
+    val plannedSessionId: String,
+    val updatedAtMs: Long,
+    val data: String,
+)
+
+fun CompetitionRecord.toEntity() = CompetitionRecordEntity(
+    id = id,
+    title = title,
+    eventDate = eventDate ?: "",
+    status = status.name,
+    sportType = sportType.name,
+    plannedSessionId = plannedSessionId ?: "",
+    updatedAtMs = updatedAtMs,
+    data = dbJson.encodeToString(this),
+)
+
+fun CompetitionRecordEntity.toCompetitionRecord(): CompetitionRecord = dbJson.decodeFromString(data)
+
 @Entity(tableName = "settings")
 data class SettingsEntity(@PrimaryKey val rowId: Int = 1, val data: String)
 fun Settings.toEntity() = SettingsEntity(data = dbJson.encodeToString(this))

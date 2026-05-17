@@ -3,8 +3,17 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramCalendarization
+import com.example.kpkn.data.models.ProgramCalendarizationMode
+import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.models.WarmupSetDefinition
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -46,6 +55,27 @@ class WorkoutSessionRulesTest {
         assertEquals("right", rightState?.side)
         assertEquals("press-lateral_0_R", rightState?.setKey)
         assertNull(missingState)
+    }
+
+    @Test
+    fun editing_state_treats_configured_unilateral_mode_as_unilateral() {
+        val exercise = Exercise(
+            id = "split-squat",
+            name = "Split squat",
+            isUnilateral = false,
+            unilateralMode = UnilateralMode.UNILATERAL_DIFFERENTIAL,
+            sets = listOf(ExerciseSet(id = "set-1")),
+        )
+        val completedSets = mapOf(
+            "split-squat_0_L" to CompletedSet(id = "done-left", side = "left", weight = 24.0, reps = 8),
+            "split-squat_0_R" to CompletedSet(id = "done-right", side = "right", weight = 22.0, reps = 8),
+        )
+
+        val editingState = WorkoutEditingRules.buildEditingState(completedSets, exercise, 0, preferredSide = "right")
+
+        assertNotNull(editingState)
+        assertEquals("right", editingState?.side)
+        assertEquals("split-squat_0_R", editingState?.setKey)
     }
 
     @Test
@@ -116,6 +146,24 @@ class WorkoutSessionRulesTest {
         assertEquals("left", pending.side)
         assertNull(noneWhileEditing)
         assertNull(noneWithoutDraft)
+    }
+
+    @Test
+    fun live_edit_persistence_scope_only_allows_simple_cyclic_programs() {
+        val simpleCyclic = simpleProgram().copy(simpleProgramKind = SimpleProgramKind.CYCLIC)
+        val simpleCalendarized = simpleProgram().copy(
+            simpleProgramKind = SimpleProgramKind.CALENDARIZED,
+            calendarization = ProgramCalendarization(ProgramCalendarizationMode.SIMPLE_DATED),
+        )
+        val advanced = simpleProgram().copy(
+            macrocycles = simpleProgram().macrocycles.map { macro ->
+                macro.copy(blocks = macro.blocks + Block(id = "b2", name = "Bloque 2"))
+            },
+        )
+
+        assertEquals(WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED, WorkoutEditingRules.liveEditPersistenceScope(simpleCyclic))
+        assertEquals(WorkoutLiveEditPersistenceScope.SESSION_ONLY, WorkoutEditingRules.liveEditPersistenceScope(simpleCalendarized))
+        assertEquals(WorkoutLiveEditPersistenceScope.SESSION_ONLY, WorkoutEditingRules.liveEditPersistenceScope(advanced))
     }
 
     @Test
@@ -307,4 +355,35 @@ class WorkoutSessionRulesTest {
     fun warmup_display_sets_round_from_working_weight_anchor() {
         // TODO: Implementar buildWorkoutWarmupDisplaySets o eliminar este test
     }
+
+    private fun simpleProgram(): Program =
+        Program(
+            id = "program",
+            name = "Programa simple",
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "macro",
+                    name = "Macro",
+                    blocks = listOf(
+                        Block(
+                            id = "block",
+                            name = "Bloque",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "meso",
+                                    name = "Meso",
+                                    weeks = listOf(
+                                        ProgramWeek(
+                                            id = "week",
+                                            name = "Semana",
+                                            sessions = listOf(Session(id = "session", name = "Día")),
+                                        )
+                                    ),
+                                )
+                            ),
+                        )
+                    ),
+                )
+            ),
+        )
 }

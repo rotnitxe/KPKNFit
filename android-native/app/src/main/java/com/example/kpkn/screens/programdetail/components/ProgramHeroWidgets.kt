@@ -725,7 +725,7 @@ private val mobilityOptions = listOf(
     ChoiceOption(3, "Muy buena", "Tu movilidad acompaña bien la carga y la técnica."),
 )
 
-private fun buildVolumeCalibration(
+internal fun buildVolumeCalibration(
     style: TrainingStyle,
     technique: Int,
     consistency: Int,
@@ -774,14 +774,12 @@ private fun buildVolumeCalibration(
 private val israetelBaseRecommendations = listOf(
     VolumeRecommendation("Cuadriceps", 8, 12, 18, 3),
     VolumeRecommendation("Isquiosurales", 6, 10, 16, 3),
-    VolumeRecommendation("Gluteos", 6, 10, 16, 3),
+    VolumeRecommendation("Gluteos", 9, 13, 19, 3),
     VolumeRecommendation("Pectorales", 8, 12, 18, 3),
     VolumeRecommendation("Dorsales", 10, 14, 20, 4),
     VolumeRecommendation("Trapecio", 6, 10, 16, 3),
     VolumeRecommendation("Erectores Espinales", 4, 8, 12, 2),
-    VolumeRecommendation("Deltoides Anterior", 4, 8, 12, 3),
-    VolumeRecommendation("Deltoides Lateral", 8, 14, 20, 4),
-    VolumeRecommendation("Deltoides Posterior", 8, 14, 20, 4),
+    VolumeRecommendation("Deltoides", 12, 18, 26, 4),
     VolumeRecommendation("Biceps", 6, 10, 16, 3),
     VolumeRecommendation("Triceps", 6, 10, 16, 3),
     VolumeRecommendation("Abdomen", 4, 8, 14, 4),

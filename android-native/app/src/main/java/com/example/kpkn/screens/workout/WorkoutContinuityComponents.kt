@@ -42,6 +42,7 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import kotlinx.coroutines.delay
 
 internal enum class WorkoutContinuityPhase {
@@ -505,8 +506,8 @@ private fun nextSupersetHop(
     currentIdx: Int,
     currentSetIdx: Int,
 ): Pair<Int, Int>? {
-    val groupId = exercises.getOrNull(currentIdx)?.supersetId?.takeIf { it.isNotBlank() } ?: return null
-    val group = exercises.indices.filter { exercises[it].supersetId == groupId }
+    val groupId = exercises.getOrNull(currentIdx)?.supersetGroupRefOrLegacyId() ?: return null
+    val group = exercises.indices.filter { exercises[it].supersetGroupRefOrLegacyId() == groupId }
     if (group.size <= 1) return null
 
     val position = group.indexOf(currentIdx)

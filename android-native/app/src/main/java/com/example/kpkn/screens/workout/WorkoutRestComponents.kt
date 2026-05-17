@@ -140,15 +140,16 @@ internal fun RestTimerOverlay(
                     )
                     Text(
                         text = when (state.kind) {
-                            RestTimerKind.SUPERSET_INTRA -> "intra superserie"
-                            RestTimerKind.SUPERSET_ROUND -> "entre superseries"
+                            RestTimerKind.SUPERSET_INTRA -> "Próximo: ${state.exerciseName}"
+                            RestTimerKind.SUPERSET_ROUND -> "Próximo: ${state.exerciseName}"
                             RestTimerKind.WARMUP -> "aproximacion"
                             RestTimerKind.BETWEEN_SIDES -> "entre lados"
                             RestTimerKind.STANDARD -> "descanso"
                         },
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.55f),
-                        letterSpacing = 3.sp,
+                        color = Color.White.copy(alpha = if (state.kind.name.startsWith("SUPERSET")) 0.9f else 0.55f),
+                        fontWeight = if (state.kind.name.startsWith("SUPERSET")) FontWeight.Bold else FontWeight.Normal,
+                        letterSpacing = if (state.kind.name.startsWith("SUPERSET")) 0.5.sp else 3.sp,
                     )
                 }
             }
@@ -201,11 +202,11 @@ internal fun RestTimerOverlay(
                             Spacer(Modifier.width(6.dp))
                             Text("Recuperación", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White)
                             Spacer(Modifier.weight(1f))
-                            Text("${(recoveryStatus.recoveryPercent * 100).toInt()}%",
+                            Text("${recoveryStatus.recoveryPercent}%",
                                 style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black,
                                 color = when {
                                     recoveryStatus.isReady -> Color(0xFF4CAF50)
-                                    recoveryStatus.recoveryPercent >= 0.5f -> Color(0xFFFFD740)
+                                    recoveryStatus.recoveryPercent >= 50 -> Color(0xFFFFD740)
                                     else -> Color(0xFFFF5252)
                                 })
                         }
@@ -214,7 +215,7 @@ internal fun RestTimerOverlay(
                             modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
                             color = when {
                                 recoveryStatus.isReady -> Color(0xFF4CAF50)
-                                recoveryStatus.recoveryPercent >= 0.5f -> Color(0xFFFFD740)
+                                recoveryStatus.recoveryPercent >= 50 -> Color(0xFFFFD740)
                                 else -> Color(0xFFFF5252)
                             },
                             trackColor = Color.White.copy(alpha = 0.1f),
@@ -300,7 +301,7 @@ internal fun RestTimerOverlay(
                         contentColor = Color.Black,
                     ),
                 ) {
-                    Icon(Icons.Default.SkipNext, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Stop, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.size(8.dp))
                     Text("Saltar descanso", maxLines = 1)
                 }
@@ -314,9 +315,9 @@ internal fun RestTimerOverlay(
                         ),
                         border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
                     ) {
-                        Icon(Icons.Default.Stop, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.SkipNext, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.size(8.dp))
-                        Text("Saltar ejercicio", maxLines = 1)
+                        Text("Siguiente ejercicio", maxLines = 1)
                     }
                 }
             }

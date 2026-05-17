@@ -138,10 +138,11 @@ object SessionEditorRulesEngine {
         if (maxRpe != null) {
             draft.allExercises().forEach { exercise ->
                 exercise.sets.forEach { set ->
+                    val isFailureSet = set.isFailure || set.intensityMode == IntensityMode.FAILURE
+                    if (isFailureSet) return@forEach
                     val effectiveRpe = when {
                         set.targetRPE != null -> set.targetRPE
                         set.targetRIR != null -> (10 - set.targetRIR).toDouble()
-                        set.isFailure || set.intensityMode == IntensityMode.FAILURE -> 10.0
                         else -> null
                     }
                     if (effectiveRpe != null && effectiveRpe > maxRpe) {

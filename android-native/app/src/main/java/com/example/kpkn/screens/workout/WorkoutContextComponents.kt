@@ -683,6 +683,7 @@ internal fun WorkoutExerciseEditContent(
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onUpdateExercise: (((Exercise) -> Exercise) -> Unit)? = null,
     onSave: (() -> Unit)? = null,
+    saveLabel: String = "Guardar cambios",
     sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
 ) {
     val sets = maxVisibleSets?.let { exercise.sets.take(it) } ?: exercise.sets
@@ -804,7 +805,7 @@ internal fun WorkoutExerciseEditContent(
             ) {
                 Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Guardar cambios", fontWeight = FontWeight.Bold)
+                Text(saveLabel, fontWeight = FontWeight.Bold)
             }
         }
     }

@@ -11,6 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [
         ProgramEntity::class,
         WorkoutLogEntity::class,
+        CompetitionRecordEntity::class,
         SettingsEntity::class,
         ActiveProgramEntity::class,
         OngoingWorkoutEntity::class,
@@ -49,13 +50,14 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PerformanceRangeEntity::class,
         PerformanceSnapshotEntity::class,
     ],
-    version = 17,
+    version = 18,
     exportSchema = false,
 )
 abstract class KpknDatabase : RoomDatabase() {
 
     abstract fun programDao(): ProgramDao
     abstract fun workoutLogDao(): WorkoutLogDao
+    abstract fun competitionRecordDao(): CompetitionRecordDao
     abstract fun settingsDao(): SettingsDao
     abstract fun stateDao(): StateDao
     abstract fun workoutV2Dao(): WorkoutV2Dao
@@ -422,6 +424,28 @@ abstract class KpknDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `competition_records` (
+                        `id` TEXT NOT NULL,
+                        `title` TEXT NOT NULL,
+                        `eventDate` TEXT NOT NULL,
+                        `status` TEXT NOT NULL,
+                        `sportType` TEXT NOT NULL,
+                        `plannedSessionId` TEXT NOT NULL,
+                        `updatedAtMs` INTEGER NOT NULL,
+                        `data` TEXT NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_competition_records_eventDate` ON `competition_records` (`eventDate`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_competition_records_status` ON `competition_records` (`status`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_competition_records_sportType` ON `competition_records` (`sportType`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_competition_records_plannedSessionId` ON `competition_records` (`plannedSessionId`)")
+            }
+        }
+
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -446,6 +470,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_14_15,
                     MIGRATION_15_16,
                     MIGRATION_16_17,
+                    MIGRATION_17_18,
                 )
                 .build()
                 .also { INSTANCE = it }

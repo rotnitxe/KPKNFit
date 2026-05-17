@@ -54,19 +54,28 @@ object SessionTemplateEngine {
      */
     fun cloneSessionContent(source: Session): Session {
         val supersetIdMap = mutableMapOf<String, String>()
+        val exerciseIdMap = mutableMapOf<String, String>()
         val clonedParts = source.parts.map { part ->
             part.copy(
                 id = UUID.randomUUID().toString(),
-                exercises = part.exercises.map { cloneExercise(it, supersetIdMap) },
+                exercises = part.exercises.map { cloneExercise(it, supersetIdMap, exerciseIdMap) },
             )
         }
-        val clonedExercises = source.exercises.map { cloneExercise(it, supersetIdMap) }
+        val clonedExercises = source.exercises.map { cloneExercise(it, supersetIdMap, exerciseIdMap) }
         val clonedWarmup = source.warmup.map { it.copy(id = UUID.randomUUID().toString()) }
+        val clonedSupersetGroups = source.allSupersetGroups().mapNotNull { group ->
+            val newId = supersetIdMap[group.id] ?: return@mapNotNull null
+            group.copy(
+                id = newId,
+                exerciseOrder = group.exerciseOrder.mapNotNull(exerciseIdMap::get),
+            ).takeIf { it.exerciseOrder.size >= 2 }
+        }
         return source.copy(
             id = UUID.randomUUID().toString(),
             parts = clonedParts,
             exercises = clonedExercises,
             warmup = clonedWarmup,
+            supersetGroups = clonedSupersetGroups,
         )
     }
 
@@ -104,13 +113,17 @@ object SessionTemplateEngine {
     private fun cloneExercise(
         exercise: Exercise,
         supersetIdMap: MutableMap<String, String>,
+        exerciseIdMap: MutableMap<String, String>,
     ): Exercise {
-        val newSupersetId = exercise.supersetId?.let {
+        val newSupersetId = exercise.supersetGroupRefOrLegacyId()?.let {
             supersetIdMap.getOrPut(it) { UUID.randomUUID().toString() }
         }
+        val newExerciseId = UUID.randomUUID().toString()
+        exerciseIdMap[exercise.id] = newExerciseId
         return exercise.copy(
-            id = UUID.randomUUID().toString(),
+            id = newExerciseId,
             supersetId = newSupersetId,
+            supersetGroupRef = newSupersetId,
             sets = exercise.sets.map { it.copy(id = UUID.randomUUID().toString()) },
             warmupSets = exercise.warmupSets.map { it.copy(id = UUID.randomUUID().toString()) },
             // Strip execution/performance state that belongs to actual workout logs

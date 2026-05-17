@@ -2,6 +2,16 @@ package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramCalendarizationMode
+import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.isEffectivelyUnilateral
+import com.example.kpkn.data.models.isSimpleTemporalProgram
+
+enum class WorkoutLiveEditPersistenceScope {
+    SESSION_ONLY,
+    PERMANENT_ALLOWED,
+}
 
 object WorkoutEditingRules {
     fun buildEditingState(
@@ -12,10 +22,11 @@ object WorkoutEditingRules {
     ): WorkoutEditingState? {
         exercise ?: return null
         val safeSetIdx = setIdx.coerceIn(0, exercise.sets.lastIndex.coerceAtLeast(0))
-        if (!isSetDone(completedSets, exercise.id, safeSetIdx, exercise.isUnilateral)) return null
+        val isUnilateral = exercise.isEffectivelyUnilateral()
+        if (!isSetDone(completedSets, exercise.id, safeSetIdx, isUnilateral)) return null
 
         val resolvedSide = when {
-            !exercise.isUnilateral -> null
+            !isUnilateral -> null
             preferredSide != null && completedSets.containsKey(buildCompletedSetKey(exercise.id, safeSetIdx, preferredSide)) -> preferredSide
             completedSets.containsKey(buildCompletedSetKey(exercise.id, safeSetIdx, "left")) -> "left"
             completedSets.containsKey(buildCompletedSetKey(exercise.id, safeSetIdx, "right")) -> "right"
@@ -41,4 +52,18 @@ object WorkoutEditingRules {
         "right" -> "${exerciseId}_${setIdx}_R"
         else -> "${exerciseId}_${setIdx}"
     }
+
+    fun liveEditPersistenceScope(program: Program): WorkoutLiveEditPersistenceScope {
+        val isSimpleCyclic = program.isSimpleTemporalProgram &&
+            program.simpleProgramKind == SimpleProgramKind.CYCLIC &&
+            program.calendarization?.mode != ProgramCalendarizationMode.SIMPLE_DATED
+        return if (isSimpleCyclic) {
+            WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED
+        } else {
+            WorkoutLiveEditPersistenceScope.SESSION_ONLY
+        }
+    }
+
+    fun canPersistLiveStructuralChanges(program: Program): Boolean =
+        liveEditPersistenceScope(program) == WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED
 }

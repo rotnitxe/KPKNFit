@@ -43,6 +43,7 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.exercises.analyticsExerciseKey
 import com.example.kpkn.domain.exercises.displayLabel
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.domain.training.ProgramAnalyticsReport
 import java.time.Duration
 import java.time.Instant
 
@@ -83,6 +84,7 @@ fun ProgressView(
     programLogs: List<WorkoutLog>,
     userBodyWeightKg: Double?,
     onUpdateProgram: (Program) -> Unit,
+    analyticsReport: ProgramAnalyticsReport? = null,
     modifier: Modifier = Modifier,
 ) {
     val progressDetails = remember(program, programLogs, userBodyWeightKg) {
@@ -131,6 +133,10 @@ fun ProgressView(
             bodyWeightKg = userBodyWeightKg,
             onSelectExercise = { selectedExerciseKey = it },
         )
+
+        analyticsReport?.let { report ->
+            ProgressAnalyticsCard(report = report)
+        }
 
         WeeklyTrendSection(exercises = progressDetails)
 

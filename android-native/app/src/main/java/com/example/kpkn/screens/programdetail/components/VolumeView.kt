@@ -59,11 +59,11 @@ import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.domain.training.CanonicalMuscleVolumeEntry
 import com.example.kpkn.domain.training.DiscomfortEntry
 import com.example.kpkn.domain.training.ExerciseDiscomfortAssociationEntry
+import com.example.kpkn.domain.training.ProgramAnalyticsReport
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.max
 
 private enum class VolumeVisualizationMode(val label: String) {
-    CAUPOLICAN("Caupolicán"),
     BARS("Gráficos"),
 }
 
@@ -266,6 +266,7 @@ fun VolumeView(
     onApplyVolumeCalibration: (ProgramMode, AthleteProfileScore, List<VolumeRecommendation>) -> Unit,
     programDiscomforts: List<DiscomfortEntry>,
     exerciseDiscomfortAssociations: List<ExerciseDiscomfortAssociationEntry>,
+    analyticsReport: ProgramAnalyticsReport? = null,
     modifier: Modifier = Modifier,
 ) {
     val canonicalVolumes = remember(program) {
@@ -283,8 +284,6 @@ fun VolumeView(
     val activeMuscles = remember(canonicalVolumes) { canonicalVolumes.count { it.weeklySets > 0.0 } }
     val topMuscle = remember(canonicalVolumes) { canonicalVolumes.maxByOrNull { it.weeklySets } }
 
-    var selectedModeName by rememberSaveable { mutableStateOf(VolumeVisualizationMode.CAUPOLICAN.name) }
-    val selectedMode = VolumeVisualizationMode.valueOf(selectedModeName)
     var showCalibrationSheet by rememberSaveable { mutableStateOf(false) }
 
     Column(
@@ -309,7 +308,7 @@ fun VolumeView(
         if (!isProgramActive) {
             VolumeStateCard(
                 title = "Activa tu programa para ver volumen",
-                body = "Cuando el programa esté activo, KPKN usará tu estructura para pintar el Caupolicán y mostrar cómo se reparte el volumen por músculo.",
+                body = "Cuando el programa esté activo, KPKN usará tu estructura para mostrar cómo se reparte el volumen por músculo.",
                 buttonLabel = "Activar programa",
                 onAction = onActivateProgram,
             )
@@ -334,22 +333,14 @@ fun VolumeView(
             )
         }
 
-        ViewModeSelector(
-            selectedMode = selectedMode,
-            onSelect = { selectedModeName = it.name },
+        CanonicalVolumeBarsCard(
+            canonicalVolumes = canonicalVolumes,
+            personalizedTargets = personalizedTargets,
+            isVolumeCalibrated = isVolumeCalibrated,
         )
 
-        when (selectedMode) {
-            VolumeVisualizationMode.CAUPOLICAN -> PreciseCaupolicanHeatmapCard(
-                volumeByMuscle = canonicalVolumes.associate { it.muscleName to it.weeklySets },
-                personalizedTargets = personalizedTargets,
-                isVolumeCalibrated = isVolumeCalibrated,
-            )
-            VolumeVisualizationMode.BARS -> CanonicalVolumeBarsCard(
-                canonicalVolumes = canonicalVolumes,
-                personalizedTargets = personalizedTargets,
-                isVolumeCalibrated = isVolumeCalibrated,
-            )
+        analyticsReport?.let { report ->
+            VolumeAnalyticsCard(report = report)
         }
 
         VolumeSummaryStrip(
@@ -451,26 +442,28 @@ private fun VolumeStateCard(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = "Caupolicán",
+                text = "Volumen",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Black,
             )
 
-            BoxWithConstraints(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                val figureWidth = minOf(maxWidth * 0.62f, 220.dp)
-                Box(
-                    modifier = Modifier
-                        .width(figureWidth)
-                        .aspectRatio(0.44f),
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.caupolican_front),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = Fit,
+                listOf(0.82f, 0.62f, 0.44f).forEachIndexed { index, widthFraction ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(widthFraction)
+                            .height(10.dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(
+                                when (index) {
+                                    0 -> MaterialTheme.colorScheme.primary.copy(alpha = 0.42f)
+                                    1 -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.34f)
+                                    else -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.30f)
+                                },
+                            ),
                     )
                 }
             }
@@ -1206,7 +1199,7 @@ private fun heatIntensityForMuscle(
     }
 }
 
-private fun buildMuscleStatusText(
+internal fun buildMuscleStatusText(
     weeklySets: Double,
     target: PersonalizedVolumeTarget?,
     isVolumeCalibrated: Boolean,
@@ -1217,6 +1210,7 @@ private fun buildMuscleStatusText(
 
     val status = when {
         weeklySets < target.minEffective -> "Subentrenado"
+        weeklySets == target.minEffective.toDouble() -> "Base mínima"
         weeklySets <= target.maxAdaptive -> "Rango ideal"
         else -> "Sobreentreno"
     }

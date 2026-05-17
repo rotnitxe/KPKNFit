@@ -26,12 +26,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.data.exercises.EXERCISE_DATABASE
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramCalendarizationMode
+import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramMode
+import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.CompetitionDetails
+import com.example.kpkn.data.models.CompetitionRecord
+import com.example.kpkn.data.models.CompetitionRecordMode
+import com.example.kpkn.data.models.CompetitionRecordStatus
+import com.example.kpkn.data.models.CompetitionTemplateType
+import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.LoopEngine
+import com.example.kpkn.domain.training.ProgramAnalyticsEngine
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.programdetail.components.*
 import com.example.kpkn.services.workout.LoopNotificationManager
@@ -50,7 +62,7 @@ fun ProgramDetailScreen(
     onBack: () -> Unit,
     onStartWorkout: (Session, Program) -> Unit,
     onEditSession: (String) -> Unit,
-    onCreateSession: (String, String, Int, Int, Int) -> Unit,
+    onCreateSession: (String, String, Int, Int, Int, Boolean) -> Unit,
     onContextTabStateChange: (MainTab, (MainTab) -> Unit) -> Unit = { _, _ -> },
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
 ) {
@@ -388,11 +400,13 @@ private fun TrainingPanel(
     structureSubTab: StructureSubTab,
     onStartWorkout: (Session, Program) -> Unit,
     onEditSession: (String) -> Unit,
-    onCreateSession: (String, String, Int, Int, Int) -> Unit,
+    onCreateSession: (String, String, Int, Int, Int, Boolean) -> Unit,
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
     var showCopyWeekDialog by remember { mutableStateOf(false) }
     var showCalendarWeeksDialog by remember { mutableStateOf(false) }
+    var pendingCompetitionCreation by remember { mutableStateOf<PendingCompetitionSessionCreation?>(null) }
+    var showCompetitionEligibilityNotice by remember { mutableStateOf(false) }
 
     fun focusWeek(blockId: String, weekId: String) {
         viewModel.selectBlock(blockId)
@@ -400,7 +414,11 @@ private fun TrainingPanel(
         viewModel.setStructureSubTab(StructureSubTab.SEMANA)
     }
 
-    fun createSessionForWeek(weekId: String, preferredDayOfWeek: Int) {
+    fun addSessionForWeek(
+        weekId: String,
+        preferredDayOfWeek: Int,
+        competitionKeyDate: ProgramKeyDate? = null,
+    ) {
         val located = locateWeekForSessionCreation(program, weekId) ?: return
         val suggestedDay = chooseSessionCreationDay(
             existingSessions = located.sessions,
@@ -411,19 +429,57 @@ private fun TrainingPanel(
         viewModel.selectWeek(located.weekId)
         viewModel.setStructureSubTab(StructureSubTab.SEMANA)
         val sessionId = java.util.UUID.randomUUID().toString()
+        val competitionKey = competitionKeyDate?.takeIf { it.type == KeyDateType.COMPETITION }
+        val recordId = competitionKey?.let { java.util.UUID.randomUUID().toString() }
+        val session = if (competitionKey != null && recordId != null) {
+            createCompetitionRoadmapSession(
+                sessionId = sessionId,
+                dayOfWeek = suggestedDay,
+                keyDate = competitionKey,
+                competitionRecordId = recordId,
+                program = program,
+            )
+        } else {
+            createBlankRoadmapSession(sessionId, suggestedDay)
+        }
         viewModel.addSession(
             macroIndex = located.macroIndex,
             mesoIndex = located.mesoIndex,
             weekId = located.weekId,
-            session = createBlankRoadmapSession(sessionId, suggestedDay),
+            session = session,
         )
+        if (competitionKey != null && recordId != null) {
+            CompetitionRepository.getInstance().upsert(
+                createCompetitionRecordForSession(
+                    recordId = recordId,
+                    sessionId = sessionId,
+                    weekId = located.weekId,
+                    keyDate = competitionKey,
+                    program = program,
+                )
+            )
+        }
         onCreateSession(
             sessionId,
             located.weekId,
             located.macroIndex,
             located.mesoIndex,
             suggestedDay,
+            competitionKey != null,
         )
+    }
+
+    fun createSessionForWeek(weekId: String, preferredDayOfWeek: Int, keyDateId: String? = null) {
+        val keyDate = keyDateId?.let { id -> program.keyDates.firstOrNull { it.id == id } }
+        if (keyDate?.type == KeyDateType.COMPETITION) {
+            if (!program.canCreateCompetitionSession()) {
+                showCompetitionEligibilityNotice = true
+                return
+            }
+            pendingCompetitionCreation = PendingCompetitionSessionCreation(weekId, preferredDayOfWeek, keyDate)
+            return
+        }
+        addSessionForWeek(weekId, preferredDayOfWeek)
     }
 
     // Edge case: empty program
@@ -465,6 +521,15 @@ private fun TrainingPanel(
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            if (program.isSimpleTemporalProgram) {
+                val simpleDated = program.calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
+                FilterChip(
+                    selected = simpleDated,
+                    onClick = { viewModel.setSimpleDatedCalendarization(!simpleDated) },
+                    label = { Text("Semanas por fecha", maxLines = 1) },
+                    modifier = Modifier.weight(1f),
+                )
+            }
             FilledTonalButton(
                 onClick = { showCopyWeekDialog = true },
                 enabled = currentWeeks.size > 1,
@@ -508,6 +573,7 @@ private fun TrainingPanel(
                                 block.macroIndex,
                                 weekMeta.mesoIndex,
                                 dayId,
+                                false,
                             )
                         }
                     },
@@ -576,6 +642,42 @@ private fun TrainingPanel(
             onCreate = { startDate, count, days ->
                 viewModel.createCalendarWeeks(startDate, count, days)
                 showCalendarWeeksDialog = false
+            },
+        )
+    }
+
+    pendingCompetitionCreation?.let { pending ->
+        AlertDialog(
+            onDismissRequest = { pendingCompetitionCreation = null },
+            title = { Text("Configurar competición", fontWeight = FontWeight.Black) },
+            text = {
+                Text(
+                    "KPKN creará una sesión especial para la fecha clave y te llevará al editor para configurar federación, ubicación, hora y movimientos de competición."
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        addSessionForWeek(pending.weekId, pending.preferredDayOfWeek, pending.keyDate)
+                        pendingCompetitionCreation = null
+                    },
+                ) { Text("Crear y configurar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingCompetitionCreation = null }) { Text("Cancelar") }
+            },
+        )
+    }
+
+    if (showCompetitionEligibilityNotice) {
+        AlertDialog(
+            onDismissRequest = { showCompetitionEligibilityNotice = false },
+            title = { Text("Sesión de competición no disponible", fontWeight = FontWeight.Black) },
+            text = {
+                Text("Solo se crean sesiones de competición desde programas avanzados con calendarización de competición y fecha clave configurada.")
+            },
+            confirmButton = {
+                TextButton(onClick = { showCompetitionEligibilityNotice = false }) { Text("Entendido") }
             },
         )
     }
@@ -805,6 +907,12 @@ private data class WeekSessionLocation(
     val sessions: List<Session>,
 )
 
+private data class PendingCompetitionSessionCreation(
+    val weekId: String,
+    val preferredDayOfWeek: Int,
+    val keyDate: ProgramKeyDate,
+)
+
 private fun createBlankRoadmapSession(sessionId: String, dayOfWeek: Int): Session =
     Session(
         id = sessionId,
@@ -813,6 +921,71 @@ private fun createBlankRoadmapSession(sessionId: String, dayOfWeek: Int): Sessio
         dayOfWeek = dayOfWeek,
         isMainSession = true,
     )
+
+private fun createCompetitionRoadmapSession(
+    sessionId: String,
+    dayOfWeek: Int,
+    keyDate: ProgramKeyDate,
+    competitionRecordId: String,
+    program: Program,
+): Session {
+    val eventDate = keyDate.eventDate ?: keyDate.startDate
+    val sportType = defaultCompetitionSportType(program)
+    return Session(
+        id = sessionId,
+        name = keyDate.title.ifBlank { "Competición" },
+        description = keyDate.notes,
+        lastModifiedAtMs = System.currentTimeMillis(),
+        dayOfWeek = dayOfWeek,
+        isMainSession = true,
+        isMeetDay = true,
+        isCompetitionSession = true,
+        focus = "Competición",
+        competitionDetails = CompetitionDetails(
+            competitionDate = eventDate,
+        ),
+        competitionRecordId = competitionRecordId,
+        competitionKeyDateId = keyDate.id,
+        competitionSportType = sportType,
+        competitionRecordMode = CompetitionRecordMode.HYBRID,
+    )
+}
+
+private fun createCompetitionRecordForSession(
+    recordId: String,
+    sessionId: String,
+    weekId: String,
+    keyDate: ProgramKeyDate,
+    program: Program,
+): CompetitionRecord {
+    val eventDate = keyDate.eventDate ?: keyDate.startDate
+    val sportType = defaultCompetitionSportType(program)
+    return CompetitionRecord(
+        id = recordId,
+        title = keyDate.title.ifBlank { "Competición" },
+        eventDate = eventDate,
+        sportType = sportType,
+        recordMode = CompetitionRecordMode.HYBRID,
+        status = CompetitionRecordStatus.PLANNED,
+        notes = keyDate.notes,
+        plannedProgramId = program.id,
+        plannedSessionId = sessionId,
+        plannedWeekId = weekId,
+        keyDateId = keyDate.id,
+    )
+}
+
+private fun Program.canCreateCompetitionSession(): Boolean =
+    structure == ProgramStructure.COMPLEX &&
+        calendarization?.mode == ProgramCalendarizationMode.ADVANCED_COMPETITION &&
+        keyDates.any { it.type == KeyDateType.COMPETITION }
+
+private fun defaultCompetitionSportType(program: Program): CompetitionTemplateType =
+    when (program.mode) {
+        ProgramMode.POWERLIFTING -> CompetitionTemplateType.POWERLIFTING
+        ProgramMode.POWERBUILDING -> CompetitionTemplateType.POWERLIFTING
+        ProgramMode.HYPERTROPHY -> CompetitionTemplateType.CUSTOM
+    }
 
 private fun dayLabelShort(dayOfWeek: Int): String = when (dayOfWeek) {
     1 -> "Lun"
@@ -871,6 +1044,14 @@ private fun AnalyticsPanel(
     programLogs: List<com.example.kpkn.data.models.WorkoutLog>,
     userBodyWeightKg: Double?,
 ) {
+    val analyticsReport = remember(program, programLogs) {
+        ProgramAnalyticsEngine.analyze(
+            program = program,
+            logs = programLogs,
+            exerciseCatalog = EXERCISE_DATABASE,
+        )
+    }
+
     Column {
         Spacer(Modifier.height(8.dp))
 
@@ -914,6 +1095,7 @@ private fun AnalyticsPanel(
                     },
                     programDiscomforts = programDiscomforts,
                     exerciseDiscomfortAssociations = exerciseDiscomfortAssociations,
+                    analyticsReport = analyticsReport,
                 )
             }
             AnalyticsSubTab.PROGRESO -> {
@@ -925,6 +1107,7 @@ private fun AnalyticsPanel(
                         programLogs = programLogs,
                         userBodyWeightKg = userBodyWeightKg,
                         onUpdateProgram = { viewModel.updateProgram(it) },
+                        analyticsReport = analyticsReport,
                     )
                 }
             }
@@ -935,6 +1118,7 @@ private fun AnalyticsPanel(
                     HistoryView(
                         program = program,
                         programLogs = programLogs,
+                        analyticsReport = analyticsReport,
                     )
                 }
             }

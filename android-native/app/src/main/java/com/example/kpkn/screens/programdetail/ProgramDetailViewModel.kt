@@ -14,12 +14,15 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.SimpleProgramSnapshot
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.models.normalizedTemporalStructure
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ProgramDetailHelpers
+import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.RoadmapBlock
 import com.example.kpkn.domain.training.RoadmapLoopMarker
 import com.example.kpkn.domain.training.SplitApplicationEngine
@@ -237,7 +240,46 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
     }
 
     fun updateProgram(updated: Program) {
-        repository.updateProgram(updated)
+        repository.updateProgram(ProgramCalendarEngine.materializeWeekDates(updated))
+    }
+
+    fun setSimpleDatedCalendarization(enabled: Boolean) {
+        val current = program.value ?: return
+        if (!current.isSimpleTemporalProgram) return
+        val updated = if (enabled) {
+            current.copy(
+                timelineStartDate = current.timelineStartDate ?: LocalDate.now().toString(),
+                calendarization = current.calendarization ?: ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
+                simpleProgramKind = SimpleProgramKind.CALENDARIZED,
+                pausedCyclicSnapshot = current.pausedCyclicSnapshot ?: current.toSimpleProgramSnapshot(),
+                loops = emptyList(),
+                loopState = null,
+                events = emptyList(),
+            )
+        } else {
+            current.pausedCyclicSnapshot?.let { snapshot ->
+                current.copy(
+                    timelineStartDate = current.timelineStartDate,
+                    calendarization = null,
+                    simpleProgramKind = SimpleProgramKind.CYCLIC,
+                    macrocycles = snapshot.macrocycles,
+                    loops = snapshot.loops,
+                    loopState = snapshot.loopState,
+                    events = snapshot.events,
+                    selectedSplitId = snapshot.selectedSplitId,
+                    customSplitPattern = snapshot.customSplitPattern,
+                    customSplitName = snapshot.customSplitName,
+                    customSplitDescription = snapshot.customSplitDescription,
+                    blockSplitSelections = snapshot.blockSplitSelections,
+                    pausedCyclicSnapshot = null,
+                )
+            } ?: current.copy(
+                calendarization = null,
+                simpleProgramKind = SimpleProgramKind.CYCLIC,
+                pausedCyclicSnapshot = null,
+            )
+        }
+        repository.updateProgram(ProgramCalendarEngine.materializeWeekDates(updated))
     }
 
     fun markVolumeSetupPromptSeen() {
@@ -755,6 +797,12 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         val newWeeks = buildCalendarWeeks(startDate, weekCount, trainingDays, offset)
         val updated = current.copy(
             timelineStartDate = current.timelineStartDate ?: startDate.toString(),
+            calendarization = current.calendarization ?: ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
+            simpleProgramKind = SimpleProgramKind.CALENDARIZED,
+            pausedCyclicSnapshot = current.pausedCyclicSnapshot ?: current.toSimpleProgramSnapshot(),
+            loops = emptyList(),
+            loopState = null,
+            events = emptyList(),
             macrocycles = current.macrocycles.mapIndexed { currentMacroIndex, macro ->
                 if (currentMacroIndex != macroIndex) macro else macro.copy(
                     blocks = macro.blocks.mapIndexed { blockIndex, currentBlock ->
@@ -767,7 +815,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
                 )
             }
         ).normalizedTemporalStructure()
-        repository.updateProgram(updated)
+        repository.updateProgram(ProgramCalendarEngine.materializeWeekDates(updated))
         _uiState.update { it.copy(selectedBlockId = block.id, selectedWeekId = newWeeks.lastOrNull()?.id) }
     }
 
@@ -795,9 +843,23 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
                 )
             }
         ).normalizedTemporalStructure()
-        repository.updateProgram(updated)
+        repository.updateProgram(ProgramCalendarEngine.materializeWeekDates(updated))
         _uiState.update { it.copy(selectedBlockId = target.id, selectedWeekId = newWeeks.lastOrNull()?.id, structureSubTab = StructureSubTab.SEMANA) }
     }
+
+    private fun Program.toSimpleProgramSnapshot(): SimpleProgramSnapshot =
+        SimpleProgramSnapshot(
+            macrocycles = macrocycles,
+            loops = loops,
+            loopState = loopState,
+            events = events,
+            selectedSplitId = selectedSplitId,
+            customSplitPattern = customSplitPattern,
+            customSplitName = customSplitName,
+            customSplitDescription = customSplitDescription,
+            blockSplitSelections = blockSplitSelections,
+            savedAtMs = System.currentTimeMillis(),
+        )
 
     private fun buildCalendarWeeks(startDate: LocalDate, weekCount: Int, trainingDays: Set<Int>, weekOffset: Int): List<ProgramWeek> {
         return (0 until weekCount).map { index ->

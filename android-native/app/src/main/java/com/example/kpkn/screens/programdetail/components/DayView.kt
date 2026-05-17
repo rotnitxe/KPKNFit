@@ -59,6 +59,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -67,6 +68,8 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.training.StartDaySessionMode
 import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.domain.training.WeekWithMeta
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -147,8 +150,11 @@ fun DayView(
     val dayBounds = remember { mutableStateMapOf<Int, Rect>() }
     var rootBounds by remember { mutableStateOf<Rect?>(null) }
     var pendingStartDay by remember { mutableStateOf<Int?>(null) }
+    var pendingOffScheduleSession by remember { mutableStateOf<Pair<Session, String>?>(null) }
     var startDayScope by remember { mutableStateOf(StartDayTemporalScope.ALL_WEEKS) }
     var startDaySessionMode by remember { mutableStateOf(StartDaySessionMode.KEEP_DAYS) }
+    val outsideProgramDays = selectedWeek?.outsideProgramDays.orEmpty()
+    val trainingDayDates = selectedWeek?.trainingDayDates.orEmpty()
 
     LaunchedEffect(sessions) {
         dayLayout = sessions.map { session ->
@@ -180,6 +186,8 @@ fun DayView(
                 val dayEntries = dayLayout.filter { it.dayId == day.id }
                 val isExpanded = day.id in expandedDays
                 val isDropTarget = dragState.draggedSessionId != null && dragState.targetDayId == day.id
+                val isOutsideProgram = day.id in outsideProgramDays
+                val scheduledDate = trainingDayDates[day.id]
 
                 DayColumn(
                     day = day,
@@ -189,12 +197,18 @@ fun DayView(
                     isDropTarget = isDropTarget,
                     targetInsertIndex = if (isDropTarget) dragState.targetIndex else null,
                     isStartDay = day.id == startDay,
+                    isOutsideProgram = isOutsideProgram,
+                    scheduledDate = scheduledDate,
                     onToggleExpand = {
                         expandedDays = if (isExpanded) expandedDays - day.id else expandedDays + day.id
                     },
                     onEditSession = onEditSession,
                     onDeleteSession = onDeleteSession,
-                    onStartWorkout = onStartWorkout,
+                    onStartWorkout = { session ->
+                        val issue = calendarStartWarning(isOutsideProgram, scheduledDate)
+                        if (issue != null) pendingOffScheduleSession = session to issue
+                        else onStartWorkout(session)
+                    },
                     onAddSession = { onAddSession(day.id) },
                     onSetStartDay = {
                         pendingStartDay = day.id
@@ -296,6 +310,37 @@ fun DayView(
             },
         )
     }
+
+    pendingOffScheduleSession?.let { (session, message) ->
+        AlertDialog(
+            onDismissRequest = { pendingOffScheduleSession = null },
+            title = { Text("Sesión fuera de calendario", fontWeight = FontWeight.Black) },
+            text = { Text(message) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        pendingOffScheduleSession = null
+                        onStartWorkout(session)
+                    },
+                ) { Text("Entrenar igual") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingOffScheduleSession = null }) { Text("Volver al plan") }
+            },
+        )
+    }
+}
+
+private fun calendarStartWarning(isOutsideProgram: Boolean, scheduledDate: String?): String? {
+    if (isOutsideProgram) return "Este día está fuera del programa calendarizado. Entrenar aquí se registrará como desviación del plan."
+    val scheduled = try {
+        scheduledDate?.takeIf { it.isNotBlank() }?.let(LocalDate::parse)
+    } catch (_: DateTimeParseException) {
+        null
+    } ?: return null
+    val today = LocalDate.now()
+    if (scheduled == today) return null
+    return "Esta sesión corresponde al ${scheduled}. Hoy es ${today}. Puedes entrenar igual, pero KPKN guardará la diferencia de calendario."
 }
 
 @Composable
@@ -479,6 +524,8 @@ private fun DayColumn(
     isDropTarget: Boolean,
     targetInsertIndex: Int?,
     isStartDay: Boolean,
+    isOutsideProgram: Boolean,
+    scheduledDate: String?,
     onToggleExpand: () -> Unit,
     onEditSession: (String) -> Unit,
     onDeleteSession: (String) -> Unit,
@@ -502,7 +549,11 @@ private fun DayColumn(
         shape = MaterialTheme.shapes.medium,
         border = if (isDropTarget) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null,
         colors = CardDefaults.cardColors(
-            containerColor = if (isDropTarget) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surface,
+            containerColor = when {
+                isDropTarget -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.18f)
+                isOutsideProgram -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)
+                else -> MaterialTheme.colorScheme.surface
+            },
         ),
     ) {
         Column {
@@ -522,7 +573,8 @@ private fun DayColumn(
                         modifier = Modifier
                             .size(32.dp)
                             .background(
-                                if (entries.isNotEmpty()) MaterialTheme.colorScheme.primary
+                                if (isOutsideProgram) MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+                                else if (entries.isNotEmpty()) MaterialTheme.colorScheme.primary
                                 else MaterialTheme.colorScheme.surfaceVariant,
                                 CircleShape,
                             ),
@@ -532,7 +584,8 @@ private fun DayColumn(
                             day.short,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Black,
-                            color = if (entries.isNotEmpty()) MaterialTheme.colorScheme.onPrimary
+                            color = if (isOutsideProgram) MaterialTheme.colorScheme.onSurfaceVariant
+                            else if (entries.isNotEmpty()) MaterialTheme.colorScheme.onPrimary
                             else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -542,16 +595,23 @@ private fun DayColumn(
                             day.name,
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
+                            textDecoration = if (isOutsideProgram) TextDecoration.LineThrough else TextDecoration.None,
+                            color = if (isOutsideProgram) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f) else MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
-                            if (entries.isEmpty()) "Sin sesiones todavía" else "${entries.size} sesión${if (entries.size > 1) "es" else ""}",
+                            when {
+                                isOutsideProgram -> "Fuera de programa"
+                                scheduledDate != null -> scheduledDate
+                                entries.isEmpty() -> "Sin sesiones todavía"
+                                else -> "${entries.size} sesión${if (entries.size > 1) "es" else ""}"
+                            },
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onAddSession) {
+                    IconButton(onClick = onAddSession, enabled = !isOutsideProgram) {
                         Icon(
                             Icons.Default.Add,
                             "Agregar",

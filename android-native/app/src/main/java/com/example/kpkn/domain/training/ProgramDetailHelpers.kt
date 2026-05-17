@@ -40,6 +40,8 @@ data class WeekWithMeta(
     val dateRangeLabel: String? = null,
     val keyDateLabel: String? = null,
     val keyDateType: KeyDateType? = null,
+    val outsideProgramDays: Set<Int> = emptySet(),
+    val trainingDayDates: Map<Int, String> = emptyMap(),
 )
 
 data class DiscomfortEntry(
@@ -134,6 +136,8 @@ object ProgramDetailHelpers {
                         dateRangeLabel = weekDateMeta[week.id]?.dateRangeLabel,
                         keyDateLabel = weekDateMeta[week.id]?.keyDateLabel,
                         keyDateType = weekDateMeta[week.id]?.keyDateType,
+                        outsideProgramDays = weekDateMeta[week.id]?.outsideProgramDays.orEmpty(),
+                        trainingDayDates = weekDateMeta[week.id]?.trainingDayDates.orEmpty(),
                     )
                 }
             }
@@ -194,9 +198,17 @@ object ProgramDetailHelpers {
         val dateRangeLabel: String?,
         val keyDateLabel: String?,
         val keyDateType: KeyDateType?,
+        val outsideProgramDays: Set<Int> = emptySet(),
+        val trainingDayDates: Map<Int, String> = emptyMap(),
     )
 
     private fun buildBlockDateRanges(program: Program): Map<String, String> {
+        val projection = ProgramCalendarEngine.project(program)
+        if (projection.enabled) {
+            return projection.weeks
+                .groupBy { it.blockId }
+                .mapValues { (_, weeks) -> formatDateRange(weeks.first().startDate, weeks.last().endDate) }
+        }
         var cursor = parseProgramDate(program.timelineStartDate) ?: return emptyMap()
         val ranges = mutableMapOf<String, String>()
         program.macrocycles.forEach { macro ->
@@ -216,6 +228,19 @@ object ProgramDetailHelpers {
     }
 
     private fun buildWeekDateMeta(program: Program): Map<String, WeekDateMeta> {
+        val projection = ProgramCalendarEngine.project(program)
+        if (projection.enabled) {
+            return projection.weeks.associate { week ->
+                val keyDate = week.keyDates.firstOrNull()
+                week.weekId to WeekDateMeta(
+                    dateRangeLabel = formatDateRange(week.startDate, week.endDate),
+                    keyDateLabel = keyDate?.roadmapLabel(),
+                    keyDateType = keyDate?.type,
+                    outsideProgramDays = week.outsideProgramDays,
+                    trainingDayDates = week.trainingDayDates.mapValues { it.value.toString() },
+                )
+            }
+        }
         var cursor = parseProgramDate(program.timelineStartDate) ?: return emptyMap()
         val meta = mutableMapOf<String, WeekDateMeta>()
         program.macrocycles.forEach { macro ->
@@ -229,6 +254,7 @@ object ProgramDetailHelpers {
                             dateRangeLabel = formatDateRange(weekStart, weekEnd),
                             keyDateLabel = keyDate?.roadmapLabel(),
                             keyDateType = keyDate?.type,
+                            trainingDayDates = week.trainingDayDates,
                         )
                         cursor = weekEnd.plusDays(1)
                     }

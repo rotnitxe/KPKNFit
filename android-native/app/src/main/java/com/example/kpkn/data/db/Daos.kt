@@ -47,6 +47,26 @@ interface WorkoutLogDao {
     suspend fun delete(id: String)
 }
 
+// ─── Competition Records ─────────────────────────────────────────────────────
+
+@Dao
+interface CompetitionRecordDao {
+    @Query("SELECT * FROM competition_records ORDER BY eventDate DESC, updatedAtMs DESC")
+    suspend fun getAll(): List<CompetitionRecordEntity>
+
+    @Query("SELECT * FROM competition_records WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): CompetitionRecordEntity?
+
+    @Query("SELECT * FROM competition_records WHERE plannedSessionId = :sessionId LIMIT 1")
+    suspend fun getByPlannedSessionId(sessionId: String): CompetitionRecordEntity?
+
+    @Upsert
+    suspend fun upsert(entity: CompetitionRecordEntity)
+
+    @Query("DELETE FROM competition_records WHERE id = :id")
+    suspend fun delete(id: String)
+}
+
 // ─── Settings ─────────────────────────────────────────────────────────────────
 
 @Dao

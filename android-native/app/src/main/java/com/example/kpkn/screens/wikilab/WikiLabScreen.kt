@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,6 +26,8 @@ import com.example.kpkn.data.exercises.EXERCISE_DATABASE
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.repository.CustomExerciseRepository
+import com.example.kpkn.domain.exercises.calculateSearchScore
+import com.example.kpkn.domain.exercises.deduplicateCatalogVisualResults
 
 // ═══════════════════════════════════════════════════════════════════════
 private fun muscleColor(name: String): Color = wikilabMuscleColor(name)
@@ -69,17 +72,33 @@ fun WikiLabScreen(
 
     val filtered = remember(query, selectedCategory, exerciseCatalog) {
         val cat = CATEGORIES[selectedCategory]
-        exerciseCatalog.filter { ex ->
+        val matches = exerciseCatalog.filter { ex ->
             val canonicalInvolved = collapseInvolvedMusclesToCanonical(ex.involvedMuscles)
             val catMatch = cat.keywords.isEmpty() || ex.involvedMuscles.any { m ->
                 cat.keywords.any { kw -> canonicalMuscleDisplayName(m.muscle, m.emphasis).contains(kw, ignoreCase = true) }
             }
-            val textMatch = query.isBlank() ||
-                ex.name.contains(query, ignoreCase = true) ||
-                canonicalInvolved.any { m -> m.muscle.contains(query, ignoreCase = true) } ||
-                (ex.equipment?.contains(query, ignoreCase = true) == true)
+            val textMatch = if (query.isBlank()) {
+                true
+            } else {
+                calculateSearchScore(ex, query) > 0 ||
+                    canonicalInvolved.any { m -> m.muscle.contains(query, ignoreCase = true) }
+            }
             catMatch && textMatch
         }
+        val sorted = if (query.isBlank()) {
+            matches.sortedBy { it.name }
+        } else {
+            matches.sortedWith(
+                compareByDescending<ExerciseMuscleInfo> { calculateSearchScore(it, query) }
+                    .thenBy { kotlin.math.abs(it.name.length - query.trim().length) }
+                    .thenBy { it.name }
+            )
+        }
+        deduplicateCatalogVisualResults(sorted)
+    }
+    val listState = rememberLazyListState()
+    LaunchedEffect(query, selectedCategory) {
+        listState.scrollToItem(0)
     }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -181,6 +200,7 @@ fun WikiLabScreen(
 
         // ═══ Exercise List ═══
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),

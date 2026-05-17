@@ -132,6 +132,37 @@ class WorkoutPerformanceHomologationEngineTest {
     }
 
     @Test
+    fun assisted_mode_reaches_zero_as_bodyweight_before_lastre() {
+        val key = buildWorkoutContextKey("pullup", null, null, LoadModeV2.ASSISTED, UnitModeV2.REPS)
+        val previous = ContextPerformanceStateV2(
+            contextKey = key,
+            ewma = 80.0,
+            mean = 80.0,
+            variance = 9.0,
+            bestScore = 81.0,
+            sampleCount = 5,
+            recentScores = listOf(77.0, 78.0, 79.0, 80.0, 81.0),
+        )
+        val entry = SetEntryV2(
+            exerciseId = "pullup",
+            setIndex = 0,
+            loadMode = LoadModeV2.ASSISTED,
+            unitMode = UnitModeV2.REPS,
+            plannedTarget = 8.0,
+            actualValue = 8.0,
+            loggedLoad = 2.5,
+            bodyWeight = 75.0,
+            contextKey = key,
+        )
+
+        val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous)
+
+        assertEquals(LoadModeV2.BODYWEIGHT, result.outcome.suggestedLoadMode)
+        assertEquals(0.0, result.outcome.suggestedNextLoad ?: -1.0, 0.001)
+        assertEquals("Consolidar peso corporal", result.outcome.suggestionReason)
+    }
+
+    @Test
     fun global_index_stays_in_range() {
         val key = buildWorkoutContextKey("row", null, null, LoadModeV2.LOAD, UnitModeV2.REPS)
         val entry = SetEntryV2(
@@ -149,7 +180,7 @@ class WorkoutPerformanceHomologationEngineTest {
     }
 
     @Test
-    fun bodyweight_green_run_suggests_external_load() {
+    fun bodyweight_green_run_consolidates_zero_before_external_load() {
         val key = buildWorkoutContextKey("pullup", null, "base", LoadModeV2.BODYWEIGHT, UnitModeV2.REPS)
         val previous = ContextPerformanceStateV2(
             contextKey = key,
@@ -175,8 +206,9 @@ class WorkoutPerformanceHomologationEngineTest {
 
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous)
 
-        assertEquals("Transición a lastre", result.outcome.suggestionReason)
-        assertEquals(2.5, result.outcome.suggestedNextLoad ?: 0.0, 0.001)
+        assertEquals("Consolidar peso corporal antes de lastre", result.outcome.suggestionReason)
+        assertEquals(LoadModeV2.BODYWEIGHT, result.outcome.suggestedLoadMode)
+        assertEquals(0.0, result.outcome.suggestedNextLoad ?: -1.0, 0.001)
     }
 
     @Test

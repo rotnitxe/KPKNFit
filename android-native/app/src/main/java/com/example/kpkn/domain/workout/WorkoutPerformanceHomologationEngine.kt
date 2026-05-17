@@ -326,11 +326,27 @@ object WorkoutPerformanceHomologationEngine {
             }
 
             LoadModeV2.BODYWEIGHT -> {
+                if (entry.unitMode == UnitModeV2.TIME && entry.timeProgressionStrategy == TimeProgressionStrategyV3.LOAD_THEN_TIME) {
+                    return Suggestion(
+                        suggestedLoad = currentLoad,
+                        suggestedTimeSeconds = entry.actualValue.toInt() + 5,
+                        reason = "Subir tiempo objetivo +5s",
+                        isFailure = entry.reachedFailure,
+                    )
+                }
                 val bodyW = entry.bodyWeight
                 if (bodyW == null || bodyW <= 0.0) {
                     return Suggestion(
                         suggestedLoad = 0.0,
                         reason = "Registra tu peso en Nutrición para guía de lastre",
+                        isFailure = entry.reachedFailure,
+                    )
+                }
+                if (prior.consecutiveGreenSessions >= 2 || historyColor == HistoryColorV2.YELLOW) {
+                    return Suggestion(
+                        suggestedLoad = 0.0,
+                        reason = "Consolidar peso corporal antes de lastre",
+                        suggestedLoadMode = LoadModeV2.BODYWEIGHT,
                         isFailure = entry.reachedFailure,
                     )
                 }
@@ -341,11 +357,10 @@ object WorkoutPerformanceHomologationEngine {
                 val minRepsFor5kg = 37.0 - 33.0 * bodyW / (bodyW + 5.0)
                 val ready = safeReps.toDouble() >= minRepsFor5kg && score >= 55.0
                 if (ready) {
-                    val projectedReps = round(37.0 - (bodyW + 5.0) * (37.0 - safeReps) / bodyW).toInt()
                     return Suggestion(
-                        suggestedLoad = 5.0,
-                        reason = "¡Listo para lastre! ~${projectedReps} reps con +5kg",
-                        suggestedLoadMode = LoadModeV2.LASTRE,
+                        suggestedLoad = 0.0,
+                        reason = "Consolidar peso corporal antes de lastre",
+                        suggestedLoadMode = LoadModeV2.BODYWEIGHT,
                         isFailure = entry.reachedFailure,
                     )
                 }
@@ -401,9 +416,9 @@ object WorkoutPerformanceHomologationEngine {
                     val nextAssistance = max(0.0, assistance - 2.5)
                     if (nextAssistance <= 0.0) {
                         return Suggestion(
-                            suggestedLoad = 2.5,
-                            reason = "Cruce a lastre (BODYWEIGHT + 2.5kg)",
-                            suggestedLoadMode = LoadModeV2.LASTRE,
+                            suggestedLoad = 0.0,
+                            reason = "Consolidar peso corporal",
+                            suggestedLoadMode = LoadModeV2.BODYWEIGHT,
                             isFailure = entry.reachedFailure,
                         )
                     }

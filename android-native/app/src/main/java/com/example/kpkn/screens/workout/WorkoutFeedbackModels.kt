@@ -46,7 +46,37 @@ data class PostExerciseFeedback(
     val technicalQuality: Int,
     val discomfortIds: List<String> = emptyList(),
     val notes: String? = null,
+    val perceivedIntensityRpe: Double? = null,
+    val perceivedFailure: Boolean = false,
 )
+
+internal fun backfillCompletedSetIntensityFromPostExerciseFeedback(
+    completedSets: Map<String, CompletedSet>,
+    feedback: PostExerciseFeedback,
+): Map<String, CompletedSet> {
+    val perceived = feedback.perceivedIntensityRpe?.coerceIn(1.0, 10.0)
+    if (perceived == null && !feedback.perceivedFailure) return completedSets
+    val mode = if (feedback.perceivedFailure) IntensityMode.FAILURE else IntensityMode.RPE
+    val value = if (feedback.perceivedFailure) 10.0 else perceived
+    return completedSets.mapValues { (key, set) ->
+        val belongsToExercise = key.startsWith("${feedback.exerciseId}_")
+        val hasRecordedIntensity = set.actualIntensityValue != null ||
+            set.actualIntensityMode != null ||
+            set.rpe != null ||
+            set.rir != null ||
+            set.isFailure
+        if (!belongsToExercise || hasRecordedIntensity) {
+            set
+        } else {
+            set.copy(
+                rpe = if (feedback.perceivedFailure) null else value,
+                isFailure = feedback.perceivedFailure,
+                actualIntensityMode = mode,
+                actualIntensityValue = value,
+            )
+        }
+    }
+}
 
 data class SessionClosingFeedback(
     val overallFatigue: Int,
@@ -84,6 +114,7 @@ data class WorkoutLoadSuggestionUi(
     val isRecalculated: Boolean = false,
     val reason: String,
     val source: WorkoutLoadSuggestionSource = WorkoutLoadSuggestionSource.PROGRAM,
+    val suggestedLoadMode: LoadModeV2? = null,
 )
 
 enum class WorkoutLoadSuggestionSource {
@@ -272,7 +303,7 @@ object WorkoutAutoRegulation {
     ): String {
         val parts = mutableListOf<String>()
         if (reachedFailure) parts.add("Fallo")
-        if (effectiveRpe >= 9.5) parts.add("RPE alto")
+        if (!reachedFailure && effectiveRpe >= 9.5) parts.add("RPE alto")
         if (weightedDrainPct >= 5.0) parts.add("Fatiga acumulada")
         return when {
             factor < 0.95 -> "AUGE · ${parts.joinToString(" · ")} · −${((1 - factor) * 100).toInt()}%"

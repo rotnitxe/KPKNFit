@@ -194,7 +194,7 @@
     <string name="notif_rest_finished_title">Fin del descanso</string>
     <string name="notif_rest_finished_body">Tu descanso terminó. Puedes iniciar la siguiente serie.</string>
     <string name="notif_rest_action_complete">Completar</string>
-    <string name="notif_rest_action_skip">Saltar</string>
+    <string name="notif_rest_action_skip">Saltar descanso</string>
     <string name="notif_rest_default_session">Entrenamiento</string>
     <string name="notif_rest_default_exercise">Siguiente serie</string>
 

@@ -195,7 +195,7 @@
     <string name="notif_rest_finished_title">Rest finished</string>
     <string name="notif_rest_finished_body">Your rest is over. You can start the next set.</string>
     <string name="notif_rest_action_complete">Complete</string>
-    <string name="notif_rest_action_skip">Skip</string>
+    <string name="notif_rest_action_skip">Skip rest</string>
     <string name="notif_rest_default_session">Training</string>
     <string name="notif_rest_default_exercise">Next set</string>
 

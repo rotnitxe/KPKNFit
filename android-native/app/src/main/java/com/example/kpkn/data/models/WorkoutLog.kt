@@ -51,6 +51,8 @@ data class ExerciseDiscomfortReport(
     val technicalQuality: Int,
     val discomfortIds: List<String> = emptyList(),
     val notes: String? = null,
+    val perceivedIntensityRpe: Double? = null,
+    val perceivedFailure: Boolean = false,
 )
 
 @Serializable
@@ -102,6 +104,9 @@ data class CompletedSet(
     val restPauses: List<RestPauseData> = emptyList(),
     val skipped: Boolean = false,
     val superSetWithExerciseId: String? = null,
+    val supersetId: String? = null,
+    val supersetRoundIndex: Int? = null,
+    val restAfterKind: String? = null,
     val isWarmup: Boolean = false,
     val side: String? = null,      // "left" / "right" for unilateral
     val spinalScore: Double? = null,
@@ -152,6 +157,7 @@ data class OngoingWorkoutState(
     val readinessSpinalOverride: Int? = null,
     val readinessMuscleOverrides: Map<String, Int> = emptyMap(),
     val restModalState: com.example.kpkn.screens.workout.WorkoutRestModalState? = null,
+    val persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
 )
 

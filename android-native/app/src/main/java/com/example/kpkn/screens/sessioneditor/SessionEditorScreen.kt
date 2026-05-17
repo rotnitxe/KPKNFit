@@ -69,6 +69,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FitnessCenter
@@ -123,6 +124,8 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -296,6 +299,7 @@ fun SessionEditorScreen(
     draftMacroIndex: Int? = null,
     draftMesoIndex: Int? = null,
     draftDayOfWeek: Int? = null,
+    openCompetitionConfig: Boolean = false,
     viewModel: SessionEditorViewModel = viewModel(
         factory = SessionEditorViewModel.factory(
             programId = programId,
@@ -316,8 +320,7 @@ fun SessionEditorScreen(
     val context = LocalContext.current
     var showDiscardDialog by rememberSaveable { mutableStateOf(false) }
     var pendingAutoExpandExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
-    var showCompetitionModeConfirm by rememberSaveable { mutableStateOf(false) }
-    var competitionToggleTarget by rememberSaveable { mutableStateOf(false) }
+    var showCompetitionConfigSheet by rememberSaveable { mutableStateOf(openCompetitionConfig) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner, viewModel) {
@@ -436,6 +439,12 @@ fun SessionEditorScreen(
     }
     val groupedParts = session.parts.filterNot { it.isUncategorized() }
 
+    LaunchedEffect(openCompetitionConfig, session.id) {
+        if (openCompetitionConfig && session.isMeetDay) {
+            showCompetitionConfigSheet = true
+        }
+    }
+
     LaunchedEffect(session.exercises.isEmpty()) {
         if (session.exercises.isEmpty()) {
             looseContentBounds = null
@@ -452,16 +461,10 @@ fun SessionEditorScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             floatingActionButton = {
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    TemplatesFab(onClick = viewModel::openTemplates)
-                    HeroGlassFab(
-                        summary = uiState.augeSummary,
-                        onClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
-                    )
-                }
+                HeroGlassFab(
+                    summary = uiState.augeSummary,
+                    onClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
+                )
             },
             floatingActionButtonPosition = FabPosition.End,
             bottomBar = {
@@ -504,10 +507,7 @@ fun SessionEditorScreen(
                     latestBodyMeasurement = uiState.latestBodyMeasurement,
                     onNameChange = viewModel::updateSessionName,
                     onDescriptionChange = viewModel::updateSessionDescription,
-                    onMeetDayChange = { targetState ->
-                        competitionToggleTarget = targetState
-                        showCompetitionModeConfirm = true
-                    },
+                    onMeetDayChange = {},
                     onMeetBodyweightChange = viewModel::updateSessionMeetBodyweight,
                     onSyncMeetBodyweight = {
                         val result = viewModel.syncMeetBodyweightFromLatestMeasurement()
@@ -535,8 +535,9 @@ fun SessionEditorScreen(
                     CompetitionSessionEditor(
                         session = session,
                         onUpdateSession = { updater: (Session) -> Session -> viewModel.updateCurrentSession(updater) },
+                        onOpenConfig = { showCompetitionConfigSheet = true },
                         onAddCompetitionMovement = {
-                            viewModel.addCompetitionMovement("Movimiento ${session.exercises.size + 1}")
+                            viewModel.openSheet(SessionEditorSheet.EXERCISE_PICKER)
                         },
                     )
                 }
@@ -552,12 +553,187 @@ fun SessionEditorScreen(
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         session.exercises.forEachIndexed { index, exercise ->
+                            val supersetGroupId = exercise.supersetGroupRefOrLegacyId()
+                            if (supersetGroupId != null) {
+                                val isFirstSupersetMember = session.exercises.firstOrNull { it.supersetGroupRefOrLegacyId() == supersetGroupId }?.id == exercise.id
+                                if (!isFirstSupersetMember) return@forEachIndexed
+                                val supersetGroup = session.allSupersetGroups().firstOrNull { it.id == supersetGroupId }
+                                val supersetMembers = SupersetRules.orderedMembers(session, supersetGroupId)
+                                    .filter { member -> session.exercises.any { it.id == member.id } }
+                                if (supersetGroup != null && supersetMembers.size >= 2) {
+                                    SupersetGroupEditorCard(
+                                        group = supersetGroup,
+                                        exercises = supersetMembers,
+                                        accentHex = PART_COLORS.first(),
+                                        partId = null,
+                                        onOpenSupersetCreator = viewModel::openSupersetCreator,
+                                        onUpdateSupersetRest = viewModel::updateSupersetRest,
+                                        onUpdateRoundRest = viewModel::updateSupersetRoundRest,
+                                        onUpdateExercise = { exerciseId, updater -> viewModel.updateExercise(null, exerciseId, updater) },
+                                        onAddSet = { exerciseId -> viewModel.addSet(null, exerciseId) },
+                                        onUpdateSet = { exerciseId, setId, updater -> viewModel.updateSet(null, exerciseId, setId, updater) },
+                                        onRemoveSet = { exerciseId, setId -> viewModel.removeSet(null, exerciseId, setId) },
+                                        onMoveSet = { exerciseId, setId, dir -> viewModel.moveSet(null, exerciseId, setId, dir) },
+                                        onRemoveRound = { roundIndex -> viewModel.removeSupersetRound(supersetGroup.id, null, roundIndex) },
+                                        relationshipAnchorName = { member -> resolveRelationshipAnchorName(session, member) },
+                                        onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(null, exerciseId) },
+                                        onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(null, exerciseId, null) },
+                                        onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, null, exerciseId) },
+                                        onDissolve = viewModel::dissolveSupersetGroup,
+                                        onAddRound = {
+                                            val nextRound = ((supersetGroup.rounds ?: supersetMembers.maxOfOrNull { it.sets.size } ?: 0) + 1).coerceAtLeast(1)
+                                            viewModel.updateSupersetRest(supersetGroup.id, null, null, nextRound)
+                                            supersetMembers.forEach { member ->
+                                                if (member.sets.size < nextRound) viewModel.addSet(null, member.id)
+                                            }
+                                        },
+                                    ) {
+                                        supersetMembers.forEach { member ->
+                                            val memberIndex = session.exercises.indexOfFirst { it.id == member.id }.takeIf { it >= 0 } ?: index
+                                            key("loose|${member.id}") {
+                                                ExerciseEditorCard(
+                                                    exercise = member,
+                                                    exerciseInfo = EXERCISE_DATABASE.find { it.id == member.exerciseDbId },
+                                                    accentHex = PART_COLORS.first(),
+                                                    partId = "__loose__",
+                                                    isCompetitionMovement = member.matchesCompetitionMovement(uiState.competitionMovementIds),
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    isDragging = draggingExerciseId == member.id,
+                                                    dragOffset = if (draggingExerciseId == member.id) draggingExerciseOffset else Offset.Zero,
+                                                    isDropTarget = (exerciseDropTargetKey == "__loose__|${member.id}" || (exerciseDropTargetPartId == "__loose__" && exerciseDropTargetIndex == memberIndex)) && draggingExerciseId != member.id,
+                                                    isPartDropTarget = exerciseDropTargetPartId == "__loose__" && draggingExerciseId != member.id,
+                                                    onBoundsChange = { rect -> exerciseBounds["__loose__|${member.id}"] = rect },
+                                                    onDragStart = {
+                                                        draggingExerciseId = member.id
+                                                        draggingExercisePartId = "__loose__"
+                                                        draggingExerciseOffset = Offset.Zero
+                                                        exerciseDropTargetKey = null
+                                                        exerciseDropTargetPartId = null
+                                                        exerciseDropTargetIndex = null
+                                                    },
+                                                    onDrag = { delta ->
+                                                        val activeExerciseId = draggingExerciseId ?: return@ExerciseEditorCard
+                                                        val currentPartId = draggingExercisePartId ?: return@ExerciseEditorCard
+                                                        draggingExerciseOffset += delta
+                                                        val activeRect = exerciseBounds["$currentPartId|$activeExerciseId"] ?: return@ExerciseEditorCard
+                                                        val center = Offset(activeRect.center.x + draggingExerciseOffset.x, activeRect.center.y + draggingExerciseOffset.y)
+
+                                                        val targetExerciseKey = exerciseBounds.entries.firstOrNull { (key, rect) ->
+                                                            key != "$currentPartId|$activeExerciseId" && rect.contains(center)
+                                                        }?.key
+                                                        if (targetExerciseKey != null) {
+                                                            exerciseDropTargetKey = targetExerciseKey
+                                                            exerciseDropTargetPartId = null
+                                                            exerciseDropTargetIndex = null
+                                                        } else {
+                                                            exerciseDropTargetKey = null
+                                                            val targetPartId = when {
+                                                                looseContentBounds?.contains(center) == true -> "__loose__"
+                                                                else -> groupedParts.firstOrNull { candidate ->
+                                                                    partContentBounds[candidate.id]?.contains(center) == true
+                                                                }?.id
+                                                            }
+                                                            exerciseDropTargetPartId = targetPartId
+                                                            if (targetPartId != null) {
+                                                                val relevantBounds = exerciseBounds.filterKeys { it.startsWith("$targetPartId|") }
+                                                                val orderedKeys = relevantBounds.entries.sortedBy { it.value.top }
+                                                                val insertIdx = orderedKeys.indexOfFirst { (key, rect) ->
+                                                                    key != "$targetPartId|$activeExerciseId" && center.y < rect.center.y
+                                                                }
+                                                                exerciseDropTargetIndex = if (insertIdx >= 0) {
+                                                                    val selfIdx = orderedKeys.indexOfFirst { it.key == "$targetPartId|$activeExerciseId" }
+                                                                    if (selfIdx >= 0 && insertIdx > selfIdx) insertIdx - 1 else insertIdx
+                                                                } else {
+                                                                    val partSize = when (targetPartId) {
+                                                                        "__loose__" -> session.exercises.size
+                                                                        else -> session.parts.firstOrNull { it.id == targetPartId }?.exercises?.size ?: 0
+                                                                    }
+                                                                    (partSize - 1).coerceAtLeast(0)
+                                                                }
+                                                            } else {
+                                                                exerciseDropTargetIndex = null
+                                                            }
+                                                        }
+                                                    },
+                                                    onDragEnd = {
+                                                        val activeExerciseId = draggingExerciseId
+                                                        val currentPartId = draggingExercisePartId
+                                                        if (activeExerciseId != null && currentPartId != null) {
+                                                            val finalTargetKey = exerciseDropTargetKey
+                                                            val finalTargetPart = exerciseDropTargetPartId
+                                                            val finalTargetIdx = exerciseDropTargetIndex
+                                                            if (finalTargetKey != null) {
+                                                                val tPartId = finalTargetKey.substringBefore("|")
+                                                                val tExId = finalTargetKey.substringAfter("|")
+                                                                val idx = when (tPartId) {
+                                                                    "__loose__" -> session.exercises.indexOfFirst { it.id == tExId }
+                                                                    else -> session.parts.firstOrNull { it.id == tPartId }?.exercises?.indexOfFirst { it.id == tExId }
+                                                                }
+                                                                if (idx != null && idx >= 0) {
+                                                                    viewModel.moveExerciseToPart(
+                                                                        sourcePartId = currentPartId.takeUnless { it == "__loose__" },
+                                                                        exerciseId = activeExerciseId,
+                                                                        targetPartId = tPartId.takeUnless { it == "__loose__" },
+                                                                        targetIndex = idx,
+                                                                    )
+                                                                }
+                                                            } else if (finalTargetPart != null && finalTargetPart != currentPartId) {
+                                                                viewModel.moveExerciseToPart(
+                                                                    sourcePartId = currentPartId.takeUnless { it == "__loose__" },
+                                                                    exerciseId = activeExerciseId,
+                                                                    targetPartId = finalTargetPart.takeUnless { it == "__loose__" },
+                                                                    targetIndex = null,
+                                                                )
+                                                            } else if (finalTargetIdx != null) {
+                                                                val selfIdx = session.exercises.indexOfFirst { it.id == activeExerciseId }
+                                                                if (finalTargetIdx != selfIdx) {
+                                                                    viewModel.moveExerciseToPart(
+                                                                        sourcePartId = currentPartId.takeUnless { it == "__loose__" },
+                                                                        exerciseId = activeExerciseId,
+                                                                        targetPartId = currentPartId.takeUnless { it == "__loose__" },
+                                                                        targetIndex = finalTargetIdx,
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                        draggingExerciseId = null
+                                                        draggingExercisePartId = null
+                                                        draggingExerciseOffset = Offset.Zero
+                                                        exerciseDropTargetKey = null
+                                                        exerciseDropTargetPartId = null
+                                                        exerciseDropTargetIndex = null
+                                                    },
+                                                    onUpdateExercise = { updater -> viewModel.updateExercise(null, member.id, updater) },
+                                                    onAddSet = { viewModel.addSet(null, member.id) },
+                                                    onUpdateSet = { setId, updater -> viewModel.updateSet(null, member.id, setId, updater) },
+                                                    onRemoveSet = { setId -> viewModel.removeSet(null, member.id, setId) },
+                                                    onMoveSet = { setId, dir -> viewModel.moveSet(null, member.id, setId, dir) },
+                                                    onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(null, member.id, mobilityId) },
+                                                    onOpenQuickActions = { viewModel.openExerciseQuickActions(null, member.id) },
+                                                    relationshipAnchorName = resolveRelationshipAnchorName(session, member),
+                                                    onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, member.id) },
+                                                    onClearRelationship = { viewModel.linkExerciseRelativeTo(null, member.id, null) },
+                                                    onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(null, member.id, type) },
+                                                    onUpdateRelationshipNotes = { notes -> viewModel.updateExerciseRelationshipNotes(null, member.id, notes) },
+                                                    autoExpand = pendingAutoExpandExerciseId == member.id,
+                                                    onAutoExpandHandled = {
+                                                        if (pendingAutoExpandExerciseId == member.id) pendingAutoExpandExerciseId = null
+                                                    },
+                                                    suppressIndividualRest = true,
+                                                )
+                                            }
+                                        }
+                                    }
+                                    return@forEachIndexed
+                                }
+                            }
                             key("loose|${exercise.id}") {
                                 ExerciseEditorCard(
                                     exercise = exercise,
                                     exerciseInfo = EXERCISE_DATABASE.find { it.id == exercise.exerciseDbId },
                                     accentHex = PART_COLORS.first(),
                                     partId = "__loose__",
+                                    isCompetitionMovement = exercise.matchesCompetitionMovement(uiState.competitionMovementIds),
                                     modifier = Modifier.fillMaxWidth(),
                                     isDragging = draggingExerciseId == exercise.id,
                                     dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
@@ -712,8 +888,8 @@ fun SessionEditorScreen(
                                 )
                             }
                             val shouldDrawDivider = if (index < session.exercises.lastIndex) {
-                                val currentSupersetId = exercise.supersetId
-                                val nextSupersetId = session.exercises[index + 1].supersetId
+                                val currentSupersetId = exercise.supersetGroupRefOrLegacyId()
+                                val nextSupersetId = session.exercises[index + 1].supersetGroupRefOrLegacyId()
                                 currentSupersetId == null || currentSupersetId != nextSupersetId
                             } else {
                                 false
@@ -722,6 +898,14 @@ fun SessionEditorScreen(
                                 HorizontalDivider(
                                     modifier = Modifier.padding(horizontal = 16.dp),
                                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                                )
+                            } else if (exercise.supersetGroupRefOrLegacyId() != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(1.dp)
+                                        .padding(horizontal = 20.dp)
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)),
                                 )
                             }
                         }
@@ -780,12 +964,191 @@ fun SessionEditorScreen(
                     content = {
                         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
                             part.exercises.forEachIndexed { targetIndex, exercise ->
+                                val supersetGroupId = exercise.supersetGroupRefOrLegacyId()
+                                if (supersetGroupId != null) {
+                                    val isFirstSupersetMember = part.exercises.firstOrNull { it.supersetGroupRefOrLegacyId() == supersetGroupId }?.id == exercise.id
+                                    if (!isFirstSupersetMember) return@forEachIndexed
+                                    val supersetGroup = session.allSupersetGroups().firstOrNull { it.id == supersetGroupId }
+                                    val supersetMembers = SupersetRules.orderedMembers(session, supersetGroupId)
+                                        .filter { member -> part.exercises.any { it.id == member.id } }
+                                    if (supersetGroup != null && supersetMembers.size >= 2) {
+                                        SupersetGroupEditorCard(
+                                            group = supersetGroup,
+                                            exercises = supersetMembers,
+                                            accentHex = part.color,
+                                            partId = part.id,
+                                            onOpenSupersetCreator = viewModel::openSupersetCreator,
+                                            onUpdateSupersetRest = viewModel::updateSupersetRest,
+                                            onUpdateRoundRest = viewModel::updateSupersetRoundRest,
+                                            onUpdateExercise = { exerciseId, updater -> viewModel.updateExercise(part.id, exerciseId, updater) },
+                                            onAddSet = { exerciseId -> viewModel.addSet(part.id, exerciseId) },
+                                            onUpdateSet = { exerciseId, setId, updater -> viewModel.updateSet(part.id, exerciseId, setId, updater) },
+                                            onRemoveSet = { exerciseId, setId -> viewModel.removeSet(part.id, exerciseId, setId) },
+                                            onMoveSet = { exerciseId, setId, dir -> viewModel.moveSet(part.id, exerciseId, setId, dir) },
+                                            onRemoveRound = { roundIndex -> viewModel.removeSupersetRound(supersetGroup.id, part.id, roundIndex) },
+                                            relationshipAnchorName = { member -> resolveRelationshipAnchorName(session, member) },
+                                            onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(part.id, exerciseId) },
+                                            onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(part.id, exerciseId, null) },
+                                            onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, part.id, exerciseId) },
+                                            onDissolve = viewModel::dissolveSupersetGroup,
+                                            onAddRound = {
+                                                val nextRound = ((supersetGroup.rounds ?: supersetMembers.maxOfOrNull { it.sets.size } ?: 0) + 1).coerceAtLeast(1)
+                                                viewModel.updateSupersetRest(supersetGroup.id, null, null, nextRound)
+                                                supersetMembers.forEach { member ->
+                                                    if (member.sets.size < nextRound) viewModel.addSet(part.id, member.id)
+                                                }
+                                            },
+                                        ) {
+                                            supersetMembers.forEach { member ->
+                                                val memberIndex = part.exercises.indexOfFirst { it.id == member.id }.takeIf { it >= 0 } ?: targetIndex
+                                                key("${part.id}|${member.id}") {
+                                                    ExerciseEditorCard(
+                                                        exercise = member,
+                                                        exerciseInfo = EXERCISE_DATABASE.find { it.id == member.exerciseDbId },
+                                                        accentHex = part.color,
+                                                        partId = part.id,
+                                                        isCompetitionMovement = member.matchesCompetitionMovement(uiState.competitionMovementIds),
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        isDragging = draggingExerciseId == member.id,
+                                                        dragOffset = if (draggingExerciseId == member.id) draggingExerciseOffset else Offset.Zero,
+                                                        isDropTarget = (exerciseDropTargetKey == "${part.id}|${member.id}" || (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == memberIndex)) && draggingExerciseId != member.id,
+                                                        isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != member.id,
+                                                        onBoundsChange = { rect -> exerciseBounds["${part.id}|${member.id}"] = rect },
+                                                        onDragStart = {
+                                                            draggingExerciseId = member.id
+                                                            draggingExercisePartId = part.id
+                                                            draggingExerciseOffset = Offset.Zero
+                                                            exerciseDropTargetKey = null
+                                                            exerciseDropTargetPartId = null
+                                                            exerciseDropTargetIndex = null
+                                                        },
+                                                        onDrag = { delta ->
+                                                            val activeExerciseId = draggingExerciseId ?: return@ExerciseEditorCard
+                                                            val currentPartId = draggingExercisePartId ?: return@ExerciseEditorCard
+                                                            draggingExerciseOffset += delta
+                                                            val activeRect = exerciseBounds["$currentPartId|$activeExerciseId"] ?: return@ExerciseEditorCard
+                                                            val center = Offset(activeRect.center.x + draggingExerciseOffset.x, activeRect.center.y + draggingExerciseOffset.y)
+
+                                                            val targetExerciseKey = exerciseBounds.entries.firstOrNull { (key, rect) ->
+                                                                key != "$currentPartId|$activeExerciseId" && rect.contains(center)
+                                                            }?.key
+                                                            if (targetExerciseKey != null) {
+                                                                exerciseDropTargetKey = targetExerciseKey
+                                                                exerciseDropTargetPartId = null
+                                                                exerciseDropTargetIndex = null
+                                                            } else {
+                                                                exerciseDropTargetKey = null
+                                                                val targetPartId = when {
+                                                                    looseContentBounds?.contains(center) == true -> "__loose__"
+                                                                    else -> groupedParts.firstOrNull { candidate ->
+                                                                        partContentBounds[candidate.id]?.contains(center) == true
+                                                                    }?.id
+                                                                }
+                                                                exerciseDropTargetPartId = targetPartId
+                                                                if (targetPartId != null) {
+                                                                    val relevantBounds = exerciseBounds.filterKeys { it.startsWith("$targetPartId|") }
+                                                                    val orderedKeys = relevantBounds.entries.sortedBy { it.value.top }
+                                                                    val insertIdx = orderedKeys.indexOfFirst { (key, rect) ->
+                                                                        key != "$targetPartId|$activeExerciseId" && center.y < rect.center.y
+                                                                    }
+                                                                    exerciseDropTargetIndex = if (insertIdx >= 0) {
+                                                                        val selfIdx = orderedKeys.indexOfFirst { it.key == "$targetPartId|$activeExerciseId" }
+                                                                        if (selfIdx >= 0 && insertIdx > selfIdx) insertIdx - 1 else insertIdx
+                                                                    } else {
+                                                                        val partSize = when (targetPartId) {
+                                                                            "__loose__" -> session.exercises.size
+                                                                            else -> session.parts.firstOrNull { it.id == targetPartId }?.exercises?.size ?: 0
+                                                                        }
+                                                                        (partSize - 1).coerceAtLeast(0)
+                                                                    }
+                                                                } else {
+                                                                    exerciseDropTargetIndex = null
+                                                                }
+                                                            }
+                                                        },
+                                                        onDragEnd = {
+                                                            val activeExerciseId = draggingExerciseId
+                                                            val currentPartId = draggingExercisePartId
+                                                            if (activeExerciseId != null && currentPartId != null) {
+                                                                val finalTargetKey = exerciseDropTargetKey
+                                                                val finalTargetPart = exerciseDropTargetPartId
+                                                                val finalTargetIdx = exerciseDropTargetIndex
+                                                                if (finalTargetKey != null) {
+                                                                    val tPartId = finalTargetKey.substringBefore("|")
+                                                                    val tExId = finalTargetKey.substringAfter("|")
+                                                                    val idx = when (tPartId) {
+                                                                        "__loose__" -> session.exercises.indexOfFirst { it.id == tExId }
+                                                                        else -> session.parts.firstOrNull { it.id == tPartId }?.exercises?.indexOfFirst { it.id == tExId }
+                                                                    }
+                                                                    if (idx != null && idx >= 0) {
+                                                                        viewModel.moveExerciseToPart(
+                                                                            sourcePartId = currentPartId.takeUnless { it == "__loose__" },
+                                                                            exerciseId = activeExerciseId,
+                                                                            targetPartId = tPartId.takeUnless { it == "__loose__" },
+                                                                            targetIndex = idx,
+                                                                        )
+                                                                    }
+                                                                } else if (finalTargetPart != null && finalTargetPart != currentPartId) {
+                                                                    viewModel.moveExerciseToPart(
+                                                                        sourcePartId = currentPartId.takeUnless { it == "__loose__" },
+                                                                        exerciseId = activeExerciseId,
+                                                                        targetPartId = finalTargetPart.takeUnless { it == "__loose__" },
+                                                                        targetIndex = null,
+                                                                    )
+                                                                } else if (finalTargetIdx != null) {
+                                                                    val exercisesList = when (currentPartId) {
+                                                                        "__loose__" -> session.exercises
+                                                                        else -> session.parts.firstOrNull { it.id == currentPartId }?.exercises ?: emptyList()
+                                                                    }
+                                                                    val selfIdx = exercisesList.indexOfFirst { it.id == activeExerciseId }
+                                                                    if (finalTargetIdx != selfIdx) {
+                                                                        viewModel.moveExerciseToPart(
+                                                                            sourcePartId = currentPartId.takeUnless { it == "__loose__" },
+                                                                            exerciseId = activeExerciseId,
+                                                                            targetPartId = currentPartId.takeUnless { it == "__loose__" },
+                                                                            targetIndex = finalTargetIdx,
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+                                                            draggingExerciseId = null
+                                                            draggingExercisePartId = null
+                                                            draggingExerciseOffset = Offset.Zero
+                                                            exerciseDropTargetKey = null
+                                                            exerciseDropTargetPartId = null
+                                                            exerciseDropTargetIndex = null
+                                                        },
+                                                        onUpdateExercise = { updater -> viewModel.updateExercise(part.id, member.id, updater) },
+                                                        onAddSet = { viewModel.addSet(part.id, member.id) },
+                                                        onUpdateSet = { setId, updater -> viewModel.updateSet(part.id, member.id, setId, updater) },
+                                                        onRemoveSet = { setId -> viewModel.removeSet(part.id, member.id, setId) },
+                                                        onMoveSet = { setId, dir -> viewModel.moveSet(part.id, member.id, setId, dir) },
+                                                        onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(part.id, member.id, mobilityId) },
+                                                        onOpenQuickActions = { viewModel.openExerciseQuickActions(part.id, member.id) },
+                                                        relationshipAnchorName = resolveRelationshipAnchorName(session, member),
+                                                        onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, member.id) },
+                                                        onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, member.id, null) },
+                                                        onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(part.id, member.id, type) },
+                                                        onUpdateRelationshipNotes = { notes -> viewModel.updateExerciseRelationshipNotes(part.id, member.id, notes) },
+                                                        autoExpand = pendingAutoExpandExerciseId == member.id,
+                                                        onAutoExpandHandled = {
+                                                            if (pendingAutoExpandExerciseId == member.id) pendingAutoExpandExerciseId = null
+                                                        },
+                                                        suppressIndividualRest = true,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        return@forEachIndexed
+                                    }
+                                }
                                     key("${part.id}|${exercise.id}") {
                                         ExerciseEditorCard(
                                             exercise = exercise,
                                             exerciseInfo = EXERCISE_DATABASE.find { it.id == exercise.exerciseDbId },
                                             accentHex = part.color,
                                             partId = part.id,
+                                            isCompetitionMovement = exercise.matchesCompetitionMovement(uiState.competitionMovementIds),
                                             modifier = Modifier.fillMaxWidth(),
                                             isDragging = draggingExerciseId == exercise.id,
                                             dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
@@ -918,8 +1281,8 @@ fun SessionEditorScreen(
                                         )
                                     }
                                 val shouldDrawDivider = if (targetIndex < part.exercises.lastIndex) {
-                                    val currentSupersetId = exercise.supersetId
-                                    val nextSupersetId = part.exercises[targetIndex + 1].supersetId
+                                    val currentSupersetId = exercise.supersetGroupRefOrLegacyId()
+                                    val nextSupersetId = part.exercises[targetIndex + 1].supersetGroupRefOrLegacyId()
                                     currentSupersetId == null || currentSupersetId != nextSupersetId
                                 } else {
                                     false
@@ -928,6 +1291,14 @@ fun SessionEditorScreen(
                                     HorizontalDivider(
                                         modifier = Modifier.padding(horizontal = 16.dp),
                                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                                    )
+                                } else if (exercise.supersetGroupRefOrLegacyId() != null) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(1.dp)
+                                            .padding(horizontal = 20.dp)
+                                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)),
                                     )
                                 }
                             }
@@ -1158,49 +1529,11 @@ fun SessionEditorScreen(
         )
     }
 
-    if (showCompetitionModeConfirm) {
-        AlertDialog(
-            onDismissRequest = { showCompetitionModeConfirm = false },
-            title = {
-                Text(
-                    if (competitionToggleTarget) "Activar modo competición" else "Salir de modo competición",
-                    fontWeight = FontWeight.Black,
-                )
-            },
-            text = {
-                Text(
-                    if (competitionToggleTarget) {
-                        "Guardaremos respaldo de tu sesión de entrenamiento y transformaremos esta sesión en formato de competición."
-                    } else {
-                        "Vamos a restaurar tu sesión de entrenamiento desde el respaldo guardado para este día."
-                    }
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showCompetitionModeConfirm = false
-                        viewModel.updateSessionMeetDay(competitionToggleTarget)
-                        scope.launch {
-                            snackbarHostState.showKpknSnackbar(
-                                if (competitionToggleTarget) {
-                                    "Modo competición activado"
-                                } else {
-                                    "Modo entrenamiento restaurado"
-                                },
-                                SnackbarType.SUCCESS,
-                            )
-                        }
-                    }
-                ) {
-                    Text(if (competitionToggleTarget) "Activar" else "Restaurar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCompetitionModeConfirm = false }) {
-                    Text("Cancelar")
-                }
-            },
+    if (showCompetitionConfigSheet && session.isMeetDay) {
+        CompetitionConfigSheet(
+            session = session,
+            onDismiss = { showCompetitionConfigSheet = false },
+            onUpdateSession = { updater: (Session) -> Session -> viewModel.updateCurrentSession(updater) },
         )
     }
 }
@@ -1392,12 +1725,6 @@ private fun SessionHero(
                          onClick = onOpenRules,
                          icon = { Icon(Icons.Default.Settings, null, modifier = Modifier.size(14.dp)) },
                          label = { Text("Reglas", style = MaterialTheme.typography.labelSmall) },
-                         shape = RoundedCornerShape(999.dp),
-                     )
-                     SuggestionChip(
-                         onClick = { onMeetDayChange(!session.isMeetDay) },
-                         icon = { Icon(Icons.Default.WorkspacePremium, null, modifier = Modifier.size(14.dp)) },
-                         label = { Text("Cambiar a sesión de competición", style = MaterialTheme.typography.labelSmall) },
                          shape = RoundedCornerShape(999.dp),
                      )
                  }
@@ -2217,6 +2544,577 @@ private fun GroupEditorCard(
     }
 }
 
+internal fun buildSessionExerciseEditorBlocks(
+    session: Session,
+    containerExercises: List<Exercise>,
+): List<SessionExerciseEditorBlock> {
+    return containerExercises.map { exercise -> SessionExerciseEditorBlock.Single(exercise) }
+}
+
+@Composable
+private fun SupersetGroupEditorCard(
+    group: SupersetGroup,
+    exercises: List<Exercise>,
+    accentHex: String?,
+    partId: String?,
+    onOpenSupersetCreator: (String?, List<String>) -> Unit,
+    onUpdateSupersetRest: (String, Int?, Int?, Int?) -> Unit,
+    onUpdateRoundRest: (String, Int, Int?, Int?) -> Unit = { _, _, _, _ -> },
+    onUpdateExercise: (String, (Exercise) -> Exercise) -> Unit = { _, _ -> },
+    onAddSet: (String) -> Unit = {},
+    onUpdateSet: (String, String, (ExerciseSet) -> ExerciseSet) -> Unit = { _, _, _ -> },
+    onRemoveSet: (String, String) -> Unit = { _, _ -> },
+    onMoveSet: (String, String, Int) -> Unit = { _, _, _ -> },
+    onRemoveRound: (Int) -> Unit = {},
+    relationshipAnchorName: (Exercise) -> String? = { null },
+    onOpenRelationshipPicker: (String) -> Unit = {},
+    onClearRelationship: (String) -> Unit = {},
+    onRemoveFromSuperset: (String, String) -> Unit,
+    onDissolve: (String) -> Unit,
+    onAddRound: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    var expanded by rememberSaveable(group.id) { mutableStateOf(false) }
+    var configExerciseId by rememberSaveable(group.id) { mutableStateOf<String?>(null) }
+    val accentColor = remember(accentHex) {
+        runCatching { Color(AndroidColor.parseColor(accentHex ?: PART_COLORS.first())) }
+            .getOrDefault(Color(0xFF00F0FF))
+    }
+    val rounds = (group.rounds ?: exercises.maxOfOrNull { it.sets.size } ?: 1).coerceAtLeast(1)
+    val totalSets = exercises.sumOf { it.sets.size }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(accentColor.copy(alpha = if (expanded) 0.12f else 0.08f))
+            .border(2.dp, accentColor.copy(alpha = 0.6f), RoundedCornerShape(14.dp)),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(accentColor.copy(alpha = if (expanded) 0.85f else 0.30f)),
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.SwapHoriz,
+                    contentDescription = null,
+                    tint = accentColor.copy(alpha = 0.72f),
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .combinedClickable(
+                        onClick = { expanded = !expanded },
+                        onLongClick = { expanded = !expanded },
+                    ),
+            ) {
+                Text(
+                    text = "Superserie",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = "${exercises.size} ejercicios · $rounds ronda${if (rounds == 1) "" else "s"} · $totalSets series",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = if (expanded) "Plegar" else "Desplegar",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.clickable { expanded = !expanded },
+            )
+        }
+
+        AnimatedVisibility(visible = expanded) {
+        Column(
+            modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(end = 4.dp)) {
+                items(exercises, key = { it.id }) { exercise ->
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = if (configExerciseId == exercise.id) accentColor.copy(alpha = 0.22f) else accentColor.copy(alpha = 0.10f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.24f)),
+                        modifier = Modifier.clickable { configExerciseId = exercise.id },
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(start = 10.dp, end = 4.dp, top = 5.dp, bottom = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                exercise.name,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.widthIn(max = 170.dp),
+                            )
+                            IconButton(
+                                onClick = { onRemoveFromSuperset(group.id, exercise.id) },
+                                modifier = Modifier.size(24.dp),
+                                enabled = exercises.size > 2,
+                            ) {
+                                Icon(Icons.Default.Close, contentDescription = "Quitar de superserie", modifier = Modifier.size(14.dp))
+                            }
+                        }
+                    }
+                }
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.42f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.35f)),
+                        modifier = Modifier
+                            .height(34.dp)
+                            .clickable(enabled = exercises.size < 4) {
+                                onOpenSupersetCreator(partId, exercises.map { it.id })
+                            },
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Añadir ejercicio", tint = accentColor, modifier = Modifier.size(16.dp))
+                            Text("Añadir", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = accentColor)
+                        }
+                    }
+                }
+            }
+
+            exercises.firstOrNull { it.id == configExerciseId }?.let { selected ->
+                SupersetExerciseConfigOverlay(
+                    exercise = selected,
+                    accentColor = accentColor,
+                    relationshipAnchorName = relationshipAnchorName(selected),
+                    onUpdateExercise = { updater -> onUpdateExercise(selected.id, updater) },
+                    onUpdateSet = { setId, updater -> onUpdateSet(selected.id, setId, updater) },
+                    onOpenRelationshipPicker = { onOpenRelationshipPicker(selected.id) },
+                    onClearRelationship = { onClearRelationship(selected.id) },
+                    onDismiss = { configExerciseId = null },
+                )
+            }
+
+            SupersetRoundsCarousel(
+                group = group,
+                exercises = exercises,
+                rounds = rounds,
+                accentColor = accentColor,
+                onUpdateRoundRest = { roundIndex, restBetween, restAfter -> onUpdateRoundRest(group.id, roundIndex, restBetween, restAfter) },
+                onUpdateSet = onUpdateSet,
+                onRemoveSet = onRemoveSet,
+                onMoveSet = onMoveSet,
+                onAddRound = onAddRound,
+                onRemoveRound = onRemoveRound,
+            )
+
+            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                TextButton(onClick = { onDissolve(group.id) }) {
+                    Text("Disolver", fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+        }
+    }
+
+}
+
+@Composable
+private fun SupersetExerciseConfigOverlay(
+    exercise: Exercise,
+    accentColor: Color,
+    relationshipAnchorName: String?,
+    onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
+    onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
+    onOpenRelationshipPicker: () -> Unit,
+    onClearRelationship: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var showSmartLoadSheet by remember { mutableStateOf(false) }
+    var showGoalSheet by remember { mutableStateOf(false) }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.36f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.28f)),
+    ) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(exercise.name, modifier = Modifier.weight(1f), fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.Close, contentDescription = "Cerrar configuración", modifier = Modifier.size(16.dp))
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                CompactModeSelector(
+                    currentMode = exercise.trainingMode,
+                    accentColor = accentColor,
+                ) { mode -> onUpdateExercise { current -> current.copy(trainingMode = mode) } }
+                CompactGoalTrackingButton(
+                    isActive = exercise.isStarTarget,
+                    accentColor = accentColor,
+                    onToggle = { onUpdateExercise { current -> current.copy(isStarTarget = !current.isStarTarget) } },
+                    onOpenSheet = { showGoalSheet = true },
+                )
+                Surface(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { if (exercise.relativeToCanonicalExerciseId == null) onOpenRelationshipPicker() else onClearRelationship() },
+                    color = accentColor.copy(alpha = if (exercise.relativeToCanonicalExerciseId != null) 0.24f else 0.12f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Link, contentDescription = "Vincular ejercicio", tint = accentColor, modifier = Modifier.size(20.dp))
+                    }
+                }
+                Surface(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable(enabled = exercise.trainingMode != TrainingMode.SOLO_RPE) { showSmartLoadSheet = true },
+                    color = accentColor.copy(alpha = 0.12f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.FitnessCenter, contentDescription = "Carga inteligente", tint = accentColor, modifier = Modifier.size(20.dp))
+                    }
+                }
+                UnilateralModeSelector(
+                    mode = exercise.unilateralMode,
+                    accentColor = accentColor,
+                    onToggleUnilateral = {
+                        onUpdateExercise { current -> current.toggledBilateralUnilateral() }
+                    },
+                )
+            }
+            relationshipAnchorName?.let {
+                Text("Vinculado a $it", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+
+    if (showSmartLoadSheet) {
+        SupersetSmartLoadDialog(exercise, onUpdateExercise, onDismiss = { showSmartLoadSheet = false })
+    }
+
+    if (showGoalSheet) {
+        SupersetGoalDialog(exercise, onUpdateExercise, onDismiss = { showGoalSheet = false })
+    }
+
+}
+
+@Composable
+private fun SupersetSmartLoadDialog(
+    exercise: Exercise,
+    onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var rmInputMode by remember(exercise.id, exercise.prFor1RM) { mutableStateOf(if (exercise.prFor1RM != null) "pr" else "direct") }
+    var directRmInput by rememberSaveable(exercise.id, exercise.reference1RM) { mutableStateOf(formatEditableNumber(exercise.reference1RM)) }
+    var prWeightInput by rememberSaveable(exercise.id, exercise.prFor1RM) { mutableStateOf(formatEditableNumber(exercise.prFor1RM?.weight)) }
+    var prRepsInput by rememberSaveable(exercise.id, exercise.prFor1RM) { mutableStateOf(exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toString().orEmpty()) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Carga inteligente", fontWeight = FontWeight.Black) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ToggleToken("RM directo", rmInputMode == "direct") { rmInputMode = "direct" }
+                    ToggleToken("Desde PR", rmInputMode == "pr") { rmInputMode = "pr" }
+                }
+                if (rmInputMode == "direct") {
+                    EditorMiniField("RM referencial", directRmInput, keyboardType = KeyboardType.Decimal, modifier = Modifier.fillMaxWidth()) { input ->
+                        directRmInput = input
+                        onUpdateExercise { it.copy(reference1RM = input.safeDoubleOrNull()?.takeIf { value -> value > 0 }) }
+                    }
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        EditorMiniField("PR kg", prWeightInput, keyboardType = KeyboardType.Decimal, modifier = Modifier.weight(1f)) { input ->
+                            prWeightInput = input
+                            val weight = input.safeDoubleOrNull()
+                            val reps = prRepsInput.safeIntOrNull()
+                            onUpdateExercise { current ->
+                                if (weight != null && weight > 0 && reps != null && reps > 0) current.copy(prFor1RM = PrReference(weight, reps), reference1RM = calculateHybrid1RM(weight, reps))
+                                else current.copy(prFor1RM = null)
+                            }
+                        }
+                        EditorMiniField("PR reps", prRepsInput, keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f)) { input ->
+                            prRepsInput = input
+                            val weight = prWeightInput.safeDoubleOrNull()
+                            val reps = input.safeIntOrNull()
+                            onUpdateExercise { current ->
+                                if (weight != null && weight > 0 && reps != null && reps > 0) current.copy(prFor1RM = PrReference(weight, reps), reference1RM = calculateHybrid1RM(weight, reps))
+                                else current.copy(prFor1RM = null)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Listo") } },
+    )
+}
+
+@Composable
+private fun SupersetGoalDialog(
+    exercise: Exercise,
+    onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var goalRmInput by rememberSaveable(exercise.id, exercise.goal1RM) { mutableStateOf(formatEditableNumber(exercise.goal1RM)) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Meta / PR", fontWeight = FontWeight.Black) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Text("Marcar como objetivo", modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
+                    Switch(
+                        checked = exercise.isStarTarget,
+                        onCheckedChange = { checked -> onUpdateExercise { it.copy(isStarTarget = checked) } },
+                    )
+                }
+                EditorMiniField("Meta 1RM kg", goalRmInput, keyboardType = KeyboardType.Decimal, modifier = Modifier.fillMaxWidth()) { input ->
+                    goalRmInput = input
+                    onUpdateExercise { it.copy(goal1RM = input.safeDoubleOrNull()) }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Listo") } },
+    )
+}
+
+@Composable
+private fun SupersetRoundsCarousel(
+    group: SupersetGroup,
+    exercises: List<Exercise>,
+    rounds: Int,
+    accentColor: Color,
+    onUpdateRoundRest: (Int, Int?, Int?) -> Unit,
+    onUpdateSet: (String, String, (ExerciseSet) -> ExerciseSet) -> Unit,
+    onRemoveSet: (String, String) -> Unit,
+    onMoveSet: (String, String, Int) -> Unit,
+    onAddRound: () -> Unit,
+    onRemoveRound: (Int) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Rondas", modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+            FilledTonalButton(
+                onClick = onAddRound,
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Ronda", fontWeight = FontWeight.Bold)
+            }
+        }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(end = 4.dp)) {
+            items((0 until rounds).toList(), key = { it }) { roundIndex ->
+                var showRoundRestPicker by rememberSaveable(group.id, roundIndex) { mutableStateOf(false) }
+                val roundRestBetween = group.roundRestBetweenExercises[roundIndex] ?: group.restBetweenExercises
+                val roundRestAfter = group.roundRestAfterSuperset[roundIndex] ?: group.restAfterSuperset
+                Surface(
+                    modifier = Modifier.width(320.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.86f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.22f)),
+                ) {
+                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Ronda ${roundIndex + 1}", modifier = Modifier.weight(1f), fontWeight = FontWeight.Black, color = accentColor)
+                            IconButton(onClick = { onRemoveRound(roundIndex) }, enabled = rounds > 1, modifier = Modifier.size(32.dp)) {
+                                Icon(Icons.Default.Delete, contentDescription = "Eliminar ronda", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
+                            }
+                        }
+                        SupersetRestPickerButton(
+                            restBetweenSeconds = roundRestBetween,
+                            restAfterSeconds = roundRestAfter,
+                            accentColor = accentColor,
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { showRoundRestPicker = true },
+                        )
+                        exercises.forEach { exercise ->
+                            val set = exercise.sets.getOrNull(roundIndex)
+                            if (set != null) {
+                                Text(exercise.name, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                InlineSetRow(
+                                    set = set,
+                                    index = roundIndex,
+                                    reference1RM = resolveReferenceCapacity(exercise),
+                                    predictedWeight = calculateSuggestedLoad(exercise, set),
+                                    estimatedMetric = calculateEstimatedMetric(exercise, set),
+                                    trainingMode = exercise.trainingMode,
+                                    customUnit = exercise.customUnit,
+                                    accentColor = accentColor,
+                                    canMoveUp = roundIndex > 0,
+                                    canMoveDown = roundIndex < exercise.sets.lastIndex,
+                                    isUnilateral = exercise.isEffectivelyUnilateral(),
+                                    onUpdate = { updater -> onUpdateSet(exercise.id, set.id, updater) },
+                                    onRemove = { onRemoveSet(exercise.id, set.id) },
+                                    onMoveUp = { onMoveSet(exercise.id, set.id, -1) },
+                                    onMoveDown = { onMoveSet(exercise.id, set.id, 1) },
+                                )
+                            }
+                        }
+                    }
+                }
+                if (showRoundRestPicker) {
+                    SupersetRestPickerDialog(
+                        initialRestBetweenSeconds = roundRestBetween,
+                        initialRestAfterSeconds = roundRestAfter,
+                        accentColor = accentColor,
+                        onDismiss = { showRoundRestPicker = false },
+                        onConfirm = { restBetween, restAfter ->
+                            onUpdateRoundRest(roundIndex, restBetween, restAfter)
+                            showRoundRestPicker = false
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SupersetRestPickerButton(
+    restBetweenSeconds: Int,
+    restAfterSeconds: Int,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = modifier
+            .height(48.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() },
+        color = accentColor.copy(alpha = 0.12f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Default.Timer, contentDescription = "Descansos de superserie", tint = accentColor, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(
+                "Entre ${formatRestSummary(restBetweenSeconds)} · Ronda ${formatRestSummary(restAfterSeconds)}",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = accentColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SupersetRestPickerDialog(
+    initialRestBetweenSeconds: Int,
+    initialRestAfterSeconds: Int,
+    accentColor: Color,
+    onDismiss: () -> Unit,
+    onConfirm: (Int, Int) -> Unit,
+) {
+    var betweenMinutes by rememberSaveable(initialRestBetweenSeconds) { mutableStateOf((initialRestBetweenSeconds / 60).coerceIn(0, 59)) }
+    var betweenSeconds by rememberSaveable(initialRestBetweenSeconds) { mutableStateOf((initialRestBetweenSeconds % 60).coerceIn(0, 59)) }
+    var afterMinutes by rememberSaveable(initialRestAfterSeconds) { mutableStateOf((initialRestAfterSeconds / 60).coerceIn(0, 59)) }
+    var afterSeconds by rememberSaveable(initialRestAfterSeconds) { mutableStateOf((initialRestAfterSeconds % 60).coerceIn(0, 59)) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Descansos de superserie", fontWeight = FontWeight.Black) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                SupersetRestWheelRow(
+                    label = "Entre ejercicios",
+                    minutes = betweenMinutes,
+                    seconds = betweenSeconds,
+                    accentColor = accentColor,
+                    onMinutesChange = { betweenMinutes = it },
+                    onSecondsChange = { betweenSeconds = it },
+                )
+                SupersetRestWheelRow(
+                    label = "Fin de ronda",
+                    minutes = afterMinutes,
+                    seconds = afterSeconds,
+                    accentColor = accentColor,
+                    onMinutesChange = { afterMinutes = it },
+                    onSecondsChange = { afterSeconds = it },
+                )
+            }
+        },
+        confirmButton = {
+            FilledTonalButton(
+                onClick = {
+                    onConfirm(
+                        betweenMinutes * 60 + betweenSeconds,
+                        afterMinutes * 60 + afterSeconds,
+                    )
+                },
+            ) {
+                Text("Aplicar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        },
+    )
+}
+
+@Composable
+private fun SupersetRestWheelRow(
+    label: String,
+    minutes: Int,
+    seconds: Int,
+    accentColor: Color,
+    onMinutesChange: (Int) -> Unit,
+    onSecondsChange: (Int) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = accentColor)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            NativeWheelPicker("Min", minutes, 0..59, accentColor, Modifier.weight(1f), onMinutesChange)
+            NativeWheelPicker("Seg", seconds, 0..59, accentColor, Modifier.weight(1f), onSecondsChange)
+        }
+        Text(
+            "Seleccionado: ${minutes}:${seconds.toString().padStart(2, '0')}",
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ExerciseEditorCard(
@@ -2224,6 +3122,7 @@ private fun ExerciseEditorCard(
     exerciseInfo: ExerciseMuscleInfo?,
     accentHex: String?,
     partId: String,
+    isCompetitionMovement: Boolean,
     modifier: Modifier = Modifier,
     isDragging: Boolean,
     dragOffset: Offset,
@@ -2247,6 +3146,7 @@ private fun ExerciseEditorCard(
     onUpdateRelationshipNotes: (String?) -> Unit,
     autoExpand: Boolean,
     onAutoExpandHandled: () -> Unit,
+    suppressIndividualRest: Boolean = false,
 ) {
     var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
     var showCustomUnitModal by remember { mutableStateOf(false) }
@@ -2312,20 +3212,20 @@ private fun ExerciseEditorCard(
         if (autoExpand) { expanded = true; onAutoExpandHandled() }
     }
 
-    val isSupersetExercise = exercise.supersetId != null
+    val isSupersetExercise = exercise.supersetGroupRefOrLegacyId() != null
     val supersetShape = RoundedCornerShape(14.dp)
     val containerHighlight = when {
         isDragging -> accentColor.copy(alpha = 0.10f)
         isDropTarget -> accentColor.copy(alpha = 0.08f)
         isPartDropTarget -> accentColor.copy(alpha = 0.06f)
-        isSupersetExercise -> accentColor.copy(alpha = if (expanded) 0.08f else 0.05f)
+        isSupersetExercise -> accentColor.copy(alpha = if (expanded) 0.12f else 0.08f)
         else -> Color.Transparent
     }
     val containerModifier = when {
         isSupersetExercise -> Modifier
             .clip(supersetShape)
             .background(containerHighlight)
-            .border(1.dp, accentColor.copy(alpha = if (expanded) 0.34f else 0.20f), supersetShape)
+            .border(2.dp, accentColor.copy(alpha = 0.6f), supersetShape)
 
         containerHighlight.alpha > 0f -> Modifier.background(containerHighlight)
         else -> Modifier
@@ -2393,23 +3293,45 @@ private fun ExerciseEditorCard(
                         onLongClick = onOpenQuickActions,
                     ),
             ) {
-                Text(
-                    text = exercise.name.ifBlank { "Seleccionar ejercicio" },
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (exercise.supersetGroupRefOrLegacyId() != null) {
+                        Icon(
+                            Icons.Default.SwapHoriz,
+                            contentDescription = null,
+                            tint = accentColor,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    Text(
+                        text = exercise.name.ifBlank { "Seleccionar ejercicio" },
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 Text(
                     text = buildString {
-                        append("${exercise.sets.size} series · ${formatRestSummary(exercise.restTime)} · ${trainingModeLabel(exercise.trainingMode)}")
-                        if (exercise.supersetId != null) append(" · Superserie")
+                        append("${exercise.sets.size} series · ")
+                        if (!suppressIndividualRest) append("${formatRestSummary(exercise.restTime)} · ")
+                        append(trainingModeLabel(exercise.trainingMode))
+                        if (exercise.supersetGroupRefOrLegacyId() != null) append(" · Superserie")
                     },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                if (isCompetitionMovement) {
+                    Text(
+                        text = "Movimiento de competición",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             Icon(
                 imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
@@ -2476,14 +3398,16 @@ private fun ExerciseEditorCard(
 
                 // Compact rest + mode + goal tracking
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    // Rest picker with timer icon only
-                    CompactRestPickerButton(
-                        totalSeconds = restSelectionSeconds,
-                        accentColor = accentColor,
-                        modifier = Modifier,
-                    ) { totalSeconds ->
-                        restSelectionSeconds = totalSeconds
-                        onUpdateExercise { draft -> draft.copy(restTime = totalSeconds) }
+                    if (!suppressIndividualRest) {
+                        // Rest picker with timer icon only
+                        CompactRestPickerButton(
+                            totalSeconds = restSelectionSeconds,
+                            accentColor = accentColor,
+                            modifier = Modifier,
+                        ) { totalSeconds ->
+                            restSelectionSeconds = totalSeconds
+                            onUpdateExercise { draft -> draft.copy(restTime = totalSeconds) }
+                        }
                     }
                     
                     // Mode selector (compact, no label)
@@ -2498,51 +3422,44 @@ private fun ExerciseEditorCard(
                     CompactGoalTrackingButton(
                         isActive = exercise.isStarTarget,
                         accentColor = accentColor,
-                    ) {
-                        onUpdateExercise { ex -> ex.copy(isStarTarget = !ex.isStarTarget) }
-                    }
+                        onToggle = { onUpdateExercise { ex -> ex.copy(isStarTarget = !ex.isStarTarget) } },
+                        onOpenSheet = { showGoalSheet = true },
+                    )
 
                     UnilateralModeSelector(
                         mode = exercise.unilateralMode,
                         accentColor = accentColor,
-                        onModeChanged = { newMode ->
-                            onUpdateExercise { ex ->
-                                ex.copy(
-                                    unilateralMode = newMode,
-                                    isUnilateral = newMode != UnilateralMode.BILATERAL,
-                                )
-                            }
+                        onToggleUnilateral = {
+                            onUpdateExercise { current -> current.toggledBilateralUnilateral() }
                         },
                     )
                 }
 
-                if (exercise.unilateralMode != UnilateralMode.BILATERAL || exercise.isUnilateral) {
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                if (isSupersetExercise && !suppressIndividualRest) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = accentColor.copy(alpha = 0.10f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
-                        FilterChip(
-                            selected = exercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT,
-                            onClick = {
-                                onUpdateExercise { it.copy(unilateralSideOrder = UnilateralSideOrder.LEFT_RIGHT) }
-                            },
-                            label = { Text("L → R", style = MaterialTheme.typography.labelSmall) },
-                        )
-                        FilterChip(
-                            selected = exercise.unilateralSideOrder == UnilateralSideOrder.RIGHT_LEFT,
-                            onClick = {
-                                onUpdateExercise { it.copy(unilateralSideOrder = UnilateralSideOrder.RIGHT_LEFT) }
-                            },
-                            label = { Text("R → L", style = MaterialTheme.typography.labelSmall) },
-                        )
-                        EditorMiniField(
-                            label = "Descanso lados (s)",
-                            value = exercise.restBetweenSidesSeconds?.toString().orEmpty(),
-                            keyboardType = KeyboardType.Number,
-                            modifier = Modifier.widthIn(min = 140.dp),
-                        ) { input ->
-                            val seconds = input.filter { it.isDigit() }.take(4).toIntOrNull()
-                            onUpdateExercise { it.copy(restBetweenSidesSeconds = seconds) }
+                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Icon(Icons.Default.Link, null, Modifier.size(18.dp), tint = accentColor)
+                                Text("Superserie activa", fontWeight = FontWeight.Black, color = accentColor, style = MaterialTheme.typography.labelMedium)
+                            }
+                            Text(
+                                "Los ejercicios agrupados comparten descanso: ${exercise.supersetRestBetween ?: 60}s entre ejercicios, ${exercise.supersetRestAfter ?: 120}s post-ronda.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (exercise.restTime != null) {
+                                Text(
+                                    "El descanso individual (${exercise.restTime}s) es reemplazado por los de la superserie.",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
                         }
                     }
                 }
@@ -2578,29 +3495,15 @@ private fun ExerciseEditorCard(
                     }
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
-                        FilledTonalButton(
-                            onClick = { showSmartLoadSheet = true },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(14.dp),
-                        ) {
-                            Icon(Icons.Default.FitnessCenter, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Carga inteligente", maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                    }
+                if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
                     FilledTonalButton(
-                        onClick = { showGoalSheet = true },
-                        modifier = Modifier.weight(1f),
+                        onClick = { showSmartLoadSheet = true },
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
                     ) {
-                        Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.FitnessCenter, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Meta / PR", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("Carga inteligente")
                     }
                 }
 
@@ -2928,6 +3831,7 @@ private fun InlineSetRow(
     accentColor: Color,
     canMoveUp: Boolean,
     canMoveDown: Boolean,
+    isUnilateral: Boolean = false,
     onUpdate: ((ExerciseSet) -> ExerciseSet) -> Unit,
     onRemove: () -> Unit,
     onMoveUp: () -> Unit,
@@ -2935,10 +3839,22 @@ private fun InlineSetRow(
 ) {
     var showAmrapDialog by remember(set.id) { mutableStateOf(false) }
     var showIntensityMenu by remember(set.id) { mutableStateOf(false) }
+    var showLoadModeMenu by remember(set.id) { mutableStateOf(false) }
+    var showPlannedIntensity by rememberSaveable(set.id) {
+        mutableStateOf(
+            set.intensityMode != null ||
+                set.targetRPE != null ||
+                set.targetRIR != null ||
+                set.isFailure ||
+                set.leftTarget?.intensityMode != null ||
+                set.rightTarget?.intensityMode != null,
+        )
+    }
     val isNarrowScreen = LocalConfiguration.current.screenWidthDp <= 380
     val isRmMode = trainingMode == TrainingMode.RM
     val isSoloRpeMode = trainingMode == TrainingMode.SOLO_RPE
     val isAmrapMode = set.isAmrap
+    var selectedUniSide by remember(set.id) { mutableStateOf("L") }
     val sliderPercent = remember(set.targetPercentageRM, set.targetReps, set.intensityMode, predictedWeight, reference1RM) {
         when {
             isRmMode && set.targetPercentageRM != null -> set.targetPercentageRM
@@ -2957,11 +3873,43 @@ private fun InlineSetRow(
         TrainingMode.SOLO_RPE -> "RPE obj."
         TrainingMode.AMRAP -> "AMRAP"
     }
+    val activeSideTarget = if (isUnilateral) {
+        if (selectedUniSide == "L") set.leftTarget else set.rightTarget
+    } else null
+    fun uniOrSetDbl(getSet: (ExerciseSet) -> Double?, getTarget: (UnilateralTarget?) -> Double?): Double? =
+        if (isUnilateral && activeSideTarget != null) getTarget(activeSideTarget) else getSet(set)
+    fun uniOrSetInt(getSet: (ExerciseSet) -> Int?, getTarget: (UnilateralTarget?) -> Int?): Int? =
+        if (isUnilateral && activeSideTarget != null) getTarget(activeSideTarget) else getSet(set)
     val metricValue = when (trainingMode) {
         TrainingMode.RM -> formatEstimatedMetric(estimatedMetric, trainingMode, customUnit)
-        TrainingMode.TIME -> set.targetDuration?.toString().orEmpty()
-        TrainingMode.SOLO_RPE -> formatEditableNumber(set.targetRPE)
-        else -> set.targetReps?.toString().orEmpty()
+        TrainingMode.TIME -> (
+            if (isUnilateral && activeSideTarget != null) activeSideTarget.targetDuration else set.targetDuration
+        )?.toString().orEmpty()
+        TrainingMode.SOLO_RPE -> formatEditableNumber(uniOrSetDbl({ it.targetRPE }, { it?.targetRPE }))
+        TrainingMode.DISTANCE,
+        TrainingMode.CUSTOM,
+        -> formatEditableNumber(
+            if (isUnilateral && activeSideTarget != null) activeSideTarget.targetValue else set.plannedTargetV2
+        ).ifBlank { (uniOrSetInt({ it.targetReps }, { it?.targetReps })?.toString()).orEmpty() }
+        else -> (uniOrSetInt({ it.targetReps }, { it?.targetReps })?.toString()).orEmpty()
+    }
+    val intensityValue = when (set.intensityMode ?: IntensityMode.RPE) {
+        IntensityMode.RPE -> formatEditableNumber(uniOrSetDbl({ it.targetRPE }, { it?.targetRPE }))
+        IntensityMode.RIR -> (uniOrSetInt({ it.targetRIR }, { it?.targetRIR })?.toString()).orEmpty()
+        IntensityMode.FAILURE -> "Auto"
+        IntensityMode.SOLO_RM -> formatEditableNumber(set.targetPercentageRM ?: sliderPercent)
+        IntensityMode.AMRAP -> ""
+        IntensityMode.LOAD -> formatEditableNumber(uniOrSetDbl({ it.weight }, { it?.weight }))
+    }
+
+    fun updateUniSet(updater: (UnilateralTarget) -> UnilateralTarget): ((ExerciseSet) -> ExerciseSet) {
+        val side = selectedUniSide
+        return { current ->
+            val currentSide = (if (side == "L") current.leftTarget else current.rightTarget) ?: UnilateralTarget()
+            val updated = updater(currentSide)
+            if (side == "L") current.copy(leftTarget = updated)
+            else current.copy(rightTarget = updated)
+        }
     }
     val intensityLabel = when (set.intensityMode ?: IntensityMode.RPE) {
         IntensityMode.RPE -> "RPE"
@@ -2979,13 +3927,11 @@ private fun InlineSetRow(
         IntensityMode.AMRAP -> "AMRAP"
         IntensityMode.LOAD -> "Carga"
     }
-    val intensityValue = when (set.intensityMode ?: IntensityMode.RPE) {
-        IntensityMode.RPE -> formatEditableNumber(set.targetRPE)
-        IntensityMode.RIR -> set.targetRIR?.toString().orEmpty()
-        IntensityMode.FAILURE -> "Auto"
-        IntensityMode.SOLO_RM -> formatEditableNumber(set.targetPercentageRM ?: sliderPercent)
-        IntensityMode.AMRAP -> ""
-        IntensityMode.LOAD -> formatEditableNumber(set.weight)
+    val loadModeLabel = when (set.loadModeV2 ?: LoadModeV2.LOAD) {
+        LoadModeV2.LOAD -> "Carga externa"
+        LoadModeV2.BODYWEIGHT -> "Peso corporal"
+        LoadModeV2.LASTRE -> "Lastre"
+        LoadModeV2.ASSISTED -> "Asistido"
     }
     val setSurface = lerp(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f), accentColor, 0.14f)
     val estimatedSurface = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
@@ -3008,14 +3954,66 @@ private fun InlineSetRow(
             ) {
                 Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)) {
                     Text(
-                        text = "S${index + 1}",
+                        text = "S${index + 1}${if (isUnilateral) "-${selectedUniSide}" else ""}",
                         modifier = Modifier.padding(horizontal = if (isNarrowScreen) 6.dp else 8.dp, vertical = if (isNarrowScreen) 2.dp else 2.dp),
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.labelSmall,
                     )
                 }
+                if (isUnilateral) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        listOf("L" to Color(0xFF2196F3), "R" to Color(0xFFFF5252)).forEach { (label, sideColor) ->
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (selectedUniSide == label) sideColor.copy(alpha = 0.22f) else Color.Transparent,
+                                modifier = Modifier.clickable { selectedUniSide = label },
+                            ) {
+                                Text(
+                                    label,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    fontWeight = if (selectedUniSide == label) FontWeight.Black else FontWeight.Medium,
+                                    color = if (selectedUniSide == label) sideColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                        }
+                    }
+                }
                 Spacer(Modifier.weight(1f))
+                Box {
+                    OutlinedButton(
+                        onClick = { showLoadModeMenu = true },
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                    ) {
+                        Text(
+                            loadModeLabel,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Icon(Icons.Default.KeyboardArrowDown, null, modifier = Modifier.size(14.dp))
+                    }
+                    DropdownMenu(expanded = showLoadModeMenu, onDismissRequest = { showLoadModeMenu = false }) {
+                        listOf(
+                            LoadModeV2.LOAD to "Carga externa",
+                            LoadModeV2.BODYWEIGHT to "Peso corporal",
+                            LoadModeV2.LASTRE to "Lastre",
+                            LoadModeV2.ASSISTED to "Asistido",
+                        ).forEach { (mode, label) ->
+                            DropdownMenuItem(
+                                text = { Text(label) },
+                                onClick = {
+                                    showLoadModeMenu = false
+                                    onUpdate { current -> current.copy(loadModeV2 = mode) }
+                                },
+                            )
+                        }
+                    }
+                }
                 IconButton(onClick = onRemove, modifier = Modifier.size(if (isNarrowScreen) 24.dp else 28.dp)) {
                     Icon(
                         Icons.Default.Close,
@@ -3060,40 +4058,65 @@ private fun InlineSetRow(
                     EditorMiniField(
                         label = metricLabel,
                         value = metricValue,
-                        stateKey = "metric-${set.id}",
+                        stateKey = "metric-${set.id}-${selectedUniSide}",
                         keyboardType = KeyboardType.Decimal,
                         modifier = Modifier.fillMaxWidth(),
                     ) { input ->
-                        onUpdate { current ->
-                            current.copy(
-                                targetRPE = input.safeDoubleOrNull(),
-                                intensityMode = IntensityMode.RPE,
-                                targetRIR = null,
-                                targetPercentageRM = null,
-                                targetReps = null,
-                                targetDuration = null,
-                                isFailure = false,
-                                isAmrap = false,
-                            )
-                        }
+                        onUpdate(if (isUnilateral) updateUniSet { it.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE) } else { current ->
+                            current.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE, targetRIR = null, targetPercentageRM = null, targetReps = null, targetDuration = null, isFailure = false, isAmrap = false)
+                        })
                     }
                 } else {
                     EditorMiniField(
                         label = metricLabel,
                         value = metricValue,
-                        stateKey = "metric-${set.id}",
+                        stateKey = "metric-${set.id}-${selectedUniSide}",
                         keyboardType = KeyboardType.Number,
                         modifier = Modifier.weight(if (isAmrapMode) if (isNarrowScreen) 1.2f else 1.35f else 1f),
                     ) { input ->
-                        onUpdate { current ->
+                        onUpdate(if (isUnilateral) updateUniSet {
+                            when (trainingMode) {
+                                TrainingMode.TIME -> it.copy(targetDuration = input.safeIntOrNull())
+                                TrainingMode.DISTANCE,
+                                TrainingMode.CUSTOM,
+                                -> it.copy(targetValue = input.safeDoubleOrNull())
+                                else -> it.copy(targetReps = input.safeIntOrNull())
+                            }
+                        } else { current ->
                             when (trainingMode) {
                                 TrainingMode.TIME -> current.copy(targetDuration = input.safeIntOrNull())
+                                TrainingMode.DISTANCE,
+                                TrainingMode.CUSTOM,
+                                -> current.copy(plannedTargetV2 = input.safeDoubleOrNull())
                                 else -> current.copy(targetReps = input.safeIntOrNull())
                             }
-                        }
+                        })
                     }
                 }
                 if (!isAmrapMode && !isRmMode && !isSoloRpeMode) {
+                    if (!showPlannedIntensity) {
+                        OutlinedButton(
+                            onClick = {
+                                showPlannedIntensity = true
+                                onUpdate { current ->
+                                    current.copy(
+                                        intensityMode = IntensityMode.RPE,
+                                        targetRPE = current.targetRPE ?: 8.0,
+                                        targetRIR = null,
+                                        isFailure = false,
+                                    )
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(14.dp),
+                        ) {
+                            Text(
+                                if (isNarrowScreen) "Intensidad" else "Programar intensidad",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    } else {
                     Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 4.dp else 6.dp)) {
                         Text(
                             if (isNarrowScreen) "Intens." else "Intensidad",
@@ -3120,13 +4143,26 @@ private fun InlineSetRow(
                                         text = { Text(label) },
                                         onClick = {
                                             showIntensityMenu = false
-                                            onUpdate {
+                                            val updater: (ExerciseSet) -> ExerciseSet = {
                                                 when (mode) {
                                                     IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, targetRPE = it.targetRPE ?: 8.0, targetRIR = null)
                                                     IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, targetRIR = it.targetRIR ?: 2, targetRPE = null)
-                                                    IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, targetRIR = 0, targetRPE = null)
+                                                    IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, targetRIR = null, targetRPE = null)
                                                     else -> it
                                                 }
+                                            }
+                                            if (isUnilateral) {
+                                                val side = selectedUniSide
+                                                onUpdate { current ->
+                                                    val currentSide = (if (side == "L") current.leftTarget else current.rightTarget) ?: UnilateralTarget()
+                                                    val temp = ExerciseSet(id = "", targetRPE = currentSide.targetRPE, targetRIR = currentSide.targetRIR, intensityMode = currentSide.intensityMode ?: current.intensityMode)
+                                                    val updated = updater(temp)
+                                                    val newSide = currentSide.copy(targetRPE = updated.targetRPE, targetRIR = updated.targetRIR, intensityMode = updated.intensityMode)
+                                                    if (side == "L") current.copy(leftTarget = newSide, isFailure = updated.isFailure)
+                                                    else current.copy(rightTarget = newSide, isFailure = updated.isFailure)
+                                                }
+                                            } else {
+                                                onUpdate(updater)
                                             }
                                         },
                                     )
@@ -3146,19 +4182,27 @@ private fun InlineSetRow(
                         EditorMiniField(
                             label = intensityValueLabel,
                             value = intensityValue,
-                            stateKey = "intensity-${set.id}",
+                            stateKey = "intensity-${set.id}-${selectedUniSide}",
                             keyboardType = if ((set.intensityMode ?: IntensityMode.RPE) == IntensityMode.RPE) KeyboardType.Decimal else KeyboardType.Number,
                             modifier = Modifier.weight(if (isNarrowScreen) 0.82f else 0.9f),
                         ) { input ->
-                            onUpdate { current ->
+                            onUpdate(if (isUnilateral) updateUniSet {
+                                when (set.intensityMode ?: IntensityMode.RPE) {
+                                    IntensityMode.RPE -> it.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE)
+                                    IntensityMode.RIR -> it.copy(targetRIR = input.safeIntOrNull(), intensityMode = IntensityMode.RIR)
+                                    IntensityMode.LOAD -> it.copy(weight = input.safeDoubleOrNull())
+                                    else -> it
+                                }
+                            } else { current ->
                                 when (current.intensityMode ?: IntensityMode.RPE) {
                                     IntensityMode.RPE -> current.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE)
                                     IntensityMode.RIR -> current.copy(targetRIR = input.safeIntOrNull(), intensityMode = IntensityMode.RIR)
                                     IntensityMode.LOAD -> current.copy(weight = input.safeDoubleOrNull(), intensityMode = IntensityMode.LOAD)
                                     else -> current
                                 }
-                            }
+                            })
                         }
+                    }
                     }
                 } else {
                     Surface(
@@ -3722,9 +4766,14 @@ private fun SessionEditorSheets(
             )
             SessionEditorSheet.AUGE -> AssistantSheet(
                 uiState = uiState,
+                templates = allTemplates,
                 onApplyAugeCorrection = onApplyAugeCorrection,
                 onAddGhostExercise = onAddGhostExercise,
                 onApplyAssistantSuggestion = onApplyAssistantSuggestion,
+                onTemplateSearchChange = onTemplateSearchChange,
+                onSelectTemplate = onSelectTemplate,
+                onConfirmApplyTemplate = onConfirmApplyTemplate,
+                onCancelTemplateApply = onCancelTemplateApply,
             )
             SessionEditorSheet.WARMUP -> WarmupSheet(exercise = warmupExercise, onSave = onWarmupSave)
             SessionEditorSheet.MOBILITY_PICKER -> MobilityPickerSheet(
@@ -3735,10 +4784,16 @@ private fun SessionEditorSheets(
                 val supersetExercises = uiState.supersetManagerSupersetId
                     ?.let { SupersetRules.orderedMembers(session, it) }
                     .orEmpty()
+                val supersetGroup = uiState.supersetManagerSupersetId
+                    ?.let { id -> session.allSupersetGroups().firstOrNull { it.id == id } }
                 SupersetManagerSheet(
                     exercises = supersetExercises,
                     partId = uiState.supersetManagerPartId,
                     supersetId = uiState.supersetManagerSupersetId ?: "",
+                    restBetweenSeconds = supersetGroup?.restBetweenExercises
+                        ?: supersetExercises.firstOrNull()?.supersetRestBetween,
+                    restAfterSeconds = supersetGroup?.restAfterSuperset
+                        ?: supersetExercises.firstOrNull()?.supersetRestAfter,
                     onUpdateRestBetween = onUpdateSupersetRestBetween,
                     onUpdateRestAfter = onUpdateSupersetRestAfter,
                     onRemove = onRemoveFromSuperset,
@@ -3747,17 +4802,12 @@ private fun SessionEditorSheets(
             }
             SessionEditorSheet.SUPERSET_CREATOR -> {
                 val draft = uiState.supersetDraft ?: return@ModalBottomSheet
-                val scopedExercises = draft.partId?.let { partId ->
-                    session.parts.firstOrNull { it.id == partId }?.exercises
-                } ?: session.exercises
-                SupersetCreatorSheet(
+                SupersetMemberPickerSheet(
                     draft = draft,
-                    sessionExercises = scopedExercises,
+                    sessionExercises = session.allExercises(),
                     onUpdateDraft = onSupersetDraftUpdate,
-                    onConfirm = {
-                        onCreateSupersetGroup()
-                        onDismiss()
-                    },
+                    onConfirm = onCreateSupersetGroup,
+                    onOpenCatalog = onOpenExerciseCreator,
                     onDismiss = onDismiss,
                 )
             }
@@ -4265,6 +5315,7 @@ private fun SupersetCreatorSheet(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    var showRestPicker by rememberSaveable { mutableStateOf(false) }
     val selectedExercises = remember(draft.exerciseIds, sessionExercises) {
         draft.exerciseIds.mapNotNull { id -> sessionExercises.find { it.id == id } }
     }
@@ -4278,7 +5329,7 @@ private fun SupersetCreatorSheet(
         val nextIds = if (exerciseId in draft.exerciseIds) {
             draft.exerciseIds.filterNot { it == exerciseId }
         } else {
-            draft.exerciseIds + exerciseId
+            (draft.exerciseIds + exerciseId).take(4)
         }
         onUpdateDraft(draft.copy(exerciseIds = nextIds.distinct()))
     }
@@ -4298,123 +5349,133 @@ private fun SupersetCreatorSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(max = 520.dp)
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text("Crear superserie", fontWeight = FontWeight.Black, fontSize = 18.sp)
-        Text(
-            "Elige 2 o más ejercicios de la sesión, ordena la secuencia y configura descansos.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Text("Seleccionar ejercicios", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
-        LazyColumn(
-            modifier = Modifier.heightIn(max = 260.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+        Column(
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            items(availableExercises, key = { it.id }) { exercise ->
-                val selected = exercise.id in draft.exerciseIds
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                    modifier = Modifier.fillMaxWidth().clickable { toggleExercise(exercise.id) },
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Checkbox(
-                            checked = selected,
-                            onCheckedChange = { toggleExercise(exercise.id) },
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(exercise.name, fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold)
-                            if (exercise.id in draft.exerciseIds) {
-                                Text(
-                                    "Orden ${draft.exerciseIds.indexOf(exercise.id) + 1}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Text("Orden de la superserie", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
-        if (selectedExercises.isEmpty()) {
             Text(
-                "Selecciona ejercicios arriba para armar la superserie.",
+                "Elige entre 2 y 4 ejercicios de la sesión, ordena la secuencia y configura descansos.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        } else {
+
+            Text("Seleccionar ejercicios", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                selectedExercises.forEachIndexed { index, exercise ->
+                availableExercises.forEach { exercise ->
+                    val selected = exercise.id in draft.exerciseIds
                     Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                    modifier = Modifier.fillMaxWidth().clickable(enabled = selected || draft.exerciseIds.size < 4) { toggleExercise(exercise.id) },
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Text("${index + 1}", fontWeight = FontWeight.Black, modifier = Modifier.width(24.dp))
-                            Text(exercise.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            IconButton(onClick = { moveSelectedExercise(exercise.id, -1) }, enabled = index > 0) {
-                                Icon(Icons.Default.KeyboardArrowUp, null)
-                            }
-                            IconButton(onClick = { moveSelectedExercise(exercise.id, 1) }, enabled = index < selectedExercises.lastIndex) {
-                                Icon(Icons.Default.KeyboardArrowDown, null)
-                            }
-                            IconButton(onClick = { toggleExercise(exercise.id) }) {
-                                Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error)
+                            Checkbox(
+                                checked = selected,
+                                onCheckedChange = { toggleExercise(exercise.id) },
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(exercise.name, fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold)
+                                if (exercise.id in draft.exerciseIds) {
+                                    Text(
+                                        "Orden ${draft.exerciseIds.indexOf(exercise.id) + 1}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                } else if (draft.exerciseIds.size >= 4) {
+                                    Text(
+                                        "Limite 4 ejercicios",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        // Rest configuration
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+            Text("Orden de la superserie", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+            if (selectedExercises.isEmpty()) {
+                Text(
+                    "Selecciona ejercicios arriba para armar la superserie.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    selectedExercises.forEachIndexed { index, exercise ->
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Text("${index + 1}", fontWeight = FontWeight.Black, modifier = Modifier.width(24.dp))
+                                Text(exercise.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                IconButton(onClick = { moveSelectedExercise(exercise.id, -1) }, enabled = index > 0) {
+                                    Icon(Icons.Default.KeyboardArrowUp, null)
+                                }
+                                IconButton(onClick = { moveSelectedExercise(exercise.id, 1) }, enabled = index < selectedExercises.lastIndex) {
+                                    Icon(Icons.Default.KeyboardArrowDown, null)
+                                }
+                                IconButton(onClick = { toggleExercise(exercise.id) }) {
+                                    Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            SupersetRestPickerButton(
+                restBetweenSeconds = draft.restBetweenExercises,
+                restAfterSeconds = draft.restAfterSuperset,
+                accentColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { showRestPicker = true },
+            )
+            if (showRestPicker) {
+                SupersetRestPickerDialog(
+                    initialRestBetweenSeconds = draft.restBetweenExercises,
+                    initialRestAfterSeconds = draft.restAfterSuperset,
+                    accentColor = MaterialTheme.colorScheme.primary,
+                    onDismiss = { showRestPicker = false },
+                    onConfirm = { restBetween, restAfter ->
+                        onUpdateDraft(
+                            draft.copy(
+                                restBetweenExercises = restBetween,
+                                restAfterSuperset = restAfter,
+                            ),
+                        )
+                        showRestPicker = false
+                    },
+                )
+            }
             EditorMiniField(
-                label = "Descanso entre ejercicios (s)",
-                value = draft.restBetweenExercises.toString(),
+                label = "Rondas (opcional)",
+                value = draft.rounds?.toString().orEmpty(),
                 keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
                 onCommit = { input ->
-                    val value = input.filter { it.isDigit() }.take(4)
-                    onUpdateDraft(draft.copy(restBetweenExercises = value.toIntOrNull() ?: 0))
+                    val clean = input.filter { it.isDigit() }.take(3)
+                    onUpdateDraft(draft.copy(rounds = clean.toIntOrNull()))
                 },
-                modifier = Modifier.weight(1f),
-            )
-            EditorMiniField(
-                label = "Descanso post-superserie (s)",
-                value = draft.restAfterSuperset.toString(),
-                keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
-                onCommit = { input ->
-                    val value = input.filter { it.isDigit() }.take(4)
-                    onUpdateDraft(draft.copy(restAfterSuperset = value.toIntOrNull() ?: 0))
-                },
-                modifier = Modifier.weight(1f),
             )
         }
-
-        // Optional rounds
-        EditorMiniField(
-            label = "Rondas (opcional)",
-            value = draft.rounds?.toString().orEmpty(),
-            keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
-            onCommit = { input ->
-                val clean = input.filter { it.isDigit() }.take(3)
-                onUpdateDraft(draft.copy(rounds = clean.toIntOrNull()))
-            },
-        )
 
         // Action buttons
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
@@ -4424,11 +5485,75 @@ private fun SupersetCreatorSheet(
             Button(
                 onClick = onConfirm,
                 modifier = Modifier.weight(1f),
-                enabled = draft.exerciseIds.distinct().size >= 2,
+                enabled = draft.exerciseIds.distinct().size in 2..4,
             ) {
                 Text("Crear superserie", fontWeight = FontWeight.Black)
             }
         }
+    }
+}
+
+@Composable
+private fun SupersetMemberPickerSheet(
+    draft: SupersetDraft,
+    sessionExercises: List<Exercise>,
+    onUpdateDraft: (SupersetDraft) -> Unit,
+    onConfirm: () -> Unit,
+    onOpenCatalog: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val selectedIds = draft.exerciseIds.toSet()
+    val availableExercises = remember(sessionExercises, draft.exerciseIds) {
+        sessionExercises.filter { it.id !in selectedIds && !it.isInSuperset() }
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = 520.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text("Añadir a superserie", fontWeight = FontWeight.Black, fontSize = 18.sp)
+        Text(
+            "Mueve un ejercicio que ya está en esta sesión o abre el catálogo para crear otro.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Column(
+            modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            availableExercises.forEach { exercise ->
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = draft.exerciseIds.size < 4) {
+                            onUpdateDraft(draft.copy(exerciseIds = (draft.exerciseIds + exercise.id).distinct().take(4)))
+                            onConfirm()
+                        },
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text(exercise.name, modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
+            if (availableExercises.isEmpty()) {
+                Text("No hay ejercicios libres en esta sesión.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        OutlinedButton(onClick = onOpenCatalog, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Abrir catálogo")
+        }
+        TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Cerrar") }
     }
 }
 
@@ -4542,49 +5667,71 @@ private fun SupersetManagerSheet(
     exercises: List<Exercise>,
     partId: String?,
     supersetId: String,
+    restBetweenSeconds: Int?,
+    restAfterSeconds: Int?,
     onUpdateRestBetween: (String?, String, Int) -> Unit,
     onUpdateRestAfter: (String?, String, Int) -> Unit,
     onRemove: (String?, String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var restBetween by rememberSaveable(supersetId) {
-        mutableStateOf(exercises.firstOrNull()?.supersetRestBetween?.toString().orEmpty())
+    var restBetween by rememberSaveable(supersetId, restBetweenSeconds) {
+        mutableStateOf(restBetweenSeconds?.toString().orEmpty())
     }
-    var restAfter by rememberSaveable(supersetId) {
-        mutableStateOf(exercises.firstOrNull()?.supersetRestAfter?.toString().orEmpty())
+    var restAfter by rememberSaveable(supersetId, restAfterSeconds) {
+        mutableStateOf(restAfterSeconds?.toString().orEmpty())
     }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(max = 520.dp)
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text("Gestionar superserie", fontWeight = FontWeight.Black, fontSize = 18.sp)
-        Text(
-            "${exercises.size} ejercicios vinculados",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Column(
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                "${exercises.size} ejercicios vinculados",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
 
-        exercises.forEachIndexed { index, exercise ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text("${index + 1}", fontWeight = FontWeight.Black, modifier = Modifier.width(24.dp))
-                Text(exercise.name, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                IconButton(
-                    onClick = { onRemove(partId, exercise.id); onDismiss() },
-                    modifier = Modifier.size(24.dp),
+            exercises.forEachIndexed { index, exercise ->
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
                 ) {
-                    Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(14.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text("${index + 1}", fontWeight = FontWeight.Black, modifier = Modifier.width(24.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(exercise.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(
+                                "${exercise.sets.size} series · descanso individual reemplazado",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        IconButton(
+                            onClick = { onRemove(partId, exercise.id); onDismiss() },
+                            modifier = Modifier.size(24.dp),
+                        ) {
+                            Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(14.dp))
+                        }
+                    }
                 }
             }
-        }
 
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+        }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             EditorMiniField(
@@ -4669,13 +5816,18 @@ internal fun ExercisePickerSheet(
                 .map { it.first }
         }
 
-        when (sortMode) {
+        val sorted = when (sortMode) {
             ExerciseCatalogSort.RELEVANCE -> searched
             ExerciseCatalogSort.FATIGUE_HIGH -> searched.sortedByDescending { calculateFriendlyFatigue(it).overall }
             ExerciseCatalogSort.FATIGUE_LOW -> searched.sortedBy { calculateFriendlyFatigue(it).overall }
             ExerciseCatalogSort.NAME -> searched.sortedBy { it.name }
             ExerciseCatalogSort.MUSCLE -> searched.sortedWith(compareBy({ resolvePrimaryMuscleLabel(it) }, { it.name }))
         }
+        deduplicateCatalogVisualResults(sorted)
+    }
+    val resultListState = rememberLazyListState()
+    LaunchedEffect(normalizedQuery, activeRegion, selectedTrait, sortMode) {
+        resultListState.scrollToItem(0)
     }
 
     val infoExercise = remember(infoExerciseId, catalog) { catalog.firstOrNull { it.id == infoExerciseId } }
@@ -4892,6 +6044,7 @@ internal fun ExercisePickerSheet(
          }
 
          LazyColumn(
+             state = resultListState,
              modifier = Modifier.weight(1f),
              verticalArrangement = Arrangement.spacedBy(10.dp),
          ) {
@@ -6315,15 +7468,23 @@ private fun WarmupSheet(
 @Composable
 private fun AssistantSheet(
     uiState: SessionEditorUiState,
+    templates: List<SessionTemplate>,
     onApplyAugeCorrection: (String) -> Unit,
     onAddGhostExercise: (String) -> Unit,
     onApplyAssistantSuggestion: (String) -> Unit,
+    onTemplateSearchChange: (String) -> Unit,
+    onSelectTemplate: (SessionTemplate) -> Unit,
+    onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
+    onCancelTemplateApply: () -> Unit,
 ) {
     val report = uiState.assistantReport
     val summary = uiState.augeSummary
     val accentColor = augeStatusColor(summary.status, summary.hasCriticalAlerts)
     var ringsExpanded by rememberSaveable { mutableStateOf(false) }
     var volumeExpanded by rememberSaveable { mutableStateOf(false) }
+    var suggestionsExpanded by rememberSaveable { mutableStateOf(false) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    val tabs = listOf("Asistente", "Plantillas")
 
     Column(
         Modifier
@@ -6334,38 +7495,27 @@ private fun AssistantSheet(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text("Asistente de sesión", fontWeight = FontWeight.Black, fontSize = 18.sp)
+        TabRow(selectedTabIndex = selectedTab) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    text = { Text(title, fontWeight = FontWeight.Bold) },
+                )
+            }
+        }
 
-        if (report != null) {
-            AssistantVeredictoCard(report)
-            if (report.riesgos.isNotEmpty()) {
-                AssistantSectionTitle("Riesgos detectados")
-                report.riesgos.forEach { risk ->
-                    AssistantRiskCard(risk)
-                }
-            }
-            if (report.ajustes.isNotEmpty()) {
-                AssistantSectionTitle("Ajustes sugeridos")
-                report.ajustes.forEach { suggestion ->
-                    AssistantSuggestionCard(suggestion, onApplyAssistantSuggestion)
-                }
-            }
-            if (report.tarjetasFantasma.isNotEmpty()) {
-                AssistantSectionTitle("Propuestas")
-                report.tarjetasFantasma.forEach { card ->
-                    AssistantGhostCard(card, onAddGhostExercise)
-                }
-            }
-            if (report.plantillasCompatibles.isNotEmpty()) {
-                AssistantSectionTitle("Plantillas compatibles")
-                report.plantillasCompatibles.forEach { preview ->
-                    AssistantTemplatePreviewCard(preview)
-                }
-            }
-        } else {
-            Text(
-                "Calculando análisis...",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        if (selectedTab == 1) {
+            AssistantTemplatesTab(
+                templates = templates,
+                searchQuery = uiState.templateSearchQuery,
+                applyDecision = uiState.templateApplyDecision,
+                onSearchChange = onTemplateSearchChange,
+                onSelectTemplate = onSelectTemplate,
+                onConfirmApplyTemplate = onConfirmApplyTemplate,
+                onCancelApply = onCancelTemplateApply,
             )
+            return@Column
         }
 
         val energySummary = summary.sessionEnergy
@@ -6424,6 +7574,13 @@ private fun AssistantSheet(
                     }
                 }
             }
+        }
+
+        if (report == null) {
+            Text(
+                "Calculando análisis...",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
 
         // Rings section (kept from old AugeSheet)
@@ -6545,6 +7702,111 @@ private fun AssistantSheet(
                 }
             }
         }
+
+        if (report?.ajustes?.isNotEmpty() == true) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.16f),
+                ),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { suggestionsExpanded = !suggestionsExpanded },
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            "Ajustes sugeridos",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Black,
+                        )
+                        Icon(
+                            imageVector = if (suggestionsExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                        )
+                    }
+                    if (suggestionsExpanded) {
+                        report.ajustes.forEach { suggestion ->
+                            AssistantSuggestionCard(suggestion, onApplyAssistantSuggestion)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AssistantTemplatesTab(
+    templates: List<SessionTemplate>,
+    searchQuery: String,
+    applyDecision: SessionTemplateApplyDecision?,
+    onSearchChange: (String) -> Unit,
+    onSelectTemplate: (SessionTemplate) -> Unit,
+    onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
+    onCancelApply: () -> Unit,
+) {
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = onSearchChange,
+        placeholder = { Text("Buscar plantilla...") },
+        leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(18.dp)) },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+        ),
+    )
+    val filtered = remember(templates, searchQuery) {
+        if (searchQuery.isBlank()) templates
+        else templates.filter {
+            it.name.contains(searchQuery, ignoreCase = true) ||
+                it.description.contains(searchQuery, ignoreCase = true) ||
+                it.muscleGroupsSummary.contains(searchQuery, ignoreCase = true)
+        }
+    }
+    if (filtered.isEmpty()) {
+        Text(
+            text = if (searchQuery.isBlank()) "No hay plantillas disponibles" else "Sin resultados para \"$searchQuery\"",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(vertical = 24.dp),
+        )
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            filtered.forEach { template ->
+                TemplateCard(template = template, onApply = { onSelectTemplate(template) })
+            }
+        }
+    }
+    if (applyDecision != null) {
+        AlertDialog(
+            onDismissRequest = onCancelApply,
+            title = { Text("Aplicar plantilla", fontWeight = FontWeight.Black) },
+            text = {
+                Text("La sesión ya tiene ejercicios. ¿Qué deseas hacer con la plantilla \"${applyDecision.template.name}\"?")
+            },
+            confirmButton = {
+                Button(onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.REPLACE) }) {
+                    Text("Reemplazar")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.APPEND) }) {
+                    Text("Añadir al final")
+                }
+            },
+        )
     }
 }
 
@@ -7037,6 +8299,395 @@ private fun formatEstimatedMetric(value: Double?, mode: TrainingMode, customUnit
     }
 }
 
+private fun Exercise.matchesCompetitionMovement(competitionMovementIds: Set<String>): Boolean {
+    if (isCompetitionLift) return true
+    return listOfNotNull(
+        resolvedCanonicalExerciseId(),
+        exerciseDbId,
+        exerciseId,
+        canonicalExerciseId,
+    ).any { it in competitionMovementIds }
+}
+
+
+@Composable
+private fun CompetitionSessionEditor(
+    session: Session,
+    onUpdateSession: ((Session) -> Session) -> Unit,
+    onOpenConfig: () -> Unit,
+    onAddCompetitionMovement: () -> Unit,
+) {
+    val details = session.competitionDetails
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(Modifier.weight(1f)) {
+                    Text("Sesión de competición", fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Solo movimientos competitivos. Sin grupos, biseries, descansos ni series planificadas.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                FilledTonalButton(
+                    onClick = onOpenConfig,
+                    shape = RoundedCornerShape(14.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                ) {
+                    Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Configurar", maxLines = 1)
+                }
+            }
+
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                details?.competitionDate?.takeIf { it.isNotBlank() }?.let { CompetitionInfoChip("Fecha", it) }
+                details?.startTime?.takeIf { it.isNotBlank() }?.let { CompetitionInfoChip("Inicio", it) }
+                details?.location?.takeIf { it.isNotBlank() }?.let { CompetitionInfoChip("Lugar", it) }
+                details?.federation?.takeIf { it.isNotBlank() }?.let { CompetitionInfoChip("Fed.", it) }
+                details?.category?.takeIf { it.isNotBlank() }?.let { CompetitionInfoChip("Categoría", it) }
+            }
+
+            competitionReminderSummary(details).takeIf { it.isNotBlank() }?.let { summary ->
+                Text(summary, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+            }
+
+            details?.strategyNotes?.takeIf { it.isNotBlank() }?.let { notes ->
+                Text(notes, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+            if (session.exercises.isEmpty()) {
+                OutlinedButton(onClick = onAddCompetitionMovement, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(Modifier.width(6.dp))
+                    Text("Agregar movimiento de competición")
+                }
+            } else {
+                Text("Movimientos de competición", fontWeight = FontWeight.Bold)
+                session.exercises.forEach { movement ->
+                    CompetitionMovementCard(
+                        movement = movement,
+                        onUpdateMovement = { updater ->
+                            onUpdateSession { current ->
+                                current.copy(exercises = current.exercises.map { if (it.id == movement.id) updater(it) else it })
+                            }
+                        },
+                        onRemove = {
+                            onUpdateSession { current ->
+                                current.copy(exercises = current.exercises.filterNot { it.id == movement.id })
+                            }
+                        },
+                    )
+                }
+
+                OutlinedButton(onClick = onAddCompetitionMovement, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(Modifier.width(6.dp))
+                    Text("Agregar otro movimiento")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompetitionInfoChip(label: String, value: String) {
+    AssistChip(
+        onClick = {},
+        label = { Text("$label: $value", style = MaterialTheme.typography.labelSmall) },
+        shape = RoundedCornerShape(999.dp),
+    )
+}
+
+@Composable
+private fun CompetitionMovementCard(
+    movement: Exercise,
+    onUpdateMovement: ((Exercise) -> Exercise) -> Unit,
+    onRemove: () -> Unit,
+) {
+    val pr = movement.prFor1RM
+    var directRmInput by rememberSaveable(movement.id, movement.reference1RM) {
+        mutableStateOf(formatEditableNumber(movement.reference1RM))
+    }
+    var prWeightInput by rememberSaveable(movement.id, pr?.weight) {
+        mutableStateOf(formatEditableNumber(pr?.weight))
+    }
+    var prRepsInput by rememberSaveable(movement.id, pr?.reps) {
+        mutableStateOf(pr?.reps?.takeIf { it > 0 }?.toString().orEmpty())
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.74f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.20f)),
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(Icons.Default.WorkspacePremium, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(movement.name.ifBlank { "Movimiento" }, fontWeight = FontWeight.Black)
+                    Text("Movimiento de competición", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                }
+                IconButton(onClick = onRemove) {
+                    Icon(Icons.Default.Delete, contentDescription = "Eliminar movimiento")
+                }
+            }
+
+            Text(
+                "Referencia competitiva opcional. Sirve para comparar este movimiento en sesiones normales.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            EditorMiniField(
+                label = "Último PR / RM directo",
+                value = directRmInput,
+                keyboardType = KeyboardType.Decimal,
+                stateKey = "comp-direct-rm-${movement.id}",
+            ) { input ->
+                directRmInput = input
+                val parsed = input.safeDoubleOrNull()
+                onUpdateMovement { current ->
+                    current.copy(
+                        reference1RM = parsed,
+                        prFor1RM = null,
+                        isCompetitionLift = true,
+                        sets = emptyList(),
+                        warmupSets = emptyList(),
+                        restTime = null,
+                    )
+                }
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                EditorMiniField(
+                    label = "PR peso",
+                    value = prWeightInput,
+                    keyboardType = KeyboardType.Decimal,
+                    stateKey = "comp-pr-weight-${movement.id}",
+                    modifier = Modifier.weight(1f),
+                ) { input ->
+                    prWeightInput = input
+                    val weight = input.safeDoubleOrNull()
+                    val reps = prRepsInput.safeIntOrNull()?.coerceAtLeast(1)
+                    onUpdateMovement { current ->
+                        if (weight != null && reps != null) {
+                            current.copy(
+                                prFor1RM = PrReference(weight, reps),
+                                reference1RM = calculateHybrid1RM(weight, reps),
+                                isCompetitionLift = true,
+                                sets = emptyList(),
+                                warmupSets = emptyList(),
+                                restTime = null,
+                            )
+                        } else {
+                            current.copy(prFor1RM = null, isCompetitionLift = true, sets = emptyList(), warmupSets = emptyList(), restTime = null)
+                        }
+                    }
+                }
+                EditorMiniField(
+                    label = "Reps",
+                    value = prRepsInput,
+                    keyboardType = KeyboardType.Number,
+                    stateKey = "comp-pr-reps-${movement.id}",
+                    modifier = Modifier.weight(1f),
+                ) { input ->
+                    prRepsInput = input
+                    val weight = prWeightInput.safeDoubleOrNull()
+                    val reps = input.safeIntOrNull()?.coerceAtLeast(1)
+                    onUpdateMovement { current ->
+                        if (weight != null && reps != null) {
+                            current.copy(
+                                prFor1RM = PrReference(weight, reps),
+                                reference1RM = calculateHybrid1RM(weight, reps),
+                                isCompetitionLift = true,
+                                sets = emptyList(),
+                                warmupSets = emptyList(),
+                                restTime = null,
+                            )
+                        } else {
+                            current.copy(prFor1RM = null, isCompetitionLift = true, sets = emptyList(), warmupSets = emptyList(), restTime = null)
+                        }
+                    }
+                }
+            }
+
+            movement.reference1RM?.takeIf { it > 0.0 }?.let { rm ->
+                Text(
+                    "Referencia actual: ${formatEditableNumber(rm)} kg",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CompetitionConfigSheet(
+    session: Session,
+    onDismiss: () -> Unit,
+    onUpdateSession: ((Session) -> Session) -> Unit,
+) {
+    val details = session.competitionDetails ?: CompetitionDetails()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("Configurar competición", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+            Text(
+                "Datos del evento, pesaje y recordatorios. Mantenerlo separado evita que el editor de movimientos se sature.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                EditorMiniField(
+                    label = "Fecha (YYYY-MM-DD)",
+                    value = details.competitionDate.orEmpty(),
+                    stateKey = "comp-sheet-date-${session.id}",
+                    modifier = Modifier.weight(1f),
+                ) { input ->
+                    onUpdateSession { current -> current.withCompetitionDetails { copy(competitionDate = input.ifBlank { null }) } }
+                }
+                EditorMiniField(
+                    label = "Hora inicio",
+                    value = details.startTime.orEmpty(),
+                    stateKey = "comp-sheet-time-${session.id}",
+                    modifier = Modifier.weight(1f),
+                ) { input ->
+                    onUpdateSession { current -> current.withCompetitionDetails { copy(startTime = input.ifBlank { null }) } }
+                }
+            }
+            EditorMiniField("Ubicación", details.location.orEmpty(), "comp-sheet-location-${session.id}") { input ->
+                onUpdateSession { current -> current.withCompetitionDetails { copy(location = input.ifBlank { null }) } }
+            }
+            EditorMiniField("Federación", details.federation.orEmpty(), "comp-sheet-fed-${session.id}") { input ->
+                onUpdateSession { current -> current.withCompetitionDetails { copy(federation = input.ifBlank { null }) } }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                EditorMiniField(
+                    label = "Categoría",
+                    value = details.category.orEmpty(),
+                    stateKey = "comp-sheet-category-${session.id}",
+                    modifier = Modifier.weight(1f),
+                ) { input ->
+                    onUpdateSession { current -> current.withCompetitionDetails { copy(category = input.ifBlank { null }) } }
+                }
+                EditorMiniField(
+                    label = "División",
+                    value = details.division.orEmpty(),
+                    stateKey = "comp-sheet-division-${session.id}",
+                    modifier = Modifier.weight(1f),
+                ) { input ->
+                    onUpdateSession { current -> current.withCompetitionDetails { copy(division = input.ifBlank { null }) } }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                EditorMiniField(
+                    label = "Equipamiento",
+                    value = details.equipment.orEmpty(),
+                    stateKey = "comp-sheet-equipment-${session.id}",
+                    modifier = Modifier.weight(1f),
+                ) { input ->
+                    onUpdateSession { current -> current.withCompetitionDetails { copy(equipment = input.ifBlank { null }) } }
+                }
+                EditorMiniField(
+                    label = "Peso objetivo",
+                    value = formatEditableNumber(details.targetBodyweightKg),
+                    keyboardType = KeyboardType.Decimal,
+                    stateKey = "comp-sheet-target-bw-${session.id}",
+                    modifier = Modifier.weight(1f),
+                ) { input ->
+                    onUpdateSession { current -> current.withCompetitionDetails { copy(targetBodyweightKg = input.safeDoubleOrNull()) } }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                EditorMiniField(
+                    label = "Pesaje fecha",
+                    value = details.weighInDate.orEmpty(),
+                    stateKey = "comp-sheet-weigh-date-${session.id}",
+                    modifier = Modifier.weight(1f),
+                ) { input ->
+                    onUpdateSession { current -> current.withCompetitionDetails { copy(weighInDate = input.ifBlank { null }) } }
+                }
+                EditorMiniField(
+                    label = "Pesaje hora",
+                    value = details.weighInTime.orEmpty(),
+                    stateKey = "comp-sheet-weigh-time-${session.id}",
+                    modifier = Modifier.weight(1f),
+                ) { input ->
+                    onUpdateSession { current -> current.withCompetitionDetails { copy(weighInTime = input.ifBlank { null }) } }
+                }
+            }
+            Text("Recordatorios", fontWeight = FontWeight.Bold)
+            CompetitionConfigCheckRow("Una semana antes", details.reminderOneWeekEnabled) { checked ->
+                onUpdateSession { current -> current.withCompetitionDetails { copy(reminderOneWeekEnabled = checked) } }
+            }
+            CompetitionConfigCheckRow("48 horas antes", details.reminder48hEnabled) { checked ->
+                onUpdateSession { current -> current.withCompetitionDetails { copy(reminder48hEnabled = checked) } }
+            }
+            CompetitionConfigCheckRow("Al inicio del evento", details.reminderStartEnabled) { checked ->
+                onUpdateSession { current -> current.withCompetitionDetails { copy(reminderStartEnabled = checked) } }
+            }
+            EditorMiniField(
+                label = "Estrategia / notas",
+                value = details.strategyNotes.orEmpty(),
+                stateKey = "comp-sheet-strategy-${session.id}",
+            ) { input ->
+                onUpdateSession { current -> current.withCompetitionDetails { copy(strategyNotes = input.ifBlank { null }) } }
+            }
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+            ) {
+                Text("Listo")
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompetitionConfigCheckRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = checked, onCheckedChange = onCheckedChange)
+        Text(label, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+private fun Session.withCompetitionDetails(update: CompetitionDetails.() -> CompetitionDetails): Session =
+    copy(competitionDetails = (competitionDetails ?: CompetitionDetails()).update())
 
 @Composable
 private fun CompetitionSessionEditor(
@@ -7420,6 +9071,7 @@ private fun competitionReminderSummary(details: CompetitionDetails?): String {
     val reminders = mutableListOf<String>()
     if (details.reminderOneWeekEnabled) reminders += "1 semana"
     if (details.reminder48hEnabled) reminders += "48h"
+    if (details.reminderStartEnabled) reminders += "inicio"
     val reminderSummary = if (reminders.isEmpty()) {
         "sin recordatorios"
     } else {
@@ -7585,26 +9237,28 @@ private fun CompactModeSelector(
 }
 
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 private fun CompactGoalTrackingButton(
     isActive: Boolean,
     accentColor: Color,
     onToggle: () -> Unit,
+    onOpenSheet: (() -> Unit)? = null,
 ) {
     Surface(
         modifier = Modifier
             .size(48.dp)
             .clip(RoundedCornerShape(12.dp))
-            .clickable { onToggle() },
+            .combinedClickable(
+                onClick = { if (onOpenSheet != null) onOpenSheet() else onToggle() },
+                onLongClick = { onOpenSheet?.invoke() },
+            ),
         color = if (isActive) accentColor.copy(alpha = 0.24f) else accentColor.copy(alpha = 0.08f),
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
             if (isActive) accentColor.copy(alpha = 0.5f) else accentColor.copy(alpha = 0.2f),
         ),
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = if (isActive) Icons.Default.Star else Icons.Default.StarBorder,
                 contentDescription = "Seguimiento de metas",
@@ -7616,64 +9270,210 @@ private fun CompactGoalTrackingButton(
 }
 
 @Composable
+private fun UnilateralConfigSheet(
+    exercise: Exercise,
+    accentColor: Color,
+    onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
+    onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Unilateralidad", fontWeight = FontWeight.Black) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .heightIn(max = 560.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    "Configura el modo, el orden L/R y los objetivos diferenciales por lado. En vivo cada lado se registrara como tarjeta propia.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        UnilateralMode.BILATERAL to "Bilateral",
+                        UnilateralMode.UNILATERAL_PAIRED to "Unilateral pareado",
+                        UnilateralMode.UNILATERAL_DIFFERENTIAL to "Diferencial L/R",
+                    ).forEach { (mode, label) ->
+                        FilterChip(
+                            selected = exercise.unilateralMode == mode,
+                            onClick = {
+                                onUpdateExercise { ex ->
+                                    ex.copy(
+                                        unilateralMode = mode,
+                                        isUnilateral = mode != UnilateralMode.BILATERAL,
+                                    )
+                                }
+                            },
+                            label = { Text(label) },
+                        )
+                    }
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = exercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT,
+                        onClick = { onUpdateExercise { it.copy(unilateralSideOrder = UnilateralSideOrder.LEFT_RIGHT) } },
+                        label = { Text("Orden L -> R") },
+                    )
+                    FilterChip(
+                        selected = exercise.unilateralSideOrder == UnilateralSideOrder.RIGHT_LEFT,
+                        onClick = { onUpdateExercise { it.copy(unilateralSideOrder = UnilateralSideOrder.RIGHT_LEFT) } },
+                        label = { Text("Orden R -> L") },
+                    )
+                }
+                EditorMiniField(
+                    label = "Descanso entre lados (s)",
+                    value = exercise.restBetweenSidesSeconds?.toString().orEmpty(),
+                    keyboardType = KeyboardType.Number,
+                    modifier = Modifier.fillMaxWidth(),
+                ) { input ->
+                    onUpdateExercise { it.copy(restBetweenSidesSeconds = input.filter { ch -> ch.isDigit() }.take(4).toIntOrNull()) }
+                }
+                if (exercise.unilateralMode != UnilateralMode.BILATERAL || exercise.isUnilateral) {
+                    exercise.sets.forEachIndexed { index, set ->
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.36f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.18f)),
+                        ) {
+                            Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("S${index + 1} por lado", fontWeight = FontWeight.Black, color = accentColor)
+                                listOf("left" to "L", "right" to "R").forEach { (sideKey, sideLabel) ->
+                                    val target = if (sideKey == "left") set.leftTarget else set.rightTarget
+                                    fun updateTarget(updater: (UnilateralTarget) -> UnilateralTarget) {
+                                        onUpdateSet(set.id) { current ->
+                                            val currentTarget = (if (sideKey == "left") current.leftTarget else current.rightTarget) ?: UnilateralTarget()
+                                            val updated = updater(currentTarget)
+                                            if (sideKey == "left") current.copy(leftTarget = updated) else current.copy(rightTarget = updated)
+                                        }
+                                    }
+                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Text("Lado $sideLabel", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                            EditorMiniField(
+                                                label = "Carga",
+                                                value = formatEditableNumber(target?.weight),
+                                                keyboardType = KeyboardType.Decimal,
+                                                modifier = Modifier.weight(1f),
+                                            ) { value -> updateTarget { it.copy(weight = value.safeDoubleOrNull()) } }
+                                            EditorMiniField(
+                                                label = if (exercise.trainingMode == TrainingMode.TIME) "Tiempo" else if (exercise.trainingMode == TrainingMode.DISTANCE) "Dist./valor" else "Reps",
+                                                value = when (exercise.trainingMode) {
+                                                    TrainingMode.TIME -> target?.targetDuration?.toString().orEmpty()
+                                                    TrainingMode.DISTANCE,
+                                                    TrainingMode.CUSTOM,
+                                                    -> formatEditableNumber(target?.targetValue)
+                                                    else -> target?.targetReps?.toString().orEmpty()
+                                                },
+                                                keyboardType = if (exercise.trainingMode == TrainingMode.DISTANCE || exercise.trainingMode == TrainingMode.CUSTOM) {
+                                                    KeyboardType.Decimal
+                                                } else {
+                                                    KeyboardType.Number
+                                                },
+                                                modifier = Modifier.weight(1f),
+                                            ) { value ->
+                                                updateTarget {
+                                                    when (exercise.trainingMode) {
+                                                        TrainingMode.TIME -> it.copy(targetDuration = value.safeIntOrNull())
+                                                        TrainingMode.DISTANCE,
+                                                        TrainingMode.CUSTOM,
+                                                        -> it.copy(targetValue = value.safeDoubleOrNull())
+                                                        else -> it.copy(targetReps = value.safeIntOrNull())
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                            EditorMiniField(
+                                                label = "RPE",
+                                                value = formatEditableNumber(target?.targetRPE),
+                                                keyboardType = KeyboardType.Decimal,
+                                                modifier = Modifier.weight(1f),
+                                            ) { value -> updateTarget { it.copy(targetRPE = value.safeDoubleOrNull(), targetRIR = null, intensityMode = IntensityMode.RPE) } }
+                                            EditorMiniField(
+                                                label = "RIR",
+                                                value = target?.targetRIR?.toString().orEmpty(),
+                                                keyboardType = KeyboardType.Number,
+                                                modifier = Modifier.weight(1f),
+                                            ) { value -> updateTarget { it.copy(targetRIR = value.safeIntOrNull(), targetRPE = null, intensityMode = IntensityMode.RIR) } }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Listo") }
+        },
+    )
+}
+
+@Composable
 private fun UnilateralModeSelector(
     mode: UnilateralMode,
     accentColor: Color,
-    onModeChanged: (UnilateralMode) -> Unit,
+    onToggleUnilateral: () -> Unit,
 ) {
-    val modes = UnilateralMode.entries.associateWith { label ->
-        when (label) {
-            UnilateralMode.BILATERAL -> "Bilateral"
-            UnilateralMode.UNILATERAL_PAIRED -> "Uni. Pareado"
-            UnilateralMode.UNILATERAL_DIFFERENTIAL -> "Uni. Diferencial"
+    val isUnilateral = mode != UnilateralMode.BILATERAL
+    Surface(
+        modifier = Modifier
+            .height(40.dp)
+            .widthIn(min = 48.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onToggleUnilateral() },
+        color = if (isUnilateral) accentColor.copy(alpha = 0.24f) else accentColor.copy(alpha = 0.08f),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (isUnilateral) accentColor.copy(alpha = 0.5f) else accentColor.copy(alpha = 0.2f),
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Default.SwapHoriz,
+                contentDescription = if (isUnilateral) "Cambiar a bilateral" else "Cambiar a unilateral",
+                tint = if (isUnilateral) MaterialTheme.colorScheme.primary else accentColor,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                if (isUnilateral) "Unilateral" else "Bilateral",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = if (isUnilateral) MaterialTheme.colorScheme.primary else accentColor,
+            )
         }
     }
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        Surface(
-            modifier = Modifier
-                .height(40.dp)
-                .widthIn(min = 48.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .clickable { expanded = true },
-            color = if (mode != UnilateralMode.BILATERAL) accentColor.copy(alpha = 0.24f) else accentColor.copy(alpha = 0.08f),
-            border = androidx.compose.foundation.BorderStroke(
-                1.dp,
-                if (mode != UnilateralMode.BILATERAL) accentColor.copy(alpha = 0.5f) else accentColor.copy(alpha = 0.2f),
-            ),
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.SwapHoriz,
-                    contentDescription = "Modo unilateral",
-                    tint = if (mode != UnilateralMode.BILATERAL) MaterialTheme.colorScheme.primary else accentColor,
-                    modifier = Modifier.size(18.dp),
+}
+
+internal fun Exercise.toggledBilateralUnilateral(): Exercise {
+    val nextUnilateral = !isEffectivelyUnilateral()
+    return if (nextUnilateral) {
+        copy(
+            isUnilateral = true,
+            unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
+        )
+    } else {
+        copy(
+            isUnilateral = false,
+            unilateralMode = UnilateralMode.BILATERAL,
+            restBetweenSidesSeconds = null,
+            sets = sets.map { set ->
+                set.copy(
+                    leftTarget = null,
+                    rightTarget = null,
+                    restBetweenSides = null,
                 )
-                if (mode != UnilateralMode.BILATERAL) {
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        modes[mode].orEmpty(),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            modes.forEach { (m, label) ->
-                DropdownMenuItem(
-                    text = { Text(label, fontWeight = if (m == mode) FontWeight.Bold else FontWeight.Normal) },
-                    onClick = { onModeChanged(m); expanded = false },
-                    leadingIcon = {
-                        if (m == mode) Icon(Icons.Default.Check, null, Modifier.size(16.dp), tint = accentColor)
-                    },
-                )
-            }
-        }
+            },
+        )
     }
 }
 
@@ -7780,6 +9580,7 @@ private fun ExerciseSetsCarousel(
                             accentColor = accentColor,
                             canMoveUp = index > 0,
                             canMoveDown = index < exercise.sets.size - 1,
+                            isUnilateral = exercise.isEffectivelyUnilateral(),
                             onUpdate = { updater -> onUpdateSet(set.id, updater) },
                             onRemove = { onRemoveSet(set.id) },
                             onMoveUp = { onMoveSet(set.id, -1) },
@@ -7944,7 +9745,7 @@ private fun computePredictedMuscleBatteries(
     }
     val progressionFactor = (1.0 + ((totalSets - 4).coerceAtLeast(0) / 14.0) * 0.22)
         .coerceIn(1.0, 1.30)
-    val supersetFactor = if (session.allExercises().any { !it.supersetId.isNullOrBlank() }) 1.08 else 1.0
+    val supersetFactor = if (session.allExercises().any { !it.supersetGroupRefOrLegacyId().isNullOrBlank() }) 1.08 else 1.0
     val expectedDrop = predictedMuscularDrain.coerceIn(0, 100).toDouble()
     val adjustedExpectedDrop = (expectedDrop * densityFactor * progressionFactor * supersetFactor).coerceAtMost(100.0)
 

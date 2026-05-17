@@ -41,6 +41,7 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.exercises.analyticsExerciseKey
 import com.example.kpkn.domain.exercises.displayLabel
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.domain.training.ProgramAnalyticsReport
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -98,6 +99,7 @@ private data class PlannedHistoryMeta(
 fun HistoryView(
     program: Program,
     programLogs: List<WorkoutLog>,
+    analyticsReport: ProgramAnalyticsReport? = null,
     modifier: Modifier = Modifier,
 ) {
     var mode by rememberSaveable { mutableStateOf(HistoryMode.SESSIONS) }
@@ -140,6 +142,10 @@ fun HistoryView(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             lineHeight = 16.sp,
         )
+
+        analyticsReport?.let { report ->
+            HistoryAnalyticsCard(report = report)
+        }
 
         OutlinedTextField(
             value = searchQuery,

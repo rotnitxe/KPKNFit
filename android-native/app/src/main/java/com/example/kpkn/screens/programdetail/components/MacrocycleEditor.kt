@@ -78,6 +78,8 @@ import com.example.kpkn.data.programs.buildProgramDraft
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
+import com.example.kpkn.domain.training.ProgramCalendarEngine
+import com.example.kpkn.domain.training.ProgramEndDateStatus
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -90,7 +92,7 @@ fun MacrocycleEditor(
     program: Program,
     onUpdateProgram: (Program) -> Unit,
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
-    onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int) -> Unit = { _, _ -> },
+    onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int, keyDateId: String?) -> Unit = { _, _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     var expandedBlocks by remember { mutableStateOf(setOf("0")) }
@@ -101,6 +103,7 @@ fun MacrocycleEditor(
     var pendingDelete by remember { mutableStateOf<DeleteTarget?>(null) }
     var pendingSimpleToAdvanced by remember { mutableStateOf(false) }
     var editingTimelineStartDate by remember(program.timelineStartDate) { mutableStateOf(program.timelineStartDate ?: "") }
+    var editingManualEndDate by remember(program.calendarization?.manualEndDate) { mutableStateOf(program.calendarization?.manualEndDate ?: "") }
     var editingCompetitionDate by remember(program.keyDates) {
         val competition = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }
         mutableStateOf((competition?.eventDate ?: competition?.startDate).orEmpty())
@@ -322,12 +325,17 @@ fun MacrocycleEditor(
             program = program,
             timelineStartDate = editingTimelineStartDate,
             competitionDate = editingCompetitionDate,
+            manualEndDate = editingManualEndDate,
             onTimelineStartDateChange = { editingTimelineStartDate = it },
             onCompetitionDateChange = { editingCompetitionDate = it },
+            onManualEndDateChange = { editingManualEndDate = it },
             onSave = {
                 val competition = editingCompetitionDate.trim().takeIf { it.isNotBlank() }?.let { date ->
                     val calendarProgram = program.copy(
                         timelineStartDate = editingTimelineStartDate.trim().ifBlank { null },
+                        calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization().copy(
+                            manualEndDate = editingManualEndDate.trim().ifBlank { null },
+                        ),
                         keyDates = program.keyDates.filterNot { it.type == KeyDateType.COMPETITION },
                     )
                     val competitionDay = parseProgramDate(date)
@@ -341,12 +349,21 @@ fun MacrocycleEditor(
                         eventDate = date,
                     )
                 }
-                onUpdateProgram(
+                val calendarization = if (competition != null) {
+                    ProgramCalendarEngine.defaultCompetitionCalendarization().copy(
+                        manualEndDate = editingManualEndDate.trim().ifBlank { null },
+                    )
+                } else {
+                    program.calendarization?.copy(manualEndDate = editingManualEndDate.trim().ifBlank { null })
+                }
+                val updated = ProgramCalendarEngine.materializeWeekDates(
                     program.copy(
                         timelineStartDate = editingTimelineStartDate.trim().ifBlank { null },
+                        calendarization = calendarization,
                         keyDates = program.keyDates.filterNot { it.type == KeyDateType.COMPETITION } + listOfNotNull(competition),
                     )
                 )
+                onUpdateProgram(updated)
                 showKeyDatesSheet = false
             },
             onDismiss = { showKeyDatesSheet = false },
@@ -479,16 +496,20 @@ private fun KeyDatesManagementSheet(
     program: Program,
     timelineStartDate: String,
     competitionDate: String,
+    manualEndDate: String,
     onTimelineStartDateChange: (String) -> Unit,
     onCompetitionDateChange: (String) -> Unit,
+    onManualEndDateChange: (String) -> Unit,
     onSave: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val preview = remember(program, timelineStartDate, competitionDate) {
-        buildCalendarPreview(program, timelineStartDate, competitionDate)
+    val preview = remember(program, timelineStartDate, competitionDate, manualEndDate) {
+        buildCalendarPreview(program, timelineStartDate, competitionDate, manualEndDate)
     }
     val canSave = timelineStartDate.isBlank() || parseProgramDate(timelineStartDate) != null
     val canSaveCompetition = competitionDate.isBlank() || parseProgramDate(competitionDate) != null
+    val canSaveManualEnd = manualEndDate.isBlank() || parseProgramDate(manualEndDate) != null
+    val hasRequiredStart = competitionDate.isBlank() || timelineStartDate.isNotBlank()
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -516,14 +537,27 @@ private fun KeyDatesManagementSheet(
                 emptyLabel = "Seleccionar competición",
                 onValueChange = onCompetitionDateChange,
             )
+            NativeDateField(
+                label = "Término manual opcional",
+                value = manualEndDate,
+                emptyLabel = "Usar término proyectado",
+                onValueChange = onManualEndDateChange,
+            )
 
             CalendarPreviewCard(preview = preview)
 
             Button(
                 onClick = onSave,
                 modifier = Modifier.fillMaxWidth(),
-                enabled = canSave && canSaveCompetition,
+                enabled = canSave && canSaveCompetition && canSaveManualEnd && hasRequiredStart,
             ) { Text("Guardar calendario") }
+            if (!hasRequiredStart) {
+                Text(
+                    "Para calendarizar una competición debes definir el inicio estricto del plan.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             Spacer(Modifier.height(16.dp))
         }
     }
@@ -603,6 +637,9 @@ private fun CalendarPreviewCard(preview: CalendarPreview) {
                     preview.programEnd?.let { end ->
                         CalendarPreviewLine("Duración estimada", "${formatFullDate(preview.startDate!!)} → ${formatFullDate(end)}")
                     }
+                    preview.manualEndDate?.let { end ->
+                        CalendarPreviewLine("Término manual", formatFullDate(end))
+                    }
                     preview.daysUntilCompetition?.let { days ->
                         CalendarPreviewLine("Falta para competir", formatDaysUntil(days))
                     }
@@ -640,7 +677,7 @@ private fun CalendarPreviewLine(label: String, value: String) {
 private fun AdvancedRoadmapCard(
     roadmap: AdvancedRoadmap,
     onFocusWeek: (blockId: String, weekId: String) -> Unit,
-    onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int) -> Unit,
+    onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int, keyDateId: String?) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -711,7 +748,7 @@ private fun AdvancedRoadmapCard(
                         onFocusWeek = { onFocusWeek(competitionSlot.blockId, competitionSlot.weekId) },
                         onCreateCompetitionSession = {
                             val preferredDay = (competitionMark.eventDate ?: competitionSlot.weekStart).dayOfWeek.value
-                            onCreateSessionForWeek(competitionSlot.weekId, preferredDay)
+                            onCreateSessionForWeek(competitionSlot.weekId, preferredDay, competitionMark.keyDateId)
                         },
                     )
                 } else if (competition != null) {
@@ -1257,6 +1294,8 @@ private data class ProgramStats(val weeks: Int, val sessions: Int, val mesos: In
 private data class CalendarPreview(
     val startDate: LocalDate?,
     val programEnd: LocalDate?,
+    val manualEndDate: LocalDate?,
+    val endDateStatus: ProgramEndDateStatus,
     val competitionDate: LocalDate?,
     val competitionWeekRange: Pair<LocalDate, LocalDate>?,
     val daysUntilCompetition: Long?,
@@ -1601,33 +1640,26 @@ private data class KeyDateTrackSlot(
 
 private fun buildAdvancedRoadmap(program: Program): AdvancedRoadmap {
     if (program.isSimpleTemporalProgram) return AdvancedRoadmap(startDate = null, weekSlots = emptyList())
-    val startDate = parseProgramDate(program.timelineStartDate)
-    if (startDate == null) return AdvancedRoadmap(startDate = null, weekSlots = emptyList())
-
-    var currentStart: LocalDate = startDate
-    val slots = mutableListOf<AdvancedWeekSlot>()
-
-    program.macrocycles.forEach { macro ->
-        macro.blocks.forEach { block ->
-            block.mesocycles.forEach { meso ->
-                meso.weeks.forEach { week ->
-                    val weekEnd = currentStart.plusDays(6)
-                    val marks = program.keyDates.mapNotNull { keyDate ->
-                        buildKeyDateMark(keyDate, currentStart, weekEnd)
-                    }
-                    slots += AdvancedWeekSlot(
-                        blockId = block.id,
-                        blockName = block.name,
-                        weekId = week.id,
-                        weekName = week.name,
-                        weekStart = currentStart,
-                        weekEnd = weekEnd,
-                        marks = marks,
-                    )
-                    currentStart = currentStart.plusWeeks(1)
-                }
-            }
+    val projection = ProgramCalendarEngine.project(
+        if (program.calendarization == null && !program.timelineStartDate.isNullOrBlank()) {
+            program.copy(calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization())
+        } else {
+            program
         }
+    )
+    val startDate = projection.startDate ?: return AdvancedRoadmap(startDate = null, weekSlots = emptyList())
+    val slots = projection.weeks.map { week ->
+        AdvancedWeekSlot(
+            blockId = week.blockId,
+            blockName = week.blockName,
+            weekId = week.weekId,
+            weekName = week.weekName,
+            weekStart = week.startDate,
+            weekEnd = week.endDate,
+            marks = week.keyDates.mapNotNull { keyDate ->
+                buildKeyDateMark(keyDate, week.startDate, week.endDate)
+            },
+        )
     }
 
     val tracks = program.keyDates.mapNotNull { keyDate ->
@@ -1705,35 +1737,37 @@ private fun buildCalendarPreview(
     program: Program,
     timelineStartDate: String,
     competitionDate: String,
+    manualEndDate: String,
 ): CalendarPreview {
     val start = parseProgramDate(timelineStartDate)
     val competition = parseProgramDate(competitionDate)
+    val manualEnd = parseProgramDate(manualEndDate)
     val blockStarts = mutableListOf<BlockStartPreview>()
     val messages = mutableListOf<String>()
-    var programEnd: LocalDate? = null
 
-    if (start != null) {
-        var cursor: LocalDate = start
-        program.macrocycles.forEach { macro ->
-            macro.blocks.forEach { block ->
-                val weeks = block.mesocycles.sumOf { it.weeks.size }
-                if (weeks > 0) {
-                    val blockStart = cursor
-                    val blockEnd = cursor.plusWeeks(weeks.toLong()).minusDays(1)
-                    blockStarts += BlockStartPreview(
-                        blockName = block.name,
-                        startDate = blockStart,
-                        endDate = blockEnd,
-                        weeks = weeks,
-                    )
-                    cursor = cursor.plusWeeks(weeks.toLong())
-                    programEnd = blockEnd
-                }
-            }
-        }
+    val projectedProgram = program.copy(
+        timelineStartDate = start?.toString(),
+        calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization().copy(
+            manualEndDate = manualEndDate.trim().ifBlank { null },
+        ),
+    )
+    val projection = ProgramCalendarEngine.project(projectedProgram)
+    val programEnd = projection.projectedEndDate
+
+    projection.weeks
+        .groupBy { it.blockId }
+        .values
+        .forEach { weeks ->
+            val first = weeks.firstOrNull() ?: return@forEach
+            val last = weeks.last()
+            blockStarts += BlockStartPreview(
+                blockName = first.blockName,
+                startDate = first.startDate,
+                endDate = last.endDate,
+                weeks = weeks.size,
+            )
     }
 
-    val projectedProgram = program.copy(timelineStartDate = start?.toString())
     val competitionWeekRange = competition?.let { findProgramWeekRange(projectedProgram, it) }
     val daysUntilCompetition = competition?.let { ChronoUnit.DAYS.between(LocalDate.now(), it) }
 
@@ -1746,10 +1780,21 @@ private fun buildCalendarPreview(
     if (competitionWeekRange != null) {
         messages += "La semana completa de competición se marcará como especial en el roadmap y en los puntos superiores."
     }
+    when (projection.endDateStatus) {
+        ProgramEndDateStatus.BEFORE_PROJECTED ->
+            messages += "El término manual queda antes del término proyectado. Agrega/quita semanas para que calce."
+        ProgramEndDateStatus.AFTER_PROJECTED ->
+            messages += "El término manual queda después del término proyectado. Se mostrará como objetivo, sin reescalar semanas."
+        ProgramEndDateStatus.INVALID_MANUAL ->
+            messages += "El término manual no tiene formato válido."
+        else -> Unit
+    }
 
     return CalendarPreview(
         startDate = start,
         programEnd = programEnd,
+        manualEndDate = manualEnd,
+        endDateStatus = projection.endDateStatus,
         competitionDate = competition,
         competitionWeekRange = competitionWeekRange,
         daysUntilCompetition = daysUntilCompetition,
@@ -1759,6 +1804,10 @@ private fun buildCalendarPreview(
 }
 
 private fun findProgramWeekRange(program: Program, targetDate: LocalDate): Pair<LocalDate, LocalDate>? {
+    val projection = ProgramCalendarEngine.project(program)
+    if (projection.enabled) {
+        return projection.weekForDate(targetDate)?.let { it.startDate to it.endDate }
+    }
     var cursor = parseProgramDate(program.timelineStartDate) ?: return null
     program.macrocycles.forEach { macro ->
         macro.blocks.forEach { block ->

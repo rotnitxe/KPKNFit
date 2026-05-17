@@ -271,7 +271,7 @@ object TrainingEnergyEngine {
                 exerciseCount++
                 val bodyweightPart = bodyweightParticipation(exerciseName, dbInfo?.equipment)
                 val densityMult = AugeFatigueEngine.getDensityMultiplierForExercise(
-                    supersetId = exercise.supersetId,
+                    supersetId = exercise.supersetGroupRefOrLegacyId(),
                     restTime = exercise.restTime ?: 90,
                 )
 

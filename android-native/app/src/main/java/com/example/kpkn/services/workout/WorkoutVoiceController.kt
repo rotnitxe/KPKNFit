@@ -27,6 +27,8 @@ class WorkoutVoiceController(private val context: Context) {
     private var scope: CoroutineScope? = null
     private var confirmationJob: Job? = null
     private var engineCollectJob: Job? = null
+    private var partialCollectJob: Job? = null
+    private var errorCollectJob: Job? = null
     private var confirmedOrCancelled = false
 
     var onCommandDetected: ((VoiceSessionCommand) -> Unit)? = null
@@ -80,6 +82,37 @@ class WorkoutVoiceController(private val context: Context) {
     fun getStage(): VoicePipelineStage = _state.value.stage
 
     fun onRestTimerFinished(exerciseName: String, suggestedWeight: Double?) {
+        speakWhilePaused {
+            ttsManager.speakRestComplete(exerciseName, suggestedWeight)
+        }
+    }
+
+    fun speakSuggestedWeight(exerciseName: String, suggestedWeight: Double) {
+        speakWhilePaused {
+            ttsManager.speakSuggestedWeight(suggestedWeight, exerciseName)
+        }
+    }
+
+    fun speakRestRemaining(totalSeconds: Int) {
+        val safeSeconds = totalSeconds.coerceAtLeast(0)
+        speakWhilePaused {
+            ttsManager.speakRestRemaining(safeSeconds / 60, safeSeconds % 60)
+        }
+    }
+
+    fun speakCurrentExercise(exerciseName: String, setNumber: Int, totalSets: Int) {
+        speakWhilePaused {
+            ttsManager.speakCurrentExercise(exerciseName, setNumber, totalSets)
+        }
+    }
+
+    fun speakNextExercise(exerciseName: String, restSeconds: Int? = null) {
+        speakWhilePaused {
+            ttsManager.speakNextExercise(exerciseName, restSeconds)
+        }
+    }
+
+    private fun speakWhilePaused(block: () -> Unit) {
         val s = _state.value
         if (s.stage == VoicePipelineStage.DISABLED) return
 
@@ -87,13 +120,13 @@ class WorkoutVoiceController(private val context: Context) {
             continuousEngine.pause()
             requestDucking()
             updateStage(VoicePipelineStage.TTS_SPEAKING)
-            ttsManager.speakRestComplete(exerciseName, suggestedWeight)
             ttsManager.setOnUtteranceComplete {
                 scope?.launch {
                     releaseDucking()
                     resumeListening()
                 }
             }
+            block()
         }
     }
 
@@ -101,6 +134,8 @@ class WorkoutVoiceController(private val context: Context) {
         val scope = this.scope ?: return
 
         engineCollectJob?.cancel()
+        partialCollectJob?.cancel()
+        errorCollectJob?.cancel()
         continuousEngine.start(scope)
 
         engineCollectJob = scope.launch {
@@ -109,13 +144,13 @@ class WorkoutVoiceController(private val context: Context) {
             }
         }
 
-        scope.launch {
+        partialCollectJob = scope.launch {
             continuousEngine.partialResults.collect { text ->
                 _state.update { it.copy(partialText = text) }
             }
         }
 
-        scope.launch {
+        errorCollectJob = scope.launch {
             continuousEngine.errors.collect { error ->
                 onError?.invoke(error)
             }
@@ -313,6 +348,10 @@ class WorkoutVoiceController(private val context: Context) {
     private fun cancelAllJobs() {
         engineCollectJob?.cancel()
         engineCollectJob = null
+        partialCollectJob?.cancel()
+        partialCollectJob = null
+        errorCollectJob?.cancel()
+        errorCollectJob = null
         confirmationJob?.cancel()
         confirmationJob = null
     }

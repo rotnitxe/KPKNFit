@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.domain.workout.SupersetRules
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -199,5 +200,25 @@ class SessionEditorRulesEngineTest {
         )
 
         assertNotNull(result.blockingError)
+    }
+
+    @Test
+    fun buildSessionExerciseEditorBlocks_keepsSupersetExercisesEditableIndividually() {
+        val a = Exercise(id = "a", name = "A", sets = listOf(ExerciseSet("a1")))
+        val b = Exercise(id = "b", name = "B", sets = listOf(ExerciseSet("b1")))
+        val c = Exercise(id = "c", name = "C", sets = listOf(ExerciseSet("c1")))
+        val session = SupersetRules.createSuperset(
+            session = Session(id = "session-superset", name = "Sesion", exercises = listOf(a, b, c)),
+            groupId = "ss-1",
+            exerciseIds = listOf("a", "b"),
+            restBetweenExercises = 30,
+            restAfterSuperset = 120,
+        )
+
+        val blocks = buildSessionExerciseEditorBlocks(session, session.exercises)
+
+        assertEquals(3, blocks.size)
+        assertEquals(listOf("a", "b", "c"), blocks.map { (it as SessionExerciseEditorBlock.Single).exercise.id })
+        assertEquals(listOf("ss-1", "ss-1", null), blocks.map { (it as SessionExerciseEditorBlock.Single).exercise.supersetGroupRef })
     }
 }

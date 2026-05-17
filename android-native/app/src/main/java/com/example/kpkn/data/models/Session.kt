@@ -26,6 +26,10 @@ data class Session(
     val meetBodyweight: Double? = null,
     val meetResults: MeetResults? = null,
     val competitionDetails: CompetitionDetails? = null,
+    val competitionRecordId: String? = null,
+    val competitionKeyDateId: String? = null,
+    val competitionSportType: CompetitionTemplateType? = null,
+    val competitionRecordMode: CompetitionRecordMode? = null,
     val trainingBackup: TrainingBackup? = null,
     val supersetGroups: List<SupersetGroup> = emptyList(),
     val lastModifiedAtMs: Long = 0L,
@@ -62,6 +66,8 @@ data class SupersetGroup(
     val restAfterSuperset: Int = 120,
     val rounds: Int? = null,
     val visualPlacement: SupersetVisualPlacement? = null,
+    val roundRestBetweenExercises: Map<Int, Int> = emptyMap(),
+    val roundRestAfterSuperset: Map<Int, Int> = emptyMap(),
 )
 
 @Serializable
@@ -148,10 +154,15 @@ data class CompetitionDetails(
     val startTime: String? = null,
     val location: String? = null,
     val federation: String? = null,
+    val category: String? = null,
+    val division: String? = null,
+    val equipment: String? = null,
+    val targetBodyweightKg: Double? = null,
     val weighInDate: String? = null,
     val weighInTime: String? = null,
     val reminderOneWeekEnabled: Boolean = true,
     val reminder48hEnabled: Boolean = true,
+    val reminderStartEnabled: Boolean = false,
     val strategyNotes: String? = null,
 )
 
@@ -243,6 +254,8 @@ data class PlannedTechnique(
 data class UnilateralTarget(
     val weight: Double? = null,
     val targetReps: Int? = null,
+    val targetDuration: Int? = null,
+    val targetValue: Double? = null,
     val targetRPE: Double? = null,
     val targetRIR: Int? = null,
     val intensityMode: IntensityMode? = null,

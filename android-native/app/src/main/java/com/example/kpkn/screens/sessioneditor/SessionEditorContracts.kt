@@ -27,6 +27,14 @@ data class SupersetDraft(
     val rounds: Int? = null,
 )
 
+sealed interface SessionExerciseEditorBlock {
+    data class Single(val exercise: com.example.kpkn.data.models.Exercise) : SessionExerciseEditorBlock
+    data class Superset(
+        val group: com.example.kpkn.data.models.SupersetGroup,
+        val exercises: List<com.example.kpkn.data.models.Exercise>,
+    ) : SessionExerciseEditorBlock
+}
+
 data class SessionDraftBundle(
     val sessionId: String,
     val weekId: String,
