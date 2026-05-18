@@ -1089,7 +1089,7 @@ class SessionEditorViewModel(
 
     fun addExerciseToPart(partId: String?, info: ExerciseMuscleInfo): String {
         val currentSession = _uiState.value.session
-        val newExercise = createExerciseFromInfo(info).let { base ->
+        val newExercise = createExerciseFromInfo(info, repository.history.value).let { base ->
             if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
         }
         updateSession { session ->
@@ -1106,7 +1106,7 @@ class SessionEditorViewModel(
     fun addExercisesToPart(partId: String?, infos: List<ExerciseMuscleInfo>): List<String> {
         val currentSession = _uiState.value.session
         val newExercises = infos.map { info ->
-            createExerciseFromInfo(info).let { base ->
+            createExerciseFromInfo(info, repository.history.value).let { base ->
                 if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
             }
         }
@@ -1152,6 +1152,7 @@ class SessionEditorViewModel(
     fun replaceExerciseInPart(partId: String?, exerciseId: String, info: ExerciseMuscleInfo) {
         updateExercise(partId, exerciseId) { current ->
             current.replacedWithCatalogExercise(info)
+                .withSharedPerformanceFromHistory(repository.history.value)
         }
         closeSheet()
     }
@@ -3552,25 +3553,29 @@ private fun buildCloneSourceOptions(
     return options
 }
 
-    private fun createExerciseFromInfo(info: ExerciseMuscleInfo): Exercise =
-        Exercise(
+    private fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<WorkoutLog>): Exercise {
+        val trainingMode = if (info.category.equals("Fuerza", true)) TrainingMode.RM else TrainingMode.REPS
+        return Exercise(
             id = UUID.randomUUID().toString(),
             name = info.name,
             exerciseDbId = info.id,
             exerciseId = info.id,
             canonicalExerciseId = info.id.lowercase(),
             exerciseFamilyId = info.id.lowercase(),
-            trainingMode = if (info.category.equals("Fuerza", true)) TrainingMode.RM else TrainingMode.REPS,
+            trainingMode = trainingMode,
             restTime = suggestRestSeconds(3, 8.0),
             sets = listOf(
                 ExerciseSet(
                     id = UUID.randomUUID().toString(),
                     targetReps = if (info.category.equals("Fuerza", true)) 5 else 8,
+                    targetPercentageRM = if (trainingMode == TrainingMode.RM) 75.0 else null,
+                    intensityMode = if (trainingMode == TrainingMode.RM) IntensityMode.LOAD else null,
                 )
             ),
             setupCues = info.setupCues.orEmpty(),
             executionCues = info.executionCues.orEmpty(),
-        )
+        ).withSharedPerformanceFromHistory(history)
+    }
 
     private fun createBlankExercise(): Exercise =
         Exercise(
@@ -3800,6 +3805,81 @@ private fun Exercise.normalizeExercise(): Exercise {
         restTime = restTime ?: suggestRestSeconds(normalizedSets.size, normalizedSets.mapNotNull { it.targetRPE }.averageOrNull() ?: 8.0),
         reference1RM = resolved1rm,
         sets = normalizedSets,
+    )
+}
+
+private data class SharedExercisePerformance(
+    val reference1RM: Double,
+    val prReference: PrReference?,
+    val consolidatedWeight: ConsolidatedWeight?,
+    val suggestedNextLoad: Double?,
+)
+
+internal fun Exercise.withSharedPerformanceFromHistory(history: List<WorkoutLog>): Exercise {
+    val normalized = normalizedIdentityFields()
+    val shared = normalized.resolveSharedPerformance(history) ?: return normalized
+    val withReferences = normalized.copy(
+        reference1RM = normalized.reference1RM ?: shared.reference1RM,
+        prFor1RM = normalized.prFor1RM ?: shared.prReference,
+        consolidatedWeight = normalized.consolidatedWeight ?: shared.consolidatedWeight,
+    )
+    val hydratedSets = withReferences.sets.mapIndexed { index, set ->
+        val normalizedSet = when {
+            withReferences.trainingMode == TrainingMode.RM && set.targetPercentageRM == null -> {
+                set.copy(
+                    targetPercentageRM = 75.0,
+                    intensityMode = IntensityMode.LOAD,
+                )
+            }
+            else -> set
+        }
+        val suggested = calculateSuggestedLoad(withReferences, normalizedSet, history)
+            ?: shared.suggestedNextLoad?.takeIf { index == 0 }
+        if (normalizedSet.weight == null && suggested != null && suggested > 0.0) {
+            normalizedSet.copy(weight = suggested)
+        } else {
+            normalizedSet
+        }
+    }
+    return withReferences.copy(sets = hydratedSets)
+}
+
+private fun Exercise.resolveSharedPerformance(history: List<WorkoutLog>): SharedExercisePerformance? {
+    val canonicalId = resolvedCanonicalExerciseId()
+    if (canonicalId.isBlank() || canonicalId == "unknown") return null
+
+    val matchingExercises = history.asSequence()
+        .flatMap { log ->
+            log.completedExercises
+                .filter { completed -> completed.resolvedCanonicalExerciseId() == canonicalId }
+                .map { completed -> log.date to completed }
+        }
+        .toList()
+    if (matchingExercises.isEmpty()) return null
+
+    val completedSets = matchingExercises
+        .flatMap { (date, completed) -> completed.sets.map { set -> date to set } }
+        .filter { (_, set) -> !set.isWarmup && !set.skipped && set.weight > 0.0 && set.reps > 0 }
+    if (completedSets.isEmpty()) return null
+
+    fun estimatedRm(set: CompletedSet): Double =
+        set.homologatedResultV3?.estimatedRm
+            ?.takeIf { it > 0.0 }
+            ?: calculateHybrid1RM(set.weight, set.reps)
+
+    val bestSet = completedSets.maxByOrNull { (_, set) -> estimatedRm(set) } ?: return null
+    val latestSet = completedSets.maxByOrNull { (date, _) -> date }?.second
+    val bestEstimatedRm = estimatedRm(bestSet.second)
+    val suggestedNextLoad = latestSet
+        ?.homologatedResultV3
+        ?.suggestedNextLoad
+        ?.takeIf { it > 0.0 }
+
+    return SharedExercisePerformance(
+        reference1RM = bestEstimatedRm,
+        prReference = PrReference(bestSet.second.weight, bestSet.second.reps),
+        consolidatedWeight = latestSet?.let { ConsolidatedWeight(it.weight, it.reps) },
+        suggestedNextLoad = suggestedNextLoad,
     )
 }
 

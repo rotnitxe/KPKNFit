@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.ui.components.SectionHeader
-import com.example.kpkn.ui.components.icons.CaupolicanIcon
+import com.example.kpkn.ui.components.icons.PowerlifterCornerIcon
 import com.example.kpkn.ui.components.icons.WikiIcon
 
 // ─── Rincones Section ───────────────────────────────────────────────────────
@@ -32,7 +32,7 @@ fun HomeCornersSection(
             title = "Powerlifter Corner",
             subtitle = "Federaciones, historial y competiciones.",
             icon = {
-                CaupolicanIcon(
+                PowerlifterCornerIcon(
                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
                     size = 32.dp,
                 )

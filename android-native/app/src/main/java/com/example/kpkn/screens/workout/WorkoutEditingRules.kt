@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarizationMode
+import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isSimpleTemporalProgram
@@ -66,4 +67,15 @@ object WorkoutEditingRules {
 
     fun canPersistLiveStructuralChanges(program: Program): Boolean =
         liveEditPersistenceScope(program) == WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED
+
+    fun replacementPersistenceOptions(program: Program): List<ReplacementPersistenceScopeV2> {
+        return if (canPersistLiveStructuralChanges(program)) {
+            listOf(
+                ReplacementPersistenceScopeV2.SESSION_ONLY,
+                ReplacementPersistenceScopeV2.PERMANENT,
+            )
+        } else {
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY)
+        }
+    }
 }

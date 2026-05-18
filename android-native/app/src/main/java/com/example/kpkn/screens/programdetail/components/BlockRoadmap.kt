@@ -38,6 +38,7 @@ fun BlockRoadmap(
     selectedWeekId: String?,
     currentWeekId: String?,
     isSimpleProgram: Boolean,
+    isSimpleCalendarized: Boolean = false,
     simpleLoopMarkers: List<RoadmapLoopMarker> = emptyList(),
     currentCycle: Int = 0,
     onSelectBlock: (String) -> Unit,
@@ -49,11 +50,15 @@ fun BlockRoadmap(
     onDeleteWeek: (String) -> Unit = {},
     onUpdateBlock: (String, String, String?) -> Unit = { _, _, _ -> },
     onDeleteBlock: (String) -> Unit = {},
+    copiedWeekId: String? = null,
+    onCopyWeek: (String) -> Unit = {},
+    onPasteWeek: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var addBlockDialogOpen by remember { mutableStateOf(false) }
     var editingWeek by remember { mutableStateOf<WeekWithMeta?>(null) }
     var editingBlock by remember { mutableStateOf<RoadmapBlock?>(null) }
+    var actionWeek by remember { mutableStateOf<WeekWithMeta?>(null) }
 
     Column(modifier = modifier.fillMaxWidth()) {
         if (isSimpleProgram) {
@@ -66,7 +71,7 @@ fun BlockRoadmap(
                     currentCycle = currentCycle,
                     onSelectWeek = onSelectWeek,
                     onAddWeek = onAddSimpleWeek,
-                    onLongPressWeek = { editingWeek = it },
+                    onLongPressWeek = { actionWeek = it },
                 )
             } else {
                 SimpleWeekRoadmap(
@@ -74,9 +79,10 @@ fun BlockRoadmap(
                     selectedWeekId = selectedWeekId,
                     currentWeekId = currentWeekId,
                     loopMarkers = simpleLoopMarkers,
+                    isCalendarized = isSimpleCalendarized,
                     onSelectWeek = onSelectWeek,
                     onAddWeek = onAddSimpleWeek,
-                    onLongPressWeek = { editingWeek = it },
+                    onLongPressWeek = { actionWeek = it },
                 )
             }
             return@Column
@@ -183,7 +189,7 @@ fun BlockRoadmap(
                         isKeyDateWeek = week.keyDateType != null,
                         keyDateLabel = week.keyDateLabel,
                         onClick = { onSelectWeek(week.id) },
-                        onLongClick = { editingWeek = week },
+                        onLongClick = { actionWeek = week },
                     )
                 }
                 if (onAddAdvancedWeek != null) {
@@ -224,6 +230,29 @@ fun BlockRoadmap(
                 onDeleteWeek(week.id)
                 editingWeek = null
             },
+        )
+    }
+
+    actionWeek?.let { week ->
+        WeekRoadmapActionDialog(
+            week = week,
+            canPaste = copiedWeekId != null && copiedWeekId != week.id,
+            copiedWeekName = copiedWeekId?.let { copiedId ->
+                currentWeeks.firstOrNull { it.id == copiedId }?.name
+            },
+            onCopy = {
+                onCopyWeek(week.id)
+                actionWeek = null
+            },
+            onPaste = {
+                onPasteWeek(week.id)
+                actionWeek = null
+            },
+            onEdit = {
+                editingWeek = week
+                actionWeek = null
+            },
+            onDismiss = { actionWeek = null },
         )
     }
 
@@ -401,6 +430,7 @@ private fun SimpleWeekRoadmap(
     selectedWeekId: String?,
     currentWeekId: String?,
     loopMarkers: List<RoadmapLoopMarker>,
+    isCalendarized: Boolean,
     onSelectWeek: (String) -> Unit,
     onAddWeek: (() -> Unit)?,
     onLongPressWeek: (WeekWithMeta) -> Unit,
@@ -423,8 +453,8 @@ private fun SimpleWeekRoadmap(
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        item(key = "cycle-label") {
-            RoadmapSectionLabel("Ciclo base")
+        item(key = "simple-label") {
+            RoadmapSectionLabel(if (isCalendarized) "Semanas calendarizadas" else "Ciclo base")
         }
         itemsIndexed(baseWeeks, key = { _, week -> week.id }) { index, week ->
             SimpleWeekCircle(
@@ -582,6 +612,49 @@ private fun WeekWithMeta.circleSubtitle(): String? {
         dateRangeLabel != null -> dateRangeLabel.substringBefore("-").trim()
         else -> null
     }
+}
+
+@Composable
+private fun WeekRoadmapActionDialog(
+    week: WeekWithMeta,
+    canPaste: Boolean,
+    copiedWeekName: String?,
+    onCopy: () -> Unit,
+    onPaste: () -> Unit,
+    onEdit: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(week.name, fontWeight = FontWeight.Black) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    copiedWeekName?.let { "Semana copiada: $it" }
+                        ?: "Copia esta semana o edita sus datos. Para pegar, copia primero una semana y mantén presionada la semana destino.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Button(onClick = onCopy, modifier = Modifier.fillMaxWidth()) {
+                    Text("Copiar esta semana")
+                }
+                OutlinedButton(
+                    onClick = onPaste,
+                    enabled = canPaste,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Pegar semana copiada")
+                }
+                TextButton(onClick = onEdit, modifier = Modifier.fillMaxWidth()) {
+                    Text("Editar semana")
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cerrar") }
+        },
+    )
 }
 
 @Composable

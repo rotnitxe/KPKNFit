@@ -1,14 +1,13 @@
 package com.example.kpkn.screens.wikilab
 
-import android.content.Intent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -16,24 +15,26 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -41,17 +42,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -68,7 +66,6 @@ import com.example.kpkn.domain.exercises.ExerciseMatchResult
 import com.example.kpkn.domain.exercises.InferredSuggestions
 import com.example.kpkn.domain.exercises.findBestMatches
 import com.example.kpkn.domain.exercises.inferFromMatches
-import kotlinx.coroutines.launch
 import java.util.UUID
 
 private data class EditableMuscle(
@@ -92,7 +89,7 @@ private fun calculateSimpleCreatorSearchScore(info: ExerciseMuscleInfo, query: S
     return score
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomExerciseCreatorScreen(
     onBack: () -> Unit,
@@ -104,7 +101,7 @@ fun CustomExerciseCreatorScreen(
                 title = { Text("Crear ejercicio") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 },
             )
@@ -120,21 +117,20 @@ fun CustomExerciseCreatorScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CustomExerciseCreatorContent(
     onBack: () -> Unit,
     onSaved: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-
     var name by remember { mutableStateOf("") }
     var alias by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
-    var force by remember { mutableStateOf("Otro") }
-    var equipment by remember { mutableStateOf("Otro") }
+    var force by remember { mutableStateOf("") }
+    var customForce by remember { mutableStateOf("") }
+    var equipment by remember { mutableStateOf("") }
+    var customEquipment by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("Accesorio") }
     var category by remember { mutableStateOf("Hipertrofia") }
     var bodyPart by remember { mutableStateOf("full") }
@@ -142,9 +138,9 @@ fun CustomExerciseCreatorContent(
     var tier by remember { mutableStateOf("T2") }
 
     var isAxialLoaded by remember { mutableStateOf(false) }
-    var technicalDifficulty by remember { mutableStateOf("3.0") }
-    var setupTime by remember { mutableStateOf("60") }
-    var averageRestSeconds by remember { mutableStateOf("90") }
+    var technicalDifficulty by remember { mutableStateOf("") }
+    var setupTime by remember { mutableStateOf("") }
+    var averageRestSeconds by remember { mutableStateOf("") }
     var coreInvolvement by remember { mutableStateOf("medium") }
     var bracingRecommended by remember { mutableStateOf(true) }
     var strapsRecommended by remember { mutableStateOf(false) }
@@ -165,8 +161,8 @@ fun CustomExerciseCreatorContent(
     // Smart matching — deterministic, no AI
     val hasCreationSignal = name.trim().length >= 3 ||
         selectedBaseExercise != null ||
-        equipment != "Otro" ||
-        force != "Otro"
+        equipment.isNotBlank() ||
+        force.isNotBlank()
     val suggestions = remember(name, equipment, force, category, type, bodyPart, chain, isAxialLoaded, selectedBaseExercise) {
         val database = EXERCISE_DATABASE
         val matches = when {
@@ -185,7 +181,7 @@ fun CustomExerciseCreatorContent(
             }
             else -> emptyList()
         }
-        if (hasCreationSignal && (matches.isNotEmpty() || equipment != "Otro" || force != "Otro")) {
+        if (hasCreationSignal && (matches.isNotEmpty() || equipment.isNotBlank() || force.isNotBlank())) {
             inferFromMatches(
                 matches = matches,
                 name = name,
@@ -293,71 +289,80 @@ fun CustomExerciseCreatorContent(
                             },
                         ) { Text("Volver a detección automática") }
                     }
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
                         baseExerciseOptions.forEach { option ->
-                            FilterChip(
-                                selected = selectedBaseExercise?.id == option.id,
-                                onClick = {
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
                                     selectedBaseExercise = option
                                     baseSearch = option.name
-                                    if (equipment == "Otro") equipment = option.equipment ?: equipment
-                                    if (force == "Otro") force = option.force ?: force
+                                    if (equipment.isBlank()) equipment = option.equipment ?: equipment
+                                    if (force.isBlank()) force = option.force ?: force
                                     category = option.category ?: category
                                     type = option.type ?: type
+                                    },
+                                color = if (selectedBaseExercise?.id == option.id) {
+                                    MaterialTheme.colorScheme.primaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.surface
                                 },
-                                label = { Text(option.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            )
+                                shape = MaterialTheme.shapes.small,
+                            ) {
+                                Text(
+                                    option.name,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
                         }
                     }
                 }
             }
 
             // ── Equipment ──
-            Text("Equipo", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                listOf("Barra", "Mancuerna", "Máquina", "Polea", "Peso Corporal", "Kettlebell", "Otro").forEach { eq ->
-                    AssistChip(
-                        onClick = { equipment = eq },
-                        label = { Text(eq, maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 12.sp) },
-                    )
-                }
-            }
+            CreatorDropdown(
+                label = "Equipo",
+                value = equipment,
+                options = listOf("Barra", "Mancuerna", "Máquina", "Polea", "Peso Corporal", "Kettlebell", "Otro"),
+                onValueChange = { equipment = it },
+            )
             if (equipment == "Otro") {
-                OutlinedTextField(value = equipment, onValueChange = { equipment = it }, label = { Text("Especificar equipo") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                OutlinedTextField(value = customEquipment, onValueChange = { customEquipment = it }, label = { Text("Especificar equipo") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             }
 
             // ── Movement pattern ──
-            Text("Patrón de movimiento", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                listOf("Empuje", "Tirón", "Sentadilla", "Bisagra", "Anti-Extensión", "Flexión", "Otro").forEach { f ->
-                    AssistChip(
-                        onClick = { force = f },
-                        label = { Text(f, maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 12.sp) },
-                    )
-                }
-            }
+            CreatorDropdown(
+                label = "Patrón de movimiento",
+                value = force,
+                options = listOf("Empuje", "Tirón", "Sentadilla", "Bisagra", "Anti-Extensión", "Flexión", "Otro"),
+                onValueChange = { force = it },
+            )
             if (force == "Otro") {
-                OutlinedTextField(value = force, onValueChange = { force = it }, label = { Text("Especificar patrón") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                OutlinedTextField(value = customForce, onValueChange = { customForce = it }, label = { Text("Especificar patrón") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             }
 
             // ── Category + Type in same row ──
-            Text("Categoría", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                listOf("Fuerza", "Potencia", "Hipertrofia", "Isometría").forEach { cat ->
-                    AssistChip(
-                        onClick = { category = cat },
-                        label = { Text(cat, fontSize = 12.sp) },
-                    )
-                }
-            }
-            Text("Tipo", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                listOf("Básico", "Variante", "Accesorio", "Aislamiento").forEach { t ->
-                    AssistChip(
-                        onClick = { type = t },
-                        label = { Text(t, fontSize = 12.sp) },
-                    )
-                }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                CreatorDropdown(
+                    label = "Categoría",
+                    value = category,
+                    options = listOf("Fuerza", "Potencia", "Hipertrofia", "Isometría"),
+                    onValueChange = { category = it },
+                    modifier = Modifier.weight(1f),
+                )
+                CreatorDropdown(
+                    label = "Tipo",
+                    value = type,
+                    options = listOf("Básico", "Variante", "Accesorio", "Aislamiento"),
+                    onValueChange = { type = it },
+                    modifier = Modifier.weight(1f),
+                )
             }
 
             HorizontalDivider()
@@ -388,9 +393,9 @@ fun CustomExerciseCreatorContent(
                 Switch(checked = isAxialLoaded, onCheckedChange = { isAxialLoaded = it })
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(value = technicalDifficulty, onValueChange = { technicalDifficulty = it }, label = { Text("Dif.") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.weight(1f), singleLine = true)
-                OutlinedTextField(value = averageRestSeconds, onValueChange = { averageRestSeconds = it }, label = { Text("Desc (s)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f), singleLine = true)
-                OutlinedTextField(value = setupTime, onValueChange = { setupTime = it }, label = { Text("Setup (s)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f), singleLine = true)
+                OutlinedTextField(value = technicalDifficulty, onValueChange = { technicalDifficulty = it }, label = { Text("Dificultad") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.weight(1f), singleLine = true)
+                OutlinedTextField(value = averageRestSeconds, onValueChange = { averageRestSeconds = it }, label = { Text("Descanso (s)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f), singleLine = true)
+                OutlinedTextField(value = setupTime, onValueChange = { setupTime = it }, label = { Text("Preparación (s)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f), singleLine = true)
             }
 
             HorizontalDivider()
@@ -411,17 +416,36 @@ fun CustomExerciseCreatorContent(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 360.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 filteredMuscles.forEach { muscle ->
-                    FilterChip(
-                        selected = editableMuscles.any { it.muscle == muscle },
-                        onClick = {
+                    val selected = editableMuscles.any { it.muscle == muscle }
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
                             if (editableMuscles.none { it.muscle == muscle }) {
                                 editableMuscles.add(EditableMuscle(muscle, MuscleRole.PRIMARY, 1.0))
                             }
-                        },
-                        label = { Text(muscle, fontSize = 12.sp) },
-                    )
+                            },
+                        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                        shape = MaterialTheme.shapes.small,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(muscle, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                            if (selected) {
+                                Text("Agregado", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                    }
                 }
             }
 
@@ -453,28 +477,18 @@ fun CustomExerciseCreatorContent(
                                 Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
                             }
                         }
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            listOf(
-                                MuscleRole.PRIMARY to "Principal",
-                                MuscleRole.SECONDARY to "Secundario",
-                                MuscleRole.STABILIZER to "Estabilizador",
-                            ).forEach { (role, label) ->
-                                FilterChip(
-                                    selected = row.role == role,
-                                    onClick = {
-                                        editableMuscles[idx] = row.copy(
-                                            role = role,
-                                            contribution = contributionForRole(role),
-                                        )
-                                    },
-                                    label = { Text(label, fontSize = 12.sp) },
+                        CreatorDropdown(
+                            label = "Rol muscular",
+                            value = roleLabel(row.role),
+                            options = listOf("Principal", "Secundario", "Estabilizador"),
+                            onValueChange = { selectedLabel ->
+                                val role = roleFromLabel(selectedLabel)
+                                editableMuscles[idx] = row.copy(
+                                    role = role,
+                                    contribution = contributionForRole(role),
                                 )
-                            }
-                        }
+                            },
+                        )
                     }
                 }
             }
@@ -524,6 +538,14 @@ fun CustomExerciseCreatorContent(
                         .ifEmpty {
                             emptyList()
                         }
+                    val equipmentPayload = when (equipment) {
+                        "Otro" -> customEquipment.trim()
+                        else -> equipment.trim()
+                    }
+                    val forcePayload = when (force) {
+                        "Otro" -> customForce.trim()
+                        else -> force.trim()
+                    }
 
                     val exercise = ExerciseMuscleInfo(
                         id = "custom_${UUID.randomUUID()}",
@@ -531,10 +553,10 @@ fun CustomExerciseCreatorContent(
                         alias = alias.trim().ifBlank { null },
                         description = description.trim().ifBlank { null },
                         involvedMuscles = musclePayload,
-                        equipment = equipment.ifBlank { null },
+                        equipment = equipmentPayload.ifBlank { null },
                         category = category.ifBlank { null },
                         type = type.ifBlank { null },
-                        force = force.ifBlank { null },
+                        force = forcePayload.ifBlank { null },
                         chain = chain.ifBlank { suggestions?.suggestedChain ?: "full" },
                         bodyPart = bodyPart.ifBlank { suggestions?.suggestedBodyPart ?: "full" },
                         tier = tier.ifBlank { null },
@@ -568,33 +590,65 @@ fun CustomExerciseCreatorContent(
                 Text("Guardar ejercicio", fontWeight = FontWeight.Bold)
             }
 
-            TextButton(
-                onClick = {
-                    val body = buildString {
-                        appendLine("Sugerencia de ejercicio")
-                        appendLine("Nombre: $name")
-                        appendLine("Equipo: $equipment")
-                        appendLine("Patrón: $force")
-                        appendLine("Categoría: $category")
-                        appendLine("EFC/CNC/SSC: ${"%.1f".format(displayEfc)} / ${"%.1f".format(displayCnc)} / ${"%.1f".format(displaySsc)}")
-                        appendLine("Músculos: ${editableMuscles.joinToString { "${it.muscle}:${it.role.name}" }}")
-                    }
-                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_EMAIL, arrayOf("equipo@kpkn.fit"))
-                        putExtra(Intent.EXTRA_SUBJECT, "Sugerencia de ejercicio KPKN")
-                        putExtra(Intent.EXTRA_TEXT, body)
-                    }
-                    context.startActivity(Intent.createChooser(sendIntent, "Sugerir al equipo"))
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(Icons.Default.Send, null, modifier = Modifier.size(16.dp))
-                Text("  Sugerir al equipo")
-            }
-
             Spacer(Modifier.padding(bottom = 32.dp))
         }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CreatorDropdown(
+    label: String,
+    value: String,
+    options: List<String>,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier,
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth(),
+            singleLine = true,
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onValueChange(option)
+                        expanded = false
+                    },
+                )
+            }
+        }
+    }
+}
+
+private fun roleLabel(role: MuscleRole): String = when (role) {
+    MuscleRole.PRIMARY -> "Principal"
+    MuscleRole.SECONDARY -> "Secundario"
+    MuscleRole.STABILIZER,
+    MuscleRole.NEUTRALIZER -> "Estabilizador"
+}
+
+private fun roleFromLabel(label: String): MuscleRole = when (label) {
+    "Secundario" -> MuscleRole.SECONDARY
+    "Estabilizador" -> MuscleRole.STABILIZER
+    else -> MuscleRole.PRIMARY
 }
 
 @Composable

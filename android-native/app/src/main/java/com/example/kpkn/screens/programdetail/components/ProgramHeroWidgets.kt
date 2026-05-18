@@ -58,6 +58,7 @@ import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.models.VolumeRecommendation
+import com.example.kpkn.domain.training.VolumeCalculator
 
 data class VolumeCalibrationResult(
     val mode: ProgramMode,
@@ -746,9 +747,21 @@ internal fun buildVolumeCalibration(
 
     val scale = optimalSets.toFloat() / 15f
     val adjustedRecommendations = israetelBaseRecommendations.map { recommendation ->
-        val scaledMin = (recommendation.minEffectiveVolume * scale).toInt().coerceAtLeast(4)
-        val scaledAdaptive = (recommendation.maxAdaptiveVolume * scale).toInt().coerceAtLeast(scaledMin + 1)
-        val scaledRecoverable = (recommendation.maxRecoverableVolume * scale).toInt().coerceAtLeast(scaledAdaptive + 1)
+        val canonicalMuscle = VolumeCalculator.normalizeCanonicalMuscleGroup(recommendation.muscleGroup)
+        val floor = volumeTargetFloorFor(canonicalMuscle)
+        val ceiling = volumeTargetCeilingFor(canonicalMuscle)
+        val scaledMin = (recommendation.minEffectiveVolume * scale)
+            .toInt()
+            .coerceAtLeast(floor.minEffective)
+            .coerceAtMost(ceiling.minEffective)
+        val scaledAdaptive = (recommendation.maxAdaptiveVolume * scale)
+            .toInt()
+            .coerceAtLeast(maxOf(scaledMin + 3, floor.maxAdaptive))
+            .coerceAtMost(ceiling.maxAdaptive)
+        val scaledRecoverable = (recommendation.maxRecoverableVolume * scale)
+            .toInt()
+            .coerceAtLeast(maxOf(scaledAdaptive + 3, floor.maxRecoverable))
+            .coerceAtMost(ceiling.maxRecoverable)
         recommendation.copy(
             minEffectiveVolume = scaledMin,
             maxAdaptiveVolume = scaledAdaptive,
@@ -769,6 +782,37 @@ internal fun buildVolumeCalibration(
         ),
         recommendations = adjustedRecommendations,
     )
+}
+
+private data class VolumeTargetBounds(
+    val minEffective: Int,
+    val maxAdaptive: Int,
+    val maxRecoverable: Int,
+)
+
+private fun volumeTargetFloorFor(canonicalMuscle: String): VolumeTargetBounds = when (canonicalMuscle) {
+    "Glúteos" -> VolumeTargetBounds(minEffective = 9, maxAdaptive = 14, maxRecoverable = 18)
+    "Deltoides" -> VolumeTargetBounds(minEffective = 10, maxAdaptive = 16, maxRecoverable = 22)
+    "Pectorales",
+    "Cuádriceps",
+    -> VolumeTargetBounds(minEffective = 8, maxAdaptive = 12, maxRecoverable = 18)
+    "Dorsales" -> VolumeTargetBounds(minEffective = 10, maxAdaptive = 14, maxRecoverable = 20)
+    "Isquiosurales" -> VolumeTargetBounds(minEffective = 6, maxAdaptive = 10, maxRecoverable = 16)
+    "Bíceps",
+    "Tríceps",
+    "Pantorrillas",
+    -> VolumeTargetBounds(minEffective = 6, maxAdaptive = 10, maxRecoverable = 16)
+    else -> VolumeTargetBounds(minEffective = 4, maxAdaptive = 8, maxRecoverable = 12)
+}
+
+private fun volumeTargetCeilingFor(canonicalMuscle: String): VolumeTargetBounds = when (canonicalMuscle) {
+    "Deltoides" -> VolumeTargetBounds(minEffective = 14, maxAdaptive = 24, maxRecoverable = 30)
+    "Glúteos" -> VolumeTargetBounds(minEffective = 12, maxAdaptive = 20, maxRecoverable = 26)
+    "Dorsales" -> VolumeTargetBounds(minEffective = 14, maxAdaptive = 22, maxRecoverable = 28)
+    "Pectorales",
+    "Cuádriceps",
+    -> VolumeTargetBounds(minEffective = 12, maxAdaptive = 20, maxRecoverable = 26)
+    else -> VolumeTargetBounds(minEffective = 10, maxAdaptive = 18, maxRecoverable = 24)
 }
 
 private val israetelBaseRecommendations = listOf(

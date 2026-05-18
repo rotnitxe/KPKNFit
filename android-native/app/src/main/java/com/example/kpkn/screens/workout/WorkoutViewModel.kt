@@ -491,17 +491,8 @@ class WorkoutViewModel(
 
     fun replacementScopeOptions(): List<ReplacementPersistenceScopeV2> {
         val program = repository.getProgramById(programId)
-        return if (program?.structure == ProgramStructure.COMPLEX) {
-            listOf(
-                ReplacementPersistenceScopeV2.SESSION_ONLY,
-                ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING,
-            )
-        } else {
-            listOf(
-                ReplacementPersistenceScopeV2.SESSION_ONLY,
-                ReplacementPersistenceScopeV2.PERMANENT,
-            )
-        }
+            ?: return listOf(ReplacementPersistenceScopeV2.SESSION_ONLY)
+        return WorkoutEditingRules.replacementPersistenceOptions(program)
     }
 
     fun setHeaderWidgetVisibility(
@@ -3064,6 +3055,7 @@ class WorkoutViewModel(
         val session = state.session ?: return
         val program = repository.getProgramById(programId)
         val location = program?.let { findSessionLocation(it, sessionId) }
+        val effectiveScope = sanitizeLiveEditPersistenceScope(program, scope)
 
         if (program != null && location != null) {
             repository.createAndSaveReplacementDecision(
@@ -3076,10 +3068,10 @@ class WorkoutViewModel(
                 exerciseSlot = prompt.sourceExerciseSlot ?: -1,
                 fromExerciseDbId = prompt.sourceExerciseDbId,
                 toExerciseDbId = prompt.replacement.id,
-                scopeType = scope,
+                scopeType = effectiveScope,
             )
 
-            if (scope != ReplacementPersistenceScopeV2.SESSION_ONLY) {
+            if (effectiveScope != ReplacementPersistenceScopeV2.SESSION_ONLY) {
                 val updatedProgram = applyReplacementToProgram(
                     program = program,
                     currentLocation = location,
@@ -3087,7 +3079,7 @@ class WorkoutViewModel(
                     sourceExerciseId = prompt.exerciseId,
                     sourceExerciseSlot = prompt.sourceExerciseSlot,
                     replacement = prompt.replacement,
-                    scope = scope,
+                    scope = effectiveScope,
                 )
                 if (updatedProgram != program) {
                     repository.updateProgram(updatedProgram)
@@ -3138,7 +3130,7 @@ class WorkoutViewModel(
             repository.upsertContextProfile(refreshedProfile)
         }
 
-        if (deferPersistencePrompt) {
+        if (deferPersistencePrompt && repository.getProgramById(programId)?.let(WorkoutEditingRules::canPersistLiveStructuralChanges) == true) {
             deferredReplacementPrompt = PendingReplacementPersistencePrompt(
                 exerciseId = exerciseId,
                 replacement = replacement,
@@ -3186,6 +3178,7 @@ class WorkoutViewModel(
 
         val program = repository.getProgramById(programId)
         val location = program?.let { findSessionLocation(it, sessionId) }
+        val effectiveScope = sanitizeLiveEditPersistenceScope(program, scope)
         if (program != null && location != null) {
             repository.createAndSaveReplacementDecision(
                 programId = programId,
@@ -3197,7 +3190,7 @@ class WorkoutViewModel(
                 exerciseSlot = sourceExerciseSlot ?: -1,
                 fromExerciseDbId = sourceExerciseDbId,
                 toExerciseDbId = replacement.id,
-                scopeType = scope,
+                scopeType = effectiveScope,
             )
 
             val updatedProgram = applyReplacementToProgram(
@@ -3207,7 +3200,7 @@ class WorkoutViewModel(
                 sourceExerciseId = exerciseId,
                 sourceExerciseSlot = sourceExerciseSlot,
                 replacement = replacement,
-                scope = scope,
+                scope = effectiveScope,
             )
             if (updatedProgram != program) {
                 repository.updateProgram(updatedProgram)
@@ -3215,6 +3208,21 @@ class WorkoutViewModel(
         }
 
         replaceExercise(exerciseId, replacement, deferPersistencePrompt = false)
+    }
+
+    private fun sanitizeLiveEditPersistenceScope(
+        program: Program?,
+        requested: ReplacementPersistenceScopeV2,
+    ): ReplacementPersistenceScopeV2 {
+        if (program == null) return ReplacementPersistenceScopeV2.SESSION_ONLY
+        if (!WorkoutEditingRules.canPersistLiveStructuralChanges(program)) {
+            return ReplacementPersistenceScopeV2.SESSION_ONLY
+        }
+        return when (requested) {
+            ReplacementPersistenceScopeV2.PERMANENT -> ReplacementPersistenceScopeV2.PERMANENT
+            ReplacementPersistenceScopeV2.SESSION_ONLY -> ReplacementPersistenceScopeV2.SESSION_ONLY
+            ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ReplacementPersistenceScopeV2.SESSION_ONLY
+        }
     }
 
     fun skipExercise(exerciseId: String) {

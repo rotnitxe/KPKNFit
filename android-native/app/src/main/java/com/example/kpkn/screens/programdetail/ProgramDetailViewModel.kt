@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.HYPERTROPHY_ROLE_MULTIPLIERS
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.Session
@@ -42,7 +43,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -316,15 +319,33 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         val macroIndex = current.macrocycles.indexOfFirst { it.blocks.isNotEmpty() }.takeIf { it >= 0 } ?: return
         val block = current.macrocycles[macroIndex].blocks.firstOrNull() ?: return
         val mesoIndex = block.mesocycles.indexOfLast { true }.takeIf { it >= 0 } ?: return
-        val newWeek = ProgramWeek(
-            id = UUID.randomUUID().toString(),
-            name = name?.trim()?.takeIf { it.isNotEmpty() } ?: "Semana ${ProgramDetailHelpers.getTotalWeeks(current) + 1}",
-            description = description?.trim()?.takeIf { it.isNotEmpty() },
-            sessions = sourceWeekId
-                ?.let { id -> findWeek(current, id)?.sessions }
-                ?.let { SplitApplicationEngine.copySessionsWithNewIds(it) }
-                ?: emptyList(),
-        )
+        val copiedSessions = sourceWeekId
+            ?.let { id -> findWeek(current, id)?.sessions }
+            ?.let { SplitApplicationEngine.copySessionsWithNewIds(it) }
+            ?: emptyList()
+        val newWeek = if (
+            current.simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
+            current.calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
+        ) {
+            val start = nextCalendarWeekStart(current)
+            val trainingDays = current.suggestCalendarTrainingDays()
+            ProgramWeek(
+                id = UUID.randomUUID().toString(),
+                name = calendarWeekTitle(start),
+                description = description?.trim()?.takeIf { it.isNotEmpty() },
+                sessions = copiedSessions,
+                startDate = start.toString(),
+                endDate = start.plusDays(6).toString(),
+                trainingDayDates = trainingDays.associateWith { day -> start.plusDays((day - 1).toLong()).toString() },
+            )
+        } else {
+            ProgramWeek(
+                id = UUID.randomUUID().toString(),
+                name = name?.trim()?.takeIf { it.isNotEmpty() } ?: "Semana ${ProgramDetailHelpers.getTotalWeeks(current) + 1}",
+                description = description?.trim()?.takeIf { it.isNotEmpty() },
+                sessions = copiedSessions,
+            )
+        }
 
         val updated = current.copy(
             macrocycles = current.macrocycles.mapIndexed { currentMacroIndex, macro ->
@@ -761,6 +782,8 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
                                             week
                                         } else {
                                             week.copy(
+                                                description = source.description ?: week.description,
+                                                variant = source.variant,
                                                 sessions = SplitApplicationEngine.copySessionsWithNewIds(source.sessions),
                                             )
                                         }
@@ -867,8 +890,8 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             val weekEnd = weekStart.plusDays(6)
             ProgramWeek(
                 id = UUID.randomUUID().toString(),
-                name = "Semana ${weekOffset + index + 1}",
-                startDate = weekStart.toString(),
+            name = calendarWeekTitle(weekStart),
+            startDate = weekStart.toString(),
                 endDate = weekEnd.toString(),
                 trainingDayDates = trainingDays.associateWith { day -> weekStart.plusDays((day - 1).toLong()).toString() },
             )
@@ -903,6 +926,41 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
     } catch (_: DateTimeParseException) {
         null
     }
+
+    private fun nextCalendarWeekStart(program: Program): LocalDate {
+        val lastEnd = program.macrocycles
+            .flatMap { it.blocks }
+            .flatMap { it.mesocycles }
+            .flatMap { it.weeks }
+            .mapNotNull { it.endDate?.let(::parseIsoDate) }
+            .maxOrNull()
+        return lastEnd?.plusDays(1)
+            ?: program.timelineStartDate?.let(::parseIsoDate)
+            ?: LocalDate.now()
+    }
+
+    private fun Program.suggestCalendarTrainingDays(): Set<Int> {
+        val fromDates = macrocycles
+            .flatMap { it.blocks }
+            .flatMap { it.mesocycles }
+            .flatMap { it.weeks }
+            .flatMap { it.trainingDayDates.keys }
+            .filter { it in 1..7 }
+            .toSet()
+        if (fromDates.isNotEmpty()) return fromDates
+
+        val fromSessions = macrocycles
+            .flatMap { it.blocks }
+            .flatMap { it.mesocycles }
+            .flatMap { it.weeks }
+            .flatMap { it.sessions }
+            .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+            .toSet()
+        return fromSessions.ifEmpty { setOf(1, 3, 5) }
+    }
+
+    private fun calendarWeekTitle(startDate: LocalDate): String =
+        "Semana: ${startDate.format(DateTimeFormatter.ofPattern("MM/dd", Locale.US))}"
 
     private fun adjustWeekSessionsByCanonicalMuscle(
         sessions: List<Session>,

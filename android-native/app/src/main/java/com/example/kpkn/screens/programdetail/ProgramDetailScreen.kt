@@ -33,6 +33,7 @@ import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.CompetitionDetails
 import com.example.kpkn.data.models.CompetitionRecord
 import com.example.kpkn.data.models.CompetitionRecordMode
@@ -403,8 +404,7 @@ private fun TrainingPanel(
     onCreateSession: (String, String, Int, Int, Int, Boolean) -> Unit,
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
-    var showCopyWeekDialog by remember { mutableStateOf(false) }
-    var showCalendarWeeksDialog by remember { mutableStateOf(false) }
+    var copiedRoadmapWeekId by remember(program.id) { mutableStateOf<String?>(null) }
     var pendingCompetitionCreation by remember { mutableStateOf<PendingCompetitionSessionCreation?>(null) }
     var showCompetitionEligibilityNotice by remember { mutableStateOf(false) }
 
@@ -500,6 +500,7 @@ private fun TrainingPanel(
             selectedWeekId = selectedWeekId,
             currentWeekId = currentWeekId?.currentWeekId,
             isSimpleProgram = program.isSimpleTemporalProgram,
+            isSimpleCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED,
             simpleLoopMarkers = simpleRoadmapLoopMarkers,
             currentCycle = program.loopState?.currentCycle ?: 0,
             onSelectBlock = { viewModel.selectBlock(it) },
@@ -511,39 +512,18 @@ private fun TrainingPanel(
             onDeleteWeek = { weekId -> viewModel.deleteWeekFromRoadmap(weekId) },
             onUpdateBlock = { blockId, name, description -> viewModel.updateBlockMetadata(blockId, name, description) },
             onDeleteBlock = { blockId -> viewModel.deleteBlockFromRoadmap(blockId) },
+            copiedWeekId = copiedRoadmapWeekId,
+            onCopyWeek = { copiedRoadmapWeekId = it },
+            onPasteWeek = { targetWeekId ->
+                copiedRoadmapWeekId?.let { sourceWeekId ->
+                    viewModel.copyWeekSessions(
+                        sourceWeekId = sourceWeekId,
+                        targetWeekIds = setOf(targetWeekId),
+                        replaceWeekIds = setOf(targetWeekId),
+                    )
+                }
+            },
         )
-
-        Spacer(Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (program.isSimpleTemporalProgram) {
-                val simpleDated = program.calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
-                FilterChip(
-                    selected = simpleDated,
-                    onClick = { viewModel.setSimpleDatedCalendarization(!simpleDated) },
-                    label = { Text("Semanas por fecha", maxLines = 1) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            FilledTonalButton(
-                onClick = { showCopyWeekDialog = true },
-                enabled = currentWeeks.size > 1,
-                modifier = Modifier.weight(1f),
-            ) {
-                Text("Copiar semana", maxLines = 1)
-            }
-            OutlinedButton(
-                onClick = { showCalendarWeeksDialog = true },
-                modifier = Modifier.weight(1f),
-            ) {
-                Text("Desde calendario", maxLines = 1)
-            }
-        }
 
         Spacer(Modifier.height(8.dp))
 
@@ -624,26 +604,6 @@ private fun TrainingPanel(
         }
 
         Spacer(Modifier.height(120.dp))
-    }
-
-    if (showCopyWeekDialog) {
-        CopyWeekDialog(
-            weeks = currentWeeks,
-            selectedWeekId = selectedWeekId,
-            selectedBlockId = selectedBlockId,
-            viewModel = viewModel,
-            onDismiss = { showCopyWeekDialog = false },
-        )
-    }
-
-    if (showCalendarWeeksDialog) {
-        CalendarWeeksDialog(
-            onDismiss = { showCalendarWeeksDialog = false },
-            onCreate = { startDate, count, days ->
-                viewModel.createCalendarWeeks(startDate, count, days)
-                showCalendarWeeksDialog = false
-            },
-        )
     }
 
     pendingCompetitionCreation?.let { pending ->

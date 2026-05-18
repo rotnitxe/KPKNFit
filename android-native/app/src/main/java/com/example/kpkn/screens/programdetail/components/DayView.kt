@@ -343,6 +343,15 @@ private fun calendarStartWarning(isOutsideProgram: Boolean, scheduledDate: Strin
     return "Esta sesión corresponde al ${scheduled}. Hoy es ${today}. Puedes entrenar igual, pero KPKN guardará la diferencia de calendario."
 }
 
+private fun formatDayDateLabel(raw: String): String? {
+    return try {
+        val date = LocalDate.parse(raw)
+        "%02d/%02d".format(date.monthValue, date.dayOfMonth)
+    } catch (_: DateTimeParseException) {
+        raw.takeIf { it.isNotBlank() }
+    }
+}
+
 @Composable
 private fun StartDayConfirmDialog(
     dayName: String,
@@ -540,6 +549,7 @@ private fun DayColumn(
     onDragCancel: () -> Unit,
 ) {
     var dayMenuExpanded by remember { mutableStateOf(false) }
+    val scheduledDateLabel = scheduledDate?.let(::formatDayDateLabel)
 
     Card(
         modifier = Modifier
@@ -592,7 +602,7 @@ private fun DayColumn(
                     Spacer(Modifier.width(10.dp))
                     Column {
                         Text(
-                            day.name,
+                            scheduledDateLabel?.let { "${day.name} · $it" } ?: day.name,
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             textDecoration = if (isOutsideProgram) TextDecoration.LineThrough else TextDecoration.None,
@@ -601,7 +611,6 @@ private fun DayColumn(
                         Text(
                             when {
                                 isOutsideProgram -> "Fuera de programa"
-                                scheduledDate != null -> scheduledDate
                                 entries.isEmpty() -> "Sin sesiones todavía"
                                 else -> "${entries.size} sesión${if (entries.size > 1) "es" else ""}"
                             },

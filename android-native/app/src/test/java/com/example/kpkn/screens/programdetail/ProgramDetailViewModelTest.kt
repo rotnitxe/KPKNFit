@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.training.ProgramCalendarEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestDispatcher
@@ -270,6 +271,93 @@ class ProgramDetailViewModelTest {
         assertEquals("Semana 2", weeks[1].name)
         assertEquals(ProgramStructure.SIMPLE, updated.structure)
         assertEquals(weeks[1].id, vm.uiState.value.selectedWeekId)
+    }
+
+    @Test
+    fun addWeekToSimpleProgram_calendarized_continues_real_dates_and_titles() {
+        val id = nextId()
+        val base = makeSimpleProgram(id)
+        val datedWeek = base.macrocycles[0].blocks[0].mesocycles[0].weeks[0].copy(
+            name = "Semana: 05/18",
+            startDate = "2026-05-18",
+            endDate = "2026-05-24",
+            trainingDayDates = mapOf(1 to "2026-05-18", 3 to "2026-05-20"),
+        )
+        repository.addProgram(
+            base.copy(
+                timelineStartDate = "2026-05-18",
+                calendarization = ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
+                simpleProgramKind = SimpleProgramKind.CALENDARIZED,
+                macrocycles = base.macrocycles.map { macro ->
+                    macro.copy(
+                        blocks = macro.blocks.map { block ->
+                            block.copy(
+                                mesocycles = block.mesocycles.map { meso ->
+                                    meso.copy(weeks = listOf(datedWeek))
+                                }
+                            )
+                        }
+                    )
+                },
+            )
+        )
+        val vm = ProgramDetailViewModel(id)
+
+        vm.addWeekToSimpleProgram()
+
+        val updated = repository.getProgramById(id)!!
+        val weeks = updated.macrocycles[0].blocks[0].mesocycles[0].weeks
+        assertEquals(2, weeks.size)
+        assertEquals("Semana: 05/25", weeks[1].name)
+        assertEquals("2026-05-25", weeks[1].startDate)
+        assertEquals("2026-05-31", weeks[1].endDate)
+        assertEquals(setOf(1, 3), weeks[1].trainingDayDates.keys)
+        assertEquals(SimpleProgramKind.CALENDARIZED, updated.simpleProgramKind)
+        assertTrue(updated.loops.isEmpty())
+    }
+
+    @Test
+    fun copyWeekSessions_fromRoadmap_replaces_content_but_preserves_target_calendar_identity() {
+        val id = nextId()
+        val program = makeProgram(id)
+        repository.addProgram(
+            program.copy(
+                macrocycles = program.macrocycles.map { macro ->
+                    macro.copy(
+                        blocks = macro.blocks.map { block ->
+                            block.copy(
+                                mesocycles = block.mesocycles.map { meso ->
+                                    meso.copy(
+                                        weeks = meso.weeks.map { week ->
+                                            if (week.id == "${id}_w2") {
+                                                week.copy(name = "Semana: 05/25", startDate = "2026-05-25", endDate = "2026-05-31")
+                                            } else {
+                                                week
+                                            }
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                    )
+                }
+            )
+        )
+        val vm = ProgramDetailViewModel(id)
+
+        val copied = vm.copyWeekSessions(
+            sourceWeekId = "${id}_w1",
+            targetWeekIds = setOf("${id}_w2"),
+            replaceWeekIds = setOf("${id}_w2"),
+        )
+
+        val updated = repository.getProgramById(id)!!
+        val target = updated.macrocycles[0].blocks[0].mesocycles[0].weeks[1]
+        assertTrue(copied)
+        assertEquals("Semana: 05/25", target.name)
+        assertEquals("2026-05-25", target.startDate)
+        assertEquals(2, target.sessions.size)
+        assertTrue(target.sessions.none { it.id in listOf("${id}_s1", "${id}_s2") })
     }
 
     @Test

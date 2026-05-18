@@ -99,9 +99,9 @@ fun SingleRingIcon(tint: Color, size: Dp = 24.dp) {
     }
 }
 
-// ─── Caupolican placeholder icon ─────────────────────────────────────────────
+// ─── Powerlifter corner placeholder icon ─────────────────────────────────────
 @Composable
-fun CaupolicanIcon(
+fun PowerlifterCornerIcon(
     tint: Color,
     size: Dp = 24.dp,
     modifier: Modifier = Modifier,

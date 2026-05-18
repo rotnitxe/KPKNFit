@@ -194,6 +194,84 @@ class VolumeCalculatorTest {
         assertTrue(result.isEmpty())
     }
 
+    @Test
+    fun weeklyVolume_sums_session_volume_counters_without_dividing_by_program_weeks() {
+        val weekOne = ProgramWeek(
+            id = "w1",
+            name = "Semana 1",
+            sessions = listOf(
+                makeSession("s1", listOf(makeExercise("bench", List(4) { makeSet() }))),
+            ),
+        )
+        val weekTwo = ProgramWeek(
+            id = "w2",
+            name = "Semana 2",
+            sessions = listOf(
+                makeSession("s2", listOf(makeExercise("bench", List(4) { makeSet() }))),
+            ),
+        )
+        val program = Program(
+            id = "p1",
+            name = "Programa",
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "m1",
+                    name = "Macro",
+                    blocks = listOf(
+                        Block(
+                            id = "b1",
+                            name = "Bloque",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "meso1",
+                                    name = "Meso",
+                                    weeks = listOf(weekOne, weekTwo),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val result = VolumeCalculator.calculateCanonicalWeeklyMuscleVolume(program, exerciseDb)
+
+        val pecs = result.find { it.muscleName == "Pectorales" }
+        val delts = result.find { it.muscleName == "Deltoides" }
+        assertNotNull(pecs)
+        assertNotNull(delts)
+        assertEquals("Pectorales must sum 4+4 session-counter sets, not average to 4", 8.0, pecs!!.weeklySets, 0.01)
+        assertEquals("Deltoides must sum secondary session counters: 2+2", 4.0, delts!!.weeklySets, 0.01)
+    }
+
+    @Test
+    fun weeklyVolumeForWeeks_can_return_block_or_macrocycle_average_without_recounting() {
+        val weekOne = ProgramWeek(
+            id = "w1",
+            name = "Semana 1",
+            sessions = listOf(makeSession("s1", listOf(makeExercise("bench", List(4) { makeSet() })))),
+        )
+        val weekTwo = ProgramWeek(
+            id = "w2",
+            name = "Semana 2",
+            sessions = listOf(makeSession("s2", listOf(makeExercise("bench", List(8) { makeSet() })))),
+        )
+
+        val exactWeek = VolumeCalculator.calculateCanonicalWeeklyMuscleVolumeForWeeks(
+            weeks = listOf(weekTwo),
+            exerciseList = exerciseDb,
+            averageByWeek = false,
+        )
+        val average = VolumeCalculator.calculateCanonicalWeeklyMuscleVolumeForWeeks(
+            weeks = listOf(weekOne, weekTwo),
+            exerciseList = exerciseDb,
+            averageByWeek = true,
+        )
+
+        assertEquals(8.0, exactWeek.first { it.muscleName == "Pectorales" }.weeklySets, 0.01)
+        assertEquals(6.0, average.first { it.muscleName == "Pectorales" }.weeklySets, 0.01)
+    }
+
     // ─── Regresiones post-fix ────────────────────────────────────────────────
 
     /**

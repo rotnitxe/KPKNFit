@@ -26,6 +26,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -59,11 +60,14 @@ import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.SimpleProgramSnapshot
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.models.normalizedTemporalStructure
 import com.example.kpkn.data.models.primaryLoopCadenceCycles
@@ -112,6 +116,7 @@ fun MacrocycleEditor(
     var showAdvancedRoadmap by remember { mutableStateOf(false) }
     var showLibrarySheet by remember { mutableStateOf(false) }
     var showLoopsSheet by remember { mutableStateOf(false) }
+    var showSimpleCalendarizationSheet by remember { mutableStateOf(false) }
 
     val temporalInsight = remember(program) { program.toTemporalInsight() }
     val stats = remember(program) { program.toProgramStats() }
@@ -129,10 +134,12 @@ fun MacrocycleEditor(
             keyDatesCount = program.keyDates.size,
             hasTimelineStartDate = !program.timelineStartDate.isNullOrBlank(),
             showRoadmap = showAdvancedRoadmap,
+            isSimpleCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED,
             onToggleRoadmap = { showAdvancedRoadmap = !showAdvancedRoadmap },
             onOpenKeyDates = { showKeyDatesSheet = true },
             onOpenLibrary = { showLibrarySheet = true },
             onOpenLoops = { showLoopsSheet = true },
+            onOpenSimpleCalendarization = { showSimpleCalendarizationSheet = true },
         )
         if (!temporalInsight.isSimple && showAdvancedRoadmap) {
             AdvancedRoadmapCard(
@@ -390,7 +397,7 @@ fun MacrocycleEditor(
         )
     }
 
-    if (temporalInsight.isSimple && showLoopsSheet) {
+    if (temporalInsight.isSimple && program.simpleProgramKind == SimpleProgramKind.CYCLIC && showLoopsSheet) {
         ModalBottomSheet(
             onDismissRequest = { showLoopsSheet = false },
         ) {
@@ -419,6 +426,32 @@ fun MacrocycleEditor(
             }
         }
     }
+
+    if (temporalInsight.isSimple && showSimpleCalendarizationSheet) {
+        SimpleCalendarizationSheet(
+            program = program,
+            onDismiss = { showSimpleCalendarizationSheet = false },
+            onStartBreak = { startDate, weekCount, trainingDays ->
+                val updated = ProgramCalendarEngine.materializeWeekDates(
+                    program.startSimpleCalendarizedBreak(
+                        startDate = startDate,
+                        weekCount = weekCount,
+                        trainingDays = trainingDays,
+                    )
+                )
+                onUpdateProgram(updated.normalizedTemporalStructure())
+                showSimpleCalendarizationSheet = false
+            },
+            onRecoverCycle = {
+                onUpdateProgram(program.restorePausedCyclicProgram().normalizedTemporalStructure())
+                showSimpleCalendarizationSheet = false
+            },
+            onStartFreshCycle = {
+                onUpdateProgram(program.startFreshSimpleCycle().normalizedTemporalStructure())
+                showSimpleCalendarizationSheet = false
+            },
+        )
+    }
 }
 
 @Composable
@@ -428,10 +461,12 @@ private fun MacrocycleToolbar(
     keyDatesCount: Int,
     hasTimelineStartDate: Boolean,
     showRoadmap: Boolean,
+    isSimpleCalendarized: Boolean,
     onToggleRoadmap: () -> Unit,
     onOpenKeyDates: () -> Unit,
     onOpenLibrary: () -> Unit,
     onOpenLoops: () -> Unit,
+    onOpenSimpleCalendarization: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
@@ -442,7 +477,8 @@ private fun MacrocycleToolbar(
             Column(Modifier.weight(1f)) {
                 Text("Macrociclo", fontWeight = FontWeight.Black, fontSize = 18.sp)
                 Text(
-                    if (insight.isSimple) "Simple · ${insight.cycleWeeks ?: 0} sem/ciclo"
+                    if (insight.isSimple && isSimpleCalendarized) "Programa Simple Calendarizado · ${insight.weeks} semanas"
+                    else if (insight.isSimple) "Programa Simple Cíclico · ${insight.cycleWeeks ?: 0} sem/ciclo"
                     else if (hasTimelineStartDate) "Avanzado · $keyDatesCount fechas clave"
                     else "Avanzado · sin calendario",
                     fontSize = 11.sp,
@@ -455,7 +491,9 @@ private fun MacrocycleToolbar(
                     .padding(horizontal = 10.dp, vertical = 6.dp),
             ) {
                 Text(
-                    if (insight.isSimple) "Simple" else "Avanzado",
+                    if (insight.isSimple && isSimpleCalendarized) "Calendarizado"
+                    else if (insight.isSimple) "Cíclico"
+                    else "Avanzado",
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Black,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -469,7 +507,12 @@ private fun MacrocycleToolbar(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (insight.isSimple) {
-                OutlinedButton(onClick = onOpenLoops) { Text("Loops") }
+                if (!isSimpleCalendarized) {
+                    OutlinedButton(onClick = onOpenLoops) { Text("Loops") }
+                }
+                OutlinedButton(onClick = onOpenSimpleCalendarization) {
+                    Text(if (isSimpleCalendarized) "Gestionar calendarización" else "Pasar a semanas calendarizadas")
+                }
             } else {
                 OutlinedButton(onClick = onOpenLibrary) { Text("Plantillas") }
                 OutlinedButton(onClick = onOpenKeyDates) { Text("Fechas clave") }
@@ -487,6 +530,135 @@ private fun ToolbarStatChip(label: String, value: String) {
             .padding(horizontal = 10.dp, vertical = 7.dp),
     ) {
         Text("$label $value", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun SimpleCalendarizationSheet(
+    program: Program,
+    onDismiss: () -> Unit,
+    onStartBreak: (LocalDate, Int, Set<Int>) -> Unit,
+    onRecoverCycle: () -> Unit,
+    onStartFreshCycle: () -> Unit,
+) {
+    val isCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
+        program.calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
+    var startDateText by remember(program.id, program.timelineStartDate) {
+        mutableStateOf(program.nextSimpleCalendarStart().toString())
+    }
+    var weekCountText by remember(program.id) { mutableStateOf("4") }
+    var trainingDays by remember(program.id) { mutableStateOf(program.suggestCalendarTrainingDays()) }
+    val startDate = parseProgramDate(startDateText)
+    val weekCount = weekCountText.toIntOrNull()?.coerceIn(1, 52) ?: 0
+
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Text(
+                if (isCalendarized) "Programa Simple Calendarizado" else "Pasar a semanas calendarizadas",
+                fontWeight = FontWeight.Black,
+                fontSize = 20.sp,
+            )
+            Text(
+                "Esto sirve cuando tu semana real cambia: turnos rotativos, viajes, exámenes, semanas con pocos días libres o una etapa donde no puedes repetir el ciclo normal. Tu rutina cíclica queda pausada; mientras dura este break, los loops y eventos cíclicos no se aplican.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 17.sp,
+            )
+
+            if (isCalendarized) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                ) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Break calendarizado activo", fontWeight = FontWeight.Black)
+                        Text(
+                            "Cuando termines estas semanas, puedes recuperar la rutina cíclica anterior o empezar una nueva desde cero.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Button(
+                    onClick = onRecoverCycle,
+                    enabled = program.pausedCyclicSnapshot != null,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Recuperar ciclo guardado")
+                }
+                OutlinedButton(onClick = onStartFreshCycle, modifier = Modifier.fillMaxWidth()) {
+                    Text("Empezar ciclo desde cero")
+                }
+                Spacer(Modifier.height(16.dp))
+                return@Column
+            }
+
+            NativeDateField(
+                label = "Primera semana",
+                value = startDateText,
+                emptyLabel = "Seleccionar inicio",
+                onValueChange = { startDateText = it },
+            )
+            OutlinedTextField(
+                value = weekCountText,
+                onValueChange = { input -> weekCountText = input.filter(Char::isDigit).take(2) },
+                label = { Text("Cantidad de semanas") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Días disponibles", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                CalendarDayChecklist(
+                    selectedDays = trainingDays,
+                    onToggleDay = { day ->
+                        trainingDays = if (day in trainingDays) trainingDays - day else trainingDays + day
+                    },
+                )
+            }
+            Button(
+                onClick = { startDate?.let { onStartBreak(it, weekCount, trainingDays) } },
+                enabled = startDate != null && weekCount > 0 && trainingDays.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Crear break calendarizado")
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun CalendarDayChecklist(
+    selectedDays: Set<Int>,
+    onToggleDay: (Int) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        (1..7).forEach { day ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { onToggleDay(day) }
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(
+                    checked = day in selectedDays,
+                    onCheckedChange = { onToggleDay(day) },
+                )
+                Column {
+                    Text(dayFullLabel(day), fontWeight = FontWeight.SemiBold)
+                    Text("Se asignará fecha real en cada semana.", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
     }
 }
 
@@ -1470,7 +1642,19 @@ private fun Program.renameMesocycle(
 }
 
 private fun Program.addWeekToBlock(macroIndex: Int, blockIndex: Int, name: String): Program {
-    val week = defaultWeek(name)
+    val week = if (
+        isSimpleTemporalProgram &&
+        simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
+        calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
+    ) {
+        buildSimpleCalendarWeeks(
+            startDate = nextSimpleCalendarStart(),
+            weekCount = 1,
+            trainingDays = suggestCalendarTrainingDays(),
+        ).first()
+    } else {
+        defaultWeek(name)
+    }
     return copy(
         macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
             if (currentMacroIndex != macroIndex) macro
@@ -1896,6 +2080,169 @@ private fun preferredDayOfWeek(type: KeyDateType): Int {
         KeyDateType.TRAVEL -> 2
         KeyDateType.CUSTOM -> 1
     }
+}
+
+private fun Program.startSimpleCalendarizedBreak(
+    startDate: LocalDate,
+    weekCount: Int,
+    trainingDays: Set<Int>,
+): Program {
+    val safeWeeks = weekCount.coerceIn(1, 52)
+    val safeDays = trainingDays.filter { it in 1..7 }.toSet().ifEmpty { suggestCalendarTrainingDays() }
+    val snapshot = pausedCyclicSnapshot ?: toSimpleProgramSnapshot()
+    val weeks = buildSimpleCalendarWeeks(startDate, safeWeeks, safeDays)
+
+    return copy(
+        structure = ProgramStructure.SIMPLE,
+        timelineStartDate = startDate.toString(),
+        calendarization = ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
+        simpleProgramKind = SimpleProgramKind.CALENDARIZED,
+        pausedCyclicSnapshot = snapshot,
+        loops = emptyList(),
+        loopState = null,
+        events = emptyList(),
+        macrocycles = listOf(
+            Macrocycle(
+                id = "macro_calendarized_${System.nanoTime()}",
+                name = "Break calendarizado",
+                blocks = listOf(
+                    Block(
+                        id = "block_calendarized_${System.nanoTime()}",
+                        name = "Semanas calendarizadas",
+                        mesocycles = listOf(
+                            Mesocycle(
+                                id = "meso_calendarized_${System.nanoTime()}",
+                                name = "Calendarizado",
+                                goal = MesocycleGoal.ACCUMULATION,
+                                weeks = weeks,
+                            )
+                        ),
+                    )
+                ),
+            )
+        ),
+    )
+}
+
+private fun Program.restorePausedCyclicProgram(): Program {
+    val snapshot = pausedCyclicSnapshot ?: return copy(
+        calendarization = null,
+        simpleProgramKind = SimpleProgramKind.CYCLIC,
+        pausedCyclicSnapshot = null,
+    )
+    return copy(
+        structure = ProgramStructure.SIMPLE,
+        calendarization = null,
+        simpleProgramKind = SimpleProgramKind.CYCLIC,
+        macrocycles = snapshot.macrocycles,
+        loops = snapshot.loops,
+        loopState = snapshot.loopState,
+        events = snapshot.events,
+        selectedSplitId = snapshot.selectedSplitId,
+        customSplitPattern = snapshot.customSplitPattern,
+        customSplitName = snapshot.customSplitName,
+        customSplitDescription = snapshot.customSplitDescription,
+        blockSplitSelections = snapshot.blockSplitSelections,
+        pausedCyclicSnapshot = null,
+    )
+}
+
+private fun Program.startFreshSimpleCycle(): Program {
+    return copy(
+        structure = ProgramStructure.SIMPLE,
+        calendarization = null,
+        simpleProgramKind = SimpleProgramKind.CYCLIC,
+        pausedCyclicSnapshot = null,
+        loops = emptyList(),
+        loopState = null,
+        events = emptyList(),
+        macrocycles = listOf(
+            Macrocycle(
+                id = "macro_simple_${System.nanoTime()}",
+                name = "Macrociclo base",
+                blocks = listOf(defaultBlock("Ciclo base")),
+            )
+        ),
+    )
+}
+
+private fun Program.toSimpleProgramSnapshot(): SimpleProgramSnapshot =
+    SimpleProgramSnapshot(
+        macrocycles = macrocycles,
+        loops = loops,
+        loopState = loopState,
+        events = events,
+        selectedSplitId = selectedSplitId,
+        customSplitPattern = customSplitPattern,
+        customSplitName = customSplitName,
+        customSplitDescription = customSplitDescription,
+        blockSplitSelections = blockSplitSelections,
+        savedAtMs = System.currentTimeMillis(),
+    )
+
+private fun Program.nextSimpleCalendarStart(): LocalDate {
+    val lastEnd = macrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .mapNotNull { parseProgramDate(it.endDate) }
+        .maxOrNull()
+    return lastEnd?.plusDays(1) ?: parseProgramDate(timelineStartDate) ?: LocalDate.now()
+}
+
+private fun Program.suggestCalendarTrainingDays(): Set<Int> {
+    val daysFromDates = macrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .flatMap { it.trainingDayDates.keys }
+        .filter { it in 1..7 }
+        .toSet()
+    if (daysFromDates.isNotEmpty()) return daysFromDates
+
+    val daysFromSessions = macrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .flatMap { it.sessions }
+        .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+        .toSet()
+    return daysFromSessions.ifEmpty { setOf(1, 3, 5) }
+}
+
+private fun buildSimpleCalendarWeeks(
+    startDate: LocalDate,
+    weekCount: Int,
+    trainingDays: Set<Int>,
+): List<ProgramWeek> {
+    return (0 until weekCount).map { index ->
+        val weekStart = startDate.plusWeeks(index.toLong())
+        val weekEnd = weekStart.plusDays(6)
+        ProgramWeek(
+            id = "week_calendarized_${System.nanoTime()}_$index",
+            name = calendarWeekTitle(weekStart),
+            startDate = weekStart.toString(),
+            endDate = weekEnd.toString(),
+            trainingDayDates = trainingDays.associateWith { day ->
+                weekStart.plusDays((day - 1).toLong()).toString()
+            },
+        )
+    }
+}
+
+private fun calendarWeekTitle(startDate: LocalDate): String {
+    return "Semana: ${startDate.format(DateTimeFormatter.ofPattern("MM/dd", Locale.US))}"
+}
+
+private fun dayFullLabel(day: Int): String = when (day) {
+    1 -> "Lunes"
+    2 -> "Martes"
+    3 -> "Miércoles"
+    4 -> "Jueves"
+    5 -> "Viernes"
+    6 -> "Sábado"
+    7 -> "Domingo"
+    else -> "Día"
 }
 
 private fun buildProgramFromProtocol(program: Program, protocol: Protocol): Program {

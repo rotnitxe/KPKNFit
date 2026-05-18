@@ -10,6 +10,7 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarization
 import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.SimpleProgramKind
@@ -160,10 +161,31 @@ class WorkoutSessionRulesTest {
                 macro.copy(blocks = macro.blocks + Block(id = "b2", name = "Bloque 2"))
             },
         )
+        val advancedCalendarized = advanced.copy(
+            timelineStartDate = "2026-05-18",
+            calendarization = ProgramCalendarization(ProgramCalendarizationMode.ADVANCED_COMPETITION),
+        )
 
         assertEquals(WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED, WorkoutEditingRules.liveEditPersistenceScope(simpleCyclic))
         assertEquals(WorkoutLiveEditPersistenceScope.SESSION_ONLY, WorkoutEditingRules.liveEditPersistenceScope(simpleCalendarized))
         assertEquals(WorkoutLiveEditPersistenceScope.SESSION_ONLY, WorkoutEditingRules.liveEditPersistenceScope(advanced))
+        assertEquals(WorkoutLiveEditPersistenceScope.SESSION_ONLY, WorkoutEditingRules.liveEditPersistenceScope(advancedCalendarized))
+        assertEquals(
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.PERMANENT),
+            WorkoutEditingRules.replacementPersistenceOptions(simpleCyclic),
+        )
+        assertEquals(
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
+            WorkoutEditingRules.replacementPersistenceOptions(simpleCalendarized),
+        )
+        assertEquals(
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
+            WorkoutEditingRules.replacementPersistenceOptions(advanced),
+        )
+        assertEquals(
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
+            WorkoutEditingRules.replacementPersistenceOptions(advancedCalendarized),
+        )
     }
 
     @Test
