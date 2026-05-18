@@ -74,6 +74,7 @@ internal fun WorkoutExerciseTabs(
     rmBodyWeight: Double? = null,
     rmCurrentLoadMode: LoadModeV2? = null,
     onRmWeightSelected: ((Double) -> Unit)? = null,
+    allowExerciseManagementActions: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val tagsOverflow = WORKOUT_COMMON_TAGS.size > 6
@@ -88,7 +89,9 @@ internal fun WorkoutExerciseTabs(
         WorkoutExerciseContextTab.REPLACE to "Reemplazar",
         WorkoutExerciseContextTab.EDIT to "Editar",
         WorkoutExerciseContextTab.RM_CALC to "Calc. RM",
-    )
+    ).filter { (tab, _) ->
+        allowExerciseManagementActions || (tab != WorkoutExerciseContextTab.REPLACE && tab != WorkoutExerciseContextTab.EDIT)
+    }
 
     Column(modifier = modifier) {
         if (selectedTab != WorkoutExerciseContextTab.HISTORY && ghostSet != null && (ghostSet.weight > 0 || ghostSet.reps > 0)) {

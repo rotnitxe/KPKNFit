@@ -3,6 +3,7 @@ package com.example.kpkn.domain.calculations
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
@@ -131,6 +132,29 @@ fun estimateRepsFromPercent1RM(percent: Double): Int {
 
 private fun roundSuggestedLoad(weight: Double): Double = (weight * 4.0).roundToInt() / 4.0
 
+private fun assistanceFactor(metric: Double): Double {
+    if (metric <= 0.0) return 0.0
+    val normalizedMetric = metric.coerceAtMost(300.0)
+    return when {
+        normalizedMetric <= 1.0 -> 1.0
+        normalizedMetric <= 10.0 -> 36.0 / (37.0 - normalizedMetric)
+        normalizedMetric <= 20.0 -> 1.0 + normalizedMetric / 30.0
+        else -> (1 + 20.0 / 30.0) * (1 + (normalizedMetric - 20.0) / 80.0).pow(0.9)
+    }
+}
+
+private fun calculateAssistedLoadFromPr(
+    prAssistance: Double,
+    prMetric: Double,
+    targetMetric: Double,
+): Double {
+    if (prAssistance <= 0.0 || prMetric <= 0.0 || targetMetric <= 0.0) return 0.0
+    val prFactor = assistanceFactor(prMetric)
+    if (prFactor <= 0.0) return 0.0
+    val targetFactor = assistanceFactor(targetMetric)
+    return prAssistance * (targetFactor / prFactor)
+}
+
 private fun plannedMetricForMode(set: ExerciseSet, trainingMode: TrainingMode): Double? = when (trainingMode) {
     TrainingMode.TIME -> set.targetDuration?.toDouble()
     TrainingMode.SOLO_RPE -> null
@@ -205,6 +229,19 @@ fun resolveReferenceCapacity(
 }
 
 fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
+    val loadMode = set.loadModeV2 ?: LoadModeV2.LOAD
+    if (loadMode == LoadModeV2.BODYWEIGHT) return 0.0
+    if (loadMode == LoadModeV2.ASSISTED) {
+        val pr = exercise.prFor1RM ?: return null
+        val targetMetric = effectiveMetricForSuggestion(set, exercise.trainingMode) ?: return null
+        val suggestedAssistance = calculateAssistedLoadFromPr(
+            prAssistance = pr.weight,
+            prMetric = pr.reps.toDouble(),
+            targetMetric = targetMetric,
+        )
+        return if (suggestedAssistance > 0.0) roundSuggestedLoad(suggestedAssistance) else null
+    }
+
     val referenceCapacity = resolveReferenceCapacity(exercise) ?: return null
     val suggested = when (exercise.trainingMode) {
         TrainingMode.RM -> {
@@ -236,6 +273,19 @@ fun calculateSuggestedLoad(
     set: ExerciseSet,
     history: List<WorkoutLog>,
 ): Double? {
+    val loadMode = set.loadModeV2 ?: LoadModeV2.LOAD
+    if (loadMode == LoadModeV2.BODYWEIGHT) return 0.0
+    if (loadMode == LoadModeV2.ASSISTED) {
+        val pr = exercise.prFor1RM ?: return null
+        val targetMetric = effectiveMetricForSuggestion(set, exercise.trainingMode) ?: return null
+        val suggestedAssistance = calculateAssistedLoadFromPr(
+            prAssistance = pr.weight,
+            prMetric = pr.reps.toDouble(),
+            targetMetric = targetMetric,
+        )
+        return if (suggestedAssistance > 0.0) roundSuggestedLoad(suggestedAssistance) else null
+    }
+
     val referenceCapacity = resolveReferenceCapacity(exercise, history) ?: return null
     val suggested = when (exercise.trainingMode) {
         TrainingMode.RM -> {

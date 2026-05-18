@@ -31,19 +31,37 @@ fun DumbbellIcon(tint: Color, size: Dp = 24.dp) {
     }
 }
 
-// ─── Fork+Plate (Nutrición tab) ─────────────────────────────────────────────
+// ─── Apple (Nutrición tab) ──────────────────────────────────────────────────
 @Composable
 fun NutritionIcon(tint: Color, size: Dp = 24.dp) {
     Canvas(Modifier.size(size)) {
-        val sw = 1.5.dp.toPx()
-        // Fork prongs
-        drawLine(tint, Offset(6.dp.toPx(), 4.dp.toPx()), Offset(6.dp.toPx(), 12.dp.toPx()), sw)
-        drawLine(tint, Offset(9.dp.toPx(), 4.dp.toPx()), Offset(9.dp.toPx(), 12.dp.toPx()), sw)
-        drawLine(tint, Offset(6.dp.toPx(), 12.dp.toPx()), Offset(9.dp.toPx(), 12.dp.toPx()), sw)
-        drawLine(tint, Offset(7.5.dp.toPx(), 12.dp.toPx()), Offset(7.5.dp.toPx(), 20.dp.toPx()), 2.dp.toPx())
-        // Plate (oval)
-        drawOval(tint, Offset(14.dp.toPx(), 4.dp.toPx()), Size(6.dp.toPx(), 10.dp.toPx()), style = Stroke(sw))
-        drawLine(tint, Offset(17.dp.toPx(), 14.dp.toPx()), Offset(17.dp.toPx(), 20.dp.toPx()), 2.dp.toPx())
+        val apple = Path().apply {
+            moveTo(12.dp.toPx(), 8.1.dp.toPx())
+            cubicTo(10.5.dp.toPx(), 6.8.dp.toPx(), 7.7.dp.toPx(), 6.7.dp.toPx(), 6.1.dp.toPx(), 8.6.dp.toPx())
+            cubicTo(3.8.dp.toPx(), 11.2.dp.toPx(), 5.0.dp.toPx(), 17.5.dp.toPx(), 7.7.dp.toPx(), 20.0.dp.toPx())
+            cubicTo(9.0.dp.toPx(), 21.2.dp.toPx(), 10.4.dp.toPx(), 20.2.dp.toPx(), 12.0.dp.toPx(), 20.2.dp.toPx())
+            cubicTo(13.6.dp.toPx(), 20.2.dp.toPx(), 15.0.dp.toPx(), 21.2.dp.toPx(), 16.3.dp.toPx(), 20.0.dp.toPx())
+            cubicTo(19.0.dp.toPx(), 17.5.dp.toPx(), 20.2.dp.toPx(), 11.2.dp.toPx(), 17.9.dp.toPx(), 8.6.dp.toPx())
+            cubicTo(16.3.dp.toPx(), 6.7.dp.toPx(), 13.5.dp.toPx(), 6.8.dp.toPx(), 12.0.dp.toPx(), 8.1.dp.toPx())
+            close()
+        }
+        drawPath(apple, tint)
+
+        drawLine(
+            color = tint,
+            start = Offset(12.dp.toPx(), 7.5.dp.toPx()),
+            end = Offset(13.3.dp.toPx(), 4.2.dp.toPx()),
+            strokeWidth = 1.7.dp.toPx(),
+            cap = androidx.compose.ui.graphics.StrokeCap.Round,
+        )
+
+        val leaf = Path().apply {
+            moveTo(14.2.dp.toPx(), 5.2.dp.toPx())
+            cubicTo(15.5.dp.toPx(), 3.4.dp.toPx(), 18.1.dp.toPx(), 3.2.dp.toPx(), 19.5.dp.toPx(), 4.1.dp.toPx())
+            cubicTo(18.5.dp.toPx(), 5.9.dp.toPx(), 16.1.dp.toPx(), 6.9.dp.toPx(), 14.2.dp.toPx(), 5.2.dp.toPx())
+            close()
+        }
+        drawPath(leaf, tint)
     }
 }
 
@@ -104,34 +122,3 @@ fun CaupolicanIcon(
     }
 }
 
-// ─── Single Ring with Glow (Mis RINGS tab) ───────────────────────────────────
-@Composable
-fun RingsTabIcon(tint: Color, size: Dp = 24.dp) {
-    val yellow = Color(0xFFFFD740)
-    val glowColor = if (tint == yellow) yellow else tint
-    Canvas(Modifier.size(size)) {
-        val center = Offset(this.size.width / 2f, this.size.height / 2f)
-        val r = minOf(this.size.width, this.size.height) / 2f - 2.dp.toPx()
-        val sw = 2.2.dp.toPx()
-        // Outer glow (resplandor)
-        drawCircle(
-            brush = androidx.compose.ui.graphics.Brush.radialGradient(
-                colors = listOf(glowColor.copy(alpha = 0.35f), glowColor.copy(alpha = 0.0f)),
-                center = center,
-                radius = r + 3.dp.toPx(),
-            ),
-            radius = r + 3.dp.toPx(),
-            center = center,
-        )
-        // Ring arc (300° sweep, open at top-left for style)
-        drawArc(
-            color = glowColor,
-            startAngle = -230f,
-            sweepAngle = 300f,
-            useCenter = false,
-            topLeft = Offset(center.x - r, center.y - r),
-            size = Size(r * 2, r * 2),
-            style = Stroke(width = sw, cap = androidx.compose.ui.graphics.StrokeCap.Round),
-        )
-    }
-}

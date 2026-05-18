@@ -20,6 +20,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -179,12 +180,12 @@ fun HomeScreen(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .hazeSource(state = hazeState)
     ) {
-        Scaffold(
-            containerColor = Color.Transparent,
-            topBar = {},
-        ) { innerPadding ->
+        Box(
+            Modifier
+                .fillMaxSize()
+                .hazeSource(state = hazeState)
+        ) {
             HomeWithProgram(
                 viewModel = viewModel,
                 muscularProgress = muscularProgress,
@@ -210,7 +211,8 @@ fun HomeScreen(
                 onAddMeal = { showFoodLogger = true },
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = innerPadding.calculateBottomPadding()),
+                    .navigationBarsPadding(),
+                listModifier = Modifier,
             )
         }
 
@@ -237,7 +239,7 @@ fun HomeScreen(
             onAddMeal = { showFoodLogger = true },
             onNavigateToProfile = onNavigateToProfile,
             hazeState = hazeState,
-            hazeStyle = hazeStyle,
+            glassStyle = hazeStyle,
         )
 
         var showPostSessionSheet by remember { mutableStateOf(false) }
@@ -439,23 +441,35 @@ private fun HomeTopBar(
     onAddMeal: () -> Unit,
     onNavigateToProfile: () -> Unit,
     hazeState: HazeState,
-    hazeStyle: HazeStyle,
+    glassStyle: HazeStyle,
 ) {
+    val bottomBorderColor = Color.White.copy(alpha = 0.10f)
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .hazeEffect(state = hazeState, style = hazeStyle),
+            .height(80.dp)
+            .hazeEffect(state = hazeState, style = glassStyle)
+            .drawBehind {
+                drawLine(
+                    color = bottomBorderColor,
+                    start = Offset(0f, size.height),
+                    end = Offset(size.width, size.height),
+                    strokeWidth = 1.dp.toPx(),
+                )
+            },
+        shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
         color = Color.Black.copy(alpha = 0.18f),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
-        Box(modifier = Modifier.fillMaxWidth().background(Color.Black.copy(alpha = 0.10f))) {
+        Box(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .height(56.dp)
-                    .padding(horizontal = 16.dp),
+                    .fillMaxHeight()
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 4.dp, bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
@@ -467,10 +481,10 @@ private fun HomeTopBar(
                     Image(
                         painter = painterResource(R.drawable.kpknicon),
                         contentDescription = "KPKN",
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(46.dp),
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                     )
-                    val boxHeightDp = 32.dp
+                    val boxHeightDp = 24.dp
                     val topBarDensity = LocalDensity.current
                     val boxHeightPx = with(topBarDensity) { boxHeightDp.toPx() }
                     
@@ -521,7 +535,7 @@ private fun HomeTopBar(
                         nutritionSlide = 0f
                     }
 
-                    Box(modifier = Modifier.height(boxHeightDp).weight(1f), contentAlignment = Alignment.CenterStart) {
+                    Box(modifier = Modifier.height(48.dp).weight(1f), contentAlignment = Alignment.TopStart) {
                         Text("$greeting, $userName!", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.graphicsLayer { alpha = greetingAlpha; translationY = greetingSlide })
                         MiniRingsWidget(muscularProgress = muscularProgress, sncProgress = sncProgress, columnaProgress = columnaProgress, hasActiveProgram = hasPrograms, modifier = Modifier.graphicsLayer { alpha = ringsAlpha; translationY = ringsSlide })
                         MiniSessionCard(hasPrograms = hasPrograms, todaySessions = todaySessions, onStartWorkout = onStartWorkout, onCreateProgram = onCreateProgram, modifier = Modifier.graphicsLayer { alpha = sessionAlpha; translationY = sessionSlide })

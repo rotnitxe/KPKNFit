@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -61,54 +62,78 @@ internal fun WorkoutSetPager(
                     ) { onSelectPage(index) },
             ) {
                 if (isUnilateral) {
+                    val expectedSides = item.side
+                        ?.split("|")
+                        ?.filter { it == "left" || it == "right" }
+                        ?.takeIf { it.isNotEmpty() }
+                        ?: listOf("left", "right")
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(dotSize.dp)
-                                .clip(CircleShape)
+                                .size(width = if (isActive) 58.dp else 46.dp, height = if (isActive) 34.dp else 28.dp)
+                                .clip(RoundedCornerShape(11.dp))
                                 .background(
                                     when {
-                                        isActive -> accentColor
-                                        item.state == WorkoutSetCardVisualState.COMPLETED -> accentColor.copy(alpha = 0.35f)
+                                        isActive -> accentColor.copy(alpha = 0.22f)
+                                        item.state == WorkoutSetCardVisualState.COMPLETED -> accentColor.copy(alpha = 0.14f)
                                         else -> Color.Transparent
                                     }
                                 )
-                                .let { mod ->
-                                    if (!isActive && item.state == WorkoutSetCardVisualState.FUTURE) {
-                                        mod.border(1.5.dp, accentColor.copy(alpha = 0.5f), CircleShape)
-                                    } else if (!isActive) {
-                                        mod.border(1.dp, accentColor.copy(alpha = 0.25f), CircleShape)
-                                    } else mod
-                                },
+                                .border(
+                                    width = if (isActive) 1.5.dp else 1.dp,
+                                    color = when {
+                                        isActive -> accentColor
+                                        item.state == WorkoutSetCardVisualState.FUTURE -> accentColor.copy(alpha = 0.45f)
+                                        else -> accentColor.copy(alpha = 0.24f)
+                                    },
+                                    shape = RoundedCornerShape(11.dp),
+                                ),
                             contentAlignment = Alignment.Center,
                         ) {
-                            androidx.compose.material3.Text(
-                                text = item.label,
-                                style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Black,
-                                color = if (isActive) androidx.compose.material3.MaterialTheme.colorScheme.surface else accentColor,
-                            )
-                        }
-                        if (isActive && sideCompleted != null && selectedSide != null) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                                listOf("left" to "L", "right" to "R").forEach { (side, label) ->
-                                    val done = sideCompleted(side)
-                                    Box(
-                                        modifier = Modifier
-                                            .size(8.dp)
-                                            .clip(CircleShape)
-                                            .background(
-                                                when {
-                                                    done -> accentColor.copy(alpha = 0.7f)
-                                                    selectedSide == side -> accentColor
-                                                    else -> accentColor.copy(alpha = 0.18f)
-                                                }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(1.dp),
+                            ) {
+                                androidx.compose.material3.Text(
+                                    text = item.label,
+                                    style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = if (isActive) accentColor else accentColor.copy(alpha = 0.78f),
+                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    expectedSides.forEach { side ->
+                                        val label = if (side == "left") "L" else "R"
+                                        val done = sideCompleted?.invoke(side) == true && isActive
+                                        val isSelected = isActive && selectedSide == side
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(5.dp))
+                                                .background(
+                                                    when {
+                                                        done -> accentColor
+                                                        isSelected -> accentColor.copy(alpha = 0.82f)
+                                                        else -> accentColor.copy(alpha = 0.14f)
+                                                    }
+                                                )
+                                                .border(
+                                                    width = if (done || isSelected) 0.dp else 0.5.dp,
+                                                    color = accentColor.copy(alpha = 0.34f),
+                                                    shape = RoundedCornerShape(5.dp),
+                                                )
+                                                .padding(horizontal = 4.dp, vertical = 0.dp),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            androidx.compose.material3.Text(
+                                                text = label,
+                                                style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Black,
+                                                color = if (done || isSelected) androidx.compose.material3.MaterialTheme.colorScheme.surface else accentColor,
                                             )
-                                            .border(if (!done && selectedSide != side) 0.5.dp else 0.dp, accentColor.copy(alpha = 0.3f), CircleShape),
-                                    )
+                                        }
+                                    }
                                 }
                             }
                         }

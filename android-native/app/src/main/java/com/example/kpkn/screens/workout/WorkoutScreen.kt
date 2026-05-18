@@ -100,6 +100,7 @@ import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SupersetGroup
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralTarget
@@ -121,6 +122,11 @@ import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
+import com.example.kpkn.screens.sessioneditor.CompactModeSelector
+import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
+import com.example.kpkn.screens.sessioneditor.SideOrderChip
+import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
+import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
@@ -194,15 +200,14 @@ fun WorkoutScreen(
     val bottomHazeState = remember { HazeState() }
     val glassStyle = remember {
         HazeStyle(
-            blurRadius = 32.dp,
-            tint = HazeTint(Color.Black.copy(alpha = 0.18f)),
-            backgroundColor = Color.Black.copy(alpha = 0.25f),
-            noiseFactor = 0.02f,
+            blurRadius = 20.dp,
+            tint = HazeTint(Color.Black.copy(alpha = 0.30f)),
+            backgroundColor = Color.Black.copy(alpha = 0.34f),
+            noiseFactor = 0.03f,
         )
     }
-    val showReadinessSheet = remember {
-        mutableStateOf(!isMeetOrComp && uiState.readinessNeuralOverride == null)
-    }
+    var readinessSheetDismissed by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
+    val showReadinessSheet = !readinessSheetDismissed && !isMeetOrComp && uiState.readinessNeuralOverride == null
 
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsState()
 
@@ -371,6 +376,8 @@ fun WorkoutScreen(
     var showWorkoutSupersetCreator by remember { mutableStateOf(false) }
     var workoutSupersetSelectedExerciseId by remember { mutableStateOf<String?>(null) }
     var supersetSettingsGroupId by remember { mutableStateOf<String?>(null) }
+    var addCatalogToSupersetGroupId by remember { mutableStateOf<String?>(null) }
+    var addCatalogSearchQuery by remember { mutableStateOf("") }
     var showReorderSheet by remember { mutableStateOf(false) }
     var reorderSheetPartId by remember { mutableStateOf<String?>(null) }
     var reorderSheetExerciseIds by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -389,9 +396,9 @@ fun WorkoutScreen(
         }
     }
 
-    val currentPartName = remember(uiState.currentExerciseIdx, renderedParts, visibleExercises) {
+    val currentPartName = remember(uiState.currentExerciseIdx, modeSession.parts, visibleExercises) {
         val exId = visibleExercises.getOrNull(uiState.currentExerciseIdx)?.id ?: return@remember "Sesion"
-        renderedParts.firstOrNull { part -> part.exercises.any { it.id == exId } }?.name ?: "Sesión"
+        modeSession.parts.firstOrNull { part -> part.exercises.any { it.id == exId } }?.name
     }
 
     LaunchedEffect(currentExercise?.id) {
@@ -435,27 +442,30 @@ fun WorkoutScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
                     .hazeEffect(state = bottomHazeState, style = glassStyle),
                 shadowElevation = 8.dp,
-                shape = RoundedCornerShape(14.dp),
-                color = Color(0xFF2A2A2A),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                color = Color.Black.copy(alpha = 0.18f),
+                tonalElevation = 0.dp,
             ) {
                 Column(
                     modifier = Modifier
                         .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                        .padding(vertical = 10.dp),
                 ) {
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
                             .hazeEffect(state = bottomHazeState, style = glassStyle),
-                        color = Color(0xFF2A2A2A),
-                        shape = RoundedCornerShape(12.dp),
+                        color = Color.Black.copy(alpha = 0.10f),
+                        tonalElevation = 0.dp,
+                        shadowElevation = 0.dp,
+                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                     ) {
                         UnifiedExerciseCarousel(
                             exercises = visibleExercises,
                             parts = renderedParts,
+                            supersetGroups = modeSession.allSupersetGroups(),
                             currentIdx = uiState.currentExerciseIdx,
                             currentSetIdx = uiState.currentSetIdx,
                             completedSets = uiState.completedSets,
@@ -531,6 +541,9 @@ fun WorkoutScreen(
             onDecrease = { viewModel.addRestTime(-15) },
             onIncrease = { viewModel.addRestTime(15) },
             onSkip = { viewModel.stopRestTimer() },
+            skipExerciseLabel = currentExercise?.name?.let { exerciseName ->
+                "Saltar series restantes de $exerciseName e ir al siguiente ejercicio"
+            },
             onSkipExercise = if (canSkipCurrentExerciseOnRestFinish) {
                 { viewModel.deferSkipRemainingCurrentExercise() }
             } else {
@@ -541,7 +554,7 @@ fun WorkoutScreen(
     }
 
     // ─── Readiness sheet overlay ───────────────────────────────────────────────
-    if (showReadinessSheet.value) {
+    if (showReadinessSheet) {
         val augeRepository = remember(context) { AugeRepository.getInstance(context) }
         val todayWellbeing by produceState<DailyWellbeingLog?>(initialValue = null) {
             value = augeRepository.getTodayWellbeing()
@@ -749,7 +762,7 @@ fun WorkoutScreen(
                             sleepQuality = todayWellbeing?.sleepQuality,
                         )
                         allowSheetDismiss = true
-                        showReadinessSheet.value = false
+                        readinessSheetDismissed = true
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.extraLarge,
@@ -797,7 +810,7 @@ fun WorkoutScreen(
                             Button(
                                 onClick = {
                                     allowSheetDismiss = true
-                                    showReadinessSheet.value = false
+                                    readinessSheetDismissed = true
                                     showDismissConfirmDialog = false
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -960,29 +973,51 @@ fun WorkoutScreen(
                         exerciseContextExerciseId = null
                     },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.Add, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Agregar ejercicio") }
+                ) { Icon(Icons.Default.Add, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Agregar ejercicio de la sesión") }
+                OutlinedButton(
+                    onClick = {
+                        addCatalogToSupersetGroupId = contextSupersetGroupId
+                        addCatalogSearchQuery = ""
+                        exerciseContextExerciseId = null
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Icon(Icons.Default.LibraryAdd, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Incluir ejercicio del catálogo") }
                 OutlinedButton(
                     onClick = {
                         supersetSettingsGroupId = contextSupersetGroupId
                         exerciseContextExerciseId = null
                     },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.Timer, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Rondas y descansos") }
-                OutlinedButton(
-                    onClick = {
-                        replaceTargetExerciseId = contextExercise.id
-                        showReplaceExercisePicker = true
-                        exerciseContextExerciseId = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.SwapHoriz, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Reemplazar este ejercicio") }
-                OutlinedButton(
-                    onClick = {
-                        editSheetExerciseId = contextExercise.id
-                        exerciseContextExerciseId = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.Edit, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Editar series") }
+                ) { Icon(Icons.Default.Timer, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Quitar o añadir rondas") }
+                Text("Reemplazar ejercicio", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                members.forEach { member ->
+                    OutlinedButton(
+                        onClick = {
+                            replaceTargetExerciseId = member.id
+                            showReplaceExercisePicker = true
+                            exerciseContextExerciseId = null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.SwapHoriz, null, Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(member.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+                Text("Editar parámetros", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                members.forEach { member ->
+                    OutlinedButton(
+                        onClick = {
+                            editSheetExerciseId = member.id
+                            exerciseContextExerciseId = null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.Edit, null, Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(member.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
                 Button(
                     onClick = {
                         viewModel.dissolveLiveSuperset(contextSupersetGroupId, preferredExerciseId = contextExercise.id)
@@ -990,7 +1025,7 @@ fun WorkoutScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                ) { Icon(Icons.Default.LinkOff, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Disolver superserie") }
+                ) { Icon(Icons.Default.LinkOff, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Disolver en ejercicios normales") }
             } else {
                 FilledTonalButton(
                     onClick = {
@@ -1227,7 +1262,7 @@ fun WorkoutScreen(
         }
         AlertDialog(
             onDismissRequest = { closeWorkoutSupersetCreator() },
-            title = { Text("Crear superserie", fontWeight = FontWeight.Black) },
+            title = { Text(if (supersetAnchorGroupId == null) "Crear superserie" else "Agregar a superserie", fontWeight = FontWeight.Black) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -1283,7 +1318,7 @@ fun WorkoutScreen(
                         viewModel.createLiveSuperset(supersetSelectedIds, partId = supersetAnchorPartId)
                         closeWorkoutSupersetCreator()
                     },
-                ) { Text("Crear superserie", fontWeight = FontWeight.Bold) }
+                ) { Text(if (supersetAnchorGroupId == null) "Crear superserie" else "Actualizar superserie", fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
                 TextButton(onClick = { closeWorkoutSupersetCreator() }) { Text("Cancelar") }
@@ -1292,11 +1327,11 @@ fun WorkoutScreen(
     }
 
     if (editSheetExerciseId != null) {
-        val editEx = visibleExercises.firstOrNull { it.id == editSheetExerciseId }
+        val editEx = modeSession.allExercises().firstOrNull { it.id == editSheetExerciseId }
         if (editEx != null) {
             var draftExercise by remember(editSheetExerciseId, editEx) { mutableStateOf(editEx) }
             LaunchedEffect(editEx) {
-                if (draftExercise.id == editEx.id && draftExercise == visibleExercises.firstOrNull { it.id == editEx.id }) {
+                if (draftExercise.id == editEx.id && draftExercise == modeSession.allExercises().firstOrNull { it.id == editEx.id }) {
                     draftExercise = editEx
                 }
             }
@@ -1304,28 +1339,149 @@ fun WorkoutScreen(
                 title = "${draftExercise.name} · Editar series",
                 onDismiss = { editSheetExerciseId = null },
             ) {
-                WorkoutExerciseEditContent(
-                    exercise = draftExercise,
-                    maxVisibleSets = null,
-                    onUpdateSet = { setId, transform ->
-                        draftExercise = draftExercise.copy(
-                            sets = draftExercise.sets.map { set ->
-                                if (set.id == setId) transform(set) else set
-                            },
-                        )
-                    },
-                    onUpdateExercise = { transform ->
-                        draftExercise = transform(draftExercise)
-                    },
-                    onSave = {
-                        val confirmedDraft = draftExercise
-                        viewModel.updateExerciseDefinition(editEx.id) { current ->
-                            confirmedDraft.copy(id = current.id)
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 2.dp),
+                    ) {
+                        item {
+                            CompactModeSelector(
+                                currentMode = draftExercise.trainingMode,
+                                accentColor = sessionAccentColor,
+                            ) { mode -> draftExercise = draftExercise.copy(trainingMode = mode) }
                         }
-                        editSheetExerciseId = null
-                    },
-                    saveLabel = "Confirmar cambios",
-                )
+                        item {
+                            UnilateralModeSelector(
+                                mode = draftExercise.unilateralMode,
+                                accentColor = sessionAccentColor,
+                                onToggleUnilateral = { draftExercise = draftExercise.toggledBilateralUnilateral() },
+                            )
+                        }
+                        if (draftExercise.isEffectivelyUnilateral()) {
+                            item {
+                                SideOrderChip(
+                                    sideOrder = draftExercise.unilateralSideOrder,
+                                    accentColor = sessionAccentColor,
+                                    onToggle = {
+                                        draftExercise = draftExercise.copy(
+                                            unilateralSideOrder = if (draftExercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
+                                                UnilateralSideOrder.RIGHT_LEFT
+                                            } else {
+                                                UnilateralSideOrder.LEFT_RIGHT
+                                            },
+                                        )
+                                    },
+                                )
+                            }
+                        }
+                    }
+
+                    if (draftExercise.isEffectivelyUnilateral()) {
+                        var restBetweenSidesText by remember(draftExercise.id, draftExercise.restBetweenSidesSeconds) {
+                            mutableStateOf((draftExercise.restBetweenSidesSeconds ?: 0).toString())
+                        }
+                        OutlinedTextField(
+                            value = restBetweenSidesText,
+                            onValueChange = { raw ->
+                                restBetweenSidesText = raw.filter(Char::isDigit).take(4)
+                                draftExercise = draftExercise.copy(restBetweenSidesSeconds = restBetweenSidesText.toIntOrNull()?.coerceAtLeast(0))
+                            },
+                            label = { Text("Descanso entre lados (s)") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    ExerciseSetsCarousel(
+                        exercise = draftExercise,
+                        reference1RM = draftExercise.reference1RM ?: draftExercise.calculated1RM ?: draftExercise.consolidatedWeight?.weightKg,
+                        trainingMode = draftExercise.trainingMode,
+                        customUnit = draftExercise.customUnit,
+                        predictedMetrics = emptyMap(),
+                        accentColor = sessionAccentColor,
+                        onAddSet = { side ->
+                            val lastSet = draftExercise.sets.lastOrNull()
+                            val baseTarget = UnilateralTarget(
+                                weight = lastSet?.weight,
+                                targetReps = lastSet?.targetReps,
+                                targetDuration = lastSet?.targetDuration,
+                                targetRPE = lastSet?.targetRPE,
+                                targetRIR = lastSet?.targetRIR,
+                                intensityMode = lastSet?.intensityMode,
+                            )
+                            val newSet = ExerciseSet(
+                                id = UUID.randomUUID().toString(),
+                                targetReps = lastSet?.targetReps,
+                                targetDuration = lastSet?.targetDuration,
+                                targetRPE = lastSet?.targetRPE,
+                                targetRIR = lastSet?.targetRIR,
+                                weight = lastSet?.weight,
+                                loadModeV2 = lastSet?.loadModeV2,
+                                unitModeV2 = lastSet?.unitModeV2,
+                                intensityMode = lastSet?.intensityMode,
+                                targetPercentageRM = lastSet?.targetPercentageRM,
+                                leftTarget = when (side) {
+                                    "left" -> baseTarget
+                                    "right" -> null
+                                    else -> lastSet?.leftTarget
+                                },
+                                rightTarget = when (side) {
+                                    "right" -> baseTarget
+                                    "left" -> null
+                                    else -> lastSet?.rightTarget
+                                },
+                            )
+                            draftExercise = draftExercise.copy(sets = draftExercise.sets + newSet)
+                        },
+                        onUpdateSet = { setId, transform ->
+                            draftExercise = draftExercise.copy(
+                                sets = draftExercise.sets.map { set ->
+                                    if (set.id == setId) transform(set) else set
+                                },
+                            )
+                        },
+                        onRemoveSet = { setId ->
+                            draftExercise = draftExercise.copy(
+                                sets = draftExercise.sets.filterNot { it.id == setId }.ifEmpty {
+                                    listOf(ExerciseSet(id = UUID.randomUUID().toString()))
+                                },
+                            )
+                        },
+                        onMoveSet = { setId, direction ->
+                            val currentIndex = draftExercise.sets.indexOfFirst { it.id == setId }
+                            val targetIndex = (currentIndex + direction).coerceIn(0, draftExercise.sets.lastIndex)
+                            if (currentIndex >= 0 && currentIndex != targetIndex) {
+                                val mutable = draftExercise.sets.toMutableList()
+                                val moved = mutable.removeAt(currentIndex)
+                                mutable.add(targetIndex, moved)
+                                draftExercise = draftExercise.copy(sets = mutable)
+                            }
+                        },
+                    )
+
+                    Button(
+                        onClick = {
+                            val confirmedDraft = draftExercise
+                            viewModel.updateExerciseDefinition(editEx.id) { current ->
+                                confirmedDraft.copy(id = current.id)
+                            }
+                            selectedExerciseContextTab = null
+                            editSheetExerciseId = null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                    ) {
+                        Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Confirmar cambios", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        } else {
+            LaunchedEffect(editSheetExerciseId) {
+                editSheetExerciseId = null
+                selectedExerciseContextTab = null
             }
         }
     }
@@ -1372,6 +1528,76 @@ fun WorkoutScreen(
                     onDismiss = { setupSheetExerciseId = null },
                     sessionAccentColor = sessionAccentColor,
                 )
+            }
+        }
+    }
+
+    if (addCatalogToSupersetGroupId != null) {
+        val targetGroupId = addCatalogToSupersetGroupId!!
+        val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
+        val workoutLogs by programRepository.history.collectAsState()
+        val addCatalogSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+        ModalBottomSheet(
+            onDismissRequest = { addCatalogToSupersetGroupId = null },
+            sheetState = addCatalogSheetState,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            containerColor = Color(0xFF1E1E1E),
+            contentColor = Color.White,
+            tonalElevation = 0.dp,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.2f)) },
+        ) {
+            MaterialTheme(
+                colorScheme = darkColorScheme(
+                    primary = Color(0xFFFFD600),
+                    onPrimary = Color.Black,
+                    primaryContainer = Color(0xFF333333),
+                    onPrimaryContainer = Color.White,
+                    secondary = Color(0xFF3B82F6),
+                    onSecondary = Color.White,
+                    secondaryContainer = Color(0xFF222222),
+                    onSecondaryContainer = Color.White,
+                    tertiary = Color(0xFFFFD600),
+                    onTertiary = Color.Black,
+                    surface = Color(0xFF1E1E1E),
+                    onSurface = Color.White,
+                    surfaceVariant = Color(0xFF2C2C2C),
+                    onSurfaceVariant = Color.White,
+                    background = Color(0xFF1E1E1E),
+                    onBackground = Color.White,
+                    outline = Color.White.copy(alpha = 0.5f),
+                    outlineVariant = Color.White.copy(alpha = 0.3f),
+                )
+            ) {
+                androidx.compose.runtime.CompositionLocalProvider(
+                    androidx.compose.material3.LocalContentColor provides Color.White
+                ) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                        color = Color(0xFF1E1E1E),
+                        contentColor = Color.White
+                    ) {
+                        com.example.kpkn.screens.sessioneditor.ExercisePickerSheet(
+                            query = addCatalogSearchQuery,
+                            catalog = EXERCISE_DATABASE,
+                            workoutLogs = workoutLogs,
+                            editingExisting = false,
+                            onSearch = { addCatalogSearchQuery = it },
+                            onSelect = { info ->
+                                viewModel.addCatalogExerciseToLiveSuperset(targetGroupId, info)
+                                addCatalogToSupersetGroupId = null
+                                addCatalogSearchQuery = ""
+                            },
+                            onMultiSelect = { emptyList() },
+                            onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
+                            onOpenExerciseCreator = { },
+                            onDismiss = {
+                                addCatalogToSupersetGroupId = null
+                                addCatalogSearchQuery = ""
+                            },
+                        )
+                    }
+                }
             }
         }
     }
@@ -1444,7 +1670,7 @@ fun WorkoutScreen(
                             deferPersistencePrompt = true,
                         )
                         editSheetExerciseId = target
-                        selectedExerciseContextTab = WorkoutExerciseContextTab.EDIT
+                        selectedExerciseContextTab = null
                     },
                     onMultiSelect = { emptyList() },
                     onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
@@ -1976,62 +2202,15 @@ private fun WorkoutHeaderBar(
                 verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = exerciseName,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false)
-                        )
-                        if (isSuperset) {
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = Color(0xFFEF4444),
-                                border = BorderStroke(1.5.dp, Color.White.copy(alpha = 0.5f))
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.SwapHoriz,
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Text(
-                                        "SUPERSERIE ACTIVA",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = Color.White,
-                                        fontSize = 11.sp
-                                    )
-                                }
-                            }
-                        }
-                        if (!exerciseTag.isNullOrBlank()) {
-                            Surface(
-                                color = Color.White.copy(alpha = 0.2f),
-                                shape = RoundedCornerShape(999.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.4f))
-                            ) {
-                                Text(
-                                    text = exerciseTag,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Black
-                                )
-                            }
-                        }
-                    }
+                    Text(
+                        text = exerciseName,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                     Text(
                         text = buildString {
                             if (!groupName.isNullOrBlank()) append("$groupName · ")
@@ -2044,24 +2223,76 @@ private fun WorkoutHeaderBar(
                     Spacer(Modifier.height(6.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(99.dp))
-                            .background(Color.White.copy(alpha = 0.12f))
-                            .padding(horizontal = 10.dp, vertical = 3.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Timer,
-                            contentDescription = null,
-                            modifier = Modifier.size(12.dp),
-                            tint = Color.White.copy(alpha = 0.85f)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            text = formatElapsed(elapsedSeconds),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.85f),
-                            fontWeight = FontWeight.Black
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(99.dp))
+                                .background(Color.White.copy(alpha = 0.12f))
+                                .padding(horizontal = 9.dp, vertical = 3.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Timer,
+                                contentDescription = null,
+                                modifier = Modifier.size(11.dp),
+                                tint = Color.White.copy(alpha = 0.85f),
+                            )
+                            Spacer(Modifier.width(5.dp))
+                            Text(
+                                text = formatElapsed(elapsedSeconds),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.85f),
+                                fontWeight = FontWeight.Black,
+                                fontSize = 11.sp,
+                            )
+                        }
+                        if (isSuperset) {
+                            Surface(
+                                shape = RoundedCornerShape(99.dp),
+                                color = Color(0xFFEF4444).copy(alpha = 0.82f),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                ) {
+                                    Icon(
+                                        Icons.Default.SwapHoriz,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(10.dp),
+                                    )
+                                    Text(
+                                        "Superserie",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color.White,
+                                        fontSize = 10.sp,
+                                        maxLines = 1,
+                                    )
+                                }
+                            }
+                        }
+                        if (!exerciseTag.isNullOrBlank()) {
+                            Surface(
+                                color = Color.White.copy(alpha = 0.16f),
+                                shape = RoundedCornerShape(99.dp),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
+                            ) {
+                                Text(
+                                    text = exerciseTag,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White.copy(alpha = 0.9f),
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 10.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -2129,6 +2360,7 @@ private fun WorkoutV2Body(
         uiState.showPostExerciseSheet &&
         uiState.postExerciseTargetIdx == uiState.currentExerciseIdx
     var drainOverlayState by remember { mutableStateOf<ExerciseDrainOverlayState?>(null) }
+    var expandedSupersetWarmups by remember { mutableStateOf<Set<String>>(emptySet()) }
 
     LaunchedEffect(currentExercise?.id, uiState.currentSetIdx) {
         recordActionHolder.action = null
@@ -2172,12 +2404,33 @@ private fun WorkoutV2Body(
                 }?.weight?.takeIf { it > 0 }
                     ?: currentExercise.consolidatedWeight?.weightKg
                     ?: currentExercise.sets.firstOrNull { it.weight != null && it.weight > 0 }?.weight
-                WarmupInlineCard(
-                    exercise = currentExercise,
-                    workingWeightKg = warmupWorkingWeight,
-                    onToggleComplete = { if (it) viewModel.markWarmupComplete(currentExercise.id) },
-                    onDismiss = { viewModel.markWarmupComplete(currentExercise.id) },
-                )
+                val isSupersetWarmup = currentExercise.isInSuperset()
+                val isExpanded = !isSupersetWarmup || currentExercise.id in expandedSupersetWarmups
+                val canShowSupersetWarmup = !isSupersetWarmup || uiState.currentSetIdx == 0 || isExpanded
+                if (canShowSupersetWarmup) {
+                    if (isExpanded) {
+                        WarmupInlineCard(
+                            exercise = currentExercise,
+                            workingWeightKg = warmupWorkingWeight,
+                            onToggleComplete = {
+                                if (it) {
+                                    viewModel.markWarmupComplete(currentExercise.id)
+                                    expandedSupersetWarmups = expandedSupersetWarmups - currentExercise.id
+                                }
+                            },
+                            onDismiss = {
+                                viewModel.markWarmupComplete(currentExercise.id)
+                                expandedSupersetWarmups = expandedSupersetWarmups - currentExercise.id
+                            },
+                        )
+                    } else {
+                        SupersetWarmupRevealCard(
+                            exercise = currentExercise,
+                            onClick = { expandedSupersetWarmups = expandedSupersetWarmups + currentExercise.id },
+                            onDismiss = { viewModel.markWarmupComplete(currentExercise.id) },
+                        )
+                    }
+                }
             }
 
             Column(
@@ -2248,49 +2501,79 @@ private fun WorkoutV2Body(
                         onExpandEdit = onExpandEdit,
                         sessionAccentColor = sessionAccentColor,
                         sessionEnergy = uiState.liveEnergySummary,
+                        allowExerciseManagementActions = !currentExercise.isInSuperset(),
                     )
 
-                    val totalSetPages = currentExercise.sets.size.coerceAtLeast(1)
+                    val isUnilateral = currentExercise.isEffectivelyUnilateral()
+                    val setPagerPages = remember(currentExercise.id, currentExercise.sets, currentExercise.unilateralSideOrder, isUnilateral) {
+                        if (isUnilateral) {
+                            currentExercise.sets.indices.flatMap { setIdx ->
+                                currentExercise.expectedSidesForSet(setIdx).map { side ->
+                                    WorkoutSetSwipePage(setIndex = setIdx, side = side)
+                                }
+                            }.ifEmpty { listOf(WorkoutSetSwipePage(setIndex = 0, side = null)) }
+                        } else {
+                            currentExercise.sets.indices.map { setIdx ->
+                                WorkoutSetSwipePage(setIndex = setIdx, side = null)
+                            }.ifEmpty { listOf(WorkoutSetSwipePage(setIndex = 0, side = null)) }
+                        }
+                    }
+                    val totalSetPages = setPagerPages.size.coerceAtLeast(1)
                     val pagerState = rememberPagerState(pageCount = { totalSetPages })
+                    var selectedUnilateralSideOverride by remember(currentExercise.id, uiState.currentSetIdx) {
+                        mutableStateOf<String?>(null)
+                    }
 
-                    LaunchedEffect(pagerState.currentPage) {
-                        if (pagerState.currentPage != uiState.currentSetIdx && pagerState.currentPage < currentExercise.sets.size) {
-                            viewModel.jumpToSet(pagerState.currentPage)
+                    LaunchedEffect(pagerState.currentPage, setPagerPages) {
+                        val page = setPagerPages.getOrNull(pagerState.currentPage) ?: return@LaunchedEffect
+                        if (isUnilateral) {
+                            selectedUnilateralSideOverride = page.side
+                        }
+                        if (page.setIndex != uiState.currentSetIdx && page.setIndex < currentExercise.sets.size) {
+                            viewModel.jumpToSet(page.setIndex)
                         }
                     }
 
-                    LaunchedEffect(uiState.currentSetIdx) {
-                        if (uiState.currentSetIdx < totalSetPages && uiState.currentSetIdx != pagerState.currentPage) {
-                            pagerState.animateScrollToPage(uiState.currentSetIdx)
-                        }
-                    }
-
-                    val isUnilateral = currentExercise?.isEffectivelyUnilateral() == true
                     val activeSide = remember(
                         currentExercise.id,
                         currentExercise.unilateralSideOrder,
                         uiState.completedSets,
                         uiState.currentSetIdx,
                         isUnilateral,
+                        selectedUnilateralSideOverride,
                     ) {
                         if (!isUnilateral) {
                             null
                         } else {
-                            val sideOrder = when (currentExercise.unilateralSideOrder) {
-                                UnilateralSideOrder.LEFT_RIGHT -> listOf("left", "right")
-                                UnilateralSideOrder.RIGHT_LEFT -> listOf("right", "left")
-                            }
-                            sideOrder.firstOrNull { side ->
+                            val expectedSides = currentExercise.expectedSidesForSet(uiState.currentSetIdx)
+                            selectedUnilateralSideOverride
+                                ?.takeIf { it in expectedSides }
+                                ?.takeIf { side ->
+                                    !uiState.completedSets.containsKey("${currentExercise.id}_${uiState.currentSetIdx}_${side.take(1).uppercase()}")
+                                }
+                                ?: expectedSides.firstOrNull { side ->
                                 !uiState.completedSets.containsKey("${currentExercise.id}_${uiState.currentSetIdx}_${side.take(1).uppercase()}")
-                            } ?: sideOrder.first()
+                            }
+                                ?: expectedSides.firstOrNull()
+                        }
+                    }
+                    val activeSwipePageIndex = remember(setPagerPages, uiState.currentSetIdx, activeSide, isUnilateral) {
+                        setPagerPages.indexOfFirst { page ->
+                            page.setIndex == uiState.currentSetIdx && (!isUnilateral || page.side == activeSide)
+                        }.takeIf { it >= 0 } ?: uiState.currentSetIdx.coerceIn(0, totalSetPages - 1)
+                    }
+                    LaunchedEffect(activeSwipePageIndex, totalSetPages) {
+                        if (activeSwipePageIndex in 0 until totalSetPages && activeSwipePageIndex != pagerState.currentPage) {
+                            pagerState.scrollToPage(activeSwipePageIndex)
                         }
                     }
                     val pagerItems = remember(currentExercise.id, uiState.completedSets, uiState.currentSetIdx, isUnilateral) {
                         currentExercise.sets.indices.map { idx ->
                             val bilateralDone = uiState.completedSets.containsKey("${currentExercise.id}_$idx")
-                            val leftDone = uiState.completedSets.containsKey("${currentExercise.id}_${idx}_L")
-                            val rightDone = uiState.completedSets.containsKey("${currentExercise.id}_${idx}_R")
-                            val isDone = bilateralDone || (leftDone && rightDone)
+                            val expectedSides = currentExercise.expectedSidesForSet(idx)
+                            val isDone = bilateralDone || (isUnilateral && expectedSides.all { side ->
+                                uiState.completedSets.containsKey("${currentExercise.id}_${idx}_${side.take(1).uppercase()}")
+                            })
                             WorkoutSetPagerItem(
                                 index = idx,
                                 label = "S${idx + 1}",
@@ -2300,23 +2583,41 @@ private fun WorkoutV2Body(
                                     else -> WorkoutSetCardVisualState.FUTURE
                                 },
                                 isEditing = false,
+                                side = expectedSides.joinToString("|"),
                                 isWarmupOrFeedback = false,
                             )
                         }
                     }
+                    val currentSupersetGroupId = currentExercise.supersetGroupRefOrLegacyId()
+                    val currentSupersetMembers = remember(currentSupersetGroupId, visibleExercises) {
+                        currentSupersetGroupId
+                            ?.let { groupId -> visibleExercises.filter { it.supersetGroupRefOrLegacyId() == groupId } }
+                            .orEmpty()
+                    }
 
-                    WorkoutSetPager(
-                        items = pagerItems,
-                        activePageIndex = pagerState.currentPage,
-                        onSelectPage = { page -> viewModel.jumpToSet(page) },
-                        sessionAccentColor = sessionAccentColor,
-                        isUnilateral = isUnilateral,
-                        selectedSide = activeSide,
-                        sideCompleted = if (isUnilateral) { side: String ->
-                            val setIdx = pagerState.currentPage.coerceIn(0, (currentExercise?.sets?.lastIndex ?: 0))
-                            uiState.completedSets.containsKey("${currentExercise?.id}_${setIdx}_${side.take(1).uppercase()}")
-                        } else null,
-                    )
+                    if (currentSupersetGroupId != null && currentSupersetMembers.size > 1) {
+                        SupersetSetPager(
+                            members = currentSupersetMembers,
+                            currentExerciseId = currentExercise.id,
+                            currentRoundIndex = uiState.currentSetIdx,
+                            completedSets = uiState.completedSets,
+                            sessionAccentColor = sessionAccentColor,
+                            onSelectRound = { round -> viewModel.jumpToSet(round) },
+                        )
+                    } else {
+                        WorkoutSetPager(
+                            items = pagerItems,
+                            activePageIndex = uiState.currentSetIdx,
+                            onSelectPage = { page -> viewModel.jumpToSet(page) },
+                            sessionAccentColor = sessionAccentColor,
+                            isUnilateral = isUnilateral,
+                            selectedSide = activeSide,
+                            sideCompleted = if (isUnilateral) { side: String ->
+                                val setIdx = uiState.currentSetIdx.coerceIn(0, currentExercise.sets.lastIndex.coerceAtLeast(0))
+                                uiState.completedSets.containsKey("${currentExercise.id}_${setIdx}_${side.take(1).uppercase()}")
+                            } else null,
+                        )
+                    }
 
                     HorizontalPager(
                         state = pagerState,
@@ -2325,7 +2626,8 @@ private fun WorkoutV2Body(
                             .heightIn(max = 1200.dp),
                         key = { "${currentExercise.id}_set_$it" },
                     ) { page ->
-                        val activeSetIndex = page.coerceIn(0, (currentExercise.sets.size - 1).coerceAtLeast(0))
+                        val pageSpec = setPagerPages.getOrNull(page) ?: WorkoutSetSwipePage(uiState.currentSetIdx, activeSide)
+                        val activeSetIndex = pageSpec.setIndex.coerceIn(0, (currentExercise.sets.size - 1).coerceAtLeast(0))
                         val isActivePage = page == pagerState.currentPage
                         val activeSet = currentExercise.sets.getOrNull(activeSetIndex) ?: currentSet
                         val activeGhostSet = remember(currentExercise.id, activeSetIndex, uiState.exerciseTags[currentExercise.id]) {
@@ -2353,8 +2655,8 @@ private fun WorkoutV2Body(
                             persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
                             amrapCalibrationMessage = uiState.amrapCalibrationMessage,
                             isActivePage = isActivePage,
-                            activeSide = activeSide,
-                            sideLocked = isUnilateral && activeSide != null,
+                            activeSide = pageSpec.side ?: activeSide,
+                            sideLocked = isUnilateral && (pageSpec.side ?: activeSide) != null,
                             rmSuggestedWeight = rmSelectedWeight,
                             onRmWeightConsumed = onRmWeightConsumed,
                             sheetHazeState = cardsHazeState,
@@ -2388,6 +2690,7 @@ private fun WorkoutV2Body(
                                         setupId = activeSet.setupId,
                                         machineBrand = activeSet.machineBrand,
                                         amrapOverride = false,
+                                        setIdxOverride = activeSetIndex,
                                     )
                                 }
                             },
@@ -2406,6 +2709,7 @@ private fun WorkoutV2Body(
                                         setupId = activeSet.setupId,
                                         machineBrand = activeSet.machineBrand,
                                         amrapOverride = amrap,
+                                        setIdxOverride = activeSetIndex,
                                     )
                                 }
                             },
@@ -3807,6 +4111,7 @@ data class PostExerciseQuickResult(
 internal fun UnifiedExerciseCarousel(
     exercises: List<Exercise>,
     parts: List<SessionPart> = emptyList(),
+    supersetGroups: List<SupersetGroup> = emptyList(),
     currentIdx: Int,
     currentSetIdx: Int = 0,
     completedSets: Map<String, CompletedSet>,
@@ -3842,6 +4147,12 @@ internal fun UnifiedExerciseCarousel(
             }
         }
     }
+    val supersetOrdinalById = remember(roadmapGroups) {
+        roadmapGroups.mapNotNull { group ->
+            group.groupId?.takeIf { group.exercises.size > 1 }
+        }.distinct().withIndex().associate { (index, groupId) -> groupId to index + 1 }
+    }
+    val supersetGroupById = remember(supersetGroups) { supersetGroups.associateBy { it.id } }
     LazyRow(
         state = listState,
         modifier = Modifier
@@ -3858,20 +4169,12 @@ internal fun UnifiedExerciseCarousel(
             val accent = accentByPartId[part?.id] ?: MaterialTheme.colorScheme.primary
             val partName = part?.name?.takeIf { it.isNotBlank() }
             val completedCount = group.exercises.sumOf { member ->
-                if (member.isEffectivelyUnilateral()) {
-                    member.sets.indices.sumOf { setIdx ->
-                        val leftDone = completedSets.containsKey("${member.id}_${setIdx}_L")
-                        val rightDone = completedSets.containsKey("${member.id}_${setIdx}_R")
-                        listOf(leftDone, rightDone).count { it }
-                    }
-                } else {
-                    member.sets.indices.count { setIdx ->
-                        completedSets.containsKey("${member.id}_$setIdx")
-                    }
+                member.sets.indices.sumOf { setIdx ->
+                    member.completionKeysForSet(setIdx).count { key -> completedSets.containsKey(key) }
                 }
             }
             val totalSets = group.exercises.sumOf { member ->
-                if (member.isEffectivelyUnilateral()) member.sets.size * 2 else member.sets.size
+                member.sets.indices.sumOf { setIdx -> member.completionKeysForSet(setIdx).size }
             }
             val isAllDone = completedCount >= totalSets && totalSets > 0
             val isCurrent = group.exercises.any { it.id == exercises.getOrNull(currentIdx)?.id }
@@ -3889,8 +4192,14 @@ internal fun UnifiedExerciseCarousel(
             } else {
                 SupersetRoadmapCard(
                     exercises = group.exercises,
-                    completedCount = completedCount,
-                    totalSets = totalSets,
+                    supersetNumber = group.groupId?.let(supersetOrdinalById::get) ?: 1,
+                    supersetCount = supersetOrdinalById.size,
+                    roundCount = group.groupId
+                        ?.let(supersetGroupById::get)
+                        ?.rounds
+                        ?.takeIf { it > 0 }
+                        ?: (group.exercises.maxOfOrNull { it.sets.size } ?: 0),
+                    completedSets = completedSets,
                     isCurrent = isCurrent,
                     isAllDone = isAllDone,
                     accent = accent,
@@ -3909,6 +4218,127 @@ private data class ExerciseRoadmapGroup(
     val groupId: String?,
     val exercises: List<Exercise>,
 )
+
+private data class WorkoutSetSwipePage(
+    val setIndex: Int,
+    val side: String?,
+)
+
+@Composable
+private fun SupersetSetPager(
+    members: List<Exercise>,
+    currentExerciseId: String,
+    currentRoundIndex: Int,
+    completedSets: Map<String, CompletedSet>,
+    sessionAccentColor: Color,
+    onSelectRound: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val roundCount = members.maxOfOrNull { it.sets.size }?.coerceAtLeast(1) ?: 1
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(roundCount) { roundIdx ->
+            val isActiveRound = roundIdx == currentRoundIndex
+            val roundKeys = members.flatMap { it.completionKeysForSet(roundIdx) }
+            val roundDone = roundKeys.isNotEmpty() && roundKeys.all { completedSets.containsKey(it) }
+            Surface(
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .clickable { onSelectRound(roundIdx) },
+                shape = RoundedCornerShape(13.dp),
+                color = when {
+                    isActiveRound -> sessionAccentColor.copy(alpha = 0.18f)
+                    roundDone -> Color(0xFF66BB6A).copy(alpha = 0.13f)
+                    else -> Color.Transparent
+                },
+                border = BorderStroke(
+                    width = if (isActiveRound) 1.5.dp else 1.dp,
+                    color = when {
+                        isActiveRound -> sessionAccentColor
+                        roundDone -> Color(0xFF66BB6A).copy(alpha = 0.62f)
+                        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.44f)
+                    },
+                ),
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = "R${roundIdx + 1}",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        color = when {
+                            isActiveRound -> sessionAccentColor
+                            roundDone -> Color(0xFF66BB6A)
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        members.forEach { member ->
+                            val keys = member.completionKeysForSet(roundIdx)
+                            if (keys.isNotEmpty()) {
+                                val memberDone = keys.all { completedSets.containsKey(it) }
+                                val memberActive = isActiveRound && member.id == currentExerciseId
+                                Surface(
+                                    modifier = Modifier.size(if (memberActive) 10.dp else 8.dp),
+                                    shape = RoundedCornerShape(999.dp),
+                                    color = when {
+                                        memberActive -> sessionAccentColor
+                                        memberDone -> Color(0xFF66BB6A)
+                                        else -> Color.Transparent
+                                    },
+                                    border = BorderStroke(
+                                        width = if (memberActive || memberDone) 0.dp else 1.dp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                                    ),
+                                ) {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun Exercise.expectedSidesForSet(setIndex: Int): List<String> {
+    if (setIndex !in sets.indices) {
+        return when (unilateralSideOrder) {
+            UnilateralSideOrder.LEFT_RIGHT -> listOf("left", "right")
+            UnilateralSideOrder.RIGHT_LEFT -> listOf("right", "left")
+        }
+    }
+    val set = sets[setIndex]
+    val hasLeftOnly = set.leftTarget != null && set.rightTarget == null
+    val hasRightOnly = set.rightTarget != null && set.leftTarget == null
+    return when {
+        hasLeftOnly -> listOf("left")
+        hasRightOnly -> listOf("right")
+        unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT -> listOf("left", "right")
+        else -> listOf("right", "left")
+    }
+}
+
+private fun Exercise.completionKeysForSet(setIndex: Int): List<String> {
+    if (setIndex !in sets.indices) return emptyList()
+    if (!isEffectivelyUnilateral()) return listOf("${id}_$setIndex")
+
+    val set = sets[setIndex]
+    val hasLeftOnly = set.leftTarget != null && set.rightTarget == null
+    val hasRightOnly = set.rightTarget != null && set.leftTarget == null
+    return when {
+        hasLeftOnly -> listOf("${id}_${setIndex}_L")
+        hasRightOnly -> listOf("${id}_${setIndex}_R")
+        else -> listOf("${id}_${setIndex}_L", "${id}_${setIndex}_R")
+    }
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -3993,12 +4423,14 @@ private fun ExerciseRoadmapCard(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 private fun SupersetRoadmapCard(
     exercises: List<Exercise>,
-    completedCount: Int,
-    totalSets: Int,
+    supersetNumber: Int,
+    supersetCount: Int,
+    roundCount: Int,
+    completedSets: Map<String, CompletedSet>,
     isCurrent: Boolean,
     isAllDone: Boolean,
     accent: Color,
@@ -4008,71 +4440,94 @@ private fun SupersetRoadmapCard(
     onClick: () -> Unit,
     onLongClick: (() -> Unit)?,
 ) {
-    val containerColor = when {
-        isCurrent -> accent.copy(alpha = 0.90f)
-        isAllDone -> Color(0xFF1A3A1A)
-        else -> accent.copy(alpha = 0.18f)
-    }
-    val contentColor = if (isCurrent) Color.White else Color.White.copy(alpha = 0.90f)
+    val safeRoundCount = roundCount.coerceAtLeast(1)
+    val title = if (supersetCount > 1) "Superserie $supersetNumber" else "Superserie"
+
     Surface(
         modifier = Modifier
-            .widthIn(min = 170.dp, max = 240.dp)
-            .heightIn(min = 74.dp)
+            .widthIn(min = 214.dp, max = 280.dp)
+            .heightIn(min = 68.dp)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        shape = RoundedCornerShape(14.dp),
-        color = containerColor,
-        border = BorderStroke(2.dp, if (isCurrent) Color.White else accent.copy(alpha = 0.6f)),
+        shape = RoundedCornerShape(18.dp),
+        color = Color(0xFF101010),
+        border = BorderStroke(
+            width = if (isCurrent) 1.5.dp else 1.dp,
+            color = when {
+                isCurrent -> accent
+                isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.62f)
+                else -> Color.White.copy(alpha = 0.12f)
+            },
+        ),
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = Color.White.copy(alpha = if (isCurrent) 0.18f else 0.10f),
-                ) {
-                    Text(
-                        text = if (isAllDone) "✓" else "$completedCount/$totalSets",
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                    )
-                }
+            Column(
+                modifier = Modifier.widthIn(min = 82.dp, max = 104.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
                 Text(
-                    text = currentRound?.let { "Superserie · R$it" } ?: "Superserie",
-                    style = MaterialTheme.typography.labelSmall,
+                    text = title,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Black,
-                    color = contentColor,
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
-                if (!groupName.isNullOrBlank()) {
-                    Text(
-                        text = groupName,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        color = contentColor.copy(alpha = 0.72f),
-                    )
-                }
-            }
-            exercises.take(3).forEachIndexed { index, exercise ->
                 Text(
-                    text = "${index + 1}. ${exercise.name}",
+                    text = if (isAllDone) "Completada" else currentRound?.let { "Ronda $it/$safeRoundCount" } ?: "$safeRoundCount rondas",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    fontWeight = FontWeight.Bold,
+                    color = if (isCurrent) accent else Color.White.copy(alpha = 0.62f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = if (exercise.id == currentExerciseId) FontWeight.Black else FontWeight.SemiBold,
-                    color = if (exercise.id == currentExerciseId) Color.White else contentColor,
                 )
             }
-            if (exercises.size > 3) {
-                Text(
-                    text = "+${exercises.size - 3} mas",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = contentColor.copy(alpha = 0.72f),
-                )
+
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(15.dp),
+                color = Color.White.copy(alpha = if (isCurrent) 0.13f else 0.07f),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    repeat(safeRoundCount) { roundIdx ->
+                        val roundKeys = exercises.flatMap { it.completionKeysForSet(roundIdx) }
+                        val roundDone = roundKeys.isNotEmpty() && roundKeys.all { completedSets.containsKey(it) }
+                        val isRoundCurrent = isCurrent && currentRound == roundIdx + 1
+                        Surface(
+                            modifier = Modifier.size(if (isRoundCurrent) 24.dp else 18.dp),
+                            shape = RoundedCornerShape(999.dp),
+                            color = when {
+                                isRoundCurrent -> accent
+                                roundDone -> Color(0xFF66BB6A)
+                                else -> Color.Transparent
+                            },
+                            border = BorderStroke(
+                                width = if (isRoundCurrent) 0.dp else 1.4.dp,
+                                color = when {
+                                    roundDone -> Color(0xFF66BB6A)
+                                    else -> Color.White.copy(alpha = 0.42f)
+                                },
+                            ),
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = "${roundIdx + 1}",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = if (isRoundCurrent) 10.sp else 9.sp),
+                                    fontWeight = FontWeight.Black,
+                                    color = if (isRoundCurrent || roundDone) Color.Black else Color.White.copy(alpha = 0.70f),
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -4265,6 +4720,55 @@ internal fun SetInputCardV2(
             }
         )
     }
+    fun intensityStep(): Double =
+        if (reportedIntensityMode == IntensityMode.RIR) 1.0 else if (plannedIntensityMode == IntensityMode.FAILURE) 1.0 else 0.5
+
+    fun decreaseIntensityInput() {
+        if (isFailedSet) return
+        if (reachedFailure) {
+            reachedFailure = false
+            reportedIntensityMode = IntensityMode.RPE
+            intensityText = "10"
+            return
+        }
+        val current = intensityText.toDoubleOrNull() ?: when (reportedIntensityMode) {
+            IntensityMode.RIR -> 0.0
+            else -> 10.0
+        }
+        if (reportedIntensityMode == IntensityMode.RIR) {
+            val next = current - 1.0
+            if (next < 0.0) {
+                reachedFailure = true
+                intensityText = ""
+            } else {
+                intensityText = next.toInt().toString()
+            }
+        } else {
+            intensityText = (current - intensityStep()).coerceAtLeast(0.0).toTrimmedNumberString()
+        }
+    }
+
+    fun increaseIntensityInput() {
+        if (isFailedSet) return
+        if (reachedFailure) {
+            reachedFailure = false
+            reportedIntensityMode = IntensityMode.RIR
+            intensityText = "0"
+            return
+        }
+        val current = intensityText.toDoubleOrNull() ?: 0.0
+        if (reportedIntensityMode == IntensityMode.RIR) {
+            intensityText = (current + 1.0).toInt().toString()
+        } else {
+            val next = current + intensityStep()
+            if (next > 10.0) {
+                reachedFailure = true
+                intensityText = ""
+            } else {
+                intensityText = next.toTrimmedNumberString()
+            }
+        }
+    }
     var timerRunning by remember(exercise.id, setIndex) { mutableStateOf(false) }
     var timerRemainingSeconds by remember(exercise.id, setIndex) { mutableIntStateOf(plannedTarget ?: 0) }
     var timerElapsedSeconds by remember(exercise.id, setIndex) { mutableIntStateOf(0) }
@@ -4326,6 +4830,19 @@ internal fun SetInputCardV2(
         plannedIntensityMode == IntensityMode.RIR -> activePlannedRir?.toString() ?: "-"
         else -> activePlannedRpe?.toTrimmedNumberString() ?: "-"
     }
+    val plannedIntensityDisplayLabel = if (plannedIntensityMode == IntensityMode.FAILURE && !reachedFailure) {
+        when (reportedIntensityMode) {
+            IntensityMode.RIR -> "RIR"
+            else -> "RPE"
+        }
+    } else {
+        expectedIntensityLabel
+    }
+    val plannedIntensityDisplayValue = if (plannedIntensityMode == IntensityMode.FAILURE && !reachedFailure) {
+        intensityText.ifBlank { "-" }
+    } else {
+        expectedIntensityValue
+    }
     val isExecutionError = isFailedSet
     val intensityFieldLabel = when {
         isExecutionError -> "ERROR"
@@ -4384,6 +4901,9 @@ internal fun SetInputCardV2(
             }
         }
 
+    val reportWeightText = if (supportsIndependentSides) weightTextForSide(selectedSide) else weightText
+    val reportValueText = if (supportsIndependentSides) valueTextForSide(selectedSide) else valueText
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -4426,83 +4946,6 @@ internal fun SetInputCardV2(
                         }
                     }
 
-                    Spacer(Modifier.height(4.dp))
-
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp),
-                        color = if (isFailedSet) Color(0xFF3A0000) else Color(0xFF222222),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Surface(
-                                    shape = RoundedCornerShape(4.dp),
-                                    color = sessionAccentColor.copy(alpha = 0.15f),
-                                ) {
-                                    Text(
-                                        text = "${if (selectedSide == "left") "L" else "R"} lado${if (selectedSide == "left") " izq." else " der."}",
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = sessionAccentColor,
-                                    )
-                                }
-                            }
-                            OutlinedTextField(
-                                value = weightTextForSide(selectedSide),
-                                onValueChange = { updateActiveWeightText(it) },
-                                label = { Text(loadFieldLabel) },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier.fillMaxWidth(),
-                                textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                placeholder = ghostSuggestedWeightText?.takeIf { weightTextForSide(selectedSide).isBlank() }?.let { text ->
-                                    {
-                                        Text(
-                                            text = "${text} (sugerido)",
-                                            style = MaterialTheme.typography.bodyLarge.copy(
-                                                fontWeight = FontWeight.Bold,
-                                                fontStyle = FontStyle.Italic,
-                                                color = Color.White.copy(alpha = 0.40f),
-                                            ),
-                                        )
-                                    }
-                                },
-                                shape = RoundedCornerShape(12.dp),
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                OutlinedTextField(
-                                    value = valueTextForSide(selectedSide),
-                                    onValueChange = { updateActiveValueText(it) },
-                                    label = { Text(if (isTimeMode) "Tiempo" else "Reps") },
-                                    singleLine = true,
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                    modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(12.dp),
-                                )
-                                if (!isFailedSet && !isAmrap) {
-                                    OutlinedTextField(
-                                        value = intensityText,
-                                        onValueChange = { intensityText = it },
-                                        label = { Text(intensityFieldLabel) },
-                                        singleLine = true,
-                                        keyboardOptions = KeyboardOptions(keyboardType = if (reportedIntensityMode == IntensityMode.RPE) KeyboardType.Decimal else KeyboardType.Number),
-                                        modifier = Modifier.weight(1f),
-                                        shape = RoundedCornerShape(12.dp),
-                                    )
-                                }
-                            }
-                        }
-                    }
                 }
 
                 if (!supportsIndependentSides && ghostSet != null && (ghostSet.weight > 0 || ghostSet.reps > 0)) {
@@ -4610,7 +5053,7 @@ internal fun SetInputCardV2(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 Text(
-                                    text = expectedIntensityLabel.uppercase(),
+                                    text = plannedIntensityDisplayLabel.uppercase(),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White.copy(alpha = 0.6f),
@@ -4620,7 +5063,7 @@ internal fun SetInputCardV2(
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(14.dp),
                                     color = when {
-                                        plannedIntensityMode == IntensityMode.FAILURE -> Color(0xFF4A0000)
+                                        plannedIntensityMode == IntensityMode.FAILURE && reachedFailure -> Color(0xFF4A0000)
                                         isAmrap -> Color(0xFF3A003A)
                                         difficultyLabel == "Más difícil" || difficultyLabel == "Serie fallida" -> Color(0xFF4A0000)
                                         difficultyLabel == "Más fácil" -> Color(0xFF003A00)
@@ -4633,18 +5076,16 @@ internal fun SetInputCardV2(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.spacedBy(2.dp),
                                     ) {
-                                        if (plannedIntensityMode == IntensityMode.FAILURE) {
+                                        if (plannedIntensityMode == IntensityMode.FAILURE && reachedFailure) {
                                             Text(
                                                 text = "FALLO",
-                                                style = MaterialTheme.typography.headlineSmall.copy(
-                                                    textDecoration = if (isNoFalloCase) TextDecoration.LineThrough else null,
-                                                ),
+                                                style = MaterialTheme.typography.headlineSmall,
                                                 fontWeight = FontWeight.Black,
                                                 color = Color(0xFFFF5252),
                                             )
                                         } else {
                                             Text(
-                                                text = expectedIntensityValue,
+                                                text = plannedIntensityDisplayValue,
                                                 style = MaterialTheme.typography.headlineSmall,
                                                 fontWeight = FontWeight.Black,
                                                 color = Color.White,
@@ -4668,9 +5109,8 @@ internal fun SetInputCardV2(
                                                 )
                                             }
                                         }
-                                        if (plannedIntensityMode == IntensityMode.FAILURE) {
-                if (!supportsIndependentSides) {
-                Surface(
+                                        if (plannedIntensityMode == IntensityMode.FAILURE && reachedFailure) {
+                                            Surface(
                                                 shape = RoundedCornerShape(4.dp),
                                                 color = Color(0xFF4A0000),
                                             ) {
@@ -4697,8 +5137,6 @@ internal fun SetInputCardV2(
                             }
                         }
                     }
-                }
-
                 }
 
                 HorizontalDivider(
@@ -4734,32 +5172,33 @@ internal fun SetInputCardV2(
                         }
 
                         Row(
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                    OutlinedTextField(
-                        value = weightText,
-                        onValueChange = { updateActiveWeightText(it) },
-                        label = { Text(loadFieldLabel, fontWeight = FontWeight.SemiBold) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                        placeholder = ghostSuggestedWeightText?.takeIf { weightText.isBlank() }?.let { text ->
-                            {
-                                Text(
-                                    text = "${text} (sugerido)",
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        fontStyle = FontStyle.Italic,
-                                        color = Color.White.copy(alpha = 0.40f),
-                                    ),
-                                )
-                            }
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = sessionAccentColor,
-                            unfocusedBorderColor = Color(0xFF555555),
+                            OutlinedTextField(
+                                value = reportWeightText,
+                                onValueChange = { updateActiveWeightText(it) },
+                                label = { Text(loadFieldLabel, fontWeight = FontWeight.SemiBold) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
+                                placeholder = ghostSuggestedWeightText?.takeIf { reportWeightText.isBlank() }?.let { text ->
+                                    {
+                                        Text(
+                                            text = "${text} (sugerido)",
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                fontStyle = FontStyle.Italic,
+                                                color = Color.White.copy(alpha = 0.40f),
+                                            ),
+                                        )
+                                    }
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = sessionAccentColor,
+                                    unfocusedBorderColor = Color(0xFF555555),
                                     focusedLabelColor = sessionAccentColor,
                                     unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
                                     cursorColor = Color.White,
@@ -4846,7 +5285,7 @@ internal fun SetInputCardV2(
                                     ) {
                                         Box(
                                             modifier = Modifier.width(30.dp).fillMaxHeight().clickable(enabled = !isFailedSet) {
-                                                val current = valueText.toIntOrNull() ?: 0
+                                                val current = reportValueText.toIntOrNull() ?: 0
                                                 updateActiveValueText((current - 1).coerceAtLeast(0).toString())
                                             },
                                             contentAlignment = Alignment.Center,
@@ -4854,7 +5293,7 @@ internal fun SetInputCardV2(
                                             Icon(Icons.Default.Remove, null, Modifier.size(14.dp), tint = if (isFailedSet) Color.White.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.7f))
                                         }
                                         BasicTextField(
-                                            value = if (isFailedSet) "0" else valueText,
+                                            value = if (isFailedSet) "0" else reportValueText,
                                             onValueChange = { if (!isFailedSet) updateActiveValueText(it.filter { ch -> ch.isDigit() }) },
                                             modifier = Modifier.weight(1f).fillMaxHeight(),
                                             singleLine = true,
@@ -4871,7 +5310,7 @@ internal fun SetInputCardV2(
                                         )
                                         Box(
                                             modifier = Modifier.width(30.dp).fillMaxHeight().clickable(enabled = !isFailedSet) {
-                                                val current = valueText.toIntOrNull() ?: 0
+                                                val current = reportValueText.toIntOrNull() ?: 0
                                                 updateActiveValueText((current + 1).toString())
                                             },
                                             contentAlignment = Alignment.Center,
@@ -4935,12 +5374,10 @@ internal fun SetInputCardV2(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier.height(40.dp),
                                     ) {
-                                        val intensityDisabled = isExecutionError || reachedFailure
+                                        val intensityDisabled = isExecutionError
                                         Box(
                                             modifier = Modifier.width(30.dp).fillMaxHeight().clickable(enabled = !intensityDisabled) {
-                                                val step = if (reportedIntensityMode == IntensityMode.RIR) 1.0 else 0.5
-                                                val current = intensityText.toDoubleOrNull() ?: 0.0
-                                                intensityText = (current - step).coerceAtLeast(0.0).toTrimmedNumberString()
+                                                decreaseIntensityInput()
                                             },
                                             contentAlignment = Alignment.Center,
                                         ) {
@@ -4952,10 +5389,10 @@ internal fun SetInputCardV2(
                                                 reachedFailure -> "FALLO"
                                                 else -> intensityText
                                             },
-                                            onValueChange = { if (!intensityDisabled) intensityText = it },
+                                            onValueChange = { if (!intensityDisabled && !reachedFailure) intensityText = it },
                                             modifier = Modifier.weight(1f).fillMaxHeight(),
                                             singleLine = true,
-                                            enabled = !intensityDisabled,
+                                            enabled = !intensityDisabled && !reachedFailure,
                                             textStyle = MaterialTheme.typography.titleLarge.copy(
                                                 textAlign = TextAlign.Center,
                                                 fontWeight = FontWeight.Black,
@@ -4972,9 +5409,7 @@ internal fun SetInputCardV2(
                                         )
                                         Box(
                                             modifier = Modifier.width(30.dp).fillMaxHeight().clickable(enabled = !intensityDisabled) {
-                                                val step = if (reportedIntensityMode == IntensityMode.RIR) 1.0 else 0.5
-                                                val current = intensityText.toDoubleOrNull() ?: 0.0
-                                                intensityText = (current + step).toTrimmedNumberString()
+                                                increaseIntensityInput()
                                             },
                                             contentAlignment = Alignment.Center,
                                         ) {
@@ -5146,40 +5581,6 @@ internal fun SetInputCardV2(
                                             ),
                                         )
                                         FilterChip(
-                                            selected = if (plannedIntensityMode == IntensityMode.FAILURE) isNoFalloCase else reachedFailure,
-                                            onClick = {
-                                                if (plannedIntensityMode == IntensityMode.FAILURE) {
-                                                    reachedFailure = !reachedFailure
-                                                    if (!reachedFailure) {
-                                                        isFailedSet = false
-                                                        ensureReportedIntensityText()
-                                                    } else {
-                                                        intensityText = ""
-                                                    }
-                                                } else {
-                                                    reachedFailure = !reachedFailure
-                                                    if (reachedFailure) {
-                                                        isFailedSet = false
-                                                        intensityText = ""
-                                                    } else {
-                                                        ensureReportedIntensityText()
-                                                    }
-                                                }
-                                            },
-                                            label = {
-                                                Text(
-                                                    if (plannedIntensityMode == IntensityMode.FAILURE) "No llegué al fallo" else "Llegué al fallo",
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                )
-                                            },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = Color(0xFFFF5252).copy(alpha = 0.2f),
-                                                selectedLabelColor = Color(0xFFFF5252),
-                                                containerColor = Color(0xFF2A2A2A),
-                                                labelColor = Color.White,
-                                            ),
-                                        )
-                                        FilterChip(
                                             selected = isAmrap,
                                             onClick = { if (isAmrap) isAmrap = false else showAmrapSheet = true },
                                             label = { Text("AMRAP", style = MaterialTheme.typography.labelSmall) },
@@ -5190,34 +5591,6 @@ internal fun SetInputCardV2(
                                                 labelColor = Color.White,
                                             ),
                                         )
-                                    }
-
-                                    if (plannedIntensityMode == IntensityMode.FAILURE && !reachedFailure) {
-                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                            Text("Intensidad real", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = Color.White.copy(alpha = 0.6f))
-                                            FilterChip(
-                                                selected = reportedIntensityMode == IntensityMode.RPE,
-                                                onClick = { reportedIntensityMode = IntensityMode.RPE },
-                                                label = { Text("RPE", style = MaterialTheme.typography.labelSmall) },
-                                                colors = FilterChipDefaults.filterChipColors(
-                                                    selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
-                                                    selectedLabelColor = sessionAccentColor,
-                                                    containerColor = Color(0xFF2A2A2A),
-                                                    labelColor = Color.White,
-                                                ),
-                                            )
-                                            FilterChip(
-                                                selected = reportedIntensityMode == IntensityMode.RIR,
-                                                onClick = { reportedIntensityMode = IntensityMode.RIR },
-                                                label = { Text("RIR", style = MaterialTheme.typography.labelSmall) },
-                                                colors = FilterChipDefaults.filterChipColors(
-                                                    selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
-                                                    selectedLabelColor = sessionAccentColor,
-                                                    containerColor = Color(0xFF2A2A2A),
-                                                    labelColor = Color.White,
-                                                ),
-                                            )
-                                        }
                                     }
 
                                     if (isAmrap && plannedTarget != null) {
@@ -5553,6 +5926,64 @@ private fun SideInputCard(
 
 
 // ─── Warmup Inline Card ────────────────────────────────────────────────
+
+@Composable
+private fun SupersetWarmupRevealCard(
+    exercise: Exercise,
+    onClick: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF2A2200),
+        border = BorderStroke(1.dp, Color(0xFFFFD740).copy(alpha = 0.34f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFFFFD740).copy(alpha = 0.16f)) {
+                Icon(
+                    Icons.Default.LocalFireDepartment,
+                    null,
+                    Modifier.padding(6.dp).size(16.dp),
+                    tint = Color(0xFFFFD740),
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Aproximaciones disponibles",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFFFFD740),
+                )
+                Text(
+                    exercise.name,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.62f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            TextButton(
+                onClick = onDismiss,
+                contentPadding = PaddingValues(horizontal = 8.dp),
+                colors = ButtonDefaults.textButtonColors(contentColor = Color.White.copy(alpha = 0.62f)),
+            ) { Text("Saltar", style = MaterialTheme.typography.labelSmall) }
+            Button(
+                onClick = onClick,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD740), contentColor = Color.Black),
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
+            ) { Text("Desplegar", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold) }
+        }
+    }
+}
 
 @Composable
 private fun WarmupInlineCard(

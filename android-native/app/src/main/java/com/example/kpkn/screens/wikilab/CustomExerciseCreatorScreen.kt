@@ -64,6 +64,7 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.repository.CustomExerciseRepository
+import com.example.kpkn.domain.exercises.ExerciseMatchResult
 import com.example.kpkn.domain.exercises.InferredSuggestions
 import com.example.kpkn.domain.exercises.findBestMatches
 import com.example.kpkn.domain.exercises.inferFromMatches
@@ -73,8 +74,23 @@ import java.util.UUID
 private data class EditableMuscle(
     var muscle: String,
     var role: MuscleRole,
-    var contribution: String,
+    var contribution: Double,
 )
+
+private fun calculateSimpleCreatorSearchScore(info: ExerciseMuscleInfo, query: String): Int {
+    val q = query.trim().lowercase()
+    if (q.isBlank()) return 0
+    var score = 0
+    val name = info.name.lowercase()
+    val alias = info.alias?.lowercase().orEmpty()
+    if (name == q || alias == q) score += 100
+    if (name.startsWith(q)) score += 70
+    if (name.contains(q)) score += 45
+    if (alias.contains(q)) score += 35
+    if (info.involvedMuscles.any { it.muscle.contains(q, ignoreCase = true) }) score += 20
+    if (info.equipment?.contains(q, ignoreCase = true) == true) score += 15
+    return score
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -82,8 +98,36 @@ fun CustomExerciseCreatorScreen(
     onBack: () -> Unit,
     onSaved: (String) -> Unit,
 ) {
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Crear ejercicio") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                    }
+                },
+            )
+        }
+    ) { padding ->
+        CustomExerciseCreatorContent(
+            onBack = onBack,
+            onSaved = onSaved,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun CustomExerciseCreatorContent(
+    onBack: () -> Unit,
+    onSaved: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     var name by remember { mutableStateOf("") }
     var alias by remember { mutableStateOf("") }
@@ -108,10 +152,6 @@ fun CustomExerciseCreatorScreen(
     var functionalTransfer by remember { mutableStateOf("") }
     var sportsRelevanceCsv by remember { mutableStateOf("") }
     var recommendedMobilityText by remember { mutableStateOf("") }
-    var setupCuesText by remember { mutableStateOf("") }
-    var executionCuesText by remember { mutableStateOf("") }
-    var imagesText by remember { mutableStateOf("") }
-    var videosText by remember { mutableStateOf("") }
 
     val anatomical = remember { mutableStateListOf<AnatomicalConsideration>() }
     val mistakes = remember { mutableStateListOf<CommonMistake>() }
@@ -119,27 +159,33 @@ fun CustomExerciseCreatorScreen(
     var muscleSearch by remember { mutableStateOf("") }
 
     var detailsExpanded by remember { mutableStateOf(false) }
-    var cuesExpanded by remember { mutableStateOf(false) }
-    var mediaExpanded by remember { mutableStateOf(false) }
+    var baseSearch by remember { mutableStateOf("") }
+    var selectedBaseExercise by remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
 
     // Smart matching — deterministic, no AI
-    val suggestions = remember(name, equipment, force, category, type, bodyPart, chain, isAxialLoaded) {
+    val hasCreationSignal = name.trim().length >= 3 ||
+        selectedBaseExercise != null ||
+        equipment != "Otro" ||
+        force != "Otro"
+    val suggestions = remember(name, equipment, force, category, type, bodyPart, chain, isAxialLoaded, selectedBaseExercise) {
         val database = EXERCISE_DATABASE
-        val matches = if (name.isNotBlank() || equipment.isNotBlank() || force.isNotBlank()) {
-            findBestMatches(
-                database = database,
-                name = name,
-                equipment = equipment,
-                force = force,
-                category = category,
-                type = type,
-                bodyPart = bodyPart,
-                chain = chain,
-            )
-        } else {
-            emptyList()
+        val matches = when {
+            selectedBaseExercise != null -> listOf(ExerciseMatchResult(selectedBaseExercise!!, 1.0))
+            hasCreationSignal -> {
+                findBestMatches(
+                    database = database,
+                    name = name,
+                    equipment = equipment,
+                    force = force,
+                    category = category,
+                    type = type,
+                    bodyPart = bodyPart,
+                    chain = chain,
+                )
+            }
+            else -> emptyList()
         }
-        if (matches.isNotEmpty() || (equipment.isNotBlank() && force.isNotBlank())) {
+        if (hasCreationSignal && (matches.isNotEmpty() || equipment != "Otro" || force != "Otro")) {
             inferFromMatches(
                 matches = matches,
                 name = name,
@@ -151,6 +197,43 @@ fun CustomExerciseCreatorScreen(
         } else {
             null
         }
+    }
+
+    val baseExerciseOptions = remember(baseSearch) {
+        val query = baseSearch.trim()
+        if (query.isBlank()) {
+            emptyList()
+        } else {
+            EXERCISE_DATABASE
+                .map { it to calculateSimpleCreatorSearchScore(it, query) }
+                .filter { it.second > 0 }
+                .sortedByDescending { it.second }
+                .take(6)
+                .map { it.first }
+        }
+    }
+
+    fun contributionForRole(role: MuscleRole): Double = when (role) {
+        MuscleRole.PRIMARY -> 1.0
+        MuscleRole.SECONDARY -> 0.5
+        MuscleRole.STABILIZER -> 0.4
+        MuscleRole.NEUTRALIZER -> 0.4
+    }
+
+    fun applySuggestions(s: InferredSuggestions) {
+        if (editableMuscles.isEmpty()) {
+            editableMuscles.addAll(s.suggestedMuscles.take(5).map {
+                val role = when (it.role) {
+                    MuscleRole.NEUTRALIZER -> MuscleRole.STABILIZER
+                    else -> it.role
+                }
+                EditableMuscle(it.muscle, role, contributionForRole(role))
+            })
+        }
+        averageRestSeconds = s.suggestedRestSeconds.toString()
+        tier = s.suggestedTier
+        bodyPart = s.suggestedBodyPart
+        chain = s.suggestedChain
     }
 
     val muscleOptions = remember {
@@ -167,32 +250,67 @@ fun CustomExerciseCreatorScreen(
 
     val matchCount = suggestions?.matchCount ?: 0
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Crear ejercicio") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+    Column(
+        modifier = modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
             // ── Name / Alias / Description ──
             OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre *") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             OutlinedTextField(value = alias, onValueChange = { alias = it }, label = { Text("Alias") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth(), singleLine = true, maxLines = 2)
 
             HorizontalDivider()
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f)),
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text("¿A qué otro ejercicio se parece?", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
+                    Text(
+                        selectedBaseExercise?.name ?: "Detección automática",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    OutlinedTextField(
+                        value = baseSearch,
+                        onValueChange = { baseSearch = it },
+                        label = { Text("Buscar ejercicio base") },
+                        leadingIcon = { Icon(Icons.Default.Search, null) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                    )
+                    if (selectedBaseExercise != null) {
+                        TextButton(
+                            onClick = {
+                                selectedBaseExercise = null
+                                baseSearch = ""
+                            },
+                        ) { Text("Volver a detección automática") }
+                    }
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        baseExerciseOptions.forEach { option ->
+                            FilterChip(
+                                selected = selectedBaseExercise?.id == option.id,
+                                onClick = {
+                                    selectedBaseExercise = option
+                                    baseSearch = option.name
+                                    if (equipment == "Otro") equipment = option.equipment ?: equipment
+                                    if (force == "Otro") force = option.force ?: force
+                                    category = option.category ?: category
+                                    type = option.type ?: type
+                                },
+                                label = { Text(option.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            )
+                        }
+                    }
+                }
+            }
 
             // ── Equipment ──
             Text("Equipo", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
@@ -248,15 +366,7 @@ fun CustomExerciseCreatorScreen(
             if (suggestions != null && matchCount > 0) {
                 SuggestionsCard(
                     suggestions = suggestions,
-                    onApply = {
-                        if (editableMuscles.isEmpty()) {
-                            editableMuscles.addAll(suggestions.suggestedMuscles.take(5).map {
-                                EditableMuscle(it.muscle, it.role, (it.volumeContribution ?: 1.0).toString())
-                            })
-                        }
-                        averageRestSeconds = suggestions.suggestedRestSeconds.toString()
-                        tier = suggestions.suggestedTier
-                    },
+                    onApply = { applySuggestions(suggestions) },
                     onDismiss = {
                         editableMuscles.clear()
                     },
@@ -307,7 +417,7 @@ fun CustomExerciseCreatorScreen(
                         selected = editableMuscles.any { it.muscle == muscle },
                         onClick = {
                             if (editableMuscles.none { it.muscle == muscle }) {
-                                editableMuscles.add(EditableMuscle(muscle, MuscleRole.PRIMARY, "1.0"))
+                                editableMuscles.add(EditableMuscle(muscle, MuscleRole.PRIMARY, 1.0))
                             }
                         },
                         label = { Text(muscle, fontSize = 12.sp) },
@@ -317,9 +427,7 @@ fun CustomExerciseCreatorScreen(
 
             if (editableMuscles.isEmpty() && suggestions != null && suggestions.suggestedMuscles.isNotEmpty()) {
                 OutlinedButton(onClick = {
-                    editableMuscles.addAll(suggestions.suggestedMuscles.take(5).map {
-                        EditableMuscle(it.muscle, it.role, (it.volumeContribution ?: 1.0).toString())
-                    })
+                    applySuggestions(suggestions)
                 }) {
                     Icon(Icons.Default.AutoFixHigh, null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
@@ -345,41 +453,33 @@ fun CustomExerciseCreatorScreen(
                                 Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
                             }
                         }
-                        Row(
+                        FlowRow(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            OutlinedTextField(
-                                value = row.role.name.lowercase().take(4),
-                                onValueChange = { input ->
-                                    val r = when (input.trim().lowercase().take(3)) {
-                                        "pri", "pri" -> MuscleRole.PRIMARY
-                                        "sec", "sec" -> MuscleRole.SECONDARY
-                                        "sta", "est" -> MuscleRole.STABILIZER
-                                        else -> MuscleRole.NEUTRALIZER
-                                    }
-                                    editableMuscles[idx] = row.copy(role = r)
-                                },
-                                label = { Text("Rol", fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                                modifier = Modifier.weight(1f),
-                                singleLine = true,
-                                textStyle = MaterialTheme.typography.bodySmall,
-                            )
-                            OutlinedTextField(
-                                value = row.contribution,
-                                onValueChange = { editableMuscles[idx] = row.copy(contribution = it) },
-                                label = { Text("Volumen", fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier.weight(1f),
-                                singleLine = true,
-                                textStyle = MaterialTheme.typography.bodySmall,
-                            )
+                            listOf(
+                                MuscleRole.PRIMARY to "Principal",
+                                MuscleRole.SECONDARY to "Secundario",
+                                MuscleRole.STABILIZER to "Estabilizador",
+                            ).forEach { (role, label) ->
+                                FilterChip(
+                                    selected = row.role == role,
+                                    onClick = {
+                                        editableMuscles[idx] = row.copy(
+                                            role = role,
+                                            contribution = contributionForRole(role),
+                                        )
+                                    },
+                                    label = { Text(label, fontSize = 12.sp) },
+                                )
+                            }
                         }
                     }
                 }
             }
             if (editableMuscles.size < 6) {
-                OutlinedButton(onClick = { filteredMuscles.firstOrNull()?.let { editableMuscles.add(EditableMuscle(it, MuscleRole.PRIMARY, "1.0")) } }, modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = { filteredMuscles.firstOrNull()?.let { editableMuscles.add(EditableMuscle(it, MuscleRole.PRIMARY, 1.0)) } }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
                     Text("  Músculo", fontSize = 12.sp)
                 }
@@ -409,20 +509,6 @@ fun CustomExerciseCreatorScreen(
                 }
             }
 
-            // ── Collapsible: Cues ──
-            SectionHeader("Cues", expanded = cuesExpanded, onToggle = { cuesExpanded = !cuesExpanded })
-            if (cuesExpanded) {
-                OutlinedTextField(value = setupCuesText, onValueChange = { setupCuesText = it }, label = { Text("Setup (una por línea)") }, modifier = Modifier.fillMaxWidth(), maxLines = 3)
-                OutlinedTextField(value = executionCuesText, onValueChange = { executionCuesText = it }, label = { Text("Ejecución (una por línea)") }, modifier = Modifier.fillMaxWidth(), maxLines = 3)
-            }
-
-            // ── Collapsible: Media ──
-            SectionHeader("Media", expanded = mediaExpanded, onToggle = { mediaExpanded = !mediaExpanded })
-            if (mediaExpanded) {
-                OutlinedTextField(value = imagesText, onValueChange = { imagesText = it }, label = { Text("URLs de imágenes") }, modifier = Modifier.fillMaxWidth(), maxLines = 2)
-                OutlinedTextField(value = videosText, onValueChange = { videosText = it }, label = { Text("URLs de videos") }, modifier = Modifier.fillMaxWidth(), maxLines = 2)
-            }
-
             HorizontalDivider()
 
             // ── Save button ──
@@ -433,7 +519,7 @@ fun CustomExerciseCreatorScreen(
                         .mapNotNull { row ->
                             val muscleName = row.muscle.trim()
                             if (muscleName.isBlank()) return@mapNotNull null
-                            InvolvedMuscle(muscleName, row.role, row.contribution.toDoubleOrNull() ?: 1.0)
+                            InvolvedMuscle(muscleName, row.role, row.contribution)
                         }
                         .ifEmpty {
                             emptyList()
@@ -460,15 +546,15 @@ fun CustomExerciseCreatorScreen(
                         coreInvolvement = coreInvolvement.ifBlank { null },
                         bracingRecommended = bracingRecommended,
                         strapsRecommended = strapsRecommended,
-                        setupCues = setupCuesText.lines().map { it.trim() }.filter { it.isNotBlank() }.ifEmpty { null },
-                        executionCues = executionCuesText.lines().map { it.trim() }.filter { it.isNotBlank() }.ifEmpty { null },
+                        setupCues = suggestions?.setupCues?.takeIf { it.isNotEmpty() },
+                        executionCues = suggestions?.executionCues?.takeIf { it.isNotEmpty() },
                         anatomicalConsiderations = anatomical.toList().ifEmpty { null },
                         commonMistakes = mistakes.toList().ifEmpty { null },
                         recommendedMobility = recommendedMobilityText.lines().map { it.trim() }.filter { it.isNotBlank() }.ifEmpty { null },
                         functionalTransfer = functionalTransfer.ifBlank { null },
                         sportsRelevance = sportsRelevanceCsv.split(',').map { it.trim() }.filter { it.isNotBlank() }.ifEmpty { null },
-                        images = imagesText.lines().map { it.trim() }.filter { it.isNotBlank() }.ifEmpty { null },
-                        videos = videosText.lines().map { it.trim() }.filter { it.isNotBlank() }.ifEmpty { null },
+                        images = null,
+                        videos = null,
                         setupTime = setupTime.toIntOrNull(),
                         averageRestSeconds = averageRestSeconds.toIntOrNull(),
                     )
@@ -509,7 +595,6 @@ fun CustomExerciseCreatorScreen(
 
             Spacer(Modifier.padding(bottom = 32.dp))
         }
-    }
 }
 
 @Composable

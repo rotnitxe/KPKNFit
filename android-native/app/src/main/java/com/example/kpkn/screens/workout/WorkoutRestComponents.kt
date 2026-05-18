@@ -64,6 +64,7 @@ internal fun RestTimerOverlay(
     onDecrease: () -> Unit,
     onIncrease: () -> Unit,
     onSkip: () -> Unit,
+    skipExerciseLabel: String? = null,
     onSkipExercise: (() -> Unit)? = null,
     onUseAdaptive: (() -> Unit)? = null,
 ) {
@@ -287,38 +288,37 @@ internal fun RestTimerOverlay(
 
             Spacer(Modifier.height(24.dp))
 
-            Row(
+            Button(
+                onClick = onSkip,
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color.Black,
+                ),
             ) {
-                Button(
-                    onClick = onSkip,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black,
+                Icon(Icons.Default.Stop, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.size(8.dp))
+                Text("Saltar descanso", maxLines = 1)
+            }
+
+            if (onSkipExercise != null) {
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onSkipExercise,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.White.copy(alpha = 0.68f),
                     ),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
                 ) {
-                    Icon(Icons.Default.Stop, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.SkipNext, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White.copy(alpha = 0.68f))
                     Spacer(Modifier.size(8.dp))
-                    Text("Saltar descanso", maxLines = 1)
-                }
-                if (onSkipExercise != null) {
-                    OutlinedButton(
-                        onClick = onSkipExercise,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color.White.copy(alpha = 0.85f),
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
-                    ) {
-                        Icon(Icons.Default.SkipNext, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.size(8.dp))
-                        Text("Siguiente ejercicio", maxLines = 1)
-                    }
+                    Text(
+                        skipExerciseLabel ?: "Saltar series restantes e ir al siguiente ejercicio",
+                        style = MaterialTheme.typography.labelSmall,
+                    )
                 }
             }
         }

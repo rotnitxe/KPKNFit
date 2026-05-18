@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,7 +25,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.repository.CustomExerciseRepository
+import com.example.kpkn.domain.exercises.calculateSearchScore
 import com.example.kpkn.data.repository.WikiLabRepository
 import com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE
 import com.example.kpkn.data.wikilab.searchConcepts
@@ -65,6 +68,10 @@ fun WikiLabHomeScreen(
 
     var searchQuery by remember { mutableStateOf("") }
     val isSearching = searchQuery.isNotBlank()
+    val listState = rememberLazyListState()
+    LaunchedEffect(searchQuery) {
+        listState.scrollToItem(0)
+    }
 
     // ─── Search results ──────────────────────────────────────────────
     val searchResults = remember(searchQuery, muscles, joints, patterns) {
@@ -73,10 +80,16 @@ fun WikiLabHomeScreen(
         val results = mutableListOf<SearchResult>()
 
         // Search exercises
-        exerciseCatalog.filter {
-            it.name.lowercase().contains(q) ||
-                it.involvedMuscles.any { m -> m.muscle.lowercase().contains(q) }
-        }.take(5).mapTo(results) {
+        exerciseCatalog
+            .filter {
+                calculateSearchScore(it, searchQuery) > 0
+            }
+            .sortedWith(
+                compareByDescending<ExerciseMuscleInfo> { calculateSearchScore(it, searchQuery) }
+                    .thenBy { kotlin.math.abs(it.name.length - q.length) }
+                    .thenBy { it.name }
+            )
+            .take(5).mapTo(results) {
             SearchResult(it.id, it.name, "Ejercicio", SearchResultType.EXERCISE, Color(0xFFE53935))
         }
 
@@ -121,6 +134,7 @@ fun WikiLabHomeScreen(
     }
 
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 100.dp),
     ) {

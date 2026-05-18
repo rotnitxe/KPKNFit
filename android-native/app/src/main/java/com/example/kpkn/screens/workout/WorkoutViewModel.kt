@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -252,8 +253,11 @@ class WorkoutViewModel(
         voiceController.onError = {
             _uiState.update { it.copy(voiceSessionState = voiceController.state.value) }
         }
-        if (!loadSession()) {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            if (!repository.isReady.value) {
+                repository.isReady.first { it }
+            }
+            if (!loadSession()) {
                 repository.programs.collectLatest { programs ->
                     if (_uiState.value.session == null && programs.any { it.id == programId }) {
                         loadSession()
@@ -1040,13 +1044,13 @@ class WorkoutViewModel(
             nextStepForRest.exerciseId != exercise.id &&
             nextStepForRest.supersetRoundIndex == targetSetIdx
         val restKind = when {
-            unilateralPendingOtherSide && (exercise.restBetweenSidesSeconds ?: 0) > 0 -> RestTimerKind.BETWEEN_SIDES
+            unilateralPendingOtherSide -> RestTimerKind.BETWEEN_SIDES
             sameSupersetRound -> RestTimerKind.SUPERSET_INTRA
             supersetGroup != null -> RestTimerKind.SUPERSET_ROUND
             else -> RestTimerKind.STANDARD
         }
         val plannedRestForKind = when (restKind) {
-            RestTimerKind.BETWEEN_SIDES -> exercise.restBetweenSidesSeconds ?: baseRest
+            RestTimerKind.BETWEEN_SIDES -> exercise.restBetweenSidesSeconds ?: 0
             RestTimerKind.SUPERSET_INTRA -> supersetGroup?.roundRestBetweenExercises?.get(targetSetIdx)
                 ?: supersetGroup?.restBetweenExercises
                 ?: exercise.supersetRestBetween
@@ -2368,7 +2372,7 @@ class WorkoutViewModel(
     private fun workoutStepPositions(state: WorkoutUiState): List<WorkoutStep> {
         val baseSession = state.session ?: return emptyList()
         val modeSession = sessionForActiveMode(baseSession, state.activeMode)
-        return WorkoutStepRules.buildSetPositions(
+        return WorkoutStepRules.buildWorkingPositions(
             session = modeSession,
             visibleExercises = visibleExercises(state),
         )
@@ -2398,6 +2402,9 @@ class WorkoutViewModel(
     ): Boolean {
         val setIdx = step.setIndex ?: return true
         val exercise = visible.firstOrNull { it.id == step.exerciseId } ?: return true
+        if (exercise.isEffectivelyUnilateral() && step.side != null) {
+            return completedSets.containsKey(buildCompletedSetKey(exercise.id, setIdx, step.side))
+        }
         return isSetDone(completedSets, exercise.id, setIdx, exercise.isEffectivelyUnilateral())
     }
 
@@ -2567,6 +2574,72 @@ class WorkoutViewModel(
         }
         if (updatedSession == base) return
         applySessionMutation(updatedSession, preferredExerciseId = targetIds.firstOrNull())
+    }
+
+    fun addCatalogExerciseToLiveSuperset(groupId: String, catalogExercise: ExerciseMuscleInfo) {
+        val state = _uiState.value
+        val base = state.session ?: return
+        var newExerciseId: String? = null
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            val group = modeSession.allSupersetGroups().firstOrNull { it.id == groupId } ?: return@withModeSession modeSession
+            val members = SupersetRules.orderedMembers(modeSession, groupId)
+            val template = members.firstOrNull() ?: return@withModeSession modeSession
+            if (members.size >= 4) return@withModeSession modeSession
+
+            val generatedId = UUID.randomUUID().toString()
+            newExerciseId = generatedId
+            val newExercise = template.copy(
+                id = generatedId,
+                sets = template.sets.ifEmpty { listOf(ExerciseSet(id = UUID.randomUUID().toString())) }
+                    .map { it.copy(id = UUID.randomUUID().toString()) },
+                warmupSets = emptyList(),
+                mobilitySeries = emptyList(),
+                supersetGroupRef = groupId,
+                supersetId = groupId,
+                supersetRestBetween = group.restBetweenExercises,
+                supersetRestAfter = group.restAfterSuperset,
+            ).replacedWithCatalogExercise(catalogExercise)
+
+            val memberIds = members.map { it.id }
+            val inserted = insertExerciseAfterSupersetMembers(modeSession, memberIds, newExercise)
+            SupersetRules.createSuperset(
+                session = inserted,
+                groupId = groupId,
+                exerciseIds = memberIds + generatedId,
+                restBetweenExercises = group.restBetweenExercises,
+                restAfterSuperset = group.restAfterSuperset,
+                rounds = group.rounds,
+                anchorPartId = group.visualPlacement?.partId,
+                anchorExerciseId = group.visualPlacement?.anchorExerciseId ?: memberIds.firstOrNull(),
+            )
+        }
+        if (updatedSession == base) return
+        applySessionMutation(updatedSession, preferredExerciseId = newExerciseId)
+    }
+
+    private fun insertExerciseAfterSupersetMembers(
+        session: Session,
+        memberIds: List<String>,
+        exercise: Exercise,
+    ): Session {
+        val memberIdSet = memberIds.toSet()
+        if (session.parts.isNotEmpty()) {
+            val partWithGroup = session.parts.firstOrNull { part -> part.exercises.any { it.id in memberIdSet } }
+            if (partWithGroup != null) {
+                return session.copy(parts = session.parts.map { part ->
+                    if (part.id != partWithGroup.id) part
+                    else {
+                        val lastMemberIndex = part.exercises.indexOfLast { it.id in memberIdSet }
+                        val insertionIndex = (lastMemberIndex + 1).coerceIn(0, part.exercises.size)
+                        part.copy(exercises = part.exercises.toMutableList().apply { add(insertionIndex, exercise) })
+                    }
+                })
+            }
+        }
+
+        val lastMemberIndex = session.exercises.indexOfLast { it.id in memberIdSet }
+        val insertionIndex = (lastMemberIndex + 1).coerceIn(0, session.exercises.size)
+        return session.copy(exercises = session.exercises.toMutableList().apply { add(insertionIndex, exercise) })
     }
 
     fun dissolveLiveSuperset(groupId: String, preferredExerciseId: String? = null) {
@@ -2795,7 +2868,24 @@ class WorkoutViewModel(
     }
 
     private fun buildReplacementExercise(old: Exercise, replacement: ExerciseMuscleInfo): Exercise {
-        return old.replacedWithCatalogExercise(replacement)
+        val replaced = old.replacedWithCatalogExercise(replacement)
+        val defaultLoadMode = replaced.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD
+        return replaced.copy(
+            trainingMode = TrainingMode.REPS,
+            reference1RM = null,
+            prFor1RM = null,
+            consolidatedWeight = null,
+            isUnilateral = false,
+            unilateralMode = UnilateralMode.BILATERAL,
+            restBetweenSidesSeconds = null,
+            sets = listOf(
+                ExerciseSet(
+                    id = UUID.randomUUID().toString(),
+                    loadModeV2 = defaultLoadMode,
+                    unitModeV2 = UnitModeV2.REPS,
+                ),
+            ),
+        )
     }
 
     private fun matchesSourceExercise(
@@ -3483,10 +3573,13 @@ class WorkoutViewModel(
         )
 
         _uiState.update {
+            val activeExercise = visibleExercises(it).getOrNull(it.currentExerciseIdx)
             it.copy(
                 restTimerTotal = seconds,
                 isRestTimerRunning = true,
                 restModalState = it.restModalState?.copy(
+                    exerciseId = activeExercise?.id,
+                    exerciseName = activeExercise?.name ?: exerciseName,
                     kind = kind,
                     activeSeconds = seconds,
                     endsAtMs = endMs,
@@ -3495,8 +3588,8 @@ class WorkoutViewModel(
                     exactAlarmGranted = alertCapability.exactAlarmGranted,
                     soundReady = alertCapability.soundReady,
                 ) ?: WorkoutRestModalState(
-                    exerciseId = visibleExercises(it).getOrNull(it.currentExerciseIdx)?.id,
-                    exerciseName = exerciseName,
+                    exerciseId = activeExercise?.id,
+                    exerciseName = activeExercise?.name ?: exerciseName,
                     kind = kind,
                     plannedSeconds = seconds,
                     suggestedSeconds = seconds,

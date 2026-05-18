@@ -1235,13 +1235,49 @@ class SessionEditorViewModel(
         }
     }
 
-    fun addSet(partId: String?, exerciseId: String) = updateExercise(partId, exerciseId) { exercise ->
+    fun addSet(partId: String?, exerciseId: String, side: String? = null) = updateExercise(partId, exerciseId) { exercise ->
         val template = exercise.sets.lastOrNull()
         val nextSet = template?.let { createNextSetTemplate(exercise, it) } ?: ExerciseSet(
             id = UUID.randomUUID().toString(),
             targetReps = 8,
         )
-        exercise.copy(sets = exercise.sets + nextSet)
+        fun ExerciseSet.defaultSideTarget(): UnilateralTarget = UnilateralTarget(
+            weight = weight,
+            targetReps = targetReps,
+            targetDuration = targetDuration,
+            targetValue = plannedTargetV2,
+            targetRPE = targetRPE,
+            targetRIR = targetRIR,
+            intensityMode = intensityMode,
+        )
+        val defaultSideTarget = nextSet.defaultSideTarget()
+        if (side == "left") {
+            val rightOnlyIndex = exercise.sets.indexOfLast { it.rightTarget != null && it.leftTarget == null }
+            if (rightOnlyIndex >= 0) {
+                val mergedSets = exercise.sets.toMutableList()
+                val targetSet = mergedSets[rightOnlyIndex]
+                mergedSets[rightOnlyIndex] = targetSet.copy(leftTarget = targetSet.leftTarget ?: targetSet.rightTarget ?: targetSet.defaultSideTarget())
+                return@updateExercise exercise.copy(sets = mergedSets)
+            }
+        } else if (side == "right") {
+            val leftOnlyIndex = exercise.sets.indexOfLast { it.leftTarget != null && it.rightTarget == null }
+            if (leftOnlyIndex >= 0) {
+                val mergedSets = exercise.sets.toMutableList()
+                val targetSet = mergedSets[leftOnlyIndex]
+                mergedSets[leftOnlyIndex] = targetSet.copy(rightTarget = targetSet.rightTarget ?: targetSet.leftTarget ?: targetSet.defaultSideTarget())
+                return@updateExercise exercise.copy(sets = mergedSets)
+            }
+        }
+        val sideSpecificSet = when (side) {
+            "left" -> nextSet.copy(leftTarget = nextSet.leftTarget ?: defaultSideTarget, rightTarget = null)
+            "right" -> nextSet.copy(leftTarget = null, rightTarget = nextSet.rightTarget ?: defaultSideTarget)
+            else -> if (exercise.isEffectivelyUnilateral()) {
+                nextSet.copy(leftTarget = null, rightTarget = null)
+            } else {
+                nextSet
+            }
+        }
+        exercise.copy(sets = exercise.sets + sideSpecificSet)
     }
 
     fun removeSet(partId: String?, exerciseId: String, setId: String) = updateExercise(partId, exerciseId) { exercise ->

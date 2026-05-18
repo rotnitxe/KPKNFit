@@ -93,7 +93,6 @@ import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.telemetry.TelemetryHelper
 import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.icons.NutritionIcon
-import com.example.kpkn.ui.components.icons.RingsTabIcon
 import com.example.kpkn.ui.components.icons.WikiIcon
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
@@ -102,7 +101,6 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import java.util.UUID
-import com.example.kpkn.screens.myrings.MyRingsScreen
 import com.example.kpkn.ui.locale.LocaleManager
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.theme.KPKNTheme
@@ -348,6 +346,7 @@ fun KPKNApp(
     }
     
     val isFullscreenWizard = currentRoute == KpknRoute.NutritionWizard.route ||
+        currentRoute == KpknRoute.WikiLabExerciseCreator.route ||
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("readiness-gate") == true ||
         currentRoute?.startsWith("workout") == true
@@ -365,7 +364,6 @@ fun KPKNApp(
         currentRoute?.startsWith("competition/") == true -> KpknRoute.Training.route
         currentRoute == KpknRoute.ProgramDetail.route -> KpknRoute.Training.route
         currentRoute == "log-workout" -> KpknRoute.Training.route
-        currentRoute?.startsWith(KpknRoute.MyRings.route) == true -> KpknRoute.MyRings.route
         currentRoute?.startsWith(KpknRoute.Nutrition.route) == true -> KpknRoute.Nutrition.route
         currentRoute?.startsWith(KpknRoute.Learn.route) == true -> KpknRoute.WikiLab.route
         currentRoute?.startsWith(KpknRoute.WikiLab.route) == true   -> KpknRoute.WikiLab.route
@@ -685,17 +683,6 @@ fun KPKNApp(
                         label = { Text(stringResource(R.string.nav_nutrition), color = if (nutSel) MaterialTheme.colorScheme.primary else Color.White) },
                         colors = navItemColors,
                     )
-                    val ringSel = currentTab == KpknRoute.MyRings.route
-                    NavigationBarItem(
-                        selected = ringSel,
-                        onClick = {
-                            telemetryHelper.logNavigation(currentTab, KpknRoute.MyRings.route)
-                            navController.navigate(KpknRoute.MyRings.route) { launchSingleTop = true }
-                        },
-                        icon = { RingsTabIcon(tint = navIconTint(ringSel)) },
-                        label = { Text(stringResource(R.string.nav_my_rings), color = if (ringSel) MaterialTheme.colorScheme.primary else Color.White) },
-                        colors = navItemColors,
-                    )
                     val wikiSel = currentTab == KpknRoute.WikiLab.route
                     NavigationBarItem(
                         selected = wikiSel,
@@ -869,12 +856,6 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.MealHistory.route) {
             MealHistoryScreen(onBack = { navController.popBackStack() })
-        }
-
-        // ─── Mis RINGS ────────────────────────────────────────────────
-        composable(KpknRoute.MyRings.route) {
-            val augeVm: com.example.kpkn.screens.auge.AugeViewModel = viewModel()
-            MyRingsScreen(augeViewModel = augeVm)
         }
 
         // ─── WikiLab Routes ───────────────────────────────────────────

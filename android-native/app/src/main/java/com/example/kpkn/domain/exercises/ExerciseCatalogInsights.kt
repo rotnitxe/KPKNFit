@@ -640,7 +640,7 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
 fun deduplicateCatalogVisualResults(items: List<ExerciseMuscleInfo>): List<ExerciseMuscleInfo> {
     val seen = mutableSetOf<String>()
     return items.filter { info ->
-        val key = visualCatalogDedupKey(info)
+        val key = normalizeCatalogSearchValue(info.name)
         seen.add(key)
     }
 }
@@ -652,7 +652,9 @@ private fun visualCatalogDedupKey(info: ExerciseMuscleInfo): String {
         ?.map { normalizeCatalogSearchValue(it) }
         ?.filter { it.isNotBlank() }
         .orEmpty()
-    return (listOf(normalizedName) + aliasTokens)
-        .minOrNull()
-        ?: normalizedName
+    val allKeys = listOf(normalizedName) + aliasTokens
+    return allKeys.minOrNull() ?: normalizedName
 }
+
+fun visualCatalogDuplicateNameKey(info: ExerciseMuscleInfo): String =
+    normalizeCatalogSearchValue(info.name)

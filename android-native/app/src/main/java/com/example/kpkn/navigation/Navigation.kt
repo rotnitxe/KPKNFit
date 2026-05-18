@@ -158,8 +158,6 @@ sealed class KpknRoute(val route: String) {
     // ─── Health Connect ───────────────────────────────────────────────
     object HealthConnect : KpknRoute("settings/health-connect")
 
-    // ─── Mis RINGS ────────────────────────────────────────────────────
-    object MyRings : KpknRoute("my-rings")
 }
 
 // ─── Bottom Nav Items ────────────────────────────────────────────────────────
