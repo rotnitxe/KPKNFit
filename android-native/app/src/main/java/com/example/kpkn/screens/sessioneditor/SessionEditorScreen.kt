@@ -521,7 +521,7 @@ fun SessionEditorScreen(
                         }
                     },
                     onSave = { viewModel.openSheet(SessionEditorSheet.SAVE) },
-                    onOpenBackgroundSheet = { viewModel.openSheet(SessionEditorSheet.BACKGROUND) },
+                    onOpenCoverSheet = { viewModel.openSheet(SessionEditorSheet.BACKGROUND) },
                     onOpenTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
                     onOpenHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
                     onOpenRules = { viewModel.openSheet(SessionEditorSheet.RULES) },
@@ -1552,7 +1552,7 @@ private fun SessionHero(
     onMeetBodyweightChange: (Double?) -> Unit,
     onSyncMeetBodyweight: () -> Unit,
     onSave: () -> Unit,
-    onOpenBackgroundSheet: () -> Unit,
+    onOpenCoverSheet: () -> Unit,
     onOpenTransfer: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenRules: () -> Unit,
@@ -1623,7 +1623,7 @@ private fun SessionHero(
                       )
                       Spacer(Modifier.width(6.dp))
                       Surface(
-                          onClick = onOpenBackgroundSheet,
+                          onClick = onOpenCoverSheet,
                           shape = CircleShape,
                           color = Color.Black.copy(alpha = 0.24f),
                           border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)),
@@ -4814,7 +4814,7 @@ private fun SessionEditorSheets(
     ) {
         when (uiState.sheet) {
             SessionEditorSheet.EXERCISE_PICKER -> Unit
-            SessionEditorSheet.BACKGROUND -> BackgroundSheet(
+            SessionEditorSheet.BACKGROUND -> CoverSheet(
                 session = session,
                 onPickImage = onPickImage,
                 onSelectGradient = onSelectGradient,
@@ -6808,7 +6808,7 @@ private fun FriendlyFatigueRow(label: String, score: Int) {
 }
 
 @Composable
-private fun BackgroundSheet(
+private fun CoverSheet(
     session: Session,
     onPickImage: () -> Unit,
     onSelectGradient: (String) -> Unit,
@@ -9521,8 +9521,6 @@ internal fun Exercise.toggledBilateralUnilateral(): Exercise {
             restBetweenSidesSeconds = null,
             sets = sets.map { set ->
                 set.copy(
-                    leftTarget = null,
-                    rightTarget = null,
                     restBetweenSides = null,
                 )
             },

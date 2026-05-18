@@ -317,7 +317,7 @@ private fun HomeWithProgram(
     ) {
         item {
             Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-            Spacer(Modifier.height(56.dp))
+            Spacer(Modifier.height(100.dp))
             HomeHeaderSection(greeting = greeting, userName = userName)
         }
         item {
@@ -377,7 +377,7 @@ private fun HomeWithProgram(
         item {
             Spacer(Modifier.height(16.dp))
             HomeWikiLabSection(onNavigate = onNavigate)
-            Spacer(Modifier.height(80.dp))
+            Spacer(Modifier.height(140.dp))
         }
     }
 }
@@ -443,22 +443,13 @@ private fun HomeTopBar(
     hazeState: HazeState,
     glassStyle: HazeStyle,
 ) {
-    val bottomBorderColor = Color.White.copy(alpha = 0.10f)
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .height(80.dp)
-            .hazeEffect(state = hazeState, style = glassStyle)
-            .drawBehind {
-                drawLine(
-                    color = bottomBorderColor,
-                    start = Offset(0f, size.height),
-                    end = Offset(size.width, size.height),
-                    strokeWidth = 1.dp.toPx(),
-                )
-            },
+            .hazeEffect(state = hazeState, style = glassStyle),
         shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
-        color = Color.Black.copy(alpha = 0.18f),
+        color = Color.Black.copy(alpha = 0.85f),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
@@ -481,7 +472,7 @@ private fun HomeTopBar(
                     Image(
                         painter = painterResource(R.drawable.kpknicon),
                         contentDescription = "KPKN",
-                        modifier = Modifier.size(46.dp),
+                        modifier = Modifier.size(43.dp),
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                     )
                     val boxHeightDp = 24.dp

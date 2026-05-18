@@ -573,13 +573,32 @@ fun normalizeCatalogSearchValue(value: String): String =
         .trim()
         .replace(Regex("\\s+"), " ")
 
+private val searchStopWords = setOf(
+    "de", "del", "en", "con", "la", "el", "los", "las", "un", "una",
+    "a", "al", "por", "para", "y", "o",
+)
+
+private fun meaningfulSearchTerms(value: String): List<String> =
+    normalizeCatalogSearchValue(value)
+        .split(" ")
+        .filter { it.isNotBlank() && it !in searchStopWords }
+
+private fun normalizeMeaningfulSearchValue(value: String): String =
+    meaningfulSearchTerms(value).joinToString(" ")
+
 fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
     val normalizedQuery = normalizeCatalogSearchValue(query.trim())
     if (normalizedQuery.isBlank()) return 0
-    val terms = normalizedQuery.split(" ").filter { it.isNotBlank() }
+    val meaningfulQuery = normalizeMeaningfulSearchValue(query.trim())
+    val terms = meaningfulSearchTerms(query.trim()).ifEmpty {
+        normalizedQuery.split(" ").filter { it.isNotBlank() }
+    }
     val normalizedName = normalizeCatalogSearchValue(info.name)
+    val meaningfulName = normalizeMeaningfulSearchValue(info.name)
     val nameTokens = normalizedName.split(" ").filter { it.isNotBlank() }
+    val meaningfulNameTokens = meaningfulName.split(" ").filter { it.isNotBlank() }
     val aliasNormalized = normalizeCatalogSearchValue(info.alias ?: "")
+    val meaningfulAlias = normalizeMeaningfulSearchValue(info.alias ?: "")
     val equipmentNormalized = normalizeCatalogSearchValue(info.equipment ?: "")
     val primaryMuscleNormalized = normalizeCatalogSearchValue(resolvePrimaryMuscleLabel(info))
     val regionNormalized = normalizeCatalogSearchValue(resolveExerciseRegion(info).label)
@@ -599,14 +618,21 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
     )
 
     if (normalizedName == normalizedQuery) return 10_000
+    if (meaningfulQuery.isNotBlank() && meaningfulName == meaningfulQuery) return 9_800
     if (aliasNormalized == normalizedQuery) return 9_000
+    if (meaningfulQuery.isNotBlank() && meaningfulAlias == meaningfulQuery) return 8_800
     if (normalizedName.startsWith(normalizedQuery)) return 8_000 + normalizedQuery.length
+    if (meaningfulQuery.isNotBlank() && meaningfulName.startsWith(meaningfulQuery)) return 7_900 + meaningfulQuery.length
     if (aliasNormalized.startsWith(normalizedQuery) && aliasNormalized.isNotBlank()) return 7_000 + normalizedQuery.length
+    if (meaningfulQuery.isNotBlank() && meaningfulAlias.startsWith(meaningfulQuery)) return 6_900 + meaningfulQuery.length
 
     var score = 0
     if (nameTokens.any { it == normalizedQuery }) score += 160
     if (normalizedName.contains(normalizedQuery)) score += 90
+    if (meaningfulQuery.isNotBlank() && meaningfulName.contains(meaningfulQuery)) score += 180
+    if (meaningfulQuery.isNotBlank() && meaningfulNameTokens.containsAll(terms)) score += 140
     if (aliasNormalized.contains(normalizedQuery) && aliasNormalized.isNotBlank()) score += 70
+    if (meaningfulQuery.isNotBlank() && meaningfulAlias.contains(meaningfulQuery)) score += 60
     if (primaryMuscleNormalized.contains(normalizedQuery)) score += 55
     if (equipmentNormalized.contains(normalizedQuery) && equipmentNormalized.isNotBlank()) score += 40
     if (regionNormalized.contains(normalizedQuery) && regionNormalized.isNotBlank()) score += 25
@@ -640,16 +666,21 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
 fun deduplicateCatalogVisualResults(items: List<ExerciseMuscleInfo>): List<ExerciseMuscleInfo> {
     val seen = mutableSetOf<String>()
     return items.filter { info ->
-        val key = normalizeCatalogSearchValue(info.name)
+        val key = visualCatalogDedupKey(info)
         seen.add(key)
     }
 }
 
 private fun visualCatalogDedupKey(info: ExerciseMuscleInfo): String {
-    val normalizedName = normalizeCatalogSearchValue(info.name)
+    val normalizedName = normalizeMeaningfulSearchValue(info.name)
+        .replace(Regex("\\bmaquina smith\\b"), "smith")
+        .replace(Regex("\\bmaquina\\b"), "")
+        .replace(Regex("\\bmancuernas\\b"), "mancuerna")
+        .replace(Regex("\\s+"), " ")
+        .trim()
     val aliasTokens = info.alias
         ?.split(",", ";", "|")
-        ?.map { normalizeCatalogSearchValue(it) }
+        ?.map { normalizeMeaningfulSearchValue(it) }
         ?.filter { it.isNotBlank() }
         .orEmpty()
     val allKeys = listOf(normalizedName) + aliasTokens

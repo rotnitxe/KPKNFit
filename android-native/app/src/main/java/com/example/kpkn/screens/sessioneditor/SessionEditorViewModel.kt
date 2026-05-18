@@ -1774,6 +1774,17 @@ class SessionEditorViewModel(
         SupersetRules.moveGroup(session, groupId, targetPartId, targetIndex)
     }
 
+    fun moveSupersetGroupToIndex(groupId: String, targetIndex: Int) = updateSession { session ->
+        val currentIndex = session.supersetGroups.indexOfFirst { it.id == groupId }
+        if (currentIndex == -1) return@updateSession session
+        val safeTarget = targetIndex.coerceIn(0, session.supersetGroups.lastIndex)
+        if (currentIndex == safeTarget) return@updateSession session
+        val mutable = session.supersetGroups.toMutableList()
+        val moved = mutable.removeAt(currentIndex)
+        mutable.add(safeTarget, moved)
+        session.copy(supersetGroups = mutable.toList())
+    }
+
     fun triggerQuickActionCreateSuperset() {
         val state = _uiState.value
         val exerciseId = state.quickActionsExerciseId ?: return
@@ -3796,15 +3807,23 @@ private fun Session.normalizeSession(): Session {
 }
 
 private fun Exercise.normalizeExercise(): Exercise {
+    val preservedLeftTargets = sets.map { it.leftTarget }
+    val preservedRightTargets = sets.map { it.rightTarget }
     val normalizedSets = if (sets.isEmpty()) {
         listOf(ExerciseSet(UUID.randomUUID().toString(), targetReps = 8))
     } else sets.map { it.normalizeSet(this) }
+    val restoredSets = normalizedSets.mapIndexed { index, set ->
+        set.copy(
+            leftTarget = preservedLeftTargets.getOrNull(index),
+            rightTarget = preservedRightTargets.getOrNull(index),
+        )
+    }
     val normalizedIdentity = normalizedIdentityFields()
-    val resolved1rm = resolveReferenceCapacity(normalizedIdentity.copy(sets = normalizedSets))
+    val resolved1rm = resolveReferenceCapacity(normalizedIdentity.copy(sets = restoredSets))
     return normalizedIdentity.copy(
-        restTime = restTime ?: suggestRestSeconds(normalizedSets.size, normalizedSets.mapNotNull { it.targetRPE }.averageOrNull() ?: 8.0),
+        restTime = restTime ?: suggestRestSeconds(restoredSets.size, restoredSets.mapNotNull { it.targetRPE }.averageOrNull() ?: 8.0),
         reference1RM = resolved1rm,
-        sets = normalizedSets,
+        sets = restoredSets,
     )
 }
 
