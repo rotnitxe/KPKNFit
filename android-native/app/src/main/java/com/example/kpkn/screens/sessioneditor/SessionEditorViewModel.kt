@@ -84,6 +84,7 @@ private data class PersistedSessionEditorDraft(
     val session: Session,
     val ruleDefaults: SessionEditorRuleDefaults = SessionEditorRuleDefaults(),
     val ruleLimits: SessionEditorRuleLimits = SessionEditorRuleLimits(),
+    val selectedExercisesIds: Set<String> = emptySet(),
     val savedAtMs: Long = System.currentTimeMillis(),
 )
 
@@ -239,6 +240,8 @@ data class SessionEditorUiState(
     // ─── Multi-session & Navigation ────────────────────────────────────────────
     val snackbarMessage: String? = null,
     val hasActiveLoops: Boolean = false,
+    // ─── Exercise Picker Selection ─────────────────────────────────────────────
+    val selectedExercisesIds: Set<String> = emptySet(),
 )
 
 data class SessionDraftSnapshot(
@@ -384,6 +387,7 @@ class SessionEditorViewModel(
             session = session,
             ruleDefaults = state.ruleDefaults,
             ruleLimits = state.ruleLimits,
+            selectedExercisesIds = state.selectedExercisesIds,
         )
         val key = draftStorageKey(
             weekId = state.weekId,
@@ -613,6 +617,7 @@ class SessionEditorViewModel(
             latestBodyMeasurement = latestBodyMeasurementOrNull(),
             allProgramExerciseCandidates = allProgramExerciseCandidates,
             competitionMovementIds = competitionMovementIds,
+            selectedExercisesIds = persistedDraft?.selectedExercisesIds.orEmpty(),
         )
 
         refreshDerivedStateImmediate()
@@ -1035,6 +1040,22 @@ class SessionEditorViewModel(
     }
 
     fun setSearchQuery(query: String) { _uiState.update { it.copy(searchQuery = query) } }
+
+    fun toggleExerciseSelection(exerciseId: String) {
+        val current = _uiState.value.selectedExercisesIds
+        _uiState.update { it.copy(selectedExercisesIds = if (exerciseId in current) current - exerciseId else current + exerciseId) }
+        scheduleAutoSave()
+    }
+
+    fun setExerciseSelection(ids: Set<String>) {
+        _uiState.update { it.copy(selectedExercisesIds = ids) }
+        scheduleAutoSave()
+    }
+
+    fun clearExerciseSelection() {
+        _uiState.update { it.copy(selectedExercisesIds = emptySet()) }
+        scheduleAutoSave()
+    }
 
     fun linkExerciseRelativeTo(partId: String?, exerciseId: String, anchorExerciseId: String?) {
         val state = _uiState.value
@@ -1770,6 +1791,14 @@ class SessionEditorViewModel(
         SupersetRules.dissolve(session, groupId)
     }
 
+    fun toggleSupersetOptional(groupId: String) = updateSession { session ->
+        session.copy(
+            supersetGroups = session.supersetGroups.map { g ->
+                if (g.id == groupId) g.copy(isOptional = !g.isOptional) else g
+            }
+        )
+    }
+
     fun moveSupersetGroupToPart(groupId: String, targetPartId: String?, targetIndex: Int?) = updateSession { session ->
         SupersetRules.moveGroup(session, groupId, targetPartId, targetIndex)
     }
@@ -2276,6 +2305,7 @@ class SessionEditorViewModel(
                 localDraftHistory = listOf(buildDraftSnapshot(session = resolvedSession, previous = null, reason = "Cambio de sesión")),
                 ruleDefaults = persistedDraft?.ruleDefaults ?: it.ruleDefaults,
                 ruleLimits = persistedDraft?.ruleLimits ?: it.ruleLimits,
+                selectedExercisesIds = persistedDraft?.selectedExercisesIds.orEmpty(),
             )
         }
         refreshDerivedStateImmediate()

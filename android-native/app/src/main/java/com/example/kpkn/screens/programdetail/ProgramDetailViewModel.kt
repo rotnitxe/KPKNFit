@@ -19,8 +19,13 @@ import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.SimpleProgramSnapshot
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.data.models.nextSimpleCalendarStart
 import com.example.kpkn.data.models.normalizedTemporalStructure
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
+import com.example.kpkn.data.models.restorePausedCyclicProgram
+import com.example.kpkn.data.models.startFreshSimpleCycle
+import com.example.kpkn.data.models.startSimpleCalendarizedBreak
+import com.example.kpkn.data.models.suggestCalendarTrainingDays
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ProgramDetailHelpers
 import com.example.kpkn.domain.training.ProgramCalendarEngine
@@ -336,7 +341,12 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
                 sessions = copiedSessions,
                 startDate = start.toString(),
                 endDate = start.plusDays(6).toString(),
-                trainingDayDates = trainingDays.associateWith { day -> start.plusDays((day - 1).toLong()).toString() },
+                trainingDayDates = trainingDays.associate { dayOfWeek ->
+                    val startDayIsoValue = current.startDay?.coerceIn(1, 7) ?: 1
+                    val targetDayIsoValue = dayOfWeekToJava(dayOfWeek).value
+                    val offset = ((targetDayIsoValue - startDayIsoValue + 7) % 7).toLong()
+                    dayOfWeek to start.plusDays(offset).toString()
+                },
             )
         } else {
             ProgramWeek(
@@ -817,7 +827,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         val block = current.macrocycles[macroIndex].blocks.firstOrNull() ?: return
         val mesoIndex = block.mesocycles.indexOfLast { true }.takeIf { it >= 0 } ?: return
         val offset = ProgramDetailHelpers.getTotalWeeks(current)
-        val newWeeks = buildCalendarWeeks(startDate, weekCount, trainingDays, offset)
+        val newWeeks = buildCalendarWeeks(startDate, weekCount, trainingDays, offset, current.startDay ?: 1)
         val updated = current.copy(
             timelineStartDate = current.timelineStartDate ?: startDate.toString(),
             calendarization = current.calendarization ?: ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
@@ -848,7 +858,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         val macro = current.macrocycles.getOrNull(target.macroIndex) ?: return
         val block = macro.blocks.getOrNull(target.blockIndex) ?: return
         val offset = countWeeksBeforeAppendingToBlock(current, target.macroIndex, target.blockIndex) + block.mesocycles.sumOf { it.weeks.size }
-        val newWeeks = buildCalendarWeeks(startDate, weekCount, trainingDays, offset)
+        val newWeeks = buildCalendarWeeks(startDate, weekCount, trainingDays, offset, current.startDay ?: 1)
         val lastMesoIndex = block.mesocycles.lastIndex
         val updated = current.copy(
             timelineStartDate = current.timelineStartDate ?: startDate.toString(),
@@ -884,7 +894,8 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             savedAtMs = System.currentTimeMillis(),
         )
 
-    private fun buildCalendarWeeks(startDate: LocalDate, weekCount: Int, trainingDays: Set<Int>, weekOffset: Int): List<ProgramWeek> {
+    private fun buildCalendarWeeks(startDate: LocalDate, weekCount: Int, trainingDays: Set<Int>, weekOffset: Int, startDayOfWeek: Int = 1): List<ProgramWeek> {
+        val startDayIsoValue = startDayOfWeek.coerceIn(1, 7)
         return (0 until weekCount).map { index ->
             val weekStart = startDate.plusWeeks(index.toLong())
             val weekEnd = weekStart.plusDays(6)
@@ -893,7 +904,12 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             name = calendarWeekTitle(weekStart),
             startDate = weekStart.toString(),
                 endDate = weekEnd.toString(),
-                trainingDayDates = trainingDays.associateWith { day -> weekStart.plusDays((day - 1).toLong()).toString() },
+                trainingDayDates = trainingDays.associate { dayOfWeek ->
+                    val targetDayIsoValue = dayOfWeekToJava(dayOfWeek).value
+                    val offset = ((targetDayIsoValue - startDayIsoValue + 7) % 7).toLong()
+                    val actualDate = weekStart.plusDays(offset)
+                    dayOfWeek to actualDate.toString()
+                },
             )
         }
     }
@@ -937,26 +953,6 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         return lastEnd?.plusDays(1)
             ?: program.timelineStartDate?.let(::parseIsoDate)
             ?: LocalDate.now()
-    }
-
-    private fun Program.suggestCalendarTrainingDays(): Set<Int> {
-        val fromDates = macrocycles
-            .flatMap { it.blocks }
-            .flatMap { it.mesocycles }
-            .flatMap { it.weeks }
-            .flatMap { it.trainingDayDates.keys }
-            .filter { it in 1..7 }
-            .toSet()
-        if (fromDates.isNotEmpty()) return fromDates
-
-        val fromSessions = macrocycles
-            .flatMap { it.blocks }
-            .flatMap { it.mesocycles }
-            .flatMap { it.weeks }
-            .flatMap { it.sessions }
-            .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
-            .toSet()
-        return fromSessions.ifEmpty { setOf(1, 3, 5) }
     }
 
     private fun calendarWeekTitle(startDate: LocalDate): String =
@@ -1163,6 +1159,109 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         val muscles: Set<String>,
         val setCount: Int,
     )
+
+    // ─── Simple Calendarization Sheet State ───────────────────────────────
+
+    private val _showSimpleCalendarizationSheet = MutableStateFlow(false)
+    val showSimpleCalendarizationSheet: StateFlow<Boolean> = _showSimpleCalendarizationSheet
+
+    private val _calendarizationStartDate = MutableStateFlow("")
+    val calendarizationStartDate: StateFlow<String> = _calendarizationStartDate
+
+    private val _calendarizationEndDate = MutableStateFlow("")
+    val calendarizationEndDate: StateFlow<String> = _calendarizationEndDate
+
+    private val _calendarizationStartDayOfWeek = MutableStateFlow(1)
+    val calendarizationStartDayOfWeek: StateFlow<Int> = _calendarizationStartDayOfWeek
+
+    private val _calendarizationTrainingDays = MutableStateFlow<Set<Int>>(emptySet())
+    val calendarizationTrainingDays: StateFlow<Set<Int>> = _calendarizationTrainingDays
+
+    fun setShowSimpleCalendarizationSheet(show: Boolean) {
+        _showSimpleCalendarizationSheet.value = show
+        if (show) {
+            val current = program.value
+            if (current != null) {
+                val start = current.nextSimpleCalendarStart()
+                _calendarizationStartDate.value = start.toString()
+                _calendarizationEndDate.value = start.plusWeeks(3).plusDays(6).toString()
+                _calendarizationStartDayOfWeek.value = current.startDay ?: 1
+                _calendarizationTrainingDays.value = current.suggestCalendarTrainingDays()
+            }
+        }
+    }
+
+    fun setCalendarizationStartDate(date: String) {
+        _calendarizationStartDate.value = date
+    }
+
+    fun setCalendarizationEndDate(date: String) {
+        _calendarizationEndDate.value = date
+    }
+
+    fun setCalendarizationStartDayOfWeek(day: Int) {
+        _calendarizationStartDayOfWeek.value = day
+    }
+
+    fun toggleCalendarizationTrainingDay(day: Int) {
+        val current = _calendarizationTrainingDays.value
+        _calendarizationTrainingDays.value = if (day in current) current - day else current + day
+    }
+
+    fun setCalendarizationTrainingDays(days: Set<Int>) {
+        _calendarizationTrainingDays.value = days
+    }
+
+    fun applySimpleCalendarizedBreak() {
+        val current = program.value ?: return
+        val startDate = parseIsoDate(_calendarizationStartDate.value) ?: return
+        val endDate = parseIsoDate(_calendarizationEndDate.value)
+        val startDayOfWeek = _calendarizationStartDayOfWeek.value.coerceIn(1, 7)
+        val trainingDays = _calendarizationTrainingDays.value
+        if (trainingDays.isEmpty()) return
+
+        val updated = ProgramCalendarEngine.materializeWeekDates(
+            current.startSimpleCalendarizedBreak(
+                startDate = startDate,
+                endDate = endDate,
+                startDayOfWeek = startDayOfWeek,
+                trainingDays = trainingDays,
+            )
+        ).normalizedTemporalStructure()
+        repository.updateProgram(updated)
+
+        val newBlockId = updated.macrocycles.firstOrNull()?.blocks?.firstOrNull()?.id
+        val newWeekId = updated.macrocycles
+            .firstOrNull()?.blocks?.firstOrNull()
+            ?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()?.id
+        if (newBlockId != null) {
+            _uiState.update { it.copy(selectedBlockId = newBlockId, selectedWeekId = newWeekId) }
+        }
+        setShowSimpleCalendarizationSheet(false)
+    }
+
+    fun recoverCyclicProgram() {
+        val current = program.value ?: return
+        repository.updateProgram(current.restorePausedCyclicProgram().normalizedTemporalStructure())
+        setShowSimpleCalendarizationSheet(false)
+    }
+
+    fun startFreshCyclicProgram() {
+        val current = program.value ?: return
+        repository.updateProgram(current.startFreshSimpleCycle().normalizedTemporalStructure())
+        setShowSimpleCalendarizationSheet(false)
+    }
+
+    private fun dayOfWeekToJava(day: Int): java.time.DayOfWeek = when (day) {
+        1 -> java.time.DayOfWeek.MONDAY
+        2 -> java.time.DayOfWeek.TUESDAY
+        3 -> java.time.DayOfWeek.WEDNESDAY
+        4 -> java.time.DayOfWeek.THURSDAY
+        5 -> java.time.DayOfWeek.FRIDAY
+        6 -> java.time.DayOfWeek.SATURDAY
+        7 -> java.time.DayOfWeek.SUNDAY
+        else -> java.time.DayOfWeek.MONDAY
+    }
 
     // ─── Factory ──────────────────────────────────────────────────────────
 

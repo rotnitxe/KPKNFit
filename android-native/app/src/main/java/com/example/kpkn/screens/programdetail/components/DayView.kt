@@ -123,6 +123,7 @@ private data class DayDragState(
 fun DayView(
     program: Program,
     isSimpleProgram: Boolean,
+    isCalendarized: Boolean = false,
     selectedWeek: WeekWithMeta?,
     sessions: List<Session>,
     onEditSession: (String) -> Unit,
@@ -211,9 +212,11 @@ fun DayView(
                     },
                     onAddSession = { onAddSession(day.id) },
                     onSetStartDay = {
-                        pendingStartDay = day.id
-                        startDayScope = StartDayTemporalScope.ALL_WEEKS
-                        startDaySessionMode = StartDaySessionMode.KEEP_DAYS
+                        if (!isCalendarized) {
+                            pendingStartDay = day.id
+                            startDayScope = StartDayTemporalScope.ALL_WEEKS
+                            startDaySessionMode = StartDaySessionMode.KEEP_DAYS
+                        }
                     },
                     onDayBoundsChange = { rect -> dayBounds[day.id] = rect },
                     onCardBoundsChange = { sessionId, rect -> cardBounds[sessionId] = rect },
@@ -296,19 +299,21 @@ fun DayView(
         )
     }
 
-    pendingStartDay?.let { dayId ->
-        StartDayConfirmDialog(
-            dayName = DAYS_OF_WEEK.firstOrNull { it.id == dayId }?.name ?: "este día",
-            scope = startDayScope,
-            sessionMode = startDaySessionMode,
-            onScopeChange = { startDayScope = it },
-            onSessionModeChange = { startDaySessionMode = it },
-            onDismiss = { pendingStartDay = null },
-            onConfirm = {
-                onUpdateStartDay(dayId, startDayScope, startDaySessionMode)
-                pendingStartDay = null
-            },
-        )
+    if (!isCalendarized) {
+        pendingStartDay?.let { dayId ->
+            StartDayConfirmDialog(
+                dayName = DAYS_OF_WEEK.firstOrNull { it.id == dayId }?.name ?: "este día",
+                scope = startDayScope,
+                sessionMode = startDaySessionMode,
+                onScopeChange = { startDayScope = it },
+                onSessionModeChange = { startDaySessionMode = it },
+                onDismiss = { pendingStartDay = null },
+                onConfirm = {
+                    onUpdateStartDay(dayId, startDayScope, startDaySessionMode)
+                    pendingStartDay = null
+                },
+            )
+        }
     }
 
     pendingOffScheduleSession?.let { (session, message) ->

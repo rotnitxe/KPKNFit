@@ -518,7 +518,7 @@ fun KPKNApp(
                             .draggable(
                                 orientation = Orientation.Vertical,
                                 state = rememberDraggableState { delta ->
-                                    offsetY = (offsetY + delta).coerceIn(-300f, 100f)
+                                    offsetY = (offsetY + delta).coerceIn(-300f, 0f)
                                 },
                             )
                             .shadow(16.dp, RoundedCornerShape(20.dp))

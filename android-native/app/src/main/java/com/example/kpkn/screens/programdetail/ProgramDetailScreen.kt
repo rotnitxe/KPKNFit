@@ -82,6 +82,11 @@ fun ProgramDetailScreen(
     val programLogs by viewModel.programLogs.collectAsState()
     val isSimpleProgram by viewModel.isSimpleProgram.collectAsState()
     val activeProgramState by viewModel.activeProgramState.collectAsState()
+    val showSimpleCalendarizationSheet by viewModel.showSimpleCalendarizationSheet.collectAsState()
+    val calendarizationStartDate by viewModel.calendarizationStartDate.collectAsState()
+    val calendarizationEndDate by viewModel.calendarizationEndDate.collectAsState()
+    val calendarizationStartDayOfWeek by viewModel.calendarizationStartDayOfWeek.collectAsState()
+    val calendarizationTrainingDays by viewModel.calendarizationTrainingDays.collectAsState()
     val batteries by augeViewModel.batteries.collectAsState()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val context = LocalContext.current
@@ -404,6 +409,11 @@ private fun TrainingPanel(
     onCreateSession: (String, String, Int, Int, Int, Boolean) -> Unit,
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
+    val showSimpleCalendarizationSheet by viewModel.showSimpleCalendarizationSheet.collectAsState()
+    val calendarizationStartDate by viewModel.calendarizationStartDate.collectAsState()
+    val calendarizationEndDate by viewModel.calendarizationEndDate.collectAsState()
+    val calendarizationStartDayOfWeek by viewModel.calendarizationStartDayOfWeek.collectAsState()
+    val calendarizationTrainingDays by viewModel.calendarizationTrainingDays.collectAsState()
     var copiedRoadmapWeekId by remember(program.id) { mutableStateOf<String?>(null) }
     var pendingCompetitionCreation by remember { mutableStateOf<PendingCompetitionSessionCreation?>(null) }
     var showCompetitionEligibilityNotice by remember { mutableStateOf(false) }
@@ -532,6 +542,7 @@ private fun TrainingPanel(
                 DayView(
                     program = program,
                     isSimpleProgram = program.isSimpleTemporalProgram,
+                    isCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED,
                     selectedWeek = selectedWeekMeta,
                     sessions = displayedSessions,
                     onEditSession = onEditSession,
@@ -590,12 +601,38 @@ private fun TrainingPanel(
                 onUpdateProgram = { viewModel.updateProgram(it) },
                 onFocusWeek = ::focusWeek,
                 onCreateSessionForWeek = ::createSessionForWeek,
+                showSimpleCalendarizationSheet = showSimpleCalendarizationSheet,
+                onShowSimpleCalendarizationSheetChange = { viewModel.setShowSimpleCalendarizationSheet(it) },
+                calendarizationStartDate = calendarizationStartDate,
+                onCalendarizationStartDateChange = { viewModel.setCalendarizationStartDate(it) },
+                calendarizationEndDate = calendarizationEndDate,
+                onCalendarizationEndDateChange = { viewModel.setCalendarizationEndDate(it) },
+                calendarizationStartDayOfWeek = calendarizationStartDayOfWeek,
+                onCalendarizationStartDayOfWeekChange = { viewModel.setCalendarizationStartDayOfWeek(it) },
+                calendarizationTrainingDays = calendarizationTrainingDays,
+                onCalendarizationTrainingDaysChange = { viewModel.setCalendarizationTrainingDays(it) },
+                onApplySimpleCalendarizedBreak = { viewModel.applySimpleCalendarizedBreak() },
+                onRecoverCyclicProgram = { viewModel.recoverCyclicProgram() },
+                onStartFreshCyclicProgram = { viewModel.startFreshCyclicProgram() },
             )
             StructureSubTab.LOOPS -> MacrocycleEditor(
                 program = program,
                 onUpdateProgram = { viewModel.updateProgram(it) },
                 onFocusWeek = ::focusWeek,
                 onCreateSessionForWeek = ::createSessionForWeek,
+                showSimpleCalendarizationSheet = showSimpleCalendarizationSheet,
+                onShowSimpleCalendarizationSheetChange = { viewModel.setShowSimpleCalendarizationSheet(it) },
+                calendarizationStartDate = calendarizationStartDate,
+                onCalendarizationStartDateChange = { viewModel.setCalendarizationStartDate(it) },
+                calendarizationEndDate = calendarizationEndDate,
+                onCalendarizationEndDateChange = { viewModel.setCalendarizationEndDate(it) },
+                calendarizationStartDayOfWeek = calendarizationStartDayOfWeek,
+                onCalendarizationStartDayOfWeekChange = { viewModel.setCalendarizationStartDayOfWeek(it) },
+                calendarizationTrainingDays = calendarizationTrainingDays,
+                onCalendarizationTrainingDaysChange = { viewModel.setCalendarizationTrainingDays(it) },
+                onApplySimpleCalendarizedBreak = { viewModel.applySimpleCalendarizedBreak() },
+                onRecoverCyclicProgram = { viewModel.recoverCyclicProgram() },
+                onStartFreshCyclicProgram = { viewModel.startFreshCyclicProgram() },
             )
             StructureSubTab.PROTOCOLOS -> ProtocolsView(
                 program = program,

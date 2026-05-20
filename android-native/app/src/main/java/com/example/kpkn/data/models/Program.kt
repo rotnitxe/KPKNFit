@@ -1,6 +1,8 @@
 package com.example.kpkn.data.models
 
 import kotlinx.serialization.Serializable
+import java.time.LocalDate
+import com.example.kpkn.domain.training.ProgramCalendarEngine
 
 @Serializable
 data class Program(
@@ -288,4 +290,190 @@ fun Program.normalizedTemporalStructure(): Program {
         pausedCyclicSnapshot = if (shouldBeSimple) pausedCyclicSnapshot else null,
         macrocycles = cleanMacrocycles,
     )
+}
+
+fun Program.toSimpleProgramSnapshot(): SimpleProgramSnapshot =
+    SimpleProgramSnapshot(
+        macrocycles = macrocycles,
+        loops = loops,
+        loopState = loopState,
+        events = events,
+        selectedSplitId = selectedSplitId,
+        customSplitPattern = customSplitPattern,
+        customSplitName = customSplitName,
+        customSplitDescription = customSplitDescription,
+        blockSplitSelections = blockSplitSelections,
+        savedAtMs = System.currentTimeMillis(),
+    )
+
+fun Program.startSimpleCalendarizedBreak(
+    startDate: LocalDate,
+    endDate: LocalDate?,
+    startDayOfWeek: Int,
+    trainingDays: Set<Int>,
+): Program {
+    val safeDays = trainingDays.filter { it in 1..7 }.toSet().ifEmpty { suggestCalendarTrainingDays() }
+    val snapshot = pausedCyclicSnapshot ?: toSimpleProgramSnapshot()
+
+    val calculatedEndDate = endDate ?: startDate.plusWeeks(3).plusDays(6)
+    val weekCount = java.time.temporal.ChronoUnit.WEEKS.between(startDate, calculatedEndDate).toInt().coerceIn(1, 52)
+
+    val weeks = buildSimpleCalendarWeeks(startDate, weekCount, startDayOfWeek, safeDays)
+
+    return copy(
+        structure = ProgramStructure.SIMPLE,
+        timelineStartDate = startDate.toString(),
+        calendarization = ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
+        simpleProgramKind = SimpleProgramKind.CALENDARIZED,
+        pausedCyclicSnapshot = snapshot,
+        loops = emptyList(),
+        loopState = null,
+        events = emptyList(),
+        startDay = startDayOfWeek,
+        macrocycles = listOf(
+            Macrocycle(
+                id = "macro_calendarized_${System.nanoTime()}",
+                name = "Break calendarizado",
+                blocks = listOf(
+                    Block(
+                        id = "block_calendarized_${System.nanoTime()}",
+                        name = "Semanas calendarizadas",
+                        mesocycles = listOf(
+                            Mesocycle(
+                                id = "meso_calendarized_${System.nanoTime()}",
+                                name = "Calendarizado",
+                                goal = MesocycleGoal.ACCUMULATION,
+                                weeks = weeks,
+                            )
+                        ),
+                    )
+                ),
+            )
+        ),
+    )
+}
+
+fun Program.restorePausedCyclicProgram(): Program {
+    val snapshot = pausedCyclicSnapshot ?: return copy(
+        calendarization = null,
+        simpleProgramKind = SimpleProgramKind.CYCLIC,
+        pausedCyclicSnapshot = null,
+    )
+    return copy(
+        structure = ProgramStructure.SIMPLE,
+        calendarization = null,
+        simpleProgramKind = SimpleProgramKind.CYCLIC,
+        macrocycles = snapshot.macrocycles,
+        loops = snapshot.loops,
+        loopState = snapshot.loopState,
+        events = snapshot.events,
+        selectedSplitId = snapshot.selectedSplitId,
+        customSplitPattern = snapshot.customSplitPattern,
+        customSplitName = snapshot.customSplitName,
+        customSplitDescription = snapshot.customSplitDescription,
+        blockSplitSelections = snapshot.blockSplitSelections,
+        pausedCyclicSnapshot = null,
+    )
+}
+
+fun Program.startFreshSimpleCycle(): Program {
+    return copy(
+        structure = ProgramStructure.SIMPLE,
+        calendarization = null,
+        simpleProgramKind = SimpleProgramKind.CYCLIC,
+        pausedCyclicSnapshot = null,
+        loops = emptyList(),
+        loopState = null,
+        events = emptyList(),
+        macrocycles = listOf(
+            Macrocycle(
+                id = "macro_simple_${System.nanoTime()}",
+                name = "Macrociclo base",
+                blocks = listOf(
+                    Block(
+                        id = "block_simple_${System.nanoTime()}",
+                        name = "Ciclo base",
+                        mesocycles = listOf(
+                            Mesocycle(
+                                id = "meso_simple_${System.nanoTime()}",
+                                name = "Mesociclo 1",
+                                goal = MesocycleGoal.ACCUMULATION,
+                                weeks = listOf(
+                                    ProgramWeek(
+                                        id = "week_simple_${System.nanoTime()}",
+                                        name = "Semana 1",
+                                    )
+                                ),
+                            )
+                        ),
+                    )
+                ),
+            )
+        ),
+    )
+}
+
+fun Program.nextSimpleCalendarStart(): LocalDate {
+    val lastEnd = macrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .mapNotNull { week -> week.endDate?.let { java.time.LocalDate.parse(it) } }
+        .maxOrNull()
+    return lastEnd?.plusDays(1) ?: timelineStartDate?.let { java.time.LocalDate.parse(it) } ?: LocalDate.now()
+}
+
+fun Program.suggestCalendarTrainingDays(): Set<Int> {
+    val daysFromDates = macrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .flatMap { it.trainingDayDates.keys }
+        .filter { it in 1..7 }
+        .toSet()
+    if (daysFromDates.isNotEmpty()) return daysFromDates
+
+    val daysFromSessions = macrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .flatMap { it.sessions }
+        .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+        .toSet()
+    return daysFromSessions.ifEmpty { setOf(1, 3, 5) }
+}
+
+internal fun buildSimpleCalendarWeeks(
+    startDate: LocalDate,
+    weekCount: Int,
+    startDayOfWeek: Int,
+    trainingDays: Set<Int>,
+): List<ProgramWeek> {
+    val startDayIsoValue = when (startDayOfWeek) {
+        1 -> 1
+        2 -> 2
+        3 -> 3
+        4 -> 4
+        5 -> 5
+        6 -> 6
+        7 -> 7
+        else -> 1
+    }
+    return (0 until weekCount).map { index ->
+        val weekStart = startDate.plusWeeks(index.toLong())
+        val weekEnd = weekStart.plusDays(6)
+        val trainingDayDates = trainingDays.associate { dayOfWeek ->
+            val targetDayIsoValue = dayOfWeek
+            val offset = ((targetDayIsoValue - startDayIsoValue + 7) % 7).toLong()
+            val actualDate = weekStart.plusDays(offset)
+            dayOfWeek to actualDate.toString()
+        }
+        ProgramWeek(
+            id = java.util.UUID.randomUUID().toString(),
+            name = "Semana: ${weekStart.format(java.time.format.DateTimeFormatter.ofPattern("MM/dd", java.util.Locale.US))}",
+            startDate = weekStart.toString(),
+            endDate = weekEnd.toString(),
+            trainingDayDates = trainingDayDates,
+        )
+    }
 }

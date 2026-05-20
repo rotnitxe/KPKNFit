@@ -203,7 +203,7 @@ class ProgramRepository private constructor(context: Context) {
 
     /**
      * Synchronously persists the current [ongoingWorkout] state to Room.
-     * Call from [MainActivity.onStop] to prevent data loss when the OS kills the process
+     * Call from MainActivity's onStop to prevent data loss when the OS kills the process
      * before the background write coroutine completes.
      */
     suspend fun flushPendingWrites() {

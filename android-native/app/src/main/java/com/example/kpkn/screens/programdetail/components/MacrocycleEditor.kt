@@ -12,6 +12,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
@@ -69,10 +72,13 @@ import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.SimpleProgramSnapshot
 import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.data.models.buildSimpleCalendarWeeks
+import com.example.kpkn.data.models.nextSimpleCalendarStart
 import com.example.kpkn.data.models.normalizedTemporalStructure
 import com.example.kpkn.data.models.primaryLoopCadenceCycles
 import com.example.kpkn.data.models.primaryLoopLengthWeeks
 import com.example.kpkn.data.models.simpleCycleWeeks
+import com.example.kpkn.data.models.suggestCalendarTrainingDays
 import com.example.kpkn.data.models.totalBlockCount
 import com.example.kpkn.data.models.totalMesocycleCount
 import com.example.kpkn.data.models.totalProgramWeeks
@@ -97,6 +103,19 @@ fun MacrocycleEditor(
     onUpdateProgram: (Program) -> Unit,
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
     onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int, keyDateId: String?) -> Unit = { _, _, _ -> },
+    showSimpleCalendarizationSheet: Boolean = false,
+    onShowSimpleCalendarizationSheetChange: (Boolean) -> Unit = {},
+    calendarizationStartDate: String = "",
+    onCalendarizationStartDateChange: (String) -> Unit = {},
+    calendarizationEndDate: String = "",
+    onCalendarizationEndDateChange: (String) -> Unit = {},
+    calendarizationStartDayOfWeek: Int = 1,
+    onCalendarizationStartDayOfWeekChange: (Int) -> Unit = {},
+    calendarizationTrainingDays: Set<Int> = emptySet(),
+    onCalendarizationTrainingDaysChange: (Set<Int>) -> Unit = {},
+    onApplySimpleCalendarizedBreak: () -> Unit = {},
+    onRecoverCyclicProgram: () -> Unit = {},
+    onStartFreshCyclicProgram: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var expandedBlocks by remember { mutableStateOf(setOf("0")) }
@@ -116,7 +135,6 @@ fun MacrocycleEditor(
     var showAdvancedRoadmap by remember { mutableStateOf(false) }
     var showLibrarySheet by remember { mutableStateOf(false) }
     var showLoopsSheet by remember { mutableStateOf(false) }
-    var showSimpleCalendarizationSheet by remember { mutableStateOf(false) }
 
     val temporalInsight = remember(program) { program.toTemporalInsight() }
     val stats = remember(program) { program.toProgramStats() }
@@ -139,7 +157,7 @@ fun MacrocycleEditor(
             onOpenKeyDates = { showKeyDatesSheet = true },
             onOpenLibrary = { showLibrarySheet = true },
             onOpenLoops = { showLoopsSheet = true },
-            onOpenSimpleCalendarization = { showSimpleCalendarizationSheet = true },
+            onOpenSimpleCalendarization = { onShowSimpleCalendarizationSheetChange(true) },
         )
         if (!temporalInsight.isSimple && showAdvancedRoadmap) {
             AdvancedRoadmapCard(
@@ -430,26 +448,18 @@ fun MacrocycleEditor(
     if (temporalInsight.isSimple && showSimpleCalendarizationSheet) {
         SimpleCalendarizationSheet(
             program = program,
-            onDismiss = { showSimpleCalendarizationSheet = false },
-            onStartBreak = { startDate, weekCount, trainingDays ->
-                val updated = ProgramCalendarEngine.materializeWeekDates(
-                    program.startSimpleCalendarizedBreak(
-                        startDate = startDate,
-                        weekCount = weekCount,
-                        trainingDays = trainingDays,
-                    )
-                )
-                onUpdateProgram(updated.normalizedTemporalStructure())
-                showSimpleCalendarizationSheet = false
-            },
-            onRecoverCycle = {
-                onUpdateProgram(program.restorePausedCyclicProgram().normalizedTemporalStructure())
-                showSimpleCalendarizationSheet = false
-            },
-            onStartFreshCycle = {
-                onUpdateProgram(program.startFreshSimpleCycle().normalizedTemporalStructure())
-                showSimpleCalendarizationSheet = false
-            },
+            onDismiss = { onShowSimpleCalendarizationSheetChange(false) },
+            startDate = calendarizationStartDate,
+            onStartDateChange = onCalendarizationStartDateChange,
+            endDate = calendarizationEndDate,
+            onEndDateChange = onCalendarizationEndDateChange,
+            startDayOfWeek = calendarizationStartDayOfWeek,
+            onStartDayOfWeekChange = onCalendarizationStartDayOfWeekChange,
+            trainingDays = calendarizationTrainingDays,
+            onTrainingDaysChange = onCalendarizationTrainingDaysChange,
+            onStartBreak = onApplySimpleCalendarizedBreak,
+            onRecoverCycle = onRecoverCyclicProgram,
+            onStartFreshCycle = onStartFreshCyclicProgram,
         )
     }
 }
@@ -538,40 +548,54 @@ private fun ToolbarStatChip(label: String, value: String) {
 private fun SimpleCalendarizationSheet(
     program: Program,
     onDismiss: () -> Unit,
-    onStartBreak: (LocalDate, Int, Set<Int>) -> Unit,
+    startDate: String,
+    onStartDateChange: (String) -> Unit,
+    endDate: String,
+    onEndDateChange: (String) -> Unit,
+    startDayOfWeek: Int,
+    onStartDayOfWeekChange: (Int) -> Unit,
+    trainingDays: Set<Int>,
+    onTrainingDaysChange: (Set<Int>) -> Unit,
+    onStartBreak: () -> Unit,
     onRecoverCycle: () -> Unit,
     onStartFreshCycle: () -> Unit,
 ) {
     val isCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
         program.calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
-    var startDateText by remember(program.id, program.timelineStartDate) {
-        mutableStateOf(program.nextSimpleCalendarStart().toString())
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+    )
+    val parsedStartDate = parseProgramDate(startDate)
+    val parsedEndDate = parseProgramDate(endDate)
+    val weekCount = if (parsedStartDate != null && parsedEndDate != null) {
+        java.time.temporal.ChronoUnit.WEEKS.between(parsedStartDate, parsedEndDate).toInt().coerceAtLeast(1)
+    } else {
+        0
     }
-    var weekCountText by remember(program.id) { mutableStateOf("4") }
-    var trainingDays by remember(program.id) { mutableStateOf(program.suggestCalendarTrainingDays()) }
-    val startDate = parseProgramDate(startDateText)
-    val weekCount = weekCountText.toIntOrNull()?.coerceIn(1, 52) ?: 0
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Text(
-                if (isCalendarized) "Programa Simple Calendarizado" else "Pasar a semanas calendarizadas",
-                fontWeight = FontWeight.Black,
-                fontSize = 20.sp,
-            )
-            Text(
-                "Esto sirve cuando tu semana real cambia: turnos rotativos, viajes, exámenes, semanas con pocos días libres o una etapa donde no puedes repetir el ciclo normal. Tu rutina cíclica queda pausada; mientras dura este break, los loops y eventos cíclicos no se aplican.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 17.sp,
-            )
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        if (isCalendarized) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Text(
+                    "Programa Simple Calendarizado",
+                    fontWeight = FontWeight.Black,
+                    fontSize = 20.sp,
+                )
+                Text(
+                    "Esto sirve cuando tu semana real cambia: turnos rotativos, viajes, exámenes, semanas con pocos días libres o una etapa donde no puedes repetir el ciclo normal. Tu rutina cíclica queda pausada; mientras dura este break, los loops y eventos cíclicos no se aplican.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 17.sp,
+                )
 
-            if (isCalendarized) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
@@ -597,39 +621,98 @@ private fun SimpleCalendarizationSheet(
                     Text("Empezar ciclo desde cero")
                 }
                 Spacer(Modifier.height(16.dp))
-                return@Column
             }
-
-            NativeDateField(
-                label = "Primera semana",
-                value = startDateText,
-                emptyLabel = "Seleccionar inicio",
-                onValueChange = { startDateText = it },
-            )
-            OutlinedTextField(
-                value = weekCountText,
-                onValueChange = { input -> weekCountText = input.filter(Char::isDigit).take(2) },
-                label = { Text("Cantidad de semanas") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Días disponibles", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                CalendarDayChecklist(
-                    selectedDays = trainingDays,
-                    onToggleDay = { day ->
-                        trainingDays = if (day in trainingDays) trainingDays - day else trainingDays + day
-                    },
-                )
-            }
-            Button(
-                onClick = { startDate?.let { onStartBreak(it, weekCount, trainingDays) } },
-                enabled = startDate != null && weekCount > 0 && trainingDays.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth(),
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                Text("Crear break calendarizado")
+                Text(
+                    "Pasar a semanas calendarizadas",
+                    fontWeight = FontWeight.Black,
+                    fontSize = 20.sp,
+                )
+                Text(
+                    "Define el rango de fechas, el día en que comienza tu semana y los días de entrenamiento. Si eliges un día distinto al lunes, cada semana irá desde ese día hasta el mismo día de la semana siguiente.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 17.sp,
+                )
+
+                Column(
+                    modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("La semana comienza el:", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            (1..7).forEach { day ->
+                                val isSelected = day == startDayOfWeek
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { onStartDayOfWeekChange(day) },
+                                    label = { Text(dayLabelShort(day), fontSize = 11.sp) },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        }
+                    }
+
+                    NativeDateField(
+                        label = "Fecha de inicio",
+                        value = startDate,
+                        emptyLabel = "Seleccionar inicio",
+                        onValueChange = onStartDateChange,
+                    )
+                    NativeDateField(
+                        label = "Fecha de fin",
+                        value = endDate,
+                        emptyLabel = "Seleccionar fin",
+                        onValueChange = onEndDateChange,
+                    )
+
+                    if (weekCount > 0) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+                        ) {
+                            Text(
+                                "$weekCount semanas desde ${parsedStartDate?.let { formatFullDate(it) } ?: "?"} hasta ${parsedEndDate?.let { formatFullDate(it) } ?: "?"}",
+                                modifier = Modifier.padding(12.dp),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                        }
+                    }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Días de entrenamiento", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        CalendarDayChecklist(
+                            selectedDays = trainingDays,
+                            onToggleDay = { day ->
+                                onTrainingDaysChange(if (day in trainingDays) trainingDays - day else trainingDays + day)
+                            },
+                            startDayOfWeek = startDayOfWeek,
+                        )
+                    }
+                }
+
+                Button(
+                    onClick = onStartBreak,
+                    enabled = parsedStartDate != null && parsedEndDate != null && parsedEndDate.isAfter(parsedStartDate) && trainingDays.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Crear break calendarizado")
+                }
+                Spacer(Modifier.height(16.dp))
             }
-            Spacer(Modifier.height(16.dp))
         }
     }
 }
@@ -638,24 +721,41 @@ private fun SimpleCalendarizationSheet(
 private fun CalendarDayChecklist(
     selectedDays: Set<Int>,
     onToggleDay: (Int) -> Unit,
+    startDayOfWeek: Int = 1,
 ) {
+    val rotatedDays = remember(startDayOfWeek) {
+        val safeDayIndex = if (startDayOfWeek in 1..7) startDayOfWeek - 1 else 0
+        (1..7).toList().let { all ->
+            all.drop(safeDayIndex) + all.take(safeDayIndex)
+        }
+    }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        (1..7).forEach { day ->
+        rotatedDays.forEach { day ->
+            val isOutsideProgram = day < startDayOfWeek
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .clickable { onToggleDay(day) }
+                    .clickable(enabled = !isOutsideProgram) { onToggleDay(day) }
                     .padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Checkbox(
                     checked = day in selectedDays,
-                    onCheckedChange = { onToggleDay(day) },
+                    onCheckedChange = { if (!isOutsideProgram) onToggleDay(day) },
+                    enabled = !isOutsideProgram,
                 )
                 Column {
-                    Text(dayFullLabel(day), fontWeight = FontWeight.SemiBold)
-                    Text("Se asignará fecha real en cada semana.", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        dayFullLabel(day),
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (isOutsideProgram) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f) else MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        if (isOutsideProgram) "Fuera de esta semana" else "Se asignará fecha real en cada semana.",
+                        fontSize = 10.sp,
+                        color = if (isOutsideProgram) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
@@ -1650,6 +1750,7 @@ private fun Program.addWeekToBlock(macroIndex: Int, blockIndex: Int, name: Strin
         buildSimpleCalendarWeeks(
             startDate = nextSimpleCalendarStart(),
             weekCount = 1,
+            startDayOfWeek = startDay ?: 1,
             trainingDays = suggestCalendarTrainingDays(),
         ).first()
     } else {
@@ -2082,154 +2183,6 @@ private fun preferredDayOfWeek(type: KeyDateType): Int {
     }
 }
 
-private fun Program.startSimpleCalendarizedBreak(
-    startDate: LocalDate,
-    weekCount: Int,
-    trainingDays: Set<Int>,
-): Program {
-    val safeWeeks = weekCount.coerceIn(1, 52)
-    val safeDays = trainingDays.filter { it in 1..7 }.toSet().ifEmpty { suggestCalendarTrainingDays() }
-    val snapshot = pausedCyclicSnapshot ?: toSimpleProgramSnapshot()
-    val weeks = buildSimpleCalendarWeeks(startDate, safeWeeks, safeDays)
-
-    return copy(
-        structure = ProgramStructure.SIMPLE,
-        timelineStartDate = startDate.toString(),
-        calendarization = ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
-        simpleProgramKind = SimpleProgramKind.CALENDARIZED,
-        pausedCyclicSnapshot = snapshot,
-        loops = emptyList(),
-        loopState = null,
-        events = emptyList(),
-        macrocycles = listOf(
-            Macrocycle(
-                id = "macro_calendarized_${System.nanoTime()}",
-                name = "Break calendarizado",
-                blocks = listOf(
-                    Block(
-                        id = "block_calendarized_${System.nanoTime()}",
-                        name = "Semanas calendarizadas",
-                        mesocycles = listOf(
-                            Mesocycle(
-                                id = "meso_calendarized_${System.nanoTime()}",
-                                name = "Calendarizado",
-                                goal = MesocycleGoal.ACCUMULATION,
-                                weeks = weeks,
-                            )
-                        ),
-                    )
-                ),
-            )
-        ),
-    )
-}
-
-private fun Program.restorePausedCyclicProgram(): Program {
-    val snapshot = pausedCyclicSnapshot ?: return copy(
-        calendarization = null,
-        simpleProgramKind = SimpleProgramKind.CYCLIC,
-        pausedCyclicSnapshot = null,
-    )
-    return copy(
-        structure = ProgramStructure.SIMPLE,
-        calendarization = null,
-        simpleProgramKind = SimpleProgramKind.CYCLIC,
-        macrocycles = snapshot.macrocycles,
-        loops = snapshot.loops,
-        loopState = snapshot.loopState,
-        events = snapshot.events,
-        selectedSplitId = snapshot.selectedSplitId,
-        customSplitPattern = snapshot.customSplitPattern,
-        customSplitName = snapshot.customSplitName,
-        customSplitDescription = snapshot.customSplitDescription,
-        blockSplitSelections = snapshot.blockSplitSelections,
-        pausedCyclicSnapshot = null,
-    )
-}
-
-private fun Program.startFreshSimpleCycle(): Program {
-    return copy(
-        structure = ProgramStructure.SIMPLE,
-        calendarization = null,
-        simpleProgramKind = SimpleProgramKind.CYCLIC,
-        pausedCyclicSnapshot = null,
-        loops = emptyList(),
-        loopState = null,
-        events = emptyList(),
-        macrocycles = listOf(
-            Macrocycle(
-                id = "macro_simple_${System.nanoTime()}",
-                name = "Macrociclo base",
-                blocks = listOf(defaultBlock("Ciclo base")),
-            )
-        ),
-    )
-}
-
-private fun Program.toSimpleProgramSnapshot(): SimpleProgramSnapshot =
-    SimpleProgramSnapshot(
-        macrocycles = macrocycles,
-        loops = loops,
-        loopState = loopState,
-        events = events,
-        selectedSplitId = selectedSplitId,
-        customSplitPattern = customSplitPattern,
-        customSplitName = customSplitName,
-        customSplitDescription = customSplitDescription,
-        blockSplitSelections = blockSplitSelections,
-        savedAtMs = System.currentTimeMillis(),
-    )
-
-private fun Program.nextSimpleCalendarStart(): LocalDate {
-    val lastEnd = macrocycles
-        .flatMap { it.blocks }
-        .flatMap { it.mesocycles }
-        .flatMap { it.weeks }
-        .mapNotNull { parseProgramDate(it.endDate) }
-        .maxOrNull()
-    return lastEnd?.plusDays(1) ?: parseProgramDate(timelineStartDate) ?: LocalDate.now()
-}
-
-private fun Program.suggestCalendarTrainingDays(): Set<Int> {
-    val daysFromDates = macrocycles
-        .flatMap { it.blocks }
-        .flatMap { it.mesocycles }
-        .flatMap { it.weeks }
-        .flatMap { it.trainingDayDates.keys }
-        .filter { it in 1..7 }
-        .toSet()
-    if (daysFromDates.isNotEmpty()) return daysFromDates
-
-    val daysFromSessions = macrocycles
-        .flatMap { it.blocks }
-        .flatMap { it.mesocycles }
-        .flatMap { it.weeks }
-        .flatMap { it.sessions }
-        .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
-        .toSet()
-    return daysFromSessions.ifEmpty { setOf(1, 3, 5) }
-}
-
-private fun buildSimpleCalendarWeeks(
-    startDate: LocalDate,
-    weekCount: Int,
-    trainingDays: Set<Int>,
-): List<ProgramWeek> {
-    return (0 until weekCount).map { index ->
-        val weekStart = startDate.plusWeeks(index.toLong())
-        val weekEnd = weekStart.plusDays(6)
-        ProgramWeek(
-            id = "week_calendarized_${System.nanoTime()}_$index",
-            name = calendarWeekTitle(weekStart),
-            startDate = weekStart.toString(),
-            endDate = weekEnd.toString(),
-            trainingDayDates = trainingDays.associateWith { day ->
-                weekStart.plusDays((day - 1).toLong()).toString()
-            },
-        )
-    }
-}
-
 private fun calendarWeekTitle(startDate: LocalDate): String {
     return "Semana: ${startDate.format(DateTimeFormatter.ofPattern("MM/dd", Locale.US))}"
 }
@@ -2317,4 +2270,15 @@ private fun buildProtocolSessions(
             },
         )
     }
+}
+
+private fun dayLabelShort(dayOfWeek: Int): String = when (dayOfWeek) {
+    1 -> "Lun"
+    2 -> "Mar"
+    3 -> "Mié"
+    4 -> "Jue"
+    5 -> "Vie"
+    6 -> "Sáb"
+    7 -> "Dom"
+    else -> "Día"
 }

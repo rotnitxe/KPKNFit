@@ -307,6 +307,7 @@ private fun SessionCard(
                                         )
                                         Text(
                                             muscle,
+                                            modifier = Modifier.weight(1f),
                                             style = MaterialTheme.typography.labelSmall,
                                             fontSize = 10.sp,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),

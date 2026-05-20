@@ -51,6 +51,7 @@ data class Session(
                 restBetweenExercises = members.firstOrNull()?.supersetRestBetween ?: 60,
                 restAfterSuperset = members.firstOrNull()?.supersetRestAfter ?: 120,
                 rounds = null,
+                isOptional = false,
             )
         }
     }
@@ -68,6 +69,7 @@ data class SupersetGroup(
     val visualPlacement: SupersetVisualPlacement? = null,
     val roundRestBetweenExercises: Map<Int, Int> = emptyMap(),
     val roundRestAfterSuperset: Map<Int, Int> = emptyMap(),
+    val isOptional: Boolean = false,
 )
 
 @Serializable
@@ -207,6 +209,7 @@ data class Exercise(
     val isUnilateral: Boolean = false,
     val unilateralMode: UnilateralMode = UnilateralMode.BILATERAL,
     val unilateralSideOrder: UnilateralSideOrder = UnilateralSideOrder.LEFT_RIGHT,
+    val unilateralIntensityMode: UnilateralIntensityMode = UnilateralIntensityMode.SHARED,
     val restBetweenSidesSeconds: Int? = null,
     val isCalibratorAmrap: Boolean = false,
     val goal1RM: Double? = null,
@@ -242,6 +245,7 @@ enum class DamageProfile { STRETCH, SQUEEZE, NORMAL }
 enum class ExerciseRelationshipType { VARIATION, ASSISTANCE, OVERLOAD, TECHNIQUE }
 enum class UnilateralMode { BILATERAL, UNILATERAL_PAIRED, UNILATERAL_DIFFERENTIAL }
 enum class UnilateralSideOrder { LEFT_RIGHT, RIGHT_LEFT }
+enum class UnilateralIntensityMode { SHARED, INDEPENDENT }
 enum class TechniqueType { DROP_SET, REST_PAUSE, PARTIALS, ISO_HOLD, NEGATIVES, CLUSTER_SET }
 
 @Serializable

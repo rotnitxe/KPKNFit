@@ -117,6 +117,7 @@ object ProgramCalendarEngine {
             )
         }
         val startDate: LocalDate = start
+        val programStartDay = program.startDay ?: 1
 
         var cursor = startDate
         var globalWeekIndex = 0
@@ -129,8 +130,8 @@ object ProgramCalendarEngine {
                     val mesoIndex = globalMesoIndex++
                     meso.weeks.forEach { week ->
                         val weekStart = parseIsoDate(week.startDate) ?: cursor
-                        val weekEnd = parseIsoDate(week.endDate) ?: projectedWeekEnd(weekStart, globalWeekIndex == 0)
-                        val outsideDays = outsideDaysFor(weekStart, weekEnd, globalWeekIndex == 0)
+                        val weekEnd = parseIsoDate(week.endDate) ?: projectedWeekEnd(weekStart, globalWeekIndex == 0, programStartDay)
+                        val outsideDays = outsideDaysFor(weekStart, weekEnd, globalWeekIndex == 0, programStartDay)
                         val dayDates = trainingDatesFor(weekStart, weekEnd, outsideDays, week.trainingDayDates)
                         val marks = program.keyDates.filter { keyDateIntersects(it, weekStart, weekEnd) }
                         weeks += CalendarWeekProjection(
@@ -212,17 +213,13 @@ object ProgramCalendarEngine {
         }
     }
 
-    private fun projectedWeekEnd(start: LocalDate, isFirstWeek: Boolean): LocalDate {
-        if (!isFirstWeek) return start.plusDays(6)
-        val daysUntilSunday = DayOfWeek.SUNDAY.value - start.dayOfWeek.value
-        return start.plusDays(daysUntilSunday.coerceAtLeast(0).toLong())
+    private fun projectedWeekEnd(start: LocalDate, isFirstWeek: Boolean, startDay: Int = 1): LocalDate {
+        return start.plusDays(6)
     }
 
-    private fun outsideDaysFor(start: LocalDate, end: LocalDate, isFirstWeek: Boolean): Set<Int> {
+    private fun outsideDaysFor(start: LocalDate, end: LocalDate, isFirstWeek: Boolean, programStartDay: Int = 1): Set<Int> {
         if (!isFirstWeek) return emptySet()
-        return (1 until start.dayOfWeek.value).filter { day ->
-            start.with(DayOfWeek.of(day)).isBefore(start) && !end.isBefore(start)
-        }.toSet()
+        return (1 until programStartDay).toSet()
     }
 
     private fun trainingDatesFor(
