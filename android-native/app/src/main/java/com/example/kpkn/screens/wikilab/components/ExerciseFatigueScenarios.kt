@@ -203,7 +203,7 @@ fun ExerciseFatigueScenarios(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                SectionHeader("Fatiga AUGE por RPE")
+                SectionHeader("Fatiga por RPE")
                 Text(
                     "Todavia no hay suficientes musculos asociados para estimar el drenaje por escenario.",
                     style = MaterialTheme.typography.bodySmall,
@@ -227,7 +227,7 @@ fun ExerciseFatigueScenarios(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            SectionHeader("Fatiga AUGE por RPE")
+            SectionHeader("Fatiga por RPE")
             Text(
                 "Simula 1 serie efectiva y ve como cambia la demanda muscular, neural y espinal segun el RPE.",
                 style = MaterialTheme.typography.bodySmall,
@@ -275,7 +275,7 @@ fun ExerciseFatigueScenarios(
                             enabled = false,
                             label = {
                                 Text(
-                                    "AUGE x${"%.2f".format(rpeMultiplier)}",
+                                    "Fatiga x${"%.2f".format(rpeMultiplier)}",
                                     fontWeight = FontWeight.Black,
                                 )
                             },

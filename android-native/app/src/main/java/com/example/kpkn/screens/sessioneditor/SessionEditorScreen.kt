@@ -89,7 +89,6 @@ import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TipsAndUpdates
-import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
@@ -1424,7 +1423,7 @@ fun SessionEditorScreen(
         onApplyAugeCorrection = { alertId ->
             viewModel.applyAugeCorrection(alertId)
             scope.launch {
-                snackbarHostState.showKpknSnackbar("Ajuste AUGE aplicado", SnackbarType.SUCCESS)
+                snackbarHostState.showKpknSnackbar("Ajuste aplicado", SnackbarType.SUCCESS)
             }
         },
         onAddGhostExercise = { cardId ->
@@ -8731,7 +8730,7 @@ private fun CompetitionMovementCard(
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(Icons.Default.WorkspacePremium, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                 Column(Modifier.weight(1f)) {
                     Text(movement.name.ifBlank { "Movimiento" }, fontWeight = FontWeight.Black)
                     Text("Movimiento de competición", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
@@ -9665,6 +9664,21 @@ internal fun Exercise.toggledBilateralUnilateral(): Exercise {
         copy(
             isUnilateral = true,
             unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
+            sets = sets.map { set ->
+                val target = UnilateralTarget(
+                    weight = set.weight,
+                    targetReps = set.targetReps,
+                    targetDuration = set.targetDuration,
+                    targetValue = set.plannedTargetV2,
+                    targetRPE = set.targetRPE,
+                    targetRIR = set.targetRIR,
+                    intensityMode = set.intensityMode,
+                )
+                set.copy(
+                    leftTarget = target,
+                    rightTarget = target,
+                )
+            }
         )
     } else {
         copy(
@@ -9672,9 +9686,27 @@ internal fun Exercise.toggledBilateralUnilateral(): Exercise {
             unilateralMode = UnilateralMode.BILATERAL,
             restBetweenSidesSeconds = null,
             sets = sets.map { set ->
-                set.copy(
-                    restBetweenSides = null,
-                )
+                val source = set.leftTarget ?: set.rightTarget
+                if (source != null) {
+                    set.copy(
+                        weight = source.weight,
+                        targetReps = source.targetReps,
+                        targetDuration = source.targetDuration,
+                        plannedTargetV2 = source.targetValue,
+                        targetRPE = source.targetRPE,
+                        targetRIR = source.targetRIR,
+                        intensityMode = source.intensityMode,
+                        restBetweenSides = null,
+                        leftTarget = null,
+                        rightTarget = null,
+                    )
+                } else {
+                    set.copy(
+                        restBetweenSides = null,
+                        leftTarget = null,
+                        rightTarget = null,
+                    )
+                }
             },
         )
     }
@@ -9872,27 +9904,12 @@ internal fun ExerciseSetsCarousel(
             item("add-set") {
                 Box(
                     modifier = Modifier
-                        .fillMaxHeight(),
+                        .width(300.dp)
+                        .fillMaxHeight()
+                        .padding(end = 16.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Surface(
-                        modifier = Modifier
-                            .padding(start = 4.dp, end = 16.dp)
-                            .size(48.dp)
-                            .clickable { onAddSet(null) },
-                        shape = CircleShape,
-                        color = accentColor.copy(alpha = 0.15f),
-                        border = androidx.compose.foundation.BorderStroke(2.dp, accentColor.copy(alpha = 0.35f))
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Añadir serie",
-                                tint = accentColor,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    AddSetGhostCard(onAddSet = { onAddSet(null) })
                 }
             }
         }

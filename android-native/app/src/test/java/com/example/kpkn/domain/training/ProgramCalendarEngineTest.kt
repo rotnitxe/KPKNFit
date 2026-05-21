@@ -20,23 +20,46 @@ import java.time.LocalDate
 
 class ProgramCalendarEngineTest {
     @Test
-    fun `advanced calendar starts partial week on Wednesday and continues Monday to Sunday`() {
+    fun `advanced calendar uses Wednesday as full custom week start`() {
         val program = programWithWeeks(
             startDate = "2026-05-20",
             calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization(),
             weekCount = 3,
+            startDay = 3,
         )
 
         val projection = ProgramCalendarEngine.project(program)
 
         assertTrue(projection.enabled)
         assertEquals(LocalDate.parse("2026-05-20"), projection.weeks[0].startDate)
-        assertEquals(LocalDate.parse("2026-05-24"), projection.weeks[0].endDate)
-        assertEquals(setOf(1, 2), projection.weeks[0].outsideProgramDays)
-        assertNull(projection.weeks[0].trainingDayDates[1])
+        assertEquals(LocalDate.parse("2026-05-26"), projection.weeks[0].endDate)
+        assertTrue(projection.weeks[0].outsideProgramDays.isEmpty())
+        assertEquals(LocalDate.parse("2026-05-25"), projection.weeks[0].trainingDayDates[1])
+        assertEquals(LocalDate.parse("2026-05-26"), projection.weeks[0].trainingDayDates[2])
         assertEquals(LocalDate.parse("2026-05-20"), projection.weeks[0].trainingDayDates[3])
-        assertEquals(LocalDate.parse("2026-05-25"), projection.weeks[1].startDate)
-        assertEquals(LocalDate.parse("2026-05-31"), projection.weeks[1].endDate)
+        assertEquals(LocalDate.parse("2026-05-27"), projection.weeks[1].startDate)
+        assertEquals(LocalDate.parse("2026-06-02"), projection.weeks[1].endDate)
+    }
+
+    @Test
+    fun `advanced calendar uses Thursday to Wednesday without outside days`() {
+        val program = programWithWeeks(
+            startDate = "2026-05-21",
+            calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization(),
+            weekCount = 2,
+            startDay = 4,
+        )
+
+        val projection = ProgramCalendarEngine.project(program)
+
+        assertEquals(LocalDate.parse("2026-05-21"), projection.weeks[0].startDate)
+        assertEquals(LocalDate.parse("2026-05-27"), projection.weeks[0].endDate)
+        assertTrue(projection.weeks[0].outsideProgramDays.isEmpty())
+        assertEquals(LocalDate.parse("2026-05-25"), projection.weeks[0].trainingDayDates[1])
+        assertEquals(LocalDate.parse("2026-05-26"), projection.weeks[0].trainingDayDates[2])
+        assertEquals(LocalDate.parse("2026-05-27"), projection.weeks[0].trainingDayDates[3])
+        assertEquals(LocalDate.parse("2026-05-28"), projection.weeks[1].startDate)
+        assertEquals(LocalDate.parse("2026-06-03"), projection.weeks[1].endDate)
     }
 
     @Test
@@ -75,10 +98,10 @@ class ProgramCalendarEngineTest {
 
         val projection = ProgramCalendarEngine.project(program)
 
-        assertEquals(LocalDate.parse("2026-05-31"), projection.projectedEndDate)
+        assertEquals(LocalDate.parse("2026-06-02"), projection.projectedEndDate)
         assertEquals(LocalDate.parse("2026-05-29"), projection.manualEndDate)
         assertEquals(ProgramEndDateStatus.BEFORE_PROJECTED, projection.endDateStatus)
-        assertEquals(LocalDate.parse("2026-05-31"), projection.weeks.last().endDate)
+        assertEquals(LocalDate.parse("2026-06-02"), projection.weeks.last().endDate)
     }
 
     @Test
@@ -93,24 +116,26 @@ class ProgramCalendarEngineTest {
         val projection = ProgramCalendarEngine.project(program)
 
         assertTrue(projection.enabled)
-        assertEquals("w2", projection.weekForDate(LocalDate.parse("2026-05-26"))?.weekId)
+        assertEquals("w1", projection.weekForDate(LocalDate.parse("2026-05-26"))?.weekId)
+        assertEquals("w2", projection.weekForDate(LocalDate.parse("2026-05-27"))?.weekId)
         assertFalse(projection.weeks[1].outsideProgramDays.contains(1))
-        assertNull(projection.weekForDate(LocalDate.parse("2026-06-08")))
+        assertNull(projection.weekForDate(LocalDate.parse("2026-06-03")))
     }
 
     @Test
-    fun `scheduled date is null for first week outside day`() {
+    fun `scheduled date uses Monday inside a Wednesday-start week`() {
         val mondaySession = Session(id = "monday", name = "Lunes", dayOfWeek = 1)
         val program = programWithWeeks(
             startDate = "2026-05-20",
             calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization(),
             weekCount = 1,
             sessions = listOf(mondaySession, Session(id = "wed", name = "Miercoles", dayOfWeek = 3)),
+            startDay = 3,
         )
 
         val projection = ProgramCalendarEngine.project(program)
 
-        assertNull(projection.scheduledDateFor(mondaySession, "w1"))
+        assertEquals(LocalDate.parse("2026-05-25"), projection.scheduledDateFor(mondaySession, "w1"))
         assertEquals(LocalDate.parse("2026-05-20"), projection.scheduledDateFor(program.macrocycles[0].blocks[0].mesocycles[0].weeks[0].sessions[1], "w1"))
     }
 
@@ -121,6 +146,7 @@ class ProgramCalendarEngineTest {
         structure: ProgramStructure = ProgramStructure.COMPLEX,
         keyDates: List<ProgramKeyDate> = emptyList(),
         sessions: List<Session> = listOf(Session(id = "s1", name = "Dia 1", dayOfWeek = 3)),
+        startDay: Int? = null,
     ): Program {
         val weeks = (1..weekCount).map { index ->
             ProgramWeek(
@@ -133,6 +159,7 @@ class ProgramCalendarEngineTest {
             id = "p1",
             name = "Plan",
             structure = structure,
+            startDay = startDay,
             timelineStartDate = startDate,
             calendarization = calendarization,
             keyDates = keyDates,

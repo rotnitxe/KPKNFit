@@ -1,0 +1,220 @@
+package com.example.kpkn.screens.workout.components
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+
+object WorkoutUiTokens {
+    val ScreenHorizontalPadding = 12.dp
+    val CardShape = RoundedCornerShape(28.dp)
+    val InnerCardShape = RoundedCornerShape(20.dp)
+    val ChipShape = RoundedCornerShape(999.dp)
+    val DockShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    val SectionGap = 12.dp
+    val FieldGap = 8.dp
+    val TouchTargetMinSize = 48.dp
+
+    // Semántica de Colores Material 3
+    @Composable
+    fun setCardColor(): Color = MaterialTheme.colorScheme.surfaceContainer
+
+    @Composable
+    fun setInnerColor(): Color = MaterialTheme.colorScheme.surfaceContainerHigh
+
+    @Composable
+    fun setInnerHighestColor(): Color = MaterialTheme.colorScheme.surfaceContainerHighest
+
+    @Composable
+    fun dangerContainerColor(): Color = MaterialTheme.colorScheme.errorContainer
+
+    @Composable
+    fun successColor(): Color = Color(0xFF66BB6A) // Material Green 400
+
+    @Composable
+    fun warningColor(): Color = Color(0xFFFFD740) // Material Amber A200
+}
+
+@Composable
+fun WorkoutGlassSurface(
+    modifier: Modifier = Modifier,
+    hazeState: HazeState? = null,
+    glassStyle: HazeStyle = HazeStyle(
+        blurRadius = 24.dp,
+        tint = HazeTint(Color.Black.copy(alpha = 0.42f)),
+        backgroundColor = Color(0xFF0F0F0F).copy(alpha = 0.50f),
+        noiseFactor = 0.02f
+    ),
+    shape: Shape = WorkoutUiTokens.CardShape,
+    border: BorderStroke? = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .then(
+                if (hazeState != null) Modifier.hazeEffect(state = hazeState, style = glassStyle)
+                else Modifier.background(MaterialTheme.colorScheme.surfaceContainer)
+            )
+            .then(
+                if (border != null) Modifier.border(border, shape)
+                else Modifier
+            )
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun WorkoutMetricChip(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    badgeText: String? = null,
+    badgeColor: Color = MaterialTheme.colorScheme.primary
+) {
+    Surface(
+        modifier = modifier.heightIn(min = WorkoutUiTokens.TouchTargetMinSize),
+        shape = WorkoutUiTokens.InnerCardShape,
+        color = containerColor,
+        contentColor = contentColor
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = label.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = contentColor.copy(alpha = 0.6f)
+            )
+            Spacer(Modifier.height(2.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Black,
+                    color = contentColor
+                )
+                if (badgeText != null) {
+                    Spacer(Modifier.width(4.dp))
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = badgeColor.copy(alpha = 0.15f)
+                    ) {
+                        Text(
+                            text = badgeText,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = badgeColor
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WorkoutSectionTitle(
+    text: String,
+    modifier: Modifier = Modifier,
+    actionText: String? = null,
+    onActionClick: (() -> Unit)? = null
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
+        )
+        if (actionText != null && onActionClick != null) {
+            Text(
+                text = actionText,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .clickable(role = Role.Button, onClick = onActionClick)
+                    .padding(vertical = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun WorkoutPrimaryActionButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
+    icon: (@Composable () -> Unit)? = null
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = 52.dp),
+        enabled = enabled,
+        shape = WorkoutUiTokens.ChipShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor = contentColor,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+        ),
+        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (icon != null) {
+                icon()
+                Spacer(Modifier.width(8.dp))
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}

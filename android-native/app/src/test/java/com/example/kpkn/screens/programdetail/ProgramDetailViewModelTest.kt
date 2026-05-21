@@ -19,6 +19,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -278,16 +279,17 @@ class ProgramDetailViewModelTest {
         val id = nextId()
         val base = makeSimpleProgram(id)
         val datedWeek = base.macrocycles[0].blocks[0].mesocycles[0].weeks[0].copy(
-            name = "Semana: 05/18",
-            startDate = "2026-05-18",
-            endDate = "2026-05-24",
-            trainingDayDates = mapOf(1 to "2026-05-18", 3 to "2026-05-20"),
+            name = "Semana: 05/21",
+            startDate = "2026-05-21",
+            endDate = "2026-05-27",
+            trainingDayDates = mapOf(4 to "2026-05-21", 1 to "2026-05-25", 3 to "2026-05-27"),
         )
         repository.addProgram(
             base.copy(
-                timelineStartDate = "2026-05-18",
+                timelineStartDate = "2026-05-21",
                 calendarization = ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
                 simpleProgramKind = SimpleProgramKind.CALENDARIZED,
+                startDay = 4,
                 macrocycles = base.macrocycles.map { macro ->
                     macro.copy(
                         blocks = macro.blocks.map { block ->
@@ -308,12 +310,121 @@ class ProgramDetailViewModelTest {
         val updated = repository.getProgramById(id)!!
         val weeks = updated.macrocycles[0].blocks[0].mesocycles[0].weeks
         assertEquals(2, weeks.size)
-        assertEquals("Semana: 05/25", weeks[1].name)
-        assertEquals("2026-05-25", weeks[1].startDate)
-        assertEquals("2026-05-31", weeks[1].endDate)
-        assertEquals(setOf(1, 3), weeks[1].trainingDayDates.keys)
+        assertEquals("Semana: 05/28", weeks[1].name)
+        assertEquals("2026-05-28", weeks[1].startDate)
+        assertEquals("2026-06-03", weeks[1].endDate)
+        assertEquals(setOf(1, 3, 4), weeks[1].trainingDayDates.keys)
+        assertEquals("2026-06-01", weeks[1].trainingDayDates[1])
+        assertEquals("2026-06-03", weeks[1].trainingDayDates[3])
+        assertEquals("2026-05-28", weeks[1].trainingDayDates[4])
         assertEquals(SimpleProgramKind.CALENDARIZED, updated.simpleProgramKind)
         assertTrue(updated.loops.isEmpty())
+    }
+
+    @Test
+    fun startSimpleCalendarizedBreak_creates_inclusive_custom_weeks() {
+        val id = nextId()
+        val base = makeSimpleProgram(id)
+
+        val updated = base.startSimpleCalendarizedBreak(
+            startDate = LocalDate.parse("2026-05-20"),
+            endDate = LocalDate.parse("2026-06-02"),
+            startDayOfWeek = 3,
+            trainingDays = setOf(3, 1, 2),
+        )
+
+        val weeks = updated.macrocycles[0].blocks[0].mesocycles[0].weeks
+        assertEquals(2, weeks.size)
+        assertEquals("2026-05-20", weeks[0].startDate)
+        assertEquals("2026-05-26", weeks[0].endDate)
+        assertEquals("2026-05-20", weeks[0].trainingDayDates[3])
+        assertEquals("2026-05-25", weeks[0].trainingDayDates[1])
+        assertEquals("2026-05-26", weeks[0].trainingDayDates[2])
+        assertEquals("2026-05-27", weeks[1].startDate)
+        assertEquals("2026-06-02", weeks[1].endDate)
+        assertEquals("2026-06-01", weeks[1].trainingDayDates[1])
+        assertEquals("2026-06-02", weeks[1].trainingDayDates[2])
+    }
+
+    @Test
+    fun startFreshCyclicProgram_restores_visible_roadmap_and_allows_new_week() {
+        val id = nextId()
+        val base = makeSimpleProgram(id)
+        val emptyCalendarized = base.copy(
+            simpleProgramKind = SimpleProgramKind.CALENDARIZED,
+            calendarization = ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
+            timelineStartDate = "2026-05-18",
+            macrocycles = base.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = macro.blocks.map { block ->
+                        block.copy(mesocycles = block.mesocycles.map { meso -> meso.copy(weeks = emptyList()) })
+                    }
+                )
+            },
+        )
+        repository.addProgram(emptyCalendarized)
+        val vm = ProgramDetailViewModel(id)
+
+        vm.startFreshCyclicProgram()
+
+        val restored = repository.getProgramById(id)!!
+        val restoredWeeks = restored.macrocycles[0].blocks[0].mesocycles[0].weeks
+        assertEquals(SimpleProgramKind.CYCLIC, restored.simpleProgramKind)
+        assertEquals(1, restoredWeeks.size)
+        assertEquals(restoredWeeks.first().id, vm.uiState.value.selectedWeekId)
+        assertNotNull(vm.uiState.value.selectedBlockId)
+
+        vm.addWeekToSimpleProgram()
+
+        val updated = repository.getProgramById(id)!!
+        assertEquals(2, updated.macrocycles[0].blocks[0].mesocycles[0].weeks.size)
+    }
+
+    @Test
+    fun addWeekToSimpleProgram_can_seed_empty_simple_block() {
+        val id = nextId()
+        val base = makeSimpleProgram(id)
+        repository.addProgram(
+            base.copy(
+                simpleProgramKind = SimpleProgramKind.CYCLIC,
+                macrocycles = base.macrocycles.map { macro ->
+                    macro.copy(blocks = macro.blocks.map { block -> block.copy(mesocycles = emptyList()) })
+                },
+            )
+        )
+        val vm = ProgramDetailViewModel(id)
+
+        vm.addWeekToSimpleProgram()
+
+        val updated = repository.getProgramById(id)!!
+        val weeks = updated.macrocycles[0].blocks[0].mesocycles[0].weeks
+        assertEquals(1, weeks.size)
+        assertEquals("Semana 1", weeks.first().name)
+        assertEquals(weeks.first().id, vm.uiState.value.selectedWeekId)
+    }
+
+    @Test
+    fun addWeekToSimpleProgram_can_seed_empty_simple_macrocycle() {
+        val id = nextId()
+        val base = makeSimpleProgram(id)
+        repository.addProgram(
+            base.copy(
+                simpleProgramKind = SimpleProgramKind.CYCLIC,
+                macrocycles = base.macrocycles.map { macro -> macro.copy(blocks = emptyList()) },
+            )
+        )
+        val vm = ProgramDetailViewModel(id)
+
+        vm.addWeekToSimpleProgram()
+
+        val updated = repository.getProgramById(id)!!
+        val blocks = updated.macrocycles.first().blocks
+        val weeks = blocks.first().mesocycles.first().weeks
+        assertEquals(1, blocks.size)
+        assertEquals(1, weeks.size)
+        assertEquals("Semana 1", weeks.first().name)
+        assertEquals(blocks.first().id, vm.uiState.value.selectedBlockId)
+        assertEquals(weeks.first().id, vm.uiState.value.selectedWeekId)
     }
 
     @Test

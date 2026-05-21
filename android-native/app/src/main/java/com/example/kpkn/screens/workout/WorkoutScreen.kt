@@ -131,6 +131,13 @@ import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
+import com.example.kpkn.screens.workout.components.SetInputCardV2
+import com.example.kpkn.screens.workout.components.WorkoutCommandDock
+import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
+import com.example.kpkn.screens.workout.components.RestTimerOverlay
+import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
+import com.example.kpkn.screens.workout.components.WorkoutWarmupInlineCard
+import com.example.kpkn.screens.workout.components.WorkoutSupersetWarmupRevealCard
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.RestPauseData
@@ -184,8 +191,6 @@ fun WorkoutScreen(
     val uiState by viewModel.uiState.collectAsState()
     val session = uiState.session
     val restTimerRemaining by viewModel.restTimerRemaining.collectAsState()
-    val restRecovery by viewModel.restRecovery.collectAsState()
-    val currentCoachMessage by viewModel.currentCoachMessage.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showExitDialog by remember { mutableStateOf(false) }
 
@@ -211,40 +216,20 @@ fun WorkoutScreen(
 
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsState()
 
-    // AUGE data
+    // Recovery data
     val augeSnapshot by augeViewModel.snapshot.collectAsState()
     val perMuscle by augeViewModel.perMuscle.collectAsState()
+
+    val augeRepository = remember(context) { AugeRepository.getInstance(context) }
+    val todayWellbeing by produceState<DailyWellbeingLog?>(initialValue = null) {
+        value = augeRepository.getTodayWellbeing()
+    }
 
     // Auto-navigate to Home immediately once persistence marks the workout complete.
     LaunchedEffect(uiState.isComplete) {
         if (uiState.isComplete) {
             onComplete()
         }
-    }
-
-    // Fase 3: Recoger el mensaje de RPE excedido
-    val rpeExceededMessage by viewModel.rpeExceededMessage.collectAsState()
-    if (rpeExceededMessage != null) {
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissRpeExceededMessage() },
-            title = {
-                Text(
-                    text = "⚠️ RPE Elevado",
-                    fontWeight = FontWeight.Bold,
-                )
-            },
-            text = {
-                Text(
-                    text = rpeExceededMessage!!,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            },
-            confirmButton = {
-                Button(onClick = { viewModel.dismissRpeExceededMessage() }) {
-                    Text("Entendido")
-                }
-            },
-        )
     }
 
     if (session == null) {
@@ -353,8 +338,22 @@ fun WorkoutScreen(
     }
     val currentExercise = visibleExercises.getOrNull(uiState.currentExerciseIdx)
     val currentSet = currentExercise?.sets?.getOrNull(uiState.currentSetIdx)
+    val currentSupersetGroupId = currentExercise?.supersetGroupRefOrLegacyId()
+    val currentSupersetMembers = remember(currentSupersetGroupId, visibleExercises) {
+        currentSupersetGroupId
+            ?.let { groupId -> visibleExercises.filter { it.supersetGroupRefOrLegacyId() == groupId } }
+            .orEmpty()
+    }
+    val currentSupersetMemberIndex = currentSupersetMembers.indexOfFirst { it.id == currentExercise?.id }
+    val isInsideSupersetRound = currentSupersetMembers.size > 1 && currentSupersetMemberIndex >= 0
+    val isLastExerciseInSupersetRound = isInsideSupersetRound &&
+            currentSupersetMemberIndex == currentSupersetMembers.lastIndex
     val canSkipCurrentExerciseOnRestFinish =
-        currentExercise?.sets?.lastIndex?.let { uiState.currentSetIdx < it } == true
+        if (isInsideSupersetRound) {
+            !isLastExerciseInSupersetRound
+        } else {
+            currentExercise?.sets?.lastIndex?.let { uiState.currentSetIdx < it } == true
+        }
     val activeTag = currentExercise?.let { uiState.exerciseTags[it.id] }
     val ghostSet = currentExercise?.let {
         viewModel.getGhostForSet(it.id, uiState.currentSetIdx, it.exerciseDbId ?: it.exerciseId, activeTag)
@@ -439,43 +438,26 @@ fun WorkoutScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
         bottomBar = {
-            Surface(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .hazeEffect(state = bottomHazeState, style = glassStyle),
-                shadowElevation = 8.dp,
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                color = Color.Black.copy(alpha = 0.18f),
-                tonalElevation = 0.dp,
+                    .navigationBarsPadding()
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .navigationBarsPadding()
-                        .padding(vertical = 10.dp),
-                ) {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .hazeEffect(state = bottomHazeState, style = glassStyle),
-                        color = Color.Black.copy(alpha = 0.10f),
-                        tonalElevation = 0.dp,
-                        shadowElevation = 0.dp,
-                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                    ) {
-                        UnifiedExerciseCarousel(
-                            exercises = visibleExercises,
-                            parts = renderedParts,
-                            supersetGroups = modeSession.allSupersetGroups(),
-                            currentIdx = uiState.currentExerciseIdx,
-                            currentSetIdx = uiState.currentSetIdx,
-                            completedSets = uiState.completedSets,
-                            onSelect = { viewModel.selectExercise(it) },
-                            onSelectGroup = { viewModel.selectSupersetGroup(it) },
-                            onOpenContext = { exId -> exerciseContextExerciseId = exId },
-                            enableLongPress = true,
-                        )
-                    }
-                }
+                WorkoutRoadmapBar(
+                    exercises = visibleExercises,
+                    parts = renderedParts,
+                    supersetGroups = modeSession.allSupersetGroups(),
+                    currentIdx = uiState.currentExerciseIdx,
+                    currentSetIdx = uiState.currentSetIdx,
+                    completedSets = uiState.completedSets,
+                    onSelect = { viewModel.selectExercise(it) },
+                    onSelectGroup = { viewModel.selectSupersetGroup(it) },
+                    onOpenContext = { exId -> exerciseContextExerciseId = exId },
+                    enableLongPress = true,
+                    sessionAccentColor = sessionAccentColor,
+                    hazeState = bottomHazeState,
+                )
             }
         },
     ) { padding ->
@@ -534,18 +516,26 @@ fun WorkoutScreen(
             state = activeRestModalState,
             remainingSeconds = restTimerRemaining,
             hazeState = restHazeState,
-            recoveryStatus = restRecovery,
-            coachMessage = currentCoachMessage,
             pendingRestSuggestion = uiState.pendingRestSuggestion,
+            lastSetOutcome = uiState.lastSetOutcomeV2,
+            lastCompletedSet = uiState.setJustLoggedKey?.let { uiState.completedSets[it] },
             sessionAccentColor = sessionAccentColor,
             onDecrease = { viewModel.addRestTime(-15) },
             onIncrease = { viewModel.addRestTime(15) },
             onSkip = { viewModel.stopRestTimer() },
-            skipExerciseLabel = currentExercise?.name?.let { exerciseName ->
-                "Saltar series restantes de $exerciseName e ir al siguiente ejercicio"
+            skipExerciseLabel = if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
+                "Saltar ronda"
+            } else {
+                currentExercise?.name?.let { exerciseName ->
+                    "Saltar series restantes de $exerciseName e ir al siguiente ejercicio"
+                }
             },
             onSkipExercise = if (canSkipCurrentExerciseOnRestFinish) {
-                { viewModel.deferSkipRemainingCurrentExercise() }
+                if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
+                    { viewModel.skipCurrentSupersetRound() }
+                } else {
+                    { viewModel.deferSkipRemainingCurrentExercise() }
+                }
             } else {
                 null
             },
@@ -554,285 +544,45 @@ fun WorkoutScreen(
     }
 
     // ─── Readiness sheet overlay ───────────────────────────────────────────────
-    if (showReadinessSheet) {
-        val augeRepository = remember(context) { AugeRepository.getInstance(context) }
-        val todayWellbeing by produceState<DailyWellbeingLog?>(initialValue = null) {
-            value = augeRepository.getTodayWellbeing()
+    WorkoutReadinessSheet(
+        showReadinessSheet = showReadinessSheet,
+        gender = settings.userVitals.gender,
+        sessionMuscleStartingBatteries = sessionMuscleStartingBatteries,
+        readinessNeuralStart = readinessNeuralStart,
+        readinessSpinalStart = readinessSpinalStart,
+        hazeState = readinessHaze,
+        onSave = { neural, muscular, spinal, perMuscle ->
+            val log = DailyWellbeingLog(
+                id = todayWellbeing?.id ?: UUID.randomUUID().toString(),
+                date = LocalDate.now().toString(),
+                sleepQuality = todayWellbeing?.sleepQuality ?: 3,
+                stressLevel = todayWellbeing?.stressLevel ?: 3,
+                doms = todayWellbeing?.doms ?: 1,
+                motivation = todayWellbeing?.motivation ?: 3,
+                sleepHours = todayWellbeing?.sleepHours ?: 7.5,
+                moodState = todayWellbeing?.moodState,
+                workIntensity = todayWellbeing?.workIntensity,
+                studyIntensity = todayWellbeing?.studyIntensity,
+                manualMuscularBattery = muscular,
+                manualNeuralBattery = neural,
+                manualSpinalBattery = spinal,
+                manualMuscleBatteries = perMuscle,
+                notes = todayWellbeing?.notes,
+            )
+            augeViewModel.saveWellbeing(log)
+            viewModel.saveReadinessAdjustments(
+                neural = neural,
+                muscular = muscular,
+                spinal = spinal,
+                perMuscle = perMuscle,
+                sleepQuality = todayWellbeing?.sleepQuality,
+            )
+            readinessSheetDismissed = true
+        },
+        onDismissWithoutVerify = {
+            readinessSheetDismissed = true
         }
-
-        var neural by rememberSaveable { mutableIntStateOf(readinessNeuralStart) }
-        var spinal by rememberSaveable { mutableIntStateOf(readinessSpinalStart) }
-        val muscleAdjustments = remember { mutableStateMapOf<String, Int>() }
-        var userEditedNeural by rememberSaveable { mutableStateOf(false) }
-        var userEditedSpinal by rememberSaveable { mutableStateOf(false) }
-        val userEditedMuscles = remember { mutableStateMapOf<String, Boolean>() }
-        var initialized by rememberSaveable { mutableStateOf(false) }
-
-        LaunchedEffect(initialized, sessionMuscleStartingBatteries) {
-            if (!initialized) {
-                neural = readinessNeuralStart
-                spinal = readinessSpinalStart
-                muscleAdjustments.clear()
-                sessionMuscleStartingBatteries.forEach { (muscleId, value) ->
-                    muscleAdjustments[muscleId] = value.coerceIn(0, 100)
-                }
-                initialized = true
-            }
-        }
-
-        var allowSheetDismiss by remember { mutableStateOf(false) }
-        val sheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-            confirmValueChange = { target ->
-                when (target) {
-                    SheetValue.Hidden -> allowSheetDismiss
-                    SheetValue.PartiallyExpanded -> false
-                    SheetValue.Expanded -> true
-                }
-            },
-        )
-
-        var showDismissConfirmDialog by remember { mutableStateOf(false) }
-
-        ModalBottomSheet(
-            onDismissRequest = { showDismissConfirmDialog = true },
-            sheetState = sheetState,
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-            containerColor = Color.Transparent,
-            tonalElevation = 0.dp,
-            dragHandle = null,
-        ) {
-            val hasMuscles = muscleAdjustments.isNotEmpty()
-            val preparedWord = when (settings.userVitals.gender) {
-                Gender.FEMALE -> "preparada"
-                Gender.MALE -> "preparado"
-                else -> "preparado(a)"
-            }
-
-            Box(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .hazeEffect(
-                            state = readinessHaze,
-                            style = HazeStyle(
-                                blurRadius = 20.dp,
-                                tint = HazeTint(Color.Black.copy(alpha = 0.42f)),
-                                backgroundColor = Color(0xFF0D0D0D).copy(alpha = 0.72f),
-                                noiseFactor = 0.03f,
-                            ),
-                        )
-                        .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)),
-                )
-                Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .navigationBarsPadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Text(
-                    text = "Antes de empezar tu sesión de entrenamiento, responde lo siguiente:",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                Text(
-                    text = "¿Qué tan $preparedWord te sientes?",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
-                )
-
-                var descriptionExpanded by remember { mutableStateOf(false) }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { descriptionExpanded = !descriptionExpanded },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Text(
-                        text = if (descriptionExpanded) "Ocultar instrucciones" else "Ver instrucciones",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Icon(
-                        imageVector = if (descriptionExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = if (descriptionExpanded) "Colapsar" else "Expandir",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-                AnimatedVisibility(
-                    visible = descriptionExpanded,
-                    enter = expandVertically(),
-                    exit = shrinkVertically(),
-                ) {
-                    Text(
-                        text = "De acuerdo al sistema de RINGS, este es tu estado a nivel de energía, columna y músculos involucrados para esta sesión. Si no te representan los porcentajes porque consideras que te sientes menos preparado o fresco para esta sesión, puedes cambiar libremente los porcentajes hasta que te identifiquen al 100%. Encima de cada RING, arrastra hacia arriba o abajo para cambiar el porcentaje, y para los músculos, desliza tu dedo hacia izquierda o derecha para ajustar.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Justify,
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    AdjustableRingCompact(
-                        modifier = Modifier.weight(1f),
-                        title = "Energía",
-                        value = neural,
-                        ringColor = Color(0xFF448AFF),
-                        ringSize = 132,
-                        onValueChange = { neural = it; userEditedNeural = true },
-                    )
-                    AdjustableRingCompact(
-                        modifier = Modifier.weight(1f),
-                        title = "Columna",
-                        value = spinal,
-                        ringColor = Color(0xFFFFD740),
-                        ringSize = 132,
-                        onValueChange = { spinal = it; userEditedSpinal = true },
-                    )
-                }
-
-                if (hasMuscles) {
-                    Text(
-                        text = "Músculos de la sesión",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                    )
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        maxItemsInEachRow = 2,
-                    ) {
-                        muscleAdjustments.keys.sorted().forEach { muscleId ->
-                            val value = muscleAdjustments[muscleId] ?: 100
-                            MuscleSliderChip(
-                                modifier = Modifier.weight(1f),
-                                muscleLabel = muscleId,
-                                value = value,
-                                onValueChange = { updated -> muscleAdjustments[muscleId] = updated; userEditedMuscles[muscleId] = true },
-                            )
-                        }
-                    }
-                }
-
-                Button(
-                    onClick = {
-                        val derivedMuscular = if (muscleAdjustments.isEmpty()) {
-                            null
-                        } else {
-                            muscleAdjustments.values.average().toInt().coerceIn(0, 100)
-                        }
-                        val log = DailyWellbeingLog(
-                            id = todayWellbeing?.id ?: UUID.randomUUID().toString(),
-                            date = LocalDate.now().toString(),
-                            sleepQuality = todayWellbeing?.sleepQuality ?: 3,
-                            stressLevel = todayWellbeing?.stressLevel ?: 3,
-                            doms = todayWellbeing?.doms ?: 1,
-                            motivation = todayWellbeing?.motivation ?: 3,
-                            sleepHours = todayWellbeing?.sleepHours ?: 7.5,
-                            moodState = todayWellbeing?.moodState,
-                            workIntensity = todayWellbeing?.workIntensity,
-                            studyIntensity = todayWellbeing?.studyIntensity,
-                            manualMuscularBattery = derivedMuscular,
-                            manualNeuralBattery = neural,
-                            manualSpinalBattery = spinal,
-                            manualMuscleBatteries = muscleAdjustments.toMap(),
-                            notes = todayWellbeing?.notes,
-                        )
-                        augeViewModel.saveWellbeing(log)
-                        viewModel.saveReadinessAdjustments(
-                            neural = neural,
-                            muscular = derivedMuscular,
-                            spinal = spinal,
-                            perMuscle = muscleAdjustments.toMap(),
-                            sleepQuality = todayWellbeing?.sleepQuality,
-                        )
-                        allowSheetDismiss = true
-                        readinessSheetDismissed = true
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.extraLarge,
-                ) {
-                    Text("Guardar y entrenar", fontWeight = FontWeight.Bold)
-                }
-
-                Spacer(Modifier.height(8.dp))
-            }
-            }
-        }
-
-        if (showDismissConfirmDialog) {
-            Dialog(
-                onDismissRequest = { showDismissConfirmDialog = false },
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .widthIn(min = 280.dp, max = 560.dp)
-                        .wrapContentHeight(),
-                    shape = MaterialTheme.shapes.extraLarge,
-                    tonalElevation = 6.dp,
-                ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        Text(
-                            "¿Empezar sin verificar RINGS?",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                        )
-                        Text(
-                            "Puedes ajustar tu energía, columna y músculos antes de empezar, o saltar este paso y comenzar directamente.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                        )
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Button(
-                                onClick = {
-                                    allowSheetDismiss = true
-                                    readinessSheetDismissed = true
-                                    showDismissConfirmDialog = false
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                                ),
-                            ) {
-                                Text("Iniciar sin verificar")
-                            }
-                            OutlinedButton(
-                                onClick = { showDismissConfirmDialog = false },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text("Mantenerse")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    )
 
     // ─── Mobility banner (post-readiness) ─────────────────────────────────
     val mobilityExercisesForSession = remember(uiState.previousSessionDiscomforts) {
@@ -2362,6 +2112,34 @@ private fun WorkoutV2Body(
     var drainOverlayState by remember { mutableStateOf<ExerciseDrainOverlayState?>(null) }
     var expandedSupersetWarmups by remember { mutableStateOf<Set<String>>(emptySet()) }
 
+    val isUnilateral = currentExercise?.isEffectivelyUnilateral() == true
+    var selectedUnilateralSideOverride by remember(currentExercise?.id, uiState.currentSetIdx) {
+        mutableStateOf<String?>(null)
+    }
+    val activeSide = remember(
+        currentExercise?.id,
+        currentExercise?.unilateralSideOrder,
+        uiState.completedSets,
+        uiState.currentSetIdx,
+        isUnilateral,
+        selectedUnilateralSideOverride,
+    ) {
+        if (currentExercise == null || !isUnilateral) {
+            null
+        } else {
+            val expectedSides = currentExercise.expectedSidesForSet(uiState.currentSetIdx)
+            selectedUnilateralSideOverride
+                ?.takeIf { it in expectedSides }
+                ?.takeIf { side ->
+                    !uiState.completedSets.containsKey("${currentExercise.id}_${uiState.currentSetIdx}_${side.take(1).uppercase()}")
+                }
+                ?: expectedSides.firstOrNull { side ->
+                !uiState.completedSets.containsKey("${currentExercise.id}_${uiState.currentSetIdx}_${side.take(1).uppercase()}")
+            }
+                ?: expectedSides.firstOrNull()
+        }
+    }
+
     LaunchedEffect(currentExercise?.id, uiState.currentSetIdx) {
         recordActionHolder.action = null
     }
@@ -2409,7 +2187,7 @@ private fun WorkoutV2Body(
                 val canShowSupersetWarmup = !isSupersetWarmup || uiState.currentSetIdx == 0 || isExpanded
                 if (canShowSupersetWarmup) {
                     if (isExpanded) {
-                        WarmupInlineCard(
+                        WorkoutWarmupInlineCard(
                             exercise = currentExercise,
                             workingWeightKg = warmupWorkingWeight,
                             onToggleComplete = {
@@ -2420,11 +2198,11 @@ private fun WorkoutV2Body(
                             },
                             onDismiss = {
                                 viewModel.markWarmupComplete(currentExercise.id)
-                                expandedSupersetWarmups = expandedSupersetWarmups - currentExercise.id
+                                    expandedSupersetWarmups = expandedSupersetWarmups - currentExercise.id
                             },
                         )
                     } else {
-                        SupersetWarmupRevealCard(
+                        WorkoutSupersetWarmupRevealCard(
                             exercise = currentExercise,
                             onClick = { expandedSupersetWarmups = expandedSupersetWarmups + currentExercise.id },
                             onDismiss = { viewModel.markWarmupComplete(currentExercise.id) },
@@ -2504,7 +2282,6 @@ private fun WorkoutV2Body(
                         allowExerciseManagementActions = !currentExercise.isInSuperset(),
                     )
 
-                    val isUnilateral = currentExercise.isEffectivelyUnilateral()
                     val setPagerPages = remember(currentExercise.id, currentExercise.sets, currentExercise.unilateralSideOrder, isUnilateral) {
                         if (isUnilateral) {
                             currentExercise.sets.indices.flatMap { setIdx ->
@@ -2519,10 +2296,8 @@ private fun WorkoutV2Body(
                         }
                     }
                     val totalSetPages = setPagerPages.size.coerceAtLeast(1)
+                    key(currentExercise.id, totalSetPages) {
                     val pagerState = rememberPagerState(pageCount = { totalSetPages })
-                    var selectedUnilateralSideOverride by remember(currentExercise.id, uiState.currentSetIdx) {
-                        mutableStateOf<String?>(null)
-                    }
 
                     LaunchedEffect(pagerState.currentPage, setPagerPages) {
                         val page = setPagerPages.getOrNull(pagerState.currentPage) ?: return@LaunchedEffect
@@ -2531,30 +2306,6 @@ private fun WorkoutV2Body(
                         }
                         if (page.setIndex != uiState.currentSetIdx && page.setIndex < currentExercise.sets.size) {
                             viewModel.jumpToSet(page.setIndex)
-                        }
-                    }
-
-                    val activeSide = remember(
-                        currentExercise.id,
-                        currentExercise.unilateralSideOrder,
-                        uiState.completedSets,
-                        uiState.currentSetIdx,
-                        isUnilateral,
-                        selectedUnilateralSideOverride,
-                    ) {
-                        if (!isUnilateral) {
-                            null
-                        } else {
-                            val expectedSides = currentExercise.expectedSidesForSet(uiState.currentSetIdx)
-                            selectedUnilateralSideOverride
-                                ?.takeIf { it in expectedSides }
-                                ?.takeIf { side ->
-                                    !uiState.completedSets.containsKey("${currentExercise.id}_${uiState.currentSetIdx}_${side.take(1).uppercase()}")
-                                }
-                                ?: expectedSides.firstOrNull { side ->
-                                !uiState.completedSets.containsKey("${currentExercise.id}_${uiState.currentSetIdx}_${side.take(1).uppercase()}")
-                            }
-                                ?: expectedSides.firstOrNull()
                         }
                     }
                     val activeSwipePageIndex = remember(setPagerPages, uiState.currentSetIdx, activeSide, isUnilateral) {
@@ -2715,6 +2466,7 @@ private fun WorkoutV2Body(
                             },
                         )
                     }
+                    }
                 }
 
                 if (!showingPostExerciseCard && !uiState.imbalanceNotice.isNullOrBlank()) {
@@ -2737,43 +2489,25 @@ private fun WorkoutV2Body(
         }
     }
 
-    // ─── FAB complete-set button ────────────────────────────────────────
-        if (currentExercise != null && currentSet != null && !showingPostExerciseCard) {
-            SmallFloatingActionButton(
-                onClick = { recordActionHolder.action?.invoke() },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .graphicsLayer { scaleX = 1.2f; scaleY = 1.2f }
-                    .padding(end = 20.dp, bottom = 100.dp)
-                    .zIndex(4f),
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = androidx.compose.foundation.shape.CircleShape,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Completar serie",
-                )
-            }
-        }
-
-        // ─── Voice FAB ───────────────────────────────────────────────────────
-        WorkoutVoiceFab(
-            isEnabled = uiState.voiceSessionEnabled,
-            voiceStage = uiState.voiceSessionState.stage,
-            onToggle = { viewModel.toggleVoiceSession() },
+    // ─── Workout Command Dock ───────────────────────────────────────────
+    if (currentExercise != null && currentSet != null && !showingPostExerciseCard) {
+        WorkoutCommandDock(
+            exercise = currentExercise,
+            setIndex = uiState.currentSetIdx,
+            activeSide = activeSide,
+            isUnilateral = isUnilateral,
+            voiceSessionEnabled = uiState.voiceSessionEnabled,
+            voiceSessionState = uiState.voiceSessionState,
+            onToggleVoice = { viewModel.toggleVoiceSession() },
+            onPrimaryAction = { recordActionHolder.action?.invoke() },
             modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 160.dp),
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 12.dp)
+                .padding(bottom = 8.dp),
+            sessionAccentColor = sessionAccentColor,
+            hazeState = cardsHazeState
         )
-
-        // ─── Voice status bar ────────────────────────────────────────────────
-        WorkoutVoiceStatusBar(
-            voiceStage = uiState.voiceSessionState.stage,
-            voicePartialText = uiState.voiceSessionState.partialText,
-            voiceErrorMessage = uiState.voiceSessionState.errorMessage,
-            modifier = Modifier.align(Alignment.TopCenter),
-        )
+    }
 
         AnimatedVisibility(
             visible = drainOverlayState != null,
@@ -4533,1400 +4267,6 @@ private fun SupersetRoadmapCard(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
-@Composable
-internal fun SetInputCardV2(
-    exercise: Exercise,
-    setIndex: Int,
-    currentSet: ExerciseSet,
-    ghostSet: CompletedSet?,
-    weightSuggestion: WeightSuggestion?,
-    sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
-    isJustLogged: Boolean = false,
-    lastOutcomeV2: SetOutcomeV2? = null,
-    lastHomologatedResultV3: HomologatedPerformanceResult? = null,
-    showPRsInWorkout: Boolean = true,
-    hapticFeedbackEnabled: Boolean = true,
-    onShowHistory: () -> Unit,
-    onSetBodyWeight: (Double) -> Unit,
-    initialBodyWeight: Double?,
-    recordActionHolder: RecordActionHolder,
-    isActivePage: Boolean = true,
-    onExecutionError: (() -> Unit)? = null,
-    persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
-    persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
-    amrapCalibrationMessage: String? = null,
-    activeSide: String? = null,
-    sideLocked: Boolean = false,
-    rmSuggestedWeight: Double? = null,
-    onRmWeightConsumed: (() -> Unit)? = null,
-    sheetHazeState: HazeState = HazeState(),
-    sheetGlassStyle: HazeStyle = HazeStyle(blurRadius = 8.dp, tint = HazeTint(Color.Black.copy(alpha = 0.0f)), backgroundColor = Color.Black.copy(alpha = 0.0f)),
-    onRecordV2: (
-        loadMode: LoadModeV2,
-        unitMode: UnitModeV2,
-        weight: Double,
-        value: Double,
-        intensity: Double?,
-        advanced: SetAdvancedFeedback,
-        amrapOverride: Boolean,
-        bodyWeight: Double?,
-        side: String?,
-    ) -> Unit,
-) {
-    val context = LocalContext.current
-    val suggestedWeightText: String? = weightSuggestion?.suggestedWeight?.toTrimmedNumberString()
-    val defaultWeight: String = when {
-        !suggestedWeightText.isNullOrBlank() -> suggestedWeightText
-        currentSet.targetPercentageRM != null -> {
-            val baseText = ghostSet?.let { ghost ->
-                if (ghost.weight > 0 && ghost.reps > 0 && ghost.reps < 37) {
-                    val ghost1RM = ghost.weight / (1.0278 - 0.0278 * ghost.reps)
-                    ((currentSet.targetPercentageRM / 100.0) * ghost1RM * 2).toLong() / 2.0
-                } else {
-                    ghost.weight.takeIf { it > 0 }
-                }
-            }?.toTrimmedNumberString() ?: currentSet.weight?.toTrimmedNumberString()
-            baseText.orEmpty()
-        }
-        else -> {
-            val baseText = ghostSet?.weight?.takeIf { it > 0 }?.toTrimmedNumberString()
-                ?: currentSet.weight?.toTrimmedNumberString()
-            baseText.orEmpty()
-        }
-    }
-    val defaultValue = (currentSet.targetDuration ?: currentSet.targetReps ?: ghostSet?.reps)?.toString().orEmpty()
-    val isTimeMode = currentSet.unitModeV2 == UnitModeV2.TIME || currentSet.targetDuration != null
-    val basePlannedTarget = if (isTimeMode) currentSet.targetDuration else currentSet.targetReps
-    val plannedIntensityMode = when {
-        currentSet.intensityMode != null -> currentSet.intensityMode
-        currentSet.targetRIR != null -> IntensityMode.RIR
-        currentSet.targetRPE != null -> IntensityMode.RPE
-        else -> IntensityMode.RPE
-    }
-
-    var weightText by remember(exercise.id, setIndex) { mutableStateOf(defaultWeight) }
-    var lastAutoFilledWeight by remember(exercise.id, setIndex) { mutableStateOf(defaultWeight) }
-    var valueText by remember(exercise.id, setIndex) { mutableStateOf(defaultValue) }
-    val supportsIndependentSides = exercise.isEffectivelyUnilateral()
-    val lockedSide = activeSide?.takeIf { supportsIndependentSides && sideLocked }
-    val initialLeftWeight = (currentSet.leftTarget?.weight?.toTrimmedNumberString() ?: defaultWeight).orEmpty()
-    val initialRightWeight = (currentSet.rightTarget?.weight?.toTrimmedNumberString() ?: defaultWeight).orEmpty()
-    fun sideTargetValueText(target: UnilateralTarget?): String = when {
-        target == null -> defaultValue
-        isTimeMode -> target.targetDuration?.toString() ?: defaultValue
-        currentSet.unitModeV2 == UnitModeV2.DISTANCE || currentSet.unitModeV2 == UnitModeV2.CUSTOM ->
-            target.targetValue?.toTrimmedNumberString() ?: target.targetReps?.toString() ?: defaultValue
-        else -> target.targetReps?.toString() ?: defaultValue
-    }.orEmpty()
-    val initialLeftValue = sideTargetValueText(currentSet.leftTarget)
-    val initialRightValue = sideTargetValueText(currentSet.rightTarget)
-    var leftWeightText by remember(exercise.id, setIndex) { mutableStateOf(initialLeftWeight) }
-    var rightWeightText by remember(exercise.id, setIndex) { mutableStateOf(initialRightWeight) }
-    var leftValueText by remember(exercise.id, setIndex) { mutableStateOf(initialLeftValue) }
-    var rightValueText by remember(exercise.id, setIndex) { mutableStateOf(initialRightValue) }
-    val activeSideTarget = when (lockedSide) {
-        "left" -> currentSet.leftTarget
-        "right" -> currentSet.rightTarget
-        else -> null
-    }
-    val plannedTarget = if (isTimeMode) {
-        activeSideTarget?.targetDuration ?: basePlannedTarget
-    } else {
-        basePlannedTarget
-    }
-    var intensityText by remember(exercise.id, setIndex, lockedSide) {
-        mutableStateOf(
-            activeSideTarget?.targetRPE?.toTrimmedNumberString()
-                ?: activeSideTarget?.targetRIR?.toString()
-                ?: currentSet.targetRPE?.toTrimmedNumberString()
-                ?: currentSet.targetRIR?.toString().orEmpty()
-        )
-    }
-    var bodyWeightText by remember(exercise.id) { mutableStateOf(initialBodyWeight?.toTrimmedNumberString().orEmpty()) }
-    var showBodyWeightPrompt by remember(exercise.id) { mutableStateOf(false) }
-    var selectedSide by remember(exercise.id, setIndex, lockedSide) { mutableStateOf(lockedSide ?: "left") }
-
-    fun valueTextForSide(side: String): String = if (side == "left") leftValueText else rightValueText
-    fun weightTextForSide(side: String): String = if (side == "left") leftWeightText else rightWeightText
-    fun updateActiveValueText(newValue: String) {
-        valueText = newValue
-        if (supportsIndependentSides) {
-            if (selectedSide == "left") {
-                leftValueText = newValue
-            } else {
-                rightValueText = newValue
-            }
-        }
-    }
-    fun updateActiveWeightText(newWeight: String) {
-        weightText = newWeight
-        if (supportsIndependentSides) {
-            if (selectedSide == "left") {
-                leftWeightText = newWeight
-            } else {
-                rightWeightText = newWeight
-            }
-        }
-    }
-    fun selectSide(side: String) {
-        selectedSide = side
-        if (supportsIndependentSides) {
-            valueText = valueTextForSide(side)
-            weightText = weightTextForSide(side)
-        }
-    }
-    LaunchedEffect(lockedSide) {
-        lockedSide?.let { selectSide(it) }
-    }
-
-    val persistedLoadMode = resolvePersistedLoadModeForSet(
-        exerciseId = exercise.id,
-        setIdx = setIndex,
-        persistedLoadModeBySet = persistedLoadModeBySet,
-        persistedLoadModeByExercise = persistedLoadModeByExercise,
-    )
-    var loadMode by remember(exercise.id, setIndex, persistedLoadMode, currentSet.loadModeV2) {
-        mutableStateOf(persistedLoadMode ?: currentSet.loadModeV2 ?: LoadModeV2.LOAD)
-    }
-    val ghostSuggestedWeightText = suggestedWeightText?.takeIf { setIndex > 0 && weightText.isBlank() }
-    var reachedFailure by remember(exercise.id, setIndex) {
-        mutableStateOf(currentSet.isFailure || currentSet.intensityMode == IntensityMode.FAILURE)
-    }
-    var isFailedSet by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var isAmrap by remember(exercise.id, setIndex) { mutableStateOf(currentSet.isAmrap) }
-    var showAmrapSheet by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var amrapReachFailure by remember(exercise.id, setIndex) { mutableStateOf(true) }
-    var amrapReserveReps by remember(exercise.id, setIndex) { mutableStateOf<Int?>(null) }
-    var dropSetEnabled by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var restPauseEnabled by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var showPartialsMode by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var adjustmentsTab by remember(exercise.id, setIndex) { mutableIntStateOf(-1) }
-    var loadModeMenuExpanded by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var dropSets by remember(exercise.id, setIndex) {
-        mutableStateOf(listOf(DropSetEntry(weight = 0.0, reps = 0)))
-    }
-    var restPauseSets by remember(exercise.id, setIndex) {
-        mutableStateOf(listOf(RestPauseData(restTime = 20, reps = 0)))
-    }
-    var partialSets by remember(exercise.id, setIndex) {
-        mutableStateOf(listOf(0))
-    }
-    var reportedIntensityMode by remember(exercise.id, setIndex) {
-        mutableStateOf(
-            when {
-                currentSet.targetRIR != null || plannedIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
-                else -> IntensityMode.RPE
-            }
-        )
-    }
-    fun intensityStep(): Double =
-        if (reportedIntensityMode == IntensityMode.RIR) 1.0 else if (plannedIntensityMode == IntensityMode.FAILURE) 1.0 else 0.5
-
-    fun decreaseIntensityInput() {
-        if (isFailedSet) return
-        if (reachedFailure) {
-            reachedFailure = false
-            reportedIntensityMode = IntensityMode.RPE
-            intensityText = "10"
-            return
-        }
-        val current = intensityText.toDoubleOrNull() ?: when (reportedIntensityMode) {
-            IntensityMode.RIR -> 0.0
-            else -> 10.0
-        }
-        if (reportedIntensityMode == IntensityMode.RIR) {
-            val next = current - 1.0
-            if (next < 0.0) {
-                reachedFailure = true
-                intensityText = ""
-            } else {
-                intensityText = next.toInt().toString()
-            }
-        } else {
-            intensityText = (current - intensityStep()).coerceAtLeast(0.0).toTrimmedNumberString()
-        }
-    }
-
-    fun increaseIntensityInput() {
-        if (isFailedSet) return
-        if (reachedFailure) {
-            reachedFailure = false
-            reportedIntensityMode = IntensityMode.RIR
-            intensityText = "0"
-            return
-        }
-        val current = intensityText.toDoubleOrNull() ?: 0.0
-        if (reportedIntensityMode == IntensityMode.RIR) {
-            intensityText = (current + 1.0).toInt().toString()
-        } else {
-            val next = current + intensityStep()
-            if (next > 10.0) {
-                reachedFailure = true
-                intensityText = ""
-            } else {
-                intensityText = next.toTrimmedNumberString()
-            }
-        }
-    }
-    var timerRunning by remember(exercise.id, setIndex) { mutableStateOf(false) }
-    var timerRemainingSeconds by remember(exercise.id, setIndex) { mutableIntStateOf(plannedTarget ?: 0) }
-    var timerElapsedSeconds by remember(exercise.id, setIndex) { mutableIntStateOf(0) }
-
-    val achievedValue = valueText.toDoubleOrNull() ?: 0.0
-    val targetDelta = plannedTarget?.toDouble()?.let { achievedValue - it }
-    val debt = ((plannedTarget?.toDouble() ?: 0.0) - achievedValue).coerceAtLeast(0.0)
-
-    val activePlannedRpe = activeSideTarget?.targetRPE ?: currentSet.targetRPE
-    val activePlannedRir = activeSideTarget?.targetRIR ?: currentSet.targetRIR
-    val expectedIntensity = when (plannedIntensityMode) {
-        IntensityMode.FAILURE -> null
-        IntensityMode.RIR -> activePlannedRir?.let { 10.0 - it }
-        else -> activePlannedRpe
-    }
-    val registeredIntensity = intensityText.toDoubleOrNull()
-    val intensityDelta = if (expectedIntensity != null && registeredIntensity != null) {
-        registeredIntensity - expectedIntensity
-    } else {
-        null
-    }
-    fun fallbackIntensityForMode(mode: IntensityMode): String =
-        when (mode) {
-            IntensityMode.RIR -> (activePlannedRir ?: 1).toString()
-            else -> (activePlannedRpe ?: 9.0).toTrimmedNumberString()
-        }
-
-    fun ensureReportedIntensityText() {
-        if (intensityText.isBlank()) {
-            intensityText = fallbackIntensityForMode(reportedIntensityMode)
-        }
-    }
-
-    val isNoFalloCase = !reachedFailure && plannedIntensityMode == IntensityMode.FAILURE
-    LaunchedEffect(isNoFalloCase, reportedIntensityMode, exercise.id, setIndex) {
-        if (isNoFalloCase) ensureReportedIntensityText()
-    }
-
-    val difficultyLabel = when {
-        reachedFailure -> "Fallo alcanzado"
-        isFailedSet -> "Serie fallida"
-        expectedIntensity == null || registeredIntensity == null -> null
-        registeredIntensity <= expectedIntensity - 0.5 -> "Más fácil"
-        registeredIntensity >= expectedIntensity + 0.5 -> "Más difícil"
-        else -> "Igual"
-    }
-    val plannedValueLabel = if (isTimeMode) "Tiempo" else "Reps"
-    val expectedIntensityLabel = when {
-        currentSet.targetPercentageRM != null -> "%RM a trabajar"
-        currentSet.isAmrap -> "AMRAP"
-        plannedIntensityMode == IntensityMode.FAILURE -> "FALLO"
-        plannedIntensityMode == IntensityMode.RIR -> "RIR"
-        else -> "RPE"
-    }
-    val expectedIntensityValue = when {
-        currentSet.targetPercentageRM != null -> "${currentSet.targetPercentageRM.toInt()}%"
-        currentSet.isAmrap -> "AMRAP"
-        plannedIntensityMode == IntensityMode.FAILURE -> "F"
-        plannedIntensityMode == IntensityMode.RIR -> activePlannedRir?.toString() ?: "-"
-        else -> activePlannedRpe?.toTrimmedNumberString() ?: "-"
-    }
-    val plannedIntensityDisplayLabel = if (plannedIntensityMode == IntensityMode.FAILURE && !reachedFailure) {
-        when (reportedIntensityMode) {
-            IntensityMode.RIR -> "RIR"
-            else -> "RPE"
-        }
-    } else {
-        expectedIntensityLabel
-    }
-    val plannedIntensityDisplayValue = if (plannedIntensityMode == IntensityMode.FAILURE && !reachedFailure) {
-        intensityText.ifBlank { "-" }
-    } else {
-        expectedIntensityValue
-    }
-    val isExecutionError = isFailedSet
-    val intensityFieldLabel = when {
-        isExecutionError -> "ERROR"
-        reachedFailure -> "F"
-        reportedIntensityMode == IntensityMode.RIR -> "RIR"
-        else -> "RPE"
-    }
-    val loadFieldLabel = when (loadMode) {
-        LoadModeV2.LOAD -> "Carga (kg)"
-        LoadModeV2.BODYWEIGHT -> "Peso corporal"
-        LoadModeV2.LASTRE -> "Lastre (kg)"
-        LoadModeV2.ASSISTED -> "Asistencia (kg)"
-    }
-    val timerTargetSeconds = plannedTarget ?: valueText.toIntOrNull() ?: 0
-    val isPrGlobal = lastHomologatedResultV3?.isGlobalPr == true
-    val isPrContext = lastHomologatedResultV3?.isContextPr == true
-
-    LaunchedEffect(exercise.id, setIndex, plannedTarget) {
-        timerRunning = false
-        timerElapsedSeconds = 0
-        timerRemainingSeconds = plannedTarget ?: 0
-    }
-    LaunchedEffect(isJustLogged, isPrGlobal, isPrContext, hapticFeedbackEnabled) {
-        if (isJustLogged && showPRsInWorkout && hapticFeedbackEnabled && (isPrGlobal || isPrContext)) {
-            triggerPRCelebrationHaptic(context)
-        }
-    }
-    LaunchedEffect(rmSuggestedWeight) {
-        if (rmSuggestedWeight != null) {
-            updateActiveWeightText(rmSuggestedWeight.toTrimmedNumberString())
-            onRmWeightConsumed?.invoke()
-        }
-    }
-    LaunchedEffect(defaultWeight) {
-        val currentWeight = weightText.trim()
-        val previousAutoFill = lastAutoFilledWeight.trim()
-        val hasManualOverride = currentWeight.isNotBlank() &&
-            currentWeight != previousAutoFill &&
-            currentWeight != defaultWeight
-        if (!hasManualOverride) {
-            updateActiveWeightText(defaultWeight)
-            lastAutoFilledWeight = defaultWeight
-        }
-    }
-    LaunchedEffect(timerRunning, timerRemainingSeconds) {
-            if (timerRunning && timerRemainingSeconds > 0) {
-                kotlinx.coroutines.delay(1000)
-                timerRemainingSeconds -= 1
-                timerElapsedSeconds += 1
-                if (timerRemainingSeconds <= 0) {
-                    timerRunning = false
-                    if (timerElapsedSeconds > 0) {
-                        updateActiveValueText(timerElapsedSeconds.toString())
-                    }
-                }
-            }
-        }
-
-    val reportWeightText = if (supportsIndependentSides) weightTextForSide(selectedSide) else weightText
-    val reportValueText = if (supportsIndependentSides) valueTextForSide(selectedSide) else valueText
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        color = if (isFailedSet) Color(0xFF3A0000) else Color.White.copy(alpha = 0.04f),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        border = if (isFailedSet) BorderStroke(1.dp, Color(0xFFFF5252)) else null,
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-
-            if (supportsIndependentSides && !sideLocked) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(Color(0xFF2A2A2A))
-                            .padding(10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        listOf("left" to "L", "right" to "R").forEach { (side, label) ->
-                            val isSel = selectedSide == side
-                            FilterChip(
-                                selected = isSel,
-                                onClick = { selectSide(side) },
-                                label = {
-                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        if (isSel) Icon(Icons.Default.FitnessCenter, null, Modifier.size(14.dp), tint = sessionAccentColor)
-                                        Text(label, fontWeight = FontWeight.Black)
-                                    }
-                                },
-                                modifier = Modifier.weight(1f),
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = sessionAccentColor.copy(alpha = 0.20f),
-                                    selectedLabelColor = sessionAccentColor,
-                                ),
-                            )
-                        }
-                    }
-
-                }
-
-                if (!supportsIndependentSides && ghostSet != null && (ghostSet.weight > 0 || ghostSet.reps > 0)) {
-                    Row(
-                        modifier = Modifier.clickable(onClick = onShowHistory),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(Icons.Default.History, null, Modifier.size(14.dp), tint = Color(0xFF448AFF))
-                        Text(
-                            buildString {
-                                append("Última ")
-                                if (ghostSet.weight > 0) append("${ghostSet.weight.toTrimmedNumberString()}kg")
-                                if (ghostSet.weight > 0 && ghostSet.reps > 0) append(" · ")
-                                if (ghostSet.reps > 0) append(ghostSet.reps)
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF448AFF),
-                        )
-                    }
-                }
-
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    color = if (isFailedSet) Color(0xFF3A0000) else Color(0xFF222222),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = if (isFailedSet) Color(0xFFFF5252).copy(alpha = 0.15f) else sessionAccentColor.copy(alpha = 0.15f),
-                            ) {
-                                Text(
-                                    text = "Planificado",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isFailedSet) Color(0xFFFF5252) else sessionAccentColor,
-                                )
-                            }
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                Text(
-                                    text = plannedValueLabel.uppercase(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White.copy(alpha = 0.6f),
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(14.dp),
-                                    color = Color(0xFF2A2A2A),
-                                ) {
-                                    Box(
-                                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        val significantDelta = targetDelta?.takeIf { it != 0.0 }
-                                        Row(
-                                            verticalAlignment = Alignment.Bottom,
-                                            horizontalArrangement = Arrangement.Center,
-                                        ) {
-                                            Text(
-                                                text = when {
-                                                    plannedTarget == null -> if (isAmrap) "Libre" else "-"
-                                                    isTimeMode -> "${plannedTarget}s"
-                                                    else -> plannedTarget.toString()
-                                                },
-                                                style = MaterialTheme.typography.headlineSmall,
-                                                fontWeight = FontWeight.Black,
-                                                color = if (debt > 0) Color(0xFFFF5252) else Color.White,
-                                            )
-                                            if (significantDelta != null) {
-                                                Spacer(Modifier.width(4.dp))
-                                                Text(
-                                                    text = if (isTimeMode) formatSignedDelta(significantDelta, "s") else formatSignedDelta(significantDelta),
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = if (significantDelta < 0.0) Color(0xFFFF5252) else Color.White.copy(alpha = 0.7f),
-                                                    fontWeight = FontWeight.Bold,
-                                                    modifier = Modifier.padding(bottom = 2.dp),
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                Text(
-                                    text = plannedIntensityDisplayLabel.uppercase(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White.copy(alpha = 0.6f),
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(14.dp),
-                                    color = when {
-                                        plannedIntensityMode == IntensityMode.FAILURE && reachedFailure -> Color(0xFF4A0000)
-                                        isAmrap -> Color(0xFF3A003A)
-                                        difficultyLabel == "Más difícil" || difficultyLabel == "Serie fallida" -> Color(0xFF4A0000)
-                                        difficultyLabel == "Más fácil" -> Color(0xFF003A00)
-                                        difficultyLabel == "Fallo alcanzado" -> Color(0xFF4A3A00)
-                                        else -> Color(0xFF2A2A2A)
-                                    },
-                                ) {
-                                    Column(
-                                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                                    ) {
-                                        if (plannedIntensityMode == IntensityMode.FAILURE && reachedFailure) {
-                                            Text(
-                                                text = "FALLO",
-                                                style = MaterialTheme.typography.headlineSmall,
-                                                fontWeight = FontWeight.Black,
-                                                color = Color(0xFFFF5252),
-                                            )
-                                        } else {
-                                            Text(
-                                                text = plannedIntensityDisplayValue,
-                                                style = MaterialTheme.typography.headlineSmall,
-                                                fontWeight = FontWeight.Black,
-                                                color = Color.White,
-                                            )
-                                        }
-                                        if (currentSet.targetPercentageRM != null) {
-                                            val rm1 = lastHomologatedResultV3?.estimatedRm
-                                                ?: ghostSet?.let { ghost ->
-                                                    if (ghost.weight > 0 && ghost.reps > 0 && ghost.reps < 37) {
-                                                        ghost.weight / (1.0278 - 0.0278 * ghost.reps)
-                                                    } else {
-                                                        null
-                                                    }
-                                                }
-                                            if (rm1 != null) {
-                                                Text(
-                                                    "1RM ~${rm1.toTrimmedNumberString()}kg",
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    color = Color.White.copy(alpha = 0.6f),
-                                                )
-                                            }
-                                        }
-                                        if (plannedIntensityMode == IntensityMode.FAILURE && reachedFailure) {
-                                            Surface(
-                                                shape = RoundedCornerShape(4.dp),
-                                                color = Color(0xFF4A0000),
-                                            ) {
-                                                Text(
-                                                    text = "FALLO",
-                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = Color(0xFFFF5252),
-                                                )
-                                            }
-                                        } else {
-                                            intensityDelta?.takeIf { it != 0.0 }?.let {
-                                                Text(
-                                                    text = formatSignedDelta(it),
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = if (it > 0.0) Color(0xFFFF5252) else Color.White.copy(alpha = 0.7f),
-                                                    fontWeight = FontWeight.SemiBold,
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 4.dp),
-                    color = Color(0xFF333333),
-                    thickness = 1.dp,
-                )
-
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    color = Color(0xFF222222),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = sessionAccentColor.copy(alpha = 0.15f),
-                        ) {
-                            Text(
-                                if (supportsIndependentSides) {
-                                    "Reportar ${if (selectedSide == "left") "L lado izq." else "R lado der."}"
-                                } else {
-                                    "Reportar serie"
-                                },
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = sessionAccentColor,
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            OutlinedTextField(
-                                value = reportWeightText,
-                                onValueChange = { updateActiveWeightText(it) },
-                                label = { Text(loadFieldLabel, fontWeight = FontWeight.SemiBold) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                singleLine = true,
-                                modifier = Modifier.weight(1f),
-                                textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                                placeholder = ghostSuggestedWeightText?.takeIf { reportWeightText.isBlank() }?.let { text ->
-                                    {
-                                        Text(
-                                            text = "${text} (sugerido)",
-                                            style = MaterialTheme.typography.bodyMedium.copy(
-                                                fontWeight = FontWeight.Bold,
-                                                fontStyle = FontStyle.Italic,
-                                                color = Color.White.copy(alpha = 0.40f),
-                                            ),
-                                        )
-                                    }
-                                },
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = sessionAccentColor,
-                                    unfocusedBorderColor = Color(0xFF555555),
-                                    focusedLabelColor = sessionAccentColor,
-                                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                                    cursorColor = Color.White,
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White,
-                                    focusedContainerColor = Color(0xFF2A2A2A),
-                                    unfocusedContainerColor = Color(0xFF2A2A2A),
-                                ),
-                                trailingIcon = {
-                                    IconButton(
-                                        onClick = { loadModeMenuExpanded = true },
-                                        modifier = Modifier.size(24.dp),
-                                    ) {
-                                        Icon(Icons.Default.UnfoldMore, null, Modifier.size(14.dp), tint = Color.White.copy(alpha = 0.7f))
-                                    }
-                                },
-                            )
-                            DropdownMenu(
-                                expanded = loadModeMenuExpanded,
-                                onDismissRequest = { loadModeMenuExpanded = false },
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("Carga") },
-                                    onClick = {
-                                        loadMode = LoadModeV2.LOAD
-                                        loadModeMenuExpanded = false
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Peso corporal") },
-                                    onClick = {
-                                        loadMode = LoadModeV2.BODYWEIGHT
-                                        if (bodyWeightText.isBlank()) showBodyWeightPrompt = true
-                                        loadModeMenuExpanded = false
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Lastre") },
-                                    onClick = {
-                                        loadMode = LoadModeV2.LASTRE
-                                        if (bodyWeightText.isBlank()) showBodyWeightPrompt = true
-                                        loadModeMenuExpanded = false
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Asistido") },
-                                    onClick = {
-                                        loadMode = LoadModeV2.ASSISTED
-                                        if (bodyWeightText.isBlank()) showBodyWeightPrompt = true
-                                        loadModeMenuExpanded = false
-                                    },
-                                )
-                            }
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center,
-                                ) {
-                                    Text(
-                                        (if (isTimeMode) "Tiempo" else "Reps").uppercase(),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White.copy(alpha = 0.6f),
-                                    )
-                                }
-                                Spacer(Modifier.height(4.dp))
-                                Surface(
-                                    shape = RoundedCornerShape(14.dp),
-                                    color = if (isFailedSet) Color(0xFF4A0000) else Color(0xFF2A2A2A),
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.height(40.dp),
-                                    ) {
-                                        Box(
-                                            modifier = Modifier.width(30.dp).fillMaxHeight().clickable(enabled = !isFailedSet) {
-                                                val current = reportValueText.toIntOrNull() ?: 0
-                                                updateActiveValueText((current - 1).coerceAtLeast(0).toString())
-                                            },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(Icons.Default.Remove, null, Modifier.size(14.dp), tint = if (isFailedSet) Color.White.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.7f))
-                                        }
-                                        BasicTextField(
-                                            value = if (isFailedSet) "0" else reportValueText,
-                                            onValueChange = { if (!isFailedSet) updateActiveValueText(it.filter { ch -> ch.isDigit() }) },
-                                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                                            singleLine = true,
-                                            enabled = !isFailedSet,
-                                            textStyle = MaterialTheme.typography.headlineSmall.copy(
-                                                textAlign = TextAlign.Center,
-                                                fontWeight = FontWeight.Black,
-                                                color = if (isFailedSet) Color(0xFFFF5252) else if (debt > 0 && !isTimeMode) Color(0xFFFF5252) else Color.White,
-                                            ),
-                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                            decorationBox = { innerTextField ->
-                                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { innerTextField() }
-                                            },
-                                        )
-                                        Box(
-                                            modifier = Modifier.width(30.dp).fillMaxHeight().clickable(enabled = !isFailedSet) {
-                                                val current = reportValueText.toIntOrNull() ?: 0
-                                                updateActiveValueText((current + 1).toString())
-                                            },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(Icons.Default.Add, null, Modifier.size(14.dp), tint = if (isFailedSet) Color.White.copy(alpha = 0.25f) else sessionAccentColor)
-                                        }
-                                    }
-                                }
-                                if (isTimeMode) {
-                                    Spacer(Modifier.height(4.dp))
-                                        Box(
-                                            modifier = Modifier.size(32.dp).clickable {
-                                                if (timerRunning) {
-                                                    timerRunning = false
-                                                    if (timerElapsedSeconds > 0) {
-                                                        updateActiveValueText(timerElapsedSeconds.toString())
-                                                    }
-                                                } else if (timerTargetSeconds > 0) {
-                                                    timerElapsedSeconds = 0
-                                                    timerRemainingSeconds = timerTargetSeconds
-                                                    timerRunning = true
-                                            }
-                                        },
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Icon(
-                                            if (timerRunning) Icons.Default.Stop else Icons.Default.PlayArrow,
-                                            contentDescription = if (timerRunning) "Detener" else "Iniciar",
-                                            modifier = Modifier.size(18.dp),
-                                            tint = if (timerRunning) sessionAccentColor else Color.White.copy(alpha = 0.5f),
-                                        )
-                                    }
-                                }
-                            }
-
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                Text(
-                                    intensityFieldLabel.uppercase(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = when {
-                                        isExecutionError -> Color.White.copy(alpha = 0.4f)
-                                        reachedFailure -> Color.White.copy(alpha = 0.4f)
-                                        else -> Color.White.copy(alpha = 0.6f)
-                                    },
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Surface(
-                                    shape = RoundedCornerShape(14.dp),
-                                    color = when {
-                                        isExecutionError -> Color(0xFF4A0000)
-                                        reachedFailure -> Color(0xFF4A0000)
-                                        else -> Color(0xFF2A2A2A)
-                                    },
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.height(40.dp),
-                                    ) {
-                                        val intensityDisabled = isExecutionError
-                                        Box(
-                                            modifier = Modifier.width(30.dp).fillMaxHeight().clickable(enabled = !intensityDisabled) {
-                                                decreaseIntensityInput()
-                                            },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(Icons.Default.Remove, null, Modifier.size(14.dp), tint = if (intensityDisabled) Color.White.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.7f))
-                                        }
-                                        BasicTextField(
-                                            value = when {
-                                                isExecutionError -> "ERROR"
-                                                reachedFailure -> "FALLO"
-                                                else -> intensityText
-                                            },
-                                            onValueChange = { if (!intensityDisabled && !reachedFailure) intensityText = it },
-                                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                                            singleLine = true,
-                                            enabled = !intensityDisabled && !reachedFailure,
-                                            textStyle = MaterialTheme.typography.titleLarge.copy(
-                                                textAlign = TextAlign.Center,
-                                                fontWeight = FontWeight.Black,
-                                                color = when {
-                                                    isExecutionError -> Color(0xFFFF5252)
-                                                    reachedFailure -> Color(0xFFFF5252)
-                                                    else -> Color.White
-                                                },
-                                            ),
-                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                            decorationBox = { innerTextField ->
-                                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { innerTextField() }
-                                            },
-                                        )
-                                        Box(
-                                            modifier = Modifier.width(30.dp).fillMaxHeight().clickable(enabled = !intensityDisabled) {
-                                                increaseIntensityInput()
-                                            },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(Icons.Default.Add, null, Modifier.size(14.dp), tint = if (intensityDisabled) Color.White.copy(alpha = 0.25f) else sessionAccentColor)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (showBodyWeightPrompt || (loadMode != LoadModeV2.LOAD && bodyWeightText.isBlank())) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        color = Color(0xFF222222),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            OutlinedTextField(
-                                value = bodyWeightText,
-                                onValueChange = { bodyWeightText = it },
-                                label = { Text("Peso corporal (kg)", fontWeight = FontWeight.SemiBold) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier.weight(1f),
-                                singleLine = true,
-                                textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = sessionAccentColor,
-                                    unfocusedBorderColor = Color(0xFF555555),
-                                    focusedLabelColor = sessionAccentColor,
-                                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                                    cursorColor = Color.White,
-                                    focusedContainerColor = Color(0xFF2A2A2A),
-                                    unfocusedContainerColor = Color(0xFF2A2A2A),
-                                ),
-                            )
-                            Button(
-                                onClick = {
-                                    bodyWeightText.toDoubleOrNull()?.let {
-                                        onSetBodyWeight(it)
-                                        showBodyWeightPrompt = false
-                                    }
-                                },
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = sessionAccentColor,
-                                    contentColor = Color.Black,
-                                ),
-                            ) { Text("Guardar", fontWeight = FontWeight.Bold) }
-                        }
-                    }
-                }
-
-                if (isTimeMode) {
-                    val timerSupport = when {
-                        timerRunning -> "Restan ${formatTime(timerRemainingSeconds)}"
-                        timerElapsedSeconds > 0 -> "Registrado ${timerElapsedSeconds}s"
-                        plannedTarget != null -> "Objetivo ${plannedTarget}s"
-                        else -> null
-                    }
-                    if (timerSupport != null) {
-                        Text(
-                            timerSupport,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (timerRunning) sessionAccentColor else Color.White.copy(alpha = 0.6f),
-                        )
-                    }
-                }
-
-                if (!isJustLogged) {
-                    weightSuggestion?.let { suggestion ->
-                        if (
-                            (suggestion.suggestedLoadMode != null && suggestion.suggestedLoadMode != loadMode) ||
-                            suggestion.suggestedWeight > 0.0
-                        ) {
-                            Surface(
-                                modifier = Modifier.fillMaxWidth().clickable {
-                                    suggestion.suggestedLoadMode?.let { loadMode = it }
-                                    updateActiveWeightText(suggestion.suggestedWeight.toTrimmedNumberString())
-                                },
-                                shape = RoundedCornerShape(14.dp),
-                                color = sessionAccentColor.copy(alpha = 0.1f),
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Icon(Icons.Default.Lightbulb, null, Modifier.size(18.dp), tint = sessionAccentColor)
-                                    Text(suggestion.reason, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = sessionAccentColor)
-                                    Icon(Icons.Default.NorthEast, null, Modifier.size(16.dp), tint = sessionAccentColor)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                amrapCalibrationMessage?.let { msg ->
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        color = Color(0xFF1A3A1A),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(Icons.Default.Analytics, null, Modifier.size(18.dp), tint = Color(0xFF4CAF50))
-                            Text(msg, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color(0xFF4CAF50))
-                        }
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    listOf("Cambio de planes", "Técnicas de intensidad").forEachIndexed { index, title ->
-                        Surface(
-                            onClick = { adjustmentsTab = if (adjustmentsTab == index) -1 else index },
-                            shape = RoundedCornerShape(10.dp),
-                            color = if (adjustmentsTab == index) sessionAccentColor.copy(alpha = 0.15f) else Color.Transparent,
-                            border = BorderStroke(1.dp, if (adjustmentsTab == index) sessionAccentColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
-                        ) {
-                            Text(
-                                text = title,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = if (adjustmentsTab == index) FontWeight.SemiBold else FontWeight.Normal,
-                                color = if (adjustmentsTab == index) sessionAccentColor else Color.White.copy(alpha = 0.55f),
-                                maxLines = 2,
-                            )
-                        }
-                    }
-                }
-
-                if (adjustmentsTab >= 0) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        color = Color(0xFF222222),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            when (adjustmentsTab) {
-                                0 -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        FilterChip(
-                                            selected = isFailedSet,
-                                            onClick = {
-                                                isFailedSet = !isFailedSet
-                                                if (isFailedSet) reachedFailure = false
-                                            },
-                                            label = { Text("Error de ejecución", style = MaterialTheme.typography.labelSmall) },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = Color(0xFFFF5252).copy(alpha = 0.2f),
-                                                selectedLabelColor = Color(0xFFFF5252),
-                                                containerColor = Color(0xFF2A2A2A),
-                                                labelColor = Color.White,
-                                            ),
-                                        )
-                                        FilterChip(
-                                            selected = isAmrap,
-                                            onClick = { if (isAmrap) isAmrap = false else showAmrapSheet = true },
-                                            label = { Text("AMRAP", style = MaterialTheme.typography.labelSmall) },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
-                                                selectedLabelColor = sessionAccentColor,
-                                                containerColor = Color(0xFF2A2A2A),
-                                                labelColor = Color.White,
-                                            ),
-                                        )
-                                    }
-
-                                    if (isAmrap && plannedTarget != null) {
-                                        Text(
-                                            "AMRAP mínimo: $plannedTarget ${if (isTimeMode) "s" else "reps"}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = sessionAccentColor,
-                                        )
-                                    }
-                                }
-
-                                1 -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        FilterChip(
-                                            selected = showPartialsMode,
-                                            onClick = {
-                                                showPartialsMode = !showPartialsMode
-                                                if (showPartialsMode && partialSets.isEmpty()) partialSets = listOf(0)
-                                            },
-                                            label = { Text("Parciales", style = MaterialTheme.typography.labelSmall) },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
-                                                selectedLabelColor = sessionAccentColor,
-                                                containerColor = Color(0xFF2A2A2A),
-                                                labelColor = Color.White,
-                                            ),
-                                        )
-                                        FilterChip(
-                                            selected = dropSetEnabled,
-                                            onClick = { dropSetEnabled = !dropSetEnabled },
-                                            label = { Text("Drop-set", style = MaterialTheme.typography.labelSmall) },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
-                                                selectedLabelColor = sessionAccentColor,
-                                                containerColor = Color(0xFF2A2A2A),
-                                                labelColor = Color.White,
-                                            ),
-                                        )
-                                        FilterChip(
-                                            selected = restPauseEnabled,
-                                            onClick = { restPauseEnabled = !restPauseEnabled },
-                                            label = { Text("Rest-Pause", style = MaterialTheme.typography.labelSmall) },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
-                                                selectedLabelColor = sessionAccentColor,
-                                                containerColor = Color(0xFF2A2A2A),
-                                                labelColor = Color.White,
-                                            ),
-                                        )
-                                    }
-
-                                    if (showPartialsMode) {
-                                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                            partialSets.forEachIndexed { idx, reps ->
-                                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                    Text(
-                                                        "Parcial ${idx + 1}",
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        fontWeight = FontWeight.SemiBold,
-                                                        color = Color.White.copy(alpha = 0.7f),
-                                                        modifier = Modifier.widthIn(min = 56.dp),
-                                                    )
-                                                    IconButton(onClick = { partialSets = partialSets.toMutableList().also { it[idx] = (reps - 1).coerceAtLeast(0) } }, modifier = Modifier.size(28.dp)) {
-                                                        Icon(Icons.Default.Remove, null, Modifier.size(14.dp), tint = Color.White.copy(alpha = 0.7f))
-                                                    }
-                                                    Text(
-                                                        "$reps reps",
-                                                        style = MaterialTheme.typography.bodySmall,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = Color.White,
-                                                        textAlign = TextAlign.Center,
-                                                        modifier = Modifier.widthIn(min = 48.dp),
-                                                    )
-                                                    IconButton(onClick = { partialSets = partialSets.toMutableList().also { it[idx] = (reps + 1).coerceAtMost(20) } }, modifier = Modifier.size(28.dp)) {
-                                                        Icon(Icons.Default.Add, null, Modifier.size(14.dp), tint = sessionAccentColor)
-                                                    }
-                                                    IconButton(onClick = { if (partialSets.size > 1) partialSets = partialSets.toMutableList().also { it.removeAt(idx) } }, modifier = Modifier.size(28.dp)) {
-                                                        Icon(Icons.Default.Delete, null, Modifier.size(14.dp), tint = Color(0xFFFF5252))
-                                                    }
-                                                }
-                                            }
-                                            TextButton(onClick = { partialSets = partialSets + 0 }) {
-                                                Icon(Icons.Default.Add, null, Modifier.size(14.dp))
-                                                Spacer(Modifier.width(4.dp))
-                                                Text("Agregar parcial", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                            }
-                                        }
-                                    }
-
-                                    if (dropSetEnabled) {
-                                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                            dropSets.forEachIndexed { idx, entry ->
-                                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                    OutlinedTextField(
-                                                        value = if (entry.weight == 0.0) "" else entry.weight.toTrimmedNumberString(),
-                                                        onValueChange = { v -> dropSets = dropSets.toMutableList().also { it[idx] = entry.copy(weight = v.toDoubleOrNull() ?: 0.0) } },
-                                                        label = { Text("Peso", style = MaterialTheme.typography.labelSmall) },
-                                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                                        singleLine = true,
-                                                        modifier = Modifier.weight(1f),
-                                                        textStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                                                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = sessionAccentColor, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = sessionAccentColor, unfocusedLabelColor = Color.White.copy(alpha = 0.7f), cursorColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)),
-                                                    )
-                                                    OutlinedTextField(
-                                                        value = if (entry.reps == 0) "" else entry.reps.toString(),
-                                                        onValueChange = { v -> dropSets = dropSets.toMutableList().also { it[idx] = entry.copy(reps = v.toIntOrNull() ?: 0) } },
-                                                        label = { Text("Reps", style = MaterialTheme.typography.labelSmall) },
-                                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                                        singleLine = true,
-                                                        modifier = Modifier.weight(1f),
-                                                        textStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                                                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = sessionAccentColor, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = sessionAccentColor, unfocusedLabelColor = Color.White.copy(alpha = 0.7f), cursorColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)),
-                                                    )
-                                                    IconButton(onClick = { if (dropSets.size > 1) dropSets = dropSets.toMutableList().also { it.removeAt(idx) } }, modifier = Modifier.size(28.dp)) {
-                                                        Icon(Icons.Default.Delete, null, Modifier.size(14.dp), tint = Color(0xFFFF5252))
-                                                    }
-                                                }
-                                            }
-                                            TextButton(onClick = { dropSets = dropSets + DropSetEntry(weight = 0.0, reps = 0) }) {
-                                                Icon(Icons.Default.Add, null, Modifier.size(14.dp))
-                                                Spacer(Modifier.width(4.dp))
-                                                Text("Agregar drop-set", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                            }
-                                        }
-                                    }
-
-                                    if (restPauseEnabled) {
-                                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                            restPauseSets.forEachIndexed { idx, entry ->
-                                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                    OutlinedTextField(
-                                                        value = if (entry.reps == 0) "" else entry.reps.toString(),
-                                                        onValueChange = { v -> restPauseSets = restPauseSets.toMutableList().also { it[idx] = entry.copy(reps = v.toIntOrNull() ?: 0) } },
-                                                        label = { Text("Reps/mini-set", style = MaterialTheme.typography.labelSmall) },
-                                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                                        singleLine = true,
-                                                        modifier = Modifier.weight(1f),
-                                                        textStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                                                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = sessionAccentColor, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = sessionAccentColor, unfocusedLabelColor = Color.White.copy(alpha = 0.7f), cursorColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)),
-                                                    )
-                                                    OutlinedTextField(
-                                                        value = if (entry.restTime == 0) "" else entry.restTime.toString(),
-                                                        onValueChange = { v -> restPauseSets = restPauseSets.toMutableList().also { it[idx] = entry.copy(restTime = v.toIntOrNull() ?: 0) } },
-                                                        label = { Text("Descanso (s)", style = MaterialTheme.typography.labelSmall) },
-                                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                                        singleLine = true,
-                                                        modifier = Modifier.weight(1f),
-                                                        textStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, color = Color.White),
-                                                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = sessionAccentColor, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = sessionAccentColor, unfocusedLabelColor = Color.White.copy(alpha = 0.7f), cursorColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)),
-                                                    )
-                                                    IconButton(onClick = { if (restPauseSets.size > 1) restPauseSets = restPauseSets.toMutableList().also { it.removeAt(idx) } }, modifier = Modifier.size(28.dp)) {
-                                                        Icon(Icons.Default.Delete, null, Modifier.size(14.dp), tint = Color(0xFFFF5252))
-                                                    }
-                                                }
-                                            }
-                                            TextButton(onClick = { restPauseSets = restPauseSets + RestPauseData(restTime = 20, reps = 0) }) {
-                                                Icon(Icons.Default.Add, null, Modifier.size(14.dp))
-                                                Spacer(Modifier.width(4.dp))
-                                                Text("Agregar rest-pause", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (showAmrapSheet) {
-                    AmrapConfigSheet(
-                        plannedMinReps = plannedTarget,
-                        plannedTargetName = if (isTimeMode) "s" else "reps",
-                        initialReachFailure = amrapReachFailure,
-                        initialReserveReps = amrapReserveReps,
-                        onApply = { minReps, reachFailure, reserveReps ->
-                            isAmrap = true
-                            amrapReachFailure = reachFailure
-                            amrapReserveReps = reserveReps
-                            if (minReps != null) updateActiveValueText(minReps.toString())
-                            showAmrapSheet = false
-                        },
-                        onDismiss = { showAmrapSheet = false },
-                    )
-                }
-
-                val partialRepsTotal = if (showPartialsMode) {
-                    partialSets.sum().coerceAtLeast(0)
-                } else {
-                    0
-                }
-
-                val advanced = SetAdvancedFeedback(
-                    rir = if (isAmrap && !amrapReachFailure) amrapReserveReps
-                          else if (reportedIntensityMode == IntensityMode.RIR) intensityText.toIntOrNull()
-                          else null,
-                    reachedFailure = reachedFailure || (isAmrap && amrapReachFailure),
-                    isFailedSet = isFailedSet,
-                    failureReason = if (isFailedSet) "Serie marcada como fallida" else null,
-                    isPartial = partialRepsTotal > 0,
-                    partialReps = partialRepsTotal.takeIf { it > 0 },
-                    dropSets = if (dropSetEnabled) {
-                        dropSets.filter { it.weight > 0 && it.reps > 0 }.map { DropSetData(weight = it.weight, reps = it.reps) }
-                    } else {
-                        emptyList()
-                    },
-                    restPauses = if (restPauseEnabled) {
-                        restPauseSets.filter { it.reps > 0 }.map { it.copy(restTime = it.restTime.coerceAtLeast(0)) }
-                    } else {
-                        emptyList()
-                    },
-                    isWarmup = false,
-                    actualIntensityMode = when {
-                        isAmrap && amrapReachFailure -> IntensityMode.FAILURE
-                        isAmrap -> IntensityMode.AMRAP
-                                                reachedFailure -> IntensityMode.FAILURE
-                        else -> reportedIntensityMode
-                    },
-                    actualIntensityValue = when {
-                        isExecutionError -> null
-                        isAmrap && amrapReachFailure -> 10.0
-                        isAmrap && !amrapReachFailure -> amrapReserveReps?.toDouble()
-                        reachedFailure -> 10.0
-                        else -> intensityText.toDoubleOrNull()
-                    },
-                    timerElapsedSeconds = if (isTimeMode && timerElapsedSeconds > 0) timerElapsedSeconds else valueText.toIntOrNull(),
-                    timerTargetSeconds = if (isTimeMode) plannedTarget else null,
-                )
-
-                SideEffect {
-                    if (isActivePage) {
-                        recordActionHolder.action = {
-                        val reportingSide = if (supportsIndependentSides) selectedSide else null
-                        val reportedWeightText = reportingSide?.let { weightTextForSide(it) } ?: weightText
-                        val reportedValueText = reportingSide?.let { valueTextForSide(it) } ?: valueText
-                        val weight = reportedWeightText.toDoubleOrNull() ?: 0.0
-                        val typedValue = if (isFailedSet) 0.0 else (reportedValueText.toDoubleOrNull() ?: 0.0)
-                        val intensity = when {
-                            isFailedSet -> null
-                            isAmrap && amrapReachFailure -> 10.0
-                            isAmrap && !amrapReachFailure -> amrapReserveReps?.toDouble()
-                            reachedFailure -> 10.0
-                            else -> intensityText.toDoubleOrNull()
-                        }
-                        val resolvedUnitMode = when {
-                            currentSet.unitModeV2 != null -> currentSet.unitModeV2
-                            exercise.trainingMode == TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
-                            currentSet.targetDuration != null -> UnitModeV2.TIME
-                            else -> UnitModeV2.REPS
-                        }
-                        val resolvedBodyWeight = bodyWeightText.toDoubleOrNull()
-                        val minimumValue = if (isAmrap) plannedTarget?.toDouble() ?: 0.0 else 0.0
-                        val value = typedValue.coerceAtLeast(minimumValue)
-
-                        onRecordV2(
-                            loadMode,
-                            resolvedUnitMode,
-                            weight,
-                            value,
-                            intensity,
-                            advanced,
-                            isAmrap,
-                            resolvedBodyWeight,
-                            reportingSide,
-                        )
-                        if (supportsIndependentSides && !sideLocked) {
-                            selectSide(if (selectedSide == "left") "right" else "left")
-                        }
-                    }
-                    }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SideInputCard(
-    side: String,
-    label: String,
-    set: ExerciseSet,
-    valueText: String,
-    weightText: String,
-    onValueChange: (String) -> Unit,
-    onWeightChange: (String) -> Unit,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
-    isSelected: Boolean = false,
-    onSelect: () -> Unit = {},
-) {
-    Surface(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .clickable { onSelect() },
-        color = if (isSelected) accentColor.copy(alpha = 0.15f) else Color(0xFF2A2A2A),
-        border = BorderStroke(
-            1.dp,
-            if (isSelected) accentColor.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.08f),
-        ),
-    ) {
-        Column(
-            modifier = Modifier.padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                label,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = if (isSelected) accentColor else Color.White.copy(alpha = 0.6f),
-            )
-            OutlinedTextField(
-                value = weightText,
-                onValueChange = onWeightChange,
-                label = { Text("Peso", style = MaterialTheme.typography.labelSmall) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                textStyle = MaterialTheme.typography.bodyMedium,
-                shape = RoundedCornerShape(8.dp),
-            )
-            OutlinedTextField(
-                value = valueText,
-                onValueChange = onValueChange,
-                label = { Text("Reps", style = MaterialTheme.typography.labelSmall) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                textStyle = MaterialTheme.typography.bodyMedium,
-                shape = RoundedCornerShape(8.dp),
-            )
-        }
-    }
-}
-
-
-// ─── Warmup Inline Card ────────────────────────────────────────────────
-
 @Composable
 private fun SupersetWarmupRevealCard(
     exercise: Exercise,
@@ -6116,47 +4456,6 @@ private fun QuickExecutionErrorDiscomfortSheet(
     }
     infoEntry?.let { entry ->
         AlertDialog(onDismissRequest = { infoEntry = null }, title = { Text(entry.label, fontWeight = FontWeight.Black) }, text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { Text(entry.description, style = MaterialTheme.typography.bodySmall); Text("Sección: ${entry.section.label}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) } }, confirmButton = { TextButton(onClick = { infoEntry = null }) { Text("Entendido") } })
-    }
-}
-
-// ─── AMRAP Config Sheet ────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AmrapConfigSheet(
-    plannedMinReps: Int?,
-    plannedTargetName: String,
-    initialReachFailure: Boolean,
-    initialReserveReps: Int?,
-    onApply: (minReps: Int?, reachFailure: Boolean, reserveReps: Int?) -> Unit,
-    onDismiss: () -> Unit,
-    hazeState: HazeState = HazeState(),
-    glassStyle: HazeStyle = HazeStyle(blurRadius = 8.dp, tint = HazeTint(Color.Black.copy(alpha = 0.0f)), backgroundColor = Color.Black.copy(alpha = 0.0f)),
-) {
-    var minReps by remember { mutableStateOf(plannedMinReps?.toString() ?: "") }
-    var reachFailure by remember { mutableStateOf(initialReachFailure) }
-    var reserveReps by remember { mutableStateOf(initialReserveReps?.toString() ?: "") }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, containerColor = Color(0xFF2A2A2A), modifier = Modifier.hazeEffect(state = hazeState, style = glassStyle)) {
-        Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Configurar serie AMRAP", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Reps mínimas", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
-                OutlinedTextField(value = minReps, onValueChange = { minReps = it.filter { c -> c.isDigit() } }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), placeholder = { Text(plannedMinReps?.toString() ?: "0") }, textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color.White.copy(alpha = 0.7f), unfocusedLabelColor = Color.White.copy(alpha = 0.5f), cursorColor = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)))
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Objetivo de la serie", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = reachFailure, onClick = { reachFailure = true; reserveReps = "" }, label = { Text("Llegar al fallo", style = MaterialTheme.typography.labelSmall) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), selectedLabelColor = MaterialTheme.colorScheme.primary, containerColor = Color(0xFF2A2A2A), labelColor = Color.White))
-                    FilterChip(selected = !reachFailure, onClick = { reachFailure = false }, label = { Text("Reservar reps", style = MaterialTheme.typography.labelSmall) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), selectedLabelColor = MaterialTheme.colorScheme.primary, containerColor = Color(0xFF2A2A2A), labelColor = Color.White))
-                }
-            }
-            if (!reachFailure) {
-                OutlinedTextField(value = reserveReps, onValueChange = { reserveReps = it.filter { c -> c.isDigit() } }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("RIR (repeticiones en reserva)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color.White.copy(alpha = 0.7f), unfocusedLabelColor = Color.White.copy(alpha = 0.5f), cursorColor = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)))
-            }
-            Button(onClick = { onApply(minReps.toIntOrNull() ?: plannedMinReps, reachFailure, reserveReps.toIntOrNull()) }, modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)) { Text("Aplicar", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold) }
-            Spacer(Modifier.height(8.dp))
-        }
     }
 }
 
@@ -6512,7 +4811,7 @@ private fun FinishWorkoutSheet(
                     color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.45f),
                 ) {
                     Text(
-                        "AUGE usó intensidad genérica en ejercicios sin RPE percibido. Registra la intensidad para mejorar las estimaciones de recuperación.",
+                        "Se usó intensidad genérica en ejercicios sin RPE percibido. Registra la intensidad para mejorar las estimaciones de recuperación.",
                         modifier = Modifier.padding(12.dp),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onTertiaryContainer,

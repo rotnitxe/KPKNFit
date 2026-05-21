@@ -3595,7 +3595,7 @@ private fun buildCloneSourceOptions(
 }
 
     private fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<WorkoutLog>): Exercise {
-        val trainingMode = if (info.category.equals("Fuerza", true)) TrainingMode.RM else TrainingMode.REPS
+        val trainingMode = TrainingMode.REPS
         return Exercise(
             id = UUID.randomUUID().toString(),
             name = info.name,
@@ -3609,8 +3609,8 @@ private fun buildCloneSourceOptions(
                 ExerciseSet(
                     id = UUID.randomUUID().toString(),
                     targetReps = if (info.category.equals("Fuerza", true)) 5 else 8,
-                    targetPercentageRM = if (trainingMode == TrainingMode.RM) 75.0 else null,
-                    intensityMode = if (trainingMode == TrainingMode.RM) IntensityMode.LOAD else null,
+                    targetPercentageRM = null,
+                    intensityMode = null,
                 )
             ),
             setupCues = info.setupCues.orEmpty(),

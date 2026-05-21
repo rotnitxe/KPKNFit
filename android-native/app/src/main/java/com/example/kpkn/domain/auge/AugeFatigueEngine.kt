@@ -385,7 +385,7 @@ object AugeFatigueEngine {
                 ?: run {
                     android.util.Log.d(
                         "AugeFatigueEngine",
-                        "Sin métricas AUGE para '${ex.exerciseName}' (id=$lookupId) — ejercicio omitido del drenaje",
+                        "Sin métricas de fatiga para '${ex.exerciseName}' (id=$lookupId) — ejercicio omitido del drenaje",
                     )
                     return@forEach
                 }
@@ -491,7 +491,7 @@ object AugeFatigueEngine {
                 ?: run {
                     android.util.Log.d(
                         "AugeFatigueEngine",
-                        "Sin métricas AUGE para '${ex.name}' — ejercicio omitido del drenaje ajustado",
+                        "Sin métricas de fatiga para '${ex.name}' — ejercicio omitido del drenaje ajustado",
                     )
                     return@forEach
                 }

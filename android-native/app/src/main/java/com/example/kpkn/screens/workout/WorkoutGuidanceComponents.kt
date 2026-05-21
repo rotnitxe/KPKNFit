@@ -79,7 +79,7 @@ internal fun WorkoutLiveGuidanceCard(
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = accent)
                             Text(
-                                text = "AUGE en vivo",
+                                text = "Ajuste en vivo",
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                             )
@@ -97,7 +97,7 @@ internal fun WorkoutLiveGuidanceCard(
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = accent)
                             Text(
-                                text = "AUGE en vivo",
+                                text = "Ajuste en vivo",
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                             )
@@ -245,8 +245,8 @@ private fun buildAutoRegulationHeadline(regulation: SetAutoRegulation): String {
     val deltaPercent = ((regulation.adjustmentFactor - 1.0) * 100.0).roundToInt()
     return when {
         abs(deltaPercent) <= 1 -> "Ajuste fino para esta serie"
-        deltaPercent > 0 -> "AUGE empuja +${deltaPercent}% para esta serie"
-        else -> "AUGE baja ${deltaPercent}% para esta serie"
+        deltaPercent > 0 -> "Sube +${deltaPercent}% para esta serie"
+        else -> "Baja ${deltaPercent}% para esta serie"
     }
 }
 

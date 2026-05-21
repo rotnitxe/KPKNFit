@@ -8,7 +8,6 @@ import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.isSimpleTemporalProgram
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -117,8 +116,6 @@ object ProgramCalendarEngine {
             )
         }
         val startDate: LocalDate = start
-        val programStartDay = program.startDay ?: 1
-
         var cursor = startDate
         var globalWeekIndex = 0
         val weeks = mutableListOf<CalendarWeekProjection>()
@@ -130,8 +127,8 @@ object ProgramCalendarEngine {
                     val mesoIndex = globalMesoIndex++
                     meso.weeks.forEach { week ->
                         val weekStart = parseIsoDate(week.startDate) ?: cursor
-                        val weekEnd = parseIsoDate(week.endDate) ?: projectedWeekEnd(weekStart, globalWeekIndex == 0, programStartDay)
-                        val outsideDays = outsideDaysFor(weekStart, weekEnd, globalWeekIndex == 0, programStartDay)
+                        val weekEnd = parseIsoDate(week.endDate) ?: projectedWeekEnd(weekStart)
+                        val outsideDays = outsideDaysFor()
                         val dayDates = trainingDatesFor(weekStart, weekEnd, outsideDays, week.trainingDayDates)
                         val marks = program.keyDates.filter { keyDateIntersects(it, weekStart, weekEnd) }
                         weeks += CalendarWeekProjection(
@@ -213,13 +210,12 @@ object ProgramCalendarEngine {
         }
     }
 
-    private fun projectedWeekEnd(start: LocalDate, isFirstWeek: Boolean, startDay: Int = 1): LocalDate {
+    private fun projectedWeekEnd(start: LocalDate): LocalDate {
         return start.plusDays(6)
     }
 
-    private fun outsideDaysFor(start: LocalDate, end: LocalDate, isFirstWeek: Boolean, programStartDay: Int = 1): Set<Int> {
-        if (!isFirstWeek) return emptySet()
-        return (1 until programStartDay).toSet()
+    private fun outsideDaysFor(): Set<Int> {
+        return emptySet()
     }
 
     private fun trainingDatesFor(

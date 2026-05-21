@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarizationMode
+import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.Session
@@ -253,7 +254,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     fun setSimpleDatedCalendarization(enabled: Boolean) {
         val current = program.value ?: return
-        if (!current.isSimpleTemporalProgram) return
+        if (!current.isSimpleTemporalProgram && current.structure != ProgramStructure.SIMPLE) return
         val updated = if (enabled) {
             current.copy(
                 timelineStartDate = current.timelineStartDate ?: LocalDate.now().toString(),
@@ -319,11 +320,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     fun addWeekToSimpleProgram(sourceWeekId: String? = null, name: String? = null, description: String? = null) {
         val current = program.value ?: return
-        if (!current.isSimpleTemporalProgram) return
-
-        val macroIndex = current.macrocycles.indexOfFirst { it.blocks.isNotEmpty() }.takeIf { it >= 0 } ?: return
-        val block = current.macrocycles[macroIndex].blocks.firstOrNull() ?: return
-        val mesoIndex = block.mesocycles.indexOfLast { true }.takeIf { it >= 0 } ?: return
+        if (!current.isSimpleTemporalProgram && current.structure != ProgramStructure.SIMPLE) return
         val copiedSessions = sourceWeekId
             ?.let { id -> findWeek(current, id)?.sessions }
             ?.let { SplitApplicationEngine.copySessionsWithNewIds(it) }
@@ -357,18 +354,53 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             )
         }
 
+        if (current.macrocycles.isEmpty() || current.macrocycles.firstOrNull()?.blocks.isNullOrEmpty()) {
+            val fallbackMeso = defaultRoadmapMesocycle(newWeek)
+            val fallbackBlock = Block(
+                id = "block_simple_${System.nanoTime()}",
+                name = "Ciclo base",
+                mesocycles = listOf(fallbackMeso),
+            )
+            val fallbackMacro = com.example.kpkn.data.models.Macrocycle(
+                id = "macro_simple_${System.nanoTime()}",
+                name = "Macrociclo base",
+                blocks = listOf(fallbackBlock),
+            )
+            val updated = current.copy(
+                macrocycles = if (current.macrocycles.isEmpty()) {
+                    listOf(fallbackMacro)
+                } else {
+                    current.macrocycles.mapIndexed { macroIndex, macro ->
+                        if (macroIndex == 0) macro.copy(blocks = listOf(fallbackBlock)) else macro
+                    }
+                },
+            ).normalizedTemporalStructure()
+
+            repository.updateProgram(updated)
+            _uiState.update { it.copy(selectedBlockId = fallbackBlock.id, selectedWeekId = newWeek.id, structureSubTab = StructureSubTab.SEMANA) }
+            return
+        }
+
+        val macroIndex = current.macrocycles.indexOfFirst { it.blocks.isNotEmpty() }.takeIf { it >= 0 } ?: return
+        val block = current.macrocycles[macroIndex].blocks.firstOrNull() ?: return
+        val mesoIndex = block.mesocycles.indexOfLast { true }.takeIf { it >= 0 }
+
         val updated = current.copy(
             macrocycles = current.macrocycles.mapIndexed { currentMacroIndex, macro ->
                 if (currentMacroIndex != macroIndex) macro
                 else macro.copy(
                     blocks = macro.blocks.mapIndexed { blockIndex, currentBlock ->
                         if (blockIndex != 0) currentBlock
-                        else currentBlock.copy(
-                            mesocycles = currentBlock.mesocycles.mapIndexed { currentMesoIndex, meso ->
-                                if (currentMesoIndex != mesoIndex) meso
-                                else meso.copy(weeks = meso.weeks + newWeek)
-                            }
-                        )
+                        else if (mesoIndex == null) {
+                            currentBlock.copy(mesocycles = listOf(defaultRoadmapMesocycle(newWeek)))
+                        } else {
+                            currentBlock.copy(
+                                mesocycles = currentBlock.mesocycles.mapIndexed { currentMesoIndex, meso ->
+                                    if (currentMesoIndex != mesoIndex) meso
+                                    else meso.copy(weeks = meso.weeks + newWeek)
+                                }
+                            )
+                        }
                     }
                 )
             }
@@ -1242,14 +1274,89 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     fun recoverCyclicProgram() {
         val current = program.value ?: return
-        repository.updateProgram(current.restorePausedCyclicProgram().normalizedTemporalStructure())
+        val updated = current.restorePausedCyclicProgram()
+            .withFallbackSimpleWeekIfEmpty()
+            .normalizedTemporalStructure()
+        repository.updateProgram(updated)
+        selectFirstRoadmapPosition(updated)
         setShowSimpleCalendarizationSheet(false)
     }
 
     fun startFreshCyclicProgram() {
         val current = program.value ?: return
-        repository.updateProgram(current.startFreshSimpleCycle().normalizedTemporalStructure())
+        val updated = current.startFreshSimpleCycle()
+            .withFallbackSimpleWeekIfEmpty()
+            .normalizedTemporalStructure()
+        repository.updateProgram(updated)
+        selectFirstRoadmapPosition(updated)
         setShowSimpleCalendarizationSheet(false)
+    }
+
+    private fun Program.withFallbackSimpleWeekIfEmpty(): Program {
+        if (ProgramDetailHelpers.getTotalWeeks(this) > 0) return this
+        if (!isSimpleTemporalProgram && structure != ProgramStructure.SIMPLE && macrocycles.isNotEmpty()) return this
+        val fallbackWeek = ProgramWeek(
+            id = "week_simple_${System.nanoTime()}",
+            name = "Semana 1",
+        )
+        val fallbackMeso = Mesocycle(
+            id = "meso_simple_${System.nanoTime()}",
+            name = "Mesociclo 1",
+            goal = MesocycleGoal.ACCUMULATION,
+            weeks = listOf(fallbackWeek),
+        )
+        val fallbackBlock = Block(
+            id = "block_simple_${System.nanoTime()}",
+            name = "Ciclo base",
+            mesocycles = listOf(fallbackMeso),
+        )
+        val fallbackMacro = com.example.kpkn.data.models.Macrocycle(
+            id = "macro_simple_${System.nanoTime()}",
+            name = "Macrociclo base",
+            blocks = listOf(fallbackBlock),
+        )
+
+        return copy(
+            macrocycles = if (macrocycles.isEmpty()) {
+                listOf(fallbackMacro)
+            } else {
+                macrocycles.mapIndexed { macroIndex, macro ->
+                    if (macroIndex != 0) macro
+                    else macro.copy(
+                        blocks = if (macro.blocks.isEmpty()) {
+                            listOf(fallbackBlock)
+                        } else {
+                            macro.blocks.mapIndexed { blockIndex, block ->
+                                if (blockIndex != 0) block
+                                else block.copy(
+                                    mesocycles = if (block.mesocycles.isEmpty()) {
+                                        listOf(fallbackMeso)
+                                    } else {
+                                        block.mesocycles.mapIndexed { mesoIndex, meso ->
+                                            if (mesoIndex == 0) meso.copy(weeks = listOf(fallbackWeek)) else meso
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    )
+                }
+            },
+        )
+    }
+
+    private fun selectFirstRoadmapPosition(program: Program) {
+        val firstBlock = ProgramDetailHelpers.buildRoadmapBlocks(program).firstOrNull()
+        val firstWeek = firstBlock?.let { block ->
+            ProgramDetailHelpers.getWeeksForBlock(block.id, listOf(block), program).firstOrNull()
+        }
+        _uiState.update {
+            it.copy(
+                selectedBlockId = firstBlock?.id,
+                selectedWeekId = firstWeek?.id,
+                structureSubTab = StructureSubTab.SEMANA,
+            )
+        }
     }
 
     private fun dayOfWeekToJava(day: Int): java.time.DayOfWeek = when (day) {

@@ -50,7 +50,7 @@ class PostExerciseFeedbackIntensityTest {
     }
 
     @Test
-    fun `omitted intensity keeps sets unchanged so AUGE can use generic fallback`() {
+    fun `omitted intensity keeps sets unchanged so generic fallback can be used`() {
         val completed = mapOf("press_0" to CompletedSet(id = "s1", weight = 80.0, reps = 8))
         val feedback = PostExerciseFeedback(
             exerciseId = "press",

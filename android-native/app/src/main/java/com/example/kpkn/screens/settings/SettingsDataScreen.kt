@@ -71,7 +71,7 @@ fun SettingsDataScreen(
                 SettingsSectionCard {
                     SettingsActionItem(
                         title = "Exportar datos",
-                        description = "Comparte un JSON con programas, historial, nutricion y AUGE",
+                        description = "Comparte un JSON con programas, historial, nutricion y recuperación",
                         icon = Icons.Default.Download,
                         onClick = { viewModel.exportData(context) },
                     )

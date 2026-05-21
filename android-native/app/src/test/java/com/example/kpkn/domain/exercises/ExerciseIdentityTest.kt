@@ -4,8 +4,10 @@ import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.RestPauseData
+import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.models.WarmupSetDefinition
 import org.junit.Assert.assertEquals
@@ -21,6 +23,7 @@ class ExerciseIdentityTest {
             id = "slot-1",
             name = "Press banca",
             exerciseDbId = "bench",
+            trainingMode = TrainingMode.RM,
             reference1RM = 180.0,
             warmupSets = listOf(WarmupSetDefinition(id = "w1", percentageOfWorkingWeight = 50.0, targetReps = 5)),
             sets = listOf(
@@ -29,6 +32,7 @@ class ExerciseIdentityTest {
                     targetReps = 8,
                     weight = 160.0,
                     targetPercentageRM = 85.0,
+                    intensityMode = IntensityMode.SOLO_RM,
                     completedReps = 8,
                     completedRPE = 9.0,
                     loadModeV2 = LoadModeV2.LOAD,
@@ -54,6 +58,7 @@ class ExerciseIdentityTest {
         assertEquals(replacement.id, updated.exerciseDbId)
         assertNull(set.weight)
         assertNull(set.targetPercentageRM)
+        assertNull(set.intensityMode)
         assertNull(set.completedReps)
         assertNull(set.completedRPE)
         assertNull(set.contextKeyV2)
@@ -64,6 +69,7 @@ class ExerciseIdentityTest {
         assertTrue(set.restPauses.isEmpty())
         assertTrue(updated.warmupSets.isEmpty())
         assertNull(updated.reference1RM)
+        assertEquals(TrainingMode.REPS, updated.trainingMode)
     }
 
     @Test
@@ -83,5 +89,28 @@ class ExerciseIdentityTest {
 
         assertEquals(LoadModeV2.BODYWEIGHT, updated.sets.single().loadModeV2)
         assertNull(updated.sets.single().weight)
+    }
+
+    @Test
+    fun assisted_replacement_defaults_to_assisted_without_rm_mode() {
+        val old = Exercise(
+            id = "slot-1",
+            name = "Dominada",
+            trainingMode = TrainingMode.RM,
+            sets = listOf(ExerciseSet(id = "s1", targetReps = 6, targetPercentageRM = 75.0)),
+        )
+        val replacement = ExerciseMuscleInfo(
+            id = "dominada_asistida_maquina",
+            name = "Dominada asistida",
+            equipment = "Máquina asistida",
+        )
+
+        val updated = old.replacedWithCatalogExercise(replacement)
+        val set = updated.sets.single()
+
+        assertEquals(TrainingMode.REPS, updated.trainingMode)
+        assertEquals(LoadModeV2.ASSISTED, set.loadModeV2)
+        assertNull(set.targetPercentageRM)
+        assertNull(set.intensityMode)
     }
 }

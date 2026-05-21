@@ -303,12 +303,16 @@ object WorkoutAutoRegulation {
     ): String {
         val parts = mutableListOf<String>()
         if (reachedFailure) parts.add("Fallo")
-        if (!reachedFailure && effectiveRpe >= 9.5) parts.add("RPE alto")
         if (weightedDrainPct >= 5.0) parts.add("Fatiga acumulada")
+        val detail = parts.joinToString(" · ")
         return when {
-            factor < 0.95 -> "AUGE · ${parts.joinToString(" · ")} · −${((1 - factor) * 100).toInt()}%"
-            factor > 1.02 -> "AUGE · Recuperación buena · +${((factor - 1) * 100).toInt()}%"
-            else -> "AUGE · Sin ajuste"
+            factor < 0.95 -> buildString {
+                append("Ajuste de carga")
+                if (detail.isNotBlank()) append(" · $detail")
+                append(" · −${((1 - factor) * 100).toInt()}%")
+            }
+            factor > 1.02 -> "Ajuste de carga · Recuperación buena · +${((factor - 1) * 100).toInt()}%"
+            else -> "Sin ajuste de carga"
         }
     }
 

@@ -43,7 +43,7 @@ fun SettingsAugeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mis RINGS (AUGE)", fontWeight = FontWeight.Black) },
+                title = { Text("Mis RINGS", fontWeight = FontWeight.Black) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -63,7 +63,7 @@ fun SettingsAugeScreen(
                 SettingsSectionCard {
                     SettingsSwitchItem(
                         title = "Seguimiento de nutricion",
-                        description = "AUGE considera la nutricion para la recuperacion",
+                        description = "Considera la nutricion para la recuperacion",
                         checked = algorithm.augeEnableNutritionTracking,
                         onCheckedChange = { value ->
                             viewModel.update {
@@ -83,7 +83,7 @@ fun SettingsAugeScreen(
                     )
                     SettingsSwitchItem(
                         title = "Alertas durante sesion",
-                        description = "Muestra avisos AUGE dentro del editor y workout",
+                        description = "Muestra avisos dentro del editor y workout",
                         checked = algorithm.augeShowAlertsInSession,
                         onCheckedChange = { value ->
                             viewModel.update {

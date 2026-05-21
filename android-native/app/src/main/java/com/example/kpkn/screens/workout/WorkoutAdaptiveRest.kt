@@ -7,7 +7,7 @@ import com.example.kpkn.data.models.SetDrain
  *
  * Rules (cumulative multipliers, capped to [MIN_REST, MAX_REST]):
  * - Technique stress (failure, partials, rest-pause, dropsets)
- * - AUGE set drain (muscular/cns/spinal weighted)
+ * - Set drain (muscular/cns/spinal weighted)
  * - Effective RPE
  * - Session progress (late-session fatigue)
  * - Exercise type (compound vs isolation) and superset density

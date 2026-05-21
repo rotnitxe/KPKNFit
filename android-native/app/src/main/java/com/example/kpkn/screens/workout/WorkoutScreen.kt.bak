@@ -159,7 +159,7 @@ fun WorkoutScreen(
 
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsState()
 
-    // AUGE data
+    // Recovery data
     val augeDashboard by augeViewModel.dashboard.collectAsState()
     val perMuscle by augeViewModel.perMuscle.collectAsState()
 

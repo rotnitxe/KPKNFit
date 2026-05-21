@@ -412,7 +412,13 @@ object WorkoutPerformanceHomologationEngine {
 
             LoadModeV2.ASSISTED -> {
                 val assistance = currentLoad ?: return Suggestion(reason = "Sin asistencia registrada", isFailure = entry.reachedFailure)
-                if (historyColor != HistoryColorV2.RED && score >= 55) {
+                val beatPlannedTarget = entry.plannedTarget?.let { target ->
+                    entry.actualValue >= target + 1.0
+                } ?: false
+                val clearlyReadyForLessAssistance =
+                    prior.consecutiveGreenSessions >= 2 ||
+                        (beatPlannedTarget && (historyColor == HistoryColorV2.YELLOW || score >= 72))
+                if (historyColor != HistoryColorV2.RED && clearlyReadyForLessAssistance) {
                     val nextAssistance = max(0.0, assistance - 2.5)
                     if (nextAssistance <= 0.0) {
                         return Suggestion(

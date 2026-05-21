@@ -5,6 +5,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import dev.chrisbanes.haze.HazeState
 import org.junit.Rule
 import org.junit.Test
@@ -17,7 +19,7 @@ class WorkoutRestModalUiTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun rest_modal_shows_recovery_and_rest_choice_actions() {
+    fun rest_modal_shows_last_set_and_rest_choice_actions() {
         composeRule.setContent {
             MaterialTheme {
                 RestTimerOverlay(
@@ -29,17 +31,13 @@ class WorkoutRestModalUiTest {
                     ),
                     remainingSeconds = 64,
                     hazeState = HazeState(),
-                    recoveryStatus = RestRecoveryStatus(
-                        recoveryFraction = 0.68,
-                        recoveryPercent = 68,
-                        difficultyTier = 4,
-                        isReady = false,
-                    ),
-                    coachMessage = CoachMessage(
-                        key = "warning",
-                        title = "Fatiga en aumento",
-                        body = "Conviene exprimir un poco mas el descanso antes de la siguiente serie.",
-                        severity = CoachSeverity.WARNING,
+                    pendingRestSuggestion = PendingRestSuggestion(
+                        plannedSeconds = 90,
+                        adaptiveSeconds = 120,
+                        exerciseName = "Press banca",
+                        exerciseId = "press",
+                        lastSet = CompletedSet(id = "last", weight = 80.0, reps = 8, rpe = 9.0),
+                        advancedFeedback = null,
                     ),
                     onDecrease = {},
                     onIncrease = {},
@@ -49,11 +47,10 @@ class WorkoutRestModalUiTest {
             }
         }
 
-        composeRule.onNodeWithText("DESCANSO")
-        composeRule.onNodeWithText("Recuperación estimada 68%")
-        composeRule.onNodeWithText("Usar base")
-        composeRule.onNodeWithText("Usar sugerido (+30s)")
-        composeRule.onNodeWithText("Fatiga en aumento")
+        composeRule.onNodeWithText("DESCANSO").assertExists()
+        composeRule.onNodeWithText("Último set").assertExists()
+        composeRule.onNodeWithText("PLAN DE SESIÓN").assertExists()
+        composeRule.onNodeWithText("Usar Dinámico").assertExists()
     }
 
     @Test
@@ -72,8 +69,6 @@ class WorkoutRestModalUiTest {
                     ),
                     remainingSeconds = 20,
                     hazeState = HazeState(),
-                    recoveryStatus = null,
-                    coachMessage = null,
                     onDecrease = {},
                     onIncrease = {},
                     onSkip = {},
@@ -81,10 +76,10 @@ class WorkoutRestModalUiTest {
             }
         }
 
-        composeRule.onNodeWithText("Alertas del descanso")
-        composeRule.onNodeWithText("Notificaciones desactivadas")
-        composeRule.onNodeWithText("Alarma exacta no disponible")
-        composeRule.onNodeWithText("Audio silencioso")
+        composeRule.onNodeWithText("Alertas del descanso").assertExists()
+        composeRule.onNodeWithText("Notificaciones desactivadas").assertExists()
+        composeRule.onNodeWithText("Alarma exacta no disponible").assertExists()
+        composeRule.onNodeWithText("Audio silencioso").assertExists()
     }
 
     @Test
@@ -101,8 +96,14 @@ class WorkoutRestModalUiTest {
                     ),
                     remainingSeconds = 54,
                     hazeState = HazeState(),
-                    recoveryStatus = null,
-                    coachMessage = null,
+                    pendingRestSuggestion = PendingRestSuggestion(
+                        plannedSeconds = 120,
+                        adaptiveSeconds = 105,
+                        exerciseName = "Sentadilla frontal",
+                        exerciseId = "squat",
+                        lastSet = CompletedSet(id = "last", weight = 100.0, reps = 5),
+                        advancedFeedback = null,
+                    ),
                     onDecrease = {},
                     onIncrease = {},
                     onSkip = {},
@@ -112,10 +113,9 @@ class WorkoutRestModalUiTest {
         }
 
         composeRule.onNodeWithText("Manual").assertExists()
-        composeRule.onNodeWithText("Usar base").assertExists()
-        composeRule.onNodeWithText("Usar sugerido (-15s)").assertExists()
-        composeRule.onNodeWithText("-15").assertExists()
-        composeRule.onNodeWithText("+15").assertExists()
-        composeRule.onNodeWithText("Saltar").assertExists()
+        composeRule.onNodeWithText("PLAN DE SESIÓN").assertExists()
+        composeRule.onNodeWithText("Usar Dinámico").assertExists()
+        composeRule.onNodeWithText("Ajustar tiempo").assertExists()
+        composeRule.onNodeWithText("Saltar descanso").assertExists()
     }
 }

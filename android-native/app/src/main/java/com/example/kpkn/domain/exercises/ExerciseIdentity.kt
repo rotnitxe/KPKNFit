@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.ExerciseRelationshipType
 import com.example.kpkn.data.models.ExerciseDiscomfortReport
 import com.example.kpkn.data.models.ExerciseSetupDetails
+import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.OngoingWorkoutState
 import com.example.kpkn.data.models.Program
@@ -208,6 +209,7 @@ fun Exercise.replacedWithCatalogExercise(info: ExerciseMuscleInfo): Exercise {
         exerciseId = info.id,
         canonicalExerciseId = canonicalId,
         exerciseFamilyId = canonicalId,
+        trainingMode = TrainingMode.REPS,
         relativeToCanonicalExerciseId = null,
         relationshipType = null,
         relationshipNotes = null,
@@ -234,14 +236,16 @@ private fun defaultReplacementLoadMode(info: ExerciseMuscleInfo): LoadModeV2 {
     val equipment = info.equipment
         ?.let(::normalizeExerciseIdentityToken)
         .orEmpty()
-    return if (
+    val name = normalizeExerciseIdentityToken(info.name)
+    return when {
         equipment.contains("peso corporal") ||
-        equipment.contains("bodyweight") ||
-        equipment.contains("calistenia")
-    ) {
-        LoadModeV2.BODYWEIGHT
-    } else {
-        LoadModeV2.LOAD
+            equipment.contains("bodyweight") ||
+            equipment.contains("calistenia") -> LoadModeV2.BODYWEIGHT
+        equipment.contains("asist") ||
+            name.contains("asist") ||
+            equipment.contains("assisted") ||
+            name.contains("assisted") -> LoadModeV2.ASSISTED
+        else -> LoadModeV2.LOAD
     }
 }
 
@@ -249,6 +253,7 @@ private fun ExerciseSet.resetForCatalogReplacement(defaultLoadMode: LoadModeV2):
     copy(
         weight = null,
         targetPercentageRM = null,
+        intensityMode = null,
         completedReps = null,
         completedDuration = null,
         completedRPE = null,

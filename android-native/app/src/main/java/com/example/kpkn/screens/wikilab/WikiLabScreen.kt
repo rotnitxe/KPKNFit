@@ -131,7 +131,7 @@ fun WikiLabScreen(
                             fontWeight = FontWeight.Black,
                         )
                 Text(
-                    "${exerciseCatalog.size} ejercicios con métricas AUGE",
+                    "${exerciseCatalog.size} ejercicios con métricas de fatiga",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

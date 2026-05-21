@@ -130,7 +130,7 @@ object WorkoutCoachMessages {
             else -> CoachMessageComponents(
                 severity = CoachSeverity.INFO,
                 title = "Seguimiento en tiempo real",
-                body = "El motor AUGE monitoriza tu fatiga continuamente. Los ajustes de descanso se aplican automáticamente.",
+                body = "La sesión ajusta el descanso según tu fatiga registrada.",
                 action = null,
             )
         }

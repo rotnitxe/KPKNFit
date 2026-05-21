@@ -48,7 +48,7 @@ class WorkoutSupportCardsUiTest {
             }
         }
 
-        composeRule.onNodeWithText("AUGE en vivo").assertExists()
+        composeRule.onNodeWithText("Ajuste en vivo").assertExists()
         composeRule.onNodeWithText("Carga sugerida").assertExists()
         composeRule.onNodeWithText("82.5 kg").assertExists()
         composeRule.onNodeWithText("Usar").assertExists()

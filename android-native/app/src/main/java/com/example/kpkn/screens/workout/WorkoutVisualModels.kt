@@ -81,6 +81,8 @@ internal fun resolveWorkoutHeaderGroupLabel(
 private fun normalizeWorkoutHeaderLabel(raw: String?): String? {
     val value = raw?.trim()?.replace(Regex("\\s+"), " ") ?: return null
     if (value.isBlank()) return null
+    if (value.equals("principales", ignoreCase = true)) return "Principales"
+    if (value.equals("principal", ignoreCase = true)) return "Principal"
     val letterChars = value.filter { it.isLetter() }
     val upperRatio = if (letterChars.isEmpty()) 0.0 else letterChars.count { it.isUpperCase() }.toDouble() / letterChars.length
     if (upperRatio >= 0.75) return value.uppercase()

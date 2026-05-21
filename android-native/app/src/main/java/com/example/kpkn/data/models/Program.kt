@@ -316,7 +316,7 @@ fun Program.startSimpleCalendarizedBreak(
     val snapshot = pausedCyclicSnapshot ?: toSimpleProgramSnapshot()
 
     val calculatedEndDate = endDate ?: startDate.plusWeeks(3).plusDays(6)
-    val weekCount = java.time.temporal.ChronoUnit.WEEKS.between(startDate, calculatedEndDate).toInt().coerceIn(1, 52)
+    val weekCount = inclusiveCalendarWeekCount(startDate, calculatedEndDate)
 
     val weeks = buildSimpleCalendarWeeks(startDate, weekCount, startDayOfWeek, safeDays)
 
@@ -449,16 +449,7 @@ internal fun buildSimpleCalendarWeeks(
     startDayOfWeek: Int,
     trainingDays: Set<Int>,
 ): List<ProgramWeek> {
-    val startDayIsoValue = when (startDayOfWeek) {
-        1 -> 1
-        2 -> 2
-        3 -> 3
-        4 -> 4
-        5 -> 5
-        6 -> 6
-        7 -> 7
-        else -> 1
-    }
+    val startDayIsoValue = startDayOfWeek.coerceIn(1, 7)
     return (0 until weekCount).map { index ->
         val weekStart = startDate.plusWeeks(index.toLong())
         val weekEnd = weekStart.plusDays(6)
@@ -476,4 +467,9 @@ internal fun buildSimpleCalendarWeeks(
             trainingDayDates = trainingDayDates,
         )
     }
+}
+
+private fun inclusiveCalendarWeekCount(startDate: LocalDate, endDate: LocalDate): Int {
+    val inclusiveDays = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate).coerceAtLeast(0) + 1
+    return ((inclusiveDays + 6) / 7).toInt().coerceIn(1, 52)
 }

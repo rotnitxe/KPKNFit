@@ -1,6 +1,4 @@
 package com.example.kpkn.screens.programdetail.components
-
-import android.app.DatePickerDialog
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -17,6 +15,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
@@ -34,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -51,7 +52,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -90,6 +90,11 @@ import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramEndDateStatus
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -139,10 +144,20 @@ fun MacrocycleEditor(
     val temporalInsight = remember(program) { program.toTemporalInsight() }
     val stats = remember(program) { program.toProgramStats() }
     val advancedRoadmap = remember(program) { buildAdvancedRoadmap(program) }
+    val simpleCalendarizationHazeState = remember { HazeState() }
+    val simpleCalendarizationHazeStyle = remember {
+        HazeStyle(
+            blurRadius = 32.dp,
+            tint = HazeTint(Color.Black.copy(alpha = 0.58f)),
+            backgroundColor = Color.Black.copy(alpha = 0.62f),
+            noiseFactor = 0.04f,
+        )
+    }
 
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .hazeSource(state = simpleCalendarizationHazeState)
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -460,6 +475,8 @@ fun MacrocycleEditor(
             onStartBreak = onApplySimpleCalendarizedBreak,
             onRecoverCycle = onRecoverCyclicProgram,
             onStartFreshCycle = onStartFreshCyclicProgram,
+            hazeState = simpleCalendarizationHazeState,
+            hazeStyle = simpleCalendarizationHazeStyle,
         )
     }
 }
@@ -515,13 +532,24 @@ private fun MacrocycleToolbar(
             ToolbarStatChip("Semanas", "${stats.weeks}")
             ToolbarStatChip("Sesiones", "${stats.sessions}")
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             if (insight.isSimple) {
                 if (!isSimpleCalendarized) {
                     OutlinedButton(onClick = onOpenLoops) { Text("Loops") }
                 }
-                OutlinedButton(onClick = onOpenSimpleCalendarization) {
-                    Text(if (isSimpleCalendarized) "Gestionar calendarización" else "Pasar a semanas calendarizadas")
+                OutlinedButton(
+                    onClick = onOpenSimpleCalendarization,
+                    modifier = Modifier.weight(1f, fill = false),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                ) {
+                    Text(
+                        if (isSimpleCalendarized) "Calendarización" else "Calendarizar",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             } else {
                 OutlinedButton(onClick = onOpenLibrary) { Text("Plantillas") }
@@ -559,54 +587,76 @@ private fun SimpleCalendarizationSheet(
     onStartBreak: () -> Unit,
     onRecoverCycle: () -> Unit,
     onStartFreshCycle: () -> Unit,
+    hazeState: HazeState,
+    hazeStyle: HazeStyle,
 ) {
     val isCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
         program.calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
+        confirmValueChange = { target ->
+            when (target) {
+                SheetValue.Hidden -> false
+                SheetValue.PartiallyExpanded -> false
+                SheetValue.Expanded -> true
+            }
+        },
     )
     val parsedStartDate = parseProgramDate(startDate)
     val parsedEndDate = parseProgramDate(endDate)
     val weekCount = if (parsedStartDate != null && parsedEndDate != null) {
-        java.time.temporal.ChronoUnit.WEEKS.between(parsedStartDate, parsedEndDate).toInt().coerceAtLeast(1)
+        inclusiveCalendarWeekCount(parsedStartDate, parsedEndDate)
     } else {
         0
     }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {},
         sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        containerColor = Color.Black.copy(alpha = 0.72f),
+        contentColor = Color.White,
+        scrimColor = Color.Black.copy(alpha = 0.72f),
+        tonalElevation = 0.dp,
+        dragHandle = null,
+        modifier = Modifier.hazeEffect(state = hazeState, style = hazeStyle),
     ) {
+        val sheetPrimary = Color.White
+        val sheetSecondary = Color.White.copy(alpha = 0.74f)
+        val sheetGlass = Color.White.copy(alpha = 0.11f)
+        val sheetGlassStrong = Color.White.copy(alpha = 0.16f)
         if (isCalendarized) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                    .navigationBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Text(
                     "Programa Simple Calendarizado",
                     fontWeight = FontWeight.Black,
                     fontSize = 20.sp,
+                    color = sheetPrimary,
                 )
                 Text(
                     "Esto sirve cuando tu semana real cambia: turnos rotativos, viajes, exámenes, semanas con pocos días libres o una etapa donde no puedes repetir el ciclo normal. Tu rutina cíclica queda pausada; mientras dura este break, los loops y eventos cíclicos no se aplican.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = sheetSecondary,
                     lineHeight = 17.sp,
                 )
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                    colors = CardDefaults.cardColors(containerColor = sheetGlassStrong),
                 ) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Break calendarizado activo", fontWeight = FontWeight.Black)
+                        Text("Break calendarizado activo", fontWeight = FontWeight.Black, color = sheetPrimary)
                         Text(
                             "Cuando termines estas semanas, puedes recuperar la rutina cíclica anterior o empezar una nueva desde cero.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = sheetSecondary,
                         )
                     }
                 }
@@ -620,24 +670,29 @@ private fun SimpleCalendarizationSheet(
                 OutlinedButton(onClick = onStartFreshCycle, modifier = Modifier.fillMaxWidth()) {
                     Text("Empezar ciclo desde cero")
                 }
+                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                    Text("Cerrar", color = sheetSecondary)
+                }
                 Spacer(Modifier.height(16.dp))
             }
         } else {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                    .navigationBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Text(
                     "Pasar a semanas calendarizadas",
                     fontWeight = FontWeight.Black,
                     fontSize = 20.sp,
+                    color = sheetPrimary,
                 )
                 Text(
                     "Define el rango de fechas, el día en que comienza tu semana y los días de entrenamiento. Si eliges un día distinto al lunes, cada semana irá desde ese día hasta el mismo día de la semana siguiente.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = sheetSecondary,
                     lineHeight = 17.sp,
                 )
 
@@ -646,21 +701,11 @@ private fun SimpleCalendarizationSheet(
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("La semana comienza el:", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            (1..7).forEach { day ->
-                                val isSelected = day == startDayOfWeek
-                                FilterChip(
-                                    selected = isSelected,
-                                    onClick = { onStartDayOfWeekChange(day) },
-                                    label = { Text(dayLabelShort(day), fontSize = 11.sp) },
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
-                        }
+                        Text("La semana comienza el:", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = sheetPrimary)
+                        WeekStartSelector(
+                            startDayOfWeek = startDayOfWeek,
+                            onStartDayOfWeekChange = onStartDayOfWeekChange,
+                        )
                     }
 
                     NativeDateField(
@@ -668,38 +713,43 @@ private fun SimpleCalendarizationSheet(
                         value = startDate,
                         emptyLabel = "Seleccionar inicio",
                         onValueChange = onStartDateChange,
+                        firstDayOfWeek = startDayOfWeek,
                     )
                     NativeDateField(
                         label = "Fecha de fin",
                         value = endDate,
                         emptyLabel = "Seleccionar fin",
                         onValueChange = onEndDateChange,
+                        firstDayOfWeek = startDayOfWeek,
                     )
 
                     if (weekCount > 0) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+                            colors = CardDefaults.cardColors(containerColor = sheetGlassStrong),
                         ) {
                             Text(
                                 "$weekCount semanas desde ${parsedStartDate?.let { formatFullDate(it) } ?: "?"} hasta ${parsedEndDate?.let { formatFullDate(it) } ?: "?"}",
                                 modifier = Modifier.padding(12.dp),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                color = sheetPrimary,
                             )
                         }
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Días de entrenamiento", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text("Días de entrenamiento", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = sheetPrimary)
                         CalendarDayChecklist(
                             selectedDays = trainingDays,
                             onToggleDay = { day ->
                                 onTrainingDaysChange(if (day in trainingDays) trainingDays - day else trainingDays + day)
                             },
                             startDayOfWeek = startDayOfWeek,
+                            primaryColor = sheetPrimary,
+                            secondaryColor = sheetSecondary,
+                            rowColor = sheetGlass,
                         )
                     }
                 }
@@ -711,7 +761,50 @@ private fun SimpleCalendarizationSheet(
                 ) {
                     Text("Crear break calendarizado")
                 }
+                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                    Text("Cerrar", color = sheetSecondary)
+                }
                 Spacer(Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun WeekStartSelector(
+    startDayOfWeek: Int,
+    onStartDayOfWeekChange: (Int) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        (1..7).forEach { day ->
+            val isSelected = day == startDayOfWeek
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(38.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.primary
+                        else Color.White.copy(alpha = 0.10f)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.16f),
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                    .clickable { onStartDayOfWeekChange(day) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = dayLabelShort(day),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black,
+                    maxLines = 1,
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.White.copy(alpha = 0.86f),
+                )
             }
         }
     }
@@ -722,39 +815,38 @@ private fun CalendarDayChecklist(
     selectedDays: Set<Int>,
     onToggleDay: (Int) -> Unit,
     startDayOfWeek: Int = 1,
+    primaryColor: Color = MaterialTheme.colorScheme.onSurface,
+    secondaryColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    rowColor: Color = Color.Transparent,
 ) {
     val rotatedDays = remember(startDayOfWeek) {
-        val safeDayIndex = if (startDayOfWeek in 1..7) startDayOfWeek - 1 else 0
-        (1..7).toList().let { all ->
-            all.drop(safeDayIndex) + all.take(safeDayIndex)
-        }
+        rotatedWeekDays(startDayOfWeek)
     }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         rotatedDays.forEach { day ->
-            val isOutsideProgram = day < startDayOfWeek
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .clickable(enabled = !isOutsideProgram) { onToggleDay(day) }
+                    .background(rowColor)
+                    .clickable { onToggleDay(day) }
                     .padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Checkbox(
                     checked = day in selectedDays,
-                    onCheckedChange = { if (!isOutsideProgram) onToggleDay(day) },
-                    enabled = !isOutsideProgram,
+                    onCheckedChange = { onToggleDay(day) },
                 )
                 Column {
                     Text(
                         dayFullLabel(day),
                         fontWeight = FontWeight.SemiBold,
-                        color = if (isOutsideProgram) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f) else MaterialTheme.colorScheme.onSurface,
+                        color = primaryColor,
                     )
                     Text(
-                        if (isOutsideProgram) "Fuera de esta semana" else "Se asignará fecha real en cada semana.",
+                        "Se asignará fecha real en cada semana.",
                         fontSize = 10.sp,
-                        color = if (isOutsideProgram) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = secondaryColor,
                     )
                 }
             }
@@ -841,22 +933,11 @@ private fun NativeDateField(
     value: String,
     emptyLabel: String,
     onValueChange: (String) -> Unit,
+    firstDayOfWeek: Int = 1,
 ) {
-    val context = LocalContext.current
+    var showPicker by remember { mutableStateOf(false) }
     val parsed = parseProgramDate(value)
     val initialDate = parsed ?: LocalDate.now()
-
-    fun showPicker() {
-        DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                onValueChange(LocalDate.of(year, month + 1, dayOfMonth).toString())
-            },
-            initialDate.year,
-            initialDate.monthValue - 1,
-            initialDate.dayOfMonth,
-        ).show()
-    }
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Box(modifier = Modifier.fillMaxWidth()) {
@@ -873,16 +954,116 @@ private fun NativeDateField(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .clickable { showPicker() },
+                    .clickable { showPicker = true },
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = { showPicker() }) { Text("Abrir calendario") }
+            TextButton(onClick = { showPicker = true }) { Text("Abrir calendario") }
             if (parsed != null) {
                 TextButton(onClick = { onValueChange("") }) { Text("Limpiar") }
             }
         }
     }
+
+    if (showPicker) {
+        WeekStartDatePickerDialog(
+            selectedDate = initialDate,
+            firstDayOfWeek = firstDayOfWeek,
+            onDateSelected = { selected ->
+                onValueChange(selected.toString())
+                showPicker = false
+            },
+            onDismiss = { showPicker = false },
+        )
+    }
+}
+
+@Composable
+private fun WeekStartDatePickerDialog(
+    selectedDate: LocalDate,
+    firstDayOfWeek: Int,
+    onDateSelected: (LocalDate) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var visibleMonth by remember(selectedDate) { mutableStateOf(selectedDate.withDayOfMonth(1)) }
+    val safeFirstDay = firstDayOfWeek.coerceIn(1, 7)
+    val rotatedDays = remember(safeFirstDay) { rotatedWeekDays(safeFirstDay) }
+    val firstOfMonth = visibleMonth.withDayOfMonth(1)
+    val leadingCells = (firstOfMonth.dayOfWeek.value - safeFirstDay + 7) % 7
+    val monthDates = (1..visibleMonth.lengthOfMonth()).map { day -> visibleMonth.withDayOfMonth(day) }
+    val cells = List(leadingCells) { null } + monthDates
+    val rows = cells.chunked(7)
+    val monthFormatter = remember {
+        DateTimeFormatter.ofPattern("MMMM yyyy", Locale.forLanguageTag("es-CL"))
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Seleccionar fecha", fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconButton(onClick = { visibleMonth = visibleMonth.minusMonths(1) }) {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Mes anterior")
+                    }
+                    Text(
+                        visibleMonth.format(monthFormatter),
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = { visibleMonth = visibleMonth.plusMonths(1) }) {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Mes siguiente")
+                    }
+                }
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    rotatedDays.forEach { day ->
+                        Text(
+                            dayLabelShort(day),
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+                rows.forEach { row ->
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        (0 until 7).forEach { column ->
+                            val date = row.getOrNull(column)
+                            val isSelected = date == selectedDate
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(40.dp)
+                                    .padding(2.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+                                    .then(if (date != null) Modifier.clickable { onDateSelected(date) } else Modifier),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    date?.dayOfMonth?.toString().orEmpty(),
+                                    fontSize = 13.sp,
+                                    fontWeight = if (isSelected) FontWeight.Black else FontWeight.Normal,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        },
+    )
 }
 
 @Composable
@@ -2196,6 +2377,18 @@ private fun dayFullLabel(day: Int): String = when (day) {
     6 -> "Sábado"
     7 -> "Domingo"
     else -> "Día"
+}
+
+private fun rotatedWeekDays(startDayOfWeek: Int): List<Int> {
+    val safeDayIndex = startDayOfWeek.coerceIn(1, 7) - 1
+    return (1..7).toList().let { all ->
+        all.drop(safeDayIndex) + all.take(safeDayIndex)
+    }
+}
+
+private fun inclusiveCalendarWeekCount(startDate: LocalDate, endDate: LocalDate): Int {
+    val inclusiveDays = ChronoUnit.DAYS.between(startDate, endDate).coerceAtLeast(0) + 1
+    return ((inclusiveDays + 6) / 7).toInt().coerceAtLeast(1)
 }
 
 private fun buildProgramFromProtocol(program: Program, protocol: Protocol): Program {

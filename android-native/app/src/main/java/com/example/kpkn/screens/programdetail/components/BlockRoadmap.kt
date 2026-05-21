@@ -286,7 +286,21 @@ private fun CycleBasedRoadmap(
     onAddWeek: (() -> Unit)?,
     onLongPressWeek: (WeekWithMeta) -> Unit,
 ) {
-    if (weeks.isEmpty()) return
+    if (weeks.isEmpty()) {
+        if (onAddWeek != null) {
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                item(key = "add-week-empty-cycle") {
+                    AddPlusButton(contentDescription = "Agregar semana", onClick = onAddWeek)
+                }
+            }
+        }
+        return
+    }
     val baseWeeks = weeks.filterNot { it.isLoopWeek }
     val loopWeeks = weeks.filter { it.isLoopWeek }
     val cycleLength = baseWeeks.size.coerceAtLeast(1)
@@ -435,7 +449,6 @@ private fun SimpleWeekRoadmap(
     onAddWeek: (() -> Unit)?,
     onLongPressWeek: (WeekWithMeta) -> Unit,
 ) {
-    if (weeks.isEmpty()) return
     val baseWeeks = weeks.filterNot { it.isLoopWeek }
     val loopWeeks = weeks.filter { it.isLoopWeek }
 

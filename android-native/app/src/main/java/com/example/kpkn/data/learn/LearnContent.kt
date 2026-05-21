@@ -39,11 +39,11 @@ private val tuPrimeraRutina = LearnModule(
                     "Semanas: con días de entrenamiento asignados",
                     "Sesiones: cada día de entreno con ejercicios",
                 )),
-                ContentBlock(ContentType.CALLOUT, text = "El motor AUGE de KPKN adapta tu entrenamiento según tu fatiga y recuperación. ¡No necesitas adivinar cuándo descansar!", accentColor = 0xFF448AFF),
+                ContentBlock(ContentType.CALLOUT, text = "KPKN adapta tu entrenamiento según tu fatiga y recuperación. ¡No necesitas adivinar cuándo descansar!", accentColor = 0xFF448AFF),
             ),
             quiz = listOf(
                 QuizQuestion("pr1-q1", "¿Qué contiene un macrociclo?", listOf("Solo ejercicios", "Mesociclos y semanas", "Solo descansos", "Nutrición"), 1, "Un macrociclo agrupa mesociclos, que a su vez contienen semanas con sesiones."),
-                QuizQuestion("pr1-q2", "¿Qué hace el motor AUGE?", listOf("Cuenta calorías", "Adapta el entrenamiento a tu recuperación", "Crea dietas", "Reproduce videos"), 1, "AUGE mide tu fatiga y readiness para optimizar tu entrenamiento."),
+                QuizQuestion("pr1-q2", "¿Qué hace el ajuste de entrenamiento?", listOf("Cuenta calorías", "Adapta el entrenamiento a tu recuperación", "Crea dietas", "Reproduce videos"), 1, "El sistema usa tu fatiga y readiness para optimizar tu entrenamiento."),
             ),
         ),
         LearnSubmodule(
@@ -75,8 +75,8 @@ private val tuPrimeraRutina = LearnModule(
             title = "Tu primera sesión",
             content = listOf(
                 ContentBlock(ContentType.HEADING, text = "Agregar ejercicios"),
-                ContentBlock(ContentType.PARAGRAPH, text = "En el editor de sesiones puedes buscar ejercicios por nombre o músculo. Cada ejercicio tiene métricas AUGE que muestran su costo de fatiga."),
-                ContentBlock(ContentType.HEADING, text = "Métricas AUGE de cada ejercicio"),
+                ContentBlock(ContentType.PARAGRAPH, text = "En el editor de sesiones puedes buscar ejercicios por nombre o músculo. Cada ejercicio tiene métricas que muestran su costo de fatiga."),
+                ContentBlock(ContentType.HEADING, text = "Métricas de fatiga de cada ejercicio"),
                 ContentBlock(ContentType.BULLET, items = listOf(
                     "EFC: costo metabólico/fatiga local (1-5)",
                     "CNC: costo neural central (1-5)",
@@ -337,7 +337,7 @@ private val herramientasKpkn = LearnModule(
     id = "herramientas-kpkn",
     title = "Herramientas de KPKN",
     category = LearnCategory.TOOLS,
-    shortDescription = "Aprovecha al máximo WikiLab, AUGE y el asistente de nutrición",
+    shortDescription = "Aprovecha al máximo WikiLab y el asistente de nutrición",
     icon = "\uD83D\uDD27",
     estimatedMinutes = 11,
     submodules = listOf(
@@ -348,14 +348,14 @@ private val herramientasKpkn = LearnModule(
                 ContentBlock(ContentType.HEADING, text = "¿Qué es WikiLab?"),
                 ContentBlock(ContentType.PARAGRAPH, text = "WikiLab es la enciclopedia de entrenamiento de KPKN. Contiene bases de datos de ejercicios, músculos, articulaciones, patrones de movimiento y más."),
                 ContentBlock(ContentType.BULLET, items = listOf(
-                    "Catálogo de ejercicios con métricas AUGE",
+                    "Catálogo de ejercicios con métricas de fatiga",
                     "Mapa muscular interactivo",
                     "Detalle biomecánico de cada ejercicio",
                     "Ejercicios similares por categoría",
                 )),
-                ContentBlock(ContentType.TIP, text = "Usa WikiLab para entender por qué un ejercicio te deja más fatigado que otro. Las métricas AUGE te lo explican."),
+                ContentBlock(ContentType.TIP, text = "Usa WikiLab para entender por qué un ejercicio te deja más fatigado que otro. Las métricas de fatiga te lo explican."),
                 ContentBlock(ContentType.HEADING, text = "Creador de ejercicios"),
-                ContentBlock(ContentType.PARAGRAPH, text = "¿Tienes un ejercicio que no está en el catálogo? Crea el tuyo propio. El motor AUGE inferirá automáticamente sus métricas de fatiga basándose en el tipo, equipo y patrón de fuerza."),
+                ContentBlock(ContentType.PARAGRAPH, text = "¿Tienes un ejercicio que no está en el catálogo? Crea el tuyo propio. KPKN inferirá automáticamente sus métricas de fatiga basándose en el tipo, equipo y patrón de fuerza."),
             ),
             quiz = listOf(
                 QuizQuestion("hk1-q1", "¿Qué contiene WikiLab?", listOf("Solo recetas", "Ejercicios, músculos, articulaciones y biomecánica", "Solo videos", "Redes sociales"), 1, "WikiLab es la enciclopedia completa de entrenamiento de KPKN."),
@@ -363,29 +363,29 @@ private val herramientasKpkn = LearnModule(
         ),
         LearnSubmodule(
             id = "hk-2",
-            title = "AUGE: tu motor de adaptación",
+            title = "Adaptación del entrenamiento",
             content = listOf(
-                ContentBlock(ContentType.HEADING, text = "¿Qué es AUGE?"),
-                ContentBlock(ContentType.PARAGRAPH, text = "AUGE es el motor de inteligencia de KPKN. Mide tu fatiga acumulada, estado de recuperación y readiness diaria para adaptar tu entrenamiento."),
-                ContentBlock(ContentType.HEADING, text = "Componentes de AUGE"),
+                ContentBlock(ContentType.HEADING, text = "¿Qué adapta KPKN?"),
+                ContentBlock(ContentType.PARAGRAPH, text = "KPKN mide tu fatiga acumulada, estado de recuperación y readiness diaria para adaptar tu entrenamiento."),
+                ContentBlock(ContentType.HEADING, text = "Componentes de la adaptación"),
                 ContentBlock(ContentType.BULLET, items = listOf(
                     "Readiness diaria: cómo de preparado estás hoy",
                     "Baterías de recuperación: muscular, neural, estructural",
                     "Fatiga acumulada: por grupo muscular",
                     "Calibración: aprende de tus respuestas post-sesión",
                 )),
-                ContentBlock(ContentType.CALLOUT, text = "AUGE mejora con el tiempo. Cada vez que completas un cuestionario post-sesión, el sistema aprende más sobre tu recuperación personal.", accentColor = 0xFFFF8F00),
+                ContentBlock(ContentType.CALLOUT, text = "El sistema mejora con el tiempo. Cada vez que completas un cuestionario post-sesión, aprende más sobre tu recuperación personal.", accentColor = 0xFFFF8F00),
                 ContentBlock(ContentType.HEADING, text = "Cómo usar la readiness"),
-                ContentBlock(ContentType.PARAGRAPH, text = "Antes de cada sesión, AUGE te muestra tu nivel de readiness. Si está bajo, considera reducir volumen o intensidad. Si está alto, es un buen día para empujar."),
+                ContentBlock(ContentType.PARAGRAPH, text = "Antes de cada sesión, KPKN te muestra tu nivel de readiness. Si está bajo, considera reducir volumen o intensidad. Si está alto, es un buen día para empujar."),
             ),
             quiz = listOf(
-                QuizQuestion("hk2-q1", "¿Qué mide AUGE?", listOf("Calorías", "Fatiga, recuperación y readiness", "Pasos", "Sueño"), 1, "AUGE mide fatiga acumulada, recuperación y readiness diaria."),
+                QuizQuestion("hk2-q1", "¿Qué mide la adaptación?", listOf("Calorías", "Fatiga, recuperación y readiness", "Pasos", "Sueño"), 1, "Mide fatiga acumulada, recuperación y readiness diaria."),
             ),
         ),
     ),
     finalQuiz = listOf(
         QuizQuestion("hk-f1", "¿Qué es WikiLab?", listOf("Un chat", "Enciclopedia de entrenamiento", "Un foro", "Una tienda"), 1, "WikiLab es la enciclopedia completa con ejercicios, músculos y biomecánica."),
-        QuizQuestion("hk-f2", "¿Qué mide AUGE?", listOf("Peso corporal", "Fatiga, recuperación y readiness", "Temperatura", "Nada"), 1, "AUGE es el motor de adaptación que mide tu estado de entrenamiento."),
-        QuizQuestion("hk-f3", "¿Cómo mejora AUGE?", listOf("Comprando suplementos", "Completando cuestionarios post-sesión", "No mejora", "Con cardio"), 1, "AUGE aprende de tus respuestas para personalizar las recomendaciones."),
+        QuizQuestion("hk-f2", "¿Qué mide la adaptación?", listOf("Peso corporal", "Fatiga, recuperación y readiness", "Temperatura", "Nada"), 1, "Mide tu estado de entrenamiento."),
+        QuizQuestion("hk-f3", "¿Cómo mejora el sistema?", listOf("Comprando suplementos", "Completando cuestionarios post-sesión", "No mejora", "Con cardio"), 1, "Aprende de tus respuestas para personalizar las recomendaciones."),
     ),
 )
