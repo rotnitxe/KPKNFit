@@ -18,6 +18,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -95,6 +96,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -406,6 +408,90 @@ fun SessionEditorScreen(
     var exerciseDropTargetPartId by remember { mutableStateOf<String?>(null) }
     var exerciseDropTargetIndex by remember { mutableStateOf<Int?>(null) }
 
+    fun beginExerciseDrag(partId: String, exerciseId: String) {
+        draggingExerciseId = exerciseId
+        draggingExercisePartId = partId
+        draggingExerciseOffset = Offset.Zero
+        exerciseDropTargetKey = null
+        exerciseDropTargetPartId = null
+        exerciseDropTargetIndex = null
+    }
+
+    fun updateExerciseDrag(delta: Offset) {
+        val activeSession = uiState.session ?: return
+        val groupedPartsForDrag = activeSession.parts.filterNot { it.isUncategorized() }
+        val activeExerciseId = draggingExerciseId ?: return
+        val currentPartId = draggingExercisePartId ?: return
+        draggingExerciseOffset += delta
+        val activeRect = exerciseBounds["$currentPartId|$activeExerciseId"] ?: return
+        val center = Offset(activeRect.center.x + draggingExerciseOffset.x, activeRect.center.y + draggingExerciseOffset.y)
+        val targetExerciseKey = exerciseBounds.entries.firstOrNull { (key, rect) ->
+            key != "$currentPartId|$activeExerciseId" && rect.contains(center)
+        }?.key
+        if (targetExerciseKey != null) {
+            exerciseDropTargetKey = targetExerciseKey
+            exerciseDropTargetPartId = null
+            exerciseDropTargetIndex = null
+            return
+        }
+        exerciseDropTargetKey = null
+        val targetPartId = when {
+            looseContentBounds?.contains(center) == true -> "__loose__"
+            else -> groupedPartsForDrag.firstOrNull { candidate -> partContentBounds[candidate.id]?.contains(center) == true }?.id
+        }
+        exerciseDropTargetPartId = targetPartId
+        if (targetPartId != null) {
+            val orderedKeys = exerciseBounds.filterKeys { it.startsWith("$targetPartId|") }.entries.sortedBy { it.value.top }
+            val insertIdx = orderedKeys.indexOfFirst { (key, rect) ->
+                key != "$targetPartId|$activeExerciseId" && center.y < rect.center.y
+            }
+            exerciseDropTargetIndex = if (insertIdx >= 0) {
+                val selfIdx = orderedKeys.indexOfFirst { it.key == "$targetPartId|$activeExerciseId" }
+                if (selfIdx >= 0 && insertIdx > selfIdx) insertIdx - 1 else insertIdx
+            } else {
+                val partSize = when (targetPartId) {
+                    "__loose__" -> activeSession.exercises.size
+                    else -> activeSession.parts.firstOrNull { it.id == targetPartId }?.exercises?.size ?: 0
+                }
+                (partSize - 1).coerceAtLeast(0)
+            }
+        } else {
+            exerciseDropTargetIndex = null
+        }
+    }
+
+    fun endExerciseDrag() {
+        val activeSession = uiState.session ?: return
+        val activeExerciseId = draggingExerciseId
+        val currentPartId = draggingExercisePartId
+        if (activeExerciseId != null && currentPartId != null) {
+            val finalTargetKey = exerciseDropTargetKey
+            val finalTargetPart = exerciseDropTargetPartId
+            val finalTargetIdx = exerciseDropTargetIndex
+            if (finalTargetKey != null) {
+                val tPartId = finalTargetKey.substringBefore("|")
+                val tExId = finalTargetKey.substringAfter("|")
+                val idx = when (tPartId) {
+                    "__loose__" -> activeSession.exercises.indexOfFirst { it.id == tExId }
+                    else -> activeSession.parts.firstOrNull { it.id == tPartId }?.exercises?.indexOfFirst { it.id == tExId }
+                }
+                if (idx != null && idx >= 0) {
+                    viewModel.moveExerciseToPart(currentPartId.takeUnless { it == "__loose__" }, activeExerciseId, tPartId.takeUnless { it == "__loose__" }, idx)
+                }
+            } else if (finalTargetPart != null && finalTargetPart != currentPartId) {
+                viewModel.moveExerciseToPart(currentPartId.takeUnless { it == "__loose__" }, activeExerciseId, finalTargetPart.takeUnless { it == "__loose__" }, null)
+            } else if (finalTargetIdx != null) {
+                viewModel.moveExerciseToPart(currentPartId.takeUnless { it == "__loose__" }, activeExerciseId, currentPartId.takeUnless { it == "__loose__" }, finalTargetIdx)
+            }
+        }
+        draggingExerciseId = null
+        draggingExercisePartId = null
+        draggingExerciseOffset = Offset.Zero
+        exerciseDropTargetKey = null
+        exerciseDropTargetPartId = null
+        exerciseDropTargetIndex = null
+    }
+
     if (session == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             val loadErrorMessage = uiState.loadErrorMessage
@@ -567,6 +653,12 @@ fun SessionEditorScreen(
                                         exercises = supersetMembers,
                                         accentHex = PART_COLORS.first(),
                                         partId = null,
+                                        isDragging = draggingExerciseId == supersetMembers.first().id,
+                                        dragOffset = if (draggingExerciseId == supersetMembers.first().id) draggingExerciseOffset else Offset.Zero,
+                                        onBoundsChange = { rect -> exerciseBounds["__loose__|${supersetMembers.first().id}"] = rect },
+                                        onDragStart = { beginExerciseDrag("__loose__", supersetMembers.first().id) },
+                                        onDrag = ::updateExerciseDrag,
+                                        onDragEnd = ::endExerciseDrag,
                                         onOpenSupersetCreator = viewModel::openSupersetCreator,
                                         onUpdateSupersetRest = viewModel::updateSupersetRest,
                                         onUpdateRoundRest = viewModel::updateSupersetRoundRest,
@@ -976,10 +1068,16 @@ fun SessionEditorScreen(
                                     if (supersetGroup != null && supersetMembers.size >= 2) {
                                         SupersetGroupEditorCard(
                                             group = supersetGroup,
-                                            exercises = supersetMembers,
-                                            accentHex = part.color,
-                                            partId = part.id,
-                                            onOpenSupersetCreator = viewModel::openSupersetCreator,
+                                        exercises = supersetMembers,
+                                        accentHex = part.color,
+                                        partId = part.id,
+                                        isDragging = draggingExerciseId == supersetMembers.first().id,
+                                        dragOffset = if (draggingExerciseId == supersetMembers.first().id) draggingExerciseOffset else Offset.Zero,
+                                        onBoundsChange = { rect -> exerciseBounds["${part.id}|${supersetMembers.first().id}"] = rect },
+                                        onDragStart = { beginExerciseDrag(part.id, supersetMembers.first().id) },
+                                        onDrag = ::updateExerciseDrag,
+                                        onDragEnd = ::endExerciseDrag,
+                                        onOpenSupersetCreator = viewModel::openSupersetCreator,
                                             onUpdateSupersetRest = viewModel::updateSupersetRest,
                                             onUpdateRoundRest = viewModel::updateSupersetRoundRest,
                                             onToggleOptional = viewModel::toggleSupersetOptional,
@@ -1326,7 +1424,7 @@ fun SessionEditorScreen(
                         Spacer(Modifier.width(6.dp))
                         Text("Añadir ejercicio", fontWeight = FontWeight.Bold)
                     }
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = viewModel::addPart,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(18.dp),
@@ -1445,8 +1543,17 @@ fun SessionEditorScreen(
             viewModel.closeSheet()
         },
         onRestoreSnapshot = viewModel::restoreDraftSnapshot,
-        onRuleDefaultsChange = { setCount, reps, rpe ->
-            viewModel.updateRuleDefaults(setCount = setCount, reps = reps, rpe = rpe)
+        onRuleDefaultsChange = { setCount, reps, rpe, normalRest, sideRest, supersetBetween, supersetRound, applyToNew ->
+            viewModel.updateRuleDefaults(
+                setCount = setCount,
+                reps = reps,
+                rpe = rpe,
+                normalRestSeconds = normalRest,
+                betweenSidesRestSeconds = sideRest,
+                supersetBetweenRestSeconds = supersetBetween,
+                supersetRoundRestSeconds = supersetRound,
+                applyToNewItems = applyToNew,
+            )
         },
         onRuleLimitsChange = { maxRPE, maxExercisesPerMuscle ->
             viewModel.updateRuleLimits(maxRPE = maxRPE, maxExercisesPerMuscle = maxExercisesPerMuscle)
@@ -1607,29 +1714,16 @@ private fun SessionHero(
                       horizontalArrangement = Arrangement.End,
                       verticalAlignment = Alignment.CenterVertically,
                   ) {
-                      SuggestionChip(
+                      DarkChoiceChip(
+                          label = if (autoSaveEnabled) "Auto: On" else "Auto: Off",
+                          selected = autoSaveEnabled,
                           onClick = onAutoSaveToggle,
-                          label = {
-                              Text(
-                                  if (autoSaveEnabled) "Auto: On" else "Auto: Off",
-                                  style = MaterialTheme.typography.labelSmall,
-                              )
-                          },
-                          icon = {
-                              Icon(
-                                  if (autoSaveEnabled) Icons.Default.CheckCircle else Icons.Default.Close,
-                                  contentDescription = null,
-                                  modifier = Modifier.size(14.dp),
-                              )
-                          },
-                          shape = RoundedCornerShape(999.dp),
                       )
                       Spacer(Modifier.width(6.dp))
                       Surface(
                           onClick = onOpenCoverSheet,
                           shape = CircleShape,
-                          color = Color.Black.copy(alpha = 0.24f),
-                          border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)),
+                          color = DarkEditorChip,
                       ) {
                           Box(
                               modifier = Modifier.size(34.dp),
@@ -1684,7 +1778,7 @@ private fun SessionHero(
                   OutlinedTextField(
                       value = session.description.orEmpty(),
                       onValueChange = onDescriptionChange,
-                      modifier = Modifier.fillMaxWidth(),
+                      modifier = Modifier.fillMaxWidth().padding(top = 0.dp),
                       placeholder = { Text("Añadir descripción", color = Color.White.copy(alpha = 0.62f)) },
                       singleLine = false,
                       minLines = 1,
@@ -1714,24 +1808,9 @@ private fun SessionHero(
                      horizontalArrangement = Arrangement.spacedBy(8.dp),
                      verticalAlignment = Alignment.CenterVertically,
                  ) {
-                     SuggestionChip(
-                         onClick = onOpenTransfer,
-                         icon = { Icon(Icons.Default.SwapHoriz, null, modifier = Modifier.size(14.dp)) },
-                         label = { Text("Transferir", style = MaterialTheme.typography.labelSmall) },
-                         shape = RoundedCornerShape(999.dp),
-                     )
-                     SuggestionChip(
-                         onClick = onOpenHistory,
-                         icon = { Icon(Icons.Default.History, null, modifier = Modifier.size(14.dp)) },
-                         label = { Text("Historial", style = MaterialTheme.typography.labelSmall) },
-                         shape = RoundedCornerShape(999.dp),
-                     )
-                     SuggestionChip(
-                         onClick = onOpenRules,
-                         icon = { Icon(Icons.Default.Settings, null, modifier = Modifier.size(14.dp)) },
-                         label = { Text("Reglas", style = MaterialTheme.typography.labelSmall) },
-                         shape = RoundedCornerShape(999.dp),
-                     )
+                     SessionHeroActionChip("Transferir", Icons.Default.SwapHoriz, onOpenTransfer)
+                     SessionHeroActionChip("Historial", Icons.Default.History, onOpenHistory)
+                     SessionHeroActionChip("Reglas", Icons.Default.Settings, onOpenRules)
                  }
 
                 // Multi-session day: session switcher row
@@ -1862,8 +1941,7 @@ private fun HeroGlassIconButton(
     Surface(
         onClick = onClick,
         shape = CircleShape,
-        color = Color.Black.copy(alpha = 0.24f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)),
+        color = DarkEditorChip,
     ) {
         Box(
             modifier = Modifier.size(28.dp),
@@ -1943,8 +2021,8 @@ private fun HeroGlassFab(
     FloatingActionButton(
         onClick = onClick,
         modifier = Modifier,
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.primary,
+        containerColor = DarkEditorChip,
+        contentColor = MaterialTheme.colorScheme.onSurface,
         shape = CircleShape,
     ) {
         Icon(
@@ -1952,6 +2030,31 @@ private fun HeroGlassFab(
             contentDescription = "Abrir Asistente de sesión",
             modifier = Modifier.size(24.dp),
         )
+    }
+}
+
+@Composable
+private fun SessionHeroActionChip(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .height(36.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .clickable { onClick() },
+        shape = RoundedCornerShape(999.dp),
+        color = Color.Black.copy(alpha = 0.34f),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(icon, contentDescription = null, tint = Color.White.copy(alpha = 0.82f), modifier = Modifier.size(15.dp))
+            Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f))
+        }
     }
 }
 
@@ -2008,7 +2111,10 @@ private fun SessionContextNavigator(
     var pendingCreateDay by remember { mutableIntStateOf(-1) }
 
     val navModifier = if (hazeState != null) {
-        Modifier.fillMaxWidth().hazeEffect(state = hazeState, style = hazeStyle)
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .hazeEffect(state = hazeState, style = hazeStyle)
     } else {
         Modifier.fillMaxWidth()
     }
@@ -2016,7 +2122,7 @@ private fun SessionContextNavigator(
         modifier = navModifier,
         shadowElevation = 0.dp,
         tonalElevation = 0.dp,
-        color = Color.Black.copy(alpha = 0.18f),
+        color = Color.Black.copy(alpha = 0.10f),
     ) {
         Column(
             modifier = Modifier
@@ -2092,21 +2198,21 @@ private fun SessionContextNavigator(
                             val backgroundColor = when {
                                 selectedDayChip && hasSession -> selectedDayColor
                                 selectedDayChip -> selectedDayColor.copy(alpha = 0.35f)
-                                isDimmed -> Color.White.copy(alpha = 0.2f)
-                                else -> Color.White
+                                isDimmed -> DarkEditorChip.copy(alpha = 0.7f)
+                                else -> DarkEditorChip
                             }
                             val borderColor = when {
                                 selectedDayChip && hasSession -> Color.Transparent
                                 selectedDayChip -> selectedDayColor
-                                isDimmed -> MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                                else -> MaterialTheme.colorScheme.outline
+                                isDimmed -> Color.Transparent
+                                else -> Color.Transparent
                             }
                             val borderWidth = if (selectedDayChip) 1.8.dp else 1.dp
                             val textColor = when {
                                 selectedDayChip && hasSession -> Color.White
                                 selectedDayChip -> selectedDayColor
-                                isDimmed -> Color.Black.copy(alpha = 0.4f)
-                                else -> Color.Black
+                                isDimmed -> Color.White.copy(alpha = 0.38f)
+                                else -> Color.White.copy(alpha = 0.86f)
                             }
 
                             Box(
@@ -2562,6 +2668,13 @@ private fun SupersetGroupEditorCard(
     exercises: List<Exercise>,
     accentHex: String?,
     partId: String?,
+    modifier: Modifier = Modifier,
+    isDragging: Boolean = false,
+    dragOffset: Offset = Offset.Zero,
+    onBoundsChange: (Rect) -> Unit = {},
+    onDragStart: () -> Unit = {},
+    onDrag: (Offset) -> Unit = {},
+    onDragEnd: () -> Unit = {},
     onOpenSupersetCreator: (String?, List<String>) -> Unit,
     onUpdateSupersetRest: (String, Int?, Int?, Int?) -> Unit,
     onUpdateRoundRest: (String, Int, Int?, Int?) -> Unit = { _, _, _, _ -> },
@@ -2590,11 +2703,18 @@ private fun SupersetGroupEditorCard(
     val totalSets = exercises.sumOf { it.sets.size }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
+            .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
+            .graphicsLayer {
+                translationX = if (isDragging) dragOffset.x else 0f
+                translationY = if (isDragging) dragOffset.y else 0f
+                alpha = if (isDragging) 0.94f else 1f
+                shadowElevation = if (isDragging) 22.dp.toPx() else 0f
+            }
+            .zIndex(if (isDragging) 12f else 0f)
             .clip(RoundedCornerShape(14.dp))
-            .background(accentColor.copy(alpha = if (expanded) 0.12f else 0.08f))
-            .border(2.dp, accentColor.copy(alpha = 0.6f), RoundedCornerShape(14.dp)),
+            .background(lerp(DarkEditorSurface, accentColor, if (expanded) 0.12f else 0.08f)),
     ) {
         Box(
             modifier = Modifier
@@ -2611,10 +2731,22 @@ private fun SupersetGroupEditorCard(
         ) {
             Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
                 Icon(
-                    imageVector = Icons.Default.SwapHoriz,
-                    contentDescription = null,
+                    imageVector = Icons.Default.DragHandle,
+                    contentDescription = "Reordenar superserie",
                     tint = accentColor.copy(alpha = 0.72f),
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier
+                        .size(18.dp)
+                        .pointerInput(group.id) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = { onDragStart() },
+                                onDragCancel = { onDragEnd() },
+                                onDragEnd = { onDragEnd() },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    onDrag(Offset(dragAmount.x, dragAmount.y))
+                                },
+                            )
+                        },
                 )
             }
             Column(
@@ -2677,7 +2809,6 @@ private fun SupersetGroupEditorCard(
                     Surface(
                         shape = RoundedCornerShape(999.dp),
                         color = if (configExerciseId == exercise.id) accentColor.copy(alpha = 0.22f) else accentColor.copy(alpha = 0.10f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.24f)),
                         modifier = Modifier.clickable { configExerciseId = exercise.id },
                     ) {
                         Row(
@@ -2707,7 +2838,6 @@ private fun SupersetGroupEditorCard(
                     Surface(
                         shape = RoundedCornerShape(999.dp),
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.42f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.35f)),
                         modifier = Modifier
                             .height(34.dp)
                             .clickable(enabled = exercises.size < 4) {
@@ -2761,16 +2891,7 @@ private fun SupersetGroupEditorCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        "Opcional",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Switch(
-                        checked = group.isOptional,
-                        onCheckedChange = { onToggleOptional(group.id) },
-                    )
+                    DarkChoiceChip("OPCIONAL", group.isOptional, accentColor = accentColor) { onToggleOptional(group.id) }
                 }
                 TextButton(onClick = { onDissolve(group.id) }) {
                     Text("Disolver", fontWeight = FontWeight.Bold)
@@ -2799,8 +2920,7 @@ private fun SupersetExerciseConfigOverlay(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.36f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.28f)),
+        color = DarkEditorSurfaceSoft,
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -2809,7 +2929,7 @@ private fun SupersetExerciseConfigOverlay(
                     Icon(Icons.Default.Close, contentDescription = "Cerrar configuración", modifier = Modifier.size(16.dp))
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 CompactModeSelector(
                     currentMode = exercise.trainingMode,
                     accentColor = accentColor,
@@ -2820,29 +2940,21 @@ private fun SupersetExerciseConfigOverlay(
                     onToggle = { onUpdateExercise { current -> current.copy(isStarTarget = !current.isStarTarget) } },
                     onOpenSheet = { showGoalSheet = true },
                 )
-                Surface(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { if (exercise.relativeToCanonicalExerciseId == null) onOpenRelationshipPicker() else onClearRelationship() },
-                    color = accentColor.copy(alpha = if (exercise.relativeToCanonicalExerciseId != null) 0.24f else 0.12f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
+                DarkChoiceChip(
+                    label = relationshipAnchorName?.let { "ANCLA: $it" } ?: "VINCULAR",
+                    selected = exercise.relativeToCanonicalExerciseId != null,
+                    accentColor = accentColor,
+                    modifier = Modifier.widthIn(max = 170.dp),
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Link, contentDescription = "Vincular ejercicio", tint = accentColor, modifier = Modifier.size(20.dp))
-                    }
+                    if (exercise.relativeToCanonicalExerciseId == null) onOpenRelationshipPicker() else onClearRelationship()
                 }
-                Surface(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable(enabled = exercise.trainingMode != TrainingMode.SOLO_RPE) { showSmartLoadSheet = true },
-                    color = accentColor.copy(alpha = 0.12f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.30f)),
+                DarkChoiceChip(
+                    label = "CARGA INTELIGENTE",
+                    selected = false,
+                    accentColor = accentColor,
+                    modifier = Modifier.widthIn(max = 180.dp),
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.FitnessCenter, contentDescription = "Carga inteligente", tint = accentColor, modifier = Modifier.size(20.dp))
-                    }
+                    if (exercise.trainingMode != TrainingMode.SOLO_RPE) showSmartLoadSheet = true
                 }
                 UnilateralModeSelector(
                     mode = exercise.unilateralMode,
@@ -2851,6 +2963,22 @@ private fun SupersetExerciseConfigOverlay(
                         onUpdateExercise { current -> current.toggledBilateralUnilateral() }
                     },
                 )
+                if (exercise.isEffectivelyUnilateral()) {
+                    SideOrderChip(
+                        sideOrder = exercise.unilateralSideOrder,
+                        accentColor = accentColor,
+                    ) {
+                        onUpdateExercise { current ->
+                            current.copy(
+                                unilateralSideOrder = if (current.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
+                                    UnilateralSideOrder.RIGHT_LEFT
+                                } else {
+                                    UnilateralSideOrder.LEFT_RIGHT
+                                },
+                            )
+                        }
+                    }
+                }
             }
             relationshipAnchorName?.let {
                 Text("Vinculado a $it", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -3450,25 +3578,21 @@ private fun ExerciseEditorCard(
                 ) {
                     if (!suppressIndividualRest) {
                         item("rest") {
-                            CompactRestPickerButton(
-                                label = if (exercise.isEffectivelyUnilateral() && !isSupersetExercise) "Series L/R" else "Descanso",
-                                totalSeconds = restSelectionSeconds,
+                            CompactRestBundleButton(
+                                primaryLabel = if (exercise.isEffectivelyUnilateral() && !isSupersetExercise) "Series L/R" else "Descanso",
+                                primarySeconds = restSelectionSeconds,
+                                sideSeconds = if (exercise.isEffectivelyUnilateral() && !isSupersetExercise) exercise.restBetweenSidesSeconds ?: 0 else null,
                                 accentColor = accentColor,
-                            ) { totalSeconds ->
-                                restSelectionSeconds = totalSeconds
-                                onUpdateExercise { draft -> draft.copy(restTime = totalSeconds) }
-                            }
-                        }
-                        if (exercise.isEffectivelyUnilateral() && !isSupersetExercise) {
-                            item("side-rest") {
-                                CompactRestPickerButton(
-                                    label = "Entre lados",
-                                    totalSeconds = exercise.restBetweenSidesSeconds ?: 0,
-                                    accentColor = accentColor,
-                                ) { totalSeconds ->
-                                    onUpdateExercise { draft -> draft.copy(restBetweenSidesSeconds = totalSeconds.takeIf { it > 0 }) }
+                                onConfirm = { primary, side ->
+                                    restSelectionSeconds = primary
+                                    onUpdateExercise { draft ->
+                                        draft.copy(
+                                            restTime = primary,
+                                            restBetweenSidesSeconds = side?.takeIf { it > 0 },
+                                        )
+                                    }
                                 }
-                            }
+                            )
                         }
                     }
                     
@@ -3489,6 +3613,18 @@ private fun ExerciseEditorCard(
                             accentColor = accentColor,
                             onToggle = { onUpdateExercise { ex -> ex.copy(isStarTarget = !ex.isStarTarget) } },
                             onOpenSheet = { showGoalSheet = true },
+                        )
+                    }
+
+                    item("relationship") {
+                        DarkChoiceChip(
+                            label = relationshipAnchorName?.let { "ANCLA: $it" } ?: "VINCULAR",
+                            selected = exercise.relativeToCanonicalExerciseId != null,
+                            accentColor = accentColor,
+                            modifier = Modifier.widthIn(max = 180.dp),
+                            onClick = {
+                                if (exercise.relativeToCanonicalExerciseId == null) onOpenRelationshipPicker() else onClearRelationship()
+                            },
                         )
                     }
 
@@ -3522,41 +3658,18 @@ private fun ExerciseEditorCard(
                         }
 
                         item("intensity-mode") {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .clickable {
-                                        onUpdateExercise { current ->
-                                            val newMode = if (current.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
-                                                UnilateralIntensityMode.INDEPENDENT
-                                            } else {
-                                                UnilateralIntensityMode.SHARED
-                                            }
-                                            current.copy(unilateralIntensityMode = newMode)
-                                        }
-                                    },
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
+                            DarkChoiceChip(
+                                label = if (exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) "LADOS VINCULADOS" else "LADOS INDEPENDIENTES",
+                                selected = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED,
+                                accentColor = accentColor,
                             ) {
-                                Icon(
-                                    imageVector = if (exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) Icons.Default.Link else Icons.Default.SwapHoriz,
-                                    contentDescription = null,
-                                    tint = accentColor,
-                                    modifier = Modifier.size(20.dp),
-                                )
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = if (exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) "Misma intensidad" else "Intensidad diferente",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = accentColor,
-                                    )
-                                    Text(
-                                        text = if (exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) "Ambos lados comparten los mismos valores" else "Cada lado tiene sus propios valores",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
+                                onUpdateExercise { current ->
+                                    val newMode = if (current.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
+                                        UnilateralIntensityMode.INDEPENDENT
+                                    } else {
+                                        UnilateralIntensityMode.SHARED
+                                    }
+                                    current.copy(unilateralIntensityMode = newMode)
                                 }
                             }
                         }
@@ -3628,10 +3741,14 @@ private fun ExerciseEditorCard(
                         onClick = { showSmartLoadSheet = true },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = DarkEditorChip,
+                            contentColor = Color.White
+                        )
                     ) {
                         Icon(Icons.Default.FitnessCenter, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Carga inteligente")
+                        Text("CARGA INTELIGENTE", fontWeight = FontWeight.Black)
                     }
                 }
 
@@ -3804,30 +3921,16 @@ private fun ExerciseEditorCard(
                     )
                 }
 
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        "Relacion con otro ejercicio",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    OutlinedButton(
-                        onClick = onOpenRelationshipPicker,
+                if (exercise.relativeToCanonicalExerciseId != null) {
+                    Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = DarkEditorSurfaceSoft,
                     ) {
-                        Icon(Icons.Default.Link, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            relationshipAnchorName?.let { "Ancla: $it" } ?: "Vincular a otro ejercicio",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    if (exercise.relativeToCanonicalExerciseId != null) {
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -3849,11 +3952,9 @@ private fun ExerciseEditorCard(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             ExerciseRelationshipType.values().forEach { type ->
-                                FilterChip(
-                                    selected = exercise.relationshipType == type,
-                                    onClick = { onUpdateRelationshipType(type) },
-                                    label = { Text(type.displayLabel()) },
-                                )
+                                DarkChoiceChip(type.displayLabel().uppercase(), exercise.relationshipType == type, accentColor = accentColor) {
+                                    onUpdateRelationshipType(type)
+                                }
                             }
                         }
                         EditorMiniField(
@@ -3864,12 +3965,7 @@ private fun ExerciseEditorCard(
                         ) { input ->
                             onUpdateRelationshipNotes(input.ifBlank { null })
                         }
-                    } else {
-                        Text(
-                            "Puedes enlazar variantes, asistencias o sobrecargas al ejercicio ancla para ordenar mejor el historial.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    }
                     }
                 }
 
@@ -3923,6 +4019,13 @@ private fun ExerciseEditorCard(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = DarkEditorChip,
+                            unfocusedContainerColor = DarkEditorChip,
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                        ),
                     )
                 }
             },
@@ -4081,7 +4184,7 @@ private fun InlineSetRow(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(if (isNarrowScreen) 14.dp else 16.dp),
         color = setSurface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = if (isNarrowScreen) 0.20f else 0.22f)),
+        border = null,
     ) {
         Column(
             Modifier.padding(horizontal = if (isNarrowScreen) 8.dp else 10.dp, vertical = if (isNarrowScreen) 6.dp else 8.dp),
@@ -4125,10 +4228,14 @@ private fun InlineSetRow(
                 }
                 Spacer(Modifier.weight(1f))
                 if (showSetActions) Box {
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = { showLoadModeMenu = true },
                         shape = RoundedCornerShape(10.dp),
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp),
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = DarkEditorChip,
+                            contentColor = Color.White
+                        )
                     ) {
                         Text(
                             loadModeLabel,
@@ -4240,7 +4347,7 @@ private fun InlineSetRow(
                 }
                 if (!isAmrapMode && !isRmMode && !isSoloRpeMode) {
                     if (!showPlannedIntensity) {
-                        OutlinedButton(
+                        FilledTonalButton(
                             onClick = {
                                 showPlannedIntensity = true
                                 onUpdate { current ->
@@ -4255,6 +4362,10 @@ private fun InlineSetRow(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = DarkEditorChip,
+                                contentColor = Color.White
+                            )
                         ) {
                             Text(
                                 if (isNarrowScreen) "Intensidad" else "Programar intensidad",
@@ -4270,13 +4381,17 @@ private fun InlineSetRow(
                             fontWeight = FontWeight.Bold,
                         )
                         Box {
-                            OutlinedButton(
+                            FilledTonalButton(
                                 onClick = { showIntensityMenu = true },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp),
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                colors = ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = DarkEditorChip,
+                                    contentColor = Color.White
+                                )
                             ) {
-                                Text(intensityLabel, style = MaterialTheme.typography.labelMedium)
+                                Text(intensityLabel, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                                 Spacer(Modifier.width(if (isNarrowScreen) 4.dp else 6.dp))
                                 Icon(Icons.Default.KeyboardArrowDown, null)
                             }
@@ -4372,7 +4487,6 @@ private fun InlineSetRow(
                 Surface(
                     shape = RoundedCornerShape(if (isNarrowScreen) 12.dp else 14.dp),
                     color = estimatedSurface,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
                 ) {
                     Column(
                         Modifier.fillMaxWidth().padding(horizontal = if (isNarrowScreen) 8.dp else 10.dp, vertical = if (isNarrowScreen) 5.dp else 6.dp),
@@ -4380,7 +4494,7 @@ private fun InlineSetRow(
                     ) {
                         Text(
                             text = buildString {
-                                append(displayedWeight?.let { "${"%.1f".format(it)} kg" } ?: "—")
+                                append(displayedWeight?.let { "${"%.1f".format(it)} kg" } ?: "Usa carga inteligente para estimar la carga inicial")
                                 if (isRmMode && reference1RM != null) {
                                     append(" · ${sliderPercent.toInt()}% RM")
                                 }
@@ -4454,6 +4568,17 @@ private fun EditorMiniField(
         },
         shape = RoundedCornerShape(14.dp),
         textStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = DarkEditorChip,
+            unfocusedContainerColor = DarkEditorChip,
+            disabledContainerColor = DarkEditorChip.copy(alpha = 0.62f),
+            focusedBorderColor = Color.Transparent,
+            unfocusedBorderColor = Color.Transparent,
+            disabledBorderColor = Color.Transparent,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            cursorColor = MaterialTheme.colorScheme.primary,
+        ),
     )
 }
 
@@ -4702,7 +4827,7 @@ private fun SessionEditorSheets(
     onDiscardSwitch: (() -> Unit)?,
     onWarmupSave: (String, List<WarmupSetDefinition>) -> Unit,
     onRestoreSnapshot: (SessionDraftSnapshot) -> Unit,
-    onRuleDefaultsChange: (Int?, Int?, Double?) -> Unit,
+    onRuleDefaultsChange: (Int?, Int?, Double?, Int?, Int?, Int?, Int?, Boolean?) -> Unit,
     onRuleLimitsChange: (Double?, Int?) -> Unit,
     onAdvancedRuleLimitsChange: (Double?, Double?, Int?, Boolean) -> Unit,
     onApplyGlobalIntensityAdjustment: (IntensityMode, Double, Set<String>?) -> Unit,
@@ -6981,16 +7106,27 @@ private fun CoverSheet(
     val coverVignette = session.coverStyle?.filters?.vignette ?: 0f
     val coverMotion = session.coverStyle?.enableMotion ?: false
     val coverBrightness = session.coverStyle?.filters?.brightness ?: 1f
-    Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Fondo de sesión", fontWeight = FontWeight.Black, fontSize = 18.sp)
-        OutlinedButton(onClick = onPickImage, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.Image, null)
-            Spacer(Modifier.width(8.dp))
-            Text("Subir imagen")
+    val isImageBackground = session.background?.type == SessionBackgroundType.IMAGE
+    var coverTab by rememberSaveable { mutableStateOf(if (isImageBackground) "image" else if (session.background?.value?.startsWith("solid://") == true) "solid" else "gradient") }
+    Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        SheetHeader("Portada de sesión", "Elige un fondo y ajusta solo lo que corresponde a ese tipo.")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(999.dp))
+                .background(DarkEditorChip)
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            DarkChoiceChip("GRADIENTES", coverTab == "gradient", modifier = Modifier.weight(1f)) { coverTab = "gradient" }
+            DarkChoiceChip("SÓLIDOS", coverTab == "solid", modifier = Modifier.weight(1f)) { coverTab = "solid" }
+            DarkChoiceChip("IMAGEN", coverTab == "image", modifier = Modifier.weight(1f)) { coverTab = "image" }
         }
-        Text("Gradientes")
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
-            sessionGradients.forEach { gradient ->
+
+        if (coverTab == "gradient") {
+            Text("Gradientes", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                sessionGradients.forEach { gradient ->
                 Box(
                     modifier = Modifier
                         .size(width = 92.dp, height = 74.dp)
@@ -7004,10 +7140,12 @@ private fun CoverSheet(
                         .clickable { onSelectGradient(gradient.id) }
                 )
             }
+            }
         }
-        Text("Colores sólidos")
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
-            sessionSolidPresets.forEach { solid ->
+        if (coverTab == "solid") {
+            Text("Colores sólidos", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                sessionSolidPresets.forEach { solid ->
                 Box(
                     modifier = Modifier
                         .size(width = 92.dp, height = 52.dp)
@@ -7021,33 +7159,51 @@ private fun CoverSheet(
                         .clickable { onSelectGradient(solid.id) }
                 )
             }
+            }
         }
-        Text("Desenfoque: ${blur.toInt()}")
-        Slider(value = blur, onValueChange = onBackgroundBlurChange, valueRange = 0f..18f)
-        Text("Brillo fondo: ${(brightness * 100).toInt()}%")
-        Slider(value = brightness, onValueChange = onBackgroundBrightnessChange, valueRange = 0.25f..1f)
-        Text("Brillo portada: ${(coverBrightness * 100).toInt()}%")
-        Slider(value = coverBrightness, onValueChange = onCoverBrightnessChange, valueRange = 0.5f..1.4f)
-        Text("Contraste portada: ${(coverContrast * 100).toInt()}%")
-        Slider(value = coverContrast, onValueChange = onCoverContrastChange, valueRange = 0.5f..1.5f)
-        Text("Saturación portada: ${(coverSaturation * 100).toInt()}%")
-        Slider(value = coverSaturation, onValueChange = onCoverSaturationChange, valueRange = 0f..2f)
-        Text("Escala de grises: ${(coverGrayscale * 100).toInt()}%")
-        Slider(value = coverGrayscale, onValueChange = onCoverGrayscaleChange, valueRange = 0f..1f)
-        Text("Viñeta: ${(coverVignette * 100).toInt()}%")
-        Slider(value = coverVignette, onValueChange = onCoverVignetteChange, valueRange = 0f..1f)
+        if (coverTab == "image") {
+            FilledTonalButton(onClick = onPickImage, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+                Icon(Icons.Default.Image, null)
+                Spacer(Modifier.width(8.dp))
+                Text("Subir imagen local")
+            }
+            if (isImageBackground) {
+                Text("Desenfoque: ${blur.toInt()}")
+                Slider(value = blur, onValueChange = onBackgroundBlurChange, valueRange = 0f..18f)
+                Text("Brillo: ${(coverBrightness * 100).toInt()}%")
+                Slider(value = coverBrightness, onValueChange = onCoverBrightnessChange, valueRange = 0.5f..1.4f)
+                Text("Contraste: ${(coverContrast * 100).toInt()}%")
+                Slider(value = coverContrast, onValueChange = onCoverContrastChange, valueRange = 0.5f..1.5f)
+                Text("Saturación: ${(coverSaturation * 100).toInt()}%")
+                Slider(value = coverSaturation, onValueChange = onCoverSaturationChange, valueRange = 0f..2f)
+                Text("Escala de grises: ${(coverGrayscale * 100).toInt()}%")
+                Slider(value = coverGrayscale, onValueChange = onCoverGrayscaleChange, valueRange = 0f..1f)
+                Text("Viñeta: ${(coverVignette * 100).toInt()}%")
+                Slider(value = coverVignette, onValueChange = onCoverVignetteChange, valueRange = 0f..1f)
+            } else {
+                Text("Sube una imagen para activar desenfoque, brillo y contraste.", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text("Movimiento portada", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-            Switch(checked = coverMotion, onCheckedChange = onCoverMotionChange)
+            DarkChoiceChip(
+                label = if (coverMotion) "ON" else "OFF",
+                selected = coverMotion,
+                onClick = { onCoverMotionChange(!coverMotion) },
+            )
         }
         Text("Posición del título")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(LabelPosition.BOTTOM_LEFT, LabelPosition.CENTER, LabelPosition.BOTTOM_CENTER).forEach { position ->
-                FilterChip(selected = session.coverStyle?.labelPosition == position, onClick = { onLabelPositionChange(position) }, label = { Text(position.name.lowercase()) })
+                DarkChoiceChip(
+                    label = position.name.lowercase(),
+                    selected = session.coverStyle?.labelPosition == position,
+                    onClick = { onLabelPositionChange(position) },
+                )
             }
         }
     }
@@ -7058,8 +7214,8 @@ private fun HistorySheet(
     uiState: SessionEditorUiState,
     onRestoreSnapshot: (SessionDraftSnapshot) -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Historial y borradores", fontWeight = FontWeight.Black, fontSize = 18.sp)
+    Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        SheetHeader("Historial y borradores", "Restaura snapshots locales o revisa sesiones registradas.")
         Text("Cambios recientes del borrador", style = MaterialTheme.typography.labelLarge)
         if (uiState.localDraftHistory.isEmpty()) {
             Text("Todavía no hay snapshots locales.", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -7067,9 +7223,16 @@ private fun HistorySheet(
             uiState.localDraftHistory.asReversed().forEachIndexed { index, snapshot ->
                 val title = snapshot.session.name.ifBlank { "Sesión" }
                 val diffSummary = snapshot.changedFields.take(3).joinToString(" · ")
-                OutlinedButton(onClick = { onRestoreSnapshot(snapshot) }, modifier = Modifier.fillMaxWidth()) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable { onRestoreSnapshot(snapshot) },
+                    shape = RoundedCornerShape(16.dp),
+                    color = DarkEditorSurfaceSoft,
+                ) {
                     Column(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text("${index + 1}. $title", fontWeight = FontWeight.Bold)
@@ -7092,7 +7255,7 @@ private fun HistorySheet(
                 }
             }
         }
-        HorizontalDivider()
+        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
         Text("Sesiones registradas", style = MaterialTheme.typography.labelLarge)
         if (uiState.workoutLogs.isEmpty()) {
             Text("Todavía no hay historiales de esta sesión.", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -7121,188 +7284,84 @@ private fun HistorySheet(
 private fun RulesSheet(
     uiState: SessionEditorUiState,
     onApplyRules: (String?) -> Unit,
-    onRuleDefaultsChange: (Int?, Int?, Double?) -> Unit,
+    onRuleDefaultsChange: (Int?, Int?, Double?, Int?, Int?, Int?, Int?, Boolean?) -> Unit,
     onRuleLimitsChange: (Double?, Int?) -> Unit,
     onAdvancedRuleLimitsChange: (Double?, Double?, Int?, Boolean) -> Unit,
     onApplyGlobalIntensityAdjustment: (IntensityMode, Double, Set<String>?) -> Unit,
 ) {
     var scopePartId by remember { mutableStateOf<String?>(null) }
-    var tab by remember { mutableStateOf("defaults") }
-    var maxRpeInput by remember(uiState.ruleLimits.maxRPE) {
-        mutableStateOf(formatEditableNumber(uiState.ruleLimits.maxRPE))
-    }
-    var maxExercisesInput by remember(uiState.ruleLimits.maxExercisesPerMuscle) {
-        mutableStateOf(uiState.ruleLimits.maxExercisesPerMuscle?.toString().orEmpty())
-    }
-    var maxSessionVolumeInput by remember(uiState.ruleLimits.maxVolumePerMuscleSession) {
-        mutableStateOf(formatEditableNumber(uiState.ruleLimits.maxVolumePerMuscleSession))
-    }
-    var maxWeeklyVolumeInput by remember(uiState.ruleLimits.maxVolumePerMuscleWeekly) {
-        mutableStateOf(formatEditableNumber(uiState.ruleLimits.maxVolumePerMuscleWeekly))
-    }
-    var maxPatternInput by remember(uiState.ruleLimits.maxSamePatternPerSession) {
-        mutableStateOf(uiState.ruleLimits.maxSamePatternPerSession?.toString().orEmpty())
-    }
-    var rigidLimits by remember(uiState.ruleLimits.rigidLimits) { mutableStateOf(uiState.ruleLimits.rigidLimits) }
-    var adjustmentModeName by remember { mutableStateOf(IntensityMode.RPE.name) }
-    var adjustmentValueInput by remember { mutableStateOf("7.5") }
-    var useMuscleScope by remember { mutableStateOf(false) }
-    var selectedMuscles by remember { mutableStateOf(setOf<String>()) }
-    val adjustmentMode = runCatching { IntensityMode.valueOf(adjustmentModeName) }.getOrElse { IntensityMode.RPE }
-    val availableMuscles = remember(uiState.session) {
-        uiState.session?.allExercises()?.mapNotNull { exercise ->
-            EXERCISE_DATABASE
-                .firstOrNull { it.id == exercise.exerciseDbId || it.id == exercise.exerciseId || it.name.equals(exercise.name, ignoreCase = true) }
-                ?.involvedMuscles
-                ?.firstOrNull { muscle -> muscle.role == MuscleRole.PRIMARY }
-                ?.let { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) }
-        }?.distinct().orEmpty()
-    }
-
-    Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Reglas del editor", fontWeight = FontWeight.Black, fontSize = 18.sp)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = tab == "defaults", onClick = { tab = "defaults" }, label = { Text("Defaults") })
-            FilterChip(selected = tab == "modify", onClick = { tab = "modify" }, label = { Text("Modificar") })
-            FilterChip(selected = tab == "limits", onClick = { tab = "limits" }, label = { Text("Límites") })
+    val defaults = uiState.ruleDefaults
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        SheetHeader(title = "Defaults del editor", subtitle = "Configura los valores base de esta sesión.")
+        Surface(
+            shape = RoundedCornerShape(18.dp),
+            color = DarkEditorSurface,
+        ) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Valores de serie", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    EditorMiniField("Series", defaults.setCount.toString(), keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f)) {
+                        onRuleDefaultsChange(it.safeIntOrNull(), null, null, null, null, null, null, null)
+                    }
+                    EditorMiniField("Reps", defaults.reps.toString(), keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f)) {
+                        onRuleDefaultsChange(null, it.safeIntOrNull(), null, null, null, null, null, null)
+                    }
+                    EditorMiniField("RPE", formatEditableNumber(defaults.rpe), keyboardType = KeyboardType.Decimal, modifier = Modifier.weight(1f)) {
+                        onRuleDefaultsChange(null, null, it.safeDoubleOrNull(), null, null, null, null, null)
+                    }
+                }
+                Text("Descansos", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    EditorMiniField("Series", defaults.normalRestSeconds.toString(), keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f)) {
+                        onRuleDefaultsChange(null, null, null, it.safeIntOrNull(), null, null, null, null)
+                    }
+                    EditorMiniField("Lados", defaults.betweenSidesRestSeconds.toString(), keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f)) {
+                        onRuleDefaultsChange(null, null, null, null, it.safeIntOrNull(), null, null, null)
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    EditorMiniField("Entre ejercicios", defaults.supersetBetweenRestSeconds.toString(), keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f)) {
+                        onRuleDefaultsChange(null, null, null, null, null, it.safeIntOrNull(), null, null)
+                    }
+                    EditorMiniField("Rondas", defaults.supersetRoundRestSeconds.toString(), keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f)) {
+                        onRuleDefaultsChange(null, null, null, null, null, null, it.safeIntOrNull(), null)
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(DarkEditorChip)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Aplicar a nuevos elementos", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                        Text("Ejercicios, series, lados y supersets nuevos heredan estos valores.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Switch(
+                        checked = defaults.applyToNewItems,
+                        onCheckedChange = { onRuleDefaultsChange(null, null, null, null, null, null, null, it) },
+                    )
+                }
+            }
         }
 
-        if (tab == "defaults") {
-            Text("Defaults rápidos para rellenar sets y descansos.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            EditorMiniField(label = "Series", value = uiState.ruleDefaults.setCount.toString(), keyboardType = KeyboardType.Number) { onRuleDefaultsChange(it.safeIntOrNull(), null, null) }
-            EditorMiniField(label = "Reps", value = uiState.ruleDefaults.reps.toString(), keyboardType = KeyboardType.Number) { onRuleDefaultsChange(null, it.safeIntOrNull(), null) }
-            EditorMiniField(label = "RPE", value = formatEditableNumber(uiState.ruleDefaults.rpe), keyboardType = KeyboardType.Decimal) { onRuleDefaultsChange(null, null, it.safeDoubleOrNull()) }
-            Text("Aplicar sobre")
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = scopePartId == null, onClick = { scopePartId = null }, label = { Text("Toda la sesión") })
-                uiState.session?.parts?.forEach { part ->
-                    FilterChip(selected = scopePartId == part.id, onClick = { scopePartId = part.id }, label = { Text(part.name) })
-                }
+        Text("Aplicar sobre", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            DarkChoiceChip("TODA LA SESIÓN", scopePartId == null) { scopePartId = null }
+            uiState.session?.parts?.forEach { part ->
+                DarkChoiceChip(part.name.uppercase(), scopePartId == part.id) { scopePartId = part.id }
             }
-            Button(onClick = { onApplyRules(scopePartId) }, modifier = Modifier.fillMaxWidth()) {
-                Text("Aplicar defaults", fontWeight = FontWeight.Black)
-            }
-        } else if (tab == "modify") {
-            Text("Modifica intensidad globalmente por modo y alcance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("Modo objetivo")
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(IntensityMode.RPE, IntensityMode.RIR, IntensityMode.FAILURE, IntensityMode.SOLO_RM).forEach { mode ->
-                    FilterChip(
-                        selected = adjustmentMode == mode,
-                        onClick = { adjustmentModeName = mode.name },
-                        label = { Text(mode.name) },
-                    )
-                }
-            }
-            EditorMiniField(
-                label = when (adjustmentMode) {
-                    IntensityMode.RPE -> "RPE objetivo"
-                    IntensityMode.RIR -> "RIR objetivo"
-                    IntensityMode.SOLO_RM -> "%RM objetivo"
-                    IntensityMode.FAILURE -> "Valor"
-                    else -> "Valor"
-                },
-                value = adjustmentValueInput,
-                keyboardType = KeyboardType.Decimal,
-            ) { adjustmentValueInput = it }
-
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Checkbox(checked = useMuscleScope, onCheckedChange = { useMuscleScope = it })
-                Text("Aplicar solo a músculos seleccionados")
-            }
-            if (useMuscleScope) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    availableMuscles.forEach { muscle ->
-                        val selected = muscle in selectedMuscles
-                        FilterChip(
-                            selected = selected,
-                            onClick = {
-                                selectedMuscles = if (selected) selectedMuscles - muscle else selectedMuscles + muscle
-                            },
-                            label = { Text(muscle) },
-                        )
-                    }
-                }
-            }
-
-            Button(
-                onClick = {
-                    val value = adjustmentValueInput.safeDoubleOrNull()
-                    if (value != null) {
-                        onApplyGlobalIntensityAdjustment(
-                            adjustmentMode,
-                            value,
-                            if (useMuscleScope) selectedMuscles else null,
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Aplicar modificación", fontWeight = FontWeight.Black)
-            }
-        } else {
-            Text("Límites de seguridad al guardar.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            EditorMiniField(
-                label = "RPE máximo",
-                value = maxRpeInput,
-                keyboardType = KeyboardType.Decimal,
-                stateKey = "rules-max-rpe",
-            ) { value ->
-                maxRpeInput = value
-            }
-            EditorMiniField(
-                label = "Máx ejercicios / músculo",
-                value = maxExercisesInput,
-                keyboardType = KeyboardType.Number,
-                stateKey = "rules-max-ex-muscle",
-            ) { value ->
-                maxExercisesInput = value
-            }
-            EditorMiniField(
-                label = "Volumen máx por músculo (sesión)",
-                value = maxSessionVolumeInput,
-                keyboardType = KeyboardType.Decimal,
-                stateKey = "rules-max-vol-session",
-            ) { value ->
-                maxSessionVolumeInput = value
-            }
-            EditorMiniField(
-                label = "Volumen máx por músculo (semana)",
-                value = maxWeeklyVolumeInput,
-                keyboardType = KeyboardType.Decimal,
-                stateKey = "rules-max-vol-week",
-            ) { value ->
-                maxWeeklyVolumeInput = value
-            }
-            EditorMiniField(
-                label = "Máx patrón repetido / sesión",
-                value = maxPatternInput,
-                keyboardType = KeyboardType.Number,
-                stateKey = "rules-max-pattern",
-            ) { value ->
-                maxPatternInput = value
-            }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Checkbox(checked = rigidLimits, onCheckedChange = { rigidLimits = it })
-                Text(if (rigidLimits) "Límites rígidos (bloquea guardar)" else "Límites flexibles (solo alerta)")
-            }
-            Button(
-                onClick = {
-                    onRuleLimitsChange(
-                        maxRpeInput.safeDoubleOrNull(),
-                        maxExercisesInput.safeIntOrNull(),
-                    )
-                    onAdvancedRuleLimitsChange(
-                        maxSessionVolumeInput.safeDoubleOrNull(),
-                        maxWeeklyVolumeInput.safeDoubleOrNull(),
-                        maxPatternInput.safeIntOrNull(),
-                        rigidLimits,
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Guardar límites", fontWeight = FontWeight.Black)
-            }
+        }
+        FilledTonalButton(onClick = { onApplyRules(scopePartId) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+            Text("Aplicar defaults", fontWeight = FontWeight.Black)
         }
     }
 }
@@ -7352,24 +7411,24 @@ private fun SessionClonerSheet(
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
+                DarkChoiceChip(
+                    label = "Copiar hacia",
                     selected = mode == SessionClonerMode.CLONE_TO_DAYS,
                     onClick = { mode = SessionClonerMode.CLONE_TO_DAYS },
-                    label = { Text("Copiar hacia") },
                 )
-                FilterChip(
+                DarkChoiceChip(
+                    label = "Traer desde",
                     selected = mode == SessionClonerMode.IMPORT_FROM_DAY,
                     onClick = { mode = SessionClonerMode.IMPORT_FROM_DAY },
-                    label = { Text("Traer desde") },
                 )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SessionCloneApplyMode.entries.forEach { candidate ->
-                    FilterChip(
+                    DarkChoiceChip(
+                        label = if (candidate == SessionCloneApplyMode.APPEND) "Agregar" else "Reemplazar",
                         selected = applyMode == candidate,
                         onClick = { applyModeName = candidate.name },
-                        label = { Text(if (candidate == SessionCloneApplyMode.APPEND) "Agregar" else "Reemplazar") },
                     )
                 }
             }
@@ -7400,12 +7459,7 @@ private fun SessionClonerSheet(
         shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.24f),
-                            ),
-                            border = androidx.compose.foundation.BorderStroke(
-                                1.dp,
-                                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.42f)
-                                else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                else DarkEditorSurfaceSoft,
                             ),
                         ) {
                             Row(
@@ -7438,9 +7492,22 @@ private fun SessionClonerSheet(
                         }
                     }
                 Spacer(Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Checkbox(checked = clonePartial, onCheckedChange = { clonePartial = it })
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(DarkEditorSurfaceSoft)
+                        .clickable { clonePartial = !clonePartial }
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
                     Text("Clonación parcial (ejercicios seleccionados)")
+                    DarkChoiceChip(
+                        label = if (clonePartial) "ON" else "OFF",
+                        selected = clonePartial,
+                        onClick = { clonePartial = !clonePartial },
+                    )
                 }
 
                 if (clonePartial) {
@@ -7461,7 +7528,15 @@ private fun SessionClonerSheet(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Checkbox(checked = selected, onCheckedChange = null)
+                            if (selected) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            } else {
+                                Box(Modifier.size(24.dp).clip(CircleShape).background(DarkEditorChip))
+                            }
                             Column(Modifier.weight(1f)) {
                                 Text(exercise.name, fontWeight = FontWeight.SemiBold)
                                 Text(exercise.sourcePartName ?: "Sin grupo", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -7485,6 +7560,10 @@ private fun SessionClonerSheet(
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = DarkEditorChipSelected,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
                 ) {
                     Text("Clonar hacia días seleccionados", fontWeight = FontWeight.Black)
                 }
@@ -7506,12 +7585,7 @@ private fun SessionClonerSheet(
                         shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.24f),
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.42f)
-                            else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            else DarkEditorSurfaceSoft,
                         ),
                     ) {
                         Row(
@@ -7536,9 +7610,22 @@ private fun SessionClonerSheet(
                     }
                 }
                 Spacer(Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Checkbox(checked = importPartial, onCheckedChange = { importPartial = it })
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(DarkEditorSurfaceSoft)
+                        .clickable { importPartial = !importPartial }
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
                     Text("Importación parcial (ejercicios seleccionados)")
+                    DarkChoiceChip(
+                        label = if (importPartial) "ON" else "OFF",
+                        selected = importPartial,
+                        onClick = { importPartial = !importPartial },
+                    )
                 }
 
                 if (importPartial && sourceOption != null) {
@@ -7559,7 +7646,15 @@ private fun SessionClonerSheet(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Checkbox(checked = selected, onCheckedChange = null)
+                            if (selected) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            } else {
+                                Box(Modifier.size(24.dp).clip(CircleShape).background(DarkEditorChip))
+                            }
                             Column(Modifier.weight(1f)) {
                                 Text(exercise.name, fontWeight = FontWeight.SemiBold)
                                 Text(exercise.sourcePartName ?: "Sin grupo", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -7585,6 +7680,12 @@ private fun SessionClonerSheet(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = selectedSourceSessionId != null,
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = DarkEditorChipSelected,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        disabledContainerColor = DarkEditorChip,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
                 ) {
                     Text("Traer sesión al editor actual", fontWeight = FontWeight.Black)
                 }
@@ -7772,7 +7873,7 @@ private fun AssistantSheet(
     val summary = uiState.augeSummary
     val accentColor = augeStatusColor(summary.status, summary.hasCriticalAlerts)
     var ringsExpanded by rememberSaveable { mutableStateOf(false) }
-    var volumeExpanded by rememberSaveable { mutableStateOf(false) }
+    var volumeExpanded by rememberSaveable { mutableStateOf(true) }
     var suggestionsExpanded by rememberSaveable { mutableStateOf(false) }
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val tabs = listOf("Asistente", "Plantillas")
@@ -7786,12 +7887,20 @@ private fun AssistantSheet(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text("Asistente de sesión", fontWeight = FontWeight.Black, fontSize = 18.sp)
-        TabRow(selectedTabIndex = selectedTab) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(999.dp))
+                .background(DarkEditorChip)
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
             tabs.forEachIndexed { index, title ->
-                Tab(
+                DarkChoiceChip(
+                    label = title.uppercase(),
                     selected = selectedTab == index,
+                    modifier = Modifier.weight(1f),
                     onClick = { selectedTab = index },
-                    text = { Text(title, fontWeight = FontWeight.Bold) },
                 )
             }
         }
@@ -7950,6 +8059,13 @@ private fun AssistantSheet(
                         )
                     }
                     if (volumeExpanded) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 260.dp)
+                                .verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
                         sortedVolumeEntries.forEach { (muscle, sets) ->
                             val threshold = report?.umbralesPorMusculo?.get(muscle)
                             val mev = threshold?.mev
@@ -7988,6 +8104,7 @@ private fun AssistantSheet(
                                     trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.42f),
                                 )
                             }
+                        }
                         }
                     }
                 }
@@ -9410,6 +9527,144 @@ private fun suggestWarmupReps(percentage: Double): Int = when {
 
 // ===== COMPACT COMPONENTS FOR OPTIMIZED EXERCISE EDITOR =====
 
+private val DarkEditorSurface = Color(0xE61B1B20)
+private val DarkEditorSurfaceSoft = Color(0xB8232329)
+private val DarkEditorChip = Color(0xFF2A2A31)
+private val DarkEditorChipSelected = Color(0xFF333A42)
+
+@Composable
+private fun SheetHeader(title: String, subtitle: String? = null) {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(title, fontWeight = FontWeight.Black, fontSize = 18.sp)
+        if (!subtitle.isNullOrBlank()) {
+            Text(subtitle, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun DarkChoiceChip(
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    accentColor: Color = MaterialTheme.colorScheme.primary,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = modifier
+            .height(38.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .clickable { onClick() },
+        shape = RoundedCornerShape(999.dp),
+        color = if (selected) DarkEditorChipSelected else DarkEditorChip,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            if (selected) {
+                Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
+            }
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompactRestBundleButton(
+    primaryLabel: String,
+    primarySeconds: Int,
+    sideSeconds: Int?,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    onConfirm: (Int, Int?) -> Unit,
+) {
+    var showPicker by remember { mutableStateOf(false) }
+    val summary = if (sideSeconds != null) {
+        "$primaryLabel ${formatRestSummary(primarySeconds)} · Lados ${formatRestSummary(sideSeconds)}"
+    } else {
+        "$primaryLabel ${formatRestSummary(primarySeconds)}"
+    }
+    Surface(
+        modifier = modifier
+            .height(40.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .clickable { showPicker = true },
+        shape = RoundedCornerShape(999.dp),
+        color = DarkEditorChip,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(Icons.Default.Timer, contentDescription = "Configurar descansos", tint = Color.White, modifier = Modifier.size(18.dp))
+            Text(summary, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1)
+        }
+    }
+
+    if (showPicker) {
+        RestBundleDialog(
+            primaryLabel = primaryLabel,
+            initialPrimarySeconds = primarySeconds,
+            initialSideSeconds = sideSeconds,
+            accentColor = accentColor,
+            onDismiss = { showPicker = false },
+            onConfirm = { primary, side ->
+                onConfirm(primary, side)
+                showPicker = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun RestBundleDialog(
+    primaryLabel: String,
+    initialPrimarySeconds: Int,
+    initialSideSeconds: Int?,
+    accentColor: Color,
+    onDismiss: () -> Unit,
+    onConfirm: (Int, Int?) -> Unit,
+) {
+    var primaryMinutes by rememberSaveable(initialPrimarySeconds) { mutableStateOf((initialPrimarySeconds / 60).coerceIn(0, 59)) }
+    var primarySeconds by rememberSaveable(initialPrimarySeconds) { mutableStateOf((initialPrimarySeconds % 60).coerceIn(0, 59)) }
+    var sideMinutes by rememberSaveable(initialSideSeconds) { mutableStateOf(((initialSideSeconds ?: 0) / 60).coerceIn(0, 59)) }
+    var sideSeconds by rememberSaveable(initialSideSeconds) { mutableStateOf(((initialSideSeconds ?: 0) % 60).coerceIn(0, 59)) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Descansos", fontWeight = FontWeight.Black) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                SupersetRestWheelRow(primaryLabel, primaryMinutes, primarySeconds, accentColor, { primaryMinutes = it }, { primarySeconds = it })
+                if (initialSideSeconds != null) {
+                    SupersetRestWheelRow("Entre lados", sideMinutes, sideSeconds, accentColor, { sideMinutes = it }, { sideSeconds = it })
+                }
+            }
+        },
+        confirmButton = {
+            FilledTonalButton(
+                onClick = {
+                    onConfirm(
+                        primaryMinutes * 60 + primarySeconds,
+                        initialSideSeconds?.let { sideMinutes * 60 + sideSeconds },
+                    )
+                },
+            ) { Text("Aplicar") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+    )
+}
+
 @Composable
 private fun CompactRestPickerButton(
     label: String,
@@ -9425,8 +9680,7 @@ private fun CompactRestPickerButton(
             .height(40.dp)
             .clip(RoundedCornerShape(999.dp))
             .clickable { showPicker = true },
-        color = accentColor.copy(alpha = 0.12f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.3f)),
+        color = DarkEditorChip,
     ) {
         Row(
             modifier = Modifier
@@ -9438,7 +9692,7 @@ private fun CompactRestPickerButton(
             Icon(
                 Icons.Default.Timer,
                 contentDescription = label,
-                tint = accentColor,
+                tint = Color.White,
                 modifier = Modifier.size(18.dp),
             )
             Spacer(Modifier.width(6.dp))
@@ -9446,7 +9700,7 @@ private fun CompactRestPickerButton(
                 "$label ${formatRestSummary(totalSeconds)}",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = accentColor,
+                color = Color.White,
                 maxLines = 1,
             )
         }
@@ -9475,12 +9729,11 @@ internal fun CompactModeSelector(
     
     Box {
         Surface(
-            modifier = Modifier
-                .height(40.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .clickable { showMenu = true },
-            color = accentColor.copy(alpha = 0.12f),
-            border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.3f)),
+        modifier = Modifier
+            .height(40.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .clickable { showMenu = true },
+            color = DarkEditorChip,
         ) {
             Row(
                 modifier = Modifier
@@ -9492,7 +9745,7 @@ internal fun CompactModeSelector(
                     trainingModeLabel(currentMode),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = accentColor,
+                    color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.widthIn(max = 90.dp),
@@ -9501,7 +9754,7 @@ internal fun CompactModeSelector(
                 Icon(
                     Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = accentColor,
+                    tint = Color.White,
                     modifier = Modifier.size(16.dp),
                 )
             }
@@ -9545,11 +9798,8 @@ private fun CompactGoalTrackingButton(
                 onClick = { if (onOpenSheet != null) onOpenSheet() else onToggle() },
                 onLongClick = { onOpenSheet?.invoke() },
             ),
-        color = if (isActive) accentColor.copy(alpha = 0.24f) else accentColor.copy(alpha = 0.08f),
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            if (isActive) accentColor.copy(alpha = 0.5f) else accentColor.copy(alpha = 0.2f),
-        ),
+        color = if (isActive) DarkEditorChipSelected else DarkEditorChip,
+        border = if (isActive) BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.3f)) else null,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp),
@@ -9559,7 +9809,7 @@ private fun CompactGoalTrackingButton(
             Icon(
                 imageVector = if (isActive) Icons.Default.Star else Icons.Default.StarBorder,
                 contentDescription = "Seguimiento de metas",
-                tint = if (isActive) Color(0xFFFFB300) else accentColor,
+                tint = if (isActive) Color(0xFFFFB300) else Color.White,
                 modifier = Modifier.size(18.dp),
             )
             Spacer(Modifier.width(6.dp))
@@ -9567,7 +9817,7 @@ private fun CompactGoalTrackingButton(
                 "Meta",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = if (isActive) Color(0xFFFFB300) else accentColor,
+                color = if (isActive) Color(0xFFFFB300) else Color.White,
             )
         }
     }
@@ -9580,41 +9830,44 @@ internal fun UnilateralModeSelector(
     onToggleUnilateral: () -> Unit,
 ) {
     val isUnilateral = mode != UnilateralMode.BILATERAL
-    Surface(
-        modifier = Modifier
-            .height(40.dp)
-            .clip(RoundedCornerShape(999.dp))
-            .clickable { onToggleUnilateral() },
-        color = if (isUnilateral) accentColor.copy(alpha = 0.24f) else accentColor.copy(alpha = 0.08f),
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            if (isUnilateral) accentColor.copy(alpha = 0.5f) else accentColor.copy(alpha = 0.2f),
-        ),
-    ) {
-        Row(
-            modifier = Modifier.padding(start = 12.dp, end = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+    var showMenu by remember { mutableStateOf(false) }
+    Box {
+        Surface(
+            modifier = Modifier
+                .height(40.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .clickable { showMenu = true },
+            color = if (isUnilateral) DarkEditorChipSelected else DarkEditorChip,
         ) {
-            Icon(
-                imageVector = Icons.Default.SwapHoriz,
-                contentDescription = if (isUnilateral) "Cambiar a bilateral" else "Cambiar a unilateral",
-                tint = if (isUnilateral) MaterialTheme.colorScheme.primary else accentColor,
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                if (isUnilateral) "Unilateral" else "Bilateral",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = if (isUnilateral) MaterialTheme.colorScheme.primary else accentColor,
-            )
-            Switch(
-                checked = isUnilateral,
-                onCheckedChange = { onToggleUnilateral() },
-                modifier = Modifier
-                    .width(42.dp)
-                    .height(28.dp),
-            )
+            Row(
+                modifier = Modifier.padding(start = 12.dp, end = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.SwapHoriz,
+                    contentDescription = null,
+                    tint = if (isUnilateral) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    if (isUnilateral) "Unilateral" else "Bilateral",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isUnilateral) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = if (isUnilateral) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+            }
+        }
+        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+            DropdownMenuItem(text = { Text("Bilateral") }, onClick = {
+                showMenu = false
+                if (isUnilateral) onToggleUnilateral()
+            })
+            DropdownMenuItem(text = { Text("Unilateral") }, onClick = {
+                showMenu = false
+                if (!isUnilateral) onToggleUnilateral()
+            })
         }
     }
 }
@@ -9634,8 +9887,7 @@ internal fun SideOrderChip(
             .height(40.dp)
             .clip(RoundedCornerShape(999.dp))
             .clickable { onToggle() },
-        color = accentColor.copy(alpha = 0.10f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.28f)),
+        color = DarkEditorChip,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp),
@@ -9645,14 +9897,14 @@ internal fun SideOrderChip(
             Icon(
                 Icons.Default.SwapHoriz,
                 contentDescription = "Cambiar orden unilateral",
-                tint = accentColor,
+                tint = Color.White,
                 modifier = Modifier.size(18.dp),
             )
             Text(
                 label,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = accentColor,
+                color = Color.White,
             )
         }
     }
@@ -9792,8 +10044,8 @@ internal fun ExerciseSetsCarousel(
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (showUnilateralDualCards) 520.dp else 252.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                .height(if (showUnilateralDualCards) 392.dp else 214.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(horizontal = 4.dp),
             state = listState,
         ) {
@@ -9806,7 +10058,7 @@ internal fun ExerciseSetsCarousel(
 
                     Box(
                         modifier = Modifier
-                            .width(300.dp)
+                            .width(292.dp)
                             .fillMaxHeight(),
                     ) {
                         if (showUnilateralDualCards) {
@@ -9814,13 +10066,13 @@ internal fun ExerciseSetsCarousel(
                             val showRightCard = set.rightTarget != null
                             Column(
                                 modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
                                 orderedSides.forEach { side ->
                                     val isLeft = side == "L"
                                     val showCard = if (isLeft) showLeftCard else showRightCard
                                     Box(
-                                        modifier = Modifier.weight(1f),
+                                        modifier = Modifier.fillMaxWidth(),
                                         contentAlignment = Alignment.TopCenter,
                                     ) {
                                         if (showCard) {
@@ -9853,8 +10105,7 @@ internal fun ExerciseSetsCarousel(
                                                 accentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .height(44.dp)
-                                                    .align(if (isLeft) Alignment.BottomCenter else Alignment.TopCenter),
+                                                    .height(184.dp),
                                                 onClick = {
                                                     onUpdateSet(set.id) { s ->
                                                         val default = UnilateralTarget(
@@ -9904,7 +10155,7 @@ internal fun ExerciseSetsCarousel(
             item("add-set") {
                 Box(
                     modifier = Modifier
-                        .width(300.dp)
+                        .width(292.dp)
                         .fillMaxHeight()
                         .padding(end = 16.dp),
                     contentAlignment = Alignment.Center
@@ -9964,8 +10215,7 @@ private fun UnilateralAddGhostCard(
             .clip(RoundedCornerShape(10.dp))
             .clickable { onClick() },
         shape = RoundedCornerShape(10.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.18f)),
+        color = DarkEditorSurfaceSoft,
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -10165,14 +10415,10 @@ private fun AddSetGhostCard(onAddSet: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(220.dp)
+            .height(172.dp)
             .clip(RoundedCornerShape(16.dp))
             .clickable { onAddSet() },
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.14f),
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.18f),
-        ),
+        color = DarkEditorSurfaceSoft,
     ) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {

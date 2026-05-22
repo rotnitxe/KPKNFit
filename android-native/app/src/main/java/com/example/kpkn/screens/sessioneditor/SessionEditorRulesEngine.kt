@@ -29,6 +29,8 @@ object SessionEditorRulesEngine {
         val safeSetCount = defaults.setCount.coerceAtLeast(1)
         val safeReps = defaults.reps.coerceAtLeast(1)
         val safeRpe = defaults.rpe.coerceIn(1.0, 10.0)
+        val safeRest = defaults.normalRestSeconds.coerceAtLeast(0)
+        val safeSideRest = defaults.betweenSidesRestSeconds.coerceAtLeast(0)
 
         fun Exercise.applyRuleDefaults(): Exercise {
             val nextSets = List(safeSetCount) { index ->
@@ -45,7 +47,8 @@ object SessionEditorRulesEngine {
             }
             return copy(
                 sets = nextSets,
-                restTime = suggestRestSeconds(nextSets.size, safeRpe),
+                restTime = safeRest,
+                restBetweenSidesSeconds = safeSideRest.takeIf { it > 0 },
             )
         }
 
@@ -133,6 +136,10 @@ object SessionEditorRulesEngine {
         if (draft.name.isBlank()) {
             return SessionRulesValidationResult(blockingError = "La sesión debe tener un nombre antes de guardar.")
         }
+
+        // Editor rules are now defaults-only. Legacy limit fields can exist in old
+        // drafts, but they no longer block saves or emit warnings from this sheet.
+        return SessionRulesValidationResult()
 
         val maxRpe = ruleLimits.maxRPE
         if (maxRpe != null) {

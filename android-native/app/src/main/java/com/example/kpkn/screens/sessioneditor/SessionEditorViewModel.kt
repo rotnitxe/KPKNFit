@@ -61,6 +61,11 @@ data class SessionEditorRuleDefaults(
     val setCount: Int = 3,
     val reps: Int = 10,
     val rpe: Double = 8.0,
+    val normalRestSeconds: Int = 90,
+    val betweenSidesRestSeconds: Int = 0,
+    val supersetBetweenRestSeconds: Int = 60,
+    val supersetRoundRestSeconds: Int = 120,
+    val applyToNewItems: Boolean = false,
 )
 
 @Serializable
@@ -1112,7 +1117,7 @@ class SessionEditorViewModel(
         val currentSession = _uiState.value.session
         val newExercise = createExerciseFromInfo(info, repository.history.value).let { base ->
             if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-        }
+        }.withSessionEditorDefaults(_uiState.value.ruleDefaults)
         updateSession { session ->
             if (partId == null) {
                 session.copy(exercises = session.exercises + newExercise)
@@ -1129,7 +1134,7 @@ class SessionEditorViewModel(
         val newExercises = infos.map { info ->
             createExerciseFromInfo(info, repository.history.value).let { base ->
                 if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-            }
+            }.withSessionEditorDefaults(_uiState.value.ruleDefaults)
         }
         updateSession { session ->
             if (partId == null) {
@@ -1149,7 +1154,7 @@ class SessionEditorViewModel(
         val currentSession = _uiState.value.session
         val newExercise = createBlankExercise().let { base ->
             if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-        }
+        }.withSessionEditorDefaults(_uiState.value.ruleDefaults)
         updateSession { session ->
             if (partId == null) {
                 session.copy(exercises = session.exercises + newExercise)
@@ -1203,6 +1208,46 @@ class SessionEditorViewModel(
         targetIndex: Int? = null,
     ) = updateSession { session ->
         if (sourcePartId == targetPartId && targetIndex == null) return@updateSession session
+        val sourceExercises = if (sourcePartId == null) {
+            session.exercises
+        } else {
+            session.parts.firstOrNull { it.id == sourcePartId }?.exercises.orEmpty()
+        }
+        val draggedSource = sourceExercises.firstOrNull { it.id == exerciseId }
+        val draggedGroupId = draggedSource?.supersetGroupRefOrLegacyId()
+        if (!draggedGroupId.isNullOrBlank()) {
+            val group = session.allSupersetGroups().firstOrNull { it.id == draggedGroupId }
+            val memberIds = group?.exerciseOrder?.filter { id -> sourceExercises.any { it.id == id } }
+                ?: sourceExercises.filter { it.supersetGroupRefOrLegacyId() == draggedGroupId }.map { it.id }
+            if (memberIds.size > 1) {
+                val moving = memberIds.mapNotNull { id -> sourceExercises.firstOrNull { it.id == id } }
+                val strippedSession = if (sourcePartId == null) {
+                    session.copy(exercises = session.exercises.filterNot { it.id in memberIds })
+                } else {
+                    session.copy(parts = session.parts.map { part ->
+                        if (part.id != sourcePartId) part else part.copy(exercises = part.exercises.filterNot { it.id in memberIds })
+                    })
+                }
+                fun insertInto(list: List<Exercise>): List<Exercise> {
+                    val mutable = list.toMutableList()
+                    val adjustedIndex = if (sourcePartId == targetPartId && targetIndex != null) {
+                        val firstSourceIndex = sourceExercises.indexOfFirst { it.id == memberIds.first() }
+                        if (targetIndex > firstSourceIndex) targetIndex - moving.size + 1 else targetIndex
+                    } else {
+                        targetIndex ?: mutable.size
+                    }
+                    mutable.addAll(adjustedIndex.coerceIn(0, mutable.size), moving)
+                    return mutable.toList()
+                }
+                return@updateSession if (targetPartId == null) {
+                    strippedSession.copy(exercises = insertInto(strippedSession.exercises))
+                } else {
+                    strippedSession.copy(parts = strippedSession.parts.map { part ->
+                        if (part.id != targetPartId) part else part.copy(exercises = insertInto(part.exercises))
+                    })
+                }
+            }
+        }
 
         var movedExercise: Exercise? = null
         val strippedSession = if (sourcePartId == null) {
@@ -1259,9 +1304,12 @@ class SessionEditorViewModel(
 
     fun addSet(partId: String?, exerciseId: String, side: String? = null) = updateExercise(partId, exerciseId) { exercise ->
         val template = exercise.sets.lastOrNull()
+        val defaults = _uiState.value.ruleDefaults
         val nextSet = template?.let { createNextSetTemplate(exercise, it) } ?: ExerciseSet(
             id = UUID.randomUUID().toString(),
-            targetReps = 8,
+            targetReps = if (defaults.applyToNewItems) defaults.reps.coerceAtLeast(1) else 8,
+            targetRPE = if (defaults.applyToNewItems) defaults.rpe.coerceIn(1.0, 10.0) else null,
+            intensityMode = if (defaults.applyToNewItems) IntensityMode.RPE else null,
         )
         fun ExerciseSet.defaultSideTarget(): UnilateralTarget = UnilateralTarget(
             weight = weight,
@@ -1465,13 +1513,27 @@ class SessionEditorViewModel(
         closeSheet()
     }
 
-    fun updateRuleDefaults(setCount: Int? = null, reps: Int? = null, rpe: Double? = null) {
+    fun updateRuleDefaults(
+        setCount: Int? = null,
+        reps: Int? = null,
+        rpe: Double? = null,
+        normalRestSeconds: Int? = null,
+        betweenSidesRestSeconds: Int? = null,
+        supersetBetweenRestSeconds: Int? = null,
+        supersetRoundRestSeconds: Int? = null,
+        applyToNewItems: Boolean? = null,
+    ) {
         _uiState.update { state ->
             state.copy(
                 ruleDefaults = state.ruleDefaults.copy(
                     setCount = setCount ?: state.ruleDefaults.setCount,
                     reps = reps ?: state.ruleDefaults.reps,
                     rpe = rpe ?: state.ruleDefaults.rpe,
+                    normalRestSeconds = normalRestSeconds ?: state.ruleDefaults.normalRestSeconds,
+                    betweenSidesRestSeconds = betweenSidesRestSeconds ?: state.ruleDefaults.betweenSidesRestSeconds,
+                    supersetBetweenRestSeconds = supersetBetweenRestSeconds ?: state.ruleDefaults.supersetBetweenRestSeconds,
+                    supersetRoundRestSeconds = supersetRoundRestSeconds ?: state.ruleDefaults.supersetRoundRestSeconds,
+                    applyToNewItems = applyToNewItems ?: state.ruleDefaults.applyToNewItems,
                 )
             )
         }
@@ -1633,6 +1695,9 @@ class SessionEditorViewModel(
 
     fun openSupersetCreator(partId: String?, exerciseIds: List<String>) {
         val session = _uiState.value.session
+        val defaults = _uiState.value.ruleDefaults
+        val defaultSupersetBetween = if (defaults.applyToNewItems) defaults.supersetBetweenRestSeconds.coerceAtLeast(0) else 60
+        val defaultSupersetAfter = if (defaults.applyToNewItems) defaults.supersetRoundRestSeconds.coerceAtLeast(0) else 120
         val existingGroup = session
             ?.allExercises()
             ?.firstNotNullOfOrNull { exercise ->
@@ -1647,8 +1712,8 @@ class SessionEditorViewModel(
                     session = current,
                     groupId = groupId,
                     exerciseIds = targetIds,
-                    restBetweenExercises = 60,
-                    restAfterSuperset = 120,
+                    restBetweenExercises = defaultSupersetBetween,
+                    restAfterSuperset = defaultSupersetAfter,
                     anchorPartId = partId,
                     anchorExerciseId = targetIds.firstOrNull(),
                 )
@@ -1662,8 +1727,8 @@ class SessionEditorViewModel(
                 supersetDraft = SupersetDraft(
                     partId = partId,
                     exerciseIds = exerciseIds,
-                    restBetweenExercises = existingGroup?.restBetweenExercises ?: 60,
-                    restAfterSuperset = existingGroup?.restAfterSuperset ?: 120,
+                    restBetweenExercises = existingGroup?.restBetweenExercises ?: defaultSupersetBetween,
+                    restAfterSuperset = existingGroup?.restAfterSuperset ?: defaultSupersetAfter,
                     rounds = existingGroup?.rounds,
                 ),
                 quickActionsPartId = null,
@@ -3616,6 +3681,29 @@ private fun buildCloneSourceOptions(
             setupCues = info.setupCues.orEmpty(),
             executionCues = info.executionCues.orEmpty(),
         ).withSharedPerformanceFromHistory(history)
+    }
+
+    private fun Exercise.withSessionEditorDefaults(defaults: SessionEditorRuleDefaults): Exercise {
+        if (!defaults.applyToNewItems || isCompetitionLift) return this
+        val safeSetCount = defaults.setCount.coerceAtLeast(1)
+        val safeReps = defaults.reps.coerceAtLeast(1)
+        val safeRpe = defaults.rpe.coerceIn(1.0, 10.0)
+        val nextSets = List(safeSetCount) { index ->
+            val existing = sets.getOrNull(index) ?: ExerciseSet(id = UUID.randomUUID().toString())
+            existing.copy(
+                targetReps = safeReps,
+                targetRPE = safeRpe,
+                targetRIR = null,
+                targetPercentageRM = null,
+                intensityMode = IntensityMode.RPE,
+                isFailure = false,
+            )
+        }
+        return copy(
+            restTime = defaults.normalRestSeconds.coerceAtLeast(0),
+            restBetweenSidesSeconds = defaults.betweenSidesRestSeconds.takeIf { it > 0 },
+            sets = nextSets,
+        )
     }
 
     private fun createBlankExercise(): Exercise =

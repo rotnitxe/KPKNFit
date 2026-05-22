@@ -106,7 +106,7 @@ class SessionEditorRulesEngineTest {
     }
 
     @Test
-    fun validateBeforeSave_rigid_limit_blocks_over_max_rpe() {
+    fun validateBeforeSave_ignores_legacy_rigid_limits() {
         val draft = Session(
             id = "session-3",
             name = "Sesion",
@@ -127,12 +127,12 @@ class SessionEditorRulesEngineTest {
             exerciseIndex = exerciseIndex,
         )
 
-        assertNotNull(result.blockingError)
+        assertNull(result.blockingError)
         assertTrue(result.warnings.isEmpty())
     }
 
     @Test
-    fun validateBeforeSave_flexible_limit_warns_instead_of_blocking() {
+    fun validateBeforeSave_ignores_legacy_flexible_limits() {
         val draft = Session(
             id = "session-4",
             name = "Sesion",
@@ -154,11 +154,11 @@ class SessionEditorRulesEngineTest {
         )
 
         assertNull(result.blockingError)
-        assertTrue(result.warnings.isNotEmpty())
+        assertTrue(result.warnings.isEmpty())
     }
 
     @Test
-    fun validateBeforeSave_weekly_volume_limit_uses_draft_aware_week() {
+    fun validateBeforeSave_ignores_legacy_weekly_volume_limit() {
         val draft = Session(
             id = "session-a",
             name = "Sesion A",
@@ -199,7 +199,8 @@ class SessionEditorRulesEngineTest {
             exerciseIndex = exerciseIndex,
         )
 
-        assertNotNull(result.blockingError)
+        assertNull(result.blockingError)
+        assertTrue(result.warnings.isEmpty())
     }
 
     @Test
