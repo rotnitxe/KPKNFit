@@ -191,14 +191,22 @@ private fun QuickLoadChips(
             isAuge = false,
         ),
     )
-    val options = if (suggestedWeight != null && baseOptions.none { kotlin.math.abs(it.weight - suggestedWeight) < 0.01 }) {
-        baseOptions + QuickLoadOption(
+    val options = when {
+        suggestedWeight == null -> baseOptions
+        baseOptions.any { kotlin.math.abs(it.weight - suggestedWeight) < 0.01 } -> {
+            baseOptions.map { option ->
+                if (kotlin.math.abs(option.weight - suggestedWeight) < 0.01) {
+                    option.copy(label = "Sugerida", isAuge = true)
+                } else {
+                    option
+                }
+            }
+        }
+        else -> baseOptions + QuickLoadOption(
             label = "Sugerida",
             weight = suggestedWeight.coerceAtLeast(0.0),
             isAuge = true,
         )
-    } else {
-        baseOptions
     }
 
     Row(
@@ -316,6 +324,8 @@ internal fun SetInputCardV2(
     initialBodyWeight: Double?,
     recordActionHolder: RecordActionHolder,
     isActivePage: Boolean = true,
+    initialDraft: WorkoutSetDraft? = null,
+    onDraftChange: (WorkoutSetDraft, String?) -> Unit = { _, _ -> },
     onExecutionError: (() -> Unit)? = null,
     persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
@@ -369,13 +379,25 @@ internal fun SetInputCardV2(
         else -> IntensityMode.RPE
     }
 
-    var weightText by remember(exercise.id, setIndex) { mutableStateOf(defaultWeight) }
-    var lastAutoFilledWeight by remember(exercise.id, setIndex) { mutableStateOf(defaultWeight) }
-    var valueText by remember(exercise.id, setIndex) { mutableStateOf(defaultValue) }
     val supportsIndependentSides = exercise.isEffectivelyUnilateral()
     val lockedSide = activeSide?.takeIf { supportsIndependentSides && sideLocked }
-    val initialLeftWeight = (currentSet.leftTarget?.weight?.toTrimmedNumberString() ?: defaultWeight).orEmpty()
-    val initialRightWeight = (currentSet.rightTarget?.weight?.toTrimmedNumberString() ?: defaultWeight).orEmpty()
+    val initialSelectedSide = initialDraft?.selectedSide ?: lockedSide ?: "left"
+    val draftWeightText = initialDraft?.weightText?.takeIf { it.isNotBlank() }
+    val draftValueText = initialDraft?.valueText?.takeIf { it.isNotBlank() }
+    var weightText by remember(exercise.id, setIndex, lockedSide) {
+        mutableStateOf(draftWeightText ?: defaultWeight)
+    }
+    var lastAutoFilledWeight by remember(exercise.id, setIndex, lockedSide) { mutableStateOf(defaultWeight) }
+    var hasManualWeightOverride by remember(exercise.id, setIndex, lockedSide) {
+        mutableStateOf(!draftWeightText.isNullOrBlank())
+    }
+    var valueText by remember(exercise.id, setIndex, lockedSide) {
+        mutableStateOf(draftValueText ?: defaultValue)
+    }
+    val targetLeftWeight = (currentSet.leftTarget?.weight?.toTrimmedNumberString() ?: defaultWeight).orEmpty()
+    val targetRightWeight = (currentSet.rightTarget?.weight?.toTrimmedNumberString() ?: defaultWeight).orEmpty()
+    val initialLeftWeight = if (initialSelectedSide == "left") draftWeightText ?: targetLeftWeight else targetLeftWeight
+    val initialRightWeight = if (initialSelectedSide == "right") draftWeightText ?: targetRightWeight else targetRightWeight
     fun sideTargetValueText(target: UnilateralTarget?): String = when {
         target == null -> defaultValue
         isTimeMode -> target.targetDuration?.toString() ?: defaultValue
@@ -387,8 +409,12 @@ internal fun SetInputCardV2(
     val initialRightValue = sideTargetValueText(currentSet.rightTarget)
     var leftWeightText by remember(exercise.id, setIndex) { mutableStateOf(initialLeftWeight) }
     var rightWeightText by remember(exercise.id, setIndex) { mutableStateOf(initialRightWeight) }
-    var leftValueText by remember(exercise.id, setIndex) { mutableStateOf(initialLeftValue) }
-    var rightValueText by remember(exercise.id, setIndex) { mutableStateOf(initialRightValue) }
+    var leftValueText by remember(exercise.id, setIndex) {
+        mutableStateOf(if (initialSelectedSide == "left") draftValueText ?: initialLeftValue else initialLeftValue)
+    }
+    var rightValueText by remember(exercise.id, setIndex) {
+        mutableStateOf(if (initialSelectedSide == "right") draftValueText ?: initialRightValue else initialRightValue)
+    }
     val activeSideTarget = when (lockedSide) {
         "left" -> currentSet.leftTarget
         "right" -> currentSet.rightTarget
@@ -401,7 +427,8 @@ internal fun SetInputCardV2(
     }
     var intensityText by remember(exercise.id, setIndex, lockedSide) {
         mutableStateOf(
-            activeSideTarget?.targetRPE?.toTrimmedNumberString()
+            initialDraft?.intensityText
+                ?: activeSideTarget?.targetRPE?.toTrimmedNumberString()
                 ?: activeSideTarget?.targetRIR?.toString()
                 ?: currentSet.targetRPE?.toTrimmedNumberString()
                 ?: currentSet.targetRIR?.toString().orEmpty()
@@ -409,7 +436,7 @@ internal fun SetInputCardV2(
     }
     var bodyWeightText by remember(exercise.id) { mutableStateOf(initialBodyWeight?.toTrimmedNumberString().orEmpty()) }
     var showBodyWeightPrompt by remember(exercise.id) { mutableStateOf(false) }
-    var selectedSide by remember(exercise.id, setIndex, lockedSide) { mutableStateOf(lockedSide ?: "left") }
+    var selectedSide by remember(exercise.id, setIndex, lockedSide) { mutableStateOf(initialSelectedSide) }
 
     fun valueTextForSide(side: String): String = if (side == "left") leftValueText else rightValueText
     fun weightTextForSide(side: String): String = if (side == "left") leftWeightText else rightWeightText
@@ -423,7 +450,8 @@ internal fun SetInputCardV2(
             }
         }
     }
-    fun updateActiveWeightText(newWeight: String) {
+    fun updateActiveWeightText(newWeight: String, markManual: Boolean = true) {
+        if (markManual) hasManualWeightOverride = true
         weightText = newWeight
         if (supportsIndependentSides) {
             if (selectedSide == "left") {
@@ -434,6 +462,7 @@ internal fun SetInputCardV2(
         }
     }
     fun selectSide(side: String) {
+        if (selectedSide == side) return
         selectedSide = side
         if (supportsIndependentSides) {
             valueText = valueTextForSide(side)
@@ -451,11 +480,11 @@ internal fun SetInputCardV2(
         persistedLoadModeByExercise = persistedLoadModeByExercise,
     )
     var loadMode by remember(exercise.id, setIndex, persistedLoadMode, currentSet.loadModeV2) {
-        mutableStateOf(persistedLoadMode ?: currentSet.loadModeV2 ?: LoadModeV2.LOAD)
+        mutableStateOf(initialDraft?.loadMode ?: persistedLoadMode ?: currentSet.loadModeV2 ?: LoadModeV2.LOAD)
     }
     val ghostSuggestedWeightText = suggestedWeightText?.takeIf { setIndex > 0 && weightText.isBlank() }
     var reachedFailure by remember(exercise.id, setIndex) {
-        mutableStateOf(currentSet.isFailure || currentSet.intensityMode == IntensityMode.FAILURE)
+        mutableStateOf(initialDraft?.reachedFailure ?: (currentSet.isFailure || currentSet.intensityMode == IntensityMode.FAILURE))
     }
     var isFailedSet by remember(exercise.id, setIndex) { mutableStateOf(false) }
     var isAmrap by remember(exercise.id, setIndex) { mutableStateOf(currentSet.isAmrap) }
@@ -652,13 +681,8 @@ internal fun SetInputCardV2(
         }
     }
     LaunchedEffect(defaultWeight) {
-        val currentWeight = weightText.trim()
-        val previousAutoFill = lastAutoFilledWeight.trim()
-        val hasManualOverride = currentWeight.isNotBlank() &&
-            currentWeight != previousAutoFill &&
-            currentWeight != defaultWeight
-        if (!hasManualOverride) {
-            updateActiveWeightText(defaultWeight)
+        if (!hasManualWeightOverride && defaultWeight != lastAutoFilledWeight) {
+            updateActiveWeightText(defaultWeight, markManual = false)
             lastAutoFilledWeight = defaultWeight
         }
     }
@@ -984,41 +1008,6 @@ internal fun SetInputCardV2(
                                     loadModeMenuExpanded = false
                                 },
                             )
-                        }
-                    }
-
-                    if (weightSuggestion != null && weightSuggestion.suggestedWeight > 0.0) {
-                        val sugWeight = weightSuggestion.suggestedWeight
-                        val isSelected = reportWeightText == sugWeight.toTrimmedNumberString()
-                        Surface(
-                            onClick = {
-                                weightSuggestion.suggestedLoadMode?.let { loadMode = it }
-                                updateActiveWeightText(sugWeight.toTrimmedNumberString())
-                            },
-                            shape = WorkoutUiTokens.InnerCardShape,
-                            color = if (isSelected) sessionAccentColor.copy(alpha = 0.2f) else sessionAccentColor.copy(alpha = 0.08f),
-                            border = BorderStroke(1.dp, if (isSelected) sessionAccentColor else sessionAccentColor.copy(alpha = 0.3f)),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.AutoAwesome, null, Modifier.size(16.dp), tint = sessionAccentColor)
-                                    Text(
-                                        "Carga sugerida",
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                                Text(
-                                    "${sugWeight.toTrimmedNumberString()} kg",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
-                                    color = sessionAccentColor
-                                )
-                            }
                         }
                     }
 
@@ -1459,6 +1448,58 @@ internal fun SetInputCardV2(
                 0
             }
 
+            val activeInitialWeight = if (supportsIndependentSides) {
+                if (selectedSide == "left") targetLeftWeight else targetRightWeight
+            } else {
+                defaultWeight
+            }
+            val activeInitialValue = if (supportsIndependentSides) {
+                if (selectedSide == "left") initialLeftValue else initialRightValue
+            } else {
+                defaultValue
+            }
+            val initialIntensityForDraft = activeSideTarget?.targetRPE?.toTrimmedNumberString()
+                ?: activeSideTarget?.targetRIR?.toString()
+                ?: currentSet.targetRPE?.toTrimmedNumberString()
+                ?: currentSet.targetRIR?.toString().orEmpty()
+            LaunchedEffect(
+                isActivePage,
+                reportWeightText,
+                reportValueText,
+                intensityText,
+                loadMode,
+                selectedSide,
+                reachedFailure,
+                partialRepsTotal,
+            ) {
+                if (!isActivePage) return@LaunchedEffect
+                val initialLoadMode = persistedLoadMode ?: currentSet.loadModeV2 ?: LoadModeV2.LOAD
+                val initialFailure = currentSet.isFailure || currentSet.intensityMode == IntensityMode.FAILURE
+                val initialSide = lockedSide ?: "left"
+                val isDirty = reportWeightText != activeInitialWeight ||
+                    reportValueText != activeInitialValue ||
+                    intensityText != initialIntensityForDraft ||
+                    loadMode != initialLoadMode ||
+                    reachedFailure != initialFailure ||
+                    partialRepsTotal != (initialDraft?.partialReps ?: 0) ||
+                    (supportsIndependentSides && selectedSide != initialSide)
+                if (isDirty || initialDraft != null) {
+                    onDraftChange(
+                        WorkoutSetDraft(
+                            weightText = reportWeightText,
+                            valueText = reportValueText,
+                            intensityText = intensityText,
+                            loadMode = loadMode,
+                            selectedSide = if (supportsIndependentSides) selectedSide else null,
+                            partialReps = partialRepsTotal.takeIf { it > 0 },
+                            reachedFailure = reachedFailure,
+                            isDirty = isDirty,
+                        ),
+                        if (supportsIndependentSides) selectedSide else null,
+                    )
+                }
+            }
+
             val advanced = SetAdvancedFeedback(
                 rir = if (isAmrap && !amrapReachFailure) amrapReserveReps
                       else if (reportedIntensityMode == IntensityMode.RIR) intensityText.toIntOrNull()
@@ -1535,6 +1576,13 @@ internal fun SetInputCardV2(
                         if (supportsIndependentSides && !sideLocked) {
                             selectSide(if (selectedSide == "left") "right" else "left")
                         }
+                    }
+                }
+            }
+            DisposableEffect(isActivePage, exercise.id, setIndex, selectedSide) {
+                onDispose {
+                    if (isActivePage) {
+                        recordActionHolder.action = null
                     }
                 }
             }

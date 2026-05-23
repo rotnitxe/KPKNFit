@@ -164,7 +164,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -173,6 +173,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -235,6 +236,8 @@ private fun formatEditableNumber(value: Double?): String {
     return if (value == asLong.toDouble()) asLong.toString() else value.toString()
 }
 
+private fun String.toEditorColor(default: Color = Color(0xFF00F0FF)): Color =
+    runCatching { Color(AndroidColor.parseColor(this)) }.getOrDefault(default)
 
 private fun formatOneDecimal(value: Double): String = "%.1f".format(value)
 
@@ -254,6 +257,99 @@ private fun formatRestSummary(restTime: Int?): String {
     val minutes = total / 60
     val seconds = total % 60
     return "${minutes}:${seconds.toString().padStart(2, '0')}"
+}
+
+@Composable
+private fun DragLiftPreview(
+    exercise: Exercise,
+    rect: Rect,
+    offset: Offset,
+    modifier: Modifier = Modifier,
+) {
+    val density = LocalDensity.current
+    Surface(
+        modifier = modifier
+            .offset {
+                IntOffset(
+                    x = (rect.left + offset.x).roundToInt(),
+                    y = (rect.top + offset.y).roundToInt(),
+                )
+            }
+            .width(with(density) { rect.width.toDp() })
+            .heightIn(min = 70.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = DarkEditorSurface.copy(alpha = 0.98f),
+        shadowElevation = 28.dp,
+        tonalElevation = 10.dp,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(Icons.Default.DragHandle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Column(Modifier.weight(1f)) {
+                Text(
+                    exercise.name.ifBlank { "Ejercicio" },
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    "${exercise.sets.size} series · ${trainingModeLabel(exercise.trainingMode)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DropGapProjection(
+    visible: Boolean,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(90)) + expandVertically(animationSpec = tween(140)),
+        exit = fadeOut(tween(80)) + shrinkVertically(animationSpec = tween(120)),
+    ) {
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .padding(horizontal = 14.dp, vertical = 6.dp),
+            shape = RoundedCornerShape(18.dp),
+            color = accentColor.copy(alpha = 0.14f),
+        ) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .drawWithContent {
+                        drawContent()
+                        drawRoundRect(
+                            color = accentColor.copy(alpha = 0.48f),
+                            style = Stroke(
+                                width = 2f,
+                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f), 0f),
+                            ),
+                            cornerRadius = CornerRadius(18.dp.toPx(), 18.dp.toPx()),
+                        )
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    "Soltar aquí",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Black,
+                    color = accentColor,
+                )
+            }
+        }
+    }
 }
 
 private fun trainingModeLabel(mode: TrainingMode): String = when (mode) {
@@ -277,6 +373,12 @@ private val sessionGradients = listOf(
     SessionCoverGradient("gradient://lagoon", "Lagoon", listOf(Color(0xFF0D1B2A), Color(0xFF1B4965), Color(0xFF5FA8D3))),
     SessionCoverGradient("gradient://velvet", "Velvet", listOf(Color(0xFF1C1024), Color(0xFF5B2A86), Color(0xFFE26D5A))),
     SessionCoverGradient("gradient://forest", "Forest", listOf(Color(0xFF102A1F), Color(0xFF2D6A4F), Color(0xFF95D5B2))),
+    SessionCoverGradient("gradient://graphite", "Graphite", listOf(Color(0xFF09090B), Color(0xFF27272A), Color(0xFF52525B))),
+    SessionCoverGradient("gradient://steel-blue", "Steel Blue", listOf(Color(0xFF0F172A), Color(0xFF1E3A5F), Color(0xFF38BDF8))),
+    SessionCoverGradient("gradient://deep-red", "Deep Red", listOf(Color(0xFF120607), Color(0xFF7F1D1D), Color(0xFFEF4444))),
+    SessionCoverGradient("gradient://mint-night", "Mint Night", listOf(Color(0xFF07130F), Color(0xFF14532D), Color(0xFF34D399))),
+    SessionCoverGradient("gradient://indigo", "Indigo", listOf(Color(0xFF111827), Color(0xFF3730A3), Color(0xFF818CF8))),
+    SessionCoverGradient("gradient://bronze", "Bronze", listOf(Color(0xFF15100A), Color(0xFF92400E), Color(0xFFF59E0B))),
 )
 
 private val sessionSolidPresets = listOf(
@@ -285,6 +387,12 @@ private val sessionSolidPresets = listOf(
     SessionCoverGradient("solid://ember-red", "Ember Red", listOf(Color(0xFF7F1D1D), Color(0xFF7F1D1D), Color(0xFF7F1D1D))),
     SessionCoverGradient("solid://ocean", "Ocean", listOf(Color(0xFF0F3D5E), Color(0xFF0F3D5E), Color(0xFF0F3D5E))),
     SessionCoverGradient("solid://moss", "Moss", listOf(Color(0xFF244B3C), Color(0xFF244B3C), Color(0xFF244B3C))),
+    SessionCoverGradient("solid://charcoal", "Charcoal", listOf(Color(0xFF1F2329), Color(0xFF1F2329), Color(0xFF1F2329))),
+    SessionCoverGradient("solid://slate", "Slate", listOf(Color(0xFF283241), Color(0xFF283241), Color(0xFF283241))),
+    SessionCoverGradient("solid://wine", "Wine", listOf(Color(0xFF581C27), Color(0xFF581C27), Color(0xFF581C27))),
+    SessionCoverGradient("solid://pine", "Pine", listOf(Color(0xFF12352A), Color(0xFF12352A), Color(0xFF12352A))),
+    SessionCoverGradient("solid://navy", "Navy", listOf(Color(0xFF10233F), Color(0xFF10233F), Color(0xFF10233F))),
+    SessionCoverGradient("solid://aubergine", "Aubergine", listOf(Color(0xFF2A1835), Color(0xFF2A1835), Color(0xFF2A1835))),
 )
 
 private val sessionBackgroundPresets = sessionGradients + sessionSolidPresets
@@ -373,9 +481,9 @@ fun SessionEditorScreen(
     val hazeState = remember { HazeState() }
     val roadmapGlassStyle = remember {
         HazeStyle(
-            blurRadius = 20.dp,
-            tint = HazeTint(Color.Black.copy(alpha = 0.30f)),
-            backgroundColor = Color.Black.copy(alpha = 0.34f),
+            blurRadius = 28.dp,
+            tint = HazeTint(Color.Black.copy(alpha = 0.44f)),
+            backgroundColor = Color.Black.copy(alpha = 0.18f),
             noiseFactor = 0.03f,
         )
     }
@@ -425,37 +533,39 @@ fun SessionEditorScreen(
         draggingExerciseOffset += delta
         val activeRect = exerciseBounds["$currentPartId|$activeExerciseId"] ?: return
         val center = Offset(activeRect.center.x + draggingExerciseOffset.x, activeRect.center.y + draggingExerciseOffset.y)
-        val targetExerciseKey = exerciseBounds.entries.firstOrNull { (key, rect) ->
-            key != "$currentPartId|$activeExerciseId" && rect.contains(center)
-        }?.key
-        if (targetExerciseKey != null) {
-            exerciseDropTargetKey = targetExerciseKey
-            exerciseDropTargetPartId = null
-            exerciseDropTargetIndex = null
-            return
-        }
-        exerciseDropTargetKey = null
         val targetPartId = when {
             looseContentBounds?.contains(center) == true -> "__loose__"
             else -> groupedPartsForDrag.firstOrNull { candidate -> partContentBounds[candidate.id]?.contains(center) == true }?.id
         }
         exerciseDropTargetPartId = targetPartId
         if (targetPartId != null) {
-            val orderedKeys = exerciseBounds.filterKeys { it.startsWith("$targetPartId|") }.entries.sortedBy { it.value.top }
-            val insertIdx = orderedKeys.indexOfFirst { (key, rect) ->
-                key != "$targetPartId|$activeExerciseId" && center.y < rect.center.y
-            }
-            exerciseDropTargetIndex = if (insertIdx >= 0) {
-                val selfIdx = orderedKeys.indexOfFirst { it.key == "$targetPartId|$activeExerciseId" }
-                if (selfIdx >= 0 && insertIdx > selfIdx) insertIdx - 1 else insertIdx
+            val sourceList = if (currentPartId == "__loose__") activeSession.exercises else activeSession.parts.firstOrNull { it.id == currentPartId }?.exercises.orEmpty()
+            val draggedGroupId = sourceList.firstOrNull { it.id == activeExerciseId }?.supersetGroupRefOrLegacyId()
+            val draggedIds = if (draggedGroupId != null) {
+                sourceList.filter { it.supersetGroupRefOrLegacyId() == draggedGroupId }.map { it.id }.toSet()
             } else {
-                val partSize = when (targetPartId) {
+                setOf(activeExerciseId)
+            }
+            val orderedKeys = exerciseBounds
+                .filterKeys { it.startsWith("$targetPartId|") }
+                .filterKeys { key -> key.substringAfter("|") !in draggedIds }
+                .entries
+                .sortedBy { it.value.center.y }
+            val before = orderedKeys.firstOrNull { (_, rect) -> center.y < rect.center.y }
+            exerciseDropTargetKey = before?.key
+            exerciseDropTargetIndex = if (before != null) {
+                val targetExerciseId = before.key.substringAfter("|")
+                val targetList = if (targetPartId == "__loose__") activeSession.exercises else activeSession.parts.firstOrNull { it.id == targetPartId }?.exercises.orEmpty()
+                targetList.indexOfFirst { it.id == targetExerciseId }.takeIf { it >= 0 } ?: 0
+            } else {
+                val targetListSize = when (targetPartId) {
                     "__loose__" -> activeSession.exercises.size
                     else -> activeSession.parts.firstOrNull { it.id == targetPartId }?.exercises?.size ?: 0
                 }
-                (partSize - 1).coerceAtLeast(0)
+                targetListSize
             }
         } else {
+            exerciseDropTargetKey = null
             exerciseDropTargetIndex = null
         }
     }
@@ -525,6 +635,50 @@ fun SessionEditorScreen(
         return
     }
     val groupedParts = session.parts.filterNot { it.isUncategorized() }
+    val draggedExerciseIds = remember(session, draggingExerciseId, draggingExercisePartId) {
+        val activeId = draggingExerciseId ?: return@remember emptySet<String>()
+        val sourcePartId = draggingExercisePartId
+        val sourceList = when (sourcePartId) {
+            "__loose__" -> session.exercises
+            null -> emptyList()
+            else -> session.parts.firstOrNull { it.id == sourcePartId }?.exercises.orEmpty()
+        }
+        val groupId = sourceList.firstOrNull { it.id == activeId }?.supersetGroupRefOrLegacyId()
+        if (groupId != null) sourceList.filter { it.supersetGroupRefOrLegacyId() == groupId }.map { it.id }.toSet() else setOf(activeId)
+    }
+
+    fun projectedShiftFor(
+        partId: String,
+        index: Int,
+        exerciseId: String,
+        itemHeight: Float = exerciseBounds["$partId|$exerciseId"]?.height ?: 88f,
+    ): Float {
+        val activeId = draggingExerciseId ?: return 0f
+        val sourcePartId = draggingExercisePartId ?: return 0f
+        val keyTargetPart = exerciseDropTargetKey?.substringBefore("|")
+        val keyTargetExercise = exerciseDropTargetKey?.substringAfter("|")
+        val targetPartId = exerciseDropTargetPartId ?: keyTargetPart ?: return 0f
+        val targetIndex = exerciseDropTargetIndex ?: keyTargetExercise?.let { targetExerciseId ->
+            val targetList = if (targetPartId == "__loose__") session.exercises else session.parts.firstOrNull { it.id == targetPartId }?.exercises.orEmpty()
+            targetList.indexOfFirst { it.id == targetExerciseId }.takeIf { it >= 0 }
+        } ?: return 0f
+        if (exerciseId in draggedExerciseIds) return 0f
+        if (partId != targetPartId) return 0f
+        val movingCount = draggedExerciseIds.size.coerceAtLeast(1)
+        val gap = (itemHeight + 10f) * movingCount
+        if (partId != sourcePartId) {
+            return if (index >= targetIndex) gap else 0f
+        }
+        val sourceList = if (partId == "__loose__") session.exercises else session.parts.firstOrNull { it.id == partId }?.exercises.orEmpty()
+        val sourceIndex = sourceList.indexOfFirst { it.id == activeId }
+        if (sourceIndex < 0 || targetIndex == sourceIndex) return 0f
+        return when {
+            targetIndex < sourceIndex && index >= targetIndex && index < sourceIndex -> gap
+            targetIndex > sourceIndex && index > sourceIndex && index < targetIndex -> -gap
+            targetIndex >= sourceList.size && index > sourceIndex -> -gap
+            else -> 0f
+        }
+    }
 
     LaunchedEffect(openCompetitionConfig, session.id) {
         if (openCompetitionConfig && session.isMeetDay) {
@@ -550,34 +704,13 @@ fun SessionEditorScreen(
             floatingActionButton = {
                 HeroGlassFab(
                     summary = uiState.augeSummary,
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .padding(bottom = 104.dp),
                     onClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
                 )
             },
             floatingActionButtonPosition = FabPosition.End,
-            bottomBar = {
-                    SessionContextNavigator(
-                        sessions = uiState.siblingSessions,
-                        selectedSessionId = uiState.selectedSiblingSessionId ?: session.id,
-                        onSelectSession = viewModel::requestSessionSwitch,
-                        weekStartDay = uiState.weekStartDay,
-                        activeDayOfWeek = uiState.dayOfWeek,
-                        onSelectDay = { day ->
-                            viewModel.selectRoadmapDay(day)
-                        },
-                        roadmapOptions = uiState.roadmapOptions,
-                        onSelectRoadmapOption = viewModel::selectRoadmapOption,
-                        onCreateSessionForDay = { day ->
-                            viewModel.createSessionForDay(day)
-                        },
-                        isSimpleProgram = uiState.isSimpleProgram,
-                        hasActiveLoops = uiState.hasActiveLoops,
-                        hazeState = hazeState,
-                        hazeStyle = roadmapGlassStyle,
-                        onSetMainSessionForDay = viewModel::setMainSessionForDay,
-                        currentSessionId = session.id,
-                        currentDayOfWeek = uiState.dayOfWeek,
-                    )
-            },
         ) { padding ->
         LazyColumn(
             state = listState,
@@ -636,7 +769,7 @@ fun SessionEditorScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 4.dp)
-                            .onGloballyPositioned { looseContentBounds = it.boundsInWindow() },
+                            .onGloballyPositioned { looseContentBounds = it.boundsInRoot() },
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         session.exercises.forEachIndexed { index, exercise ->
@@ -648,6 +781,15 @@ fun SessionEditorScreen(
                                 val supersetMembers = SupersetRules.orderedMembers(session, supersetGroupId)
                                     .filter { member -> session.exercises.any { it.id == member.id } }
                                 if (supersetGroup != null && supersetMembers.size >= 2) {
+                                    DropGapProjection(
+                                        visible = draggingExerciseId != null && ((exerciseDropTargetPartId == "__loose__" && exerciseDropTargetIndex == index) || exerciseDropTargetKey == "__loose__|${exercise.id}"),
+                                        accentColor = PART_COLORS.first().toEditorColor(),
+                                    )
+                                    val projectedShift by animateFloatAsState(
+                                        targetValue = projectedShiftFor("__loose__", index, supersetMembers.first().id),
+                                        animationSpec = tween(150),
+                                        label = "looseSupersetProjectedShift",
+                                    )
                                         SupersetGroupEditorCard(
                                         group = supersetGroup,
                                         exercises = supersetMembers,
@@ -655,6 +797,7 @@ fun SessionEditorScreen(
                                         partId = null,
                                         isDragging = draggingExerciseId == supersetMembers.first().id,
                                         dragOffset = if (draggingExerciseId == supersetMembers.first().id) draggingExerciseOffset else Offset.Zero,
+                                        modifier = Modifier.graphicsLayer { translationY = projectedShift },
                                         onBoundsChange = { rect -> exerciseBounds["__loose__|${supersetMembers.first().id}"] = rect },
                                         onDragStart = { beginExerciseDrag("__loose__", supersetMembers.first().id) },
                                         onDrag = ::updateExerciseDrag,
@@ -697,14 +840,7 @@ fun SessionEditorScreen(
                                                     isDropTarget = (exerciseDropTargetKey == "__loose__|${member.id}" || (exerciseDropTargetPartId == "__loose__" && exerciseDropTargetIndex == memberIndex)) && draggingExerciseId != member.id,
                                                     isPartDropTarget = exerciseDropTargetPartId == "__loose__" && draggingExerciseId != member.id,
                                                     onBoundsChange = { rect -> exerciseBounds["__loose__|${member.id}"] = rect },
-                                                    onDragStart = {
-                                                        draggingExerciseId = member.id
-                                                        draggingExercisePartId = "__loose__"
-                                                        draggingExerciseOffset = Offset.Zero
-                                                        exerciseDropTargetKey = null
-                                                        exerciseDropTargetPartId = null
-                                                        exerciseDropTargetIndex = null
-                                                    },
+                                                    onDragStart = { beginExerciseDrag("__loose__", member.id) },
                                                     onDrag = { delta ->
                                                         val activeExerciseId = draggingExerciseId ?: return@ExerciseEditorCard
                                                         val currentPartId = draggingExercisePartId ?: return@ExerciseEditorCard
@@ -822,16 +958,25 @@ fun SessionEditorScreen(
                                 }
                             }
                             key("loose|${exercise.id}") {
+                                DropGapProjection(
+                                    visible = draggingExerciseId != null && ((exerciseDropTargetPartId == "__loose__" && exerciseDropTargetIndex == index) || exerciseDropTargetKey == "__loose__|${exercise.id}"),
+                                    accentColor = PART_COLORS.first().toEditorColor(),
+                                )
+                                val projectedShift by animateFloatAsState(
+                                    targetValue = projectedShiftFor("__loose__", index, exercise.id),
+                                    animationSpec = tween(150),
+                                    label = "looseExerciseProjectedShift",
+                                )
                                 ExerciseEditorCard(
                                     exercise = exercise,
                                     exerciseInfo = EXERCISE_DATABASE.find { it.id == exercise.exerciseDbId },
                                     accentHex = PART_COLORS.first(),
                                     partId = "__loose__",
                                     isCompetitionMovement = exercise.matchesCompetitionMovement(uiState.competitionMovementIds),
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth().graphicsLayer { translationY = projectedShift },
                                     isDragging = draggingExerciseId == exercise.id,
                                     dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
-                                    isDropTarget = (exerciseDropTargetKey == "__loose__|${exercise.id}" || (exerciseDropTargetPartId == "__loose__" && exerciseDropTargetIndex == index)) && draggingExerciseId != exercise.id,
+                                    isDropTarget = (exerciseDropTargetKey == "__loose__|${exercise.id}" || ((exerciseDropTargetPartId == "__loose__" && exerciseDropTargetIndex == index) || exerciseDropTargetKey == "__loose__|${exercise.id}")) && draggingExerciseId != exercise.id,
                                     isPartDropTarget = exerciseDropTargetPartId == "__loose__" && draggingExerciseId != exercise.id,
                                     onBoundsChange = { rect -> exerciseBounds["__loose__|${exercise.id}"] = rect },
                                     onDragStart = {
@@ -958,7 +1103,7 @@ fun SessionEditorScreen(
                             AnimatedVisibility(
                                 visible = draggingExerciseId != null && (
                                     exerciseDropTargetKey == "__loose__|${exercise.id}" ||
-                                    (exerciseDropTargetPartId == "__loose__" && exerciseDropTargetIndex == index)
+                                    ((exerciseDropTargetPartId == "__loose__" && exerciseDropTargetIndex == index) || exerciseDropTargetKey == "__loose__|${exercise.id}")
                                 ),
                                 enter = fadeIn() + expandVertically(),
                                 exit = fadeOut() + shrinkVertically(),
@@ -1066,6 +1211,15 @@ fun SessionEditorScreen(
                                     val supersetMembers = SupersetRules.orderedMembers(session, supersetGroupId)
                                         .filter { member -> part.exercises.any { it.id == member.id } }
                                     if (supersetGroup != null && supersetMembers.size >= 2) {
+                                        DropGapProjection(
+                                            visible = draggingExerciseId != null && ((exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == targetIndex) || exerciseDropTargetKey == "${part.id}|${exercise.id}"),
+                                            accentColor = (part.color ?: PART_COLORS.first()).toEditorColor(),
+                                        )
+                                        val projectedShift by animateFloatAsState(
+                                            targetValue = projectedShiftFor(part.id, targetIndex, supersetMembers.first().id),
+                                            animationSpec = tween(150),
+                                            label = "partSupersetProjectedShift",
+                                        )
                                         SupersetGroupEditorCard(
                                             group = supersetGroup,
                                         exercises = supersetMembers,
@@ -1073,6 +1227,7 @@ fun SessionEditorScreen(
                                         partId = part.id,
                                         isDragging = draggingExerciseId == supersetMembers.first().id,
                                         dragOffset = if (draggingExerciseId == supersetMembers.first().id) draggingExerciseOffset else Offset.Zero,
+                                        modifier = Modifier.graphicsLayer { translationY = projectedShift },
                                         onBoundsChange = { rect -> exerciseBounds["${part.id}|${supersetMembers.first().id}"] = rect },
                                         onDragStart = { beginExerciseDrag(part.id, supersetMembers.first().id) },
                                         onDrag = ::updateExerciseDrag,
@@ -1244,16 +1399,25 @@ fun SessionEditorScreen(
                                     }
                                 }
                                     key("${part.id}|${exercise.id}") {
+                                        DropGapProjection(
+                                            visible = draggingExerciseId != null && ((exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == targetIndex) || exerciseDropTargetKey == "${part.id}|${exercise.id}"),
+                                            accentColor = (part.color ?: PART_COLORS.first()).toEditorColor(),
+                                        )
+                                        val projectedShift by animateFloatAsState(
+                                            targetValue = projectedShiftFor(part.id, targetIndex, exercise.id),
+                                            animationSpec = tween(150),
+                                            label = "partExerciseProjectedShift",
+                                        )
                                         ExerciseEditorCard(
                                             exercise = exercise,
                                             exerciseInfo = EXERCISE_DATABASE.find { it.id == exercise.exerciseDbId },
                                             accentHex = part.color,
                                             partId = part.id,
                                             isCompetitionMovement = exercise.matchesCompetitionMovement(uiState.competitionMovementIds),
-                                            modifier = Modifier.fillMaxWidth(),
+                                            modifier = Modifier.fillMaxWidth().graphicsLayer { translationY = projectedShift },
                                             isDragging = draggingExerciseId == exercise.id,
                                             dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
-                                            isDropTarget = (exerciseDropTargetKey == "${part.id}|${exercise.id}" || (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == targetIndex)) && draggingExerciseId != exercise.id,
+                                            isDropTarget = (exerciseDropTargetKey == "${part.id}|${exercise.id}" || ((exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == targetIndex) || exerciseDropTargetKey == "${part.id}|${exercise.id}")) && draggingExerciseId != exercise.id,
                                             isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != exercise.id,
                                             onBoundsChange = { rect -> exerciseBounds["${part.id}|${exercise.id}"] = rect },
                                             onDragStart = {
@@ -1438,6 +1602,51 @@ fun SessionEditorScreen(
         }
         }
 
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .zIndex(250f),
+        ) {
+            SessionContextNavigator(
+                sessions = uiState.siblingSessions,
+                selectedSessionId = uiState.selectedSiblingSessionId ?: session.id,
+                onSelectSession = viewModel::requestSessionSwitch,
+                weekStartDay = uiState.weekStartDay,
+                activeDayOfWeek = uiState.dayOfWeek,
+                onSelectDay = { day ->
+                    viewModel.selectRoadmapDay(day)
+                },
+                roadmapOptions = uiState.roadmapOptions,
+                onSelectRoadmapOption = viewModel::selectRoadmapOption,
+                onCreateSessionForDay = { day ->
+                    viewModel.createSessionForDay(day)
+                },
+                isSimpleProgram = uiState.isSimpleProgram,
+                hasActiveLoops = uiState.hasActiveLoops,
+                hazeState = hazeState,
+                hazeStyle = roadmapGlassStyle,
+                onSetMainSessionForDay = viewModel::setMainSessionForDay,
+                currentSessionId = session.id,
+                currentDayOfWeek = uiState.dayOfWeek,
+            )
+        }
+
+        val previewExercise = draggingExerciseId?.let { activeId -> session.allExercises().firstOrNull { it.id == activeId } }
+        val previewPartId = draggingExercisePartId
+        val previewRect = if (previewPartId != null && draggingExerciseId != null) {
+            exerciseBounds["$previewPartId|$draggingExerciseId"]
+        } else {
+            null
+        }
+        if (previewExercise != null && previewRect != null) {
+            DragLiftPreview(
+                exercise = previewExercise,
+                rect = previewRect,
+                offset = draggingExerciseOffset,
+                modifier = Modifier.zIndex(500f),
+            )
+        }
     }
 
     SessionEditorSheets(
@@ -1705,9 +1914,9 @@ private fun SessionHero(
                  .padding(horizontal = 16.dp, vertical = 10.dp),
              verticalArrangement = Arrangement.spacedBy(6.dp),
          ) {
-              Column(
+             Column(
                   modifier = Modifier.fillMaxWidth(),
-                  verticalArrangement = Arrangement.spacedBy(4.dp),
+                  verticalArrangement = Arrangement.spacedBy(0.dp),
               ) {
                   Row(
                       modifier = Modifier.fillMaxWidth(),
@@ -1752,51 +1961,46 @@ private fun SessionHero(
                       else -> 22.sp
                   }
 
-                  OutlinedTextField(
+                  BasicTextField(
                       value = session.name,
                       onValueChange = onNameChange,
-                      modifier = Modifier.fillMaxWidth(),
-                      placeholder = { Text("Nueva sesión", color = Color.White.copy(alpha = 0.72f)) },
+                      modifier = Modifier
+                          .fillMaxWidth()
+                          .padding(top = 18.dp),
                       singleLine = true,
-                      shape = RoundedCornerShape(0.dp),
                       textStyle = MaterialTheme.typography.displaySmall.copy(
                           fontSize = titleFontSize,
                           fontWeight = FontWeight.Bold,
                           color = Color.White,
                       ),
-                      colors = OutlinedTextFieldDefaults.colors(
-                          focusedContainerColor = Color.Transparent,
-                          unfocusedContainerColor = Color.Transparent,
-                          focusedBorderColor = Color.Transparent,
-                          unfocusedBorderColor = Color.Transparent,
-                          focusedTextColor = Color.White,
-                          unfocusedTextColor = Color.White,
-                          cursorColor = Color.White,
-                      ),
+                      cursorBrush = SolidColor(Color.White),
+                      decorationBox = { innerTextField ->
+                          Box(Modifier.fillMaxWidth()) {
+                              if (session.name.isBlank()) Text("Nueva sesión", color = Color.White.copy(alpha = 0.72f), fontSize = titleFontSize, fontWeight = FontWeight.Bold)
+                              innerTextField()
+                          }
+                      },
                   )
 
-                  OutlinedTextField(
+                  BasicTextField(
                       value = session.description.orEmpty(),
                       onValueChange = onDescriptionChange,
-                      modifier = Modifier.fillMaxWidth().padding(top = 0.dp),
-                      placeholder = { Text("Añadir descripción", color = Color.White.copy(alpha = 0.62f)) },
+                      modifier = Modifier
+                          .fillMaxWidth()
+                          .padding(top = 4.dp, bottom = 8.dp),
                       singleLine = false,
-                      minLines = 1,
                       maxLines = 2,
-                      shape = RoundedCornerShape(0.dp),
                       textStyle = MaterialTheme.typography.bodyMedium.copy(
                           color = Color.White.copy(alpha = 0.86f),
                           fontWeight = FontWeight.Medium,
                       ),
-                      colors = OutlinedTextFieldDefaults.colors(
-                          focusedContainerColor = Color.Transparent,
-                          unfocusedContainerColor = Color.Transparent,
-                          focusedBorderColor = Color.Transparent,
-                          unfocusedBorderColor = Color.Transparent,
-                          focusedTextColor = Color.White,
-                          unfocusedTextColor = Color.White,
-                          cursorColor = Color.White,
-                      ),
+                      cursorBrush = SolidColor(Color.White),
+                      decorationBox = { innerTextField ->
+                          Box(Modifier.fillMaxWidth()) {
+                              if (session.description.isNullOrBlank()) Text("Añadir descripción", color = Color.White.copy(alpha = 0.62f), style = MaterialTheme.typography.bodyMedium)
+                              innerTextField()
+                          }
+                      },
                   )
 
                   // Action chips row
@@ -2016,11 +2220,12 @@ private fun TemplatesFab(onClick: () -> Unit) {
 @Composable
 private fun HeroGlassFab(
     summary: SessionEditorAugeSummary,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     FloatingActionButton(
         onClick = onClick,
-        modifier = Modifier,
+        modifier = modifier,
         containerColor = DarkEditorChip,
         contentColor = MaterialTheme.colorScheme.onSurface,
         shape = CircleShape,
@@ -2122,7 +2327,7 @@ private fun SessionContextNavigator(
         modifier = navModifier,
         shadowElevation = 0.dp,
         tonalElevation = 0.dp,
-        color = Color.Black.copy(alpha = 0.10f),
+        color = Color.Transparent,
     ) {
         Column(
             modifier = Modifier
@@ -2429,7 +2634,7 @@ private fun GroupEditorCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
-            .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
+            .onGloballyPositioned { onBoundsChange(it.boundsInRoot()) }
             .graphicsLayer {
                 translationY = if (isDragging) dragOffsetY else 0f
                 scaleX = if (isDragging) 1.02f else dropScale
@@ -2578,7 +2783,7 @@ private fun GroupEditorCard(
 
                     AnimatedVisibility(!collapsed) {
                         Column(
-                            modifier = Modifier.onGloballyPositioned { onContentBoundsChange(it.boundsInWindow()) },
+                            modifier = Modifier.onGloballyPositioned { onContentBoundsChange(it.boundsInRoot()) },
                             verticalArrangement = Arrangement.spacedBy(0.dp),
                         ) {
                             content()
@@ -2705,7 +2910,7 @@ private fun SupersetGroupEditorCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
+            .onGloballyPositioned { onBoundsChange(it.boundsInRoot()) }
             .graphicsLayer {
                 translationX = if (isDragging) dragOffset.x else 0f
                 translationY = if (isDragging) dragOffset.y else 0f
@@ -3132,24 +3337,88 @@ private fun SupersetRoundsCarousel(
                             val set = exercise.sets.getOrNull(roundIndex)
                             if (set != null) {
                                 Text(exercise.name, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                InlineSetRow(
-                                    set = set,
-                                    index = roundIndex,
-                                    reference1RM = resolveReferenceCapacity(exercise),
-                                    predictedWeight = calculateSuggestedLoad(exercise, set),
-                                    estimatedMetric = calculateEstimatedMetric(exercise, set),
-                                    trainingMode = exercise.trainingMode,
-                                    customUnit = exercise.customUnit,
-                                    accentColor = accentColor,
-                                    canMoveUp = roundIndex > 0,
-                                    canMoveDown = roundIndex < exercise.sets.lastIndex,
-                                    isUnilateral = exercise.isEffectivelyUnilateral(),
-                                    unilateralIntensityMode = exercise.unilateralIntensityMode,
-                                    onUpdate = { updater -> onUpdateSet(exercise.id, set.id, updater) },
-                                    onRemove = { onRemoveSet(exercise.id, set.id) },
-                                    onMoveUp = { onMoveSet(exercise.id, set.id, -1) },
-                                    onMoveDown = { onMoveSet(exercise.id, set.id, 1) },
-                                )
+                                val orderedSides = when (exercise.unilateralSideOrder) {
+                                    UnilateralSideOrder.LEFT_RIGHT -> listOf("L", "R")
+                                    UnilateralSideOrder.RIGHT_LEFT -> listOf("R", "L")
+                                }
+                                if (exercise.isEffectivelyUnilateral()) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        orderedSides.forEach { side ->
+                                            val isLeft = side == "L"
+                                            val showCard = if (isLeft) set.leftTarget != null else set.rightTarget != null
+                                            val isFirstVisible = orderedSides.takeWhile { it != side }.none { prior ->
+                                                if (prior == "L") set.leftTarget != null else set.rightTarget != null
+                                            }
+                                            if (showCard) {
+                                                InlineSetRow(
+                                                    set = set,
+                                                    index = roundIndex,
+                                                    reference1RM = resolveReferenceCapacity(exercise),
+                                                    predictedWeight = calculateSuggestedLoad(exercise, set),
+                                                    estimatedMetric = calculateEstimatedMetric(exercise, set),
+                                                    trainingMode = exercise.trainingMode,
+                                                    customUnit = exercise.customUnit,
+                                                    accentColor = if (isLeft) Color(0xFF2196F3) else Color(0xFFFF5252),
+                                                    canMoveUp = isFirstVisible && roundIndex > 0,
+                                                    canMoveDown = isFirstVisible && roundIndex < exercise.sets.lastIndex,
+                                                    isUnilateral = true,
+                                                    fixedUnilateralSide = side,
+                                                    showSetActions = isFirstVisible,
+                                                    unilateralIntensityMode = exercise.unilateralIntensityMode,
+                                                    onUpdate = { updater -> onUpdateSet(exercise.id, set.id, updater) },
+                                                    onRemove = { onRemoveSet(exercise.id, set.id) },
+                                                    onMoveUp = { onMoveSet(exercise.id, set.id, -1) },
+                                                    onMoveDown = { onMoveSet(exercise.id, set.id, 1) },
+                                                )
+                                            } else {
+                                                UnilateralAddGhostCard(
+                                                    side = side,
+                                                    accentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(184.dp),
+                                                    onClick = {
+                                                        onUpdateSet(exercise.id, set.id) { current ->
+                                                            val default = UnilateralTarget(
+                                                                weight = current.weight,
+                                                                targetReps = current.targetReps,
+                                                                targetDuration = current.targetDuration,
+                                                                targetValue = current.plannedTargetV2,
+                                                                targetRPE = current.targetRPE,
+                                                                targetRIR = current.targetRIR,
+                                                                intensityMode = current.intensityMode,
+                                                            )
+                                                            if (side == "L") {
+                                                                current.copy(leftTarget = current.leftTarget ?: default)
+                                                            } else {
+                                                                current.copy(rightTarget = current.rightTarget ?: default)
+                                                            }
+                                                        }
+                                                    },
+                                                )
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    InlineSetRow(
+                                        set = set,
+                                        index = roundIndex,
+                                        reference1RM = resolveReferenceCapacity(exercise),
+                                        predictedWeight = calculateSuggestedLoad(exercise, set),
+                                        estimatedMetric = calculateEstimatedMetric(exercise, set),
+                                        trainingMode = exercise.trainingMode,
+                                        customUnit = exercise.customUnit,
+                                        accentColor = accentColor,
+                                        canMoveUp = roundIndex > 0,
+                                        canMoveDown = roundIndex < exercise.sets.lastIndex,
+                                        isUnilateral = false,
+                                        unilateralIntensityMode = exercise.unilateralIntensityMode,
+                                        onUpdate = { updater -> onUpdateSet(exercise.id, set.id, updater) },
+                                        onRemove = { onRemoveSet(exercise.id, set.id) },
+                                        onMoveUp = { onMoveSet(exercise.id, set.id, -1) },
+                                        onMoveDown = { onMoveSet(exercise.id, set.id, 1) },
+                                    )
+                                }
                             }
                         }
                     }
@@ -3407,7 +3676,7 @@ private fun ExerciseEditorCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
+            .onGloballyPositioned { onBoundsChange(it.boundsInRoot()) }
             .graphicsLayer {
                 translationX = if (isDragging) dragOffset.x else 0f
                 translationY = if (isDragging) dragOffset.y else 0f
@@ -3638,7 +3907,7 @@ private fun ExerciseEditorCard(
                         )
                     }
 
-                    if (exercise.isEffectivelyUnilateral() && !isSupersetExercise) {
+                    if (exercise.isEffectivelyUnilateral()) {
                         item("side-order") {
                             SideOrderChip(
                                 sideOrder = exercise.unilateralSideOrder,
@@ -3672,6 +3941,58 @@ private fun ExerciseEditorCard(
                                     current.copy(unilateralIntensityMode = newMode)
                                 }
                             }
+                        }
+                    }
+                }
+
+                if (exercise.isEffectivelyUnilateral()) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        color = DarkEditorSurfaceSoft,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                "Unilateral",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            SideOrderChip(
+                                sideOrder = exercise.unilateralSideOrder,
+                                accentColor = accentColor,
+                                onToggle = {
+                                    onUpdateExercise { current ->
+                                        current.copy(
+                                            unilateralSideOrder = if (current.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
+                                                UnilateralSideOrder.RIGHT_LEFT
+                                            } else {
+                                                UnilateralSideOrder.LEFT_RIGHT
+                                            },
+                                        )
+                                    }
+                                },
+                            )
+                            DarkChoiceChip(
+                                label = if (exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) "LADOS VINCULADOS" else "LADOS INDEPENDIENTES",
+                                selected = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED,
+                                accentColor = accentColor,
+                                onClick = {
+                                    onUpdateExercise { current ->
+                                        current.copy(
+                                            unilateralIntensityMode = if (current.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
+                                                UnilateralIntensityMode.INDEPENDENT
+                                            } else {
+                                                UnilateralIntensityMode.SHARED
+                                            },
+                                        )
+                                    }
+                                },
+                            )
                         }
                     }
                 }
@@ -4569,9 +4890,9 @@ private fun EditorMiniField(
         shape = RoundedCornerShape(14.dp),
         textStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = DarkEditorChip,
-            unfocusedContainerColor = DarkEditorChip,
-            disabledContainerColor = DarkEditorChip.copy(alpha = 0.62f),
+            focusedContainerColor = Color(0xFF3A3A42),
+            unfocusedContainerColor = Color(0xFF2E2E35),
+            disabledContainerColor = Color(0xFF27272D),
             focusedBorderColor = Color.Transparent,
             unfocusedBorderColor = Color.Transparent,
             disabledBorderColor = Color.Transparent,
@@ -4603,9 +4924,14 @@ private fun DurationPickerField(
             shape = RoundedCornerShape(14.dp),
             textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = accentColor,
-                unfocusedBorderColor = accentColor.copy(alpha = 0.5f),
+                focusedContainerColor = Color(0xFF3A3A42),
+                unfocusedContainerColor = Color(0xFF2E2E35),
+                disabledContainerColor = Color(0xFF27272D),
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent,
+                disabledBorderColor = Color.Transparent,
                 focusedLabelColor = accentColor,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 cursorColor = accentColor,
             ),
         )
@@ -7118,9 +7444,9 @@ private fun CoverSheet(
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            DarkChoiceChip("GRADIENTES", coverTab == "gradient", modifier = Modifier.weight(1f)) { coverTab = "gradient" }
-            DarkChoiceChip("SÓLIDOS", coverTab == "solid", modifier = Modifier.weight(1f)) { coverTab = "solid" }
-            DarkChoiceChip("IMAGEN", coverTab == "image", modifier = Modifier.weight(1f)) { coverTab = "image" }
+            CoverTabButton("GRADIENTES", coverTab == "gradient", modifier = Modifier.weight(1f)) { coverTab = "gradient" }
+            CoverTabButton("SÓLIDOS", coverTab == "solid", modifier = Modifier.weight(1f)) { coverTab = "solid" }
+            CoverTabButton("IMAGEN", coverTab == "image", modifier = Modifier.weight(1f)) { coverTab = "image" }
         }
 
         if (coverTab == "gradient") {
@@ -7184,27 +7510,32 @@ private fun CoverSheet(
                 Text("Sube una imagen para activar desenfoque, brillo y contraste.", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("Movimiento portada", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-            DarkChoiceChip(
-                label = if (coverMotion) "ON" else "OFF",
-                selected = coverMotion,
-                onClick = { onCoverMotionChange(!coverMotion) },
+    }
+}
+
+@Composable
+private fun CoverTabButton(
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = modifier
+            .height(44.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .clickable { onClick() },
+        shape = RoundedCornerShape(999.dp),
+        color = if (selected) DarkEditorChipSelected else Color.Transparent,
+    ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+            Text(
+                label,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-        Text("Posición del título")
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(LabelPosition.BOTTOM_LEFT, LabelPosition.CENTER, LabelPosition.BOTTOM_CENTER).forEach { position ->
-                DarkChoiceChip(
-                    label = position.name.lowercase(),
-                    selected = session.coverStyle?.labelPosition == position,
-                    onClick = { onLabelPositionChange(position) },
-                )
-            }
         }
     }
 }
@@ -10035,7 +10366,7 @@ internal fun ExerciseSetsCarousel(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        val showUnilateralDualCards = exercise.isEffectivelyUnilateral() && exercise.supersetGroupRefOrLegacyId() == null
+        val showUnilateralDualCards = exercise.isEffectivelyUnilateral()
         val orderedSides = when (exercise.unilateralSideOrder) {
             UnilateralSideOrder.LEFT_RIGHT -> listOf("L", "R")
             UnilateralSideOrder.RIGHT_LEFT -> listOf("R", "L")

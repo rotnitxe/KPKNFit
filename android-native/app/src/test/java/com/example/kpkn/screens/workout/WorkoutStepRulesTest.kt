@@ -105,6 +105,35 @@ class WorkoutStepRulesTest {
     }
 
     @Test
+    fun buildSteps_expandsUnilateralSupersetMemberInConfiguredSideOrder() {
+        val unilateral = Exercise(
+            id = "a",
+            name = "A",
+            unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
+            unilateralSideOrder = UnilateralSideOrder.RIGHT_LEFT,
+            restBetweenSidesSeconds = 15,
+            sets = listOf(ExerciseSet("a1")),
+        )
+        val bilateral = Exercise(id = "b", name = "B", sets = listOf(ExerciseSet("b1")))
+        val session = SupersetRules.createSuperset(
+            session = Session(id = "s", name = "Sesion", exercises = listOf(unilateral, bilateral)),
+            groupId = "ss-1",
+            exerciseIds = listOf("a", "b"),
+            restBetweenExercises = 30,
+            restAfterSuperset = 120,
+        )
+
+        val workingSteps = WorkoutStepRules.buildSteps(session)
+            .filter { it.type == WorkoutStepType.WORKING_SET }
+
+        assertEquals(listOf("a", "a", "b"), workingSteps.map { it.exerciseId })
+        assertEquals(listOf("right", "left", null), workingSteps.map { it.side })
+        assertEquals(RestTimerKind.BETWEEN_SIDES, workingSteps[0].restAfterKind)
+        assertEquals(RestTimerKind.SUPERSET_INTRA, workingSteps[1].restAfterKind)
+        assertEquals(RestTimerKind.SUPERSET_ROUND, workingSteps[2].restAfterKind)
+    }
+
+    @Test
     fun buildSteps_groupsSupersetMobilityIntoSinglePreparationCard() {
         val a = Exercise(
             id = "a",

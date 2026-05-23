@@ -97,82 +97,92 @@ fun WorkoutCommandDock(
         }
     }
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .zIndex(5f)
     ) {
-        // --- Live Voice Status Overlay (anchored just above the glass dock) ---
-        AnimatedVisibility(
-            visible = voiceSessionState.stage != VoicePipelineStage.DISABLED && voiceIndicatorText.isNotBlank(),
-            enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { it / 2 }) + fadeOut()
+        Column(
+            modifier = Modifier.align(Alignment.BottomEnd),
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 4.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.54f))
-                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            AnimatedVisibility(
+                visible = voiceSessionState.stage != VoicePipelineStage.DISABLED && voiceIndicatorText.isNotBlank(),
+                enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it / 2 }) + fadeOut()
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Surface(
+                    modifier = Modifier.widthIn(max = 292.dp),
+                    shape = WorkoutUiTokens.ChipShape,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.66f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
                 ) {
-                    // Pulsing active dot
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(voiceIndicatorColor)
-                            .then(
-                                if (isListening) Modifier
-                                    .scale(pulseScale)
-                                    .alpha(pulseAlpha)
-                                else Modifier
-                            )
-                    )
-                    Text(
-                        text = voiceIndicatorText,
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    if (voiceSessionState.errorMessage != null && voiceSessionState.stage == VoicePipelineStage.ERROR_RECOVERY) {
-                        Spacer(Modifier.width(4.dp))
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(voiceIndicatorColor)
+                                .then(
+                                    if (isListening) Modifier
+                                        .scale(pulseScale)
+                                        .alpha(pulseAlpha)
+                                    else Modifier
+                                )
+                        )
                         Text(
-                            text = "(${voiceSessionState.errorMessage})",
-                            color = Color(0xFFFFCDD2),
-                            style = MaterialTheme.typography.bodySmall,
+                            text = voiceIndicatorText,
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                        if (voiceSessionState.errorMessage != null && voiceSessionState.stage == VoicePipelineStage.ERROR_RECOVERY) {
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = "(${voiceSessionState.errorMessage})",
+                                color = Color(0xFFFFCDD2),
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        // --- Glassmorphic Command Dock ---
-        WorkoutGlassSurface(
-            modifier = Modifier.fillMaxWidth(),
-            hazeState = hazeState,
-            shape = WorkoutUiTokens.CardShape
-        ) {
-            Row(
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    .width(96.dp)
+                    .height(64.dp),
+                contentAlignment = Alignment.BottomEnd,
             ) {
-                // Microphone Toggle button with smooth visual feedback
-                Surface(
+                FloatingActionButton(
+                    onClick = onPrimaryAction,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(56.dp),
+                    shape = CircleShape,
+                    containerColor = sessionAccentColor,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Completar serie",
+                        modifier = Modifier.size(26.dp),
+                    )
+                }
+                SmallFloatingActionButton(
                     onClick = onToggleVoice,
                     modifier = Modifier
-                        .size(44.dp)
+                        .align(Alignment.TopStart)
+                        .size(40.dp)
                         .then(
                             if (isListening) Modifier
                                 .scale(pulseScale)
@@ -180,39 +190,15 @@ fun WorkoutCommandDock(
                             else Modifier
                         ),
                     shape = CircleShape,
-                    color = if (voiceSessionEnabled) voiceIndicatorColor.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.04f),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        if (voiceSessionEnabled) voiceIndicatorColor.copy(alpha = 0.42f) else Color.White.copy(alpha = 0.08f)
-                    )
+                    containerColor = if (voiceSessionEnabled) voiceIndicatorColor.copy(alpha = 0.92f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.86f),
+                    contentColor = if (voiceSessionEnabled) Color.Black else Color.White.copy(alpha = 0.78f),
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = if (voiceSessionEnabled) Icons.Default.Mic else Icons.Default.MicOff,
-                            contentDescription = if (voiceSessionEnabled) "Desactivar control por voz" else "Activar control por voz",
-                            tint = if (voiceSessionEnabled) voiceIndicatorColor else Color.White.copy(alpha = 0.6f),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = if (voiceSessionEnabled) Icons.Default.Mic else Icons.Default.MicOff,
+                        contentDescription = if (voiceSessionEnabled) "Desactivar control por voz" else "Activar control por voz",
+                        modifier = Modifier.size(19.dp),
+                    )
                 }
-
-                // Primary Adaptative Action Button
-                WorkoutPrimaryActionButton(
-                    text = primaryButtonText,
-                    onClick = onPrimaryAction,
-                    modifier = Modifier
-                        .weight(1f)
-                        .heightIn(min = 48.dp),
-                    containerColor = sessionAccentColor,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                )
             }
         }
     }

@@ -136,10 +136,10 @@ fun WorkoutRoadmapBar(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
         hazeState = hazeState,
         glassStyle = HazeStyle(
-            blurRadius = 26.dp,
-            tint = HazeTint(MaterialTheme.colorScheme.surface.copy(alpha = 0.34f)),
-            backgroundColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.58f),
-            noiseFactor = 0.02f,
+            blurRadius = 30.dp,
+            tint = HazeTint(Color.Black.copy(alpha = 0.18f)),
+            backgroundColor = Color.Black.copy(alpha = 0.22f),
+            noiseFactor = 0.03f,
         ),
     ) {
         Column(

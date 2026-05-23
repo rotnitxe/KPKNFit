@@ -2298,11 +2298,15 @@ private fun WorkoutV2Body(
                     val totalSetPages = setPagerPages.size.coerceAtLeast(1)
                     key(currentExercise.id, totalSetPages) {
                     val pagerState = rememberPagerState(pageCount = { totalSetPages })
+                    var programmaticPagerSync by remember(currentExercise.id, totalSetPages) { mutableStateOf(false) }
 
-                    LaunchedEffect(pagerState.currentPage, setPagerPages) {
-                        val page = setPagerPages.getOrNull(pagerState.currentPage) ?: return@LaunchedEffect
+                    LaunchedEffect(pagerState.settledPage, setPagerPages) {
+                        if (programmaticPagerSync) return@LaunchedEffect
+                        val page = setPagerPages.getOrNull(pagerState.settledPage) ?: return@LaunchedEffect
                         if (isUnilateral) {
-                            selectedUnilateralSideOverride = page.side
+                            if (selectedUnilateralSideOverride != page.side) {
+                                selectedUnilateralSideOverride = page.side
+                            }
                         }
                         if (page.setIndex != uiState.currentSetIdx && page.setIndex < currentExercise.sets.size) {
                             viewModel.jumpToSet(page.setIndex)
@@ -2315,7 +2319,12 @@ private fun WorkoutV2Body(
                     }
                     LaunchedEffect(activeSwipePageIndex, totalSetPages) {
                         if (activeSwipePageIndex in 0 until totalSetPages && activeSwipePageIndex != pagerState.currentPage) {
-                            pagerState.scrollToPage(activeSwipePageIndex)
+                            programmaticPagerSync = true
+                            try {
+                                pagerState.scrollToPage(activeSwipePageIndex)
+                            } finally {
+                                programmaticPagerSync = false
+                            }
                         }
                     }
                     val pagerItems = remember(currentExercise.id, uiState.completedSets, uiState.currentSetIdx, isUnilateral) {
@@ -2353,13 +2362,17 @@ private fun WorkoutV2Body(
                             currentRoundIndex = uiState.currentSetIdx,
                             completedSets = uiState.completedSets,
                             sessionAccentColor = sessionAccentColor,
-                            onSelectRound = { round -> viewModel.jumpToSet(round) },
+                            onSelectRound = { round ->
+                                if (round != uiState.currentSetIdx) viewModel.jumpToSet(round)
+                            },
                         )
                     } else {
                         WorkoutSetPager(
                             items = pagerItems,
                             activePageIndex = uiState.currentSetIdx,
-                            onSelectPage = { page -> viewModel.jumpToSet(page) },
+                            onSelectPage = { page ->
+                                if (page != uiState.currentSetIdx) viewModel.jumpToSet(page)
+                            },
                             sessionAccentColor = sessionAccentColor,
                             isUnilateral = isUnilateral,
                             selectedSide = activeSide,
@@ -2379,8 +2392,9 @@ private fun WorkoutV2Body(
                     ) { page ->
                         val pageSpec = setPagerPages.getOrNull(page) ?: WorkoutSetSwipePage(uiState.currentSetIdx, activeSide)
                         val activeSetIndex = pageSpec.setIndex.coerceIn(0, (currentExercise.sets.size - 1).coerceAtLeast(0))
-                        val isActivePage = page == pagerState.currentPage
+                        val isActivePage = page == pagerState.settledPage
                         val activeSet = currentExercise.sets.getOrNull(activeSetIndex) ?: currentSet
+                        val cardSide = pageSpec.side ?: activeSide
                         val activeGhostSet = remember(currentExercise.id, activeSetIndex, uiState.exerciseTags[currentExercise.id]) {
                             viewModel.getGhostForSet(
                                 exerciseId = currentExercise.id,
@@ -2406,8 +2420,12 @@ private fun WorkoutV2Body(
                             persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
                             amrapCalibrationMessage = uiState.amrapCalibrationMessage,
                             isActivePage = isActivePage,
-                            activeSide = pageSpec.side ?: activeSide,
-                            sideLocked = isUnilateral && (pageSpec.side ?: activeSide) != null,
+                            initialDraft = viewModel.getSetDraft(currentExercise.id, activeSetIndex, cardSide),
+                            onDraftChange = { draft, side ->
+                                viewModel.updateSetDraft(currentExercise.id, activeSetIndex, side, draft)
+                            },
+                            activeSide = cardSide,
+                            sideLocked = isUnilateral && cardSide != null,
                             rmSuggestedWeight = rmSelectedWeight,
                             onRmWeightConsumed = onRmWeightConsumed,
                             sheetHazeState = cardsHazeState,

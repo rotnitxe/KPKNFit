@@ -109,3 +109,6 @@ artifacts/
 /tsc_*.txt
 /tserr.txt
 /typecheck_*.txt
+
+.gemini/
+gha-creds-*.json

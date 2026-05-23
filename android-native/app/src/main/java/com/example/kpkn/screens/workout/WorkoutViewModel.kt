@@ -3570,6 +3570,7 @@ class WorkoutViewModel(
         val currentExercise = visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
         val maxIdx = currentExercise.sets.lastIndex.coerceAtLeast(0)
         val targetSetIdx = setIdx.coerceIn(0, maxIdx)
+        if (targetSetIdx == state.currentSetIdx) return
         _uiState.update {
             it.copy(
                 currentSetIdx = targetSetIdx,
