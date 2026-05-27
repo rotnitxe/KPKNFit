@@ -130,10 +130,15 @@ object AugeRecoveryEngine {
         ld.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     } catch (e: Exception) { 0L }
 
-    private fun manualBatteryAnchorMs(wellbeing: DailyWellbeingLog?): Long =
-        wellbeing?.manualBatteryAnchorMs
-            ?: wellbeing?.date?.let { parseWellbeingDate(it) }
-            ?: 0L
+    private fun manualBatteryAnchorMs(wellbeing: DailyWellbeingLog?): Long {
+        if (wellbeing == null) return 0L
+        return wellbeing.manualBatteryAnchorMs
+            ?: if (wellbeing.manualNeuralBattery != null
+                || wellbeing.manualMuscularBattery != null
+                || wellbeing.manualSpinalBattery != null
+            ) nowMs()
+            else wellbeing.date.let { parseWellbeingDate(it) }
+    }
 
     private fun muscleMatchesCategory(specificMuscle: String, category: String): Boolean {
         return matchesAugeMuscleTarget(specificMuscle, category)

@@ -12,7 +12,10 @@ import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.domain.auge.AugeTtcEngine
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -28,6 +31,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     private val programRepo = ProgramRepository.getInstance()
     private val nutritionRepo = NutritionRepository.getInstance()
     private val exerciseDb = EXERCISE_DATABASE_BY_ID
+
+    private var recoveryTimerJob: Job? = null
 
     // ─── Public state ─────────────────────────────────────────────────────────
 
@@ -124,6 +129,20 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                     recompute(history, settings)
                 }
         }
+
+        // Periodic recovery timer: rings degrade/recover over time,
+        // so recompute every 30s to let exponential decay formulas take effect.
+        recoveryTimerJob = viewModelScope.launch {
+            while (isActive) {
+                delay(30_000L)
+                refresh()
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        recoveryTimerJob?.cancel()
     }
 
     // ─── Core recompute ───────────────────────────────────────────────────────
@@ -303,7 +322,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 manualNeuralBattery = neural.coerceIn(0, 100),
                 manualSpinalBattery = spinal.coerceIn(0, 100),
                 manualMuscleBatteries = perMuscle.mapValues { (_, value) -> value.coerceIn(0, 100) },
-                manualBatteryAnchorMs = manualBatteryAnchorMs ?: base?.manualBatteryAnchorMs,
+                manualBatteryAnchorMs = manualBatteryAnchorMs ?: System.currentTimeMillis(),
                 notes = base?.notes,
             )
             augeRepo.saveWellbeingLog(updated)

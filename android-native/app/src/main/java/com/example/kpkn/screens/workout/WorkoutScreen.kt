@@ -584,6 +584,7 @@ fun WorkoutScreen(
                 manualNeuralBattery = neural,
                 manualSpinalBattery = spinal,
                 manualMuscleBatteries = perMuscle,
+                manualBatteryAnchorMs = System.currentTimeMillis(),
                 notes = todayWellbeing?.notes,
             )
             augeViewModel.saveWellbeing(log)
@@ -1518,12 +1519,6 @@ fun WorkoutScreen(
             sessionMuscleVolumeByRoleSets = sessionMuscleVolumeByRoleSets,
             postExerciseFeedbackByExerciseId = uiState.postExerciseFeedbackByExerciseId,
             onConfirm = { notes, fatigue, closingFeedback, shareToStory ->
-                augeViewModel.applyManualBatteries(
-                    neural = closingFeedback.finalNeuralBattery ?: readinessNeuralStart,
-                    spinal = closingFeedback.finalSpinalBattery ?: readinessSpinalStart,
-                    perMuscle = closingFeedback.finalMuscleBatteries,
-                )
-                // Capture data before finishWorkout potentially clears uiState
                 val share = shareToStory
                 val sessionName = session.name
                 val completedExercises = completedExercisesForSummary
@@ -1540,7 +1535,11 @@ fun WorkoutScreen(
                     closingFeedback = closingFeedback,
                     onPendingQuestionnaire = { q -> augeViewModel.schedulePendingQuestionnaire(q) },
                     onComplete = {
-                        augeViewModel.refresh()
+                        augeViewModel.applyManualBatteries(
+                            neural = closingFeedback.finalNeuralBattery ?: readinessNeuralStart,
+                            spinal = closingFeedback.finalSpinalBattery ?: readinessSpinalStart,
+                            perMuscle = closingFeedback.finalMuscleBatteries,
+                        )
                         if (share) {
                             WorkoutShareService.shareToInstagramStory(
                                 context = context,
