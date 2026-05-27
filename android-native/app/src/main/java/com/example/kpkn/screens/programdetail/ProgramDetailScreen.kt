@@ -32,8 +32,10 @@ import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStructure
+import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.data.models.CompetitionDetails
 import com.example.kpkn.data.models.CompetitionRecord
 import com.example.kpkn.data.models.CompetitionRecordMode
@@ -87,7 +89,7 @@ fun ProgramDetailScreen(
     val calendarizationEndDate by viewModel.calendarizationEndDate.collectAsState()
     val calendarizationStartDayOfWeek by viewModel.calendarizationStartDayOfWeek.collectAsState()
     val calendarizationTrainingDays by viewModel.calendarizationTrainingDays.collectAsState()
-    val batteries by augeViewModel.batteries.collectAsState()
+    val augeSnapshot by augeViewModel.snapshot.collectAsState()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val context = LocalContext.current
 
@@ -142,9 +144,9 @@ fun ProgramDetailScreen(
                 isActive = isActive,
                 isPaused = isPaused,
                 focusMode = p.mode.name.lowercase(),
-                muscularBattery = batteries.muscular,
-                sncBattery = batteries.cnc,
-                spinalBattery = batteries.spinal,
+                muscularBattery = augeSnapshot.ringScore(RecoveryChannelId.MUSCULAR),
+                sncBattery = augeSnapshot.ringScore(RecoveryChannelId.SYSTEM),
+                spinalBattery = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE),
                 isVolumeCalibrated = p.volumeRecommendations.isNotEmpty() && p.athleteProfileScore != null,
                 onBack = onBack,
                 onStartPause = {

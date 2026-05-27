@@ -92,24 +92,73 @@ object AugeFatigueEngine {
         )
     }
 
-    /**
-     * Devuelve las métricas AUGE del ejercicio leyendo únicamente la base de datos.
-     * Retorna **null** si la DB no tiene efc+cnc+ssc completos.
-     *
-     * Antes de este cambio la función inventaba valores por heurística de nombre cuando la DB
-     * no tenía datos, haciendo que la DB no fuera la única fuente de verdad.
-     * Los callers deben manejar null mostrando "—" en la UI o saltando el ejercicio en los
-     * cálculos de fatiga.
-     *
-     * @param exerciseName  Solo para logging; no se usa para derivar valores.
-     * @param equipment     Ignorado — mantenido por compatibilidad de firma.
-     * @param dbInfo        Entrada de la DB para el ejercicio. Si es null, retorna null.
-     */
+    private fun deriveAugeMetricsHeuristic(exerciseName: String, equipment: String?): AugeMetrics {
+        val lower = exerciseName.lowercase().trim()
+        val hasEquipment = equipment?.lowercase() ?: ""
+
+        val (baseEfc, baseCnc, baseSsc) = when {
+            lower.contains("deadlift") || lower.contains("peso muerto") || lower.contains("rumano") -> Triple(4.0, 4.0, 1.6)
+            lower.contains("squat") || lower.contains("sentadilla") || lower.contains("hack squat") -> Triple(3.8, 3.8, 1.2)
+            lower.contains("bench press") || lower.contains("press banca") || lower.contains("press de banca") -> Triple(3.2, 3.5, 0.8)
+            lower.contains("overhead press") || lower.contains("military press") || lower.contains("press militar") -> Triple(3.0, 3.5, 1.0)
+            lower.contains("pull up") || lower.contains("pull-up") || lower.contains("dominada") || lower.contains("chin up") || lower.contains("chin-up") -> Triple(3.0, 3.0, 0.3)
+            lower.contains("row") || lower.contains("remo") && !lower.contains("rumano") -> Triple(3.0, 3.2, 0.7)
+            lower.contains("hip thrust") || lower.contains("empuje de cadera") -> Triple(3.5, 3.0, 0.8)
+            lower.contains("clean") || lower.contains("snatch") || lower.contains("arranque") || lower.contains("cargada") || lower.contains("envion") || lower.contains("envión") -> Triple(4.5, 4.5, 1.4)
+            lower.contains("lunge") || lower.contains("zancada") || lower.contains("bulgarian") || lower.contains("búlgaro") || lower.contains("bulgara") || lower.contains("búlgara") -> Triple(2.8, 2.5, 0.5)
+            lower.contains("curl") || lower.contains("bicep") || lower.contains("bíceps") -> Triple(1.5, 1.5, 0.1)
+            lower.contains("extension") && (lower.contains("tricep") || lower.contains("tríceps")) -> Triple(1.5, 1.5, 0.1)
+            lower.contains("lateral") || lower.contains("deltoides") && lower.contains("lateral") -> Triple(1.5, 1.5, 0.1)
+            lower.contains("pushdown") || lower.contains("pressdown") || lower.contains("frances") || lower.contains("francés") -> Triple(1.5, 1.5, 0.1)
+            lower.contains("leg press") || lower.contains("prensa") -> Triple(3.0, 2.5, 0.8)
+            lower.contains("leg curl") || lower.contains("femoral") || lower.contains("curl de pierna") -> Triple(2.0, 1.8, 0.2)
+            lower.contains("leg extension") || lower.contains("extension de cuadriceps") || lower.contains("extensión de cuádriceps") -> Triple(2.2, 2.0, 0.1)
+            lower.contains("calf") || lower.contains("pantorrilla") || lower.contains("gemelo") -> Triple(1.5, 1.2, 0.1)
+            lower.contains("fly") || lower.contains("apertura") || lower.contains("pec deck") || lower.contains("crossover") -> Triple(2.0, 1.8, 0.2)
+            lower.contains("dip") || lower.contains("fondo") -> Triple(2.8, 3.0, 0.6)
+            lower.contains("good morning") || lower.contains("buenos dias") || lower.contains("buenos días") -> Triple(2.8, 2.5, 1.2)
+            lower.contains("hyperextension") || lower.contains("hiperextension") || lower.contains("hiperextensión") -> Triple(2.0, 1.5, 0.8)
+            lower.contains("carry") || lower.contains("cargada") && lower.contains("granjero") -> Triple(2.0, 2.5, 1.0)
+            else -> Triple(2.5, 2.5, 0.5)
+        }
+
+        var efc = baseEfc; var cnc = baseCnc; var ssc = baseSsc
+
+        if (hasEquipment.contains("mancuerna") || hasEquipment.contains("dumbbell") || hasEquipment.contains("dumbbells")) {
+            cnc += 0.2; ssc -= 0.2
+        }
+        if (hasEquipment.contains("smith")) {
+            cnc -= 0.5; efc -= 0.2
+        }
+        if (hasEquipment.contains("cable") || hasEquipment.contains("polea")) {
+            cnc -= 0.3; efc += 0.2
+        }
+        if (hasEquipment.contains("barra")) {
+            ssc += 0.2
+        }
+
+        if (exerciseName.contains("pausa", ignoreCase = true) || exerciseName.contains("pause", ignoreCase = true)) {
+            cnc += 0.3; efc += 0.5
+        }
+        if (exerciseName.contains("deficit", ignoreCase = true) || exerciseName.contains("déficit", ignoreCase = true)) {
+            ssc += 0.2; efc += 0.3
+        }
+        if (exerciseName.contains("parcial", ignoreCase = true) || exerciseName.contains("partial", ignoreCase = true)) {
+            efc -= 0.2; ssc += 0.2
+        }
+
+        return AugeMetrics(
+            efc = efc.coerceIn(1.0, 5.0),
+            cnc = cnc.coerceIn(1.0, 5.0),
+            ssc = ssc.coerceIn(0.0, 2.0),
+        )
+    }
+
     fun getDynamicAugeMetrics(
         exerciseName: String,
         equipment: String? = null,
         dbInfo: ExerciseMuscleInfo? = null,
-    ): AugeMetrics? = deriveAugeMetricsFromDb(dbInfo)
+    ): AugeMetrics? = deriveAugeMetricsFromDb(dbInfo) ?: deriveAugeMetricsHeuristic(exerciseName, equipment)
 
     // ─── RPE efectivo (traduce RPE / RIR / failure) ──────────────────────────
 
@@ -127,7 +176,14 @@ object AugeFatigueEngine {
 
         if (set.isFailure) baseRpe = max(baseRpe, 11.2)
         if (set.isFailedSet) baseRpe = max(baseRpe, 10.2)
-        return baseRpe.coerceIn(1.0, 12.0)
+
+        var techniqueBonus = 0.0
+        if (set.dropSets.isNotEmpty()) techniqueBonus += set.dropSets.size * 1.5
+        if (set.restPauses.isNotEmpty()) techniqueBonus += set.restPauses.size * 1.0
+        if (set.isPartial && (set.partialReps ?: 0) > 0) techniqueBonus += 0.5
+        if (techniqueBonus > 0 && baseRpe < 10.0) baseRpe = 10.0
+
+        return (baseRpe + techniqueBonus).coerceIn(1.0, 12.0)
     }
 
     // ─── ¿El set cuenta para fatiga? ─────────────────────────────────────────
@@ -137,7 +193,7 @@ object AugeFatigueEngine {
         val hasTime = (set.timeSeconds ?: 0) > 0
         if (set.reps <= 0 && !hasTime && set.weight <= 0.0) return false
         val rpe = getEffectiveRPE(set)
-        return rpe >= 5.0
+        return rpe >= 6.0
     }
 
     fun calculateRpeMultiplier(rpe: Double): Double {

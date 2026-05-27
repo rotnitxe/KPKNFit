@@ -97983,6 +97983,114 @@ var init_WorkoutDrawer = __esm({
   }
 });
 
+// utils/programHelpers.ts
+var MS_PER_DAY, startOfLocalDay, getClosestYearForMonthDay, parseCalendarizedWeekStartDate, formatCalendarizedNameForSpanish, getCalendarizedCurrentWeek, getAbsoluteWeekIndex, checkWeekHasEvent;
+var init_programHelpers = __esm({
+  "utils/programHelpers.ts"() {
+    "use strict";
+    MS_PER_DAY = 24 * 60 * 60 * 1e3;
+    startOfLocalDay = (date2) => new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+    getClosestYearForMonthDay = (month, day, today) => {
+      const currentYear = today.getFullYear();
+      const candidates = [currentYear - 1, currentYear, currentYear + 1];
+      return candidates.reduce((best, year) => {
+        const bestDiff = Math.abs(new Date(best, month - 1, day).getTime() - today.getTime());
+        const diff = Math.abs(new Date(year, month - 1, day).getTime() - today.getTime());
+        return diff < bestDiff ? year : best;
+      }, currentYear);
+    };
+    parseCalendarizedWeekStartDate = (weekName, today = /* @__PURE__ */ new Date()) => {
+      if (!weekName) return null;
+      const match = weekName.match(/(?:semana\s*:?)?\s*(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/i);
+      if (!match) return null;
+      const month = Number(match[1]);
+      const day = Number(match[2]);
+      if (!Number.isInteger(month) || !Number.isInteger(day) || month < 1 || month > 12 || day < 1 || day > 31) return null;
+      const year = match[3] ? Number(match[3].length === 2 ? `20${match[3]}` : match[3]) : getClosestYearForMonthDay(month, day, today);
+      const parsed = new Date(year, month - 1, day);
+      if (parsed.getMonth() !== month - 1 || parsed.getDate() !== day) return null;
+      return parsed;
+    };
+    formatCalendarizedNameForSpanish = (name) => {
+      if (!name) return "";
+      return name.replace(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?(?!\/\d)/g, (_match, month, day, year) => {
+        const dd = String(Number(day)).padStart(2, "0");
+        const mm = String(Number(month)).padStart(2, "0");
+        return year ? `${dd}/${mm}/${year}` : `${dd}/${mm}`;
+      });
+    };
+    getCalendarizedCurrentWeek = (program, today = /* @__PURE__ */ new Date()) => {
+      const localToday = startOfLocalDay(today);
+      const weekDays = Math.max(1, program.weekDays ?? 7);
+      let closest2 = null;
+      for (let macroIndex = 0; macroIndex < program.macrocycles.length; macroIndex++) {
+        const macro = program.macrocycles[macroIndex];
+        let mesoOffset = 0;
+        for (let blockIndex = 0; blockIndex < (macro.blocks || []).length; blockIndex++) {
+          const block = (macro.blocks || [])[blockIndex];
+          for (let localMesoIndex = 0; localMesoIndex < block.mesocycles.length; localMesoIndex++) {
+            const meso = block.mesocycles[localMesoIndex];
+            for (const week of meso.weeks) {
+              const startDate = parseCalendarizedWeekStartDate(week.name, localToday);
+              if (!startDate) continue;
+              const endDate = new Date(startDate.getTime() + (weekDays - 1) * MS_PER_DAY);
+              const match = {
+                week,
+                macroIndex,
+                blockIndex,
+                blockId: block.id,
+                mesoIndex: mesoOffset + localMesoIndex,
+                weekId: week.id,
+                startDate,
+                endDate
+              };
+              if (localToday >= startDate && localToday <= endDate) return match;
+              if (!closest2) {
+                closest2 = match;
+              } else {
+                const currentDistance = Math.min(
+                  Math.abs(localToday.getTime() - startDate.getTime()),
+                  Math.abs(localToday.getTime() - endDate.getTime())
+                );
+                const closestDistance = Math.min(
+                  Math.abs(localToday.getTime() - closest2.startDate.getTime()),
+                  Math.abs(localToday.getTime() - closest2.endDate.getTime())
+                );
+                if (currentDistance < closestDistance) closest2 = match;
+              }
+            }
+          }
+          mesoOffset += block.mesocycles.length;
+        }
+      }
+      return closest2;
+    };
+    getAbsoluteWeekIndex = (program, targetBlockId, targetWeekId) => {
+      let abs = 0;
+      for (const macro of program.macrocycles) {
+        for (const block of macro.blocks || []) {
+          for (const meso of block.mesocycles) {
+            for (const week of meso.weeks) {
+              if (block.id === targetBlockId && week.id === targetWeekId) return abs;
+              abs++;
+            }
+          }
+        }
+      }
+      return abs;
+    };
+    checkWeekHasEvent = (program, absIndex) => {
+      return (program.events || []).some((e) => {
+        if (e.repeatEveryXCycles) {
+          const cycleLength = program.macrocycles[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks?.length || 1;
+          return (absIndex + 1) % (e.repeatEveryXCycles * cycleLength) === 0;
+        }
+        return e.calculatedWeek === absIndex;
+      });
+    };
+  }
+});
+
 // components/BodyProgressSheet.tsx
 var import_react53, import_react_dom5, import_jsx_runtime47, PREDEFINED_MEASUREMENTS, BodyProgressSheet;
 var init_BodyProgressSheet = __esm({
@@ -147792,37 +147900,6 @@ var init_IntegratedTabs = __esm({
   }
 });
 
-// utils/programHelpers.ts
-var getAbsoluteWeekIndex, checkWeekHasEvent;
-var init_programHelpers = __esm({
-  "utils/programHelpers.ts"() {
-    "use strict";
-    getAbsoluteWeekIndex = (program, targetBlockId, targetWeekId) => {
-      let abs = 0;
-      for (const macro of program.macrocycles) {
-        for (const block of macro.blocks || []) {
-          for (const meso of block.mesocycles) {
-            for (const week of meso.weeks) {
-              if (block.id === targetBlockId && week.id === targetWeekId) return abs;
-              abs++;
-            }
-          }
-        }
-      }
-      return abs;
-    };
-    checkWeekHasEvent = (program, absIndex) => {
-      return (program.events || []).some((e) => {
-        if (e.repeatEveryXCycles) {
-          const cycleLength = program.macrocycles[0]?.blocks?.[0]?.mesocycles?.[0]?.weeks?.length || 1;
-          return (absIndex + 1) % (e.repeatEveryXCycles * cycleLength) === 0;
-        }
-        return e.calculatedWeek === absIndex;
-      });
-    };
-  }
-});
-
 // components/program-detail/BlockRoadmap.tsx
 var import_react126, import_jsx_runtime90, BlockRoadmap, BlockRoadmap_default;
 var init_BlockRoadmap = __esm({
@@ -148038,6 +148115,7 @@ var init_DayView = __esm({
     init_es3();
     init_AppContext();
     init_icons();
+    init_programHelpers();
     import_jsx_runtime91 = __toESM(require_jsx_runtime(), 1);
     DayView = ({
       program,
@@ -148270,7 +148348,7 @@ var init_DayView = __esm({
       return /* @__PURE__ */ (0, import_jsx_runtime91.jsxs)("div", { className: "pb-6", children: [
         /* @__PURE__ */ (0, import_jsx_runtime91.jsx)("div", { className: "mt-0 px-4 mb-3", children: /* @__PURE__ */ (0, import_jsx_runtime91.jsxs)("div", { className: "flex items-center justify-between", children: [
           /* @__PURE__ */ (0, import_jsx_runtime91.jsxs)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime91.jsx)("h3", { className: "text-lg font-black text-zinc-900", children: selectedWeek.name || `Semana ${selectedWeek.id.slice(-2)}` }),
+            /* @__PURE__ */ (0, import_jsx_runtime91.jsx)("h3", { className: "text-lg font-black text-zinc-900", children: formatCalendarizedNameForSpanish(selectedWeek.name) || `Semana ${selectedWeek.id.slice(-2)}` }),
             /* @__PURE__ */ (0, import_jsx_runtime91.jsxs)("p", { className: "text-[11px] text-zinc-500 mt-0.5", children: [
               selectedWeek.sessions.length,
               " sesiones programadas"
@@ -148405,7 +148483,7 @@ var init_DayView = __esm({
                             /* @__PURE__ */ (0, import_jsx_runtime91.jsxs)("div", { className: "flex items-start gap-3", children: [
                               /* @__PURE__ */ (0, import_jsx_runtime91.jsx)("div", { className: "mt-1 text-zinc-300 cursor-grab active:cursor-grabbing", children: /* @__PURE__ */ (0, import_jsx_runtime91.jsx)(GripVerticalIcon, { size: 16 }) }),
                               /* @__PURE__ */ (0, import_jsx_runtime91.jsxs)("div", { className: "flex-1 min-w-0", children: [
-                                /* @__PURE__ */ (0, import_jsx_runtime91.jsx)("h5", { className: "text-sm font-bold text-zinc-900 truncate", children: session.name || `Sesi\xF3n ${idx + 1}` }),
+                                /* @__PURE__ */ (0, import_jsx_runtime91.jsx)("h5", { className: "text-sm font-bold text-zinc-900 truncate", children: formatCalendarizedNameForSpanish(session.name) || `Sesi\xF3n ${idx + 1}` }),
                                 /* @__PURE__ */ (0, import_jsx_runtime91.jsxs)("p", { className: "text-[10px] text-zinc-500 mt-0.5", children: [
                                   session.exercises?.length || 0,
                                   " ejercicios"
@@ -152358,6 +152436,7 @@ var init_ProgramDetail = __esm({
     init_MacrocycleEditorIntegrated();
     init_LoopsView();
     init_ProtocolsView();
+    init_programHelpers();
     import_jsx_runtime98 = __toESM(require_jsx_runtime(), 1);
     ProgramDetail = ({ program, onDeleteSession }) => {
       const {
@@ -152443,6 +152522,8 @@ var init_ProgramDetail = __esm({
         return Array.from(map3.entries()).map(([name, count]) => ({ name, count })).sort((a2, b) => b.count - a2.count);
       }, [history, program.id]);
       const [adaptiveCache] = (0, import_react133.useState)(() => getCachedAdaptiveData());
+      const calendarizedCurrentWeek = (0, import_react133.useMemo)(() => getCalendarizedCurrentWeek(program), [program]);
+      const effectiveCurrentWeekId = calendarizedCurrentWeek?.weekId ?? activeProgramState?.currentWeekId;
       const programLogs = (0, import_react133.useMemo)(
         () => history.filter((log4) => log4.programId === program.id).sort((a2, b) => new Date(b.date).getTime() - new Date(a2.date).getTime()),
         [history, program.id]
@@ -152468,25 +152549,36 @@ var init_ProgramDetail = __esm({
         [program]
       );
       const currentWeekIndex = (0, import_react133.useMemo)(() => {
-        if (!activeProgramState || activeProgramState.programId !== program.id) return 0;
+        const currentWeekId = calendarizedCurrentWeek?.weekId ?? (activeProgramState?.programId === program.id ? activeProgramState.currentWeekId : null);
+        if (!currentWeekId) return 0;
         let weekIdx = 0;
         for (const m of program.macrocycles) {
           for (const b of m.blocks || []) {
             for (const me of b.mesocycles) {
               for (const w of me.weeks) {
-                if (w.id === activeProgramState.currentWeekId) return weekIdx;
+                if (w.id === currentWeekId) return weekIdx;
                 weekIdx++;
               }
             }
           }
         }
         return 0;
-      }, [activeProgramState, program]);
+      }, [activeProgramState, calendarizedCurrentWeek, program]);
       (0, import_react133.useEffect)(() => {
+        if (calendarizedCurrentWeek && (!selectedBlockId || !selectedWeekId)) {
+          setSelectedBlockId(calendarizedCurrentWeek.blockId);
+          setSelectedWeekId(calendarizedCurrentWeek.weekId);
+          return;
+        }
         if (roadmapBlocks.length > 0 && (!selectedBlockId || !roadmapBlocks.find((b) => b.id === selectedBlockId))) {
           setSelectedBlockId(roadmapBlocks[0].id);
         }
-      }, [roadmapBlocks, selectedBlockId]);
+      }, [calendarizedCurrentWeek, roadmapBlocks, selectedBlockId, selectedWeekId]);
+      (0, import_react133.useEffect)(() => {
+        if (!calendarizedCurrentWeek) return;
+        setSelectedBlockId(calendarizedCurrentWeek.blockId);
+        setSelectedWeekId(calendarizedCurrentWeek.weekId);
+      }, [calendarizedCurrentWeek?.blockId, calendarizedCurrentWeek?.weekId]);
       (0, import_react133.useEffect)(() => {
         if (currentWeeks.length > 0 && (!selectedWeekId || !currentWeeks.find((w) => w.id === selectedWeekId))) {
           setSelectedWeekId(currentWeeks[0].id);
@@ -152561,7 +152653,7 @@ var init_ProgramDetail = __esm({
                       program,
                       selectedBlockId,
                       selectedWeekId,
-                      currentWeekId: activeProgramState?.currentWeekId,
+                      currentWeekId: effectiveCurrentWeekId,
                       onSelectBlock: setSelectedBlockId,
                       onSelectWeek: setSelectedWeekId
                     }
@@ -152571,7 +152663,7 @@ var init_ProgramDetail = __esm({
                     {
                       program,
                       selectedWeekId,
-                      currentWeekId: activeProgramState?.currentWeekId,
+                      currentWeekId: effectiveCurrentWeekId,
                       onEditSession: onEditSessionClick,
                       onAddSession: (dayOfWeek) => {
                         const block = roadmapBlocks.find((b) => b.id === selectedBlockId);
@@ -199072,6 +199164,7 @@ init_calculations();
 init_WorkoutDrawer();
 init_icons();
 init_Button();
+init_programHelpers();
 var import_jsx_runtime45 = __toESM(require_jsx_runtime(), 1);
 var StartWorkoutDrawer = ({ isOpen, onClose }) => {
   const { programs } = useAppState();
@@ -199132,7 +199225,7 @@ var StartWorkoutDrawer = ({ isOpen, onClose }) => {
         /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("br", {}),
         /* @__PURE__ */ (0, import_jsx_runtime45.jsxs)("span", { className: "text-xl text-[var(--md-sys-color-on-surface)]", children: [
           '"',
-          sessionToStart.session.name,
+          formatCalendarizedNameForSpanish(sessionToStart.session.name),
           '"'
         ] })
       ] }),
@@ -199165,11 +199258,11 @@ var StartWorkoutDrawer = ({ isOpen, onClose }) => {
                 " \u2022 ",
                 meso.name,
                 " \u2022 ",
-                week.name
+                formatCalendarizedNameForSpanish(week.name)
               ] }),
               /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("div", { className: "space-y-2", children: week.sessions.map((session) => /* @__PURE__ */ (0, import_jsx_runtime45.jsxs)("div", { onClick: () => handleSessionClick(session, program, week.variant), className: "flex justify-between items-center p-4 hover:bg-[var(--md-sys-color-primary-container)]/30 bg-[var(--md-sys-color-surface-container)] rounded-2xl cursor-pointer transition-all border border-[var(--md-sys-color-outline-variant)] group active:scale-[0.98]", children: [
                 /* @__PURE__ */ (0, import_jsx_runtime45.jsxs)("div", { className: "min-w-0", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("p", { className: "text-[var(--md-sys-color-on-surface)] font-black text-sm uppercase tracking-tight truncate", children: session.name }),
+                  /* @__PURE__ */ (0, import_jsx_runtime45.jsx)("p", { className: "text-[var(--md-sys-color-on-surface)] font-black text-sm uppercase tracking-tight truncate", children: formatCalendarizedNameForSpanish(session.name) }),
                   /* @__PURE__ */ (0, import_jsx_runtime45.jsxs)("p", { className: "text-[10px] font-bold text-[var(--md-sys-color-on-surface-variant)]/60 uppercase tracking-widest", children: [
                     getSessionExerciseCount(session),
                     " ejercicios"
@@ -200531,6 +200624,7 @@ var import_react105 = __toESM(require_react(), 1);
 init_es3();
 init_icons();
 init_CaupolicanIcon();
+init_programHelpers();
 var import_jsx_runtime61 = __toESM(require_jsx_runtime(), 1);
 var SessionTodayCard = ({
   programName,
@@ -200546,8 +200640,8 @@ var SessionTodayCard = ({
   const handleStart = (ts) => {
     const isToday = ts.dayOfWeek === currentDayOfWeek;
     const isRestDay = !sessions.some((s3) => s3.dayOfWeek === currentDayOfWeek);
-    const dayNames = ["Lunes", "Martes", "Mi\xE9rcoles", "Jueves", "Viernes", "S\xE1bado", "Domingo"];
-    const dayName = dayNames[(ts.dayOfWeek || 1) - 1];
+    const dayNames = ["Domingo", "Lunes", "Martes", "Mi\xE9rcoles", "Jueves", "Viernes", "S\xE1bado"];
+    const dayName = dayNames[ts.dayOfWeek ?? 0];
     if (isRestDay) {
       if (window.confirm("\xBFEst\xE1s seguro que quieres entrenar en tu d\xEDa de descanso? Recuerda que el descanso es esencial para el progreso.")) {
         onStartWorkout(ts.session, ts.program, void 0, ts.location);
@@ -200590,7 +200684,7 @@ var SessionTodayCard = ({
             /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("div", { className: "absolute inset-0 p-8 flex flex-col justify-end", children: /* @__PURE__ */ (0, import_jsx_runtime61.jsxs)("div", { className: "flex justify-between items-end", children: [
               /* @__PURE__ */ (0, import_jsx_runtime61.jsxs)("div", { className: "flex flex-col gap-1 pr-4 max-w-[70%]", children: [
                 /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("div", { className: "text-white/60 text-[10px] font-black uppercase tracking-[0.2em]", children: programName }),
-                /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("div", { className: "text-white text-2xl font-black leading-tight truncate", children: currentSession.session.name })
+                /* @__PURE__ */ (0, import_jsx_runtime61.jsx)("div", { className: "text-white text-2xl font-black leading-tight truncate", children: formatCalendarizedNameForSpanish(currentSession.session.name) })
               ] }),
               /* @__PURE__ */ (0, import_jsx_runtime61.jsx)(
                 "button",
@@ -201208,6 +201302,8 @@ delete LABEL_MAP["caderas"];
 init_icons();
 init_CaupolicanIcon();
 init_Button();
+init_programHelpers();
+init_dateUtils2();
 var import_jsx_runtime63 = __toESM(require_jsx_runtime(), 1);
 var isDarkTheme = (theme) => theme === "dark" || theme === "deep-black";
 function useHomeViewModel(onNavigate, onNavigateToCard) {
@@ -201220,16 +201316,16 @@ function useHomeViewModel(onNavigate, onNavigateToCard) {
   );
   const sessionsWithOngoing = (0, import_react107.useMemo)(() => {
     if (!activeProgram || !state.activeProgramState) return [];
+    const calendarizedWeek = getCalendarizedCurrentWeek(activeProgram);
     const { currentMacrocycleIndex, currentBlockIndex, currentMesocycleIndex, currentWeekId } = state.activeProgramState;
     const macro = activeProgram.macrocycles?.[currentMacrocycleIndex ?? 0];
     const block = macro?.blocks?.[currentBlockIndex ?? 0];
     const meso = block?.mesocycles?.[currentMesocycleIndex ?? 0];
-    const week = meso?.weeks.find((w) => w.id === currentWeekId);
+    const week = calendarizedWeek?.week ?? meso?.weeks.find((w) => w.id === currentWeekId);
+    const location2 = calendarizedWeek ? { macroIndex: calendarizedWeek.macroIndex, mesoIndex: calendarizedWeek.mesoIndex, weekId: calendarizedWeek.weekId } : { macroIndex: currentMacrocycleIndex ?? 0, mesoIndex: currentMesocycleIndex ?? 0, weekId: currentWeekId ?? "" };
     if (!week) return [];
-    const today = (/* @__PURE__ */ new Date()).getDay();
-    const dayMap = [7, 1, 2, 3, 4, 5, 6];
-    const currentDay = dayMap[today];
-    const todayStr = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+    const currentDay = (/* @__PURE__ */ new Date()).getDay();
+    const todayStr = getLocalDateString();
     return week.sessions.map((session) => {
       const isToday = session.dayOfWeek === currentDay;
       const ongoing = state.ongoingWorkout?.session?.id === session.id;
@@ -201239,13 +201335,9 @@ function useHomeViewModel(onNavigate, onNavigateToCard) {
       return {
         session,
         program: activeProgram,
-        location: {
-          macroIndex: currentMacrocycleIndex ?? 0,
-          mesoIndex: currentMesocycleIndex ?? 0,
-          weekId: currentWeekId ?? ""
-        },
+        location: location2,
         isCompleted: !!logForToday,
-        dayOfWeek: session.dayOfWeek || 1,
+        dayOfWeek: session.dayOfWeek ?? 0,
         log: logForToday,
         isOngoing: ongoing
       };
@@ -201340,7 +201432,7 @@ var Home = ({ onNavigate, onResumeWorkout, onNavigateToCard }) => {
             onStartWorkout: vm.handleStartWorkout,
             onResumeWorkout: () => onResumeWorkout(vm.ongoingWorkout),
             onOpenStartWorkoutModal: () => onNavigate("program-detail", { programId: activeProgram?.id }),
-            currentDayOfWeek: [7, 1, 2, 3, 4, 5, 6][(/* @__PURE__ */ new Date()).getDay()]
+            currentDayOfWeek: (/* @__PURE__ */ new Date()).getDay()
           }
         ) })
       ] }),
