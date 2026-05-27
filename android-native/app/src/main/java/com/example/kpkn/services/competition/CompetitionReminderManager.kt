@@ -13,7 +13,10 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.kpkn.data.models.CompetitionRecord
+import com.example.kpkn.data.models.CompetitionRecordStatus
+import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.navigation.KpknDeepLinks
+import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -44,10 +47,14 @@ class CompetitionReminderManager(context: Context) {
         scheduleIfEnabled(record, TYPE_WEEK, eventAt.minusDays(7), record.reminderOneWeekEnabled)
         scheduleIfEnabled(record, TYPE_48H, eventAt.minusHours(48), record.reminder48hEnabled)
         scheduleIfEnabled(record, TYPE_START, eventAt, record.reminderStartEnabled)
+        // Follow-up reminder only when an explicit competition start time exists.
+        if (!record.startTime.isNullOrBlank()) {
+            scheduleIfEnabled(record, TYPE_POST_RESULT, eventAt.plusHours(5), true)
+        }
     }
 
     fun cancel(recordId: String) {
-        listOf(TYPE_WEEK, TYPE_48H, TYPE_START).forEach { type ->
+        listOf(TYPE_WEEK, TYPE_48H, TYPE_START, TYPE_POST_RESULT).forEach { type ->
             alarmManager.cancel(pendingIntent(recordId, type))
         }
     }
@@ -96,6 +103,7 @@ class CompetitionReminderManager(context: Context) {
         const val TYPE_WEEK = "week"
         const val TYPE_48H = "48h"
         const val TYPE_START = "start"
+        const val TYPE_POST_RESULT = "post_result"
     }
 }
 
@@ -107,12 +115,21 @@ class CompetitionReminderReceiver : BroadcastReceiver() {
         val title = intent.getStringExtra(CompetitionReminderManager.EXTRA_TITLE)
             ?.takeIf { it.isNotBlank() }
             ?: "Competición"
+        val recordId = intent.getStringExtra(CompetitionReminderManager.EXTRA_RECORD_ID).orEmpty()
         val date = intent.getStringExtra(CompetitionReminderManager.EXTRA_DATE).orEmpty()
         val type = intent.getStringExtra(CompetitionReminderManager.EXTRA_TYPE).orEmpty()
+        if (type == CompetitionReminderManager.TYPE_POST_RESULT && recordId.isNotBlank()) {
+            val shouldNotify = runBlocking {
+                val entity = KpknDatabase.getInstance(context).competitionRecordDao().getById(recordId)
+                entity?.status == CompetitionRecordStatus.PLANNED.name
+            }
+            if (!shouldNotify) return
+        }
         val body = when (type) {
             CompetitionReminderManager.TYPE_WEEK -> "Queda una semana para $title."
             CompetitionReminderManager.TYPE_48H -> "Quedan 48 horas para $title."
             CompetitionReminderManager.TYPE_START -> "$title comienza ahora."
+            CompetitionReminderManager.TYPE_POST_RESULT -> "¿Cómo te fue en la competición?"
             else -> "Revisa tu registro de competición."
         } + if (date.isNotBlank()) " Fecha: $date." else ""
 
@@ -126,13 +143,21 @@ class CompetitionReminderReceiver : BroadcastReceiver() {
                 KpknDeepLinks.pendingActivityIntent(
                     context = context,
                     requestCode = 0,
-                    path = "competitions",
+                    path = if (type == CompetitionReminderManager.TYPE_POST_RESULT && recordId.isNotBlank()) {
+                        "competition/$recordId"
+                    } else {
+                        "competitions"
+                    },
                 )
             )
             .build()
 
-        runCatching {
-            NotificationManagerCompat.from(context).notify((title + date + type).hashCode(), notification)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        ) {
+            runCatching {
+                NotificationManagerCompat.from(context).notify((title + date + type).hashCode(), notification)
+            }
         }
     }
 

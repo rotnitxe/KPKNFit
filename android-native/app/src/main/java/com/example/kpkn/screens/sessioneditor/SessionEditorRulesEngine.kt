@@ -3,7 +3,6 @@ package com.example.kpkn.screens.sessioneditor
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
-import com.example.kpkn.data.models.FATIGUE_ROLE_MULTIPLIERS
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Session
@@ -304,9 +303,8 @@ object SessionEditorRulesEngine {
                 map[fallback] = (map[fallback] ?: 0.0) + setCount.toDouble()
                 return@forEach
             }
-            info.involvedMuscles.forEach { muscle ->
-                val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
-                val multiplier = FATIGUE_ROLE_MULTIPLIERS[muscle.role] ?: 0.0
+            val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(info.involvedMuscles)
+            contributions.forEach { (canonical, multiplier) ->
                 if (canonical.isNotBlank() && multiplier > 0.0) {
                     map[canonical] = (map[canonical] ?: 0.0) + setCount * multiplier
                 }

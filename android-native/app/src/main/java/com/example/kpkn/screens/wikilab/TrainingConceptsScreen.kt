@@ -72,7 +72,7 @@ fun TrainingConceptsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(bottom = 100.dp),
+            contentPadding = PaddingValues(bottom = 164.dp),
         ) {
             // ─── Hero Banner ──────────────────────────────────────────────
             item {
@@ -82,8 +82,8 @@ fun TrainingConceptsScreen(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    Color(0xFF1A237E),
-                                    Color(0xFF283593),
+                                    Color(0xFF101317),
+                                    Color(0xFF181C22),
                                     MaterialTheme.colorScheme.surface,
                                 )
                             )
@@ -91,36 +91,17 @@ fun TrainingConceptsScreen(
                         .padding(horizontal = 20.dp, vertical = 24.dp),
                 ) {
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Surface(
-                                shape = CircleShape,
-                                color = Color.White.copy(alpha = 0.15f),
-                                modifier = Modifier.size(48.dp),
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        Icons.Default.School,
-                                        null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(26.dp),
-                                    )
-                                }
-                            }
-                            Spacer(Modifier.width(14.dp))
-                            Column {
-                                Text(
-                                    "Diccionario del Entrenamiento",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White,
-                                )
-                                Text(
-                                    "${TRAINING_CONCEPTS_DATABASE.size} conceptos fundamentales",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.White.copy(alpha = 0.7f),
-                                )
-                            }
-                        }
+                        Text(
+                            "Conceptos clave",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                        )
+                        Text(
+                            "${TRAINING_CONCEPTS_DATABASE.size} conceptos fundamentales del entrenamiento.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f),
+                        )
 
                         Spacer(Modifier.height(16.dp))
 

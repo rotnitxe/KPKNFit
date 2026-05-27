@@ -26,6 +26,9 @@ class WorkoutStepRulesTest {
         val steps = WorkoutStepRules.buildSteps(Session(id = "s", name = "Sesion", exercises = listOf(exercise)))
 
         assertEquals(listOf(WorkoutStepType.MOBILITY, WorkoutStepType.WARMUP, WorkoutStepType.WORKING_SET), steps.map { it.type })
+        assertEquals("squat_mob-1", steps[0].stepKey)
+        assertEquals("squat_warmup_w1", steps[1].stepKey)
+        assertEquals("squat_0", steps[2].stepKey)
         assertEquals(RestTimerKind.WARMUP, steps[1].restAfterKind)
     }
 
@@ -158,10 +161,11 @@ class WorkoutStepRulesTest {
         val steps = WorkoutStepRules.buildSteps(session)
         val mobilitySteps = steps.filter { it.type == WorkoutStepType.MOBILITY }
 
-        assertEquals(1, mobilitySteps.size)
-        assertEquals("Movilidad de superserie", mobilitySteps.single().exerciseName)
-        assertEquals(listOf("mob-a", "mob-b"), mobilitySteps.single().mobilitySeries.map { it.id })
-        assertEquals(listOf(WorkoutStepType.MOBILITY, WorkoutStepType.WORKING_SET, WorkoutStepType.WORKING_SET), steps.map { it.type })
+        assertEquals(2, mobilitySteps.size)
+        assertEquals(listOf("Movilidad de superserie", "Movilidad de superserie"), mobilitySteps.map { it.exerciseName })
+        assertEquals(listOf("a_mob-a", "b_mob-b"), mobilitySteps.map { it.stepKey })
+        assertEquals(listOf("mob-a", "mob-b"), mobilitySteps.first().mobilitySeries.map { it.id })
+        assertEquals(listOf(WorkoutStepType.MOBILITY, WorkoutStepType.MOBILITY, WorkoutStepType.WORKING_SET, WorkoutStepType.WORKING_SET), steps.map { it.type })
     }
 
     @Test

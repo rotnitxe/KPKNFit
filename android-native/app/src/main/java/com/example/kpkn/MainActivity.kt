@@ -16,8 +16,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -87,8 +85,6 @@ import com.example.kpkn.screens.settings.SettingsTrainingScreen
 import com.example.kpkn.screens.wikilab.*
 import com.example.kpkn.screens.workout.WorkoutScreen
 
-import com.example.kpkn.screens.auge.AugeViewModel
-import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.telemetry.TelemetryHelper
 import com.example.kpkn.ui.components.icons.DumbbellIcon
@@ -106,7 +102,12 @@ import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.theme.KPKNTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
+
+private enum class NutritionContextTab {
+    NUTRITION,
+    BODY,
+}
 
 class MainActivity : ComponentActivity() {
     private val pendingDeepLinkRoute = mutableStateOf<String?>(null)
@@ -135,7 +136,7 @@ class MainActivity : ComponentActivity() {
         // Sync Room appLanguage → SharedPreferences on first load (retrocompat)
         lifecycleScope.launch(Dispatchers.IO) {
             runCatching {
-                val savedLang = com.example.kpkn.data.repository.ProgramRepository
+                val savedLang = ProgramRepository
                     .init(this@MainActivity).settings.value.appLanguage
                 LocaleManager.persist(this@MainActivity, savedLang)
             }.onFailure { it.printStackTrace() }
@@ -160,7 +161,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             val nutritionNotifManager = com.example.kpkn.services.nutrition.NutritionNotificationManager(this)
             nutritionNotifManager.createChannels()
-            val settings = com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value
+            val settings = ProgramRepository.getInstance().settings.value
             if (settings.mealReminderEnabled) {
                 nutritionNotifManager.scheduleMealReminders(
                     breakfastTime = settings.mealReminderBreakfast,
@@ -177,7 +178,7 @@ class MainActivity : ComponentActivity() {
             workoutReminderManager.createChannels()
             com.example.kpkn.services.workout.LoopNotificationManager(this).createChannels()
             com.example.kpkn.services.competition.CompetitionReminderManager(this).createChannels()
-            val settings = com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value
+            val settings = ProgramRepository.getInstance().settings.value
             if (settings.workoutReminderEnabled) {
                 workoutReminderManager.scheduleWorkoutReminder(settings.workoutReminderTime)
             }
@@ -188,7 +189,7 @@ class MainActivity : ComponentActivity() {
 
         // Initialize repositories (loads Room data → StateFlows)
         runCatching {
-            com.example.kpkn.data.repository.ProgramRepository.init(this)
+            ProgramRepository.init(this)
             com.example.kpkn.data.repository.CompetitionRepository.init(this)
             com.example.kpkn.data.repository.AugeRepository.getInstance(this)
             com.example.kpkn.data.repository.NutritionRepository.init(this)
@@ -241,10 +242,12 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         telemetryHelper.logAppBackground()
-        // Flush any in-flight Room writes to prevent session loss on background kill
-        runBlocking {
+        // Flush pending writes without blocking the main thread during background transition.
+        lifecycleScope.launch(Dispatchers.IO) {
             runCatching {
-                com.example.kpkn.data.repository.ProgramRepository.getInstance().flushPendingWrites()
+                withTimeoutOrNull(1500L) {
+                    ProgramRepository.getInstance().flushPendingWrites()
+                }
             }.onFailure { it.printStackTrace() }
         }
     }
@@ -345,8 +348,7 @@ fun KPKNApp(
         }
     }
     
-    val isFullscreenWizard = currentRoute == KpknRoute.NutritionWizard.route ||
-        currentRoute == KpknRoute.WikiLabExerciseCreator.route ||
+    val isFullscreenWizard = currentRoute == KpknRoute.WikiLabExerciseCreator.route ||
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("readiness-gate") == true ||
         currentRoute?.startsWith("workout") == true
@@ -425,9 +427,18 @@ fun KPKNApp(
         }
     }
 
-    val showSubtabbar = currentTab == KpknRoute.Training.route &&
+    val showTrainingSubtabbar = currentTab == KpknRoute.Training.route &&
             currentRoute == KpknRoute.ProgramDetail.route &&
             programContextReady
+    val selectedNutritionContextTab = when {
+        currentRoute == KpknRoute.BodyProgress.route -> NutritionContextTab.BODY
+        currentRoute == KpknRoute.Nutrition.route -> NutritionContextTab.NUTRITION
+        currentRoute == KpknRoute.MealHistory.route -> NutritionContextTab.NUTRITION
+        else -> null
+    }
+    val showNutritionSubtabbar = currentTab == KpknRoute.Nutrition.route &&
+            selectedNutritionContextTab != null
+    val showContextualSubtabbar = showTrainingSubtabbar || showNutritionSubtabbar
 
     val hazeState = remember { HazeState() }
     val bottomBarGlassStyle = remember {
@@ -478,6 +489,7 @@ fun KPKNApp(
 
                 // ─── Session in progress banner ─────────────────────────────
                 if (ongoingWorkout != null) {
+                    val floatingSessionBottomPadding = if (showContextualSubtabbar) 156.dp else 116.dp
                     val bgValue = ongoingWorkout?.session?.background?.value
                     val bgColors = remember(bgValue) {
                         when (bgValue) {
@@ -513,7 +525,7 @@ fun KPKNApp(
                             .align(Alignment.BottomCenter)
                             .offset { IntOffset(0, offsetY.toInt()) }
                             .padding(horizontal = 16.dp)
-                            .padding(bottom = 100.dp)
+                            .padding(bottom = floatingSessionBottomPadding)
                             .fillMaxWidth()
                             .draggable(
                                 orientation = Orientation.Vertical,
@@ -575,7 +587,7 @@ fun KPKNApp(
                 Column(Modifier.fillMaxWidth()) {
                 // ─── Subtabbar contextual extension (animated) ─────────────
                 AnimatedVisibility(
-                    visible = showSubtabbar,
+                    visible = showContextualSubtabbar,
                     enter = expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
                     exit = shrinkVertically(shrinkTowards = Alignment.Bottom) + fadeOut(),
                 ) {
@@ -593,40 +605,58 @@ fun KPKNApp(
                             tonalElevation = 0.dp,
                             shadowElevation = 0.dp,
                         ) {
-                            TabRow(
-                                selectedTabIndex = MainTab.entries.indexOf(programContextTab).coerceAtLeast(0),
-                                modifier = Modifier.fillMaxSize(),
-                                containerColor = Color.Transparent,
-                                contentColor = MaterialTheme.colorScheme.primary,
-                                indicator = { tabPositions ->
-                                    val idx = MainTab.entries.indexOf(programContextTab).coerceAtLeast(0)
-                                    TabRowDefaults.SecondaryIndicator(
-                                        modifier = Modifier.tabIndicatorOffset(tabPositions[idx]),
-                                        height = 3.dp,
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
-                                    )
-                                },
-                                divider = {},
-                            ) {
-                                MainTab.entries.forEach { tab ->
-                                    val selected = programContextTab == tab
-                                    Tab(
-                                        selected = selected,
-                                        onClick = { onProgramContextTabChange(tab) },
-                                        text = {
-                                            Text(
-                                                text = when (tab) {
-                                                    MainTab.TRAINING -> "Estructura"
-                                                    MainTab.ANALYTICS -> "Analíticas"
-                                                },
-                                                style = MaterialTheme.typography.labelMedium,
-                                                fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
-                                            )
-                                        },
-                                        selectedContentColor = MaterialTheme.colorScheme.primary,
-                                        unselectedContentColor = Color.White,
-                                    )
+                            if (showTrainingSubtabbar) {
+                                TabRow(
+                                    selectedTabIndex = MainTab.entries.indexOf(programContextTab).coerceAtLeast(0),
+                                    modifier = Modifier.fillMaxSize(),
+                                    containerColor = Color.Transparent,
+                                    contentColor = MaterialTheme.colorScheme.primary,
+                                    indicator = { tabPositions ->
+                                        val idx = MainTab.entries.indexOf(programContextTab).coerceAtLeast(0)
+                                        TabRowDefaults.SecondaryIndicator(
+                                            modifier = Modifier.tabIndicatorOffset(tabPositions[idx]),
+                                            height = 3.dp,
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                                        )
+                                    },
+                                    divider = {},
+                                ) {
+                                    MainTab.entries.forEach { tab ->
+                                        val selected = programContextTab == tab
+                                        Tab(
+                                            selected = selected,
+                                            onClick = { onProgramContextTabChange(tab) },
+                                            text = {
+                                                Text(
+                                                    text = when (tab) {
+                                                        MainTab.TRAINING -> "Estructura"
+                                                        MainTab.ANALYTICS -> "Analíticas"
+                                                    },
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
+                                                )
+                                            },
+                                            selectedContentColor = MaterialTheme.colorScheme.primary,
+                                            unselectedContentColor = Color.White,
+                                        )
+                                    }
                                 }
+                            } else if (showNutritionSubtabbar) {
+                                NutritionContextSubtabbar(
+                                    selectedTab = selectedNutritionContextTab,
+                                    onSelectTab = { tab ->
+                                        val targetRoute = when (tab) {
+                                            NutritionContextTab.NUTRITION -> KpknRoute.Nutrition.route
+                                            NutritionContextTab.BODY -> KpknRoute.BodyProgress.route
+                                        }
+                                        if (currentRoute != targetRoute) {
+                                            navController.navigate(targetRoute) {
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
+                                        }
+                                    },
+                                )
                             }
                         }
                     }
@@ -702,6 +732,50 @@ fun KPKNApp(
 }
 
 @Composable
+private fun NutritionContextSubtabbar(
+    selectedTab: NutritionContextTab,
+    onSelectTab: (NutritionContextTab) -> Unit,
+) {
+    val tabs = listOf(
+        NutritionContextTab.NUTRITION to "Nutrición",
+        NutritionContextTab.BODY to "Cuerpo",
+    )
+
+    TabRow(
+        selectedTabIndex = tabs.indexOfFirst { it.first == selectedTab }.coerceAtLeast(0),
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.primary,
+        indicator = { tabPositions ->
+            val idx = tabs.indexOfFirst { it.first == selectedTab }.coerceAtLeast(0)
+            TabRowDefaults.SecondaryIndicator(
+                modifier = Modifier.tabIndicatorOffset(tabPositions[idx]),
+                height = 3.dp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+            )
+        },
+        divider = {},
+    ) {
+        tabs.forEach { (tab, label) ->
+            val selected = selectedTab == tab
+            Tab(
+                selected = selected,
+                onClick = { onSelectTab(tab) },
+                text = {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
+                    )
+                },
+                selectedContentColor = MaterialTheme.colorScheme.primary,
+                unselectedContentColor = Color.White,
+            )
+        }
+    }
+}
+
+@Composable
 private fun KPKNNavGraph(
     navController: androidx.navigation.NavHostController,
     themeMode: AppThemeMode,
@@ -726,7 +800,7 @@ private fun KPKNNavGraph(
                     navigateWorkoutOrCompetition(navController, session, program)
                 },
                 onResumeWorkout = {
-                    val ongoing = com.example.kpkn.data.repository.ProgramRepository.getInstance().ongoingWorkout.value
+                    val ongoing = ProgramRepository.getInstance().ongoingWorkout.value
                     if (ongoing != null) {
                         navController.navigate(KpknRoute.Workout.create(ongoing.programId, ongoing.session.id))
                     }
@@ -794,9 +868,6 @@ private fun KPKNNavGraph(
         composable(KpknRoute.Nutrition.route) {
             NutritionScreen(
                 viewModel = nutritionViewModel,
-                onNavigateToWizard = {
-                    navController.navigate(KpknRoute.NutritionWizard.route)
-                },
                 onNavigateToBodyProgress = {
                     navController.navigate(KpknRoute.BodyProgress.route)
                 },
@@ -834,25 +905,19 @@ private fun KPKNNavGraph(
             }
         }
         composable(KpknRoute.NutritionWizard.route) {
-            val currentSettings by ProgramRepository.getInstance().settings.collectAsState()
-            com.example.kpkn.screens.nutrition.components.NutritionWizardView(
-                onComplete = { plan ->
-                    com.example.kpkn.data.repository.NutritionRepository.getInstance().addNutritionPlan(plan)
-                    com.example.kpkn.data.repository.NutritionRepository.getInstance().activatePlan(plan.id)
-                    navController.navigate(KpknRoute.Nutrition.route) {
-                        popUpTo(KpknRoute.NutritionWizard.route) { inclusive = true }
-                    }
-                },
-                onSkip = {
-                    navController.navigate(KpknRoute.Nutrition.route) {
-                        popUpTo(KpknRoute.NutritionWizard.route) { inclusive = true }
-                    }
-                },
-                currentSettings = currentSettings,
-            )
+            LaunchedEffect(Unit) {
+                nutritionViewModel.openPlanOverlay()
+                navController.navigate(KpknRoute.Nutrition.route) {
+                    popUpTo(KpknRoute.NutritionWizard.route) { inclusive = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         }
         composable(KpknRoute.BodyProgress.route) {
-            BodyProgressScreen(onBack = { navController.popBackStack() })
+            BodyProgressScreen(
+                onCreatePlan = { nutritionViewModel.openPlanOverlay() },
+            )
         }
         composable(KpknRoute.MealHistory.route) {
             MealHistoryScreen(onBack = { navController.popBackStack() })
@@ -880,6 +945,7 @@ private fun KPKNNavGraph(
             WikiLabScreen(
                 onCreateExercise = { navController.navigate(KpknRoute.WikiLabExerciseCreator.route) },
                 onOpenExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
+                onBack = { navController.popBackStack() },
             )
         }
         composable(KpknRoute.WikiLabExerciseCreator.route) {
@@ -898,12 +964,7 @@ private fun KPKNNavGraph(
         composable(KpknRoute.WikiLabMuscleAnatomy.route) {
             MuscleCategoryScreen(
                 onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
-                onBack = {
-                    navController.navigate(KpknRoute.Training.route) {
-                        popUpTo(KpknRoute.Training.route) { inclusive = false }
-                        launchSingleTop = true
-                    }
-                },
+                onBack = { navController.popBackStack() },
             )
         }
         composable(KpknRoute.WikiLabMuscleDetail.route) { backStack ->
@@ -969,9 +1030,9 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.WikiLabExerciseDetail.route) { backStack ->
             val exerciseId = backStack.arguments?.getString(KpknRoute.WikiLabExerciseDetail.ARG_EXERCISE_ID) ?: ""
+            val customExercises by com.example.kpkn.data.repository.CustomExerciseRepository.customExercises.collectAsState()
             val exercise = com.example.kpkn.data.exercises.resolveExercise(exerciseId)
-                ?: com.example.kpkn.data.repository.CustomExerciseRepository.customExercises.value
-                    .firstOrNull { it.id.equals(exerciseId, ignoreCase = true) }
+                ?: customExercises.firstOrNull { it.id.equals(exerciseId, ignoreCase = true) }
             if (exercise != null) {
                 ExerciseDetailScreen(
                     exercise = exercise,
@@ -1093,7 +1154,13 @@ private fun KPKNNavGraph(
         composable(KpknRoute.SettingsNutrition.route) {
             SettingsNutritionScreen(
                 onBack = { navController.popBackStack() },
-                onNavigateToWizard = { navController.navigate(KpknRoute.NutritionWizard.route) },
+                onOpenPlanOverlay = {
+                    nutritionViewModel.openPlanOverlay()
+                    navController.navigate(KpknRoute.Nutrition.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
             )
         }
         composable(KpknRoute.SettingsTraining.route) {
@@ -1203,7 +1270,27 @@ private fun navigateWorkoutOrCompetition(
     program: Program,
 ) {
     if (session.isMeetDay || session.isCompetitionSession) {
-        navController.navigate(KpknRoute.Competitions.route) { launchSingleTop = true }
+        when (session.competitionRecordMode) {
+            com.example.kpkn.data.models.CompetitionRecordMode.TECHNICAL -> {
+                navController.navigate(KpknRoute.Workout.create(program.id, session.id)) { launchSingleTop = true }
+            }
+            com.example.kpkn.data.models.CompetitionRecordMode.JOURNAL -> {
+                val recordId = session.competitionRecordId
+                if (!recordId.isNullOrBlank()) {
+                    navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
+                } else {
+                    navController.navigate(KpknRoute.Competitions.route) { launchSingleTop = true }
+                }
+            }
+            else -> {
+                val recordId = session.competitionRecordId
+                if (!recordId.isNullOrBlank()) {
+                    navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
+                } else {
+                    navController.navigate(KpknRoute.Workout.create(program.id, session.id)) { launchSingleTop = true }
+                }
+            }
+        }
     } else {
         navController.navigate(KpknRoute.Workout.create(program.id, session.id))
     }

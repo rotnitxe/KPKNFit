@@ -6,7 +6,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -57,6 +56,7 @@ fun WorkoutReadinessSheet(
     gender: Gender?,
     sessionMuscleStartingBatteries: Map<String, Int>,
     readinessNeuralStart: Int,
+    readinessMuscularStart: Int,
     readinessSpinalStart: Int,
     hazeState: HazeState,
     onSave: (neural: Int, muscular: Int?, spinal: Int, perMuscle: Map<String, Int>) -> Unit,
@@ -65,22 +65,47 @@ fun WorkoutReadinessSheet(
     if (!showReadinessSheet) return
 
     var neural by rememberSaveable { mutableIntStateOf(readinessNeuralStart) }
+    var muscular by rememberSaveable { mutableIntStateOf(readinessMuscularStart) }
     var spinal by rememberSaveable { mutableIntStateOf(readinessSpinalStart) }
     val muscleAdjustments = remember { mutableStateMapOf<String, Int>() }
+    val derivedMuscular = remember(muscleAdjustments.values.toList(), readinessMuscularStart) {
+        if (muscleAdjustments.isEmpty()) readinessMuscularStart.coerceIn(0, 100)
+        else muscleAdjustments.values.average().toInt().coerceIn(0, 100)
+    }
     var userEditedNeural by rememberSaveable { mutableStateOf(false) }
     var userEditedSpinal by rememberSaveable { mutableStateOf(false) }
     val userEditedMuscles = remember { mutableStateMapOf<String, Boolean>() }
     var initialized by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(initialized, sessionMuscleStartingBatteries) {
+    LaunchedEffect(
+        initialized,
+        readinessNeuralStart,
+        readinessMuscularStart,
+        readinessSpinalStart,
+        sessionMuscleStartingBatteries,
+    ) {
         if (!initialized) {
             neural = readinessNeuralStart
+            muscular = derivedMuscular
             spinal = readinessSpinalStart
             muscleAdjustments.clear()
             sessionMuscleStartingBatteries.forEach { (muscleId, value) ->
                 muscleAdjustments[muscleId] = value.coerceIn(0, 100)
             }
             initialized = true
+        } else {
+            if (!userEditedNeural) neural = readinessNeuralStart
+            muscular = readinessMuscularStart
+            if (!userEditedSpinal) spinal = readinessSpinalStart
+            val validMuscles = sessionMuscleStartingBatteries.keys
+            muscleAdjustments.keys
+                .filter { it !in validMuscles }
+                .forEach { muscleAdjustments.remove(it) }
+            sessionMuscleStartingBatteries.forEach { (muscleId, value) ->
+                if (userEditedMuscles[muscleId] != true) {
+                    muscleAdjustments[muscleId] = value.coerceIn(0, 100)
+                }
+            }
         }
     }
 
@@ -96,6 +121,7 @@ fun WorkoutReadinessSheet(
         },
     )
 
+    @Suppress("UNUSED_VALUE")
     var showDismissConfirmDialog by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
@@ -149,7 +175,7 @@ fun WorkoutReadinessSheet(
                 )
 
                 Text(
-                    text = "PRE-FLIGHT CHECK",
+                    text = "Reporta tu estado antes de entrenar",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -172,24 +198,23 @@ fun WorkoutReadinessSheet(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    val avgMuscle = if (muscleAdjustments.isEmpty()) 100 else muscleAdjustments.values.average().toInt()
                     ReadinessSummaryCard(
                         modifier = Modifier.weight(1f),
-                        title = "Sistemas",
+                        title = "Músculos",
+                        value = derivedMuscular,
+                        color = Color(0xFFFF5252)
+                    )
+                    ReadinessSummaryCard(
+                        modifier = Modifier.weight(1f),
+                        title = "Energía",
                         value = neural,
                         color = Color(0xFF448AFF)
                     )
                     ReadinessSummaryCard(
                         modifier = Modifier.weight(1f),
-                        title = "Estructura",
+                        title = "Columna",
                         value = spinal,
                         color = Color(0xFFFFD740)
-                    )
-                    ReadinessSummaryCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Muscular",
-                        value = avgMuscle,
-                        color = Color(0xFF66BB6A)
                     )
                 }
 
@@ -325,11 +350,6 @@ fun WorkoutReadinessSheet(
                 // 3. BOTÓN PRINCIPAL
                 Button(
                     onClick = {
-                        val derivedMuscular = if (muscleAdjustments.isEmpty()) {
-                            null
-                        } else {
-                            muscleAdjustments.values.average().toInt().coerceIn(0, 100)
-                        }
                         onSave(neural, derivedMuscular, spinal, muscleAdjustments.toMap())
                         allowSheetDismiss = true
                     },

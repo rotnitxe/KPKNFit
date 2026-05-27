@@ -16,12 +16,13 @@ data class DailyWellbeingLog(
     val moodState: MoodState? = null,
     val workIntensity: IntensityLevel? = null,
     val studyIntensity: IntensityLevel? = null,
-    // Legacy field kept only for backward compatibility with stored logs.
-    // AUGE 3.0 never reads or exposes a globally editable muscular battery.
+    // Global display override for the Home/Readiness RING. Per-muscle values
+    // remain the source for local muscle detail.
     val manualMuscularBattery: Int? = null,
     val manualNeuralBattery: Int? = null,
     val manualSpinalBattery: Int? = null,
     val manualMuscleBatteries: Map<String, Int> = emptyMap(),
+    val manualBatteryAnchorMs: Long? = null,
     val notes: String? = null,
 )
 
@@ -223,6 +224,7 @@ enum class SuggestionType { BIOMECHANICAL, NUTRITION }
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
+@Suppress("unused")
 enum class MoodState { HAPPY, NEUTRAL, SAD, ANXIOUS, ENERGETIC }
 enum class IntensityLevel { LOW, MEDIUM, HIGH }
 
@@ -308,7 +310,7 @@ data class SessionInterference(
 // ─── Mis RINGS: Sueño extendido ───────────────────────────────────────────────
 
 /** Log de sueño extendido con calidad y despertares para tracking de RINGS. */
-@kotlinx.serialization.Serializable
+@Serializable
 data class SleepLogExtended(
     val id: String,
     val date: String,              // "YYYY-MM-DD"

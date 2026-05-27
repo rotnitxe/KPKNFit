@@ -2,7 +2,10 @@ package com.example.kpkn.screens.workout
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.kpkn.data.models.CompletedSet
@@ -49,37 +52,8 @@ class WorkoutRestModalUiTest {
 
         composeRule.onNodeWithText("DESCANSO").assertExists()
         composeRule.onNodeWithText("Último set").assertExists()
-        composeRule.onNodeWithText("PLAN DE SESIÓN").assertExists()
-        composeRule.onNodeWithText("Usar Dinámico").assertExists()
-    }
-
-    @Test
-    fun rest_modal_shows_reliability_fallback_messages() {
-        composeRule.setContent {
-            MaterialTheme {
-                RestTimerOverlay(
-                    state = WorkoutRestModalState(
-                        exerciseName = "Press banca",
-                        plannedSeconds = 90,
-                        suggestedSeconds = 120,
-                        activeSeconds = 120,
-                        notificationsEnabled = false,
-                        exactAlarmGranted = false,
-                        soundReady = false,
-                    ),
-                    remainingSeconds = 20,
-                    hazeState = HazeState(),
-                    onDecrease = {},
-                    onIncrease = {},
-                    onSkip = {},
-                )
-            }
-        }
-
-        composeRule.onNodeWithText("Alertas del descanso").assertExists()
-        composeRule.onNodeWithText("Notificaciones desactivadas").assertExists()
-        composeRule.onNodeWithText("Alarma exacta no disponible").assertExists()
-        composeRule.onNodeWithText("Audio silencioso").assertExists()
+        composeRule.onNodeWithText("Descanso sugerido").assertExists()
+        composeRule.onNodeWithText("Ajustar tiempo").assertExists()
     }
 
     @Test
@@ -113,9 +87,36 @@ class WorkoutRestModalUiTest {
         }
 
         composeRule.onNodeWithText("Manual").assertExists()
-        composeRule.onNodeWithText("PLAN DE SESIÓN").assertExists()
-        composeRule.onNodeWithText("Usar Dinámico").assertExists()
+        composeRule.onNodeWithText("Descanso sugerido").assertExists()
         composeRule.onNodeWithText("Ajustar tiempo").assertExists()
         composeRule.onNodeWithText("Saltar descanso").assertExists()
+    }
+
+    @Test
+    fun rest_modal_can_embed_post_exercise_feedback_without_second_popup() {
+        composeRule.setContent {
+            MaterialTheme {
+                RestTimerOverlay(
+                    state = WorkoutRestModalState(
+                        exerciseName = "Press banca",
+                        plannedSeconds = 90,
+                        suggestedSeconds = 90,
+                        activeSeconds = 90,
+                    ),
+                    remainingSeconds = 42,
+                    hazeState = HazeState(),
+                    onDecrease = {},
+                    onIncrease = {},
+                    onSkip = {},
+                    postExerciseFeedbackContent = {
+                        Text("Feedback post ejercicio")
+                    },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("DESCANSO").assertExists()
+        composeRule.onNodeWithText("Feedback post ejercicio").assertExists()
+        composeRule.onAllNodesWithText("Saltar descanso").assertCountEquals(0)
     }
 }

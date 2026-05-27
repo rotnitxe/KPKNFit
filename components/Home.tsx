@@ -9,6 +9,8 @@ import { AugeTelemetryPanel, RingsViewMode } from './home/AugeTelemetryPanel';
 import { IntertwinedRingsIcon, SingleRingIcon, PlusIcon, BellIcon, SettingsIcon, SunIcon, MoonIcon } from './icons';
 import { CaupolicanIcon } from './CaupolicanIcon';
 import Button from './ui/Button';
+import { getCalendarizedCurrentWeek } from '../utils/programHelpers';
+import { getLocalDateString } from '../utils/dateUtils';
 
 const isDarkTheme = (theme: string | undefined) => theme === 'dark' || theme === 'deep-black';
 
@@ -26,18 +28,20 @@ function useHomeViewModel(onNavigate: (view: any, data?: any) => void, onNavigat
     const sessionsWithOngoing = useMemo(() => {
         if (!activeProgram || !state.activeProgramState) return [] as TodaySessionItem[];
 
+        const calendarizedWeek = getCalendarizedCurrentWeek(activeProgram);
         const { currentMacrocycleIndex, currentBlockIndex, currentMesocycleIndex, currentWeekId } = state.activeProgramState;
         const macro = activeProgram.macrocycles?.[currentMacrocycleIndex ?? 0];
         const block = macro?.blocks?.[currentBlockIndex ?? 0];
         const meso = block?.mesocycles?.[currentMesocycleIndex ?? 0];
-        const week = meso?.weeks.find(w => w.id === currentWeekId);
+        const week = calendarizedWeek?.week ?? meso?.weeks.find(w => w.id === currentWeekId);
+        const location = calendarizedWeek
+            ? { macroIndex: calendarizedWeek.macroIndex, mesoIndex: calendarizedWeek.mesoIndex, weekId: calendarizedWeek.weekId }
+            : { macroIndex: currentMacrocycleIndex ?? 0, mesoIndex: currentMesocycleIndex ?? 0, weekId: currentWeekId ?? '' };
 
         if (!week) return [] as TodaySessionItem[];
 
-        const today = new Date().getDay(); // 0-6 (Sun-Sat)
-        const dayMap = [7, 1, 2, 3, 4, 5, 6]; // Map JS day to 1-7 (Mon-Sun)
-        const currentDay = dayMap[today];
-        const todayStr = new Date().toISOString().split('T')[0];
+        const currentDay = new Date().getDay();
+        const todayStr = getLocalDateString();
 
         return week.sessions.map(session => {
             const isToday = session.dayOfWeek === currentDay;
@@ -50,13 +54,9 @@ function useHomeViewModel(onNavigate: (view: any, data?: any) => void, onNavigat
             return {
                 session: session,
                 program: activeProgram,
-                location: {
-                    macroIndex: currentMacrocycleIndex ?? 0,
-                    mesoIndex: currentMesocycleIndex ?? 0,
-                    weekId: currentWeekId ?? ''
-                },
+                location,
                 isCompleted: !!logForToday,
-                dayOfWeek: session.dayOfWeek || 1,
+                dayOfWeek: session.dayOfWeek ?? 0,
                 log: logForToday,
                 isOngoing: ongoing
             };
@@ -193,7 +193,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, onResumeWorkout, onNavigateToCa
                             onStartWorkout={vm.handleStartWorkout as any}
                             onResumeWorkout={() => onResumeWorkout(vm.ongoingWorkout)}
                             onOpenStartWorkoutModal={() => onNavigate('program-detail', { programId: activeProgram?.id })}
-                            currentDayOfWeek={[7, 1, 2, 3, 4, 5, 6][new Date().getDay()]}
+                            currentDayOfWeek={new Date().getDay()}
                         />
                     </div>
                 </div>

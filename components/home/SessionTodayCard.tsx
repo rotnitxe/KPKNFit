@@ -5,6 +5,7 @@ import { Program, Session, WorkoutLog } from '../../types';
 import { PlayIcon, CheckCircleIcon, PauseIcon, ChevronRightIcon, ChevronLeftIcon } from '../icons';
 import { CaupolicanIcon } from '../CaupolicanIcon';
 import { useAppState } from '../../contexts/AppContext';
+import { formatCalendarizedNameForSpanish } from '../../utils/programHelpers';
 
 export interface TodaySessionItem {
     session: Session;
@@ -42,8 +43,8 @@ export const SessionTodayCard: React.FC<SessionTodayCardProps> = ({
     const handleStart = (ts: TodaySessionItem) => {
         const isToday = ts.dayOfWeek === currentDayOfWeek;
         const isRestDay = !sessions.some(s => s.dayOfWeek === currentDayOfWeek);
-        const dayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-        const dayName = dayNames[(ts.dayOfWeek || 1) - 1];
+        const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+        const dayName = dayNames[ts.dayOfWeek ?? 0];
 
         if (isRestDay) {
             if (window.confirm("¿Estás seguro que quieres entrenar en tu día de descanso? Recuerda que el descanso es esencial para el progreso.")) {
@@ -106,7 +107,7 @@ export const SessionTodayCard: React.FC<SessionTodayCardProps> = ({
                                         {programName}
                                     </div>
                                     <div className="text-white text-2xl font-black leading-tight truncate">
-                                        {currentSession.session.name}
+                                        {formatCalendarizedNameForSpanish(currentSession.session.name)}
                                     </div>
                                 </div>
 

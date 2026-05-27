@@ -2,6 +2,8 @@ package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.repository.WikiLabRepository
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun JointsListScreen(
     onNavigateToJoint: (String) -> Unit,
@@ -55,7 +57,7 @@ fun JointsListScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(bottom = 100.dp),
+            contentPadding = PaddingValues(bottom = 164.dp),
         ) {
             // Hero
             item {
@@ -64,19 +66,15 @@ fun JointsListScreen(
                         .fillMaxWidth()
                         .background(
                             Brush.verticalGradient(
-                                listOf(Color(0xFF0D47A1).copy(alpha = 0.15f), Color.Transparent)
+                                listOf(Color(0xFF1B2027).copy(alpha = 0.10f), Color.Transparent)
                             )
                         )
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                 ) {
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Hub, null, tint = Color(0xFF1E88E5), modifier = Modifier.size(28.dp))
-                            Spacer(Modifier.width(10.dp))
-                            Column {
-                                Text("${joints.size} articulaciones documentadas", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
+                        Text("Articulaciones", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                        Spacer(Modifier.height(6.dp))
+                        Text("${joints.size} articulaciones documentadas", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(12.dp))
                         OutlinedTextField(
                             value = query,
@@ -96,8 +94,8 @@ fun JointsListScreen(
                 }
             }
 
-            val bodyPartOrder = listOf("upper" to "Tren Superior", "lower" to "Tren Inferior", "spine" to "Columna")
-            val bodyPartColors = mapOf("upper" to Color(0xFF1E88E5), "lower" to Color(0xFF43A047), "spine" to Color(0xFF9C27B0))
+            val bodyPartOrder = listOf("upper" to "Tren superior", "lower" to "Tren inferior", "spine" to "Columna")
+            val bodyPartColors = mapOf("upper" to Color(0xFFB6BEC9), "lower" to Color(0xFF9FA8B5), "spine" to Color(0xFF858F9C))
 
             bodyPartOrder.forEach { (key, label) ->
                 val jointsInGroup = grouped[key] ?: emptyList()
@@ -152,13 +150,18 @@ fun JointsListScreen(
                                         joint.name,
                                         style = MaterialTheme.typography.titleSmall,
                                         fontWeight = FontWeight.Bold,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                     Text(
                                         WikiLabRepository.getJointTypeLabel(joint.type),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = color,
                                     )
-                                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    FlowRow(
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    ) {
                                         if (muscleCount > 0) {
                                             Text(
                                                 "$muscleCount músculos",
@@ -170,7 +173,7 @@ fun JointsListScreen(
                                             Text(
                                                 "${injuries.size} lesiones",
                                                 style = MaterialTheme.typography.labelSmall,
-                                                color = Color(0xFFE53935),
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             )
                                         }
                                     }

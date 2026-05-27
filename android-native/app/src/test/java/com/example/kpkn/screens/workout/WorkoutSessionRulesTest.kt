@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
@@ -14,7 +15,9 @@ import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralMode
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WarmupSetDefinition
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -195,6 +198,63 @@ class WorkoutSessionRulesTest {
         assertEquals(true, isWorkoutPulseActive(token, nowMs = 1_500L, ttlMs = 1_000L))
         assertEquals(false, isWorkoutPulseActive(token, nowMs = 2_100L, ttlMs = 1_000L))
         assertEquals(false, isWorkoutPulseActive(null, nowMs = 1_500L, ttlMs = 1_000L))
+    }
+
+    @Test
+    fun live_edit_normalizes_reps_mode_from_stale_time_fields() {
+        val exercise = Exercise(
+            id = "press",
+            name = "Press",
+            trainingMode = TrainingMode.REPS,
+            sets = listOf(
+                ExerciseSet(
+                    id = "s1",
+                    targetReps = 8,
+                    targetDuration = 45,
+                    unitModeV2 = UnitModeV2.TIME,
+                    plannedTargetV2 = 45.0,
+                    targetPercentageRM = 70.0,
+                    loadModeV2 = LoadModeV2.LOAD,
+                ),
+            ),
+        )
+
+        val normalized = WorkoutEditingRules.normalizeLiveEditedExercise(exercise).sets.first()
+
+        assertEquals(UnitModeV2.REPS, normalized.unitModeV2)
+        assertEquals(8, normalized.targetReps)
+        assertNull(normalized.targetDuration)
+        assertNull(normalized.plannedTargetV2)
+        assertNull(normalized.targetPercentageRM)
+        assertEquals(LoadModeV2.LOAD, normalized.loadModeV2)
+    }
+
+    @Test
+    fun live_edit_defaults_missing_load_mode_to_external_load() {
+        val exercise = Exercise(
+            id = "row",
+            name = "Remo",
+            trainingMode = TrainingMode.REPS,
+            sets = listOf(ExerciseSet(id = "s1", targetReps = 10, loadModeV2 = null)),
+        )
+
+        val normalized = WorkoutEditingRules.normalizeLiveEditedExercise(exercise).sets.first()
+
+        assertEquals(LoadModeV2.LOAD, normalized.loadModeV2)
+    }
+
+    @Test
+    fun live_edit_preserves_explicit_bodyweight_load_mode() {
+        val exercise = Exercise(
+            id = "pushup",
+            name = "Flexiones",
+            trainingMode = TrainingMode.REPS,
+            sets = listOf(ExerciseSet(id = "s1", targetReps = 12, loadModeV2 = LoadModeV2.BODYWEIGHT)),
+        )
+
+        val normalized = WorkoutEditingRules.normalizeLiveEditedExercise(exercise).sets.first()
+
+        assertEquals(LoadModeV2.BODYWEIGHT, normalized.loadModeV2)
     }
 
     @Test

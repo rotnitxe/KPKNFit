@@ -12,7 +12,6 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -77,7 +75,6 @@ import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
 import com.example.kpkn.data.models.DailyWellbeingLog
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Gender
-import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.repository.AugeRepository
@@ -89,6 +86,7 @@ import com.example.kpkn.data.models.ringScore
 import java.time.LocalDate
 import java.util.UUID
 
+@Suppress("unused")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ReadinessGateScreen(
@@ -123,7 +121,7 @@ fun ReadinessGateScreen(
                 for (meso in block.mesocycles) {
                     for (week in meso.weeks) {
                         val s = week.sessions.firstOrNull { it.id == sessionId }
-                        if (s != null) return@remember (s.name ?: "Sesión")
+                        if (s != null) return@remember s.name
                     }
                 }
             }
@@ -153,6 +151,7 @@ fun ReadinessGateScreen(
     }
 
     val neuralAuto = augeSnapshot.ringScore(RecoveryChannelId.SYSTEM)
+    val muscularAuto = augeSnapshot.ringScore(RecoveryChannelId.MUSCULAR)
     val spinalAuto = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE)
 
     var initialized by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
@@ -160,12 +159,14 @@ fun ReadinessGateScreen(
     var userEditedSpinal by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
     val userEditedMuscles = remember(programId, sessionId) { mutableStateMapOf<String, Boolean>() }
     var neural by rememberSaveable(programId, sessionId) { mutableIntStateOf(100) }
+    var muscular by rememberSaveable(programId, sessionId) { mutableIntStateOf(100) }
     var spinal by rememberSaveable(programId, sessionId) { mutableIntStateOf(100) }
     val muscleAdjustments = remember(programId, sessionId) { mutableStateMapOf<String, Int>() }
 
-    LaunchedEffect(isLoading, todayWellbeing, neuralAuto, spinalAuto, sessionMuscleBatteries, initialized) {
+    LaunchedEffect(isLoading, todayWellbeing, neuralAuto, muscularAuto, spinalAuto, sessionMuscleBatteries, initialized) {
         if (!isLoading && !initialized) {
             neural = neuralAuto.coerceIn(0, 100)
+            muscular = muscularAuto.coerceIn(0, 100)
             spinal = spinalAuto.coerceIn(0, 100)
             muscleAdjustments.clear()
             sessionMuscleBatteries.forEach { (muscleId, autoValue) ->
@@ -176,6 +177,7 @@ fun ReadinessGateScreen(
             if (!userEditedNeural) {
                 neural = neuralAuto.coerceIn(0, 100)
             }
+            muscular = muscularAuto.coerceIn(0, 100)
             if (!userEditedSpinal) {
                 spinal = spinalAuto.coerceIn(0, 100)
             }
@@ -384,11 +386,6 @@ fun ReadinessGateScreen(
                 Button(
                     onClick = {
                         val base = todayWellbeing
-                        val derivedMuscular = if (muscleAdjustments.isEmpty()) {
-                            null
-                        } else {
-                            muscleAdjustments.values.average().toInt().coerceIn(0, 100)
-                        }
                         val log = DailyWellbeingLog(
                             id = base?.id ?: UUID.randomUUID().toString(),
                             date = LocalDate.now().toString(),
@@ -400,7 +397,7 @@ fun ReadinessGateScreen(
                             moodState = base?.moodState,
                             workIntensity = base?.workIntensity,
                             studyIntensity = base?.studyIntensity,
-                            manualMuscularBattery = derivedMuscular,
+                            manualMuscularBattery = muscular,
                             manualNeuralBattery = neural,
                             manualSpinalBattery = spinal,
                             manualMuscleBatteries = muscleAdjustments.toMap(),
@@ -411,7 +408,7 @@ fun ReadinessGateScreen(
                         WorkoutReadinessBridge.store(
                             WorkoutReadinessBridge.ReadinessAdjustments(
                                 neural = neural,
-                                muscular = derivedMuscular,
+                                muscular = muscular,
                                 spinal = spinal,
                                 perMuscle = muscleAdjustments.toMap(),
                                 sleepQuality = base?.sleepQuality,

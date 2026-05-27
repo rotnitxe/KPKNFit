@@ -3,10 +3,8 @@ package com.example.kpkn.screens.workout.components
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -18,16 +16,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import dev.chrisbanes.haze.HazeState
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.services.workout.VoicePipelineStage
 import com.example.kpkn.services.workout.VoiceSessionState
 
+@Suppress("UNUSED_PARAMETER")
 @Composable
 fun WorkoutCommandDock(
     exercise: Exercise?,
@@ -39,8 +36,10 @@ fun WorkoutCommandDock(
     onToggleVoice: () -> Unit,
     onPrimaryAction: () -> Unit,
     modifier: Modifier = Modifier,
+    primaryActionEnabled: Boolean = true,
     sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
     hazeState: HazeState? = null,
+    isUpdateMode: Boolean = false,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "dock_voice_pulse")
     val pulseScale by infiniteTransition.animateFloat(
@@ -87,6 +86,7 @@ fun WorkoutCommandDock(
         VoicePipelineStage.DISABLED -> ""
     }
 
+    @Suppress("UNUSED_VARIABLE")
     val primaryButtonText = remember(exercise, setIndex, activeSide, isUnilateral) {
         if (exercise == null) "Completar Serie"
         else if (isUnilateral && activeSide != null) {
@@ -160,21 +160,33 @@ fun WorkoutCommandDock(
             Box(
                 modifier = Modifier
                     .width(96.dp)
-                    .height(64.dp),
+                    .height(51.dp),
                 contentAlignment = Alignment.BottomEnd,
             ) {
                 FloatingActionButton(
-                    onClick = onPrimaryAction,
+                    onClick = { if (primaryActionEnabled) onPrimaryAction() },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .size(56.dp),
+                        .size(45.dp),
                     shape = CircleShape,
-                    containerColor = sessionAccentColor,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    containerColor = if (primaryActionEnabled) sessionAccentColor else MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = if (primaryActionEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.46f),
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Completar serie",
+                        imageVector = if (!primaryActionEnabled) {
+                            Icons.Default.HourglassTop
+                        } else if (isUpdateMode) {
+                            Icons.Default.Update
+                        } else {
+                            Icons.Default.Check
+                        },
+                        contentDescription = if (!primaryActionEnabled) {
+                            "Registrando serie"
+                        } else if (isUpdateMode) {
+                            "Actualizar serie"
+                        } else {
+                            "Completar serie"
+                        },
                         modifier = Modifier.size(26.dp),
                     )
                 }
@@ -182,7 +194,7 @@ fun WorkoutCommandDock(
                     onClick = onToggleVoice,
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .size(40.dp)
+                        .size(32.dp)
                         .then(
                             if (isListening) Modifier
                                 .scale(pulseScale)

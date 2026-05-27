@@ -260,7 +260,14 @@ class NutritionRepository private constructor(context: Context) {
         get() = _nutritionPlans.value.find { it.id == _activeNutritionPlanId.value }
 
     fun addNutritionPlan(plan: NutritionPlan) {
-        _nutritionPlans.update { it + plan }
+        _nutritionPlans.update { plans ->
+            val existingIndex = plans.indexOfFirst { it.id == plan.id }
+            if (existingIndex >= 0) {
+                plans.toMutableList().apply { this[existingIndex] = plan }
+            } else {
+                plans + plan
+            }
+        }
         scope.launch { db.nutritionDao().upsertPlan(plan.toEntity()) }
     }
 

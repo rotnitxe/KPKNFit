@@ -282,10 +282,11 @@ object TrainingEnergyEngine {
                 totalSetCount++
                 if (plannedRpe >= 5.0) {
                     val rpeMult = AugeFatigueEngine.calculateRpeMultiplier(plannedRpe)
-                    val plannedWeight = plannedSet.weight ?: 0.0
+                    val fallbackExternalLoad = (userWeight ?: 70.0) * 0.35
+                    val plannedWeight = plannedSet.weight ?: fallbackExternalLoad
                     val plannedReps = plannedSet.targetReps?.toDouble() ?: 0.0
                     if (plannedSet.weight == null) {
-                        notes.add("Falta peso planificado para \"$exerciseName\" — kcal omitidas")
+                        notes.add("Falta peso planificado para \"$exerciseName\" — se estimó con carga base")
                     }
 
                     var loadForKcal = plannedWeight + (userWeight ?: 0.0) * bodyweightPart

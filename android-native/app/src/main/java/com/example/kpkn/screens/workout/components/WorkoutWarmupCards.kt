@@ -4,19 +4,18 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.screens.workout.toTrimmedNumberString
 
 private data class SanitizedWarmupSet(
@@ -38,6 +37,7 @@ private fun suggestedWarmupRepsForPercentage(percentage: Int): Int = when {
     else -> 1
 }
 
+@Suppress("unused")
 @Composable
 fun WorkoutWarmupInlineCard(
     exercise: Exercise,
@@ -235,6 +235,7 @@ fun WorkoutWarmupInlineCard(
     }
 }
 
+@Suppress("unused")
 @Composable
 fun WorkoutSupersetWarmupRevealCard(
     exercise: Exercise,
@@ -302,12 +303,211 @@ fun WorkoutSupersetWarmupRevealCard(
     }
 }
 
-internal data class WorkoutWarmupDisplaySet(
+data class WorkoutWarmupDisplaySet(
     val percentage: Double,
     val reps: Int,
     val targetWeight: Double?,
 )
 
+data class WorkoutMobilityChecklistItem(
+    val exerciseId: String,
+    val exerciseName: String,
+    val mobility: MobilitySeries,
+)
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun WorkoutWarmupChecklistCard(
+    exercise: Exercise,
+    warmupSets: List<WorkoutWarmupDisplaySet>,
+    completedKeys: Set<String>,
+    activeWarmupSetId: String?,
+    onToggleSet: (warmupSetId: String, completed: Boolean) -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val displaySets = warmupSets.ifEmpty {
+        exercise.warmupSets.map { set ->
+            val percentage = sanitizeWarmupPercentage(set.percentageOfWorkingWeight).toDouble()
+            WorkoutWarmupDisplaySet(
+                percentage = percentage,
+                reps = sanitizeWarmupReps(set.targetReps, percentage.toInt()),
+                targetWeight = null,
+            )
+        }
+    }
+    val allDone = exercise.warmupSets.isNotEmpty() && exercise.warmupSets.all { set ->
+        exercise.id in completedKeys || "${exercise.id}_warmup_${set.id}" in completedKeys
+    }
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = Color(0xFF161A22),
+        border = BorderStroke(1.dp, Color(0xFF448AFF).copy(alpha = 0.24f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = Color(0xFF448AFF).copy(alpha = 0.15f),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocalFireDepartment,
+                        contentDescription = null,
+                        modifier = Modifier.padding(6.dp).size(18.dp),
+                        tint = Color(0xFF448AFF),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Series de aproximación",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = exercise.name,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White.copy(alpha = 0.62f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = if (allDone) Color(0xFF66BB6A).copy(alpha = 0.18f) else Color.White.copy(alpha = 0.08f),
+                ) {
+                    Text(
+                        text = "${completedKeys.count { key -> key.startsWith("${exercise.id}_warmup_") || key == exercise.id }.coerceAtMost(exercise.warmupSets.size)}/${exercise.warmupSets.size}",
+                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        color = if (allDone) Color(0xFF66BB6A) else Color.White.copy(alpha = 0.72f),
+                    )
+                }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                exercise.warmupSets.forEachIndexed { index, set ->
+                    val display = displaySets.getOrNull(index)
+                    val completed = exercise.id in completedKeys || "${exercise.id}_warmup_${set.id}" in completedKeys
+                    val active = activeWarmupSetId == set.id
+                    Surface(
+                        onClick = { onToggleSet(set.id, !completed) },
+                        shape = RoundedCornerShape(14.dp),
+                        color = when {
+                            active -> Color(0xFF448AFF).copy(alpha = 0.16f)
+                            completed -> Color(0xFF66BB6A).copy(alpha = 0.10f)
+                            else -> Color.White.copy(alpha = 0.045f)
+                        },
+                        border = BorderStroke(
+                            width = if (active) 1.5.dp else 1.dp,
+                            color = when {
+                                active -> Color(0xFF448AFF).copy(alpha = 0.60f)
+                                completed -> Color(0xFF66BB6A).copy(alpha = 0.35f)
+                                else -> Color.White.copy(alpha = 0.08f)
+                            },
+                        ),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 56.dp)
+                                .padding(horizontal = 10.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Checkbox(
+                                checked = completed,
+                                onCheckedChange = null,
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = Color(0xFF448AFF),
+                                    uncheckedColor = Color.White.copy(alpha = 0.34f),
+                                    checkmarkColor = Color.Black,
+                                ),
+                                modifier = Modifier.size(24.dp),
+                            )
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = "A${index + 1}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color.White,
+                                    )
+                                    set.restBetween?.takeIf { it > 0 }?.let { rest ->
+                                        Text(
+                                            text = "${rest}s descanso",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White.copy(alpha = 0.52f),
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                    }
+                                }
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    WarmupMetricChip("${(display?.percentage ?: set.percentageOfWorkingWeight).toTrimmedNumberString()}%")
+                                    WarmupMetricChip("${display?.reps ?: set.targetReps} reps")
+                                    display?.targetWeight?.takeIf { it > 0.0 }?.let {
+                                        WarmupMetricChip("${it.toTrimmedNumberString()} kg", emphasized = true)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            OutlinedButton(
+                onClick = onClose,
+                modifier = Modifier.fillMaxWidth().height(46.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.70f)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)),
+                shape = RoundedCornerShape(999.dp),
+            ) {
+                Text(if (allDone) "Continuar" else "Saltar por ahora", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun WarmupMetricChip(
+    text: String,
+    emphasized: Boolean = false,
+) {
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = if (emphasized) Color(0xFF448AFF).copy(alpha = 0.18f) else Color.White.copy(alpha = 0.07f),
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (emphasized) FontWeight.Black else FontWeight.Bold,
+            color = if (emphasized) Color(0xFF82B1FF) else Color.White.copy(alpha = 0.76f),
+        )
+    }
+}
+
+@Suppress("unused")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun WorkoutWarmupSheet(
@@ -456,6 +656,179 @@ internal fun WorkoutWarmupSheet(
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Black
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun WorkoutMobilitySeriesCard(
+    mobilityItems: List<WorkoutMobilityChecklistItem>,
+    completedExerciseIds: Set<String>,
+    activeMobilityKey: String?,
+    onToggleComplete: (exerciseId: String, mobilityId: String, completed: Boolean) -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val allDone = mobilityItems.isNotEmpty() && mobilityItems.all { item ->
+        "${item.exerciseId}_${item.mobility.id}" in completedExerciseIds
+    }
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = Color(0xFF1A1A1A),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Healing,
+                        contentDescription = null,
+                        modifier = Modifier.size(22.dp),
+                        tint = Color(0xFF66BB6A),
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = "Movilidad",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                    )
+                }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                mobilityItems.forEachIndexed { idx, item ->
+                    val mob = item.mobility
+                    val mobKey = "${item.exerciseId}_${mob.id}"
+                    val isCompleted = mobKey in completedExerciseIds
+                    val isActive = activeMobilityKey == mobKey
+
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = when {
+                            isActive -> Color(0xFF66BB6A).copy(alpha = 0.16f)
+                            isCompleted -> Color(0xFF66BB6A).copy(alpha = 0.08f)
+                            else -> MaterialTheme.colorScheme.surfaceContainerLow
+                        },
+                        border = BorderStroke(
+                            if (isActive) 1.5.dp else 1.dp,
+                            if (isActive) Color(0xFF66BB6A).copy(alpha = 0.52f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
+                        ),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 48.dp)
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Checkbox(
+                                    checked = isCompleted,
+                                    onCheckedChange = null,
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = Color(0xFF66BB6A),
+                                        uncheckedColor = Color.White.copy(alpha = 0.3f),
+                                        checkmarkColor = Color.Black
+                                    ),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "M${idx + 1} · ${mob.name}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    val detailText = buildString {
+                                        mob.durationSeconds?.let { append("${it}s") }
+                                        if (isNotEmpty() && mob.reps != null) append(" · ")
+                                        mob.reps?.let { append(it) }
+                                    }
+                                    if (detailText.isNotBlank()) {
+                                        Text(
+                                            text = listOf(item.exerciseName.takeIf { mobilityItems.map { it.exerciseId }.distinct().size > 1 }, detailText)
+                                                .filterNotNull()
+                                                .joinToString(" · "),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color(0xFF66BB6A),
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                    }
+                                }
+                            }
+                            if (mob.notes != null && mob.notes.isNotBlank()) {
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color(0xFF66BB6A).copy(alpha = 0.15f)
+                                ) {
+                                    Text(
+                                        text = mob.notes,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color(0xFF66BB6A),
+                                        fontWeight = FontWeight.Medium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onClose,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.65f)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
+                    shape = RoundedCornerShape(999.dp)
+                ) {
+                    Text("Cerrar", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                }
+                if (!allDone) {
+                    Button(
+                        onClick = {
+                            mobilityItems.forEach { item ->
+                                onToggleComplete(item.exerciseId, item.mobility.id, true)
+                            }
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF66BB6A),
+                            contentColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(999.dp)
+                    ) {
+                        Text("Completar todo", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Black)
+                    }
+                }
             }
         }
     }

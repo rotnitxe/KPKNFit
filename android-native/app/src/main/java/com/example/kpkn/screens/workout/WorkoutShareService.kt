@@ -6,6 +6,7 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorMatrixColorFilter
@@ -14,6 +15,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.RadialGradient
+import android.graphics.Typeface
 import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -48,7 +50,7 @@ object WorkoutShareService {
         currentBestEstimated1RM: Double? = null,
     ) {
         runCatching {
-            val bitmap = renderStoryCard(
+            val bitmap = renderMinimalStoryCard(
                 context = context,
                 sessionName = sessionName,
                 completedExercises = completedExercises,
@@ -114,6 +116,145 @@ object WorkoutShareService {
     }
 
     private const val INSTAGRAM_PACKAGE = "com.instagram.android"
+
+    private fun renderMinimalStoryCard(
+        context: Context,
+        sessionName: String,
+        completedExercises: List<CompletedExercise>,
+        durationMinutes: Int,
+        totalVolume: Double,
+        totalSets: Int,
+        previousTotalSets: Int?,
+        previousVolume: Double?,
+        previousDurationMinutes: Int?,
+        previousBestEstimated1RM: Double?,
+        currentBestEstimated1RM: Double?,
+    ): Bitmap {
+        val width = 1080
+        val height = 1920
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = LinearGradient(
+                0f,
+                0f,
+                0f,
+                height.toFloat(),
+                intArrayOf(
+                    Color.parseColor("#101214"),
+                    Color.parseColor("#171A1B"),
+                    Color.parseColor("#0C0D0E"),
+                ),
+                null,
+                android.graphics.Shader.TileMode.CLAMP,
+            )
+        }
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), backgroundPaint)
+
+        val exerciseNames = completedExercises
+            .filter { exercise -> exercise.sets.any { set -> !set.isWarmup } }
+            .map { it.exerciseName.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .ifEmpty { listOf("Sin ejercicios registrados") }
+        val visibleNames = if (exerciseNames.size > 18) {
+            exerciseNames.take(17) + "+${exerciseNames.size - 17} ejercicios mas"
+        } else {
+            exerciseNames
+        }
+        val lineHeight = when {
+            visibleNames.size > 14 -> 52f
+            visibleNames.size > 10 -> 60f
+            else -> 72f
+        }
+        val nameTextSize = when {
+            visibleNames.size > 14 -> 30f
+            visibleNames.size > 10 -> 33f
+            else -> 36f
+        }
+        val cardLeft = 112f
+        val cardRight = width - 112f
+        val cardWidth = cardRight - cardLeft
+        val cardHeight = (260f + visibleNames.size * lineHeight).coerceIn(620f, 1240f)
+        val cardTop = (height - cardHeight) / 2f
+        val cardBottom = cardTop + cardHeight
+        val cardRect = RectF(cardLeft, cardTop, cardRight, cardBottom)
+
+        val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(72, 0, 0, 0)
+        }
+        canvas.drawRoundRect(
+            RectF(cardRect.left + 14f, cardRect.top + 18f, cardRect.right + 14f, cardRect.bottom + 18f),
+            42f,
+            42f,
+            shadowPaint,
+        )
+
+        val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#F7F8F4")
+        }
+        val cardStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(70, 255, 255, 255)
+            style = Paint.Style.STROKE
+            strokeWidth = 2f
+        }
+        canvas.drawRoundRect(cardRect, 42f, 42f, cardPaint)
+        canvas.drawRoundRect(cardRect, 42f, 42f, cardStrokePaint)
+
+        val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#111314")
+            textSize = 56f
+            isFakeBoldText = true
+            letterSpacing = 0.01f
+            typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
+        }
+        val sessionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#2A2F30")
+            textSize = 38f
+            isFakeBoldText = true
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+        }
+        val dividerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(44, 17, 19, 20)
+            strokeWidth = 2f
+        }
+        val bulletPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#111314")
+        }
+        val namePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#24292A")
+            textSize = nameTextSize
+            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        }
+
+        val contentLeft = cardLeft + 64f
+        val contentRight = cardRight - 64f
+        val logo = BitmapFactory.decodeResource(context.resources, R.drawable.kpknicon)
+        val logoSize = 74f
+        val logoLeft = cardRight - 64f - logoSize
+        val logoTop = cardTop + 52f
+        val logoRect = RectF(logoLeft, logoTop, logoLeft + logoSize, logoTop + logoSize)
+        canvas.drawBitmap(logo, null, logoRect, null)
+
+        canvas.drawText("ENTRENAMIENTO DE HOY", contentLeft, cardTop + 112f, titlePaint)
+        canvas.drawText(ellipsize(sessionName.ifBlank { "Sesión" }, sessionPaint, cardWidth - 180f), contentLeft, cardTop + 160f, sessionPaint)
+        canvas.drawLine(contentLeft, cardTop + 188f, contentRight, cardTop + 188f, dividerPaint)
+
+        var rowY = cardTop + 252f
+        visibleNames.forEach { name ->
+            canvas.drawCircle(contentLeft + 8f, rowY - 12f, 6f, bulletPaint)
+            canvas.drawText(
+                ellipsize(name, namePaint, cardWidth - 158f),
+                contentLeft + 32f,
+                rowY,
+                namePaint,
+            )
+            rowY += lineHeight
+        }
+
+        return bitmap
+    }
 
     private fun renderStoryCard(
         context: Context,

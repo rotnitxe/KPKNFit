@@ -2,6 +2,8 @@ package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -34,17 +36,17 @@ private data class BodyPartDef(
 )
 
 private val BODY_PARTS = listOf(
-    BodyPartDef("upper", "Tren Superior", Color(0xFF1E88E5)),
-    BodyPartDef("lower", "Tren Inferior", Color(0xFF43A047)),
-    BodyPartDef("core", "Core", Color(0xFFFF8F00)),
-    BodyPartDef("spine", "Columna", Color(0xFF9C27B0)),
+    BodyPartDef("upper", "Tren superior", Color(0xFFD3D8DF)),
+    BodyPartDef("lower", "Tren inferior", Color(0xFFB8C0CC)),
+    BodyPartDef("core", "Core", Color(0xFF9EA7B3)),
+    BodyPartDef("spine", "Columna", Color(0xFF808A97)),
 )
 
 // ═══════════════════════════════════════════════════════════════════════
 // MAIN SCREEN
 // ═══════════════════════════════════════════════════════════════════════
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MuscleCategoryScreen(
     onNavigateToMuscle: (String) -> Unit,
@@ -82,7 +84,7 @@ fun MuscleCategoryScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(bottom = 100.dp),
+            contentPadding = PaddingValues(bottom = 164.dp),
         ) {
             // ─── Hero ────────────────────────────────────────────────────
             item {
@@ -91,28 +93,18 @@ fun MuscleCategoryScreen(
                         .fillMaxWidth()
                         .background(
                             Brush.verticalGradient(
-                                listOf(Color(0xFF9C27B0).copy(alpha = 0.12f), Color.Transparent)
+                                listOf(Color(0xFF1B2027).copy(alpha = 0.10f), Color.Transparent)
                             )
                         )
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                 ) {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Accessibility, null, tint = Color(0xFF9C27B0), modifier = Modifier.size(28.dp))
-                            Spacer(Modifier.width(10.dp))
-                            Column {
-                                Text(
-                                    "${canonicalMuscles.size} grupos musculares",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                                Text(
-                                    "Con origen, inserción, funciones y volumen recomendado",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Atlas anatómico", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                        Text(
+                            "${canonicalMuscles.size} grupos musculares con funciones y referencias de volumen.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
 
                         Spacer(Modifier.height(12.dp))
 
@@ -137,14 +129,15 @@ fun MuscleCategoryScreen(
             // ─── Body Part Overview Cards ────────────────────────────────
             if (query.isBlank()) {
                 item {
-                    Row(
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         BODY_PARTS.forEach { bp ->
                             val count = canonicalMuscles.count { it.bodyPart == bp.key }
                             Card(
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.widthIn(min = 148.dp),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(containerColor = bp.color.copy(alpha = 0.08f)),
                             ) {
@@ -162,7 +155,8 @@ fun MuscleCategoryScreen(
                                         bp.label,
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 }
                             }

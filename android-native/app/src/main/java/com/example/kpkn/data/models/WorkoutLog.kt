@@ -136,6 +136,7 @@ data class OngoingWorkoutState(
     val activeSetId: String? = null,
     val activeSetIndex: Int = 0,
     val activeExerciseIndex: Int = 0,
+    val activeStepKey: String? = null,
     val activeMode: WeekVariant = WeekVariant.A,
     val completedSets: Map<String, CompletedSet> = emptyMap(),
     val dynamicWeights: Map<String, Double> = emptyMap(),
@@ -152,6 +153,7 @@ data class OngoingWorkoutState(
     val activeContextProfileByExerciseId: Map<String, String> = emptyMap(),
     val skippedExerciseIds: Set<String> = emptySet(),
     val warmupCompletedExerciseIds: Set<String> = emptySet(),
+    val mobilityCompletedExerciseIds: Set<String> = emptySet(),
     val readinessNeuralOverride: Int? = null,
     val readinessMuscularOverride: Int? = null,
     val readinessSpinalOverride: Int? = null,
@@ -188,4 +190,5 @@ data class ActiveProgramState(
     val currentWeekId: String = "",
 )
 
+@Suppress("unused")
 enum class ProgramStatus { ACTIVE, PAUSED, COMPLETED }

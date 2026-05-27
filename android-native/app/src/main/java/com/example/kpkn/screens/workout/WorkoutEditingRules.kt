@@ -2,12 +2,18 @@ package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isSimpleTemporalProgram
+import kotlin.math.roundToInt
 
 enum class WorkoutLiveEditPersistenceScope {
     SESSION_ONLY,
@@ -77,5 +83,108 @@ object WorkoutEditingRules {
         } else {
             listOf(ReplacementPersistenceScopeV2.SESSION_ONLY)
         }
+    }
+
+    fun unitModeForTrainingMode(mode: TrainingMode): UnitModeV2 = when (mode) {
+        TrainingMode.TIME -> UnitModeV2.TIME
+        TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
+        TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
+        TrainingMode.REPS,
+        TrainingMode.RM,
+        TrainingMode.SOLO_RPE,
+        TrainingMode.AMRAP,
+        -> UnitModeV2.REPS
+    }
+
+    fun normalizeLiveEditedExercise(exercise: Exercise): Exercise = exercise.copy(
+        sets = exercise.sets.map { set -> normalizeLiveEditedSet(exercise.trainingMode, set) },
+    )
+
+    fun normalizeLiveEditedSet(mode: TrainingMode, set: ExerciseSet): ExerciseSet {
+        val unitMode = unitModeForTrainingMode(mode)
+        val metricNormalized = when (mode) {
+            TrainingMode.TIME -> set.copy(
+                unitModeV2 = UnitModeV2.TIME,
+                targetDuration = set.targetDuration ?: set.plannedTargetV2?.roundToInt(),
+                targetReps = null,
+                plannedTargetV2 = null,
+                targetPercentageRM = null,
+                isAmrap = false,
+            )
+            TrainingMode.DISTANCE,
+            TrainingMode.CUSTOM,
+            -> set.copy(
+                unitModeV2 = unitMode,
+                plannedTargetV2 = set.plannedTargetV2 ?: set.targetReps?.toDouble() ?: set.targetDuration?.toDouble(),
+                targetReps = null,
+                targetDuration = null,
+                targetPercentageRM = null,
+                isAmrap = false,
+            )
+            TrainingMode.RM -> set.copy(
+                unitModeV2 = UnitModeV2.REPS,
+                targetReps = set.targetReps ?: set.plannedTargetV2?.roundToInt(),
+                targetDuration = null,
+                plannedTargetV2 = null,
+                targetPercentageRM = (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
+                isAmrap = false,
+            )
+            TrainingMode.SOLO_RPE -> set.copy(
+                unitModeV2 = UnitModeV2.REPS,
+                targetReps = null,
+                targetDuration = null,
+                plannedTargetV2 = null,
+                targetPercentageRM = null,
+                isAmrap = false,
+            )
+            TrainingMode.AMRAP -> set.copy(
+                unitModeV2 = UnitModeV2.REPS,
+                targetReps = set.targetReps ?: set.plannedTargetV2?.roundToInt(),
+                targetDuration = null,
+                plannedTargetV2 = null,
+                targetPercentageRM = null,
+                isAmrap = true,
+            )
+            TrainingMode.REPS -> set.copy(
+                unitModeV2 = UnitModeV2.REPS,
+                targetReps = set.targetReps ?: set.plannedTargetV2?.roundToInt(),
+                targetDuration = null,
+                plannedTargetV2 = null,
+                targetPercentageRM = null,
+                isAmrap = false,
+            )
+        }
+
+        val intensityNormalized = if (metricNormalized.isFailure || metricNormalized.intensityMode == IntensityMode.FAILURE) {
+            metricNormalized.copy(
+                intensityMode = IntensityMode.FAILURE,
+                targetRPE = null,
+                targetRIR = null,
+                isFailure = true,
+            )
+        } else when (mode) {
+            TrainingMode.RM -> metricNormalized.copy(
+                intensityMode = IntensityMode.LOAD,
+                targetRPE = null,
+                targetRIR = null,
+                isFailure = false,
+            )
+            TrainingMode.SOLO_RPE -> metricNormalized.copy(
+                intensityMode = IntensityMode.RPE,
+                targetRPE = (metricNormalized.targetRPE ?: 8.0).coerceIn(1.0, 10.0),
+                targetRIR = null,
+                isFailure = false,
+            )
+            else -> metricNormalized.copy(
+                intensityMode = when (metricNormalized.intensityMode) {
+                    null,
+                    IntensityMode.SOLO_RM,
+                    -> IntensityMode.RPE
+                    else -> metricNormalized.intensityMode
+                },
+            )
+        }
+
+        return intensityNormalized.copy(loadModeV2 = intensityNormalized.loadModeV2 ?: LoadModeV2.LOAD)
     }
 }

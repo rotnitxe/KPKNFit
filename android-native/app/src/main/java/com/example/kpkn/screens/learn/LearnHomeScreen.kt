@@ -66,7 +66,7 @@ fun LearnHomeScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Learn") },
+                title = { Text("Aprende", fontWeight = FontWeight.Black) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
@@ -79,7 +79,7 @@ fun LearnHomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 164.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Header con resumen
@@ -184,18 +184,18 @@ private fun LearnHeaderCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         ),
         shape = RoundedCornerShape(20.dp),
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.School, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                Icon(Icons.Default.School, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
                 Spacer(Modifier.width(10.dp))
                 Column {
-                    Text("Aprende y mejora", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                    Text("Aprende", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
                     Text(
-                        "Cursos cortos sobre entrenamiento y nutrición",
+                        "Cursos serios y compactos sobre entrenamiento y nutrición.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -243,7 +243,7 @@ private fun CourseCard(
             // Icono del curso
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = module.category.color.copy(alpha = 0.12f),
+                color = MaterialTheme.colorScheme.surfaceContainer,
                 modifier = Modifier.size(48.dp),
             ) {
                 Box(contentAlignment = Alignment.Center) {

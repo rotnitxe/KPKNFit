@@ -63,4 +63,37 @@ class PostExerciseFeedbackIntensityTest {
         assertSame(completed, result)
         assertFalse(result.getValue("press_0").isFailure)
     }
+
+    @Test
+    fun `batch feedback backfills multiple exercises independently`() {
+        val completed = mapOf(
+            "press_0" to CompletedSet(id = "s1", weight = 80.0, reps = 8),
+            "press_1" to CompletedSet(id = "s2", weight = 82.5, reps = 6),
+            "row_0" to CompletedSet(id = "s3", weight = 60.0, reps = 10),
+            "curl_0" to CompletedSet(id = "s4", weight = 18.0, reps = 12),
+        )
+        val feedbacks = listOf(
+            PostExerciseFeedback(
+                exerciseId = "press",
+                exerciseName = "Press",
+                technicalQuality = 8,
+                perceivedIntensityRpe = 8.0,
+            ),
+            PostExerciseFeedback(
+                exerciseId = "row",
+                exerciseName = "Row",
+                technicalQuality = 7,
+                perceivedIntensityRpe = 10.0,
+                perceivedFailure = true,
+            ),
+        )
+
+        val result = backfillCompletedSetIntensityFromPostExerciseFeedbacks(completed, feedbacks)
+
+        assertEquals(IntensityMode.RPE, result.getValue("press_0").actualIntensityMode)
+        assertEquals(8.0, result.getValue("press_1").actualIntensityValue ?: 0.0, 0.001)
+        assertEquals(IntensityMode.FAILURE, result.getValue("row_0").actualIntensityMode)
+        assertTrue(result.getValue("row_0").isFailure)
+        assertEquals(null, result.getValue("curl_0").actualIntensityMode)
+    }
 }

@@ -39,13 +39,13 @@ private fun muscleColor(name: String): Color = wikilabMuscleColor(name)
 private data class MuscleCategory(val label: String, val keywords: List<String>, val color: Color)
 
 private val CATEGORIES = listOf(
-    MuscleCategory("Todos", emptyList(), Color(0xFF757575)),
-    MuscleCategory("Pecho", listOf("Pectorales"), Color(0xFFE53935)),
-    MuscleCategory("Espalda", listOf("Dorsales", "Trapecio", "Erectores Espinales"), Color(0xFF1E88E5)),
-    MuscleCategory("Hombros", listOf("Deltoides"), Color(0xFFFF8F00)),
-    MuscleCategory("Piernas", listOf("Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas", "Aductores"), Color(0xFF43A047)),
-    MuscleCategory("Brazos", listOf("Bíceps", "Tríceps", "Antebrazo"), Color(0xFF8E24AA)),
-    MuscleCategory("Core", listOf("Core", "Abdomen"), Color(0xFF00897B)),
+    MuscleCategory("Todos", emptyList(), Color(0xFF8A9099)),
+    MuscleCategory("Pecho", listOf("Pectorales"), Color(0xFFD0D5DD)),
+    MuscleCategory("Espalda", listOf("Dorsales", "Trapecio", "Erectores Espinales"), Color(0xFFB8C0CC)),
+    MuscleCategory("Hombros", listOf("Deltoides"), Color(0xFFAAB2BD)),
+    MuscleCategory("Piernas", listOf("Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas", "Aductores"), Color(0xFF9DA6B2)),
+    MuscleCategory("Brazos", listOf("Bíceps", "Tríceps", "Antebrazo"), Color(0xFF8E98A5)),
+    MuscleCategory("Core", listOf("Core", "Abdomen"), Color(0xFF7B8592)),
 )
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -58,6 +58,7 @@ fun WikiLabScreen(
     modifier: Modifier = Modifier,
     onCreateExercise: () -> Unit = {},
     onOpenExercise: (String) -> Unit,
+    onBack: () -> Unit = {},
 ) {
     var query by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableIntStateOf(0) }
@@ -101,47 +102,52 @@ fun WikiLabScreen(
         listState.scrollToItem(0)
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        // ═══ Header with Search ═══
-        Surface(
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 1.dp,
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        modifier = Modifier.size(36.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        color = Color(0xFFE53935).copy(alpha = 0.12f),
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.FitnessCenter, null, modifier = Modifier.size(20.dp), tint = Color(0xFFE53935))
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Ejercicios", fontWeight = FontWeight.Black) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
                     }
-                    Spacer(Modifier.width(10.dp))
-                    Column {
+                },
+            )
+        },
+    ) { padding ->
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 0.dp,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                ) {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
                         Text(
                             "Ejercicios",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Black,
                         )
-                Text(
-                    "${exerciseCatalog.size} ejercicios con métricas de fatiga",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    "Incluye el aporte al volumen por músculo para entender cuánto suma cada ejercicio.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
+                        Text(
+                            "${exerciseCatalog.size} ejercicios con volumen muscular y drenaje estimado.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
 
                 Spacer(Modifier.height(12.dp))
 
@@ -187,39 +193,40 @@ fun WikiLabScreen(
                         )
                     }
                 }
+                }
             }
-        }
 
-        // Results count
-        Text(
-            "${filtered.size} resultados",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp),
-        )
+            Text(
+                "${filtered.size} resultados",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 16.dp, top = 144.dp, bottom = 4.dp),
+            )
 
-        // ═══ Exercise List ═══
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            items(filtered, key = { it.id }) { exercise ->
-                ExerciseCard(exercise = exercise, onClick = { onOpenExercise(exercise.id) })
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 164.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                items(filtered, key = { it.id }) { exercise ->
+                    ExerciseCard(exercise = exercise, onClick = { onOpenExercise(exercise.id) })
+                }
+                item { Spacer(Modifier.height(120.dp)) }
             }
-            item { Spacer(Modifier.height(80.dp)) }
-        }
 
-        FloatingActionButton(
-            onClick = onCreateExercise,
-            modifier = Modifier
-                .align(Alignment.End)
-                .padding(16.dp),
-            containerColor = Color(0xFFE53935),
-            contentColor = Color.White,
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Crear ejercicio")
+            FloatingActionButton(
+                onClick = onCreateExercise,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Crear ejercicio")
+            }
         }
     }
 }

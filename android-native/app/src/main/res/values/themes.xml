@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.KPKN" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.KPKN" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/kpkn_window_background</item>
+        <item name="android:colorBackground">@color/kpkn_window_background</item>
+    </style>
 </resources>

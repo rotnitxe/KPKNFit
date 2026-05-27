@@ -1,5 +1,110 @@
 import { Program, Session, ProgramWeek } from '../types';
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+const startOfLocalDay = (date: Date): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const getClosestYearForMonthDay = (month: number, day: number, today: Date): number => {
+    const currentYear = today.getFullYear();
+    const candidates = [currentYear - 1, currentYear, currentYear + 1];
+    return candidates.reduce((best, year) => {
+        const bestDiff = Math.abs(new Date(best, month - 1, day).getTime() - today.getTime());
+        const diff = Math.abs(new Date(year, month - 1, day).getTime() - today.getTime());
+        return diff < bestDiff ? year : best;
+    }, currentYear);
+};
+
+export interface CalendarizedWeekMatch {
+    week: ProgramWeek;
+    macroIndex: number;
+    blockIndex: number;
+    blockId: string;
+    mesoIndex: number;
+    weekId: string;
+    startDate: Date;
+    endDate: Date;
+}
+
+export const parseCalendarizedWeekStartDate = (weekName: string | undefined, today: Date = new Date()): Date | null => {
+    if (!weekName) return null;
+    const match = weekName.match(/(?:semana\s*:?)?\s*(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/i);
+    if (!match) return null;
+
+    const month = Number(match[1]);
+    const day = Number(match[2]);
+    if (!Number.isInteger(month) || !Number.isInteger(day) || month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+    const year = match[3]
+        ? Number(match[3].length === 2 ? `20${match[3]}` : match[3])
+        : getClosestYearForMonthDay(month, day, today);
+    const parsed = new Date(year, month - 1, day);
+
+    if (parsed.getMonth() !== month - 1 || parsed.getDate() !== day) return null;
+    return parsed;
+};
+
+export const formatCalendarizedNameForSpanish = (name: string | undefined): string => {
+    if (!name) return '';
+    return name.replace(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?(?!\/\d)/g, (_match, month, day, year) => {
+        const dd = String(Number(day)).padStart(2, '0');
+        const mm = String(Number(month)).padStart(2, '0');
+        return year ? `${dd}/${mm}/${year}` : `${dd}/${mm}`;
+    });
+};
+
+export const getCalendarizedCurrentWeek = (program: Program, today: Date = new Date()): CalendarizedWeekMatch | null => {
+    const localToday = startOfLocalDay(today);
+    const weekDays = Math.max(1, program.weekDays ?? 7);
+    let closest: CalendarizedWeekMatch | null = null;
+
+    for (let macroIndex = 0; macroIndex < program.macrocycles.length; macroIndex++) {
+        const macro = program.macrocycles[macroIndex];
+        let mesoOffset = 0;
+
+        for (let blockIndex = 0; blockIndex < (macro.blocks || []).length; blockIndex++) {
+            const block = (macro.blocks || [])[blockIndex];
+            for (let localMesoIndex = 0; localMesoIndex < block.mesocycles.length; localMesoIndex++) {
+                const meso = block.mesocycles[localMesoIndex];
+                for (const week of meso.weeks) {
+                    const startDate = parseCalendarizedWeekStartDate(week.name, localToday);
+                    if (!startDate) continue;
+
+                    const endDate = new Date(startDate.getTime() + (weekDays - 1) * MS_PER_DAY);
+                    const match: CalendarizedWeekMatch = {
+                        week,
+                        macroIndex,
+                        blockIndex,
+                        blockId: block.id,
+                        mesoIndex: mesoOffset + localMesoIndex,
+                        weekId: week.id,
+                        startDate,
+                        endDate,
+                    };
+
+                    if (localToday >= startDate && localToday <= endDate) return match;
+
+                    if (!closest) {
+                        closest = match;
+                    } else {
+                        const currentDistance = Math.min(
+                            Math.abs(localToday.getTime() - startDate.getTime()),
+                            Math.abs(localToday.getTime() - endDate.getTime()),
+                        );
+                        const closestDistance = Math.min(
+                            Math.abs(localToday.getTime() - closest.startDate.getTime()),
+                            Math.abs(localToday.getTime() - closest.endDate.getTime()),
+                        );
+                        if (currentDistance < closestDistance) closest = match;
+                    }
+                }
+            }
+            mesoOffset += block.mesocycles.length;
+        }
+    }
+
+    return closest;
+};
+
 export const getAbsoluteWeekIndex = (program: Program, targetBlockId: string, targetWeekId: string): number => {
     let abs = 0;
     for (const macro of program.macrocycles) {

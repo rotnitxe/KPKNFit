@@ -203,9 +203,9 @@ fun ExerciseFatigueScenarios(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                SectionHeader("Fatiga por RPE")
+                SectionHeader("Drenaje por intensidad")
                 Text(
-                    "Todavia no hay suficientes musculos asociados para estimar el drenaje por escenario.",
+                    "Todavía no hay suficiente información muscular para estimar este ejercicio.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -225,11 +225,11 @@ fun ExerciseFatigueScenarios(
 
         Column(
             modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SectionHeader("Fatiga por RPE")
+            SectionHeader("Drenaje por intensidad")
             Text(
-                "Simula 1 serie efectiva y ve como cambia la demanda muscular, neural y espinal segun el RPE.",
+                "Simula una serie y revisa cuánto drenaje genera a nivel muscular, sistémico y espinal.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -248,7 +248,7 @@ fun ExerciseFatigueScenarios(
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -270,28 +270,18 @@ fun ExerciseFatigueScenarios(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                        AssistChip(
-                            onClick = {},
-                            enabled = false,
-                            label = {
-                                Text(
-                                    "Fatiga x${"%.2f".format(rpeMultiplier)}",
-                                    fontWeight = FontWeight.Black,
-                                )
-                            },
-                            leadingIcon = {
-                                androidx.compose.material3.Icon(
-                                    imageVector = Icons.Default.Insights,
-                                    contentDescription = null,
-                                )
-                            },
+                        Text(
+                            "Impacto x${"%.2f".format(rpeMultiplier)}",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
 
                     ScenarioRingsSummary(selectedResult = selectedResult)
 
                     Text(
-                        "Descuento estimado por serie: Musculos -${(100 - selectedResult.averageMuscleRemaining).coerceIn(0, 100)}% · Energia -${selectedResult.cnsDrain}% · Columna -${selectedResult.spinalDrain}%",
+                        "Estimación por serie: muscular -${(100 - selectedResult.averageMuscleRemaining).coerceIn(0, 100)}% · sistémico -${selectedResult.cnsDrain}% · espinal -${selectedResult.spinalDrain}%",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -391,7 +381,7 @@ private fun ScenarioSelectorButton(
                 text = scenario.subtitle,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
         }

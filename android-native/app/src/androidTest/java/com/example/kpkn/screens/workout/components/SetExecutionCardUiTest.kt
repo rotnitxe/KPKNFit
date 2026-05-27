@@ -117,6 +117,30 @@ class SetExecutionCardUiTest {
     }
 
     @Test
+    fun commandDockIgnoresCompleteTapWhileRecording() {
+        composeRule.setContent {
+            MaterialTheme {
+                val completed = remember { mutableStateOf(false) }
+                WorkoutCommandDock(
+                    exercise = bilateralExercise(),
+                    setIndex = 0,
+                    activeSide = null,
+                    isUnilateral = false,
+                    voiceSessionEnabled = false,
+                    voiceSessionState = VoiceSessionState(),
+                    onToggleVoice = {},
+                    onPrimaryAction = { completed.value = true },
+                    primaryActionEnabled = false,
+                )
+                if (completed.value) androidx.compose.material3.Text("completed")
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("Registrando serie").performClick()
+        composeRule.onNodeWithText("completed").assertDoesNotExist()
+    }
+
+    @Test
     fun recordActionUsesActiveUnilateralSideOnly() {
         var recordedSide: String? = null
         val holder = RecordActionHolder()

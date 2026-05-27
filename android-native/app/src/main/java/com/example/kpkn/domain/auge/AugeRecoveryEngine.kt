@@ -130,6 +130,11 @@ object AugeRecoveryEngine {
         ld.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     } catch (e: Exception) { 0L }
 
+    private fun manualBatteryAnchorMs(wellbeing: DailyWellbeingLog?): Long =
+        wellbeing?.manualBatteryAnchorMs
+            ?: wellbeing?.date?.let { parseWellbeingDate(it) }
+            ?: 0L
+
     private fun muscleMatchesCategory(specificMuscle: String, category: String): Boolean {
         return matchesAugeMuscleTarget(specificMuscle, category)
     }
@@ -387,7 +392,7 @@ object AugeRecoveryEngine {
         val tenDaysAgo = now - 10L * 24 * 3600 * 1000
 
         val manualScore = wellbeing?.manualMuscleBatteries?.get(muscleName)
-        val anchorMs = wellbeing?.date?.let { parseWellbeingDate(it) } ?: 0L
+        val anchorMs = manualBatteryAnchorMs(wellbeing)
         val hoursSinceAnchor = max(0.0, (now - anchorMs) / 3_600_000.0)
         var accumulatedFatigue = 0.0
 
@@ -513,7 +518,7 @@ object AugeRecoveryEngine {
         val last10Days = now - 10L * 24 * 3600 * 1000
 
         val manualNeural = wellbeing?.manualNeuralBattery
-        val anchorMs = wellbeing?.date?.let { parseWellbeingDate(it) } ?: 0L
+        val anchorMs = manualBatteryAnchorMs(wellbeing)
         val hoursSinceAnchor = max(0.0, (now - anchorMs) / 3_600_000.0)
         var accumulatedGymLoad = 0.0
 
@@ -592,7 +597,7 @@ object AugeRecoveryEngine {
         val last10Days = now - 10L * 24 * 3600 * 1000
 
         val manualSpinal = wellbeing?.manualSpinalBattery
-        val anchorMs = wellbeing?.date?.let { parseWellbeingDate(it) } ?: 0L
+        val anchorMs = manualBatteryAnchorMs(wellbeing)
         val hoursSinceAnchor = max(0.0, (now - anchorMs) / 3_600_000.0)
         var accumulatedSpinalLoad = 0.0
 
@@ -740,6 +745,9 @@ object AugeRecoveryEngine {
             batteries.spinal,
             ((batteries.spinal * 0.6) + (articularFloor * 0.4)).toInt(),
         ).coerceIn(0, 100)
+        val muscularScore = wellbeing?.manualMuscularBattery?.coerceIn(0, 100) ?: batteries.muscular
+        val systemScore = wellbeing?.manualNeuralBattery?.coerceIn(0, 100) ?: batteries.cnc
+        val displayStructureScore = wellbeing?.manualSpinalBattery?.coerceIn(0, 100) ?: structureScore
 
         val baseConfidence = when {
             recentSessionCount >= 16 -> 82
@@ -761,6 +769,7 @@ object AugeRecoveryEngine {
             } else {
                 add("Promedio de grupos pilar estable")
             }
+            if (wellbeing?.manualMuscularBattery != null) add("Ajuste manual de readiness")
             if ((wellbeing?.doms ?: 1) >= 4) add("Agujetas altas hoy")
             if (weightedSleep < 6.5) add("Sueño reciente por debajo de lo ideal")
         }
@@ -770,16 +779,18 @@ object AugeRecoveryEngine {
                 weightedSleep < 6.5 -> add("Sueño subóptimo reciente")
                 weightedSleep >= 8.5 -> add("Buen colchón de sueño")
             }
+            if (wellbeing?.manualNeuralBattery != null) add("Ajuste manual de readiness")
             if ((wellbeing?.stressLevel ?: 3) >= 4) add("Estrés alto fuera del entrenamiento")
-            if (batteries.cnc < 70) add("Carga neural reciente acumulada")
+            if (systemScore < 70) add("Carga neural reciente acumulada")
         }
         val structureCauses = buildList {
-            if (batteries.spinal < 75) add("Carga axial reciente elevada")
+            if (displayStructureScore < 75) add("Carga axial reciente elevada")
             if (weakestArticular.isNotEmpty()) {
                 add(weakestArticular.joinToString(" y ") { "${AugeTtcEngine.articularLabel(it.key)} ${it.value.recoveryScore}%" })
             } else {
                 add("Sin cuello de botella estructural claro")
             }
+            if (wellbeing?.manualSpinalBattery != null) add("Ajuste manual de readiness")
             if ((wellbeing?.doms ?: 1) >= 4) add("Tejidos aún sensibles hoy")
         }
 
@@ -788,10 +799,10 @@ object AugeRecoveryEngine {
                 id = RecoveryChannelId.MUSCULAR,
                 title = "Músculos",
                 shortTitle = "Mús.",
-                score = batteries.muscular,
-                band = recoveryBand(batteries.muscular),
+                score = muscularScore,
+                band = recoveryBand(muscularScore),
                 description = "Promedio del estado de todos tus músculos hoy.",
-                action = actionForChannel(RecoveryChannelId.MUSCULAR, batteries.muscular),
+                action = actionForChannel(RecoveryChannelId.MUSCULAR, muscularScore),
                 causes = muscularCauses.take(3),
                 confidence = muscularConfidence,
                 editable = false,
@@ -800,10 +811,10 @@ object AugeRecoveryEngine {
                 id = RecoveryChannelId.SYSTEM,
                 title = "Energía",
                 shortTitle = "En.",
-                score = batteries.cnc,
-                band = recoveryBand(batteries.cnc),
+                score = systemScore,
+                band = recoveryBand(systemScore),
                 description = "Qué tanta intensidad, coordinación y producción de fuerza toleras hoy.",
-                action = actionForChannel(RecoveryChannelId.SYSTEM, batteries.cnc),
+                action = actionForChannel(RecoveryChannelId.SYSTEM, systemScore),
                 causes = systemCauses.take(3),
                 confidence = systemConfidence,
                 editable = true,
@@ -812,10 +823,10 @@ object AugeRecoveryEngine {
                 id = RecoveryChannelId.STRUCTURE,
                 title = "Columna",
                 shortTitle = "Col.",
-                score = structureScore,
-                band = recoveryBand(structureScore),
+                score = displayStructureScore,
+                band = recoveryBand(displayStructureScore),
                 description = "Cómo llega hoy tu columna, tus tendones y tus articulaciones a la carga.",
-                action = actionForChannel(RecoveryChannelId.STRUCTURE, structureScore),
+                action = actionForChannel(RecoveryChannelId.STRUCTURE, displayStructureScore),
                 causes = structureCauses.take(3),
                 confidence = structureConfidence,
                 editable = true,

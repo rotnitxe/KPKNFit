@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 
 // ─── Classification ───────────────────────────────────────────────────────────
 
+@Suppress("unused")
 @Serializable
 enum class SessionTemplateTag {
     // Objective
@@ -50,13 +51,27 @@ enum class SessionTemplateSourceType {
     USER,
 }
 
+@Serializable
+enum class SessionTemplateFocusCategory {
+    PIERNAS,
+    BRAZOS,
+    GLUTEOS,
+    PECHO,
+    ESPALDA,
+    HOMBROS,
+    FULL_BODY,
+    POWERLIFTING,
+    MINIMALISTA,
+    RECUPERACION
+}
+
 // ─── Core model ───────────────────────────────────────────────────────────────
 
 /**
  * A reusable session blueprint that can be applied to a session in the editor.
  *
  * System templates live in [SESSION_TEMPLATES_SYSTEM] and are never persisted to
- * the database. User templates are persisted via [SessionTemplateRepository].
+ * the database. User templates are persisted via SessionTemplateRepository.
  *
  * When applied, all internal IDs (Session, SessionPart, Exercise, ExerciseSet)
  * are regenerated via [com.example.kpkn.domain.templates.SessionTemplateEngine]
@@ -85,6 +100,11 @@ data class SessionTemplate(
     /** ISO-8601 string, null for SYSTEM templates. */
     val createdAt: String? = null,
     val updatedAt: String? = null,
+    val splitIds: List<String> = emptyList(),
+    val splitDayLabels: List<String> = emptyList(),
+    val focusCategory: SessionTemplateFocusCategory? = null,
+    val shortDescription: String = "",
+    val weeklyVolumePolicyId: String? = null,
 )
 
 // ─── Application logic ────────────────────────────────────────────────────────

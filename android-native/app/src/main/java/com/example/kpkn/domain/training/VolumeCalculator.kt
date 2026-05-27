@@ -106,7 +106,14 @@ object VolumeCalculator {
             .trim()
         val emphasisLower = emphasis?.lowercase()?.trim().orEmpty()
 
-        if (lower.contains("deltoides") || lower.contains("hombro")) return "Deltoides"
+        if (lower.contains("deltoides") || lower.contains("hombro")) {
+            return when {
+                emphasisLower.contains("anterior") -> "Deltoides anterior"
+                emphasisLower.contains("lateral") || emphasisLower.contains("medio") -> "Deltoides lateral"
+                emphasisLower.contains("posterior") -> "Deltoides posterior"
+                else -> "Deltoides"
+            }
+        }
         if ((lower.contains("bíceps") || lower.contains("biceps") || lower.contains("braquial")) && !lower.contains("femoral")) return "Bíceps"
         if (lower.contains("tríceps") || lower.contains("triceps")) return "Tríceps"
         if (lower.contains("antebrazo") || lower.contains("braquiorradial")) return "Antebrazo"

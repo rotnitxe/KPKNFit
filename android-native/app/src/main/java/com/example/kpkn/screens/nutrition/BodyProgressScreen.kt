@@ -13,8 +13,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -22,6 +24,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,11 +37,14 @@ import java.util.UUID
 // COLORS
 // ═══════════════════════════════════════════════════════════════════════
 
-private val TEAL = Color(0xFF009688)
-private val WEIGHT_COLOR = Color(0xFF42A5F5)
-private val BODYFAT_COLOR = Color(0xFFEF5350)
-private val MUSCLE_COLOR = Color(0xFF66BB6A)
-private val FFMI_COLOR = Color(0xFF7E57C2)
+private val TEAL = Color(0xFFCED4DC)
+private val WEIGHT_COLOR = Color(0xFFF3F4F6)
+private val BODYFAT_COLOR = Color(0xFFC9CED6)
+private val MUSCLE_COLOR = Color(0xFF939AA4)
+private val FFMI_COLOR = Color(0xFF6F7782)
+private val BODY_NEUTRAL_ACCENT = Color(0xFFE8EBEF)
+private val BODY_NEUTRAL_MUTED = Color(0xFFB7BEC8)
+private val BODY_NEUTRAL_DARK = Color(0xFF5D6570)
 
 // ═══════════════════════════════════════════════════════════════════════
 // DATA CLASSES
@@ -49,6 +55,16 @@ private data class MeasurementEntry(
     val weight: Double?,
     val bodyFat: Double?,
     val muscleMass: Double?,
+)
+
+private enum class BodyHeroMetric {
+    WEIGHT,
+    BODY_FAT,
+}
+
+private data class BodyMetricPoint(
+    val date: String,
+    val value: Double,
 )
 
 private data class FfmiCategory(
@@ -86,7 +102,7 @@ private val FFMI_GAUGE_SEGMENTS = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BodyProgressScreen(
-    onBack: () -> Unit,
+    onCreatePlan: () -> Unit = {},
 ) {
     val nutritionRepo = NutritionRepository.getInstance()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
@@ -97,6 +113,9 @@ fun BodyProgressScreen(
     val measurementSchedule by nutritionRepo.measurementSchedule.collectAsState()
 
     var showAddMeasurement by remember { mutableStateOf(false) }
+    var showPlanRequiredDialog by remember { mutableStateOf(false) }
+    var heroMetric by rememberSaveable { mutableStateOf(BodyHeroMetric.WEIGHT) }
+    val contextualBottomBarClearance = 220.dp
 
     // Compute derived body metrics
     val weight = vitals.weight
@@ -118,43 +137,44 @@ fun BodyProgressScreen(
     val fatMass = if (weight != null && bodyFat != null)
         weight * (bodyFat / 100) else null
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Progreso Físico", fontWeight = FontWeight.Black) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Volver") }
-                },
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { showAddMeasurement = true },
-                icon = { Icon(Icons.Default.Add, null) },
-                text = { Text("Registrar medición") },
-                containerColor = TEAL,
-                contentColor = Color.White,
-            )
-        },
-    ) { padding ->
+    val sortedMeasurements = remember(bodyMeasurements) {
+        bodyMeasurements.sortedBy { it.date }
+    }
+    val weightSeries = remember(sortedMeasurements, weight) {
+        buildBodyMetricSeries(sortedMeasurements, weight) { it.weight }
+    }
+    val bodyFatSeries = remember(sortedMeasurements, bodyFat) {
+        buildBodyMetricSeries(sortedMeasurements, bodyFat) { it.bodyFat }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface),
+    ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(bottom = 100.dp),
+                .then(if (activePlan == null) Modifier.blur(10.dp) else Modifier),
+            contentPadding = PaddingValues(bottom = 260.dp),
         ) {
-            // ── Hero with current stats ─────────────────────────────────
             item {
                 ProgressHero(
+                    selectedMetric = heroMetric,
+                    onMetricChange = { heroMetric = it },
+                    weightSeries = weightSeries,
+                    bodyFatSeries = bodyFatSeries,
                     weight = weight,
                     bodyFat = bodyFat,
                     muscle = muscle,
                     bmi = bmi,
                     ffmi = ffmi,
+                    targetWeight = targetWeight,
+                    targetBodyFat = targetBodyFat,
+                    plan = activePlan,
                 )
             }
 
-            // ── Goal Progress ───────────────────────────────────────────
             when (goalType) {
                 GoalMetric.WEIGHT -> if (targetWeight != null && weight != null) {
                     item {
@@ -191,14 +211,16 @@ fun BodyProgressScreen(
                 }
             }
 
-            // ── FFMI Gauge ──────────────────────────────────────────────
+            item {
+                MeasurementSectionLabel("Métricas y biometría")
+            }
+
             if (ffmi != null) {
                 item {
                     FfmiGaugeCard(ffmi = ffmi, gender = vitals.gender)
                 }
             }
 
-            // ── Body Composition Breakdown ──────────────────────────────
             if (lbm != null && fatMass != null && weight != null) {
                 item {
                     CompositionBreakdownCard(
@@ -209,7 +231,6 @@ fun BodyProgressScreen(
                 }
             }
 
-            // ── KPI Grid ────────────────────────────────────────────────
             item {
                 KpiGrid(
                     weight = weight,
@@ -222,19 +243,16 @@ fun BodyProgressScreen(
                 )
             }
 
-            // ── BMI Category ────────────────────────────────────────────
             if (bmi != null) {
                 item {
                     BmiCategoryCard(bmi = bmi)
                 }
             }
 
-            // ── Tips ────────────────────────────────────────────────────
             item {
                 TipsCard(bodyFat = bodyFat, ffmi = ffmi, bmi = bmi)
             }
 
-            // ── Programar próxima medición ───────────────────────────────
             item {
                 MeasurementScheduleCard(
                     schedule = measurementSchedule,
@@ -242,16 +260,8 @@ fun BodyProgressScreen(
                 )
             }
 
-            // ── Historial de mediciones ──────────────────────────────────
             item {
-                Text(
-                    "HISTORIAL DE MEDIDAS",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 1.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
-                )
+                MeasurementSectionLabel("Historial de medidas")
             }
 
             if (bodyMeasurements.isEmpty()) {
@@ -300,7 +310,86 @@ fun BodyProgressScreen(
                 }
             }
 
+            item {
+                MeasurementSectionLabel("Gráficos")
+            }
+
+            item {
+                BodyMetricTrendChartCard(
+                    title = "Peso corporal",
+                    subtitle = "Evolución según tus registros",
+                    points = weightSeries,
+                    unit = "kg",
+                    color = WEIGHT_COLOR,
+                    targetValue = targetWeight,
+                    emptyMessage = "Registra peso para ver su evolución en el tiempo.",
+                )
+            }
+
+            item {
+                BodyMetricTrendChartCard(
+                    title = "% de grasa",
+                    subtitle = "Cambio relativo en composición",
+                    points = bodyFatSeries,
+                    unit = "%",
+                    color = BODYFAT_COLOR,
+                    targetValue = targetBodyFat,
+                    emptyMessage = "Agrega mediciones de grasa corporal para activar este gráfico.",
+                )
+            }
+
             item { Spacer(Modifier.height(100.dp)) }
+        }
+
+        ExtendedFloatingActionButton(
+            onClick = {
+                if (activePlan == null) {
+                    showPlanRequiredDialog = true
+                } else {
+                    showAddMeasurement = true
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = contextualBottomBarClearance)
+                .then(if (activePlan == null) Modifier.blur(10.dp) else Modifier),
+            icon = { Icon(Icons.Default.Add, null) },
+            text = { Text("Registrar medición") },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+        )
+
+        if (activePlan == null) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    "Sin plan activo",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Crea un plan de alimentación para desbloquear tu progreso corporal y registrar mediciones.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(14.dp))
+                Button(
+                    onClick = onCreatePlan,
+                    shape = RoundedCornerShape(14.dp),
+                ) {
+                    Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Crear plan de alimentación")
+                }
+            }
         }
     }
 
@@ -336,55 +425,214 @@ fun BodyProgressScreen(
 
 @Composable
 private fun ProgressHero(
+    selectedMetric: BodyHeroMetric,
+    onMetricChange: (BodyHeroMetric) -> Unit,
+    weightSeries: List<BodyMetricPoint>,
+    bodyFatSeries: List<BodyMetricPoint>,
     weight: Double?,
     bodyFat: Double?,
     muscle: Double?,
     bmi: Double?,
     ffmi: Double?,
+    targetWeight: Double?,
+    targetBodyFat: Double?,
+    plan: NutritionPlan?,
 ) {
+    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val points = if (selectedMetric == BodyHeroMetric.WEIGHT) weightSeries else bodyFatSeries
+    val accentColor = if (selectedMetric == BodyHeroMetric.WEIGHT) BODY_NEUTRAL_ACCENT else BODY_NEUTRAL_MUTED
+    val metricLabel = if (selectedMetric == BodyHeroMetric.WEIGHT) "Peso corporal" else "% de grasa"
+    val metricUnit = if (selectedMetric == BodyHeroMetric.WEIGHT) "kg" else "%"
+    val currentValue = when (selectedMetric) {
+        BodyHeroMetric.WEIGHT -> weight
+        BodyHeroMetric.BODY_FAT -> bodyFat
+    }
+    val targetValue = when (selectedMetric) {
+        BodyHeroMetric.WEIGHT -> targetWeight
+        BodyHeroMetric.BODY_FAT -> targetBodyFat
+    }
+    val startValue = points.firstOrNull()?.value
+    val deltaValue = if (currentValue != null && startValue != null) currentValue - startValue else null
+    val progressPct = calculateGoalProgress(startValue, currentValue, targetValue)
+    val latestDateLabel = points.lastOrNull()?.date?.let(::formatHeroDate) ?: "Sin registros"
+    val weeklyRateLabel = when {
+        plan == null -> "Sin ritmo"
+        selectedMetric == BodyHeroMetric.WEIGHT -> "${r1(plan.weeklyChangeKg)} kg/sem"
+        weight != null && weight > 0 -> "${r1(plan.weeklyChangeKg / weight * 100)} %/sem"
+        else -> "Sin ritmo"
+    }
+    val counterpartLabel = if (selectedMetric == BodyHeroMetric.WEIGHT) "% grasa" else "Peso"
+    val counterpartValue = if (selectedMetric == BodyHeroMetric.WEIGHT) {
+        bodyFat?.let { "${r1(it)}%" } ?: "—"
+    } else {
+        weight?.let { "${r1(it)} kg" } ?: "—"
+    }
+    val deltaLabel = when {
+        deltaValue == null -> "Sin tendencia"
+        deltaValue == 0.0 -> "Sin cambio"
+        else -> {
+            val direction = if (deltaValue > 0) "+" else ""
+            "$direction${r1(deltaValue)} $metricUnit"
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(
                 Brush.verticalGradient(
-                    listOf(TEAL.copy(alpha = 0.10f), Color.Transparent)
+                    listOf(
+                        Color.White.copy(alpha = 0.10f),
+                        BODY_NEUTRAL_MUTED.copy(alpha = 0.08f),
+                        Color.Transparent,
+                    )
                 )
             )
-            .padding(horizontal = 20.dp, vertical = 20.dp),
+            .padding(start = 20.dp, end = 20.dp, top = topInset + 18.dp, bottom = 20.dp),
     ) {
         Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.FitnessCenter, null, tint = TEAL, modifier = Modifier.size(24.dp))
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    "Estado actual",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(
+                        latestDateLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        "Cuerpo",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HeroTogglePill(
+                        label = "Peso",
+                        selected = selectedMetric == BodyHeroMetric.WEIGHT,
+                        activeColor = BODY_NEUTRAL_ACCENT,
+                        onClick = { onMetricChange(BodyHeroMetric.WEIGHT) },
+                    )
+                    HeroTogglePill(
+                        label = "% grasa",
+                        selected = selectedMetric == BodyHeroMetric.BODY_FAT,
+                        activeColor = BODY_NEUTRAL_MUTED,
+                        onClick = { onMetricChange(BodyHeroMetric.BODY_FAT) },
+                    )
+                }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(20.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                HeroMetric("Peso", weight?.let { "${r1(it)} kg" } ?: "—", WEIGHT_COLOR)
-                HeroMetric("% Grasa", bodyFat?.let { "${r1(it)}%" } ?: "—", BODYFAT_COLOR)
-                HeroMetric("% Músculo", muscle?.let { "${r1(it)}%" } ?: "—", MUSCLE_COLOR)
-                HeroMetric("FFMI", ffmi?.let { "${r1(it)}" } ?: "—", FFMI_COLOR)
+                Column(
+                    modifier = Modifier
+                        .width(140.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    BodyTrendSparkline(
+                        points = points,
+                        color = accentColor,
+                        targetValue = targetValue,
+                        unit = metricUnit,
+                        modifier = Modifier.size(140.dp),
+                        compact = true,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        currentValue?.let { "${r1(it)}" } ?: "—",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Black,
+                        color = accentColor,
+                    )
+                    Text(
+                        "/ ${targetValue?.let { r1(it) } ?: "—"} $metricUnit",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                Spacer(Modifier.width(16.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    BodyHeroDetailRow(
+                        label = metricLabel,
+                        primary = currentValue?.let { "${r1(it)} $metricUnit" } ?: "Sin datos",
+                        secondary = targetValue?.let { "Meta ${r1(it)} $metricUnit" } ?: "Sin meta",
+                        color = accentColor,
+                        progress = progressPct?.div(100f),
+                    )
+                    BodyHeroDetailRow(
+                        label = "Cambio",
+                        primary = deltaLabel,
+                        secondary = "Desde el primer registro",
+                        color = BODY_NEUTRAL_MUTED,
+                    )
+                    BodyHeroDetailRow(
+                        label = "Ritmo",
+                        primary = weeklyRateLabel,
+                        secondary = counterpartLabel + " " + counterpartValue,
+                        color = BODY_NEUTRAL_DARK,
+                    )
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = (if ((progressPct ?: 0) >= 50) BODY_NEUTRAL_ACCENT else BODY_NEUTRAL_MUTED).copy(alpha = 0.10f),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                if ((progressPct ?: 0) >= 50) Icons.Default.CheckCircle else Icons.Default.Timeline,
+                                null,
+                                tint = if ((progressPct ?: 0) >= 50) BODY_NEUTRAL_ACCENT else BODY_NEUTRAL_MUTED,
+                                modifier = Modifier.size(14.dp),
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                if (progressPct != null) "$progressPct% hacia tu meta · FFMI ${ffmi?.let(::r1) ?: "—"}"
+                                else "FFMI ${ffmi?.let(::r1) ?: "—"} · % músculo ${muscle?.let { "${r1(it)}%" } ?: "—"}",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if ((progressPct ?: 0) >= 50) BODY_NEUTRAL_ACCENT else BODY_NEUTRAL_MUTED,
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun HeroMetric(label: String, value: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun HeroMetric(
+    label: String,
+    value: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         Surface(
             shape = RoundedCornerShape(14.dp),
             color = color.copy(alpha = 0.10f),
-            modifier = Modifier.size(width = 68.dp, height = 52.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Text(
@@ -404,6 +652,376 @@ private fun HeroMetric(label: String, value: String, color: Color) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
         )
+    }
+
+}
+
+@Composable
+private fun HeroTogglePill(
+    label: String,
+    selected: Boolean,
+    activeColor: Color,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(999.dp),
+        color = if (selected) Color.White.copy(alpha = 0.14f) else MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Text(
+            label,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
+            color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun HeroInsightChip(label: String, value: String, accentColor: Color) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = accentColor.copy(alpha = 0.10f),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.End,
+        ) {
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                value,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Black,
+                color = accentColor,
+            )
+        }
+    }
+}
+
+@Composable
+private fun BodyHeroDetailRow(
+    label: String,
+    primary: String,
+    secondary: String,
+    color: Color,
+    progress: Float? = null,
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(8.dp).clip(CircleShape).background(color))
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                primary,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+        Text(
+            secondary,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+            modifier = Modifier.padding(start = 14.dp, top = 1.dp),
+        )
+        Spacer(Modifier.height(4.dp))
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp)),
+        ) {
+            drawRoundRect(
+                color = color.copy(alpha = 0.12f),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx()),
+            )
+            val fill = ((progress ?: 0.45f).coerceIn(0.12f, 1f)) * size.width
+            drawRoundRect(
+                color = color,
+                size = Size(fill, size.height),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx()),
+            )
+        }
+    }
+}
+
+@Composable
+private fun BodyTrendSparkline(
+    points: List<BodyMetricPoint>,
+    color: Color,
+    targetValue: Double?,
+    unit: String,
+    modifier: Modifier = Modifier,
+    compact: Boolean = false,
+) {
+    val minValue = minOf(points.minOfOrNull { it.value } ?: targetValue ?: 0.0, targetValue ?: Double.MAX_VALUE)
+        .takeIf { it != Double.MAX_VALUE } ?: 0.0
+    val maxValue = maxOf(points.maxOfOrNull { it.value } ?: targetValue ?: 1.0, targetValue ?: Double.MIN_VALUE)
+        .takeIf { it != Double.MIN_VALUE } ?: 1.0
+    val valueRange = (maxValue - minValue).takeIf { it > 0 } ?: 1.0
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(22.dp),
+        color = color.copy(alpha = 0.08f),
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            if (!compact) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Avance en el tiempo",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        if (points.isNotEmpty()) "${points.size} registro(s)" else "Sin historial",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Spacer(Modifier.height(10.dp))
+            }
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(if (compact) 92.dp else 120.dp),
+            ) {
+                if (points.isEmpty()) return@Canvas
+                val width = size.width
+                val height = size.height
+                val horizontalPadding = 8.dp.toPx()
+                val usableWidth = (width - horizontalPadding * 2).coerceAtLeast(1f)
+                val stepX = if (points.size == 1) 0f else usableWidth / (points.size - 1)
+
+                fun pointOffset(index: Int, value: Double): Offset {
+                    val x = horizontalPadding + stepX * index
+                    val normalized = ((value - minValue) / valueRange).toFloat()
+                    val y = height - normalized * (height - 12.dp.toPx()) - 6.dp.toPx()
+                    return Offset(x, y)
+                }
+
+                if (targetValue != null) {
+                    val targetNormalized = ((targetValue - minValue) / valueRange).toFloat().coerceIn(0f, 1f)
+                    val targetY = height - targetNormalized * (height - 12.dp.toPx()) - 6.dp.toPx()
+                    drawLine(
+                        color = color.copy(alpha = 0.35f),
+                        start = Offset(0f, targetY),
+                        end = Offset(width, targetY),
+                        strokeWidth = 1.5.dp.toPx(),
+                        pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 8f)),
+                    )
+                }
+
+                points.forEachIndexed { index, point ->
+                    if (index == 0) return@forEachIndexed
+                    drawLine(
+                        color = color,
+                        start = pointOffset(index - 1, points[index - 1].value),
+                        end = pointOffset(index, point.value),
+                        strokeWidth = 3.dp.toPx(),
+                    )
+                }
+
+                points.forEachIndexed { index, point ->
+                    drawCircle(
+                        color = Color.White,
+                        radius = 5.dp.toPx(),
+                        center = pointOffset(index, point.value),
+                    )
+                    drawCircle(
+                        color = color,
+                        radius = 3.dp.toPx(),
+                        center = pointOffset(index, point.value),
+                    )
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            if (points.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        formatShortDate(points.first().date),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        points.last().let { "${r1(it.value)} $unit" },
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = color,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BodyMetricTrendChartCard(
+    title: String,
+    subtitle: String,
+    points: List<BodyMetricPoint>,
+    unit: String,
+    color: Color,
+    targetValue: Double? = null,
+    emptyMessage: String,
+) {
+    val minValue = minOf(points.minOfOrNull { it.value } ?: targetValue ?: 0.0, targetValue ?: Double.MAX_VALUE)
+        .takeIf { it != Double.MAX_VALUE } ?: 0.0
+    val maxValue = maxOf(points.maxOfOrNull { it.value } ?: targetValue ?: 1.0, targetValue ?: Double.MIN_VALUE)
+        .takeIf { it != Double.MIN_VALUE } ?: 1.0
+    val valueRange = (maxValue - minValue).takeIf { it > 0 } ?: 1.0
+    val gridColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.10f)
+
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(
+                title.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 1.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(12.dp))
+            if (points.isEmpty()) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(164.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = color.copy(alpha = 0.06f),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        Icon(
+                            Icons.Default.ShowChart,
+                            contentDescription = null,
+                            tint = color.copy(alpha = 0.7f),
+                            modifier = Modifier.size(28.dp),
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            emptyMessage,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            } else {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(164.dp),
+                ) {
+                    val width = size.width
+                    val height = size.height
+                    val leftPadding = 10.dp.toPx()
+                    val rightPadding = 10.dp.toPx()
+                    val topPadding = 10.dp.toPx()
+                    val bottomPadding = 18.dp.toPx()
+                    val usableWidth = (width - leftPadding - rightPadding).coerceAtLeast(1f)
+                    val usableHeight = (height - topPadding - bottomPadding).coerceAtLeast(1f)
+                    val stepX = if (points.size == 1) 0f else usableWidth / (points.size - 1)
+
+                    fun pointOffset(index: Int, value: Double): Offset {
+                        val normalized = ((value - minValue) / valueRange).toFloat()
+                        val x = leftPadding + stepX * index
+                        val y = topPadding + usableHeight - usableHeight * normalized
+                        return Offset(x, y)
+                    }
+
+                    repeat(3) { gridIndex ->
+                        val y = topPadding + usableHeight * (gridIndex / 2f)
+                        drawLine(
+                            color = gridColor,
+                            start = Offset(leftPadding, y),
+                            end = Offset(width - rightPadding, y),
+                            strokeWidth = 1.dp.toPx(),
+                        )
+                    }
+
+                    if (targetValue != null) {
+                        val targetNormalized = ((targetValue - minValue) / valueRange).toFloat().coerceIn(0f, 1f)
+                        val targetY = topPadding + usableHeight - usableHeight * targetNormalized
+                        drawLine(
+                            color = color.copy(alpha = 0.35f),
+                            start = Offset(leftPadding, targetY),
+                            end = Offset(width - rightPadding, targetY),
+                            strokeWidth = 1.5.dp.toPx(),
+                            pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 8f)),
+                        )
+                    }
+
+                    points.forEachIndexed { index, point ->
+                        if (index == 0) return@forEachIndexed
+                        drawLine(
+                            color = color,
+                            start = pointOffset(index - 1, points[index - 1].value),
+                            end = pointOffset(index, point.value),
+                            strokeWidth = 3.dp.toPx(),
+                        )
+                    }
+                    points.forEachIndexed { index, point ->
+                        drawCircle(Color.White, 5.dp.toPx(), pointOffset(index, point.value))
+                        drawCircle(color, 3.dp.toPx(), pointOffset(index, point.value))
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        points.firstOrNull()?.date?.let(::formatShortDate) ?: "—",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        points.lastOrNull()?.let { "${r1(it.value)} $unit" } ?: "—",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = color,
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -1205,8 +1823,11 @@ private fun MeasurementSectionLabel(label: String) {
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.ExtraBold,
         letterSpacing = 1.sp,
+        textAlign = TextAlign.Center,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 6.dp),
     )
 }
 
@@ -1230,6 +1851,51 @@ private fun MeasurementField(
 // ═══════════════════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════════
+
+private fun buildBodyMetricSeries(
+    measurements: List<BodyMeasurementEntry>,
+    fallbackValue: Double?,
+    selector: (BodyMeasurementEntry) -> Double?,
+): List<BodyMetricPoint> {
+    val points = measurements.mapNotNull { entry ->
+        selector(entry)?.let { BodyMetricPoint(date = entry.date, value = it) }
+    }
+    if (points.isNotEmpty()) return points
+    return fallbackValue?.let {
+        listOf(BodyMetricPoint(date = java.time.LocalDate.now().toString(), value = it))
+    } ?: emptyList()
+}
+
+private fun calculateGoalProgress(
+    startValue: Double?,
+    currentValue: Double?,
+    targetValue: Double?,
+): Int? {
+    if (startValue == null || currentValue == null || targetValue == null) return null
+    val total = kotlin.math.abs(targetValue - startValue)
+    if (total == 0.0) return 100
+    val remaining = kotlin.math.abs(targetValue - currentValue)
+    return kotlin.math.round(((1 - remaining / total).coerceIn(0.0, 1.0)) * 100).toInt()
+}
+
+private fun formatShortDate(raw: String): String {
+    return try {
+        java.time.LocalDate.parse(raw)
+            .format(java.time.format.DateTimeFormatter.ofPattern("d MMM", java.util.Locale.getDefault()))
+    } catch (_: Exception) {
+        raw
+    }
+}
+
+private fun formatHeroDate(raw: String): String {
+    return try {
+        java.time.LocalDate.parse(raw)
+            .format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", java.util.Locale.getDefault()))
+            .replaceFirstChar { it.uppercase() }
+    } catch (_: Exception) {
+        raw
+    }
+}
 
 private fun r1(v: Double): String {
     return (kotlin.math.round(v * 10) / 10.0).toString()

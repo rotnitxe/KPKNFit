@@ -275,16 +275,19 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun applyManualBatteries(
         neural: Int,
+        muscular: Int? = null,
         spinal: Int,
         perMuscle: Map<String, Int>,
+        manualBatteryAnchorMs: Long? = null,
     ) {
         viewModelScope.launch {
             val base = augeRepo.getTodayWellbeing()
-            val derivedMuscular = if (perMuscle.isEmpty()) {
-                null
-            } else {
-                perMuscle.values.average().toInt().coerceIn(0, 100)
-            }
+            val derivedMuscular = muscular
+                ?: perMuscle.values
+                    .takeIf { it.isNotEmpty() }
+                    ?.average()
+                    ?.toInt()
+                    ?.coerceIn(0, 100)
             val updated = DailyWellbeingLog(
                 id = base?.id ?: UUID.randomUUID().toString(),
                 date = LocalDate.now().toString(),
@@ -300,6 +303,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 manualNeuralBattery = neural.coerceIn(0, 100),
                 manualSpinalBattery = spinal.coerceIn(0, 100),
                 manualMuscleBatteries = perMuscle.mapValues { (_, value) -> value.coerceIn(0, 100) },
+                manualBatteryAnchorMs = manualBatteryAnchorMs ?: base?.manualBatteryAnchorMs,
                 notes = base?.notes,
             )
             augeRepo.saveWellbeingLog(updated)

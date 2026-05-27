@@ -6,6 +6,7 @@ import { Program, Session, ProgramWeek } from '../types';
 import { TacticalModal } from './ui/TacticalOverlays';
 import { ChevronRightIcon, PlayIcon, DumbbellIcon } from './icons';
 import Button from './ui/Button';
+import { formatCalendarizedNameForSpanish } from '../utils/programHelpers';
 
 interface StartWorkoutModalProps {
     isOpen: boolean;
@@ -80,7 +81,7 @@ const StartWorkoutModal: React.FC<StartWorkoutModalProps> = ({ isOpen, onClose }
 
         return (
             <div className="space-y-3 animate-fade-in p-2">
-                <h3 className="text-lg font-bold text-center mb-4">Selecciona variante para<br/> <span className="text-primary-color font-black">"{sessionToStart.session.name}"</span></h3>
+                <h3 className="text-lg font-bold text-center mb-4">Selecciona variante para<br/> <span className="text-primary-color font-black">"{formatCalendarizedNameForSpanish(sessionToStart.session.name)}"</span></h3>
                 {variants.map(v => (
                     <Button key={v} onClick={() => handleVariantClick(v as any)} className="w-full !py-4 !text-base font-black uppercase tracking-widest">
                         Realizar Sesión {v}
@@ -111,12 +112,12 @@ const StartWorkoutModal: React.FC<StartWorkoutModalProps> = ({ isOpen, onClose }
                                 block.mesocycles.flatMap(meso => 
                                     meso.weeks.map(week => (
                                         <div key={week.id} className="mb-4 last:mb-0">
-                                            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2 mb-2">{block.name} • {meso.name} • {week.name}</h4>
+                                            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2 mb-2">{block.name} • {meso.name} • {formatCalendarizedNameForSpanish(week.name)}</h4>
                                             <div className="space-y-1">
                                                 {week.sessions.map(session => (
                                                     <div key={session.id} onClick={() => handleSessionClick(session, program, week.variant)} className="flex justify-between items-center p-3 hover:bg-white/5 bg-black/20 rounded-xl cursor-pointer transition-colors border border-transparent hover:border-[#E6E0E9] group">
                                                         <div className="min-w-0">
-                                                            <p className="text-slate-200 font-bold text-sm truncate group-hover:text-white">{session.name}</p>
+                                                            <p className="text-slate-200 font-bold text-sm truncate group-hover:text-white">{formatCalendarizedNameForSpanish(session.name)}</p>
                                                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{getExerciseCount(session)} ejercicios</p>
                                                         </div>
                                                         <div className="p-2 text-primary-color opacity-50 group-hover:opacity-100 transition-opacity">

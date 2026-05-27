@@ -53,6 +53,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -230,6 +231,7 @@ data class SessionEditorUiState(
     val latestBodyMeasurement: BodyMeasurementEntry? = null,
     val allProgramExerciseCandidates: List<ProgramExerciseCandidate> = emptyList(),
     val competitionMovementIds: Set<String> = emptySet(),
+    val competitionKeyDaysInWeek: Set<Int> = emptySet(),
     // ─── Session Templates ────────────────────────────────────────────────────
     /** Free-text filter applied to the template picker list. */
     val templateSearchQuery: String = "",
@@ -586,6 +588,7 @@ class SessionEditorViewModel(
             }
             .distinctBy { it.exerciseId }
         val competitionMovementIds = buildCompetitionMovementIds(program)
+        val competitionKeyDaysInWeek = buildCompetitionKeyDaysInWeek(program, week)
 
         _uiState.value = SessionEditorUiState(
             session = draft,
@@ -622,6 +625,7 @@ class SessionEditorViewModel(
             latestBodyMeasurement = latestBodyMeasurementOrNull(),
             allProgramExerciseCandidates = allProgramExerciseCandidates,
             competitionMovementIds = competitionMovementIds,
+            competitionKeyDaysInWeek = competitionKeyDaysInWeek,
             selectedExercisesIds = persistedDraft?.selectedExercisesIds.orEmpty(),
         )
 
@@ -1539,6 +1543,20 @@ class SessionEditorViewModel(
         }
     }
 
+    fun openMobilityPicker(partId: String?, exerciseId: String) {
+        _uiState.update {
+            it.copy(
+                sheet = SessionEditorSheet.MOBILITY_PICKER,
+                quickActionsPartId = partId,
+                quickActionsExerciseId = exerciseId,
+                pickerTargetPartId = null,
+                pickerTargetExerciseId = null,
+                warmupExerciseId = null,
+                searchQuery = "",
+            )
+        }
+    }
+
     fun updateRuleLimits(maxRPE: Double?, maxExercisesPerMuscle: Int?) {
         _uiState.update { state ->
             state.copy(
@@ -2191,7 +2209,6 @@ class SessionEditorViewModel(
                 _uiState.update { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
                 return
             }
-            _uiState.update { it.copy(snackbarMessage = "Sesión preservada") }
         }
         switchToSession(targetSessionId, targetWeekId, targetMacroIndex, targetMesoIndex)
     }
@@ -2225,7 +2242,7 @@ class SessionEditorViewModel(
         }
 
         val newSession = createDraftSession(UUID.randomUUID().toString(), dayOfWeek).copy(
-            name = "Sesión ${dayLabelShort(dayOfWeek)}",
+            name = defaultSessionNameForDay(dayOfWeek),
             isMainSession = true,
             lastModifiedAtMs = System.currentTimeMillis(),
         )
@@ -2247,6 +2264,70 @@ class SessionEditorViewModel(
                 hasUnsavedChanges = false,
                 draftBundle = it.draftBundle?.copy(sessionId = newSession.id, dayOfWeek = dayOfWeek),
                 snackbarMessage = "Sesión creada para ${dayLabel(dayOfWeek)}",
+            )
+        }
+        refreshDerivedStateImmediate()
+        loadHistory()
+        return SessionEditorSaveResult(success = true, message = "")
+    }
+
+    fun createCompetitionSessionForDay(dayOfWeek: Int): SessionEditorSaveResult {
+        val state = _uiState.value
+        if (state.hasUnsavedChanges) {
+            if (!persistRecoverableSession(state)) {
+                _uiState.update { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
+                return SessionEditorSaveResult(success = false, message = "")
+            }
+        }
+
+        val existingOnDay = state.weekSessions.firstOrNull { it.dayOfWeek == dayOfWeek }
+        if (existingOnDay != null) {
+            requestSessionSwitch(existingOnDay.id)
+            return SessionEditorSaveResult(success = true, message = "")
+        }
+
+        val program = repository.getProgramById(programId) ?: return SessionEditorSaveResult(
+            success = false,
+            message = "No pudimos recuperar el programa.",
+        )
+        val week = findWeek(program, state.macroIndex, state.mesoIndex, state.weekId)
+        val keyDate = week?.let { findCompetitionKeyDateForWeekDay(program, it, dayOfWeek) }
+        val eventDate = keyDate?.eventDate ?: keyDate?.startDate
+        val sessionName = keyDate?.title?.takeIf { it.isNotBlank() } ?: "Sesion Competicion ${dayLabel(dayOfWeek)}"
+
+        val newSession = createDraftSession(UUID.randomUUID().toString(), dayOfWeek).copy(
+            name = sessionName,
+            isMainSession = true,
+            isMeetDay = true,
+            isCompetitionSession = true,
+            focus = "Competición",
+            competitionDetails = CompetitionDetails(
+                competitionDate = eventDate,
+            ),
+            competitionRecordId = UUID.randomUUID().toString(),
+            competitionKeyDateId = keyDate?.id,
+            competitionRecordMode = CompetitionRecordMode.HYBRID,
+            competitionSportType = defaultCompetitionSportType(program.mode),
+            lastModifiedAtMs = System.currentTimeMillis(),
+        )
+        if (!repository.upsertSessionInProgram(programId, state.weekId, state.macroIndex, state.mesoIndex, newSession)) {
+            return SessionEditorSaveResult(success = false, message = "No pudimos crear la sesión de competición en esta semana.")
+        }
+
+        _uiState.update {
+            val updatedWeekSessions = ensureSessionInList(it.weekSessions, newSession)
+            it.copy(
+                session = newSession,
+                originalSession = newSession,
+                dayOfWeek = dayOfWeek,
+                isNewSession = true,
+                selectedSiblingSessionId = newSession.id,
+                siblingSessions = updatedWeekSessions.sortedBy { session -> session.dayOfWeek ?: 99 },
+                weekSessions = updatedWeekSessions,
+                localDraftHistory = listOf(buildDraftSnapshot(session = newSession, previous = null, reason = "Nueva sesión competición")),
+                hasUnsavedChanges = false,
+                draftBundle = it.draftBundle?.copy(sessionId = newSession.id, dayOfWeek = dayOfWeek),
+                snackbarMessage = "Sesión de competición creada para ${dayLabel(dayOfWeek)}",
             )
         }
         refreshDerivedStateImmediate()
@@ -2288,7 +2369,7 @@ class SessionEditorViewModel(
         if (targetSession == null) {
             val day = preferredDay ?: 1
             val newSession = createDraftSession(UUID.randomUUID().toString(), day).copy(
-                name = "Sesión ${dayLabelShort(day)}",
+                name = defaultSessionNameForDay(day),
                 isMainSession = true,
                 lastModifiedAtMs = System.currentTimeMillis(),
             )
@@ -2341,6 +2422,7 @@ class SessionEditorViewModel(
         val roadmapOptions = buildRoadmapOptions(program)
         val cloneDayOptions = buildCloneDayOptions(program, currentSessionId = resolvedSession.id)
         val cloneSourceOptions = buildCloneSourceOptions(program, currentSessionId = resolvedSession.id)
+        val competitionKeyDaysInWeek = buildCompetitionKeyDaysInWeek(program, located.week)
         _uiState.update {
             it.copy(
                 session = resolvedSession,
@@ -2363,6 +2445,7 @@ class SessionEditorViewModel(
                 roadmapOptions = roadmapOptions,
                 cloneDayOptions = cloneDayOptions,
                 cloneSourceOptions = cloneSourceOptions,
+                competitionKeyDaysInWeek = competitionKeyDaysInWeek,
                 selectedSiblingSessionId = resolvedSession.id,
                 hasUnsavedChanges = persistedDraft != null,
                 pendingSessionSwitchId = null,
@@ -2825,6 +2908,7 @@ private data class SessionAugeComputation(
     val difficulty: Int,
     val averageRpe: Double,
     val volumeMap: Map<String, AugeVolumeAccumulator>,
+    val muscleDrainProjection: Map<String, Int>,
     val totalSpinalLoad: Double,
     val elbowStress: Int,
     val kneeStress: Int,
@@ -3054,9 +3138,7 @@ private fun buildAugeSummary(
         alerts = orderedAlerts,
         suggestions = orderedSuggestions,
         topExercises = currentMetrics.exerciseInsights.sortedByDescending { it.total }.take(4),
-        muscleDrainProjection = currentMetrics.volumeMap.mapValues { (_, acc) ->
-            (acc.effective / (sessionLimit.coerceAtLeast(1)) * 100.0).roundToInt().coerceIn(0, 100)
-        },
+        muscleDrainProjection = currentMetrics.muscleDrainProjection,
         sessionVolumeByMuscle = currentMetrics.volumeMap.mapValues { (_, acc) -> acc.flat },
         weeklyVolumeByMuscle = weeklyVolumeMap.mapValues { (_, acc) -> acc.flat },
         volumeThresholdsByMuscle = volumeThresholdsByMuscle,
@@ -3075,6 +3157,7 @@ private fun computeSessionAugeComputation(
     val exercises = session.allExercises()
     val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
     val volumeMap = mutableMapOf<String, AugeVolumeAccumulator>()
+    val muscleDrainMap = mutableMapOf<String, Double>()
     val roleMap = mutableMapOf<String, MuscleRoleBreakdown>()
     val recommendationContext = mutableMapOf<String, MuscleRecommendationContext>()
     var totalSets = 0
@@ -3107,14 +3190,17 @@ private fun computeSessionAugeComputation(
             }
 
             val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(effectiveRpe)
-            SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
-                val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
-                val hyperFactor = resolveMuscleVolumeContribution(muscle)
+            val perExerciseContrib = VolumeCalculator.buildPerExerciseMuscleContributions(
+                SessionMuscleFilter.relevantMusclesFor(info),
+            )
+            perExerciseContrib.forEach { (normalized, hyperFactor) ->
                 val bucket = volumeMap.getOrPut(normalized) { AugeVolumeAccumulator() }
                 bucket.flat += hyperFactor
                 bucket.effective += hyperFactor * volumeMultiplier
                 if (effectiveRpe >= 9.5) bucket.fail += hyperFactor
-
+            }
+            SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
+                val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
                 val roleBucket = roleMap.getOrPut(normalized) { MuscleRoleBreakdown() }
                 when (muscle.role) {
                     MuscleRole.PRIMARY -> roleBucket.primary += 1.0
@@ -3148,6 +3234,19 @@ private fun computeSessionAugeComputation(
             muscular += drain.muscularDrainPct
             cns += drain.cnsDrainPct
             spinal += drain.spinalDrainPct
+
+            val roleWeightByMuscle = linkedMapOf<String, Double>()
+            VolumeCalculator.buildPerExerciseMuscleContributions(SessionMuscleFilter.relevantMusclesFor(info))
+                .forEach { (muscle, contribution) ->
+                    roleWeightByMuscle[muscle] = contribution
+                }
+            val totalRoleWeight = roleWeightByMuscle.values.sum()
+            if (drain.muscularDrainPct > 0.0 && totalRoleWeight > 0.0) {
+                roleWeightByMuscle.forEach { (muscle, roleWeight) ->
+                    val share = roleWeight / totalRoleWeight
+                    muscleDrainMap[muscle] = (muscleDrainMap[muscle] ?: 0.0) + (drain.muscularDrainPct * share)
+                }
+            }
         }
 
         SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
@@ -3214,6 +3313,8 @@ private fun computeSessionAugeComputation(
         ),
         averageRpe = if (rpeCount > 0) rpeSum / rpeCount else 0.0,
         volumeMap = volumeMap,
+        muscleDrainProjection = muscleDrainMap
+            .mapValues { (_, drainPct) -> drainPct.roundToInt().coerceIn(0, 100) },
         totalSpinalLoad = totalSpinalLoad,
         elbowStress = elbowStress,
         kneeStress = kneeStress,
@@ -3232,9 +3333,7 @@ private fun accumulateSessionVolume(
         val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return@forEach
         exercise.validAugeSets().forEach { set ->
             val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(set.effectiveTargetRpe())
-            info.involvedMuscles.forEach { muscle ->
-                val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
-                val hyperFactor = resolveMuscleVolumeContribution(muscle)
+            VolumeCalculator.buildPerExerciseMuscleContributions(info.involvedMuscles).forEach { (normalized, hyperFactor) ->
                 val bucket = targetMap.getOrPut(normalized) { AugeVolumeAccumulator() }
                 bucket.flat += hyperFactor
                 bucket.effective += hyperFactor * volumeMultiplier
@@ -3556,7 +3655,7 @@ private fun createSessionForTargetDay(
 ): Session = createSessionFromPayload(
     source = source,
     dayOfWeek = dayOfWeek,
-    targetName = "Sesión ${dayLabelShort(dayOfWeek)}",
+    targetName = defaultSessionNameForDay(dayOfWeek),
     payload = payload,
     selectedExerciseIds = selectedExerciseIds,
 )
@@ -4114,4 +4213,41 @@ private fun dayLabelShort(dayOfWeek: Int?): String = when (dayOfWeek) {
     6 -> "Sáb"
     7 -> "Dom"
     else -> "Día"
+}
+
+private fun defaultSessionNameForDay(dayOfWeek: Int?): String = "Sesion ${dayLabel(dayOfWeek)}"
+
+private fun buildCompetitionKeyDaysInWeek(program: Program, week: ProgramWeek?): Set<Int> {
+    if (week == null) return emptySet()
+    return (1..7).filter { day ->
+        findCompetitionKeyDateForWeekDay(program, week, day) != null
+    }.toSet()
+}
+
+private fun findCompetitionKeyDateForWeekDay(
+    program: Program,
+    week: ProgramWeek,
+    dayOfWeek: Int,
+): ProgramKeyDate? {
+    val dayDate = resolveWeekDayDate(week, dayOfWeek) ?: return null
+    return program.keyDates.firstOrNull { keyDate ->
+        keyDate.type == KeyDateType.COMPETITION &&
+            (keyDate.eventDate ?: keyDate.startDate).toLocalDateOrNull() == dayDate
+    }
+}
+
+private fun resolveWeekDayDate(week: ProgramWeek, dayOfWeek: Int): LocalDate? {
+    val explicit = week.trainingDayDates[dayOfWeek].toLocalDateOrNull()
+    if (explicit != null) return explicit
+    val weekStart = week.startDate.toLocalDateOrNull() ?: return null
+    return weekStart.plusDays((dayOfWeek.coerceIn(1, 7) - 1).toLong())
+}
+
+private fun String?.toLocalDateOrNull(): LocalDate? =
+    this?.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+
+private fun defaultCompetitionSportType(mode: ProgramMode): CompetitionTemplateType = when (mode) {
+    ProgramMode.POWERLIFTING -> CompetitionTemplateType.POWERLIFTING
+    ProgramMode.HYPERTROPHY -> CompetitionTemplateType.BODYBUILDING
+    ProgramMode.POWERBUILDING -> CompetitionTemplateType.POWERLIFTING
 }

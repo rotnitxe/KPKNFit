@@ -50,6 +50,14 @@ data class PostExerciseFeedback(
     val perceivedFailure: Boolean = false,
 )
 
+sealed interface PostExerciseFeedbackTarget {
+    data class Single(val exerciseId: String) : PostExerciseFeedbackTarget
+    data class SupersetGroup(
+        val groupId: String,
+        val exerciseIds: List<String>,
+    ) : PostExerciseFeedbackTarget
+}
+
 internal fun backfillCompletedSetIntensityFromPostExerciseFeedback(
     completedSets: Map<String, CompletedSet>,
     feedback: PostExerciseFeedback,
@@ -78,6 +86,13 @@ internal fun backfillCompletedSetIntensityFromPostExerciseFeedback(
     }
 }
 
+internal fun backfillCompletedSetIntensityFromPostExerciseFeedbacks(
+    completedSets: Map<String, CompletedSet>,
+    feedbacks: List<PostExerciseFeedback>,
+): Map<String, CompletedSet> = feedbacks.fold(completedSets) { current, feedback ->
+    backfillCompletedSetIntensityFromPostExerciseFeedback(current, feedback)
+}
+
 data class SessionClosingFeedback(
     val overallFatigue: Int,
     val systemAdjustment: Int,
@@ -88,6 +103,7 @@ data class SessionClosingFeedback(
     val environmentTags: List<String> = emptyList(), // e.g. "buen sueño", "estresado"
     val finalNeuralBattery: Int? = null,
     val finalSpinalBattery: Int? = null,
+    val finalMuscularBattery: Int? = null,
     val finalMuscleBatteries: Map<String, Int> = emptyMap(),
     val additionalDiscomfortNote: String? = null,
 )
@@ -199,6 +215,7 @@ fun calculateUnifiedSessionEffortSignal(
         .coerceIn(1.0, 12.0)
 }
 
+@Suppress("unused")
 fun mapWorkoutToPostSessionFeedback(
     log: WorkoutLog,
     postExerciseFeedback: List<PostExerciseFeedback>,
@@ -295,6 +312,7 @@ object WorkoutAutoRegulation {
         return factor.coerceIn(MIN_FACTOR, MAX_FACTOR)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun buildReason(
         factor: Double,
         weightedDrainPct: Double,

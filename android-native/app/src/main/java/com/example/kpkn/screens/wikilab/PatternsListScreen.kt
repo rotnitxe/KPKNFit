@@ -2,6 +2,8 @@ package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.repository.WikiLabRepository
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun PatternsListScreen(
     onNavigateToPattern: (String) -> Unit,
@@ -42,7 +44,7 @@ fun PatternsListScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(bottom = 100.dp),
+            contentPadding = PaddingValues(bottom = 164.dp),
         ) {
             // Hero
             item {
@@ -51,26 +53,18 @@ fun PatternsListScreen(
                         .fillMaxWidth()
                         .background(
                             Brush.verticalGradient(
-                                listOf(Color(0xFF2E7D32).copy(alpha = 0.12f), Color.Transparent)
+                                listOf(Color(0xFF1B2027).copy(alpha = 0.10f), Color.Transparent)
                             )
                         )
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Sync, null, tint = Color(0xFF43A047), modifier = Modifier.size(28.dp))
-                        Spacer(Modifier.width(10.dp))
-                        Column {
-                            Text(
-                                "${patterns.size} patrones biomecánicos",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            Text(
-                                "Clasificación de los movimientos fundamentales del entrenamiento",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Patrones de movimiento", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                        Text(
+                            "${patterns.size} patrones biomecánicos del entrenamiento.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
@@ -97,10 +91,10 @@ fun PatternsListScreen(
                             Surface(
                                 modifier = Modifier.size(42.dp),
                                 shape = RoundedCornerShape(12.dp),
-                                color = Color(0xFF43A047).copy(alpha = 0.12f),
+                                color = MaterialTheme.colorScheme.surfaceContainer,
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Default.Sync, null, Modifier.size(20.dp), tint = Color(0xFF43A047))
+                                    Icon(Icons.Default.Sync, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface)
                                 }
                             }
                             Spacer(Modifier.width(12.dp))
@@ -119,31 +113,33 @@ fun PatternsListScreen(
                                     lineHeight = 16.sp,
                                 )
                             }
-                            Icon(Icons.Default.ChevronRight, null, Modifier.size(18.dp), tint = Color(0xFF43A047).copy(alpha = 0.4f))
+                            Icon(Icons.Default.ChevronRight, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                         }
 
                         Spacer(Modifier.height(8.dp))
 
-                        // Tags row
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
                             forceTypes.forEach { ft ->
                                 Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = Color(0xFF43A047).copy(alpha = 0.1f),
+                                    shape = RoundedCornerShape(999.dp),
+                                    color = MaterialTheme.colorScheme.surfaceContainer,
                                 ) {
                                     Text(
                                         ft,
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color(0xFF43A047),
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.SemiBold,
                                     )
                                 }
                             }
                             chainTypes.forEach { ct ->
                                 Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = Color(0xFF1E88E5).copy(alpha = 0.1f),
+                                    shape = RoundedCornerShape(999.dp),
+                                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
                                 ) {
                                     Text(
                                         when (ct) {
@@ -154,7 +150,7 @@ fun PatternsListScreen(
                                         },
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color(0xFF1E88E5),
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.SemiBold,
                                     )
                                 }
@@ -163,7 +159,10 @@ fun PatternsListScreen(
 
                         Spacer(Modifier.height(6.dp))
 
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
                             Text(
                                 "$muscleCount músculos",
                                 style = MaterialTheme.typography.labelSmall,

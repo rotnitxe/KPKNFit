@@ -1,22 +1,16 @@
 package com.example.kpkn.screens.workout
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 internal fun WorkoutSetPager(
@@ -34,147 +29,335 @@ internal fun WorkoutSetPager(
     sessionAccentColor: Color? = null,
     isUnilateral: Boolean = false,
     selectedSide: String? = null,
-    sideCompleted: ((String) -> Boolean)? = null,
+    sideCompleted: ((Int, String) -> Boolean)? = null,
+    completedPreviousSets: Int = 0,
+    nextExerciseSetCount: Int = 0,
 ) {
     if (items.isEmpty()) return
 
-    Row(
+    val accent = sessionAccentColor ?: MaterialTheme.colorScheme.primary
+
+    Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.Center,
+            .heightIn(max = 44.dp)
+            .padding(horizontal = 8.dp, vertical = 3.dp),
+        shape = RoundedCornerShape(999.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.26f),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 38.dp)
+                .padding(horizontal = 6.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (completedPreviousSets > 0) {
+                PreviousCompletedCluster(
+                    count = completedPreviousSets,
+                    accent = accent,
+                    modifier = Modifier.padding(end = 4.dp),
+                )
+            }
+
+            items.forEachIndexed { index, item ->
+                val isActive = index == activePageIndex
+                val accentColor = workoutSetPagerAccent(item.state, MaterialTheme.colorScheme, item.isWarmupOrFeedback, sessionAccentColor)
+                TimelineSegment(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                        ) { onSelectPage(index) },
+                    accent = accentColor,
+                    isActive = isActive,
+                    isComplete = item.state == WorkoutSetCardVisualState.COMPLETED,
+                    isSkipped = item.state == WorkoutSetCardVisualState.SKIPPED,
+                    isFirst = index == 0 && completedPreviousSets <= 0,
+                    isLast = index == items.lastIndex && nextExerciseSetCount <= 0,
+                    isConnectedPrev = index == 0 && completedPreviousSets > 0,
+                    isConnectedNext = index == items.lastIndex && nextExerciseSetCount > 0,
+                    label = item.label,
+                    sideSpec = if (isUnilateral) item.side else null,
+                    selectedSide = selectedSide,
+                    sideCompleted = { side -> sideCompleted?.invoke(item.index, side) == true },
+                )
+            }
+
+            if (nextExerciseSetCount > 0) {
+                NextGhostCluster(
+                    count = nextExerciseSetCount,
+                    accent = accent,
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimelineSegment(
+    modifier: Modifier,
+    accent: Color,
+    isActive: Boolean,
+    isComplete: Boolean,
+    isSkipped: Boolean,
+    isFirst: Boolean,
+    isLast: Boolean,
+    isConnectedPrev: Boolean = false,
+    isConnectedNext: Boolean = false,
+    label: String,
+    sideSpec: String?,
+    selectedSide: String?,
+    sideCompleted: (String) -> Boolean,
+) {
+    val lineColor = when {
+        isComplete -> accent.copy(alpha = 0.78f)
+        isSkipped -> accent.copy(alpha = 0.26f)
+        else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.22f)
+    }
+    Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        items.forEachIndexed { index, item ->
-            val isActive = index == activePageIndex
-            val accentColor = workoutSetPagerAccent(item.state, androidx.compose.material3.MaterialTheme.colorScheme, item.isWarmupOrFeedback, sessionAccentColor)
-            val dotSize by animateFloatAsState(
-                targetValue = if (isActive) if (isUnilateral) 36f else 14f else 10f,
-                label = "dot-size",
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(2.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(
+                    when {
+                        isConnectedPrev -> lineColor
+                        isFirst -> lineColor.copy(alpha = 0.22f)
+                        else -> lineColor
+                    }
+                ),
+        )
+        if (sideSpec.isNullOrBlank()) {
+            TimelineDot(
+                accent = accent,
+                active = isActive,
+                complete = isComplete,
+                skipped = isSkipped,
+                label = label,
             )
+        } else {
+            SideTimelineCapsule(
+                sides = sideSpec.split("|").filter { it == "left" || it == "right" },
+                accent = accent,
+                active = isActive,
+                complete = isComplete,
+                selectedSide = selectedSide,
+                sideCompleted = sideCompleted,
+            )
+        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(2.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(
+                    when {
+                        isConnectedNext -> lineColor
+                        isLast -> lineColor.copy(alpha = 0.22f)
+                        else -> lineColor
+                    }
+                ),
+        )
+    }
+}
 
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = if (isUnilateral) 8.dp else 5.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                    ) { onSelectPage(index) },
-            ) {
-                if (isUnilateral) {
-                    val expectedSides = item.side
-                        ?.split("|")
-                        ?.filter { it == "left" || it == "right" }
-                        ?.takeIf { it.isNotEmpty() }
-                        ?: listOf("left", "right")
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(width = if (isActive) 58.dp else 46.dp, height = if (isActive) 34.dp else 28.dp)
-                                .clip(RoundedCornerShape(11.dp))
-                                .background(
-                                    when {
-                                        isActive -> accentColor.copy(alpha = 0.22f)
-                                        item.state == WorkoutSetCardVisualState.COMPLETED -> accentColor.copy(alpha = 0.14f)
-                                        else -> Color.Transparent
-                                    }
-                                )
-                                .border(
-                                    width = if (isActive) 1.5.dp else 1.dp,
-                                    color = when {
-                                        isActive -> accentColor
-                                        item.state == WorkoutSetCardVisualState.FUTURE -> accentColor.copy(alpha = 0.45f)
-                                        else -> accentColor.copy(alpha = 0.24f)
-                                    },
-                                    shape = RoundedCornerShape(11.dp),
-                                ),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(1.dp),
-                            ) {
-                                androidx.compose.material3.Text(
-                                    text = item.label,
-                                    style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Black,
-                                    color = if (isActive) accentColor else accentColor.copy(alpha = 0.78f),
-                                )
-                                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                                    expectedSides.forEach { side ->
-                                        val label = if (side == "left") "L" else "R"
-                                        val done = sideCompleted?.invoke(side) == true && isActive
-                                        val isSelected = isActive && selectedSide == side
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(5.dp))
-                                                .background(
-                                                    when {
-                                                        done -> accentColor
-                                                        isSelected -> accentColor.copy(alpha = 0.82f)
-                                                        else -> accentColor.copy(alpha = 0.14f)
-                                                    }
-                                                )
-                                                .border(
-                                                    width = if (done || isSelected) 0.dp else 0.5.dp,
-                                                    color = accentColor.copy(alpha = 0.34f),
-                                                    shape = RoundedCornerShape(5.dp),
-                                                )
-                                                .padding(horizontal = 4.dp, vertical = 0.dp),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            androidx.compose.material3.Text(
-                                                text = label,
-                                                style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Black,
-                                                color = if (done || isSelected) androidx.compose.material3.MaterialTheme.colorScheme.surface else accentColor,
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(dotSize.dp)
-                            .let { mod ->
-                                if (!isActive && item.state == WorkoutSetCardVisualState.FUTURE) {
-                                    mod.clip(CircleShape).background(Color.Transparent)
-                                } else {
-                                    mod.clip(CircleShape).background(
-                                        when {
-                                            isActive -> accentColor
-                                            item.state == WorkoutSetCardVisualState.COMPLETED -> accentColor
-                                            item.state == WorkoutSetCardVisualState.SKIPPED -> accentColor.copy(alpha = 0.25f)
-                                            else -> Color.Transparent
-                                        }
-                                    )
-                                }
-                            }
-                            .let { mod ->
-                                if (!isActive && item.state == WorkoutSetCardVisualState.FUTURE) {
-                                    mod.border(1.5.dp, accentColor.copy(alpha = 0.5f), CircleShape)
-                                } else {
-                                    mod
-                                }
-                            },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        if (isActive) {
-                            Box(
-                                modifier = Modifier
-                                    .size(4.dp)
-                                    .clip(CircleShape)
-                                    .background(androidx.compose.material3.MaterialTheme.colorScheme.surface)
-                            )
-                        }
-                    }
-                }
+@Composable
+private fun TimelineDot(
+    accent: Color,
+    active: Boolean,
+    complete: Boolean,
+    skipped: Boolean,
+    label: String,
+) {
+    val size = if (active) 22.dp else 17.dp
+    Surface(
+        modifier = Modifier.size(size),
+        shape = CircleShape,
+        color = when {
+            active || complete -> accent
+            skipped -> accent.copy(alpha = 0.26f)
+            else -> Color.Transparent
+        },
+        border = BorderStroke(
+            width = if (active || complete) 0.dp else 1.4.dp,
+            color = accent.copy(alpha = if (skipped) 0.22f else 0.52f),
+        ),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = if (active) 8.sp else 7.sp),
+                fontWeight = FontWeight.Black,
+                color = if (active || complete) Color.Black else accent.copy(alpha = 0.78f),
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PreviousCompletedCluster(
+    count: Int,
+    accent: Color,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(0.dp),
+    ) {
+        val capCount = count.coerceAtMost(12)
+        repeat(capCount) { index ->
+            if (index > 0) {
+                Box(
+                    modifier = Modifier
+                        .width(5.dp)
+                        .height(2.dp)
+                        .clip(RoundedCornerShape(1.dp))
+                        .background(accent.copy(alpha = 0.40f))
+                )
+            }
+            Surface(
+                modifier = Modifier.size(6.dp),
+                shape = CircleShape,
+                color = accent.copy(alpha = 0.55f),
+                border = BorderStroke(0.dp, Color.Transparent),
+            ) {}
+        }
+        if (count > 12) {
+            Spacer(Modifier.width(2.dp))
+            Surface(
+                modifier = Modifier.size(4.dp),
+                shape = CircleShape,
+                color = accent.copy(alpha = 0.35f),
+                border = BorderStroke(0.dp, Color.Transparent),
+            ) {}
+            Surface(
+                modifier = Modifier.size(4.dp),
+                shape = CircleShape,
+                color = accent.copy(alpha = 0.25f),
+                border = BorderStroke(0.dp, Color.Transparent),
+            ) {}
+        }
+        Box(
+            modifier = Modifier
+                .width(8.dp)
+                .height(2.dp)
+                .clip(RoundedCornerShape(1.dp))
+                .background(accent.copy(alpha = 0.50f))
+        )
+    }
+}
+
+@Composable
+private fun NextGhostCluster(
+    count: Int,
+    accent: Color,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(0.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .width(8.dp)
+                .height(2.dp)
+                .clip(RoundedCornerShape(1.dp))
+                .background(accent.copy(alpha = 0.15f))
+        )
+        val capCount = count.coerceAtMost(8)
+        repeat(capCount) { index ->
+            Surface(
+                modifier = Modifier.size(8.dp),
+                shape = CircleShape,
+                color = Color.Transparent,
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = accent.copy(alpha = 0.25f),
+                ),
+            ) {}
+            if (index < capCount - 1) {
+                Box(
+                    modifier = Modifier
+                        .width(5.dp)
+                        .height(2.dp)
+                        .clip(RoundedCornerShape(1.dp))
+                        .background(accent.copy(alpha = 0.12f))
+                )
+            }
+        }
+        if (count > 8) {
+            Surface(
+                modifier = Modifier.size(4.dp),
+                shape = CircleShape,
+                color = Color.Transparent,
+                border = BorderStroke(
+                    width = 0.8.dp,
+                    color = accent.copy(alpha = 0.16f),
+                ),
+            ) {}
+            Surface(
+                modifier = Modifier.size(4.dp),
+                shape = CircleShape,
+                color = Color.Transparent,
+                border = BorderStroke(
+                    width = 0.6.dp,
+                    color = accent.copy(alpha = 0.10f),
+                ),
+            ) {}
+        }
+    }
+}
+
+@Composable
+private fun SideTimelineCapsule(
+    sides: List<String>,
+    accent: Color,
+    active: Boolean,
+    complete: Boolean,
+    selectedSide: String?,
+    sideCompleted: (String) -> Boolean,
+) {
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = when {
+            active -> accent.copy(alpha = 0.18f)
+            complete -> accent.copy(alpha = 0.12f)
+            else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.22f)
+        },
+        border = BorderStroke(
+            width = if (active) 1.4.dp else 1.dp,
+            color = if (active) accent else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f),
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            sides.ifEmpty { listOf("left", "right") }.forEach { side ->
+                val sideDone = sideCompleted(side) || complete
+                val selected = active && selectedSide == side
+                Surface(
+                    modifier = Modifier.size(if (selected) 10.dp else 8.dp),
+                    shape = CircleShape,
+                    color = if (sideDone || selected) accent else Color.Transparent,
+                    border = BorderStroke(
+                        width = if (sideDone || selected) 0.dp else 1.dp,
+                        color = accent.copy(alpha = 0.50f),
+                    ),
+                ) {}
             }
         }
     }

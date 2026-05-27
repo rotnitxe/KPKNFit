@@ -35,7 +35,7 @@ import com.example.kpkn.screens.settings.components.SettingsTextFieldItem
 @Composable
 fun SettingsNutritionScreen(
     onBack: () -> Unit,
-    onNavigateToWizard: () -> Unit,
+    onOpenPlanOverlay: () -> Unit,
     viewModel: SettingsViewModel = viewModel { SettingsViewModel() },
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -187,10 +187,10 @@ fun SettingsNutritionScreen(
             item {
                 SettingsSectionCard {
                     SettingsActionItem(
-                        title = "Recalcular macros",
-                        description = "Vuelve al wizard para rehacer objetivos y distribucion",
+                        title = "Editar plan nutricional",
+                        description = "Abre el panel unificado para recalcular objetivos y macros",
                         icon = Icons.Default.Restaurant,
-                        onClick = onNavigateToWizard,
+                        onClick = onOpenPlanOverlay,
                     )
                 }
             }

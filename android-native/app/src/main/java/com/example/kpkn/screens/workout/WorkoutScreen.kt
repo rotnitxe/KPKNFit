@@ -295,6 +295,10 @@ fun WorkoutScreen(
         (uiState.readinessSpinalOverride
             ?: augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE)).coerceIn(0, 100)
     }
+    val readinessMuscularStart = remember(uiState.readinessMuscularOverride, augeSnapshot) {
+        (uiState.readinessMuscularOverride
+            ?: augeSnapshot.ringScore(RecoveryChannelId.MUSCULAR)).coerceIn(0, 100)
+    }
 
     val completedExercisesForSummary = remember(visibleExercises, uiState.completedSets) {
         visibleExercises.map { exercise ->
@@ -512,6 +516,17 @@ fun WorkoutScreen(
 
     val activeRestModalState = uiState.restModalState
     if (uiState.isRestTimerRunning && activeRestModalState != null) {
+        val currentRoundCompletedSets = currentExercise
+            ?.supersetGroupRefOrLegacyId()
+            ?.let { groupId ->
+                visibleExercises
+                    .filter { it.supersetGroupRefOrLegacyId() == groupId }
+                    .mapNotNull { member ->
+                        val key = "${member.id}_${uiState.currentSetIdx}"
+                        uiState.completedSets[key]?.let { member.name to it }
+                    }
+            }
+            .orEmpty()
         RestTimerOverlay(
             state = activeRestModalState,
             remainingSeconds = restTimerRemaining,
@@ -519,6 +534,7 @@ fun WorkoutScreen(
             pendingRestSuggestion = uiState.pendingRestSuggestion,
             lastSetOutcome = uiState.lastSetOutcomeV2,
             lastCompletedSet = uiState.setJustLoggedKey?.let { uiState.completedSets[it] },
+            lastCompletedSets = currentRoundCompletedSets,
             sessionAccentColor = sessionAccentColor,
             onDecrease = { viewModel.addRestTime(-15) },
             onIncrease = { viewModel.addRestTime(15) },
@@ -549,6 +565,7 @@ fun WorkoutScreen(
         gender = settings.userVitals.gender,
         sessionMuscleStartingBatteries = sessionMuscleStartingBatteries,
         readinessNeuralStart = readinessNeuralStart,
+        readinessMuscularStart = readinessMuscularStart,
         readinessSpinalStart = readinessSpinalStart,
         hazeState = readinessHaze,
         onSave = { neural, muscular, spinal, perMuscle ->
@@ -1547,6 +1564,11 @@ fun WorkoutScreen(
     }
 
     // ─── Post-exercise feedback sheet ─────────────────────────────────────────
+    LaunchedEffect(uiState.showPostExerciseSheet, uiState.postExerciseTargetIdx, visibleExercises.size) {
+        if (uiState.showPostExerciseSheet) {
+            viewModel.recoverFromOrphanPostExerciseSheet()
+        }
+    }
     val postExerciseTarget = visibleExercises.getOrNull(uiState.postExerciseTargetIdx) ?: currentExercise
     if (uiState.showPostExerciseSheet && postExerciseTarget != null) {
         val historicalFeedback = uiState.postExerciseFeedbackByExerciseId[postExerciseTarget.id]
@@ -2097,6 +2119,7 @@ private fun WorkoutV2Body(
     val scroll = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     val recordActionHolder = remember { RecordActionHolder() }
+    var pendingUpdateAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     val cardsHazeState = remember { HazeState() }
     val cardsGlassStyle = remember {
         HazeStyle(
@@ -2156,7 +2179,7 @@ private fun WorkoutV2Body(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scroll)
+                .verticalScroll(scroll, enabled = !uiState.isRestTimerRunning)
                 .hazeSource(state = cardsHazeState)
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Bottom))
                 .padding(bottom = 112.dp),
@@ -2363,7 +2386,7 @@ private fun WorkoutV2Body(
                             completedSets = uiState.completedSets,
                             sessionAccentColor = sessionAccentColor,
                             onSelectRound = { round ->
-                                if (round != uiState.currentSetIdx) viewModel.jumpToSet(round)
+                                viewModel.selectSupersetRound(round)
                             },
                         )
                     } else {
@@ -2376,9 +2399,9 @@ private fun WorkoutV2Body(
                             sessionAccentColor = sessionAccentColor,
                             isUnilateral = isUnilateral,
                             selectedSide = activeSide,
-                            sideCompleted = if (isUnilateral) { side: String ->
-                                val setIdx = uiState.currentSetIdx.coerceIn(0, currentExercise.sets.lastIndex.coerceAtLeast(0))
-                                uiState.completedSets.containsKey("${currentExercise.id}_${setIdx}_${side.take(1).uppercase()}")
+                            sideCompleted = if (isUnilateral) { setIdx: Int, side: String ->
+                                val safeSetIdx = setIdx.coerceIn(0, currentExercise.sets.lastIndex.coerceAtLeast(0))
+                                uiState.completedSets.containsKey("${currentExercise.id}_${safeSetIdx}_${side.take(1).uppercase()}")
                             } else null,
                         )
                     }
@@ -2431,8 +2454,11 @@ private fun WorkoutV2Body(
                             sheetHazeState = cardsHazeState,
                             sheetGlassStyle = cardsGlassStyle,
                             onShowHistory = {
-                                onSelectedContextTabChange(WorkoutExerciseContextTab.HISTORY)
+                                val dbId = currentExercise.exerciseDbId ?: currentExercise.exerciseId ?: return@SetInputCardV2
+                                viewModel.showHistoryFor(dbId)
                             },
+                            onGoToPrevSet = { viewModel.navigateAdjacentWorkingStep(forward = false) },
+                            onGoToNextSet = { viewModel.navigateAdjacentWorkingStep(forward = true) },
                             onSetBodyWeight = { bw: Double -> viewModel.setCurrentBodyWeight(bw) },
                             initialBodyWeight = viewModel.currentBodyWeight(),
                             onExecutionError = {
@@ -2464,22 +2490,35 @@ private fun WorkoutV2Body(
                                 }
                             },
                             onRecordV2 = { loadMode: LoadModeV2, unitMode: UnitModeV2, weight: Double, value: Double, intensity: Double?, advanced: SetAdvancedFeedback, amrap: Boolean, bodyWeight: Double?, side: String? ->
-                                coroutineScope.launch {
-                                    viewModel.recordSetV2(
-                                        weight = weight,
-                                        value = value,
-                                        intensity = intensity,
-                                        advanced = advanced,
-                                        loadMode = loadMode,
-                                        unitMode = unitMode,
-                                        bodyWeight = bodyWeight,
-                                        side = side,
-                                        tagId = uiState.exerciseTags[currentExercise.id],
-                                        setupId = activeSet.setupId,
-                                        machineBrand = activeSet.machineBrand,
-                                        amrapOverride = amrap,
-                                        setIdxOverride = activeSetIndex,
-                                    )
+                                val updateKey = if (side != null) {
+                                    "${currentExercise.id}_${activeSetIndex}_${side.take(1).uppercase()}"
+                                } else {
+                                    "${currentExercise.id}_$activeSetIndex"
+                                }
+                                val action: () -> Unit = {
+                                    coroutineScope.launch {
+                                        viewModel.recordSetV2(
+                                            weight = weight,
+                                            value = value,
+                                            intensity = intensity,
+                                            advanced = advanced,
+                                            loadMode = loadMode,
+                                            unitMode = unitMode,
+                                            bodyWeight = bodyWeight,
+                                            side = side,
+                                            tagId = uiState.exerciseTags[currentExercise.id],
+                                            setupId = activeSet.setupId,
+                                            machineBrand = activeSet.machineBrand,
+                                            amrapOverride = amrap,
+                                            setIdxOverride = activeSetIndex,
+                                        )
+                                    }
+                                    Unit
+                                }
+                                if (uiState.completedSets.containsKey(updateKey)) {
+                                    pendingUpdateAction = action
+                                } else {
+                                    action.invoke()
                                 }
                             },
                         )
@@ -2509,6 +2548,11 @@ private fun WorkoutV2Body(
 
     // ─── Workout Command Dock ───────────────────────────────────────────
     if (currentExercise != null && currentSet != null && !showingPostExerciseCard) {
+        val dockKey = if (isUnilateral && activeSide != null) {
+            "${currentExercise.id}_${uiState.currentSetIdx}_${activeSide.take(1).uppercase()}"
+        } else {
+            "${currentExercise.id}_${uiState.currentSetIdx}"
+        }
         WorkoutCommandDock(
             exercise = currentExercise,
             setIndex = uiState.currentSetIdx,
@@ -2523,7 +2567,28 @@ private fun WorkoutV2Body(
                 .padding(horizontal = 12.dp)
                 .padding(bottom = 8.dp),
             sessionAccentColor = sessionAccentColor,
-            hazeState = cardsHazeState
+            hazeState = cardsHazeState,
+            isUpdateMode = uiState.completedSets.containsKey(dockKey),
+        )
+    }
+
+    if (pendingUpdateAction != null) {
+        AlertDialog(
+            onDismissRequest = { pendingUpdateAction = null },
+            title = { Text("Actualizar serie") },
+            text = { Text("Esta serie ya estaba registrada. ¿Quieres actualizarla?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val action = pendingUpdateAction
+                        pendingUpdateAction = null
+                        action?.invoke()
+                    }
+                ) { Text("Actualizar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingUpdateAction = null }) { Text("Cancelar") }
+            },
         )
     }
 
@@ -3385,10 +3450,13 @@ private fun PostExerciseFeedbackSheet(
         }
     }
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { target -> target != SheetValue.Hidden },
+    )
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {},
         sheetState = sheetState,
         containerColor = Color(0xFF1A1A1A),
     ) {

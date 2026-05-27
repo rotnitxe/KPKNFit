@@ -136,7 +136,7 @@ fun WikiLabHomeScreen(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 100.dp),
+        contentPadding = PaddingValues(bottom = 164.dp),
     ) {
         // ═══════════════════════════════════════════════════════════════
         // HERO BANNER + SEARCH
@@ -148,57 +148,46 @@ fun WikiLabHomeScreen(
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
-                                Color(0xFF0D47A1),
-                                Color(0xFF1565C0),
-                                Color(0xFF1976D2),
+                                Color(0xFF101317),
+                                Color(0xFF181C22),
+                                Color(0xFF222831),
                                 MaterialTheme.colorScheme.surface,
                             )
                         )
                     )
                     .statusBarsPadding()
                     .padding(horizontal = 20.dp)
-                    .padding(top = 24.dp, bottom = 20.dp),
+                    .padding(top = 24.dp, bottom = 24.dp),
             ) {
                 Column {
-                    // Logo + Title
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = CircleShape,
-                            color = Color.White.copy(alpha = 0.15f),
-                            modifier = Modifier.size(52.dp),
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    Icons.Default.AutoStories,
-                                    null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(28.dp),
-                                )
-                            }
-                        }
-                        Spacer(Modifier.width(14.dp))
-                        Column {
-                            Text(
-                                "Learn",
-                                style = MaterialTheme.typography.headlineLarge,
-                                fontWeight = FontWeight.Black,
-                                color = Color.White,
-                                letterSpacing = (-0.5).sp,
-                            )
-                            Text(
-                                "Enciclopedia del Entrenamiento",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White.copy(alpha = 0.75f),
-                            )
-                        }
+                    Column {
+                        Text(
+                            "Aprende",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                            letterSpacing = (-0.5).sp,
+                        )
+                        Text(
+                            "Biblioteca técnica de entrenamiento",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.68f),
+                        )
                     }
 
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(14.dp))
 
-                    // Stats row
+                    Text(
+                        "Explora ejercicios, anatomía, biomecánica y conceptos con una interfaz más limpia y directa.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.72f),
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         StatBadge("${exerciseCatalog.size}", "Ejercicios")
                         StatBadge("${muscles.size}", "Músculos")
@@ -208,7 +197,6 @@ fun WikiLabHomeScreen(
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Global Search Bar
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
@@ -216,30 +204,30 @@ fun WikiLabHomeScreen(
                         placeholder = {
                             Text(
                                 "Buscar ejercicio, músculo, articulación, concepto...",
-                                color = Color.White.copy(alpha = 0.5f),
+                                color = Color.White.copy(alpha = 0.42f),
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         },
                         leadingIcon = {
-                            Icon(Icons.Default.Search, null, tint = Color.White.copy(alpha = 0.7f))
+                            Icon(Icons.Default.Search, null, tint = Color.White.copy(alpha = 0.66f))
                         },
                         trailingIcon = {
                             if (searchQuery.isNotEmpty()) {
                                 IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(Icons.Default.Close, "Limpiar", tint = Color.White.copy(alpha = 0.7f))
+                                    Icon(Icons.Default.Close, "Limpiar", tint = Color.White.copy(alpha = 0.66f))
                                 }
                             }
                         },
                         singleLine = true,
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(18.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.White.copy(alpha = 0.4f),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                            focusedBorderColor = Color.White.copy(alpha = 0.16f),
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.10f),
                             cursorColor = Color.White,
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
-                            focusedContainerColor = Color.White.copy(alpha = 0.08f),
-                            unfocusedContainerColor = Color.White.copy(alpha = 0.05f),
+                            focusedContainerColor = Color.White.copy(alpha = 0.06f),
+                            unfocusedContainerColor = Color.White.copy(alpha = 0.04f),
                         ),
                     )
                 }
@@ -504,18 +492,29 @@ fun WikiLabHomeScreen(
 
 @Composable
 private fun StatBadge(value: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            value,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Black,
-            color = Color.White,
-        )
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.6f),
-        )
+    Surface(
+        modifier = Modifier.width(78.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White.copy(alpha = 0.05f),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                value,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = Color.White,
+            )
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.58f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 

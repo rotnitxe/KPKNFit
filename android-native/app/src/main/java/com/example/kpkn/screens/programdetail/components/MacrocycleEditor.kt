@@ -106,6 +106,7 @@ import java.util.Locale
 fun MacrocycleEditor(
     program: Program,
     onUpdateProgram: (Program) -> Unit,
+    onCompetitionKeyDateSaved: (updatedProgram: Program, keyDate: ProgramKeyDate) -> Unit = { _, _ -> },
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
     onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int, keyDateId: String?) -> Unit = { _, _, _ -> },
     showSimpleCalendarizationSheet: Boolean = false,
@@ -404,6 +405,7 @@ fun MacrocycleEditor(
                     )
                 )
                 onUpdateProgram(updated)
+                competition?.let { onCompetitionKeyDateSaved(updated, it) }
                 showKeyDatesSheet = false
             },
             onDismiss = { showKeyDatesSheet = false },

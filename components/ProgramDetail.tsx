@@ -19,6 +19,7 @@ import { SplitView } from './program-detail/SplitView';
 import { MacrocycleEditor } from './program-detail/MacrocycleEditorIntegrated';
 import LoopsView from './program-detail/LoopsView';
 import ProtocolsView from './program-detail/ProtocolsView';
+import { getCalendarizedCurrentWeek } from '../utils/programHelpers';
 
 interface ProgramDetailProps {
     program: Program;
@@ -117,6 +118,9 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 
     const [adaptiveCache] = useState<AugeAdaptiveCache>(() => getCachedAdaptiveData());
 
+    const calendarizedCurrentWeek = useMemo(() => getCalendarizedCurrentWeek(program), [program]);
+    const effectiveCurrentWeekId = calendarizedCurrentWeek?.weekId ?? activeProgramState?.currentWeekId;
+
     const programLogs = useMemo(() =>
         history.filter((log: any) => log.programId === program.id).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()),
         [history, program.id]);
@@ -143,27 +147,39 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
         [program]);
 
     const currentWeekIndex = useMemo(() => {
-        if (!activeProgramState || activeProgramState.programId !== program.id) return 0;
+        const currentWeekId = calendarizedCurrentWeek?.weekId ?? (activeProgramState?.programId === program.id ? activeProgramState.currentWeekId : null);
+        if (!currentWeekId) return 0;
         let weekIdx = 0;
         for (const m of program.macrocycles) {
             for (const b of (m.blocks || [])) {
                 for (const me of b.mesocycles) {
                     for (const w of me.weeks) {
-                        if (w.id === activeProgramState.currentWeekId) return weekIdx;
+                        if (w.id === currentWeekId) return weekIdx;
                         weekIdx++;
                     }
                 }
             }
         }
         return 0;
-    }, [activeProgramState, program]);
+    }, [activeProgramState, calendarizedCurrentWeek, program]);
 
     // ─── Effects ───
     useEffect(() => {
+        if (calendarizedCurrentWeek && (!selectedBlockId || !selectedWeekId)) {
+            setSelectedBlockId(calendarizedCurrentWeek.blockId);
+            setSelectedWeekId(calendarizedCurrentWeek.weekId);
+            return;
+        }
         if (roadmapBlocks.length > 0 && (!selectedBlockId || !roadmapBlocks.find(b => b.id === selectedBlockId))) {
             setSelectedBlockId(roadmapBlocks[0].id);
         }
-    }, [roadmapBlocks, selectedBlockId]);
+    }, [calendarizedCurrentWeek, roadmapBlocks, selectedBlockId, selectedWeekId]);
+
+    useEffect(() => {
+        if (!calendarizedCurrentWeek) return;
+        setSelectedBlockId(calendarizedCurrentWeek.blockId);
+        setSelectedWeekId(calendarizedCurrentWeek.weekId);
+    }, [calendarizedCurrentWeek?.blockId, calendarizedCurrentWeek?.weekId]);
 
     useEffect(() => {
         if (currentWeeks.length > 0 && (!selectedWeekId || !currentWeeks.find(w => w.id === selectedWeekId))) {
@@ -247,7 +263,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                     program={program}
                                     selectedBlockId={selectedBlockId}
                                     selectedWeekId={selectedWeekId}
-                                    currentWeekId={activeProgramState?.currentWeekId}
+                                    currentWeekId={effectiveCurrentWeekId}
                                     onSelectBlock={setSelectedBlockId}
                                     onSelectWeek={setSelectedWeekId}
                                 />
@@ -257,7 +273,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
                                     <DayView
                                         program={program}
                                         selectedWeekId={selectedWeekId}
-                                        currentWeekId={activeProgramState?.currentWeekId}
+                                        currentWeekId={effectiveCurrentWeekId}
                                         onEditSession={onEditSessionClick}
                                         onAddSession={(dayOfWeek) => {
                                             const block = roadmapBlocks.find(b => b.id === selectedBlockId);
@@ -414,7 +430,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onDeleteSession 
 };
 
 export default ProgramDetail;
-
 
 
 

@@ -2,6 +2,8 @@
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -26,11 +28,17 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.domain.biomechanics.*
 import kotlin.math.*
 
+private enum class BiomechanicsPanel {
+    SIMULACION,
+    CUERPO,
+    ANALISIS,
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 // BIOMECHANICS SCREEN — "Palitos Biomecánicos"
 // ═══════════════════════════════════════════════════════════════════════
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun BiomechanicsScreen(
     onBack: () -> Unit,
@@ -47,6 +55,7 @@ fun BiomechanicsScreen(
     var torsoLengthCm by remember { mutableFloatStateOf(50f) }
     var humerusLengthCm by remember { mutableFloatStateOf(34f) }
     var forearmLengthCm by remember { mutableFloatStateOf(28f) }
+    var selectedPanel by remember { mutableStateOf(BiomechanicsPanel.SIMULACION) }
 
     val anthropometry = remember(
         athleteHeightCm,
@@ -90,18 +99,11 @@ fun BiomechanicsScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            "Palitos Biomecánicos",
-                            fontWeight = FontWeight.Black,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Text(
-                            "Simulador educativo de palancas y ángulos",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    Text(
+                        "Biomecánica",
+                        fontWeight = FontWeight.Black,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -121,44 +123,82 @@ fun BiomechanicsScreen(
             item { QuickSummaryRow(solve) }
             item { BiomechanicsInterpretationCard(solve) }
             item {
-                BiomechanicsControls(
-                    depth = depth,
-                    onDepthChange = { depth = it },
-                    weightKg = weightKg,
-                    onWeightChange = { weightKg = it },
-                    stanceWidth = stanceWidth,
-                    onStanceChange = { stanceWidth = it },
-                    barPosition = barPosition,
-                    onBarPositionChange = { barPosition = it },
-                    isSquat = showSquatControls,
-                    showBarPositionControl = showBarPositionControl,
-                    lift = selectedLift,
+                BiomechanicsPanelSelector(
+                    selectedPanel = selectedPanel,
+                    onSelect = { selectedPanel = it },
                 )
             }
-            item {
-                AnthropometryControlsCard(
-                    heightCm = athleteHeightCm,
-                    onHeightChange = { athleteHeightCm = it },
-                    athleteWeightKg = athleteWeightKg,
-                    onAthleteWeightChange = { athleteWeightKg = it },
-                    femurLengthCm = femurLengthCm,
-                    onFemurLengthChange = { femurLengthCm = it },
-                    tibiaLengthCm = tibiaLengthCm,
-                    onTibiaLengthChange = { tibiaLengthCm = it },
-                    torsoLengthCm = torsoLengthCm,
-                    onTorsoLengthChange = { torsoLengthCm = it },
-                    humerusLengthCm = humerusLengthCm,
-                    onHumerusLengthChange = { humerusLengthCm = it },
-                    forearmLengthCm = forearmLengthCm,
-                    onForearmLengthChange = { forearmLengthCm = it },
-                )
+            when (selectedPanel) {
+                BiomechanicsPanel.SIMULACION -> {
+                    item {
+                        BiomechanicsControls(
+                            depth = depth,
+                            onDepthChange = { depth = it },
+                            weightKg = weightKg,
+                            onWeightChange = { weightKg = it },
+                            stanceWidth = stanceWidth,
+                            onStanceChange = { stanceWidth = it },
+                            barPosition = barPosition,
+                            onBarPositionChange = { barPosition = it },
+                            isSquat = showSquatControls,
+                            showBarPositionControl = showBarPositionControl,
+                            lift = selectedLift,
+                        )
+                    }
+                }
+                BiomechanicsPanel.CUERPO -> {
+                    item {
+                        AnthropometryControlsCard(
+                            heightCm = athleteHeightCm,
+                            onHeightChange = { athleteHeightCm = it },
+                            athleteWeightKg = athleteWeightKg,
+                            onAthleteWeightChange = { athleteWeightKg = it },
+                            femurLengthCm = femurLengthCm,
+                            onFemurLengthChange = { femurLengthCm = it },
+                            tibiaLengthCm = tibiaLengthCm,
+                            onTibiaLengthChange = { tibiaLengthCm = it },
+                            torsoLengthCm = torsoLengthCm,
+                            onTorsoLengthChange = { torsoLengthCm = it },
+                            humerusLengthCm = humerusLengthCm,
+                            onHumerusLengthChange = { humerusLengthCm = it },
+                            forearmLengthCm = forearmLengthCm,
+                            onForearmLengthChange = { forearmLengthCm = it },
+                        )
+                    }
+                    item { AnthropometryCard(anthropometry) }
+                }
+                BiomechanicsPanel.ANALISIS -> {
+                    item { JointAnglesCard(solve) }
+                    item { LeverMechanicsCard(solve) }
+                    item { TorqueAnalysisCard(solve) }
+                }
             }
-            item { JointAnglesCard(solve) }
-            item { LeverMechanicsCard(solve) }
-            item { TorqueAnalysisCard(solve) }
-            item { AnthropometryCard(anthropometry) }
             item { BiomechanicsDisclaimerCard() }
-            item { Spacer(Modifier.height(80.dp)) }
+            item { Spacer(Modifier.height(140.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun BiomechanicsPanelSelector(
+    selectedPanel: BiomechanicsPanel,
+    onSelect: (BiomechanicsPanel) -> Unit,
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        listOf(
+            BiomechanicsPanel.SIMULACION to "Simulación",
+            BiomechanicsPanel.CUERPO to "Medidas",
+            BiomechanicsPanel.ANALISIS to "Análisis",
+        ).forEach { (panel, label) ->
+            FilterChip(
+                selected = selectedPanel == panel,
+                onClick = { onSelect(panel) },
+                label = { Text(label, fontWeight = if (selectedPanel == panel) FontWeight.Black else FontWeight.Medium) },
+            )
         }
     }
 }
@@ -1216,14 +1256,15 @@ private fun DrawScope.poseLunge(
 
 @Composable
 private fun QuickSummaryRow(solve: BiomechanicalSolve) {
-    Row(
+    FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         solve.jointAngles.take(3).forEach { ja ->
             val color = demandColor(ja.torqueRatio)
             Card(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.widthIn(min = 100.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.08f)),
             ) {

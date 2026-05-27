@@ -244,7 +244,9 @@ class NutritionViewModel : ViewModel() {
     }
 
     fun createPlan(plan: NutritionPlan) {
-        val withStart = plan.copy(startValue = programRepo.settings.value.userVitals.weight)
+        val withStart = plan.copy(
+            startValue = plan.startValue ?: programRepo.settings.value.userVitals.weight,
+        )
         nutritionRepo.addNutritionPlan(withStart)
         nutritionRepo.activatePlan(withStart.id)
         applyPlanToSettings(withStart)
@@ -336,11 +338,15 @@ class NutritionViewModel : ViewModel() {
 
     // ─── Wizard State ───────────────────────────────────────────────────────
 
-    private val _showWizard = MutableStateFlow(false)
-    val showWizard: StateFlow<Boolean> = _showWizard.asStateFlow()
+    private val _isPlanOverlayOpen = MutableStateFlow(false)
+    val isPlanOverlayOpen: StateFlow<Boolean> = _isPlanOverlayOpen.asStateFlow()
 
-    fun setShowWizard(show: Boolean) {
-        _showWizard.value = show
+    fun openPlanOverlay() {
+        _isPlanOverlayOpen.value = true
+    }
+
+    fun closePlanOverlay() {
+        _isPlanOverlayOpen.value = false
     }
 
     data class NutritionUiState(

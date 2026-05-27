@@ -18,7 +18,10 @@ data class WorkoutStep(
     val type: WorkoutStepType,
     val exerciseId: String,
     val exerciseName: String,
+    val stepKey: String = "",
     val setIndex: Int? = null,
+    val warmupSetId: String? = null,
+    val mobilitySeriesId: String? = null,
     val side: String? = null,
     val supersetGroupId: String? = null,
     val supersetRoundIndex: Int? = null,
@@ -53,6 +56,23 @@ object WorkoutStepRules {
             .filter { it.type == WorkoutStepType.WORKING_SET && it.setIndex != null }
     }
 
+    fun warmupStepKey(exerciseId: String, warmupSetId: String): String =
+        "${exerciseId}_warmup_$warmupSetId"
+
+    fun mobilityStepKey(exerciseId: String, mobilitySeriesId: String): String =
+        "${exerciseId}_${mobilitySeriesId}"
+
+    fun workingStepKey(exerciseId: String, setIndex: Int, side: String? = null): String =
+        buildString {
+            append(exerciseId)
+            append("_")
+            append(setIndex)
+            side?.let {
+                append("_")
+                append(it.take(1).uppercase())
+            }
+        }
+
     fun buildSetPositions(
         session: Session,
         visibleExercises: List<Exercise> = session.allExercises(),
@@ -76,16 +96,19 @@ object WorkoutStepRules {
             .filter { it.id in visibleIds }
         if (members.isEmpty()) return
 
-        val combinedMobility = members.flatMap { it.mobilitySeries }
-        if (combinedMobility.isNotEmpty()) {
-            steps += WorkoutStep(
-                type = WorkoutStepType.MOBILITY,
-                exerciseId = members.first().id,
-                exerciseName = "Movilidad de superserie",
-                supersetGroupId = groupId,
-                mobilitySeries = combinedMobility,
-                restAfterKind = RestTimerKind.STANDARD,
-            )
+        members.forEach { exercise ->
+            exercise.mobilitySeries.forEach { mobility ->
+                steps += WorkoutStep(
+                    type = WorkoutStepType.MOBILITY,
+                    exerciseId = exercise.id,
+                    exerciseName = "Movilidad de superserie",
+                    stepKey = mobilityStepKey(exercise.id, mobility.id),
+                    mobilitySeriesId = mobility.id,
+                    supersetGroupId = groupId,
+                    mobilitySeries = members.flatMap { it.mobilitySeries },
+                    restAfterKind = RestTimerKind.STANDARD,
+                )
+            }
         }
 
         members.forEach { exercise ->
@@ -111,6 +134,7 @@ object WorkoutStepRules {
         }
     }
 
+    @Suppress("KotlinConstantConditions")
     private fun appendExerciseSteps(
         exercise: Exercise,
         groupId: String?,
@@ -134,13 +158,15 @@ object WorkoutStepRules {
         groupId: String?,
         steps: MutableList<WorkoutStep>,
     ) {
-        if (exercise.mobilitySeries.isNotEmpty()) {
+        exercise.mobilitySeries.forEach { mobility ->
             steps += WorkoutStep(
                 type = WorkoutStepType.MOBILITY,
                 exerciseId = exercise.id,
                 exerciseName = exercise.name,
+                stepKey = mobilityStepKey(exercise.id, mobility.id),
+                mobilitySeriesId = mobility.id,
                 supersetGroupId = groupId,
-                mobilitySeries = exercise.mobilitySeries,
+                mobilitySeries = listOf(mobility),
                 restAfterKind = RestTimerKind.STANDARD,
             )
         }
@@ -164,11 +190,14 @@ object WorkoutStepRules {
         groupId: String?,
         index: Int,
     ): WorkoutStep {
+        val warmupSet = exercise.warmupSets.getOrNull(index)
         return WorkoutStep(
             type = WorkoutStepType.WARMUP,
             exerciseId = exercise.id,
             exerciseName = exercise.name,
+            stepKey = warmupSet?.let { warmupStepKey(exercise.id, it.id) }.orEmpty(),
             setIndex = index,
+            warmupSetId = warmupSet?.id,
             supersetGroupId = groupId,
             restAfterKind = RestTimerKind.WARMUP,
         )
@@ -187,6 +216,7 @@ object WorkoutStepRules {
                 type = WorkoutStepType.WORKING_SET,
                 exerciseId = exercise.id,
                 exerciseName = exercise.name,
+                stepKey = workingStepKey(exercise.id, setIndex),
                 setIndex = setIndex,
                 supersetGroupId = groupId,
                 supersetRoundIndex = roundIndex,
@@ -210,6 +240,7 @@ object WorkoutStepRules {
                 type = WorkoutStepType.WORKING_SET,
                 exerciseId = exercise.id,
                 exerciseName = exercise.name,
+                stepKey = workingStepKey(exercise.id, setIndex, side),
                 setIndex = setIndex,
                 side = side,
                 supersetGroupId = groupId,

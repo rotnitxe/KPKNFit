@@ -97,12 +97,13 @@ object SessionAssistantEngine {
             val metrics = AugeFatigueEngine.getDynamicAugeMetrics(exercise.name, info.equipment, info)
             if (metrics == null) {
                 // Exercise without AUGE metrics: count volume but skip drain calculation
+                val perExerciseContrib = VolumeCalculator.buildPerExerciseMuscleContributions(
+                    SessionMuscleFilter.relevantMusclesFor(info),
+                )
                 validSets.forEach { set ->
                     val effectiveRpe = set.effectiveTargetRpe()
                     val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(effectiveRpe)
-                    SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
-                        val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
-                        val hyperFactor = resolveMuscleVolumeContribution(muscle)
+                    perExerciseContrib.forEach { (normalized, hyperFactor) ->
                         val bucket = volumeMap.getOrPut(normalized) { MuscularVolumeAccumulator() }
                         bucket.flat += hyperFactor
                         bucket.effective += hyperFactor * volumeMultiplier
@@ -117,20 +118,23 @@ object SessionAssistantEngine {
             var spinal = 0.0
             totalSets += validSets.size
 
+            val perExerciseContrib = VolumeCalculator.buildPerExerciseMuscleContributions(
+                SessionMuscleFilter.relevantMusclesFor(info),
+            )
             validSets.forEach { set ->
                 val effectiveRpe = set.effectiveTargetRpe()
                 rpeSum += effectiveRpe
                 rpeCount++
 
                 val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(effectiveRpe)
-                SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
-                    val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
-                    val hyperFactor = resolveMuscleVolumeContribution(muscle)
+                perExerciseContrib.forEach { (normalized, hyperFactor) ->
                     val bucket = volumeMap.getOrPut(normalized) { MuscularVolumeAccumulator() }
                     bucket.flat += hyperFactor
                     bucket.effective += hyperFactor * volumeMultiplier
                     if (effectiveRpe >= 9.5) bucket.fail += hyperFactor
-
+                }
+                SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
+                    val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
                     val roleBucket = roleMap.getOrPut(normalized) { MuscleRoleBreakdown() }
                     when (muscle.role) {
                         MuscleRole.PRIMARY -> roleBucket.primary += 1.0

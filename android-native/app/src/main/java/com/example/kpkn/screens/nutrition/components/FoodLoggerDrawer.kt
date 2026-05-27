@@ -366,53 +366,53 @@ fun FoodLoggerDrawer(
         val engine = parsed.analysisEngine
         return when {
             engine == "local-ai-timeout" -> AnalysisNotice(
-                title = "Parser tardó demasiado",
-                message = "Se mostró una lectura de respaldo para no dejarte esperando. Si quieres mayor precisión, prueba una descripción más corta o usa API personal.",
+                title = "La lectura tardó más de lo esperado",
+                message = "Completamos el registro con una estimación rápida para no frenarte. Si quieres, puedes ajustar los alimentos antes de guardar.",
                 tone = AnalysisNoticeTone.WARNING,
             )
             engine == "local-ai-unavailable" -> AnalysisNotice(
-                title = "Parser no estuvo disponible",
-                message = null ?: "Se usó el parser de respaldo para completar el registro.",
+                title = "Se usó una lectura alternativa",
+                message = "Igualmente preparamos el registro para que puedas continuar y revisar los datos antes de guardar.",
                 tone = AnalysisNoticeTone.WARNING,
             )
             engine == "local-ai-empty" -> AnalysisNotice(
-                title = "Parser no devolvió datos útiles",
-                message = "KPKN usó el parser de respaldo. Intenta describir la comida en formato alimento + cantidad.",
+                title = "Faltó contexto en la descripción",
+                message = "Prueba con una descripción simple, por ejemplo alimento + cantidad, para obtener un registro más claro.",
                 tone = AnalysisNoticeTone.INFO,
             )
             engine.startsWith("external-api-failed-fallback-") -> AnalysisNotice(
-                title = "La API falló o excedió el tiempo límite",
-                message = "No se obtuvo respuesta utilizable del proveedor remoto dentro del tiempo esperado, así que KPKN cambió al respaldo para no dejarte esperando.",
+                title = "Se cambió a un análisis alternativo",
+                message = "No llegó una respuesta útil a tiempo, así que preparamos el registro con otra lectura para que no tengas que empezar de nuevo.",
                 tone = AnalysisNoticeTone.WARNING,
             )
             engine.startsWith("external-api-timeout-fallback-") -> AnalysisNotice(
-                title = "La API tardó demasiado",
-                message = "El proveedor remoto excedió el tiempo límite y KPKN cambió al respaldo automáticamente.",
+                title = "La lectura demoró demasiado",
+                message = "Usamos una alternativa automática para seguir con tu registro sin bloquearte.",
                 tone = AnalysisNoticeTone.WARNING,
             )
             engine.startsWith("external-api-empty-fallback-") -> AnalysisNotice(
-                title = "La API respondió sin macros utilizables",
-                message = "Se usó el análisis de respaldo. Revisa cantidades o nombres si notas algo extraño.",
+                title = "Revisa las cantidades sugeridas",
+                message = "La primera lectura no alcanzó para completar todo, así que armamos una propuesta base para que la confirmes.",
                 tone = AnalysisNoticeTone.INFO,
             )
             engine.startsWith("external-api-no-key-fallback-") -> AnalysisNotice(
-                title = "No había API key activa",
-                message = "Se usó Parser o el parser de respaldo. Puedes configurar tu API desde este mismo panel.",
+                title = "Se usó el modo simple",
+                message = "La comida se preparó con el modo básico de registro. Puedes revisar cantidades y guardar normalmente.",
                 tone = AnalysisNoticeTone.INFO,
             )
             engine == "external-api-empty" -> AnalysisNotice(
-                title = "La API respondió, pero sin datos útiles",
-                message = "No se obtuvieron macronutrientes fiables. Prueba con una descripción más concreta o activa el fallback.",
+                title = "No se pudo completar bien la comida",
+                message = "Prueba una descripción más concreta para obtener un resultado más útil.",
                 tone = AnalysisNoticeTone.WARNING,
             )
             engine == "external-api-failed" -> AnalysisNotice(
-                title = "La API falló durante el análisis",
-                message = "La respuesta remota falló, fue inválida o venció por tiempo. Revisa conexión, proveedor y API key. No se activó fallback porque está deshabilitado.",
+                title = "No se pudo interpretar la comida",
+                message = "Hubo un problema al procesar la descripción. Intenta de nuevo o registra los alimentos manualmente.",
                 tone = AnalysisNoticeTone.WARNING,
             )
             engine == "external-api-timeout" -> AnalysisNotice(
-                title = "La API tardó demasiado",
-                message = "El proveedor remoto no respondió dentro del tiempo límite configurado. Activa el fallback o revisa tu red/API key.",
+                title = "La lectura tomó demasiado tiempo",
+                message = "Intenta nuevamente o agrega los alimentos manualmente si quieres avanzar más rápido.",
                 tone = AnalysisNoticeTone.WARNING,
             )
             else -> null
@@ -547,8 +547,8 @@ fun FoodLoggerDrawer(
                 android.util.Log.w("FoodLogger", "Parse failed, usando determinístico", e)
                 resolveTags(parseMealDescription(description))
                 analysisNotice = AnalysisNotice(
-                    title = "El análisis IA no pudo completarse",
-                    message = "Se usó el parser determinístico para que pudieras seguir registrando la comida.",
+                    title = "No se pudo leer la comida completa",
+                    message = "Preparamos una versión base del registro para que puedas revisarla y guardar igual.",
                     tone = AnalysisNoticeTone.WARNING,
                 )
             } finally {
@@ -872,37 +872,19 @@ fun FoodLoggerDrawer(
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.Top,
                 ) {
-                    Text(
-                        text = "Registrar Comida",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Black,
-                    )
-                    // Badge de modo actual
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Icon(
-                                Icons.Default.FlashOn,
-                                null,
-                                modifier = Modifier.size(12.dp),
-                                tint = Color(0xFFF59E0B),
-                            )
-                            Text(
-                                text = "Básico",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = "Registrar comida",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Black,
+                        )
+                        Text(
+                            text = "Describe tu comida o agrega alimentos uno por uno.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
@@ -934,8 +916,8 @@ fun FoodLoggerDrawer(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    TabChip("Describir", activeTab == 0) { activeTab = 0 }
-                    TabChip("Buscar", activeTab == 1) { activeTab = 1 }
+                    TabChip("Describir comida", activeTab == 0) { activeTab = 0 }
+                    TabChip("Buscar alimento", activeTab == 1) { activeTab = 1 }
                 }
             }
 
@@ -949,7 +931,7 @@ fun FoodLoggerDrawer(
                                 color = MaterialTheme.colorScheme.errorContainer,
                             ) {
                                 Text(
-                                    text = "Revisa la entrada antes de guardar: hay datos vacios o fuera de rango.",
+                                    text = "Revisa la comida antes de guardar: hay datos incompletos o fuera de rango.",
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer,
@@ -962,10 +944,7 @@ fun FoodLoggerDrawer(
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = {
                                 Text(
-                                    if (settings.useApiForDescriptions)
-                                        "Ej: pollo plancha 200g, arroz cocido 150g, palta 80g"
-                                    else
-                                        "Ej: 200g pechuga de pollo, 150g arroz blanco cocido"
+                                    "Ej: pollo a la plancha 200 g, arroz cocido 150 g, palta 80 g"
                                 )
                             },
                             minLines = 2,
@@ -979,86 +958,11 @@ fun FoodLoggerDrawer(
                             color = MaterialTheme.colorScheme.surfaceContainerLow,
                         ) {
                             Text(
-                                text = "Guia de descripcion: escribe solo alimentos y cantidades. Evita frases tipo chat. Usa formato lista: alimento + preparacion + gramos/unidad. Separa con comas.",
+                                text = "Escribe alimentos y cantidades. Mientras más simple sea la descripción, más fácil será revisar y guardar.",
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
-                        }
-
-                        val useApi = settings.useApiForDescriptions
-
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainer,
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(12.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        if (useApi) {
-                                            Text(
-                                                text = "Fuente: API personal",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                fontWeight = FontWeight.Bold,
-                                            )
-                                        } else {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                            ) {
-                                                Text(
-                                                    text = "Fuente: Parser",
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    fontWeight = FontWeight.Bold,
-                                                )
-                                                TextButton(
-                                                    onClick = {},
-                                                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                                                ) {
-                                                    Text("Ver modelo")
-                                                }
-                                            }
-                                        }
-                                        Text(
-                                            text = if (useApi) "Prioriza API para descripciones IA" else "Parser corre offline en el dispositivo",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                    }
-                                    Switch(
-                                        checked = useApi,
-                                        onCheckedChange = { enabled ->
-                                            programRepo.updateSettings { current ->
-                                                current.copy(useApiForDescriptions = enabled)
-                                            }
-                                        },
-                                    )
-                                }
-
-                                if (useApi) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        Text(
-                                            text = "Proveedor actual: ${providerLabel(settings.apiProvider)}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        TextButton(onClick = { openApiConfigDialog() }) {
-                                            Text("Configurar API")
-                                        }
-                                    }
-                                }
-                            }
                         }
 
                         // Barra de progreso de copia del modelo (sólo modo PRO mientras copia)
@@ -1135,7 +1039,7 @@ fun FoodLoggerDrawer(
                                     color = LocalContentColor.current,
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("ANALIZANDO...")
+                                Text("PREPARANDO COMIDA...")
                             } else {
                                 Icon(
                                     if (settings.useApiForDescriptions) Icons.Default.AutoAwesome else Icons.Default.FlashOn,
@@ -1143,13 +1047,12 @@ fun FoodLoggerDrawer(
                                     modifier = Modifier.size(18.dp),
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(if (settings.useApiForDescriptions) "ANALIZAR CON IA" else "ANALIZAR")
+                                Text("Continuar")
                             }
                         }
 
-                        // Status line
                         Text(
-                            text = "Modo determinístico · ${foodDatabase.size} alimentos en BD",
+                            text = "${foodDatabase.size} alimentos disponibles en la base",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -1164,7 +1067,7 @@ fun FoodLoggerDrawer(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Buscar alimento...") },
+                        placeholder = { Text("Busca un alimento para agregarlo") },
                         singleLine = true,
                         leadingIcon = { Icon(Icons.Default.Search, null) },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -1203,7 +1106,7 @@ fun FoodLoggerDrawer(
             if (tags.isNotEmpty()) {
                 item {
                     Text(
-                        text = "ALIMENTOS DETECTADOS",
+                        text = "Resumen de la comida",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = (0.1f).sp,
@@ -1250,7 +1153,7 @@ fun FoodLoggerDrawer(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column {
-                                Text("TOTAL", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.1f.sp)
+                    Text("TOTAL", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.1f.sp)
                                 Text("${kotlin.math.round(tagTotals.calories)} kcal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1273,7 +1176,7 @@ fun FoodLoggerDrawer(
                 ) {
                     Icon(Icons.Default.Check, null, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("GUARDAR REGISTRO", fontWeight = FontWeight.Black)
+                    Text("REGISTRAR COMIDA", fontWeight = FontWeight.Black)
                 }
             }
 
@@ -1316,21 +1219,21 @@ private fun AiAnalysisPanel(
     val messages = remember(usingApi, providerLabel, stage, fallbackEnabled) {
         when {
             usingApi -> listOf(
-                "Conectando con $providerLabel",
-                "Pidiendo una salida estructurada con alimentos y macros",
-                if (fallbackEnabled) "Si la API falla, KPKN intentará seguir con respaldo" else "Esperando respuesta del proveedor",
-                "Validando que las calorías y macros tengan sentido",
+                "Leyendo tu descripción",
+                "Ordenando alimentos, cantidades y porciones",
+                if (fallbackEnabled) "Si hace falta, usaremos una alternativa para no detener el registro" else "Esperando una respuesta útil para completar la comida",
+                "Revisando que el resumen tenga sentido",
             )
             stage == ParseStage.INTERPRETING -> listOf(
-                "Convirtiendo la salida en alimentos guardables",
-                "Comprobando porciones, gramos y nombres canónicos",
-                "Ajustando el resultado para evitar macros absurdos",
+                "Convirtiendo la comida en un registro editable",
+                "Comprobando porciones y cantidades",
+                "Ajustando el resumen para que sea más consistente",
             )
             else -> listOf(
-                "Interpretando tu descripción con Parser",
-                "Estimando alimentos, cantidades y macronutrientes",
-                "Parser puede tardar un poco más, sobre todo la primera vez",
-                "Validando coherencia antes de mostrar los datos",
+                "Leyendo tu comida",
+                "Estimando alimentos y cantidades",
+                "Esto puede tardar un poco más la primera vez",
+                "Preparando un resumen para que lo revises",
             )
         }
     }
@@ -1392,7 +1295,7 @@ private fun AiAnalysisPanel(
                         modifier = Modifier.size(18.dp),
                     )
                     Text(
-                        text = if (usingApi) "Analizando con API" else "Analizando con Parser",
+                        text = "Preparando registro",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.ExtraBold,
                     )
@@ -1430,10 +1333,10 @@ private fun AiAnalysisPanel(
                 }
                 Text(
                     text = if (usingApi) {
-                        if (fallbackEnabled) "Respuesta remota primero, respaldo si hace falta"
-                        else "Esperando respuesta del proveedor remoto"
+                        if (fallbackEnabled) "Estamos armando la mejor versión posible de tu comida"
+                        else "Esperando una respuesta útil para completar el registro"
                     } else {
-                        "Parser suele tardar más que la API, especialmente tras abrir la app"
+                        "Estamos interpretando la comida para dejarla lista para guardar"
                     },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

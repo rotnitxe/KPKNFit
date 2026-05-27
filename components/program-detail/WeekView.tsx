@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Program, Session, ProgramWeek } from '../../types';
 import { useAppContext } from '../../contexts/AppContext';
 import { DumbbellIcon, PlayIcon, EditIcon, TrashIcon } from '../icons';
+import { formatCalendarizedNameForSpanish } from '../../utils/programHelpers';
 
 interface WeekViewProps {
     program: Program;
@@ -71,7 +72,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="text-lg font-black text-zinc-900">
-                            {selectedWeek.name || `Semana ${selectedWeek.id.slice(-2)}`}
+                            {formatCalendarizedNameForSpanish(selectedWeek.name) || `Semana ${selectedWeek.id.slice(-2)}`}
                         </h3>
                         <p className="text-[11px] text-zinc-500 mt-0.5">
                             {selectedWeek.sessions.length} sesiones programadas
@@ -122,7 +123,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                                     {/* Info de la sesión */}
                                     <div className="flex-1 min-w-0">
                                         <h5 className="text-sm font-bold text-zinc-900 truncate">
-                                            {session.name || `Sesión ${idx + 1}`}
+                                            {formatCalendarizedNameForSpanish(session.name) || `Sesión ${idx + 1}`}
                                         </h5>
                                         <p className="text-[11px] text-zinc-500 mt-0.5">
                                             {session.exercises?.length || 0} ejercicios
