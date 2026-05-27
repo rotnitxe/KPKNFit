@@ -1539,6 +1539,15 @@ fun WorkoutScreen(
                             neural = closingFeedback.finalNeuralBattery ?: readinessNeuralStart,
                             spinal = closingFeedback.finalSpinalBattery ?: readinessSpinalStart,
                             perMuscle = closingFeedback.finalMuscleBatteries,
+                            sessionCnsDrain = completedSessionDrains.cns.toDouble(),
+                            sessionSpinalDrain = completedSessionDrains.spinal.toDouble(),
+                            sessionMuscleDrain = completedSessionDrains.muscular.toDouble(),
+                            predictedNeuralBattery = (readinessNeuralStart - completedSessionDrains.cns).coerceIn(0, 100),
+                            predictedSpinalBattery = (readinessSpinalStart - completedSessionDrains.spinal).coerceIn(0, 100),
+                            predictedMuscleBatteries = finishMuscleStartingBatteries.mapValues { (muscle, start) ->
+                                val drain = completedSessionDrains.muscular / finishMuscleStartingBatteries.size.coerceAtLeast(1)
+                                (start - drain).coerceIn(0, 100)
+                            },
                         )
                         if (share) {
                             WorkoutShareService.shareToInstagramStory(

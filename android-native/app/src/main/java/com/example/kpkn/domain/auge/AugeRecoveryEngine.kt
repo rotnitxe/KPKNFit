@@ -356,6 +356,8 @@ object AugeRecoveryEngine {
         nutritionMultiplier: Double = 1.0,
         sleepLogs: List<SleepLog> = emptyList(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
+        personalizedRecoveryHours: Map<String, Double> = emptyMap(),
+        muscleDeltas: Map<String, Double> = emptyMap(),
     ): MuscleRecoveryStatus {
         val now = nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
@@ -363,7 +365,12 @@ object AugeRecoveryEngine {
 
         val profileKey = MUSCLE_PROFILE_MAP.entries
             .firstOrNull { normKey(it.key) == normKey(muscleName) }?.value ?: "medium"
-        val baseRecoveryTime = clamp(RECOVERY_PROFILES[profileKey] ?: 48.0, 18.0, 144.0)
+        val adaptiveHours = personalizedRecoveryHours[muscleName.lowercase().trim()]
+            ?: personalizedRecoveryHours[normKey(muscleName)]
+            ?: personalizedRecoveryHours.entries.firstOrNull {
+                normKey(it.key) == normKey(muscleName)
+            }?.value
+        val baseRecoveryTime = clamp(adaptiveHours ?: RECOVERY_PROFILES[profileKey] ?: 48.0, 18.0, 144.0)
 
         var multiplier = nutritionMultiplier
         val hasSleepData = sleepLogs.isNotEmpty() || wellbeing?.sleepHours != null
@@ -494,6 +501,12 @@ object AugeRecoveryEngine {
 
         val floor = physiologicalFloor(settings).muscular.toDouble()
         battery = max(battery, floor)
+
+        val myDelta = muscleDeltas[muscleName.lowercase().trim()]
+            ?: muscleDeltas[normKey(muscleName)]
+            ?: muscleDeltas.entries.firstOrNull { normKey(it.key) == normKey(muscleName) }?.value
+            ?: 0.0
+        battery = clamp(battery + myDelta, 0.0, 100.0)
 
         return MuscleRecoveryStatus(
             muscleName             = muscleName,
@@ -663,6 +676,10 @@ object AugeRecoveryEngine {
         sleepLogs: List<SleepLog> = emptyList(),
         nutritionLogs: List<NutritionLog> = emptyList(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
+        personalizedRecoveryHours: Map<String, Double> = emptyMap(),
+        muscleDeltas: Map<String, Double> = emptyMap(),
+        cnsLearningDelta: Double = 0.0,
+        spinalLearningDelta: Double = 0.0,
     ): GlobalBatteries {
         val stressLevel = wellbeing?.stressLevel ?: 3
         val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
@@ -677,6 +694,8 @@ object AugeRecoveryEngine {
                 nutritionMultiplier = nutritionMultiplier,
                 sleepLogs = sleepLogs,
                 feedbacks = feedbacks,
+                personalizedRecoveryHours = personalizedRecoveryHours,
+                muscleDeltas = muscleDeltas,
             ).recoveryScore
         }
         val muscularAvg = if (pillarBatteries.isEmpty()) {
@@ -692,10 +711,14 @@ object AugeRecoveryEngine {
         val (cncBattery, _, _) = calculateSystemicFatigue(history, wellbeing, settings, exerciseDb, sleepLogs, feedbacks)
         val spinalBattery = calculateSpinalBattery(history, wellbeing, settings, exerciseDb, sleepLogs)
 
+        val avgMuscleDelta = if (muscleDeltas.isNotEmpty()) {
+            muscleDeltas.values.average().coerceIn(-25.0, 25.0)
+        } else 0.0
+
         return GlobalBatteries(
-            muscular = max(muscularAvg, physiologicalFloor(settings).muscular).coerceIn(0, 100),
-            cnc      = max(cncBattery, physiologicalFloor(settings).cns).coerceIn(0, 100),
-            spinal   = max(spinalBattery, physiologicalFloor(settings).spinal).coerceIn(0, 100),
+            muscular = clamp((max(muscularAvg, physiologicalFloor(settings).muscular) + avgMuscleDelta.toInt()).toDouble(), 0.0, 100.0).toInt(),
+            cnc      = clamp((max(cncBattery, physiologicalFloor(settings).cns) + cnsLearningDelta.toInt()).toDouble(), 0.0, 100.0).toInt(),
+            spinal   = clamp((max(spinalBattery, physiologicalFloor(settings).spinal) + spinalLearningDelta.toInt()).toDouble(), 0.0, 100.0).toInt(),
         )
     }
 
@@ -709,11 +732,13 @@ object AugeRecoveryEngine {
         sleepLogs: List<SleepLog> = emptyList(),
         nutritionLogs: List<NutritionLog> = emptyList(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
+        personalizedRecoveryHours: Map<String, Double> = emptyMap(),
+        muscleDeltas: Map<String, Double> = emptyMap(),
     ): Map<String, MuscleRecoveryStatus> {
         val stressLevel = wellbeing?.stressLevel ?: 3
         val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
         return PILLAR_MUSCLES.associateWith { muscle ->
-            val computed = calculateMuscleBattery(
+            calculateMuscleBattery(
                 muscleName = muscle,
                 history = history,
                 wellbeing = wellbeing,
@@ -722,8 +747,9 @@ object AugeRecoveryEngine {
                 nutritionMultiplier = nutritionMultiplier,
                 sleepLogs = sleepLogs,
                 feedbacks = feedbacks,
+                personalizedRecoveryHours = personalizedRecoveryHours,
+                muscleDeltas = muscleDeltas,
             )
-            computed
         }
     }
 

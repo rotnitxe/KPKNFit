@@ -49,8 +49,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         // Performance Range: RMS tracking (v15)
         PerformanceRangeEntity::class,
         PerformanceSnapshotEntity::class,
+        AugeAdaptiveCacheEntity::class,
     ],
-    version = 18,
+    version = 19,
     exportSchema = false,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -446,6 +447,19 @@ abstract class KpknDatabase : RoomDatabase() {
             }
         }
 
+        // v19: auge_adaptive_cache para tasas de recuperación personalizadas por músculo
+        val MIGRATION_18_19 = object : Migration(18, 19) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `auge_adaptive_cache` (
+                        `rowId` INTEGER NOT NULL DEFAULT 1,
+                        `data` TEXT,
+                        PRIMARY KEY(`rowId`)
+                    )
+                """.trimIndent())
+            }
+        }
+
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -471,6 +485,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_15_16,
                     MIGRATION_16_17,
                     MIGRATION_17_18,
+                    MIGRATION_18_19,
                 )
                 .build()
                 .also { INSTANCE = it }

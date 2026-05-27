@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.auge.AugeAdaptiveEngine
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.domain.auge.AugeTtcEngine
@@ -153,6 +154,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         val feedbacks = augeRepo.getPostSessionFeedbacks()
         val sleepLogs = augeRepo.getLastNSleepLogs(7)
         val nutritionLogs = nutritionRepo.nutritionLogs.value
+        val adaptiveCache = augeRepo.getAdaptiveCache()
 
         val (batteries, perMuscle, dashboard, readiness, pending, articular) = withContext(Dispatchers.Default) {
             val bat = AugeRecoveryEngine.calculateGlobalBatteries(
@@ -163,6 +165,10 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 sleepLogs = sleepLogs,
                 nutritionLogs = nutritionLogs,
                 feedbacks = feedbacks,
+                personalizedRecoveryHours = adaptiveCache.personalizedRecoveryHours,
+                muscleDeltas = adaptiveCache.muscleDeltas,
+                cnsLearningDelta = adaptiveCache.cnsLearningDelta,
+                spinalLearningDelta = adaptiveCache.spinalLearningDelta,
             )
             val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
                 history = history,
@@ -172,6 +178,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 sleepLogs = sleepLogs,
                 nutritionLogs = nutritionLogs,
                 feedbacks = feedbacks,
+                personalizedRecoveryHours = adaptiveCache.personalizedRecoveryHours,
+                muscleDeltas = adaptiveCache.muscleDeltas,
             )
             val articular = AugeTtcEngine.calculateArticularBatteries(history, exerciseDb)
             val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
@@ -298,6 +306,12 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         spinal: Int,
         perMuscle: Map<String, Int>,
         manualBatteryAnchorMs: Long? = null,
+        sessionCnsDrain: Double = 0.0,
+        sessionSpinalDrain: Double = 0.0,
+        sessionMuscleDrain: Double = 0.0,
+        predictedNeuralBattery: Int? = null,
+        predictedSpinalBattery: Int? = null,
+        predictedMuscleBatteries: Map<String, Int> = emptyMap(),
     ) {
         viewModelScope.launch {
             val base = augeRepo.getTodayWellbeing()
@@ -326,6 +340,81 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 notes = base?.notes,
             )
             augeRepo.saveWellbeingLog(updated)
+
+            // ─── Adaptive learning from manual ring adjustments ──────────────
+            if (sessionCnsDrain > 0 || sessionSpinalDrain > 0 || sessionMuscleDrain > 0 || perMuscle.isNotEmpty()) {
+                val cache = augeRepo.getAdaptiveCache()
+                var updatedCache = cache
+                val newTotalObs = cache.totalObservations + 1
+
+                // Learn system-level deltas from CNS/spinal adjustments
+                if (sessionCnsDrain > 0 || sessionSpinalDrain > 0) {
+                    val systemAdj = if (predictedNeuralBattery != null) {
+                        (neural - predictedNeuralBattery).coerceIn(-35, 35)
+                    } else 0
+                    val structAdj = if (predictedSpinalBattery != null) {
+                        (spinal - predictedSpinalBattery).coerceIn(-35, 35)
+                    } else 0
+                    val (newCns, newSpinal) = AugeAdaptiveEngine.updateSystemLearningDeltas(
+                        currentCnsDelta = cache.cnsLearningDelta,
+                        currentSpinalDelta = cache.spinalLearningDelta,
+                        systemAdjustment = systemAdj,
+                        structureAdjustment = structAdj,
+                        totalObservations = cache.totalObservations,
+                    )
+                    updatedCache = updatedCache.copy(
+                        cnsLearningDelta = newCns,
+                        spinalLearningDelta = newSpinal,
+                    )
+                }
+
+                // Learn per-muscle recovery hours from each muscle adjustment
+                for ((muscle, manualBattery) in perMuscle) {
+                    val predicted = predictedMuscleBatteries[muscle]
+                        ?: predictedMuscleBatteries.entries.firstOrNull {
+                            it.key.equals(muscle, ignoreCase = true)
+                        }?.value
+                        ?: 100
+
+                    if (predicted != manualBattery) {
+                        val obs = RecoveryLearningObservation(
+                            muscle = muscle,
+                            predictedBattery = predicted,
+                            actualBattery = manualBattery.coerceIn(0, 100),
+                            sessionStress = sessionMuscleDrain,
+                            hoursSinceSession = 0.25,
+                            sleepQuality = updated.sleepQuality,
+                            stressLevel = updated.stressLevel,
+                        )
+                        updatedCache = updatedCache.copy(
+                            personalizedRecoveryHours = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
+                                current = updatedCache.personalizedRecoveryHours,
+                                observation = obs,
+                                totalObservations = cache.totalObservations,
+                            ),
+                        )
+                    }
+                }
+
+                // Learn muscle deltas
+                if (predictedMuscleBatteries.isNotEmpty() && perMuscle.isNotEmpty()) {
+                    updatedCache = updatedCache.copy(
+                        muscleDeltas = AugeAdaptiveEngine.updateMuscleDeltas(
+                            current = updatedCache.muscleDeltas,
+                            manualMuscleBatteries = perMuscle,
+                            predictedMuscleBatteries = predictedMuscleBatteries,
+                            totalObservations = cache.totalObservations,
+                        ),
+                    )
+                }
+
+                updatedCache = updatedCache.copy(
+                    totalObservations = newTotalObs,
+                    lastUpdatedMs = System.currentTimeMillis(),
+                )
+                augeRepo.saveAdaptiveCache(updatedCache)
+            }
+
             recompute(programRepo.history.value, programRepo.settings.value)
         }
     }

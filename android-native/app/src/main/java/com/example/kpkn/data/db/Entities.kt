@@ -150,6 +150,12 @@ data class PendingQuestionnaireEntity(@PrimaryKey val rowId: Int = 1, val data: 
 fun PendingQuestionnaire.toEntity() = PendingQuestionnaireEntity(data = dbJson.encodeToString(this))
 fun PendingQuestionnaireEntity.toPendingQuestionnaire(): PendingQuestionnaire = dbJson.decodeFromString(data ?: "{}")
 
+@Entity(tableName = "auge_adaptive_cache")
+data class AugeAdaptiveCacheEntity(@PrimaryKey val rowId: Int = 1, val data: String?)
+fun com.example.kpkn.data.models.AugeAdaptiveCache.toEntity() = AugeAdaptiveCacheEntity(data = dbJson.encodeToString(this))
+fun AugeAdaptiveCacheEntity.toAdaptiveCache(): com.example.kpkn.data.models.AugeAdaptiveCache =
+    dbJson.decodeFromString(data ?: "{}")
+
 @Entity(tableName = "nutrition_logs", indices = [Index("date")])
 data class NutritionLogEntity(@PrimaryKey val id: String, val date: String, val mealType: String, val data: String)
 fun NutritionLog.toEntity() = NutritionLogEntity(id = id, date = date, mealType = mealType.name, data = dbJson.encodeToString(this))

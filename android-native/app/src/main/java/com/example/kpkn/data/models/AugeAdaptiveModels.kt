@@ -1,0 +1,25 @@
+package com.example.kpkn.data.models
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class AugeAdaptiveCache(
+    val personalizedRecoveryHours: Map<String, Double> = emptyMap(),
+    val muscleDeltas: Map<String, Double> = emptyMap(),
+    val cnsLearningDelta: Double = 0.0,
+    val spinalLearningDelta: Double = 0.0,
+    val totalObservations: Int = 0,
+    val lastUpdatedMs: Long = 0L,
+)
+
+@Serializable
+data class RecoveryLearningObservation(
+    val muscle: String,
+    val predictedBattery: Int,
+    val actualBattery: Int,
+    val sessionStress: Double,
+    val hoursSinceSession: Double,
+    val sleepQuality: Int = 3,
+    val nutritionMultiplier: Double = 1.0,
+    val stressLevel: Int = 3,
+)

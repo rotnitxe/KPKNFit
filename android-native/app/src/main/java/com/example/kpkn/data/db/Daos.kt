@@ -201,6 +201,13 @@ interface AugeDao {
 
     @Query("DELETE FROM auge_pending WHERE rowId = 1")
     suspend fun clearPendingQuestionnaire()
+
+    // Adaptive cache
+    @Query("SELECT * FROM auge_adaptive_cache WHERE rowId = 1")
+    suspend fun getAdaptiveCache(): AugeAdaptiveCacheEntity?
+
+    @Upsert
+    suspend fun upsertAdaptiveCache(entity: AugeAdaptiveCacheEntity)
 }
 
 // ─── Nutrition ───────────────────────────────────────────────────────────────

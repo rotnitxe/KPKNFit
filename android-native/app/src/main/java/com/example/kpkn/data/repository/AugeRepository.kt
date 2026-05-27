@@ -2,7 +2,8 @@ package com.example.kpkn.data.repository
 
 import android.content.Context
 import com.example.kpkn.data.db.*
-import com.example.kpkn.data.models.*import kotlinx.coroutines.Dispatchers
+import com.example.kpkn.data.models.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
@@ -84,6 +85,16 @@ class AugeRepository private constructor(context: Context) {
 
     suspend fun clearPendingQuestionnaire() = withContext(Dispatchers.IO) {
         dao.clearPendingQuestionnaire()
+    }
+
+    // ─── Adaptive Cache ─────────────────────────────────────────────────────
+
+    suspend fun getAdaptiveCache(): AugeAdaptiveCache = withContext(Dispatchers.IO) {
+        dao.getAdaptiveCache()?.toAdaptiveCache() ?: AugeAdaptiveCache()
+    }
+
+    suspend fun saveAdaptiveCache(cache: AugeAdaptiveCache) = withContext(Dispatchers.IO) {
+        dao.upsertAdaptiveCache(cache.toEntity())
     }
 
     // ─── Singleton ───────────────────────────────────────────────────────────
