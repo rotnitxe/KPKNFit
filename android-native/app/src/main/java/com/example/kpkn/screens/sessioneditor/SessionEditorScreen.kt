@@ -8572,7 +8572,7 @@ private fun AssistantSheet(
                                         )
                                     }
                                     LinearProgressIndicator(
-                                        progress = { (value / maxChartValue).toFloat().coerceIn(0f, 1f) },
+                                        progress = { (if (isDrainMode) value / 100.0 else value / maxChartValue).toFloat().coerceIn(0f, 1f) },
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .height(7.dp)

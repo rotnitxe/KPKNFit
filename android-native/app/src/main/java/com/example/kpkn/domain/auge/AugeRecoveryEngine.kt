@@ -450,12 +450,7 @@ object AugeRecoveryEngine {
                     drain.muscularDrainPct
                 }
 
-                val roleMult = when (involvement.role) {
-                    MuscleRole.PRIMARY    -> 1.0
-                    MuscleRole.SECONDARY  -> 0.5
-                    MuscleRole.STABILIZER -> 0.15
-                    MuscleRole.NEUTRALIZER -> 0.1
-                }
+                val roleMult = FATIGUE_ROLE_MULTIPLIERS[involvement.role] ?: 1.0
 
                 sessionMuscleStress += rawStress * roleMult
 
@@ -602,12 +597,42 @@ object AugeRecoveryEngine {
 
     // ─── 3. BATERÍA ESPINAL ───────────────────────────────────────────────────
 
+    private fun calculateSpineFatigueMultiplier(
+        history: List<WorkoutLog>,
+        wellbeing: DailyWellbeingLog?,
+        settings: Settings,
+        exerciseDb: Map<String, ExerciseMuscleInfo>,
+        sleepLogs: List<SleepLog>,
+        nutritionMultiplier: Double,
+        feedbacks: List<PostSessionFeedback>,
+        personalizedRecoveryHours: Map<String, Double>,
+        muscleDeltas: Map<String, Double>
+    ): Double {
+        val erectors = calculateMuscleBattery("Erectores Espinales", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, personalizedRecoveryHours, muscleDeltas).recoveryScore.toDouble()
+        val core = calculateMuscleBattery("Core", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, personalizedRecoveryHours, muscleDeltas).recoveryScore.toDouble()
+        val glutes = calculateMuscleBattery("Glúteos", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, personalizedRecoveryHours, muscleDeltas).recoveryScore.toDouble()
+        val lats = calculateMuscleBattery("Dorsales", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, personalizedRecoveryHours, muscleDeltas).recoveryScore.toDouble()
+
+        // Spine Protection Factor (SPF) - Promedio ponderado de rigidez y bracing activo
+        val spf = (erectors * 0.50) + (core * 0.25) + (glutes * 0.15) + (lats * 0.10)
+        
+        if (spf >= 80.0) return 1.0
+
+        // Amplificación exponencial de fatiga espinal debido a Spinal Bracing Failure
+        val fatigueDeficit = (100.0 - spf) / 100.0
+        return 1.0 + (fatigueDeficit * fatigueDeficit * 0.75)
+    }
+
     fun calculateSpinalBattery(
         history: List<WorkoutLog>,
         wellbeing: DailyWellbeingLog?,
         settings: Settings,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         sleepLogs: List<SleepLog> = emptyList(),
+        nutritionLogs: List<NutritionLog> = emptyList(),
+        feedbacks: List<PostSessionFeedback> = emptyList(),
+        personalizedRecoveryHours: Map<String, Double> = emptyMap(),
+        muscleDeltas: Map<String, Double> = emptyMap(),
     ): Int {
         val now = nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
@@ -631,6 +656,22 @@ object AugeRecoveryEngine {
             history.filter { logDateMs(it) > last10Days }
         }
 
+        val stressLevel = wellbeing?.stressLevel ?: 3
+        val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
+
+        // Obtener el multiplicador de protección activa de columna
+        val spineProtectionMultiplier = calculateSpineFatigueMultiplier(
+            history = recentLogs,
+            wellbeing = wellbeing,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            sleepLogs = sleepLogs,
+            nutritionMultiplier = nutritionMultiplier,
+            feedbacks = feedbacks,
+            personalizedRecoveryHours = personalizedRecoveryHours,
+            muscleDeltas = muscleDeltas
+        )
+
         recentLogs.forEach { log ->
             val hoursSince = max(0.0, (now - logDateMs(log)) / 3_600_000.0)
             var sessionSpinalLoad = 0.0
@@ -652,7 +693,7 @@ object AugeRecoveryEngine {
                         restTime = ex.restTime,
                         densityMultiplier = densityMult,
                     )
-                    sessionSpinalLoad += drain.spinalDrainPct
+                    sessionSpinalLoad += drain.spinalDrainPct * spineProtectionMultiplier
                 }
             }
 
@@ -709,7 +750,17 @@ object AugeRecoveryEngine {
         }
 
         val (cncBattery, _, _) = calculateSystemicFatigue(history, wellbeing, settings, exerciseDb, sleepLogs, feedbacks)
-        val spinalBattery = calculateSpinalBattery(history, wellbeing, settings, exerciseDb, sleepLogs)
+        val spinalBattery = calculateSpinalBattery(
+            history = history,
+            wellbeing = wellbeing,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            sleepLogs = sleepLogs,
+            nutritionLogs = nutritionLogs,
+            feedbacks = feedbacks,
+            personalizedRecoveryHours = personalizedRecoveryHours,
+            muscleDeltas = muscleDeltas
+        )
 
         val avgMuscleDelta = if (muscleDeltas.isNotEmpty()) {
             muscleDeltas.values.average().coerceIn(-25.0, 25.0)

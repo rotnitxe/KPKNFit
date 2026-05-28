@@ -113,7 +113,6 @@ fun BodyProgressScreen(
     val measurementSchedule by nutritionRepo.measurementSchedule.collectAsState()
 
     var showAddMeasurement by remember { mutableStateOf(false) }
-    var showPlanRequiredDialog by remember { mutableStateOf(false) }
     var heroMetric by rememberSaveable { mutableStateOf(BodyHeroMetric.WEIGHT) }
     val contextualBottomBarClearance = 220.dp
 
@@ -341,23 +340,18 @@ fun BodyProgressScreen(
             item { Spacer(Modifier.height(100.dp)) }
         }
 
-        ExtendedFloatingActionButton(
-            onClick = {
-                if (activePlan == null) {
-                    showPlanRequiredDialog = true
-                } else {
-                    showAddMeasurement = true
-                }
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = contextualBottomBarClearance)
-                .then(if (activePlan == null) Modifier.blur(10.dp) else Modifier),
-            icon = { Icon(Icons.Default.Add, null) },
-            text = { Text("Registrar medición") },
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-        )
+        if (activePlan != null) {
+            ExtendedFloatingActionButton(
+                onClick = { showAddMeasurement = true },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = contextualBottomBarClearance),
+                icon = { Icon(Icons.Default.Add, null) },
+                text = { Text("Registrar medición") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            )
+        }
 
         if (activePlan == null) {
             Column(
@@ -375,20 +369,11 @@ fun BodyProgressScreen(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Crea un plan de alimentación para desbloquear tu progreso corporal y registrar mediciones.",
+                    "Crea un plan de alimentación desde la pestaña Nutrición para desbloquear tu progreso corporal y registrar mediciones.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(14.dp))
-                Button(
-                    onClick = onCreatePlan,
-                    shape = RoundedCornerShape(14.dp),
-                ) {
-                    Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Crear plan de alimentación")
-                }
             }
         }
     }

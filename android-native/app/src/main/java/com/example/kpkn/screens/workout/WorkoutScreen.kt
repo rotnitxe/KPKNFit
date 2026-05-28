@@ -2231,12 +2231,14 @@ private fun WorkoutV2Body(
                                 viewModel.markWarmupComplete(currentExercise.id)
                                     expandedSupersetWarmups = expandedSupersetWarmups - currentExercise.id
                             },
+                            sessionAccentColor = sessionAccentColor,
                         )
                     } else {
                         WorkoutSupersetWarmupRevealCard(
                             exercise = currentExercise,
                             onClick = { expandedSupersetWarmups = expandedSupersetWarmups + currentExercise.id },
                             onDismiss = { viewModel.markWarmupComplete(currentExercise.id) },
+                            sessionAccentColor = sessionAccentColor,
                         )
                     }
                 }
@@ -2329,10 +2331,10 @@ private fun WorkoutV2Body(
                     val totalSetPages = setPagerPages.size.coerceAtLeast(1)
                     key(currentExercise.id, totalSetPages) {
                     val pagerState = rememberPagerState(pageCount = { totalSetPages })
-                    var programmaticPagerSync by remember(currentExercise.id, totalSetPages) { mutableStateOf(false) }
+                    val programmaticScrollRef = remember(currentExercise.id) { booleanArrayOf(false) }
 
                     LaunchedEffect(pagerState.settledPage, setPagerPages) {
-                        if (programmaticPagerSync) return@LaunchedEffect
+                        if (programmaticScrollRef[0]) return@LaunchedEffect
                         val page = setPagerPages.getOrNull(pagerState.settledPage) ?: return@LaunchedEffect
                         if (isUnilateral) {
                             if (selectedUnilateralSideOverride != page.side) {
@@ -2350,11 +2352,14 @@ private fun WorkoutV2Body(
                     }
                     LaunchedEffect(activeSwipePageIndex, totalSetPages) {
                         if (activeSwipePageIndex in 0 until totalSetPages && activeSwipePageIndex != pagerState.currentPage) {
-                            programmaticPagerSync = true
+                            programmaticScrollRef[0] = true
                             try {
                                 pagerState.scrollToPage(activeSwipePageIndex)
                             } finally {
-                                programmaticPagerSync = false
+                                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                                    kotlinx.coroutines.delay(100L)
+                                    programmaticScrollRef[0] = false
+                                }
                             }
                         }
                     }

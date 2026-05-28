@@ -56,7 +56,10 @@ private fun AmrapConfigSheet(
     var minReps by remember { mutableStateOf(plannedMinReps?.toString() ?: "") }
     var reachFailure by remember { mutableStateOf(initialReachFailure) }
     var reserveReps by remember { mutableStateOf(initialReserveReps?.toString() ?: "") }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { it != SheetValue.Hidden },
+    )
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, containerColor = Color(0xFF2A2A2A)) {
         Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("Configurar serie AMRAP", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White)
@@ -603,7 +606,7 @@ internal fun SetInputCardV2(
     val draftWeightText = initialDraft?.weightText?.takeIf { it.isNotBlank() }
     val draftValueText = initialDraft?.valueText?.takeIf { it.isNotBlank() }
     var weightText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
-        mutableStateOf(draftWeightText ?: defaultWeight)
+        mutableStateOf(draftWeightText.orEmpty())
     }
     var lastAutoFilledWeight by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) { mutableStateOf(defaultWeight) }
     var hasManualWeightOverride by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
@@ -899,12 +902,6 @@ internal fun SetInputCardV2(
         if (rmSuggestedWeight != null) {
             updateActiveWeightText(rmSuggestedWeight.toTrimmedNumberString())
             onRmWeightConsumed?.invoke()
-        }
-    }
-    LaunchedEffect(defaultWeight) {
-        if (!hasManualWeightOverride && defaultWeight != lastAutoFilledWeight) {
-            updateActiveWeightText(defaultWeight, markManual = false)
-            lastAutoFilledWeight = defaultWeight
         }
     }
     LaunchedEffect(timerRunning, timerRemainingSeconds) {

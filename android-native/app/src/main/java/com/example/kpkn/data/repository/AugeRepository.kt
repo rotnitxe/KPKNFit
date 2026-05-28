@@ -29,6 +29,19 @@ class AugeRepository private constructor(context: Context) {
         dao.getWellbeingForDate(LocalDate.now().toString())?.toWellbeingLog()
     }
 
+    suspend fun getActiveWellbeingWithManualOverrides(): DailyWellbeingLog? = withContext(Dispatchers.IO) {
+        val today = LocalDate.now()
+        val from = today.minusDays(2).toString()
+        val to = today.toString()
+        dao.getWellbeingInRange(from, to)
+            .map { it.toWellbeingLog() }
+            .firstOrNull { w ->
+                w.manualNeuralBattery != null ||
+                    w.manualMuscularBattery != null ||
+                    w.manualSpinalBattery != null
+            }
+    }
+
     // ─── SleepLog ─────────────────────────────────────────────────────────────
 
     suspend fun saveSleepLog(log: SleepLog) = withContext(Dispatchers.IO) {

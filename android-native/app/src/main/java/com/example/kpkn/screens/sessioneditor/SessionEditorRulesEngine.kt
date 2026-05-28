@@ -287,7 +287,7 @@ object SessionEditorRulesEngine {
         val primary = info.involvedMuscles.firstOrNull { it.role == MuscleRole.PRIMARY }
             ?: info.involvedMuscles.firstOrNull()
             ?: return null
-        return VolumeCalculator.normalizeMuscleGroup(primary.muscle, primary.emphasis)
+        return VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, primary.emphasis)
     }
 
     private fun computeSessionVolumeByMuscle(
@@ -303,7 +303,9 @@ object SessionEditorRulesEngine {
                 map[fallback] = (map[fallback] ?: 0.0) + setCount.toDouble()
                 return@forEach
             }
-            val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(info.involvedMuscles)
+            val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(
+                com.example.kpkn.domain.auge.SessionMuscleFilter.relevantMusclesFor(info)
+            )
             contributions.forEach { (canonical, multiplier) ->
                 if (canonical.isNotBlank() && multiplier > 0.0) {
                     map[canonical] = (map[canonical] ?: 0.0) + setCount * multiplier

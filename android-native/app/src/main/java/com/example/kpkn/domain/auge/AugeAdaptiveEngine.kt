@@ -81,8 +81,8 @@ object AugeAdaptiveEngine {
         val samples = (totalObservations + 1).coerceAtLeast(1).toDouble()
         val alpha = min(0.25, 1.0 / samples)
 
-        val cnsSignal = -systemAdjustment.toDouble()
-        val spinalSignal = -structureAdjustment.toDouble()
+        val cnsSignal = systemAdjustment.toDouble()
+        val spinalSignal = structureAdjustment.toDouble()
 
         val newCns = currentCnsDelta * (1.0 - alpha) + cnsSignal * alpha
         val newSpinal = currentSpinalDelta * (1.0 - alpha) + spinalSignal * alpha

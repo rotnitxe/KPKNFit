@@ -3168,6 +3168,7 @@ private fun computeSessionAugeComputation(
     var rpeCount = 0
     var rmSum = 0.0
     var rmCount = 0
+    val muscleSetCounters = mutableMapOf<String, Int>()
 
     val exerciseInsights = exercises.mapNotNull { exercise ->
         val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return@mapNotNull null
@@ -3179,6 +3180,9 @@ private fun computeSessionAugeComputation(
         var cns = 0.0
         var spinal = 0.0
         totalSets += validSets.size
+
+        val primaryMuscle = resolvePrimaryMuscle(info) ?: "Core"
+        var accumulated = muscleSetCounters[primaryMuscle] ?: 0
 
         validSets.forEach { set ->
             val effectiveRpe = set.effectiveTargetRpe()
@@ -3211,20 +3215,32 @@ private fun computeSessionAugeComputation(
             }
 
             totalSpinalLoad += info.axialLoadFactor ?: 0.0
+            accumulated++
 
+            val calculatedWeight = if (exercise.trainingMode == TrainingMode.RM && set.targetPercentageRM != null && exercise.reference1RM != null && exercise.reference1RM!! > 0.0) {
+                (set.targetPercentageRM / 100.0) * exercise.reference1RM!!
+            } else {
+                set.weight ?: 60.0
+            }
             val completedSet = CompletedSet(
                 id = set.id,
-                weight = set.weight ?: 60.0,
+                weight = calculatedWeight,
                 reps = set.targetReps ?: 8,
                 rpe = set.targetRPE,
                 rir = set.targetRIR,
+                actualIntensityMode = set.intensityMode,
+                actualIntensityValue = when (set.intensityMode) {
+                    IntensityMode.RPE -> set.targetRPE
+                    IntensityMode.RIR -> set.targetRIR?.toDouble()
+                    else -> null
+                },
                 isFailure = set.isFailure || set.intensityMode == IntensityMode.FAILURE,
             )
             val drain = AugeFatigueEngine.calculateSetBatteryDrain(
                 set = completedSet,
                 metrics = metrics,
                 tanks = tanks,
-                accumulatedSets = 0,
+                accumulatedSets = accumulated,
                 restTime = exercise.restTime ?: 90,
                 densityMultiplier = AugeFatigueEngine.getDensityMultiplierForExercise(
                     supersetId = exercise.supersetGroupRefOrLegacyId(),
@@ -3248,6 +3264,7 @@ private fun computeSessionAugeComputation(
                 }
             }
         }
+        muscleSetCounters[primaryMuscle] = accumulated
 
         SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
             val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)

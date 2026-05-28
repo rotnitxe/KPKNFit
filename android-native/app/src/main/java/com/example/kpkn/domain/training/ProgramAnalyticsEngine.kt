@@ -201,13 +201,16 @@ object ProgramAnalyticsEngine {
             val stabilityLabel = stabilityBucketLabel(stability)
             stabilityBuckets[stabilityLabel] = stabilityBuckets.orZero(stabilityLabel) + sets
             stabilityDemand += stability * sets
-            row.info?.involvedMuscles.orEmpty().forEach { muscle ->
-                val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
-                val contribution = resolveMuscleVolumeContribution(muscle)
+            val relevantMuscles = row.info?.let { com.example.kpkn.domain.auge.SessionMuscleFilter.relevantMusclesFor(it) }.orEmpty()
+            val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(relevantMuscles)
+            contributions.forEach { (canonical, contribution) ->
                 setsByMuscle[canonical] = setsByMuscle.orZero(canonical) + sets * contribution
                 repsByMuscle[canonical] = repsByMuscle.orZero(canonical) + sets * targetReps * contribution
                 timeByMuscle[canonical] = timeByMuscle.orZero(canonical) + estimatedMinutes * contribution
-                if (muscle.role == MuscleRole.PRIMARY) {
+                val hasPrimaryInGroup = relevantMuscles.any { m ->
+                    VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis) == canonical && m.role == MuscleRole.PRIMARY
+                }
+                if (hasPrimaryInGroup) {
                     directByMuscle[canonical] = directByMuscle.orZero(canonical) + sets * contribution
                 } else {
                     indirectByMuscle[canonical] = indirectByMuscle.orZero(canonical) + sets * contribution

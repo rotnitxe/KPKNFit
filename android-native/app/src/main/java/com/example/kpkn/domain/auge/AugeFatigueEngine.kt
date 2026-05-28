@@ -413,6 +413,13 @@ object AugeFatigueEngine {
         )
     }
 
+    private fun scaleSpinalDrainToUi(rawSpinalSessionDrain: Double, tanks: BatteryTanks): Double {
+        val capacity = max(70.0, tanks.spinal * 0.02)
+        val rawPct = (rawSpinalSessionDrain / capacity) * 100.0
+        val batteryDrop = 100.0 * (1.0 - exp(-rawPct / 24.0))
+        return batteryDrop.coerceIn(0.0, 100.0)
+    }
+
     // ─── Estrés total de sesión completada (para historial) ──────────────────
 
     fun calculateCompletedSessionDrain(
@@ -469,7 +476,7 @@ object AugeFatigueEngine {
                     restTime = ex.restTime,
                     densityMultiplier = densityMult,
                 )
-                val diminishingFactor = 1.0 / (1.0 + decayK * accumulatedDrain)
+                val diminishingFactor = 1.0 / (1.0 + decayK * (accumulatedDrain / 100.0))
                 val adjustedMuscular = drain.muscularDrainPct * conservationFactor * diminishingFactor
                 val adjustedCns = drain.cnsDrainPct * conservationFactor * diminishingFactor
                 val adjustedSpinal = drain.spinalDrainPct * conservationFactor * diminishingFactor
@@ -481,10 +488,11 @@ object AugeFatigueEngine {
             muscleVolumeMap[primaryMuscle] = accumulated
         }
 
+        val scaledSpinal = scaleSpinalDrainToUi(totalSpinal, tanks)
         return PredictedDrain(
             cns = totalCns.coerceAtMost(cnsCap).toInt(),
             muscular = totalMuscular.coerceAtMost(muscularCap).toInt(),
-            spinal = totalSpinal.coerceAtMost(spinalCap).toInt(),
+            spinal = scaledSpinal.coerceAtMost(spinalCap).toInt(),
         )
             .let { raw ->
                 val (cnsBias, muscularBias, spinalBias) = normalizeBias(settings.augePredictionBias)
@@ -561,12 +569,23 @@ object AugeFatigueEngine {
             ex.sets.forEach { s ->
                 if (s.isIneffective) return@forEach
                 accumulated++
+                val calculatedWeight = if (ex.trainingMode == TrainingMode.RM && s.targetPercentageRM != null && ex.reference1RM != null && ex.reference1RM!! > 0.0) {
+                    (s.targetPercentageRM / 100.0) * ex.reference1RM!!
+                } else {
+                    s.weight ?: 60.0
+                }
                 val syntheticSet = CompletedSet(
                     id = "",
-                    weight = s.weight ?: 60.0,
+                    weight = calculatedWeight,
                     reps = s.targetReps ?: 8,
                     rpe = s.targetRPE,
                     rir = s.targetRIR,
+                    actualIntensityMode = s.intensityMode,
+                    actualIntensityValue = when (s.intensityMode) {
+                        IntensityMode.RPE -> s.targetRPE
+                        IntensityMode.RIR -> s.targetRIR?.toDouble()
+                        else -> null
+                    },
                     isFailure = s.isFailure || s.intensityMode == IntensityMode.FAILURE,
                 )
                 val rawDrain = calculateSetBatteryDrain(
@@ -577,7 +596,7 @@ object AugeFatigueEngine {
                     restTime = ex.restTime ?: 90,
                     densityMultiplier = densityMult,
                 )
-                val diminishingFactor = 1.0 / (1.0 + decayK * accumulatedDrain)
+                val diminishingFactor = 1.0 / (1.0 + decayK * (accumulatedDrain / 100.0))
                 val adjustedMuscular = rawDrain.muscularDrainPct * conservationFactor * diminishingFactor
                 val adjustedCns = rawDrain.cnsDrainPct * conservationFactor * diminishingFactor
                 val adjustedSpinal = rawDrain.spinalDrainPct * conservationFactor * diminishingFactor
@@ -590,10 +609,11 @@ object AugeFatigueEngine {
             muscleVolumeMap[primaryMuscle] = accumulated
         }
 
+        val scaledSpinal = scaleSpinalDrainToUi(totalSpinal, tanks)
         return PredictedDrain(
             cns = totalCns.coerceAtMost(cnsCap).toInt(),
             muscular = totalMuscular.coerceAtMost(muscularCap).toInt(),
-            spinal = totalSpinal.coerceAtMost(spinalCap).toInt(),
+            spinal = scaledSpinal.coerceAtMost(spinalCap).toInt(),
         )
             .let { raw ->
                 val (cnsBias, muscularBias, spinalBias) = normalizeBias(settings.augePredictionBias)

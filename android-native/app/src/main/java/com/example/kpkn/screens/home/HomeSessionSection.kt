@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -216,15 +217,29 @@ private fun SessionCard(
                             )
                         }
                         FilledIconButton(
-                            onClick = if (item.isOngoing) onResume else onStart,
+                            onClick = when {
+                                item.isOngoing -> onResume
+                                item.isCompleted -> onStart
+                                else -> onStart
+                            },
                             modifier = Modifier.size(48.dp),
                             colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = Color.White,
+                                containerColor = when {
+                                    item.isCompleted -> Color(0xFF66BB6A)
+                                    else -> Color.White
+                                },
                             ),
                         ) {
                             Icon(
-                                Icons.Filled.PlayArrow,
-                                contentDescription = if (item.isOngoing) "Reanudar" else "Iniciar",
+                                imageVector = when {
+                                    item.isCompleted -> Icons.Default.Check
+                                    else -> Icons.Default.PlayArrow
+                                },
+                                contentDescription = when {
+                                    item.isCompleted -> "Completado"
+                                    item.isOngoing -> "Reanudar"
+                                    else -> "Iniciar"
+                                },
                                 modifier = Modifier.size(24.dp),
                                 tint = Color.Black,
                             )

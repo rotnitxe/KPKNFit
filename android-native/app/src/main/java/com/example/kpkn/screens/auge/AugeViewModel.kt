@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -150,7 +151,17 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun recompute(history: List<WorkoutLog>, settings: Settings) {
         _snapshot.update { it.copy(isLoading = true) }
-        val wellbeing = augeRepo.getTodayWellbeing()
+        val todayWellbeing = augeRepo.getTodayWellbeing()
+        val overrideWellbeing = augeRepo.getActiveWellbeingWithManualOverrides()
+        val wellbeing = if (overrideWellbeing != null &&
+            todayWellbeing?.manualNeuralBattery == null &&
+            todayWellbeing?.manualSpinalBattery == null &&
+            todayWellbeing?.manualMuscularBattery == null
+        ) {
+            overrideWellbeing
+        } else {
+            todayWellbeing
+        }
         val feedbacks = augeRepo.getPostSessionFeedbacks()
         val sleepLogs = augeRepo.getLastNSleepLogs(7)
         val nutritionLogs = nutritionRepo.nutritionLogs.value
@@ -197,11 +208,19 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
         val resolvedPending = pending ?: augeRepo.getPendingQuestionnaire()
         exposePendingIfDue(resolvedPending)
-        val cumulativeFatigue = AugeFatigueEngine.calculateCompletedSessionStress(
-            completedExercises = history.firstOrNull()?.completedExercises ?: emptyList(),
-            exerciseDb = exerciseDb,
-            settings = settings,
-        )
+        val twoWeeksAgo = System.currentTimeMillis() - 14L * 24 * 3600_000
+        val cumulativeFatigue = history
+            .filter { log ->
+                runCatching { Instant.parse(log.date).toEpochMilli() }
+                    .getOrDefault(0L) >= twoWeeksAgo
+            }
+            .sumOf { log ->
+                AugeFatigueEngine.calculateCompletedSessionStress(
+                    completedExercises = log.completedExercises,
+                    exerciseDb = exerciseDb,
+                    settings = settings,
+                )
+            }
         val readinessScore = readiness?.score ?: dashboard.overallScore
         val shouldSuggestAutoDeload = AugeFatigueEngine.shouldSuggestAutoDeload(
             cumulativeFatigue = cumulativeFatigue,
@@ -336,7 +355,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 manualNeuralBattery = neural.coerceIn(0, 100),
                 manualSpinalBattery = spinal.coerceIn(0, 100),
                 manualMuscleBatteries = perMuscle.mapValues { (_, value) -> value.coerceIn(0, 100) },
-                manualBatteryAnchorMs = manualBatteryAnchorMs ?: System.currentTimeMillis(),
+                manualBatteryAnchorMs = manualBatteryAnchorMs ?: System.currentTimeMillis() + 2000L,
                 notes = base?.notes,
             )
             augeRepo.saveWellbeingLog(updated)

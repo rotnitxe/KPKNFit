@@ -154,15 +154,13 @@ internal fun SetInputCardV2(
     onSkipSet: () -> Unit = {},
     onExecutionError: (() -> Unit)? = null,
     onRecordV2: (LoadModeV2, UnitModeV2, Double, Double, Double?, SetAdvancedFeedback, Boolean, Double?, String?) -> Unit,
+    sessionAccentColor: Color = Color(0xFFFFD740),
 ) {
     val context = LocalContext.current
     val isTimeMode = currentSet.unitModeV2 == UnitModeV2.TIME || currentSet.targetDuration != null || exercise.trainingMode == TrainingMode.TIME
     val plannedUnitMode = if (isTimeMode) UnitModeV2.TIME else (currentSet.unitModeV2 ?: UnitModeV2.REPS)
     val suggestedWeightText = weightSuggestion?.suggestedWeight?.toTrimmedNumberString()
     val initialWeight = initialDraft?.weightText?.toDoubleOrNull()
-        ?: ghostSet?.weight?.takeIf { it > 0.0 }
-        ?: currentSet.weight
-        ?: if (setIndex == 0) weightSuggestion?.suggestedWeight else null
     val initialWeightText = initialWeight?.toTrimmedNumberString().orEmpty()
     val initialValue = initialDraft?.valueText ?: if (isTimeMode) {
         currentSet.targetDuration?.toString().orEmpty()
@@ -778,16 +776,16 @@ internal fun SetInputCardV2(
                                 if (currentSet.isAmrap) {
                                     Surface(
                                         shape = RoundedCornerShape(999.dp),
-                                        color = Color(0xFF3A3A00),
-                                        border = BorderStroke(1.dp, Color(0xFFFFD740).copy(alpha = 0.6f)),
+                                        color = sessionAccentColor.copy(alpha = 0.15f),
+                                        border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.6f)),
                                     ) {
                                         Row(
                                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                                             verticalAlignment = Alignment.CenterVertically,
                                         ) {
-                                            Icon(Icons.Default.FlashOn, contentDescription = null, modifier = Modifier.height(14.dp), tint = Color(0xFFFFD740))
-                                            Text("AMRAP", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color(0xFFFFD740))
+                                            Icon(Icons.Default.FlashOn, contentDescription = null, modifier = Modifier.height(14.dp), tint = sessionAccentColor)
+                                            Text("AMRAP", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = sessionAccentColor)
                                         }
                                     }
                                 }
@@ -1037,7 +1035,7 @@ internal fun SetInputCardV2(
                                 )
                             }
                         },
-                        colors = workoutVoiceFieldColors(WorkoutVoiceField.WEIGHT in voiceFields),
+                        colors = workoutVoiceFieldColors(WorkoutVoiceField.WEIGHT in voiceFields, sessionAccentColor),
                     )
                     WorkoutStepperButton("+") {
                         val current = weightText.toDoubleOrNull() ?: 0.0
@@ -1089,7 +1087,7 @@ internal fun SetInputCardV2(
                                     )
                                 }
                             },
-                            colors = workoutVoiceFieldColors(WorkoutVoiceField.WEIGHT in voiceFields),
+                            colors = workoutVoiceFieldColors(WorkoutVoiceField.WEIGHT in voiceFields, sessionAccentColor),
                         )
                         WorkoutStepperButton("+") {
                             val current = weightText.toDoubleOrNull() ?: 0.0
@@ -1182,7 +1180,7 @@ internal fun SetInputCardV2(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         isError = valueError,
                         supportingText = if (valueError) { { Text("Ingresa un valor válido") } } else null,
-                        colors = workoutVoiceFieldColors(WorkoutVoiceField.VALUE in voiceFields),
+                        colors = workoutVoiceFieldColors(WorkoutVoiceField.VALUE in voiceFields, sessionAccentColor),
                     )
                     WorkoutStepperButton("+") {
                         val current = valueText.toIntOrNull() ?: 0
@@ -1226,7 +1224,7 @@ internal fun SetInputCardV2(
                                 },
                             ),
                             enabled = !reachedFailure,
-                            colors = workoutVoiceFieldColors(WorkoutVoiceField.INTENSITY in voiceFields || WorkoutVoiceField.FAILURE in voiceFields),
+                            colors = workoutVoiceFieldColors(WorkoutVoiceField.INTENSITY in voiceFields || WorkoutVoiceField.FAILURE in voiceFields, sessionAccentColor),
                         )
                     }
                     WorkoutMetricActionButton(
@@ -1274,7 +1272,7 @@ internal fun SetInputCardV2(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             isError = valueError,
                             supportingText = if (valueError) { { Text("Ingresa un valor válido") } } else null,
-                            colors = workoutVoiceFieldColors(WorkoutVoiceField.VALUE in voiceFields),
+                            colors = workoutVoiceFieldColors(WorkoutVoiceField.VALUE in voiceFields, sessionAccentColor),
                         )
                         WorkoutStepperButton("+") {
                             val current = valueText.toIntOrNull() ?: 0
@@ -1324,7 +1322,7 @@ internal fun SetInputCardV2(
                                     },
                                 ),
                                 enabled = !reachedFailure,
-                                colors = workoutVoiceFieldColors(WorkoutVoiceField.INTENSITY in voiceFields || WorkoutVoiceField.FAILURE in voiceFields),
+                                colors = workoutVoiceFieldColors(WorkoutVoiceField.INTENSITY in voiceFields || WorkoutVoiceField.FAILURE in voiceFields, sessionAccentColor),
                             )
                         }
                         WorkoutMetricActionButton(
@@ -1767,7 +1765,7 @@ private fun fallbackWorkoutIntensityText(mode: IntensityMode?, set: ExerciseSet)
     }
 
 @Composable
-private fun workoutVoiceFieldColors(isHighlighted: Boolean) = OutlinedTextFieldDefaults.colors(
+private fun workoutVoiceFieldColors(isHighlighted: Boolean, sessionAccentColor: Color) = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = Color.White.copy(alpha = 0.7f),
     unfocusedBorderColor = Color.White.copy(alpha = 0.25f),
     focusedContainerColor = Color(0xFF2A2A2A),
@@ -1775,7 +1773,7 @@ private fun workoutVoiceFieldColors(isHighlighted: Boolean) = OutlinedTextFieldD
     cursorColor = Color.White,
     focusedTextColor = Color.White,
     unfocusedTextColor = Color.White.copy(alpha = 0.85f),
-    focusedLabelColor = if (isHighlighted) Color(0xFFFFD740) else Color.White.copy(alpha = 0.6f),
+    focusedLabelColor = if (isHighlighted) sessionAccentColor else Color.White.copy(alpha = 0.6f),
     unfocusedLabelColor = Color.White.copy(alpha = 0.4f),
     errorBorderColor = Color(0xFFFF5252),
     errorContainerColor = Color(0xFF3A0000),

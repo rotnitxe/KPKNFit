@@ -74,10 +74,18 @@ fun RestTimerOverlay(
             )
             .zIndex(6f),
     ) {
-        Crossfade(
+        AnimatedContent(
             targetState = hasFeedback,
-            animationSpec = tween(300),
-            label = "feedback-layout-crossfade",
+            transitionSpec = {
+                (if (targetState) {
+                    (slideInVertically { it } + fadeIn()) togetherWith
+                    (slideOutVertically { -it } + fadeOut())
+                } else {
+                    (slideInVertically { -it } + fadeIn()) togetherWith
+                    (slideOutVertically { it } + fadeOut())
+                }).using(SizeTransform(clip = false))
+            },
+            label = "feedback-layout-transition",
         ) { showingFeedback ->
             if (showingFeedback) {
                 FeedbackContent(
@@ -146,8 +154,8 @@ private fun FeedbackContent(
                     .fillMaxWidth()
                     .heightIn(min = 44.dp),
                 shape = WorkoutUiTokens.InnerCardShape,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFD740)),
-                border = BorderStroke(1.dp, Color(0xFFFFD740).copy(alpha = 0.4f)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = sessionAccentColor),
+                border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.4f)),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -158,7 +166,7 @@ private fun FeedbackContent(
                         text = "Descanso sugerido",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Black,
-                        color = Color(0xFFFFD740),
+                        color = sessionAccentColor,
                     )
                     Text(
                         text = formatTime(pendingRestSuggestion.adaptiveSeconds),
@@ -409,7 +417,7 @@ private fun NormalRestContent(
             WorkoutGlassSurface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = WorkoutUiTokens.InnerCardShape,
-                border = BorderStroke(1.dp, Color(0xFFFFD740).copy(alpha = 0.25f)),
+                border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.25f)),
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -419,7 +427,7 @@ private fun NormalRestContent(
                         text = "Alertas del descanso",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Black,
-                        color = Color(0xFFFFD740),
+                        color = sessionAccentColor,
                     )
                     alertMessages.forEach { message ->
                         Text(
@@ -433,58 +441,117 @@ private fun NormalRestContent(
             }
         }
 
-        val referenceSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet
-        val referenceOutcome = lastSetOutcome ?: referenceSet?.setOutcomeV2
-        if (referenceSet != null) {
-            WorkoutGlassSurface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = WorkoutUiTokens.InnerCardShape,
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+        if (lastCompletedSets.isNotEmpty()) {
+            lastCompletedSets.forEach { (exerciseName, set) ->
+                WorkoutGlassSurface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = WorkoutUiTokens.InnerCardShape,
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.History,
-                        contentDescription = null,
-                        tint = sessionAccentColor.copy(alpha = 0.82f),
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        val loadStr = if (referenceSet.weight > 0.0) "${formatWeight(referenceSet.weight)} kg" else "Peso corporal"
-                        val valueStr = if (referenceSet.timeSeconds != null) "${referenceSet.timeSeconds}s" else "${referenceSet.reps} reps"
-                        Text(
-                            text = "Último set",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.48f)
-                        )
-                        Text(
-                            text = "$loadStr x $valueStr",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.86f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        if (referenceOutcome?.isContextPr == true || referenceOutcome?.isGlobalPr == true) {
-                            RestTinyBadge("Récord", Color(0xFFFFD740))
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = null,
+                            tint = sessionAccentColor.copy(alpha = 0.82f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            val loadStr = if (set.weight > 0.0) "${formatWeight(set.weight)} kg" else "Peso corporal"
+                            val valueStr = if (set.timeSeconds != null) "${set.timeSeconds}s" else "${set.reps} reps"
+                            Text(
+                                text = exerciseName,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White.copy(alpha = 0.48f)
+                            )
+                            Text(
+                                text = "$loadStr x $valueStr",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White.copy(alpha = 0.86f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
-                        if (referenceSet.isFailure || referenceSet.isFailedSet) {
-                            RestTinyBadge("Fallo", Color(0xFFFF5252))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val outcome = lastSetOutcome ?: set.setOutcomeV2
+                            if (outcome?.isContextPr == true || outcome?.isGlobalPr == true) {
+                                RestTinyBadge("Récord", Color(0xFFFFD740))
+                            }
+                            if (set.isFailure || set.isFailedSet) {
+                                RestTinyBadge("Fallo", Color(0xFFFF5252))
+                            }
+                            if (set.dropSets.isNotEmpty()) {
+                                RestTinyBadge("Drop", Color(0xFF40C4FF))
+                            }
                         }
-                        if (referenceSet.dropSets.isNotEmpty()) {
-                            RestTinyBadge("Drop", Color(0xFF40C4FF))
+                    }
+                }
+            }
+        } else {
+            val referenceSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet
+            val referenceOutcome = lastSetOutcome ?: referenceSet?.setOutcomeV2
+            if (referenceSet != null) {
+                WorkoutGlassSurface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = WorkoutUiTokens.InnerCardShape,
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = null,
+                            tint = sessionAccentColor.copy(alpha = 0.82f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            val loadStr = if (referenceSet.weight > 0.0) "${formatWeight(referenceSet.weight)} kg" else "Peso corporal"
+                            val valueStr = if (referenceSet.timeSeconds != null) "${referenceSet.timeSeconds}s" else "${referenceSet.reps} reps"
+                            Text(
+                                text = "Último set",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White.copy(alpha = 0.48f)
+                            )
+                            Text(
+                                text = "$loadStr x $valueStr",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White.copy(alpha = 0.86f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (referenceOutcome?.isContextPr == true || referenceOutcome?.isGlobalPr == true) {
+                                RestTinyBadge("Récord", Color(0xFFFFD740))
+                            }
+                            if (referenceSet.isFailure || referenceSet.isFailedSet) {
+                                RestTinyBadge("Fallo", Color(0xFFFF5252))
+                            }
+                            if (referenceSet.dropSets.isNotEmpty()) {
+                                RestTinyBadge("Drop", Color(0xFF40C4FF))
+                            }
                         }
                     }
                 }
@@ -537,8 +604,8 @@ private fun NormalRestContent(
                             .weight(1f)
                             .heightIn(min = 52.dp),
                         shape = WorkoutUiTokens.InnerCardShape,
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFD740)),
-                        border = BorderStroke(1.dp, Color(0xFFFFD740).copy(alpha = 0.4f)),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = sessionAccentColor),
+                        border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.4f)),
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,

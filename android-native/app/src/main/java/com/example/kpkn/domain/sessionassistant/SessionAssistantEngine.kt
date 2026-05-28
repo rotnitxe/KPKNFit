@@ -80,6 +80,7 @@ object SessionAssistantEngine {
 
     internal fun calcularVolumenPorMusculo(input: SessionAssistantInput): VolumeCalculationResult {
         val volumeMap = mutableMapOf<String, MuscularVolumeAccumulator>()
+        val muscleSetCounters = mutableMapOf<String, Int>()
         val roleMap = mutableMapOf<String, MuscleRoleBreakdown>()
         val recommendationContext = mutableMapOf<String, MuscleRecommendationContext>()
         var totalSets = 0
@@ -121,6 +122,12 @@ object SessionAssistantEngine {
             val perExerciseContrib = VolumeCalculator.buildPerExerciseMuscleContributions(
                 SessionMuscleFilter.relevantMusclesFor(info),
             )
+            val primaryMuscle = info.involvedMuscles
+                .find { it.role == MuscleRole.PRIMARY }
+                ?.let { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) }
+                ?: "Core"
+            var accumulated = muscleSetCounters[primaryMuscle] ?: 0
+
             validSets.forEach { set ->
                 val effectiveRpe = set.effectiveTargetRpe()
                 rpeSum += effectiveRpe
@@ -145,13 +152,25 @@ object SessionAssistantEngine {
                 }
 
                 totalSpinalLoad += info.axialLoadFactor ?: 0.0
+                accumulated++
 
+                val calculatedWeight = if (exercise.trainingMode == TrainingMode.RM && set.targetPercentageRM != null && exercise.reference1RM != null && exercise.reference1RM!! > 0.0) {
+                    (set.targetPercentageRM / 100.0) * exercise.reference1RM!!
+                } else {
+                    set.weight ?: 60.0
+                }
                 val completedSet = CompletedSet(
                     id = set.id,
-                    weight = set.weight ?: 60.0,
+                    weight = calculatedWeight,
                     reps = set.targetReps ?: 8,
                     rpe = set.targetRPE,
                     rir = set.targetRIR,
+                    actualIntensityMode = set.intensityMode,
+                    actualIntensityValue = when (set.intensityMode) {
+                        IntensityMode.RPE -> set.targetRPE
+                        IntensityMode.RIR -> set.targetRIR?.toDouble()
+                        else -> null
+                    },
                     isFailure = set.isFailure || set.intensityMode == IntensityMode.FAILURE,
                 )
                 val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(input.settings)
@@ -159,7 +178,7 @@ object SessionAssistantEngine {
                     set = completedSet,
                     metrics = metrics,
                     tanks = tanks,
-                    accumulatedSets = 0,
+                    accumulatedSets = accumulated,
                     restTime = exercise.restTime ?: 90,
                     densityMultiplier = AugeFatigueEngine.getDensityMultiplierForExercise(
                         supersetId = exercise.supersetGroupRefOrLegacyId(),
@@ -170,6 +189,7 @@ object SessionAssistantEngine {
                 cns += drain.cnsDrainPct
                 spinal += drain.spinalDrainPct
             }
+            muscleSetCounters[primaryMuscle] = accumulated
 
             SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
                 val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)

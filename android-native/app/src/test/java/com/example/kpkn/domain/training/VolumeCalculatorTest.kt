@@ -7,19 +7,19 @@ import org.junit.Test
 class VolumeCalculatorTest {
 
     private val squatMuscles = listOf(
-        InvolvedMuscle("cuádriceps", MuscleRole.PRIMARY),
-        InvolvedMuscle("glúteo mayor", MuscleRole.SECONDARY),
-        InvolvedMuscle("erector espinal", MuscleRole.STABILIZER),
+        InvolvedMuscle("cuádriceps", MuscleRole.PRIMARY, 1.0),
+        InvolvedMuscle("glúteo mayor", MuscleRole.SECONDARY, 0.5),
+        InvolvedMuscle("erector espinal", MuscleRole.STABILIZER, 0.4),
     )
 
     private val benchMuscles = listOf(
-        InvolvedMuscle("pectoral mayor", MuscleRole.PRIMARY),
-        InvolvedMuscle("deltoides anterior", MuscleRole.SECONDARY),
-        InvolvedMuscle("tríceps", MuscleRole.SECONDARY),
+        InvolvedMuscle("pectoral mayor", MuscleRole.PRIMARY, 1.0),
+        InvolvedMuscle("deltoides anterior", MuscleRole.SECONDARY, 0.5),
+        InvolvedMuscle("tríceps", MuscleRole.SECONDARY, 0.5),
     )
 
     private val exerciseDb = listOf(
-        ExerciseMuscleInfo("squat", "Sentadilla Back", involvedMuscles = squatMuscles, equipment = "Barra"),
+        ExerciseMuscleInfo("squat", "Sentadilla Back", involvedMuscles = squatMuscles, equipment = "Barra", ssc = 1.5),
         ExerciseMuscleInfo("bench", "Press Banca", involvedMuscles = benchMuscles, equipment = "Barra"),
     )
 
@@ -134,10 +134,10 @@ class VolumeCalculatorTest {
         assertNotNull("Deltoides should exist (canonical key)", delts)
         assertEquals(3.0, delts!!.displayVolume, 0.01)
 
-        // Stabilizer: erector espinal now contributes 0.3 per set -> 5 * 0.3 = 1.5
+        // Stabilizer (SSC=1.5 → included): erector espinal 0.4 per set × 5 sets = 2.0
         val erectores = result.find { it.muscleName == "Erectores Espinales" }
         assertNotNull(erectores)
-        assertEquals(1.5, erectores!!.displayVolume, 0.01)
+        assertEquals(2.0, erectores!!.displayVolume, 0.01)
     }
 
     @Test
@@ -388,5 +388,177 @@ class VolumeCalculatorTest {
         assertEquals("Core", VolumeCalculator.normalizeCanonicalMuscleGroup("transverso abdominal"))
         assertEquals("Abdomen", VolumeCalculator.normalizeCanonicalMuscleGroup("recto abdominal"))
         assertEquals("Abdomen", VolumeCalculator.normalizeCanonicalMuscleGroup("oblicuo externo"))
+    }
+
+    /** normalizeCanonicalMuscleGroup: deltoides siempre → "Deltoides", sin importar énfasis. */
+    @Test
+    fun normalizeCanonical_deltoides_always_collapses_regardless_of_emphasis() {
+        assertEquals("Deltoides", VolumeCalculator.normalizeCanonicalMuscleGroup("deltoides anterior", "anterior"))
+        assertEquals("Deltoides", VolumeCalculator.normalizeCanonicalMuscleGroup("deltoides lateral", "lateral"))
+        assertEquals("Deltoides", VolumeCalculator.normalizeCanonicalMuscleGroup("deltoides posterior", "posterior"))
+        assertEquals("Deltoides", VolumeCalculator.normalizeCanonicalMuscleGroup("Deltoides", "medio"))
+        assertEquals("Deltoides", VolumeCalculator.normalizeCanonicalMuscleGroup("hombro"))
+    }
+
+    /** normalizeCanonicalMuscleGroup: romboides → "Romboides", no "Trapecio". */
+    @Test
+    fun normalizeCanonical_romboides_separate_from_trapecio() {
+        assertEquals("Romboides", VolumeCalculator.normalizeCanonicalMuscleGroup("romboides"))
+        assertEquals("Romboides", VolumeCalculator.normalizeCanonicalMuscleGroup("romboides mayor"))
+        assertEquals("Trapecio", VolumeCalculator.normalizeCanonicalMuscleGroup("trapecio"))
+        assertEquals("Trapecio", VolumeCalculator.normalizeCanonicalMuscleGroup("trapecio superior"))
+    }
+
+    /** normalizeCanonicalMuscleGroup: tensor fascia lata → "Glúteos". */
+    @Test
+    fun normalizeCanonical_tfl_maps_to_gluteos() {
+        assertEquals("Glúteos", VolumeCalculator.normalizeCanonicalMuscleGroup("tensor de la fascia lata"))
+        assertEquals("Glúteos", VolumeCalculator.normalizeCanonicalMuscleGroup("Tensor Fascia Lata"))
+        assertEquals("Glúteos", VolumeCalculator.normalizeCanonicalMuscleGroup("tensor fascia"))
+    }
+
+    /** normalizeCanonicalMuscleGroup: psoas → "Core". */
+    @Test
+    fun normalizeCanonical_psoas_maps_to_core() {
+        assertEquals("Core", VolumeCalculator.normalizeCanonicalMuscleGroup("psoas"))
+        assertEquals("Core", VolumeCalculator.normalizeCanonicalMuscleGroup("Psoas ilíaco"))
+    }
+
+    /**
+     * Arnold Press con datos realistas del JSON: músculo "Deltoides" con énfasis
+     * "anterior"/"medio"/"posterior". Las tres cabezas colapsan a "Deltoides" = MAX(1.0, 1.0, 1.0).
+     */
+    @Test
+    fun arnoldPress_json_emphasis_heads_collapse_to_one_deltoides() {
+        val arnoldJsonMuscles = listOf(
+            InvolvedMuscle("Deltoides", MuscleRole.PRIMARY, 1.0, emphasis = "anterior"),
+            InvolvedMuscle("Deltoides", MuscleRole.PRIMARY, 1.0, emphasis = "medio"),
+            InvolvedMuscle("Deltoides", MuscleRole.PRIMARY, 1.0, emphasis = "posterior"),
+            InvolvedMuscle("Tríceps", MuscleRole.SECONDARY, 0.5),
+            InvolvedMuscle("Trapecio", MuscleRole.STABILIZER, 0.4),
+        )
+        val db = listOf(ExerciseMuscleInfo("arnold_json", "Arnold Press", involvedMuscles = arnoldJsonMuscles))
+        val session = makeSession("s1", listOf(makeExercise("arnold_json", List(3) { makeSet() })))
+
+        val result = VolumeCalculator.calculateUnifiedMuscleVolume(listOf(session), db)
+
+        val deltEntries = result.filter { it.muscleName == "Deltoides" }
+        assertEquals("Should have exactly one Deltoides entry", 1, deltEntries.size)
+        // MAX(1.0, 1.0, 1.0) = 1.0 × 3 sets = 3.0
+        assertEquals(3.0, deltEntries.first().displayVolume, 0.01)
+        // No per-head entries should leak
+        assertTrue(result.none { it.muscleName.contains("anterior") || it.muscleName.contains("lateral") || it.muscleName.contains("posterior") })
+    }
+
+    /**
+     * Sentadilla Búlgara: glúteo mayor (primary 1.0) + glúteo medio (secondary 0.5).
+     * Debe tomar MAX(1.0, 0.5) = 1.0, no sumar 1.5.
+     */
+    @Test
+    fun bulgarianSplit_gluteus_max_not_summed() {
+        val bulgaraMuscles = listOf(
+            InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY, 1.0),
+            InvolvedMuscle("Glúteos", MuscleRole.PRIMARY, 1.0, emphasis = "mayor"),
+            InvolvedMuscle("Glúteos", MuscleRole.SECONDARY, 0.5, emphasis = "medio"),
+            InvolvedMuscle("Aductores", MuscleRole.SECONDARY, 0.5),
+        )
+        val db = listOf(ExerciseMuscleInfo("bulgara", "Búlgara", involvedMuscles = bulgaraMuscles))
+        val session = makeSession("s1", listOf(makeExercise("bulgara", List(3) { makeSet() })))
+
+        val result = VolumeCalculator.calculateUnifiedMuscleVolume(listOf(session), db)
+
+        val glutes = result.find { it.muscleName == "Glúteos" }
+        assertNotNull("Glúteos should exist", glutes)
+        // MAX(1.0, 0.5) × 3 sets = 3.0 (NOT 1.5 × 3 = 4.5)
+        assertEquals("Glúteos must be 3.0 (MAX, not SUM)", 3.0, glutes!!.displayVolume, 0.01)
+        assertNotEquals("Glúteos must NOT be 4.5 (SUM)", 4.5, glutes.displayVolume, 0.01)
+    }
+
+    /**
+     * Peso muerto: dorsales como NEUTRALIZER deben excluirse del conteo de volumen.
+     */
+    @Test
+    fun deadlift_neutralizer_dorsales_excluded() {
+        val deadliftMuscles = listOf(
+            InvolvedMuscle("Glúteos", MuscleRole.PRIMARY, 1.0),
+            InvolvedMuscle("Isquiosurales", MuscleRole.PRIMARY, 1.0),
+            InvolvedMuscle("Dorsales", MuscleRole.NEUTRALIZER, 0.15),
+        )
+        val db = listOf(ExerciseMuscleInfo("deadlift", "Peso Muerto", involvedMuscles = deadliftMuscles))
+        val session = makeSession("s1", listOf(makeExercise("deadlift", List(4) { makeSet() })))
+
+        val result = VolumeCalculator.calculateUnifiedMuscleVolume(listOf(session), db)
+
+        val lats = result.find { it.muscleName == "Dorsales" }
+        assertNull("Dorsales as NEUTRALIZER must NOT appear in volume", lats)
+        val glutes = result.find { it.muscleName == "Glúteos" }
+        assertNotNull(glutes)
+        assertEquals(4.0, glutes!!.displayVolume, 0.01)
+    }
+
+    /**
+     * Plancha frontal: glúteos como NEUTRALIZER no deben contar.
+     */
+    @Test
+    fun plank_neutralizer_gluteos_excluded() {
+        val plankMuscles = listOf(
+            InvolvedMuscle("Core", MuscleRole.PRIMARY, 1.0),
+            InvolvedMuscle("Glúteos", MuscleRole.NEUTRALIZER, 0.15, emphasis = "mayor"),
+            InvolvedMuscle("Cuádriceps", MuscleRole.STABILIZER, 0.4),
+        )
+        val db = listOf(ExerciseMuscleInfo("plank", "Plancha", involvedMuscles = plankMuscles, ssc = 0.5))
+        val session = makeSession("s1", listOf(makeExercise("plank", List(3) { makeSet() })))
+
+        val result = VolumeCalculator.calculateUnifiedMuscleVolume(listOf(session), db)
+
+        val glutes = result.find { it.muscleName == "Glúteos" }
+        assertNull("Glúteos as NEUTRALIZER must NOT appear in plank volume", glutes)
+        val quads = result.find { it.muscleName == "Cuádriceps" }
+        assertNull("Cuádriceps STABILIZER with SSC<1.5 must NOT appear", quads)
+        val core = result.find { it.muscleName == "Core" }
+        assertNotNull(core)
+        assertEquals(3.0, core!!.displayVolume, 0.01)
+    }
+
+    /**
+     * Estabilizador en ejercicio de baja carga axial (SSC < 1.5) debe excluirse.
+     */
+    @Test
+    fun lowSsc_stabilizer_excluded() {
+        val shoulderPressMuscles = listOf(
+            InvolvedMuscle("Deltoides", MuscleRole.PRIMARY, 1.0),
+            InvolvedMuscle("Trapecio", MuscleRole.STABILIZER, 0.4),
+        )
+        val db = listOf(ExerciseMuscleInfo("shoulder_press", "Press Hombro", involvedMuscles = shoulderPressMuscles, ssc = 0.9))
+        val session = makeSession("s1", listOf(makeExercise("shoulder_press", List(3) { makeSet() })))
+
+        val result = VolumeCalculator.calculateUnifiedMuscleVolume(listOf(session), db)
+
+        val traps = result.find { it.muscleName == "Trapecio" }
+        assertNull("Trapecio STABILIZER with SSC=0.9 must be excluded", traps)
+        val delts = result.find { it.muscleName == "Deltoides" }
+        assertNotNull(delts)
+        assertEquals(3.0, delts!!.displayVolume, 0.01)
+    }
+
+    /**
+     * calculateMuscleVolume unificado devuelve los mismos resultados que
+     * calculateUnifiedMuscleVolume para el caso básico.
+     */
+    @Test
+    fun calculateMuscleVolume_unified_matches_legacy() {
+        val session1 = makeSession("s1", listOf(
+            makeExercise("bench", List(3) { makeSet() }),
+        ))
+        val result = VolumeCalculator.calculateMuscleVolume(
+            sessions = listOf(session1),
+            exerciseList = exerciseDb,
+            useFilter = true,
+        )
+
+        val pecs = result["Pectorales"]
+        val delts = result["Deltoides"]
+        assertEquals(3.0, pecs!!, 0.01)
+        assertEquals(1.5, delts!!, 0.01)
     }
 }

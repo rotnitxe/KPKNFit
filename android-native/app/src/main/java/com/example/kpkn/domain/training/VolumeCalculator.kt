@@ -106,24 +106,21 @@ object VolumeCalculator {
             .trim()
         val emphasisLower = emphasis?.lowercase()?.trim().orEmpty()
 
-        if (lower.contains("deltoides") || lower.contains("hombro")) {
-            return when {
-                emphasisLower.contains("anterior") -> "Deltoides anterior"
-                emphasisLower.contains("lateral") || emphasisLower.contains("medio") -> "Deltoides lateral"
-                emphasisLower.contains("posterior") -> "Deltoides posterior"
-                else -> "Deltoides"
-            }
-        }
+        if (lower.contains("deltoides") || lower.contains("hombro")) return "Deltoides"
         if ((lower.contains("bíceps") || lower.contains("biceps") || lower.contains("braquial")) && !lower.contains("femoral")) return "Bíceps"
         if (lower.contains("tríceps") || lower.contains("triceps")) return "Tríceps"
         if (lower.contains("antebrazo") || lower.contains("braquiorradial")) return "Antebrazo"
-        if (lower.contains("trapecio") || lower.contains("romboides")) return "Trapecio"
-        if (lower.contains("dorsal") || lower.contains("lat") || lower.contains("redondo") || lower.contains("espalda")) return "Dorsales"
+        if (lower.contains("trapecio")) return "Trapecio"
+        if (lower.contains("romboides")) return "Romboides"
+        if (lower.contains("dorsal") || lower.contains("redondo") || lower.contains("espalda") ||
+            lower.contains("lat ") || lower.endsWith(" lat") || lower == "lat" || lower.startsWith("lat ") || lower.contains("lats")
+        ) return "Dorsales"
         if (lower.contains("erector") || lower.contains("lumbar")) return "Erectores Espinales"
         if (lower.contains("pectoral") || lower.contains("pecho")) return "Pectorales"
         if (lower.contains("cuádriceps") || lower.contains("cuadriceps") || lower.contains("recto femoral") || lower.contains("vasto")) return "Cuádriceps"
         if (lower.contains("isquio") || lower.contains("femoral") || lower.contains("semitendinoso") || lower.contains("semimembranoso")) return "Isquiosurales"
-        if (lower.contains("glúteo") || lower.contains("gluteo") || lower.contains("tensor de la fascia lata")) return "Glúteos"
+        if (lower.contains("glúteo") || lower.contains("gluteo") || lower.contains("tensor de la fascia lata") || lower.contains("tensor fascia")) return "Glúteos"
+        if (lower.contains("psoas")) return "Core"
         if (lower.contains("adductor") || lower.contains("aductor") || lower.contains("pectíneo") || lower.contains("pectineo")) return "Aductores"
         if (lower.contains("gemelo") || lower.contains("pantorrilla") || lower.contains("gastrocnemio") || lower.contains("sóleo") || lower.contains("soleo")) return "Pantorrillas"
         if (lower.contains("cuello") || lower.contains("cervical")) return "Cuello"
@@ -189,12 +186,10 @@ object VolumeCalculator {
 
                 if (validSetsCount > 0) {
                     val dbInfo = exercise.exerciseDbId?.let { exIndex[it.lowercase()] }
-                    val involvedMuscles = dbInfo?.involvedMuscles ?: emptyList()
+                    val musclesToCount = dbInfo?.let { SessionMuscleFilter.relevantMusclesFor(it) } ?: emptyList()
 
-                    if (involvedMuscles.isNotEmpty()) {
-                        // buildPerExerciseMuscleContributions already returns canonical keys;
-                        // do NOT re-apply normalizeMuscleGroup here or "Core" collapses into "Abdomen".
-                        val uniqueMultipliers = buildPerExerciseMuscleContributions(involvedMuscles)
+                    if (musclesToCount.isNotEmpty()) {
+                        val uniqueMultipliers = buildPerExerciseMuscleContributions(musclesToCount)
 
                         for ((muscleName, maxMultiplier) in uniqueMultipliers) {
                             val (currentVol, currentSets) = volumeMap[muscleName] ?: (0.0 to 0)
@@ -287,15 +282,42 @@ object VolumeCalculator {
             if (effectiveSets <= 0) return@forEach
 
             val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: return@forEach
-            SessionMuscleFilter.relevantMusclesFor(dbInfo).forEach { muscle ->
-                val normalized = normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
-                val contribution = resolveMuscleVolumeContribution(muscle)
-                if (contribution > 0.0) {
-                    volumeMap[normalized] = (volumeMap[normalized] ?: 0.0) + (effectiveSets * contribution)
-                }
+            val contributions = buildPerExerciseMuscleContributions(
+                SessionMuscleFilter.relevantMusclesFor(dbInfo)
+            )
+            contributions.forEach { (canonical, multiplier) ->
+                volumeMap[canonical] = (volumeMap[canonical] ?: 0.0) + effectiveSets * multiplier
             }
         }
 
+        return volumeMap
+    }
+
+    fun calculateMuscleVolume(
+        sessions: List<Session>,
+        exerciseList: List<ExerciseMuscleInfo>,
+        useFilter: Boolean = true,
+    ): Map<String, Double> {
+        val exerciseIndex = exerciseList.associateBy { it.id.lowercase() }
+        val volumeMap = mutableMapOf<String, Double>()
+
+        for (session in sessions) {
+            for (exercise in session.allExercises()) {
+                val effectiveSets = countEffectiveSets(exercise.sets)
+                if (effectiveSets <= 0) continue
+
+                val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: continue
+                val musclesToCount = if (useFilter) {
+                    SessionMuscleFilter.relevantMusclesFor(dbInfo)
+                } else {
+                    dbInfo.involvedMuscles
+                }
+                val contributions = buildPerExerciseMuscleContributions(musclesToCount)
+                for ((canonical, multiplier) in contributions) {
+                    volumeMap[canonical] = (volumeMap[canonical] ?: 0.0) + effectiveSets * multiplier
+                }
+            }
+        }
         return volumeMap
     }
 }

@@ -170,7 +170,11 @@ fun WorkoutCommandDock(
                         .size(45.dp),
                     shape = CircleShape,
                     containerColor = if (primaryActionEnabled) sessionAccentColor else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = if (primaryActionEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.46f),
+                    contentColor = if (primaryActionEnabled) {
+                        if (0.2126f * sessionAccentColor.red + 0.7152f * sessionAccentColor.green + 0.0722f * sessionAccentColor.blue > 0.45f) Color.Black else Color.White
+                    } else {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.46f)
+                    },
                 ) {
                     Icon(
                         imageVector = if (!primaryActionEnabled) {

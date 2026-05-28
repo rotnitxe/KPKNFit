@@ -45,6 +45,7 @@ fun WorkoutWarmupInlineCard(
     onToggleComplete: (Boolean) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    sessionAccentColor: Color = Color(0xFFFFB300),
 ) {
     val safeWarmupSets = remember(exercise.warmupSets) {
         exercise.warmupSets.map { set ->
@@ -61,8 +62,8 @@ fun WorkoutWarmupInlineCard(
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 6.dp),
         shape = RoundedCornerShape(24.dp),
-        color = Color(0xFF1F1600), // Rich warm dark background
-        border = BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.35f)), // Amber border
+        color = Color(0xFF141414), // Rich warm dark background
+        border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.35f)), // Amber border
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -77,13 +78,13 @@ fun WorkoutWarmupInlineCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = Color(0xFFFFB300).copy(alpha = 0.15f)
+                        color = sessionAccentColor.copy(alpha = 0.15f)
                     ) {
                         Icon(
                             imageVector = Icons.Default.LocalFireDepartment,
                             contentDescription = null,
                             modifier = Modifier.padding(6.dp).size(20.dp),
-                            tint = Color(0xFFFFB300)
+                            tint = sessionAccentColor
                         )
                     }
                     Spacer(Modifier.width(10.dp))
@@ -92,7 +93,7 @@ fun WorkoutWarmupInlineCard(
                             text = "Series de aproximación",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Black,
-                            color = Color(0xFFFFB300)
+                            color = sessionAccentColor
                         )
                         Text(
                             text = "Prepara tus articulaciones y sistema nervioso",
@@ -105,13 +106,13 @@ fun WorkoutWarmupInlineCard(
                 if (workingWeightKg != null && workingWeightKg > 0) {
                     Surface(
                         shape = RoundedCornerShape(8.dp),
-                        color = Color(0xFFFFB300).copy(alpha = 0.12f)
+                        color = sessionAccentColor.copy(alpha = 0.12f)
                     ) {
                         Text(
                             text = "${workingWeightKg.toTrimmedNumberString()} kg base",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFFFFB300),
+                            color = sessionAccentColor,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -127,10 +128,10 @@ fun WorkoutWarmupInlineCard(
                     Surface(
                         onClick = { if (idx < checkedSets.size) checkedSets[idx] = !checked },
                         shape = RoundedCornerShape(14.dp),
-                        color = if (checked) Color(0xFFFFB300).copy(alpha = 0.08f) else Color.White.copy(alpha = 0.03f),
+                        color = if (checked) sessionAccentColor.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.03f),
                         border = BorderStroke(
                             1.dp,
-                            if (checked) Color(0xFFFFB300).copy(alpha = 0.25f) else Color.White.copy(alpha = 0.06f)
+                            if (checked) sessionAccentColor.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.06f)
                         ),
                     ) {
                         Row(
@@ -149,9 +150,9 @@ fun WorkoutWarmupInlineCard(
                                     checked = checked,
                                     onCheckedChange = { checkedSets[idx] = it },
                                     colors = CheckboxDefaults.colors(
-                                        checkedColor = Color(0xFFFFB300),
+                                        checkedColor = sessionAccentColor,
                                         uncheckedColor = Color.White.copy(alpha = 0.3f),
-                                        checkmarkColor = Color.Black
+                                        checkmarkColor = if (0.2126f * sessionAccentColor.red + 0.7152f * sessionAccentColor.green + 0.0722f * sessionAccentColor.blue > 0.45f) Color.Black else Color.White
                                     ),
                                     modifier = Modifier.size(24.dp)
                                 )
@@ -169,7 +170,7 @@ fun WorkoutWarmupInlineCard(
                                 Text(
                                     text = "${set.percentage}%",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = Color(0xFFFFB300),
+                                    color = sessionAccentColor,
                                     fontWeight = FontWeight.Black
                                 )
                                 Text(
@@ -181,13 +182,13 @@ fun WorkoutWarmupInlineCard(
                                 if (warmupKg != null) {
                                     Surface(
                                         shape = RoundedCornerShape(6.dp),
-                                        color = Color(0xFFFFB300).copy(alpha = 0.15f)
+                                        color = sessionAccentColor.copy(alpha = 0.15f)
                                     ) {
                                         Text(
                                             text = "${warmupKg.toTrimmedNumberString()} kg",
                                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                             style = MaterialTheme.typography.labelMedium,
-                                            color = Color(0xFFFFB300),
+                                            color = sessionAccentColor,
                                             fontWeight = FontWeight.Black
                                         )
                                     }
@@ -223,8 +224,8 @@ fun WorkoutWarmupInlineCard(
                         .weight(1f)
                         .height(48.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFFB300),
-                        contentColor = Color.Black
+                        containerColor = sessionAccentColor,
+                        contentColor = if (0.2126f * sessionAccentColor.red + 0.7152f * sessionAccentColor.green + 0.0722f * sessionAccentColor.blue > 0.45f) Color.Black else Color.White
                     ),
                     shape = RoundedCornerShape(999.dp)
                 ) {
@@ -242,14 +243,15 @@ fun WorkoutSupersetWarmupRevealCard(
     onClick: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    sessionAccentColor: Color = Color(0xFFFFB300),
 ) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 4.dp),
         shape = RoundedCornerShape(20.dp),
-        color = Color(0xFF1A1200),
-        border = BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.25f)),
+        color = Color(0xFF141414),
+        border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.25f)),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -258,13 +260,13 @@ fun WorkoutSupersetWarmupRevealCard(
         ) {
             Surface(
                 shape = RoundedCornerShape(999.dp),
-                color = Color(0xFFFFB300).copy(alpha = 0.12f)
+                color = sessionAccentColor.copy(alpha = 0.12f)
             ) {
                 Icon(
                     imageVector = Icons.Default.LocalFireDepartment,
                     contentDescription = null,
                     modifier = Modifier.padding(6.dp).size(18.dp),
-                    tint = Color(0xFFFFB300),
+                    tint = sessionAccentColor,
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
@@ -272,7 +274,7 @@ fun WorkoutSupersetWarmupRevealCard(
                     text = "Calentamiento disponible",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Black,
-                    color = Color(0xFFFFB300),
+                    color = sessionAccentColor,
                 )
                 Text(
                     text = exercise.name,
@@ -293,7 +295,10 @@ fun WorkoutSupersetWarmupRevealCard(
             Button(
                 onClick = onClick,
                 shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300), contentColor = Color.Black),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = sessionAccentColor,
+                    contentColor = if (0.2126f * sessionAccentColor.red + 0.7152f * sessionAccentColor.green + 0.0722f * sessionAccentColor.blue > 0.45f) Color.Black else Color.White
+                ),
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
                 modifier = Modifier.height(36.dp)
             ) {

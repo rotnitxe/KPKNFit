@@ -105,6 +105,7 @@ private val canonicalMuscleCatalog = listOf(
     "Cuádriceps",
     "Isquiosurales",
     "Pantorrillas",
+    "Romboides",
 )
 
 @Composable

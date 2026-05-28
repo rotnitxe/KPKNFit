@@ -42,6 +42,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
+import com.example.kpkn.screens.workout.components.MinimalMuscleSlider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -158,9 +159,9 @@ fun ReadinessGateScreen(
     var userEditedNeural by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
     var userEditedSpinal by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
     val userEditedMuscles = remember(programId, sessionId) { mutableStateMapOf<String, Boolean>() }
-    var neural by rememberSaveable(programId, sessionId) { mutableIntStateOf(100) }
-    var muscular by rememberSaveable(programId, sessionId) { mutableIntStateOf(100) }
-    var spinal by rememberSaveable(programId, sessionId) { mutableIntStateOf(100) }
+    var neural by rememberSaveable(programId, sessionId) { mutableIntStateOf(neuralAuto.coerceIn(0, 100)) }
+    var muscular by rememberSaveable(programId, sessionId) { mutableIntStateOf(muscularAuto.coerceIn(0, 100)) }
+    var spinal by rememberSaveable(programId, sessionId) { mutableIntStateOf(spinalAuto.coerceIn(0, 100)) }
     val muscleAdjustments = remember(programId, sessionId) { mutableStateMapOf<String, Int>() }
 
     LaunchedEffect(isLoading, todayWellbeing, neuralAuto, muscularAuto, spinalAuto, sessionMuscleBatteries, initialized) {
@@ -373,7 +374,7 @@ fun ReadinessGateScreen(
                     ) {
                         muscleAdjustments.keys.sorted().forEach { muscleId ->
                             val value = muscleAdjustments[muscleId] ?: 100
-                            MuscleSliderChip(
+                            MinimalMuscleSlider(
                                 modifier = Modifier.weight(1f),
                                 muscleLabel = muscleId,
                                 value = value,
@@ -553,106 +554,12 @@ internal fun MuscleSliderChip(
     value: Int,
     onValueChange: (Int) -> Unit,
 ) {
-    val clamped = value.coerceIn(0, 100)
-    val accent = when {
-        clamped >= 80 -> Color(0xFF22C55E)
-        clamped >= 55 -> Color(0xFFFACC15)
-        else -> Color(0xFFEF4444)
-    }
-
-    Surface(
+    MinimalMuscleSlider(
         modifier = modifier,
-        shape = RoundedCornerShape(10.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    muscleLabel,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                Text(
-                    "$clamped%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = accent,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
-                )
-            }
-
-            // Compact slider-like bar with tap and drag
-            var barSize by remember { mutableStateOf(IntSize(1, 1)) }
-            var dragStartValue by remember { mutableIntStateOf(clamped) }
-            var dragAccumulator by remember { mutableFloatStateOf(0f) }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(20.dp)
-                    .onSizeChanged { barSize = it }
-                    .semantics {
-                        contentDescription = muscleLabel
-                        stateDescription = "$clamped por ciento"
-                        progressBarRangeInfo = ProgressBarRangeInfo(clamped.toFloat(), 0f..100f, 100)
-                        setProgress { target ->
-                            onValueChange(target.toInt().coerceIn(0, 100))
-                            true
-                        }
-                    }
-                    .pointerInput(Unit) {
-                        // Tap to set directly
-                        detectTapGestures { offset ->
-                            val ratio = (offset.x / barSize.width.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f)
-                            onValueChange((ratio * 100f).toInt().coerceIn(0, 100))
-                        }
-                    }
-                    .pointerInput(Unit) {
-                        val widthPx = { barSize.width.toFloat().coerceAtLeast(1f) }
-                        detectDragGestures(
-                            onDragStart = {
-                                dragStartValue = clamped
-                                dragAccumulator = 0f
-                            },
-                            onDragEnd = { dragAccumulator = 0f },
-                            onDragCancel = { dragAccumulator = 0f },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                dragAccumulator += dragAmount.x
-                                val delta = ((dragAccumulator / widthPx()) * 100f).toInt()
-                                onValueChange((dragStartValue + delta).coerceIn(0, 100))
-                            },
-                        )
-                    },
-            ) {
-                // Track background
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                )
-                // Filled portion
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .fillMaxWidth(clamped / 100f)
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(accent),
-                )
-            }
-        }
-    }
+        muscleLabel = muscleLabel,
+        value = value,
+        onValueChange = onValueChange,
+    )
 }
 
 internal fun findSessionExercises(program: Program, sessionId: String): List<Exercise> {
