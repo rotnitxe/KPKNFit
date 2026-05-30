@@ -145,6 +145,12 @@ data class WorkoutUiState(
     val voiceUiState: WorkoutVoiceUiState = WorkoutVoiceUiState.Idle,
     val voiceSessionEnabled: Boolean = false,
     val voiceSessionState: VoiceSessionState = VoiceSessionState(),
+    val voiceFinalNotes: String? = null,
+    val voiceFinalDiscomforts: List<String> = emptyList(),
+    val voiceFinalAdditionalDiscomfortNote: String? = null,
+    val voiceFinalNeural: Int? = null,
+    val voiceFinalSpinal: Int? = null,
+    val voiceFinalConfirmTriggered: Boolean = false,
     val continuityTransitionTarget: WorkoutContinuityTransitionTarget? = null,
     val continuityFeedbackExerciseId: String? = null,
     // EMA de estrés acumulado en el mesociclo actual
@@ -244,6 +250,16 @@ class WorkoutViewModel(
             val s = _uiState.value
             val exercises = visibleExercises(s)
             val exercise = exercises.getOrNull(s.currentExerciseIdx) ?: return@provider null
+            val currentStep = s.activeStepKey?.let { key -> workoutStepPositions(s).firstOrNull { it.stepKey == key } }
+            val round = currentStep?.supersetRoundIndex?.let { it + 1 }
+            val sidePending = exercise.isEffectivelyUnilateral() && (
+                !s.completedSets.containsKey("${exercise.id}_${s.currentSetIdx}_L") ||
+                !s.completedSets.containsKey("${exercise.id}_${s.currentSetIdx}_R")
+            )
+            val completedSidesCount = if (exercise.isEffectivelyUnilateral()) {
+                (if (s.completedSets.containsKey("${exercise.id}_${s.currentSetIdx}_L")) 1 else 0) +
+                (if (s.completedSets.containsKey("${exercise.id}_${s.currentSetIdx}_R")) 1 else 0)
+            } else 0
             WorkoutVoiceController.ExerciseInfo(
                 exercise = exercise,
                 setIndex = s.currentSetIdx,
@@ -255,6 +271,11 @@ class WorkoutViewModel(
                 suggestedWeight = getWeightSuggestionWithAutoRegulation(exercise, s.currentSetIdx)?.suggestedWeight,
                 restSecondsRemaining = _restTimerRemaining.value.takeIf { it > 0 },
                 nextExerciseName = exercises.getOrNull(s.currentExerciseIdx + 1)?.name,
+                showPostExerciseSheet = s.showPostExerciseSheet,
+                showFinishSheet = s.showFinishSheet,
+                supersetRound = round,
+                isUnilateralSidePending = sidePending,
+                completedSidesCount = completedSidesCount,
             )
         }
         voiceController.onCommandDetected = { command -> handleVoiceCommand(command) }
@@ -1614,13 +1635,188 @@ class WorkoutViewModel(
             is VoiceSessionCommand.Confirm -> handleVoiceConfirmSet()
             is VoiceSessionCommand.Cancel -> handleVoiceCancelSet()
             is VoiceSessionCommand.SkipExercise -> handleVoiceSkipExercise()
+            is VoiceSessionCommand.SkipSet -> skipSet()
             is VoiceSessionCommand.PreviousExercise -> handleVoicePreviousExercise()
             is VoiceSessionCommand.SuggestWeight -> handleVoiceSuggestWeight()
             is VoiceSessionCommand.RestStatus -> handleVoiceRestStatus()
             is VoiceSessionCommand.WhatExercise -> handleVoiceWhatExercise()
             is VoiceSessionCommand.NextExercise -> handleVoiceNextExercise()
             is VoiceSessionCommand.TurnOffVoice -> disableVoice()
+            is VoiceSessionCommand.FinishSession -> finishUpToCurrentPoint()
+            is VoiceSessionCommand.CancelSession -> cancelWorkout()
+            is VoiceSessionCommand.LogFeedback -> handleVoiceLogFeedback(command)
+            is VoiceSessionCommand.LogFinalFeedback -> handleVoiceLogFinalFeedback(command)
             is VoiceSessionCommand.Unknown -> { /* no-op, controller handles TTS error */ }
+        }
+    }
+
+    private fun handleVoiceLogFeedback(command: VoiceSessionCommand.LogFeedback) {
+        val state = _uiState.value
+        val allExercises = visibleExercises(state)
+        val exercise = allExercises.getOrNull(state.postExerciseTargetIdx) ?: return
+
+        val target = state.postExerciseFeedbackTarget
+        val targetExercise = if (target is PostExerciseFeedbackTarget.SupersetGroup) {
+            val transcriptNormalized = command.exerciseSearchName.orEmpty()
+            val matchedId = target.exerciseIds.firstOrNull { exerciseId ->
+                val memberEx = allExercises.firstOrNull { it.id == exerciseId }
+                if (memberEx != null) {
+                    val normalizedName = java.text.Normalizer.normalize(memberEx.name.lowercase(Locale.ROOT), java.text.Normalizer.Form.NFD)
+                        .replace("\\p{Mn}+".toRegex(), "")
+                        .trim()
+                    normalizedName.isNotBlank() && transcriptNormalized.contains(normalizedName)
+                } else false
+            }
+            val finalId = matchedId ?: target.missingFeedbackExerciseIds(state).firstOrNull() ?: target.exerciseIds.first()
+            allExercises.firstOrNull { it.id == finalId } ?: exercise
+        } else {
+            exercise
+        }
+
+        var currentFeedback = state.postExerciseFeedbackByExerciseId[targetExercise.id] ?: PostExerciseFeedback(
+            exerciseId = targetExercise.id,
+            exerciseDbId = canonicalExerciseKey(targetExercise),
+            canonicalExerciseId = targetExercise.canonicalExerciseId ?: canonicalExerciseKey(targetExercise),
+            exerciseName = targetExercise.name,
+            technicalQuality = 8,
+            discomfortIds = emptyList(),
+            perceivedIntensityRpe = null
+        )
+
+        if (command.isSaveAction) {
+            if (target is PostExerciseFeedbackTarget.SupersetGroup) {
+                val feedbacksToSave = target.exerciseIds.map { exerciseId ->
+                    val memberEx = allExercises.firstOrNull { it.id == exerciseId }
+                    state.postExerciseFeedbackByExerciseId[exerciseId] ?: PostExerciseFeedback(
+                        exerciseId = exerciseId,
+                        exerciseDbId = memberEx?.let { canonicalExerciseKey(it) } ?: "",
+                        canonicalExerciseId = memberEx?.canonicalExerciseId ?: memberEx?.let { canonicalExerciseKey(it) } ?: "",
+                        exerciseName = memberEx?.name ?: "",
+                        technicalQuality = 8,
+                        discomfortIds = emptyList(),
+                        perceivedIntensityRpe = null
+                    )
+                }
+                savePostExerciseFeedbacks(feedbacksToSave)
+            } else {
+                savePostExerciseFeedback(currentFeedback)
+            }
+            voiceController.speakFeedbackSaved()
+            return
+        }
+
+        val updates = mutableListOf<String>()
+
+        if (command.technicalQuality != null) {
+            currentFeedback = currentFeedback.copy(technicalQuality = command.technicalQuality)
+            updates.add("Calidad técnica fijada en ${command.technicalQuality}")
+        }
+
+        if (command.perceivedIntensity != null) {
+            currentFeedback = currentFeedback.copy(perceivedIntensityRpe = command.perceivedIntensity)
+            updates.add("Intensidad en RPE ${command.perceivedIntensity}")
+        }
+
+        if (command.discomfortId != null) {
+            val nextDiscomforts = if (command.discomfortId == "none") {
+                emptyList()
+            } else {
+                (currentFeedback.discomfortIds + command.discomfortId).distinct()
+            }
+            currentFeedback = currentFeedback.copy(discomfortIds = nextDiscomforts)
+            val jointLabel = when (command.discomfortId) {
+                "shoulder_anterior" -> "hombro"
+                "knee_patellar" -> "rodilla"
+                "elbow_lateral" -> "codo"
+                "lower_back" -> "espalda baja"
+                "wrist" -> "muñeca"
+                "hip" -> "cadera"
+                "ankle" -> "tobillo"
+                else -> "articulación"
+            }
+            updates.add(if (command.discomfortId == "none") "Sin molestias" else "Molestia en $jointLabel agregada")
+        }
+
+        if (updates.isNotEmpty()) {
+            _uiState.update {
+                it.copy(
+                    postExerciseFeedbackByExerciseId = it.postExerciseFeedbackByExerciseId + (targetExercise.id to currentFeedback)
+                )
+            }
+            val targetLabel = if (target is PostExerciseFeedbackTarget.SupersetGroup) "${targetExercise.name}: " else ""
+            voiceController.speakFeedbackUpdated("$targetLabel${updates.joinToString(", ")}")
+        }
+    }
+
+    private fun handleVoiceLogFinalFeedback(command: VoiceSessionCommand.LogFinalFeedback) {
+        val state = _uiState.value
+        if (command.isSaveAction) {
+            _uiState.update {
+                it.copy(
+                    voiceFinalConfirmTriggered = true
+                )
+            }
+            voiceController.speakSessionSaved()
+            return
+        }
+
+        val updates = mutableListOf<String>()
+        var nextNotes = state.voiceFinalNotes
+        var nextAdditionalNote = state.voiceFinalAdditionalDiscomfortNote
+        var nextNeural = state.voiceFinalNeural
+        var nextSpinal = state.voiceFinalSpinal
+        var nextDiscomforts = state.voiceFinalDiscomforts
+
+        if (command.notes != null) {
+            nextNotes = command.notes
+            updates.add("Nota de sesión actualizada")
+        }
+
+        if (command.additionalDiscomfortNote != null) {
+            nextAdditionalNote = command.additionalDiscomfortNote
+            updates.add("Detalles de molestia actualizados")
+        }
+
+        if (command.neuralBattery != null) {
+            nextNeural = command.neuralBattery
+            updates.add("Batería nerviosa en ${command.neuralBattery}")
+        }
+
+        if (command.spinalBattery != null) {
+            nextSpinal = command.spinalBattery
+            updates.add("Batería espinal en ${command.spinalBattery}")
+        }
+
+        if (command.discomfortId != null) {
+            nextDiscomforts = if (command.discomfortId == "none") {
+                emptyList()
+            } else {
+                (nextDiscomforts + command.discomfortId).distinct()
+            }
+            val jointLabel = when (command.discomfortId) {
+                "shoulder_anterior" -> "hombro"
+                "knee_patellar" -> "rodilla"
+                "elbow_lateral" -> "codo"
+                "lower_back" -> "espalda baja"
+                "wrist" -> "muñeca"
+                "hip" -> "cadera"
+                "ankle" -> "tobillo"
+                else -> "articulación"
+            }
+            updates.add(if (command.discomfortId == "none") "Sin molestias finales" else "Molestia en $jointLabel agregada")
+        }
+
+        if (updates.isNotEmpty()) {
+            _uiState.update {
+                it.copy(
+                    voiceFinalNotes = nextNotes,
+                    voiceFinalAdditionalDiscomfortNote = nextAdditionalNote,
+                    voiceFinalNeural = nextNeural,
+                    voiceFinalSpinal = nextSpinal,
+                    voiceFinalDiscomforts = nextDiscomforts
+                )
+            }
+            voiceController.speakFeedbackUpdated(updates.joinToString(", "))
         }
     }
 
@@ -1790,6 +1986,19 @@ class WorkoutViewModel(
             }
         }
         _uiState.update { it.copy(voiceSessionState = voiceController.state.value) }
+    }
+
+    private fun speakCurrentStepAnnouncementIfEnabled() {
+        if (voiceController.isEnabled() && !_uiState.value.isRestTimerRunning) {
+            val updatedState = _uiState.value
+            val exercises = visibleExercises(updatedState)
+            val nextEx = exercises.getOrNull(updatedState.currentExerciseIdx)
+            if (nextEx != null) {
+                val step = updatedState.activeStepKey?.let { key -> workoutStepPositions(updatedState).firstOrNull { it.stepKey == key } }
+                val round = step?.supersetRoundIndex?.let { it + 1 }
+                voiceController.speakCurrentExercise(nextEx.name, updatedState.currentSetIdx + 1, nextEx.sets.size, round = round)
+            }
+        }
     }
 
     private fun computeImbalanceNotice(
@@ -3703,6 +3912,7 @@ class WorkoutViewModel(
             )
         }
         persistOngoingState()
+        speakCurrentStepAnnouncementIfEnabled()
     }
 
     fun nextSet(stopRest: Boolean = true) {
@@ -3792,6 +4002,7 @@ class WorkoutViewModel(
             }
         }
         persistOngoingState()
+        speakCurrentStepAnnouncementIfEnabled()
     }
 
     fun selectSupersetGroup(groupId: String) {
@@ -4010,6 +4221,7 @@ class WorkoutViewModel(
             )
         }
         persistOngoingState()
+        speakCurrentStepAnnouncementIfEnabled()
     }
 
     fun startRestTimer(
@@ -4093,6 +4305,13 @@ class WorkoutViewModel(
         }
         persistOngoingState()
         _restTimerRemaining.value = seconds
+        if (voiceController.isEnabled()) {
+            if (kind == RestTimerKind.SUPERSET_INTRA || kind == RestTimerKind.SUPERSET_ROUND) {
+                voiceController.onRestTimerStartedContextual(seconds, isTransition = (kind == RestTimerKind.SUPERSET_INTRA))
+            } else {
+                voiceController.onRestTimerStarted(seconds)
+            }
+        }
         timerJob = viewModelScope.launch {
             var lastElapsedSecond = -1
             while (true) {

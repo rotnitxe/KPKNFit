@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.auge.AugeUtils.parseIsoMs
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.min
@@ -401,17 +402,5 @@ object InterferenceEngine {
             it.name.lowercase().trim() == normName
                 || it.alias?.lowercase()?.trim() == normName
         }
-    }
-
-    private fun parseIsoMs(iso: String): Long = runCatching {
-        java.time.Instant.parse(iso).toEpochMilli()
-    }.getOrElse {
-        // "YYYY-MM-DD" → parse as local date at midnight
-        runCatching {
-            java.time.LocalDate.parse(iso.take(10))
-                .atStartOfDay(java.time.ZoneId.systemDefault())
-                .toInstant()
-                .toEpochMilli()
-        }.getOrDefault(0L)
     }
 }

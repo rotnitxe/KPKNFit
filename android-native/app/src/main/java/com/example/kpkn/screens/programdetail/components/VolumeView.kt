@@ -35,7 +35,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.lerp
@@ -43,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
@@ -214,6 +217,7 @@ fun VolumeView(
             canonicalVolumes = canonicalVolumes,
             personalizedTargets = personalizedTargets,
             isVolumeCalibrated = isVolumeCalibrated,
+            selectedVolumeScope = selectedVolumeScope,
         )
 
         analyticsReport?.let { report ->
@@ -466,10 +470,25 @@ private fun CanonicalVolumeBarsCard(
     canonicalVolumes: List<CanonicalMuscleVolumeUi>,
     personalizedTargets: Map<String, PersonalizedVolumeTarget>,
     isVolumeCalibrated: Boolean,
+    selectedVolumeScope: VolumeScopeOption?,
 ) {
     val maxWeeklySets = remember(canonicalVolumes) {
         max(canonicalVolumes.maxOfOrNull { it.weeklySets } ?: 0.0, 1.0)
     }
+
+    val anatomicalRegions = remember {
+        listOf(
+            "Espalda" to listOf("Dorsales", "Trapecio", "Romboides", "Erectores Espinales"),
+            "Pecho" to listOf("Pectorales"),
+            "Hombros" to listOf("Deltoides", "Cuello"),
+            "Brazos" to listOf("Bíceps", "Tríceps", "Antebrazo"),
+            "Piernas" to listOf("Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas", "Aductores"),
+            "Core" to listOf("Abdomen", "Core")
+        )
+    }
+
+    var expandedRegions by remember { mutableStateOf(setOf("Espalda", "Pecho", "Hombros", "Brazos", "Piernas", "Core")) }
+    var expandedMuscleName by remember { mutableStateOf<String?>(null) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -480,7 +499,7 @@ private fun CanonicalVolumeBarsCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
                 text = "Gráficos por músculo",
@@ -498,16 +517,105 @@ private fun CanonicalVolumeBarsCard(
                 lineHeight = 16.sp,
             )
 
-            canonicalVolumes
-                .sortedByDescending { it.weeklySets }
-                .forEach { entry ->
-                    CanonicalMuscleBarRow(
-                        entry = entry,
-                        target = personalizedTargets[entry.muscleName],
-                        fallbackMaxWeeklySets = maxWeeklySets,
-                        isVolumeCalibrated = isVolumeCalibrated,
-                    )
+            anatomicalRegions.forEach { (regionName, musclesInRegion) ->
+                val entriesInRegion = canonicalVolumes.filter { it.muscleName in musclesInRegion }
+                val regionTotalSets = entriesInRegion.sumOf { it.weeklySets }
+                val isExpanded = expandedRegions.contains(regionName)
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Region Header
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f))
+                            .clickable {
+                                expandedRegions = if (isExpanded) {
+                                    expandedRegions - regionName
+                                } else {
+                                    expandedRegions + regionName
+                                }
+                            }
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = regionName,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = "${formatOneDecimal(regionTotalSets)} series",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = if (isExpanded) "Colapsar" else "Desplegar",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.rotate(if (isExpanded) 180f else 0f)
+                        )
+                    }
+
+                    // Region Muscles List
+                    if (isExpanded) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            entriesInRegion
+                                .sortedByDescending { it.weeklySets }
+                                .forEach { entry ->
+                                    val isMuscleExpanded = expandedMuscleName == entry.muscleName
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .clickable {
+                                                expandedMuscleName = if (isMuscleExpanded) null else entry.muscleName
+                                            }
+                                            .padding(vertical = 4.dp)
+                                    ) {
+                                        CanonicalMuscleBarRow(
+                                            entry = entry,
+                                            target = personalizedTargets[entry.muscleName],
+                                            fallbackMaxWeeklySets = maxWeeklySets,
+                                            isVolumeCalibrated = isVolumeCalibrated,
+                                        )
+
+                                        if (isMuscleExpanded) {
+                                            ExerciseBreakdownList(
+                                                muscleName = entry.muscleName,
+                                                weeks = selectedVolumeScope?.weeks ?: emptyList(),
+                                                averageByWeek = selectedVolumeScope?.averageByWeek ?: false
+                                            )
+                                        }
+                                    }
+                                }
+                        }
+                    }
                 }
+            }
         }
     }
 }
@@ -526,15 +634,15 @@ private fun CanonicalMuscleBarRow(
     val currentFraction = (entry.weeklySets / scaleMax).toFloat().coerceIn(0f, 1f)
     val minFraction = if (target != null) (target.minEffective / scaleMax).toFloat().coerceIn(0f, 1f) else 0f
     val idealFraction = if (target != null) (target.maxAdaptive / scaleMax).toFloat().coerceIn(0f, 1f) else 0f
-    val recoverableFraction = if (target != null) (target.maxRecoverable / scaleMax).toFloat().coerceIn(0f, 1f) else 1f
-    val markerColor = heatColorForIntensity(
-        heatIntensityForMuscle(
-            weeklySets = entry.weeklySets,
-            target = target,
-            maxWeeklySets = scaleMax,
-            isVolumeCalibrated = isVolumeCalibrated,
-        )
-    )
+
+    val progressColor = when {
+        !isVolumeCalibrated || target == null -> MaterialTheme.colorScheme.primary
+        entry.weeklySets <= 0.0 -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+        entry.weeklySets < target.minEffective -> Color(0xFFEAB308) // Amber / Subentrenado
+        entry.weeklySets <= target.maxAdaptive -> Color(0xFF10B981) // Green / Rango ideal
+        entry.weeklySets <= target.maxRecoverable -> Color(0xFFF97316) // Orange / Alto tolerable
+        else -> Color(0xFFEF4444) // Red / Sobreentreno
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(
@@ -560,53 +668,89 @@ private fun CanonicalMuscleBarRow(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(12.dp)
+                .height(6.dp)
                 .clip(RoundedCornerShape(999.dp))
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)),
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)),
         ) {
             if (isVolumeCalibrated && target != null) {
                 Row(modifier = Modifier.fillMaxSize()) {
+                    Spacer(modifier = Modifier.weight(minFraction.coerceAtLeast(0.001f)))
                     Box(
                         modifier = Modifier
-                            .weight(minFraction.coerceAtLeast(0.001f), fill = true)
+                            .weight((idealFraction - minFraction).coerceAtLeast(0.001f))
                             .fillMaxHeight()
-                            .background(Color(0xFFEAB308).copy(alpha = 0.28f)),
+                            .background(Color(0xFF10B981).copy(alpha = 0.08f))
                     )
-                    Box(
-                        modifier = Modifier
-                            .weight((idealFraction - minFraction).coerceAtLeast(0.001f), fill = true)
-                            .fillMaxHeight()
-                            .background(Color(0xFF22C55E).copy(alpha = 0.26f)),
-                    )
-                    Box(
-                        modifier = Modifier
-                            .weight((recoverableFraction - idealFraction).coerceAtLeast(0.001f), fill = true)
-                            .fillMaxHeight()
-                            .background(Color(0xFFEF4444).copy(alpha = 0.22f)),
-                    )
-                    if (recoverableFraction < 1f) {
-                        Box(
-                            modifier = Modifier
-                                .weight((1f - recoverableFraction).coerceAtLeast(0.001f), fill = true)
-                                .fillMaxHeight()
-                                .background(Color(0xFF7F1D1D).copy(alpha = 0.18f)),
-                        )
-                    }
+                    Spacer(modifier = Modifier.weight((1f - idealFraction).coerceAtLeast(0.001f)))
                 }
             }
             if (currentFraction > 0f) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(currentFraction)
-                        .fillMaxHeight(),
-                    contentAlignment = Alignment.CenterEnd,
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(progressColor)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExerciseBreakdownList(
+    muscleName: String,
+    weeks: List<ProgramWeek>,
+    averageByWeek: Boolean,
+) {
+    val breakdown = remember(muscleName, weeks, averageByWeek) {
+        calculateExerciseBreakdownForMuscle(muscleName, weeks, averageByWeek)
+    }
+
+    if (breakdown.isEmpty()) {
+        Text(
+            text = "Sin ejercicios directos registrados para este músculo.",
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
+        )
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 4.dp, bottom = 6.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "Ejercicios que aportan volumen:",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            breakdown.forEach { item ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .width(if (isVolumeCalibrated) 4.dp else 999.dp)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(markerColor.copy(alpha = if (isVolumeCalibrated) 0.96f else 0.72f)),
+                    Text(
+                        text = item.exerciseName,
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "${formatOneDecimal(item.weeklySetsContribution)} series/sem",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -854,7 +998,6 @@ private fun Program.indexedVolumeWeeks(): List<IndexedVolumeWeek> {
     }
     return result
 }
-
 private fun weekScopeName(week: ProgramWeek): String {
     val date = week.startDate?.let(::parseIsoDateOrNull)?.format(monthDayFormatter)
     return if (date != null && !week.name.contains(date)) {
@@ -867,7 +1010,7 @@ private fun weekScopeName(week: ProgramWeek): String {
 private fun mergePersonalizedTargets(
     recommendations: List<VolumeRecommendation>,
 ): Map<String, PersonalizedVolumeTarget> {
-    return recommendations
+    val baseMap = recommendations
         .groupBy { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscleGroup) }
         .mapValues { (muscleName, groupedRecommendations) ->
             PersonalizedVolumeTarget(
@@ -877,6 +1020,103 @@ private fun mergePersonalizedTargets(
                 maxRecoverable = groupedRecommendations.sumOf { it.maxRecoverableVolume },
             )
         }
+        .toMutableMap()
+
+    if (recommendations.isNotEmpty()) {
+        // 1. Romboides -> Trapecio
+        if (!baseMap.containsKey("Romboides")) {
+            baseMap["Trapecio"]?.let { target ->
+                baseMap["Romboides"] = target.copy(muscleName = "Romboides")
+            } ?: run {
+                baseMap["Romboides"] = PersonalizedVolumeTarget("Romboides", 4, 15, 20)
+            }
+        }
+        // 2. Cuello -> Trapecio
+        if (!baseMap.containsKey("Cuello")) {
+            baseMap["Trapecio"]?.let { target ->
+                baseMap["Cuello"] = target.copy(muscleName = "Cuello")
+            } ?: run {
+                baseMap["Cuello"] = PersonalizedVolumeTarget("Cuello", 4, 15, 20)
+            }
+        }
+        // 3. Antebrazo -> Bíceps
+        if (!baseMap.containsKey("Antebrazo")) {
+            baseMap["Bíceps"]?.let { target ->
+                baseMap["Antebrazo"] = target.copy(muscleName = "Antebrazo")
+            } ?: run {
+                baseMap["Antebrazo"] = PersonalizedVolumeTarget("Antebrazo", 6, 16, 20)
+            }
+        }
+        // 4. Aductores -> Isquiosurales (or Cuádriceps)
+        if (!baseMap.containsKey("Aductores")) {
+            val similarTarget = baseMap["Isquiosurales"] ?: baseMap["Cuádriceps"]
+            similarTarget?.let { target ->
+                baseMap["Aductores"] = target.copy(muscleName = "Aductores")
+            } ?: run {
+                baseMap["Aductores"] = PersonalizedVolumeTarget("Aductores", 6, 18, 22)
+            }
+        }
+        // 5. Core -> Abdomen
+        if (!baseMap.containsKey("Core")) {
+            baseMap["Abdomen"]?.let { target ->
+                baseMap["Core"] = target.copy(muscleName = "Core")
+            } ?: run {
+                baseMap["Core"] = PersonalizedVolumeTarget("Core", 4, 12, 16)
+            }
+        }
+    }
+
+    return baseMap
+}
+
+internal data class ExerciseVolumeBreakdown(
+    val exerciseName: String,
+    val weeklySetsContribution: Double,
+    val totalSets: Int
+)
+
+private fun countEffectiveSets(exerciseSets: List<com.example.kpkn.data.models.ExerciseSet>): Int {
+    val counted = exerciseSets.count { set ->
+        !set.isIneffective && ((set.completedReps ?: set.targetReps ?: 0) > 0 || (set.weight ?: 0.0) > 0.0)
+    }
+    return if (counted == 0) exerciseSets.count { !it.isIneffective } else counted
+}
+
+private fun calculateExerciseBreakdownForMuscle(
+    muscleName: String,
+    weeks: List<ProgramWeek>,
+    averageByWeek: Boolean
+): List<ExerciseVolumeBreakdown> {
+    val exerciseIndex = EXERCISE_DATABASE.associateBy { it.id.lowercase() }
+    val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
+    val breakdownMap = mutableMapOf<String, Pair<Double, Int>>()
+
+    weeks.flatMap { it.sessions }.flatMap { it.allExercises() }.forEach { exercise ->
+        val countedSets = countEffectiveSets(exercise.sets)
+        if (countedSets > 0) {
+            val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] }
+            if (dbInfo != null) {
+                val musclesToCount = SessionMuscleFilter.relevantMusclesFor(dbInfo)
+                val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(musclesToCount)
+                val multiplier = contributions[muscleName]
+                if (multiplier != null && multiplier > 0.0) {
+                    val currentVal = breakdownMap[exercise.name] ?: (0.0 to 0)
+                    breakdownMap[exercise.name] = (currentVal.first + countedSets * multiplier) to (currentVal.second + countedSets)
+                }
+            }
+        }
+    }
+
+    return breakdownMap.entries
+        .map { (name, pair) ->
+            ExerciseVolumeBreakdown(
+                exerciseName = name,
+                weeklySetsContribution = (pair.first / divisor * 10.0).toInt() / 10.0,
+                totalSets = pair.second
+            )
+        }
+        .filter { it.weeklySetsContribution > 0.0 }
+        .sortedByDescending { it.weeklySetsContribution }
 }
 
 private fun heatIntensityForMuscle(

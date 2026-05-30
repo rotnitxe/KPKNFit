@@ -32,30 +32,31 @@ internal fun isRecentWorkoutRestAudioFailure(
 }
 
 internal fun workoutPrealertTonePlan(): List<WorkoutRestToneStep> = listOf(
-    WorkoutRestToneStep(durationMs = 120, frequencyHz = 523.25, volume = 0.42, pauseAfterMs = 0L),
+    WorkoutRestToneStep(durationMs = 120, frequencyHz = 587.33, volume = 0.60, pauseAfterMs = 880L), // 3s
+    WorkoutRestToneStep(durationMs = 120, frequencyHz = 587.33, volume = 0.60, pauseAfterMs = 880L), // 2s
+    WorkoutRestToneStep(durationMs = 120, frequencyHz = 587.33, volume = 0.60, pauseAfterMs = 0L),   // 1s
 )
 
 internal fun workoutCompletionTonePlan(): List<WorkoutRestToneStep> = listOf(
-    WorkoutRestToneStep(durationMs = 120, frequencyHz = 523.25, volume = 0.50, pauseAfterMs = 70L),
-    WorkoutRestToneStep(durationMs = 150, frequencyHz = 659.25, volume = 0.58, pauseAfterMs = 70L),
-    WorkoutRestToneStep(durationMs = 230, frequencyHz = 783.99, volume = 0.66, pauseAfterMs = 0L),
+    WorkoutRestToneStep(durationMs = 140, frequencyHz = 587.33, volume = 0.70, pauseAfterMs = 60L), // D5
+    WorkoutRestToneStep(durationMs = 160, frequencyHz = 698.46, volume = 0.80, pauseAfterMs = 60L), // F5
+    WorkoutRestToneStep(durationMs = 300, frequencyHz = 880.00, volume = 0.95, pauseAfterMs = 0L),  // A5
 )
 
 internal fun workoutPrealertVibrationPattern(): LongArray = longArrayOf(
-    0L,
-    70L,
-    50L,
-    110L,
+    0L, 100L, // 3s
+    900L, 100L, // 2s
+    900L, 100L // 1s
 )
 
 internal fun workoutCompletionVibrationPattern(intensity: HapticIntensity): LongArray = when (intensity) {
-    HapticIntensity.LIGHT -> longArrayOf(0L, 90L, 55L, 130L, 50L, 180L)
-    HapticIntensity.MEDIUM -> longArrayOf(0L, 140L, 70L, 220L, 60L, 320L)
-    HapticIntensity.STRONG -> longArrayOf(0L, 200L, 90L, 320L, 80L, 460L)
+    HapticIntensity.LIGHT -> longArrayOf(0L, 250L, 100L, 250L)
+    HapticIntensity.MEDIUM -> longArrayOf(0L, 400L, 150L, 400L)
+    HapticIntensity.STRONG -> longArrayOf(0L, 600L, 150L, 800L)
 }
 
 internal fun workoutCompletionVibrationAmplitudes(intensity: HapticIntensity): IntArray = when (intensity) {
-    HapticIntensity.LIGHT -> intArrayOf(0, 90, 0, 150, 0, 220)
-    HapticIntensity.MEDIUM -> intArrayOf(0, 120, 0, 190, 0, 255)
-    HapticIntensity.STRONG -> intArrayOf(0, 150, 0, 220, 0, 255)
+    HapticIntensity.LIGHT -> intArrayOf(0, 180, 0, 180)
+    HapticIntensity.MEDIUM -> intArrayOf(0, 220, 0, 220)
+    HapticIntensity.STRONG -> intArrayOf(0, 255, 0, 255)
 }

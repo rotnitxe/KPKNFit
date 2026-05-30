@@ -45,6 +45,7 @@ class WorkoutRestAlertManager(private val context: Context) {
         const val CHANNEL_REST_ONGOING = "workout_rest_ongoing"
         const val CHANNEL_REST_FINISHED = "workout_rest_finished"
         private const val PREFS = "workout_rest_alerts"
+        private val playExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
         private const val KEY_TIMER_ID = "active_timer_id"
         private const val KEY_SESSION_NAME = "active_session_name"
         private const val KEY_EXERCISE_NAME = "active_exercise_name"
@@ -92,7 +93,8 @@ class WorkoutRestAlertManager(private val context: Context) {
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
             description = appContext.getString(R.string.notif_channel_rest_finished_desc)
-            enableVibration(false)
+            enableVibration(true)
+            vibrationPattern = longArrayOf(0L, 600L, 150L, 800L)
             setShowBadge(true)
             setSound(
                 RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
@@ -111,11 +113,10 @@ class WorkoutRestAlertManager(private val context: Context) {
         val resolvedSounds = soundsEnabled ?: runCatching {
             ProgramRepository.getInstance().settings.value.soundsEnabled
         }.getOrDefault(true)
-        val recentAudioFailure = isRecentWorkoutRestAudioFailure(lastAudioFailureAt())
         return RestAlertCapabilityState(
             notificationsEnabled = canPostNotifications(),
             exactAlarmGranted = canScheduleExactAlarm(),
-            soundReady = !resolvedSounds || (SystemAudioHelper.isNormalRinger(appContext) && !recentAudioFailure),
+            soundReady = !resolvedSounds || SystemAudioHelper.isNormalRinger(appContext),
         )
     }
 
@@ -299,6 +300,24 @@ class WorkoutRestAlertManager(private val context: Context) {
         }
     }
 
+    private fun playToneSequenceAsync(steps: List<WorkoutRestToneStep>, onComplete: () -> Unit = {}) {
+        playExecutor.execute {
+            val wakeLock = (appContext.getSystemService(Context.POWER_SERVICE) as? PowerManager)
+                ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "kpkn:workoutRestAlertTone")
+            runCatching { wakeLock?.acquire(10_000L) }
+            try {
+                playToneSequence(steps)
+            } finally {
+                runCatching {
+                    if (wakeLock?.isHeld == true) {
+                        wakeLock.release()
+                    }
+                }
+                onComplete()
+            }
+        }
+    }
+
     private fun deliverPrealertCue() {
         val settings = runCatching { ProgramRepository.getInstance().settings.value }.getOrNull()
         val soundsEnabled = settings?.soundsEnabled ?: true
@@ -307,22 +326,18 @@ class WorkoutRestAlertManager(private val context: Context) {
         if (SystemAudioHelper.shouldVibrate(appContext, hapticEnabled)) {
             vibratePattern(workoutPrealertVibrationPattern())
         }
-        if (soundsEnabled && SystemAudioHelper.isNormalRinger(appContext) && !isRecentWorkoutRestAudioFailure(lastAudioFailureAt())) {
-            playToneSequence(
+        if (soundsEnabled && SystemAudioHelper.isNormalRinger(appContext)) {
+            playToneSequenceAsync(
                 steps = workoutPrealertTonePlan(),
             )
         }
     }
 
     private fun deliverCompletionAlert(sessionName: String, exerciseName: String) {
-        WorkoutRestForegroundService.stop(appContext)
-        notificationManager.cancel(NOTIF_ID_ONGOING)
-
         val settings = runCatching { ProgramRepository.getInstance().settings.value }.getOrNull()
         val soundsEnabled = settings?.soundsEnabled ?: true
         val hapticEnabled = settings?.hapticFeedbackEnabled ?: true
         val hapticIntensity = settings?.hapticIntensity ?: HapticIntensity.MEDIUM
-        val recentAudioFailure = isRecentWorkoutRestAudioFailure(lastAudioFailureAt())
 
         if (SystemAudioHelper.shouldVibrate(appContext, hapticEnabled)) {
             vibratePattern(
@@ -331,28 +346,35 @@ class WorkoutRestAlertManager(private val context: Context) {
             )
         }
 
-        val shouldAttemptManualSound = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext) && !recentAudioFailure
-        if (shouldAttemptManualSound) {
-            playToneSequence(
-                steps = workoutCompletionTonePlan(),
+        val shouldAttemptManualSound = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext)
+
+        val onFinishAlert = {
+            WorkoutRestForegroundService.stop(appContext)
+            notificationManager.cancel(NOTIF_ID_ONGOING)
+
+            val preferAudibleNotification = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext)
+            postFinishedNotification(
+                sessionName = sessionName,
+                exerciseName = exerciseName,
+                preferAudibleFallback = preferAudibleNotification,
             )
+
+            prefs.edit()
+                .remove(KEY_TIMER_ID)
+                .remove(KEY_SESSION_NAME)
+                .remove(KEY_EXERCISE_NAME)
+                .remove(KEY_END_AT)
+                .apply()
         }
 
-        // Keep the finished notification audible when sound is enabled so the
-        // background case always has a reliable completion cue.
-        val preferAudibleNotification = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext)
-        postFinishedNotification(
-            sessionName = sessionName,
-            exerciseName = exerciseName,
-            preferAudibleFallback = preferAudibleNotification,
-        )
-
-        prefs.edit()
-            .remove(KEY_TIMER_ID)
-            .remove(KEY_SESSION_NAME)
-            .remove(KEY_EXERCISE_NAME)
-            .remove(KEY_END_AT)
-            .apply()
+        if (shouldAttemptManualSound) {
+            playToneSequenceAsync(
+                steps = workoutCompletionTonePlan(),
+                onComplete = onFinishAlert
+            )
+        } else {
+            onFinishAlert()
+        }
     }
 
     private fun postOngoingNotification(sessionName: String, exerciseName: String, endAt: Long) {
@@ -474,6 +496,9 @@ class WorkoutRestAlertManager(private val context: Context) {
             samples[i] = (value.coerceIn(-1.0, 1.0) * Short.MAX_VALUE).toInt().toShort()
         }
 
+        val minBuffer = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT)
+        val bufferSize = (samples.size * 2).coerceAtLeast(minBuffer)
+
         val audioTrack = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             AudioTrack.Builder()
                 .setAudioAttributes(
@@ -490,7 +515,7 @@ class WorkoutRestAlertManager(private val context: Context) {
                         .build(),
                 )
                 .setTransferMode(AudioTrack.MODE_STATIC)
-                .setBufferSizeInBytes(samples.size * 2)
+                .setBufferSizeInBytes(bufferSize)
                 .build()
         } else {
             @Suppress("DEPRECATION")
@@ -499,7 +524,7 @@ class WorkoutRestAlertManager(private val context: Context) {
                 sampleRate,
                 AudioFormat.CHANNEL_OUT_MONO,
                 AudioFormat.ENCODING_PCM_16BIT,
-                samples.size * 2,
+                bufferSize,
                 AudioTrack.MODE_STATIC,
             )
         }

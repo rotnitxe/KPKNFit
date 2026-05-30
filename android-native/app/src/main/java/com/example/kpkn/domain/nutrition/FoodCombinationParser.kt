@@ -542,7 +542,7 @@ object FoodCombinationParser {
         val lower = food.lowercase()
         return when {
             lower.contains("arroz") || lower.contains("papa") || lower.contains("patata") || lower.contains("pasta") || lower.contains("fideo") || lower.contains("pure") || lower.contains("pan") || lower.contains("tortilla") -> Role.STARCH
-            lower.contains("salsa") || lower.contains("mayonesa") || lower.contains("ketchup") || lower.contains("catsup") || lower.contains("mostaza") || lower.contains("crema") || lower.contains("aderezo") || lower.contains("vinagreta") || lower.contains("pesto") || lower.contains("chimichurri") -> Role.SAUCE
+            lower.contains("salsa") || lower.contains("mayonesa") || lower.contains("mayo") || lower.contains("ketchup") || lower.contains("catsup") || lower.contains("mostaza") || lower.contains("crema") || lower.contains("aderezo") || lower.contains("vinagreta") || lower.contains("pesto") || lower.contains("chimichurri") || lower.contains("aceite") || lower.contains("oil") || lower.contains("mantequilla") || lower.contains("margarina") || lower.contains("manteca") || lower.contains("ghee") -> Role.SAUCE
             lower.contains("queso") || lower.contains("huevo") || lower.contains("jamon") || lower.contains("tocino") || lower.contains("salchicha") -> Role.TOPPING
             lower.contains("ensalada") || lower.contains("verdura") || lower.contains("lechuga") || lower.contains("tomate") || lower.contains("cebolla") || lower.contains("zanahoria") || lower.contains("brocoli") || lower.contains("espinaca") -> Role.SIDE
             else -> Role.SIDE

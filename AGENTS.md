@@ -4,7 +4,19 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-KPKN Fit (`yourprime-v2`) is an intelligent gym routine creator and tracker. It is a PWA bundled with Capacitor for Android. A previous React Native migration was cancelled; there is currently **no active `apps/mobile` workspace** in this repository, and ongoing native migration work targets Kotlin/Android. The UI language is Spanish.
+KPKN Fit (`yourprime-v2`) is an intelligent gym routine creator and tracker. It consists of two key components:
+1. **Core PWA**: Built with React 19 + TypeScript + Capacitor 7 + Zustand. It is the absolute source of truth for business logic and features.
+2. **Kotlin Native App (`android-native/`)**: The target of the full migration to a high-fidelity native Android application utilizing Jetpack Compose, Room DB, ViewModels, and StateFlow (Clean Architecture).
+*Note: The React Native migration (`apps/mobile`) has been completely cancelled.*
+
+### Critical Session Guide
+At the start of every session, you MUST read these files to acquire comprehensive and up-to-date context:
+- [CLAUDE.md](file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/CLAUDE.md) - Quick status map and target destinations.
+- [memory/PWA-structure.md](file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/memory/PWA-structure.md) - Complete file index and module map for the React PWA codebase.
+- [memory/KOTLIN-structure.md](file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/memory/KOTLIN-structure.md) - Detailed package, Room schema, and view layout for the Kotlin Native codebase.
+- [memory/CONVENTIONS.md](file:///C:/Users/valen/Downloads/kpkn-fit-(beta-test)/memory/CONVENTIONS.md) - Crucial code conventions and equivalences between PWA and Kotlin.
+
+All UI strings and coach systems are strictly in Spanish.
 
 ## Commands
 
@@ -30,6 +42,15 @@ cd android && .\gradlew.bat :app:bundleRelease  # Android release bundle
 npm run local-ai:stage-model -- --src "C:\path\to\model-export" --clean
 npm run local-ai:check-model
 ```
+
+## Restricciones de Git
+
+Aunque el agente tiene permisos generales para ejecutar comandos `git`, **tiene estrictamente prohibido ejecutar comandos destructivos o de regresión que devuelvan el repositorio o archivos a un estado anterior sin consultar explícitamente al usuario**.
+
+Debes solicitar confirmación explícita del usuario antes de ejecutar cualquiera de los siguientes comandos:
+- `git stash` (y todas sus variantes como `git stash pop`, `git stash drop`, etc.)
+- `git reset` (y todas sus variantes como `git reset --hard`, `git reset --soft`, etc.)
+- `git clean`
 
 ## Architecture
 

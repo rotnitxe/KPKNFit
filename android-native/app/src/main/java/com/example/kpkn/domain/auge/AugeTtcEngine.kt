@@ -2,6 +2,7 @@ package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeFatigueEngine.getEffectiveRPE
+import com.example.kpkn.domain.auge.AugeUtils.logDateMs
 import java.time.Instant
 import kotlin.math.exp
 import kotlin.math.ln
@@ -383,16 +384,6 @@ object AugeTtcEngine {
     }
 
     // ─── Helpers privados ─────────────────────────────────────────────────────
-
-    private fun logDateMs(log: WorkoutLog): Long = try {
-        Instant.parse(log.date).toEpochMilli()
-    } catch (e: Exception) {
-        try {
-            java.time.LocalDate.parse(log.date.take(10))
-                .atStartOfDay(java.time.ZoneId.systemDefault())
-                .toInstant().toEpochMilli()
-        } catch (e2: Exception) { 0L }
-    }
 
     /**
      * Infiere qué baterías articulares involucra un ejercicio según sus músculos primarios.

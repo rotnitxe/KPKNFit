@@ -127,8 +127,34 @@ class WorkoutTtsManager(context: Context) {
         speak("Descanso completo. $exerciseName.$weightText", queueFlush = true)
     }
 
-    fun speakCurrentExercise(name: String, setNumber: Int, totalSets: Int) {
-        speak("$name, serie $setNumber de $totalSets.", queueFlush = true)
+    fun speakCurrentExercise(name: String, setNumber: Int, totalSets: Int, round: Int? = null) {
+        val prefix = if (round != null) "Superserie ronda $round. " else ""
+        speak("$prefix$name, serie $setNumber de $totalSets.", queueFlush = true)
+    }
+
+    fun speakRestStarted(totalSeconds: Int) {
+        val restText = formatRestTime(totalSeconds)
+        speak("Descanso iniciado por $restText.", queueFlush = false)
+    }
+
+    fun speakRestStartedContextual(seconds: Int, isTransition: Boolean) {
+        val restText = formatRestTime(seconds)
+        val text = if (isTransition) {
+            "Descanso de transición por $restText."
+        } else {
+            "Ronda completada. Descanso de ronda por $restText."
+        }
+        speak(text, queueFlush = false)
+    }
+
+    fun speakUnilateralSideRegistered(completedSide: String, pendingSide: String) {
+        val comp = if (completedSide == "left") "izquierdo" else "derecho"
+        val pend = if (pendingSide == "left") "izquierdo" else "derecho"
+        speak("Lado $comp registrado. Siguiente: Lado $pend.", queueFlush = true)
+    }
+
+    fun speakSessionSaved() {
+        speak("Entrenamiento guardado con éxito. ¡Felicitaciones por completar tu sesión!", queueFlush = true)
     }
 
     fun speakError(message: String) {

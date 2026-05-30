@@ -490,8 +490,10 @@ class NutritionRepository private constructor(context: Context) {
                 _bodyMeasurements.value = measurements
                 _measurementSchedule.value = normalizeMeasurementSchedule(schedule)
 
-                // Initialize Phase B FoodIndex
-                initFoodIndex()
+                // Initialize Phase B FoodIndex proactively in the background
+                launch(Dispatchers.Default) {
+                    initFoodIndex()
+                }
 
                 val notifier = NutritionNotificationManager(context)
                 val currentSchedule = _measurementSchedule.value

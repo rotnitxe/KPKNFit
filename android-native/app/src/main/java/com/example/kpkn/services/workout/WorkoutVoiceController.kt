@@ -47,6 +47,11 @@ class WorkoutVoiceController(private val context: Context) {
         val suggestedWeight: Double?,
         val restSecondsRemaining: Int?,
         val nextExerciseName: String?,
+        val showPostExerciseSheet: Boolean = false,
+        val showFinishSheet: Boolean = false,
+        val supersetRound: Int? = null,
+        val isUnilateralSidePending: Boolean = false,
+        val completedSidesCount: Int = 0,
     )
 
     fun initialize(scope: CoroutineScope) {
@@ -87,6 +92,24 @@ class WorkoutVoiceController(private val context: Context) {
         }
     }
 
+    fun onRestTimerStarted(durationSeconds: Int) {
+        speakWhilePaused {
+            ttsManager.speakRestStarted(durationSeconds)
+        }
+    }
+
+    fun onRestTimerStartedContextual(durationSeconds: Int, isTransition: Boolean) {
+        speakWhilePaused {
+            ttsManager.speakRestStartedContextual(durationSeconds, isTransition)
+        }
+    }
+
+    fun speakUnilateralSideRegistered(completedSide: String, pendingSide: String) {
+        speakWhilePaused {
+            ttsManager.speakUnilateralSideRegistered(completedSide, pendingSide)
+        }
+    }
+
     fun speakSuggestedWeight(exerciseName: String, suggestedWeight: Double) {
         speakWhilePaused {
             ttsManager.speakSuggestedWeight(suggestedWeight, exerciseName)
@@ -100,15 +123,33 @@ class WorkoutVoiceController(private val context: Context) {
         }
     }
 
-    fun speakCurrentExercise(exerciseName: String, setNumber: Int, totalSets: Int) {
+    fun speakCurrentExercise(exerciseName: String, setNumber: Int, totalSets: Int, round: Int? = null) {
         speakWhilePaused {
-            ttsManager.speakCurrentExercise(exerciseName, setNumber, totalSets)
+            ttsManager.speakCurrentExercise(exerciseName, setNumber, totalSets, round)
         }
     }
 
     fun speakNextExercise(exerciseName: String, restSeconds: Int? = null) {
         speakWhilePaused {
             ttsManager.speakNextExercise(exerciseName, restSeconds)
+        }
+    }
+
+    fun speakFeedbackUpdated(message: String) {
+        speakWhilePaused {
+            ttsManager.speakError(message)
+        }
+    }
+
+    fun speakFeedbackSaved() {
+        speakWhilePaused {
+            ttsManager.speakError("Feedback registrado.")
+        }
+    }
+
+    fun speakSessionSaved() {
+        speakWhilePaused {
+            ttsManager.speakSessionSaved()
         }
     }
 
@@ -177,6 +218,24 @@ class WorkoutVoiceController(private val context: Context) {
 
     private fun processCommand(transcript: String, exerciseInfo: ExerciseInfo?) {
         updateStage(VoicePipelineStage.PROCESSING)
+
+        if (exerciseInfo?.showFinishSheet == true) {
+            val finalCmd = WorkoutVoiceCommandParser.parseFinalFeedbackCommand(transcript)
+            _state.update { it.copy(lastCommand = finalCmd) }
+            onCommandDetected?.invoke(finalCmd)
+            releaseDucking()
+            resumeListening()
+            return
+        }
+
+        if (exerciseInfo?.showPostExerciseSheet == true) {
+            val feedbackCmd = WorkoutVoiceCommandParser.parseFeedbackCommand(transcript)
+            _state.update { it.copy(lastCommand = feedbackCmd) }
+            onCommandDetected?.invoke(feedbackCmd)
+            releaseDucking()
+            resumeListening()
+            return
+        }
 
         val isTimeMode = exerciseInfo?.isTimeMode ?: false
         val isUnilateral = exerciseInfo?.isUnilateral ?: false
@@ -276,6 +335,10 @@ class WorkoutVoiceController(private val context: Context) {
             return
         }
 
+        val info = exerciseInfoProvider?.invoke()
+        val isUnilateral = info?.isUnilateral == true
+        val completedSidesBefore = info?.completedSidesCount ?: 0
+
         onCommandDetected?.invoke(VoiceSessionCommand.RegisterSet(interpretation))
 
         updateStage(VoicePipelineStage.TTS_SPEAKING)
@@ -284,11 +347,25 @@ class WorkoutVoiceController(private val context: Context) {
             resumeListening()
         }
 
-        ttsManager.speakSetRegistered(
-            weightKg = interpretation.weightKg,
-            reps = interpretation.metricValue,
-            isTimeMode = false,
-        )
+        if (isUnilateral) {
+            val completedSide = interpretation.side ?: "left"
+            val counterpart = if (completedSide == "left") "right" else "left"
+            if (completedSidesBefore == 0) {
+                ttsManager.speakUnilateralSideRegistered(completedSide, counterpart)
+            } else {
+                ttsManager.speakSetRegistered(
+                    weightKg = interpretation.weightKg,
+                    reps = interpretation.metricValue,
+                    isTimeMode = info.isTimeMode,
+                )
+            }
+        } else {
+            ttsManager.speakSetRegistered(
+                weightKg = interpretation.weightKg,
+                reps = interpretation.metricValue,
+                isTimeMode = info?.isTimeMode ?: false,
+            )
+        }
     }
 
     private fun doCancel() {

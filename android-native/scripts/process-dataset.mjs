@@ -364,6 +364,53 @@ function escapeKotlinString(str) {
     .replace(/\t/g, '\\t');
 }
 
+function generateChunkedKotlinProperty(valName, typeName, items, itemType, isArray = false) {
+  const chunkSize = 150;
+  const chunks = [];
+  for (let i = 0; i < items.length; i += chunkSize) {
+    chunks.push(items.slice(i, i + chunkSize));
+  }
+
+  let code = '';
+  // The public lazy property
+  if (isArray) {
+    code += `    val ${valName}: Array<${itemType}> by lazy {\n`;
+    code += `        (${chunks.map((_, idx) => `init_${valName.toLowerCase()}_${idx}()`).join(' + ')}).toTypedArray()\n`;
+    code += `    }\n\n`;
+  } else if (typeName.startsWith('Map<')) {
+    code += `    val ${valName}: Map<String, String> by lazy {\n`;
+    code += `        ${chunks.map((_, idx) => `init_${valName.toLowerCase()}_${idx}()`).join(' + ')}\n`;
+    code += `    }\n\n`;
+  } else if (typeName.startsWith('Set<')) {
+    code += `    val ${valName}: Set<String> by lazy {\n`;
+    code += `        ${chunks.map((_, idx) => `init_${valName.toLowerCase()}_${idx}()`).join(' + ')}\n`;
+    code += `    }\n\n`;
+  } else {
+    code += `    val ${valName}: ${typeName} by lazy {\n`;
+    code += `        ${chunks.map((_, idx) => `init_${valName.toLowerCase()}_${idx}()`).join(' + ')}\n`;
+    code += `    }\n\n`;
+  }
+
+  // The private chunk initializers
+  chunks.forEach((chunk, idx) => {
+    if (isArray || typeName.startsWith('List<')) {
+      code += `    private fun init_${valName.toLowerCase()}_${idx}(): List<${itemType}> = listOf(\n`;
+      code += chunk.map(x => `        ${x}`).join(',\n');
+      code += `\n    )\n\n`;
+    } else if (typeName.startsWith('Set<')) {
+      code += `    private fun init_${valName.toLowerCase()}_${idx}(): Set<String> = setOf(\n`;
+      code += chunk.map(x => `        ${x}`).join(',\n');
+      code += `\n    )\n\n`;
+    } else if (typeName.startsWith('Map<')) {
+      code += `    private fun init_${valName.toLowerCase()}_${idx}(): Map<String, String> = mapOf(\n`;
+      code += chunk.map(x => `        ${x}`).join(',\n');
+      code += `\n    )\n\n`;
+    }
+  });
+
+  return code;
+}
+
 function calcRange(values) {
   if (values.length === 0) return [0.0, 0.0, 0.0];
   const sorted = [...values].sort((a, b) => a - b);
@@ -379,6 +426,32 @@ function kotlinList(items, indent = '        ') {
 }
 
 const vocabArray = Array.from(vocabulary).sort().slice(0, 1000); // Top 1000 words
+
+// Generate arrays of code lines for chunking
+const tokenIndexLines = Object.entries(tfidfTokenIndex).slice(0, 800).map(([token, docs]) => {
+  const compact = docs.map(d => `${d.docId}:${d.score}`).join(',');
+  return `        "${escapeKotlinString(token)}" to "${compact}"`;
+});
+
+const trigramIndexLines = Object.entries(tfidfTrigramIndex).slice(0, 800).map(([trigram, docs]) => {
+  return `        "${escapeKotlinString(trigram)}" to "${docs.join(',')}"`;
+});
+
+const portionTripletLines = dedupedTriplets.map(t => {
+  return `        PortionTriplet("${escapeKotlinString(t.food)}", ${t.grams.toFixed(1)}, ${t.count})`;
+});
+
+const vocabularyLines = vocabArray.map(w => {
+  return `        "${escapeKotlinString(w)}"`;
+});
+
+const instructionLines = entries.filter(e => e.type !== 'DATABASE_LOOKUP').slice(0, 3000).map(e => {
+  return `        "${escapeKotlinString(e.instruction.substring(0, 200))}"`;
+});
+
+const entryTypeLines = entries.filter(e => e.type !== 'DATABASE_LOOKUP').slice(0, 3000).map(e => {
+  return `        "${e.type}"`;
+});
 
 let kotlinCode = `package com.example.kpkn.domain.nutrition
 
@@ -412,21 +485,12 @@ ${Object.entries(typeCounts).map(([k, v]) => `        "${k}" to ${v}`).join(',\n
     // ─── TF-IDF Token Index ────────────────────────────────────────────────
     // Maps each token to list of (docId, tfidfScore) sorted by relevance
     
-    val TFIDF_TOKEN_INDEX: Map<String, String> = mapOf(
-${Object.entries(tfidfTokenIndex).slice(0, 800).map(([token, docs]) => {
-  const compact = docs.map(d => `${d.docId}:${d.score}`).join(',');
-  return `        "${escapeKotlinString(token)}" to "${compact}"`;
-}).join(',\n')}
-    )
+${generateChunkedKotlinProperty("TFIDF_TOKEN_INDEX", "Map<String, String>", tokenIndexLines, "String")}
 
     // ─── TF-IDF Trigram Index ──────────────────────────────────────────────
     // Maps each trigram to comma-separated docIds for fuzzy matching
     
-    val TFIDF_TRIGRAM_INDEX: Map<String, String> = mapOf(
-${Object.entries(tfidfTrigramIndex).slice(0, 800).map(([trigram, docs]) => {
-  return `        "${escapeKotlinString(trigram)}" to "${docs.join(',')}"`;
-}).join(',\n')}
-    )
+${generateChunkedKotlinProperty("TFIDF_TRIGRAM_INDEX", "Map<String, String>", trigramIndexLines, "String")}
 
     // ─── Portion Triplets (food → average grams) ───────────────────────────
     // Extracted from dataset entries with explicit gram measurements
@@ -437,9 +501,7 @@ ${Object.entries(tfidfTrigramIndex).slice(0, 800).map(([trigram, docs]) => {
         val frequency: Int,
     )
     
-    val PORTION_TRIPLETS: List<PortionTriplet> = listOf(
-${dedupedTriplets.map(t => `        PortionTriplet("${escapeKotlinString(t.food)}", ${t.grams.toFixed(1)}, ${t.count})`).join(',\n')}
-    )
+${generateChunkedKotlinProperty("PORTION_TRIPLETS", "List<PortionTriplet>", portionTripletLines, "PortionTriplet")}
 
     // ─── Context Profiles ──────────────────────────────────────────────────
     // Typical portions and macros for each detected context
@@ -501,9 +563,7 @@ ${Object.entries(macroRanges).map(([type, range]) => {
     // ─── Vocabulary Set ────────────────────────────────────────────────────
     // Unique words from dataset for normalization and synonym matching
     
-    val VOCABULARY: Set<String> = setOf(
-${vocabArray.map(w => `        "${escapeKotlinString(w)}"`).join(',\n')}
-    )
+${generateChunkedKotlinProperty("VOCABULARY", "Set<String>", vocabularyLines, "String")}
 
     // ─── Context Keywords ──────────────────────────────────────────────────
     
@@ -524,15 +584,11 @@ ${Object.entries(INTENSIFIERS).map(([intens, kws]) => {
     // ─── Dataset Instructions (for semantic search) ────────────────────────
     // Stored as array for indexed access by docId (top 3000 most useful)
     
-    val INSTRUCTIONS: Array<String> = arrayOf(
-${entries.filter(e => e.type !== 'DATABASE_LOOKUP').slice(0, 3000).map(e => `        "${escapeKotlinString(e.instruction.substring(0, 200))}"`).join(',\n')}
-    )
+${generateChunkedKotlinProperty("INSTRUCTIONS", "Array<String>", instructionLines, "String", true)}
 
     // ─── Entry Types ───────────────────────────────────────────────────────
     
-    val ENTRY_TYPES: Array<String> = arrayOf(
-${entries.filter(e => e.type !== 'DATABASE_LOOKUP').slice(0, 3000).map(e => `        "${e.type}"`).join(',\n')}
-    )
+${generateChunkedKotlinProperty("ENTRY_TYPES", "Array<String>", entryTypeLines, "String", true)}
 }
 `;
 

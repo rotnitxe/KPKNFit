@@ -164,6 +164,13 @@ private fun WorkoutStepperField(
                     .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.36f)),
                 contentAlignment = Alignment.Center,
             ) {
+                val resolvedFontSize = remember(value, textStyle.fontSize) {
+                    when {
+                        value.length >= 5 -> 12.sp
+                        value.length == 4 -> 14.sp
+                        else -> textStyle.fontSize
+                    }
+                }
                 BasicTextField(
                     value = value,
                     onValueChange = { if (textInputEnabled) onValueChange(it) },
@@ -173,6 +180,7 @@ private fun WorkoutStepperField(
                     singleLine = true,
                     enabled = textInputEnabled,
                     textStyle = textStyle.copy(
+                        fontSize = resolvedFontSize,
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Black,
                         color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
@@ -548,6 +556,7 @@ internal fun SetInputCardV2(
     ) -> Unit,
 ) {
     val context = LocalContext.current
+    val isNarrowScreen = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 360
     val suggestedWeightText: String? = weightSuggestion?.suggestedWeight?.toTrimmedNumberString()
     val completedWeightText = sessionCompletedSet
         ?.weight
@@ -1115,7 +1124,7 @@ internal fun SetInputCardV2(
 
                         WorkoutMetricChip(
                             label = plannedIntensityDisplayLabel,
-                            value = if (plannedIntensityMode == IntensityMode.FAILURE && reachedFailure) "FALLO" else plannedIntensityDisplayValue,
+                            value = if (plannedIntensityMode == IntensityMode.FAILURE && reachedFailure) (if (isNarrowScreen) "F" else "FALLO") else plannedIntensityDisplayValue,
                             badgeText = intensityBadgeText,
                             badgeColor = intensityBadgeColor,
                             containerColor = intensityContainerColor,
@@ -1319,8 +1328,8 @@ internal fun SetInputCardV2(
                             val intensityDisabled = isExecutionError
                             WorkoutStepperField(
                                 value = when {
-                                    isExecutionError -> "ERROR"
-                                    reachedFailure -> "FALLO"
+                                    isExecutionError -> if (isNarrowScreen) "ERR" else "ERROR"
+                                    reachedFailure -> if (isNarrowScreen) "F" else "FALLO"
                                     else -> intensityText
                                 },
                                 onValueChange = { if (!intensityDisabled && !reachedFailure) intensityText = it },

@@ -59,7 +59,12 @@ fun HomeSessionSection(
     LaunchedEffect(sessions.size) { activeIndex = 0 }
 
     Column(modifier.fillMaxWidth()) {
-        SectionHeader("Sesión de hoy", Modifier.padding(horizontal = 24.dp))
+        val current = sessions.getOrNull(activeIndex) ?: sessions.firstOrNull()
+        val isCurrentToday = current?.dayOfWeek == currentDayOfWeek
+        val isCurrentCompleted = current?.isCompleted == true
+        val headerTitle = if (isCurrentToday && !isCurrentCompleted) "Sesión de hoy" else "Próxima sesión"
+
+        SectionHeader(headerTitle, Modifier.padding(horizontal = 24.dp))
 
         if (!hasActiveProgram) {
             NoProgramSessionCard(Modifier.padding(horizontal = 24.dp))
@@ -147,7 +152,7 @@ private fun SessionCard(
                     color = Color.White.copy(alpha = 0.15f),
                 ) {
                     Text(
-                        if (isToday) "Sesión de hoy" else "Próxima sesión",
+                        if (isToday && !item.isCompleted) "Sesión de hoy" else "Próxima sesión",
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         color = Color.White,
                         style = MaterialTheme.typography.labelSmall,

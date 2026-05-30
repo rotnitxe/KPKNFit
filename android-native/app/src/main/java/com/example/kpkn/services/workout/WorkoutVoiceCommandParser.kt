@@ -22,9 +22,15 @@ object WorkoutVoiceCommandParser {
         "cancelado", "niego",
     )
 
+    private val SKIP_SET_KEYWORDS = setOf(
+        "saltar serie", "omitir serie", "saltar set", "omitir set",
+        "pasar serie", "avanzar serie",
+    )
+
     private val SKIP_KEYWORDS = setOf(
         "saltar", "siguiente", "omitir", "pasar", "adelante",
         "siguiente ejercicio", "proximo", "próximo", "avanzar",
+        "saltar ejercicio", "omitir ejercicio", "pasar ejercicio",
     )
 
     private val PREVIOUS_KEYWORDS = setOf(
@@ -60,6 +66,16 @@ object WorkoutVoiceCommandParser {
         "apagar micrófono", "callar",
     )
 
+    private val FINISH_SESSION_KEYWORDS = setOf(
+        "finalizar sesion", "finalizar entrenamiento", "terminar sesion",
+        "terminar entrenamiento", "acabar sesion", "finalizar", "terminar",
+    )
+
+    private val CANCEL_SESSION_KEYWORDS = setOf(
+        "cancelar sesion", "cancelar entrenamiento", "descartar entrenamiento",
+        "descartar sesion", "eliminar entrenamiento",
+    )
+
     fun parseCommand(
         transcript: String,
         isTimeMode: Boolean,
@@ -78,8 +94,20 @@ object WorkoutVoiceCommandParser {
             }
         }
 
+        if (FINISH_SESSION_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.FinishSession
+        }
+
+        if (CANCEL_SESSION_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.CancelSession
+        }
+
         if (TURN_OFF_VOICE_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.TurnOffVoice
+        }
+
+        if (SKIP_SET_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.SkipSet
         }
 
         if (SKIP_KEYWORDS.any { lower.contains(it) }) {
@@ -357,4 +385,126 @@ object WorkoutVoiceCommandParser {
         "dos" to '2', "tres" to '3', "cuatro" to '4', "cinco" to '5',
         "seis" to '6', "siete" to '7', "ocho" to '8', "nueve" to '9',
     )
+
+    fun parseFeedbackCommand(transcript: String): VoiceSessionCommand.LogFeedback {
+        val lower = normalizeText(transcript)
+
+        val saveKeywords = setOf("guardar", "listo", "ok", "guardar feedback", "terminar feedback", "completar")
+        val isSaveAction = saveKeywords.any { lower.contains(it) }
+
+        var technicalQuality: Int? = null
+        if (lower.contains("calidad") || lower.contains("tecnica") || lower.contains("ejecucion")) {
+            technicalQuality = when {
+                lower.contains("excelente") || lower.contains("perfecta") -> 10
+                lower.contains("muy buena") -> 9
+                lower.contains("buena") -> 8
+                lower.contains("regular") || lower.contains("mas o menos") -> 6
+                lower.contains("mala") || lower.contains("pesima") -> 3
+                else -> extractNumberFromText(lower)?.toInt()?.coerceIn(1, 10)
+            }
+        }
+
+        var perceivedIntensity: Double? = null
+        if (lower.contains("intensidad") || lower.contains("rpe") || lower.contains("esfuerzo") || lower.contains("fatiga")) {
+            perceivedIntensity = extractNumberFromText(lower)?.coerceIn(1.0, 10.0)
+        }
+
+        var discomfortId: String? = null
+        if (lower.contains("molestia") || lower.contains("dolor") || lower.contains("tiron")) {
+            discomfortId = matchDiscomfortJointId(lower)
+        }
+
+        return VoiceSessionCommand.LogFeedback(
+            technicalQuality = technicalQuality,
+            discomfortId = discomfortId,
+            perceivedIntensity = perceivedIntensity,
+            isSaveAction = isSaveAction,
+            exerciseSearchName = lower
+        )
+    }
+
+    fun parseFinalFeedbackCommand(transcript: String): VoiceSessionCommand.LogFinalFeedback {
+        val lower = normalizeText(transcript)
+
+        val saveKeywords = setOf("guardar y terminar", "guardar entrenamiento", "guardar sesion", "terminar entrenamiento", "finalizar entrenamiento", "finalizar sesion")
+        val isSaveAction = saveKeywords.any { lower.contains(it) }
+
+        var neural: Int? = null
+        var spinal: Int? = null
+        if (lower.contains("nerviosa") || lower.contains("neural") || lower.contains("cns") || lower.contains("sistema")) {
+            neural = extractNumberFromText(lower)?.toInt()?.coerceIn(0, 100)
+        }
+        if (lower.contains("espinal") || lower.contains("columna") || lower.contains("espalda")) {
+            spinal = extractNumberFromText(lower)?.toInt()?.coerceIn(0, 100)
+        }
+
+        var discomfortId: String? = null
+        if (lower.contains("molestia") || lower.contains("dolor") || lower.contains("tiron")) {
+            discomfortId = matchDiscomfortJointId(lower)
+        }
+
+        var discomfortNote: String? = null
+        val discomfortNoteKeywords = listOf("nota de molestia", "notas de molestia", "detalles de molestia", "detalle de molestia", "detalles de la molestia")
+        for (keyword in discomfortNoteKeywords) {
+            if (lower.contains(keyword)) {
+                val index = lower.indexOf(keyword) + keyword.length
+                if (index < lower.length) {
+                    discomfortNote = lower.substring(index).trim().removePrefix(":").trim()
+                    break
+                }
+            }
+        }
+
+        var sessionNote: String? = null
+        val noteKeywords = listOf("nota de sesion", "notas de sesion", "comentario de sesion", "comentarios de sesion", "comentario", "comentarios", "nota", "notas", "observacion", "observaciones")
+        if (discomfortNote == null) {
+            for (keyword in noteKeywords) {
+                if (lower.contains(keyword)) {
+                    val index = lower.indexOf(keyword) + keyword.length
+                    if (index < lower.length) {
+                        sessionNote = lower.substring(index).trim().removePrefix(":").trim()
+                        break
+                    }
+                }
+            }
+        }
+
+        return VoiceSessionCommand.LogFinalFeedback(
+            notes = sessionNote,
+            discomfortId = discomfortId,
+            additionalDiscomfortNote = discomfortNote,
+            neuralBattery = neural,
+            spinalBattery = spinal,
+            isSaveAction = isSaveAction
+        )
+    }
+
+    private fun matchDiscomfortJointId(text: String): String? {
+        return when {
+            text.contains("hombro") -> "shoulder_anterior"
+            text.contains("rodilla") -> "knee_patellar"
+            text.contains("codo") -> "elbow_lateral"
+            text.contains("lumbar") || text.contains("espalda baja") -> "lower_back"
+            text.contains("muneca") || text.contains("muñeca") -> "wrist"
+            text.contains("cadera") -> "hip"
+            text.contains("tobillo") -> "ankle"
+            text.contains("ninguna") || text.contains("sin molestia") || text.contains("todo bien") -> "none"
+            else -> null
+        }
+    }
+
+    private fun extractNumberFromText(text: String): Double? {
+        val match = Regex("\\d+(?:[.,]\\d+)?").find(text)
+        if (match != null) {
+            return match.value.replace(',', '.').toDoubleOrNull()
+        }
+        val tokens = text.split(" ")
+        for (token in tokens) {
+            val normalizedToken = token.trim()
+            if (VOICE_INTEGER_WORDS.containsKey(normalizedToken)) {
+                return VOICE_INTEGER_WORDS.getValue(normalizedToken).toDouble()
+            }
+        }
+        return null
+    }
 }

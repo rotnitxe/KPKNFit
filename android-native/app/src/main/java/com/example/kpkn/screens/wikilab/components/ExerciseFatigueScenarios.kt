@@ -6,15 +6,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,8 +25,6 @@ import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.training.VolumeCalculator
-import com.example.kpkn.screens.home.SingleRingCanvas
-import com.example.kpkn.ui.components.SectionHeader
 import kotlin.math.roundToInt
 
 private val RingMuscular = Color(0xFFFF5252)
@@ -191,310 +186,166 @@ fun ExerciseFatigueScenarios(
     exercise: ExerciseMuscleInfo,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        ),
+    if (exercise.involvedMuscles.isEmpty()) return
+
+    val scenarios = remember(exercise.id) { buildScenarioSpecs() }
+    var sliderIndex by rememberSaveable(exercise.id) { mutableStateOf(2f) } // Default to RPE 8 (index 2)
+    val selectedScenario = scenarios[sliderIndex.roundToInt().coerceIn(0, scenarios.size - 1)]
+    val selectedResult = remember(exercise.id, selectedScenario.id) {
+        computeScenarioFatigueResult(exercise, selectedScenario)
+    }
+    val rpeMultiplier = remember(selectedScenario.id) {
+        AugeFatigueEngine.calculateRpeMultiplier(AugeFatigueEngine.getEffectiveRPE(selectedScenario.set))
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        if (exercise.involvedMuscles.isEmpty()) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "Drenaje por intensidad",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+            )
+            Text(
+                "Impacto x${"%.2f".format(rpeMultiplier)}",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+
+        // Intensity Slider
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                SectionHeader("Drenaje por intensidad")
                 Text(
-                    "Todavía no hay suficiente información muscular para estimar este ejercicio.",
+                    text = selectedScenario.subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }
-            return@Card
-        }
-
-        val scenarios = remember(exercise.id) { buildScenarioSpecs() }
-        var selectedScenarioId by rememberSaveable(exercise.id) { mutableStateOf("rpe-8") }
-        val selectedScenario = scenarios.firstOrNull { it.id == selectedScenarioId } ?: scenarios[2]
-        val selectedResult = remember(exercise.id, selectedScenario.id) {
-            computeScenarioFatigueResult(exercise, selectedScenario)
-        }
-        val rpeMultiplier = remember(selectedScenario.id) {
-            AugeFatigueEngine.calculateRpeMultiplier(AugeFatigueEngine.getEffectiveRPE(selectedScenario.set))
-        }
-
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            SectionHeader("Drenaje por intensidad")
-            Text(
-                "Simula una serie y revisa cuánto drenaje genera a nivel muscular, sistémico y espinal.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            ScenarioSelectorRow(
-                scenarios = scenarios,
-                selectedScenarioId = selectedScenario.id,
-                onScenarioSelected = { selectedScenarioId = it },
-            )
-
-            Card(
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.76f),
-                ),
-            ) {
-                Column(
-                    modifier = Modifier.padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                selectedScenario.title,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Black,
-                            )
-                            Text(
-                                selectedScenario.subtitle,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        Text(
-                            "Impacto x${"%.2f".format(rpeMultiplier)}",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-
-                    ScenarioRingsSummary(selectedResult = selectedResult)
-
-                    Text(
-                        "Estimación por serie: muscular -${(100 - selectedResult.averageMuscleRemaining).coerceIn(0, 100)}% · sistémico -${selectedResult.cnsDrain}% · espinal -${selectedResult.spinalDrain}%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-
-                    ScenarioMuscleDrainRow(selectedResult.muscularDrainByMuscle)
-
-                    Text(
-                        selectedResult.overallRecoveryNeedLabel(),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ScenarioSelectorRow(
-    scenarios: List<ScenarioFatigueSpec>,
-    selectedScenarioId: String,
-    onScenarioSelected: (String) -> Unit,
-) {
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val compact = maxWidth < 360.dp
-        if (compact) {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(horizontal = 2.dp),
-            ) {
-                items(scenarios, key = { it.id }) { scenario ->
-                    ScenarioSelectorButton(
-                        scenario = scenario,
-                        isSelected = scenario.id == selectedScenarioId,
-                        onClick = { onScenarioSelected(scenario.id) },
-                        modifier = Modifier.width(92.dp),
-                    )
-                }
-            }
-        } else {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                scenarios.forEach { scenario ->
-                    ScenarioSelectorButton(
-                        scenario = scenario,
-                        isSelected = scenario.id == selectedScenarioId,
-                        onClick = { onScenarioSelected(scenario.id) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ScenarioSelectorButton(
-    scenario: ScenarioFatigueSpec,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val accent = when (scenario.id) {
-        "failure" -> MaterialTheme.colorScheme.error
-        "rpe-6", "rpe-7" -> MaterialTheme.colorScheme.tertiary
-        else -> MaterialTheme.colorScheme.primary
-    }
-    Surface(
-        modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
-            .heightIn(min = 72.dp),
-        shape = RoundedCornerShape(18.dp),
-        color = if (isSelected) accent.copy(alpha = 0.14f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.68f),
-        border = androidx.compose.foundation.BorderStroke(
-            width = if (isSelected) 1.5.dp else 1.dp,
-            color = if (isSelected) accent.copy(alpha = 0.42f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.18f),
-        ),
-        onClick = onClick,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                text = scenario.shortLabel,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Black,
-                color = if (isSelected) accent else MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = scenario.subtitle,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ScenarioRingsSummary(selectedResult: ScenarioFatigueResult) {
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val compact = maxWidth < 360.dp
-        
-        if (compact) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                ScenarioRingCard(
-                    title = "Muscular",
-                    value = selectedResult.averageMuscleRemaining,
-                    drain = (100 - selectedResult.averageMuscleRemaining).coerceIn(0, 100),
-                    color = RingMuscular,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                ScenarioRingCard(
-                    title = "Energia",
-                    value = selectedResult.energyRemaining,
-                    drain = selectedResult.cnsDrain,
-                    color = RingSystem,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                ScenarioRingCard(
-                    title = "Columna",
-                    value = selectedResult.spineRemaining,
-                    drain = selectedResult.spinalDrain,
-                    color = RingSpinal,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        } else {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                ScenarioRingCard(
-                    title = "Muscular",
-                    value = selectedResult.averageMuscleRemaining,
-                    drain = (100 - selectedResult.averageMuscleRemaining).coerceIn(0, 100),
-                    color = RingMuscular,
-                    modifier = Modifier.weight(1f)
-                )
-                ScenarioRingCard(
-                    title = "Energia",
-                    value = selectedResult.energyRemaining,
-                    drain = selectedResult.cnsDrain,
-                    color = RingSystem,
-                    modifier = Modifier.weight(1f)
-                )
-                ScenarioRingCard(
-                    title = "Columna",
-                    value = selectedResult.spineRemaining,
-                    drain = selectedResult.spinalDrain,
-                    color = RingSpinal,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ScenarioRingCard(
-    title: String,
-    value: Int,
-    drain: Int,
-    color: Color,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.34f),
-        ),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            SingleRingCanvas(
-                value = (value.coerceIn(0, 100) / 100f),
-                color = color,
-                ringDiameter = 68f,
-                strokeWidth = 6f,
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    title,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Black,
-                    color = color,
-                )
-                Text(
-                    "$value% restante",
+                    text = if (selectedScenario.id == "failure") "Fallo muscular" else "RPE ${selectedScenario.shortLabel}",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Black,
-                )
-                Text(
-                    "Drenaje -$drain%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
+            Slider(
+                value = sliderIndex,
+                onValueChange = { sliderIndex = it },
+                valueRange = 0f..5f,
+                steps = 4,
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                ),
+            )
         }
+
+        // Horizontal Bars Summary
+        ScenarioBarsSummary(selectedResult = selectedResult)
+
+        // Muscle Drain LazyRow
+        ScenarioMuscleDrainRow(selectedResult.muscularDrainByMuscle)
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                selectedResult.overallRecoveryNeedLabel(),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                "Estimación por serie",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ScenarioBarsSummary(selectedResult: ScenarioFatigueResult) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        ScenarioBarRow(
+            label = "Fatiga Muscular",
+            drain = (100 - selectedResult.averageMuscleRemaining).coerceIn(0, 100),
+            color = RingMuscular,
+        )
+        ScenarioBarRow(
+            label = "Estrés Sistémico (Energía)",
+            drain = selectedResult.cnsDrain,
+            color = RingSystem,
+        )
+        ScenarioBarRow(
+            label = "Estrés Espinal (Columna)",
+            drain = selectedResult.spinalDrain,
+            color = RingSpinal,
+        )
+    }
+}
+
+@Composable
+private fun ScenarioBarRow(
+    label: String,
+    drain: Int,
+    color: Color,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                label,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                "Drenaje -$drain%",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Black,
+                color = color,
+            )
+        }
+        LinearProgressIndicator(
+            progress = { drain / 100f },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(999.dp)),
+            color = color,
+            trackColor = color.copy(alpha = 0.12f),
+        )
     }
 }
 
@@ -512,40 +363,32 @@ private fun ScenarioMuscleDrainRow(drainByMuscle: Map<String, Int>) {
     }
     val listState = rememberLazyListState()
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        SectionHeader("Drenaje por musculo")
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            "Drenaje por músculo",
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Box(modifier = Modifier.fillMaxWidth()) {
             LazyRow(
                 state = listState,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(end = 28.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(end = 16.dp),
             ) {
                 items(items, key = { it.key }) { (muscle, drain) ->
-                    ScenarioMuscleCard(muscle = muscle, drain = drain)
+                    ScenarioMuscleChip(muscle = muscle, drain = drain)
                 }
-            }
-            if (listState.canScrollForward) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .width(40.dp)
-                        .fillMaxHeight()
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
-                                ),
-                            ),
-                        ),
-                )
             }
         }
     }
 }
 
 @Composable
-private fun ScenarioMuscleCard(muscle: String, drain: Int) {
+private fun ScenarioMuscleChip(muscle: String, drain: Int) {
     val remaining = (100 - drain).coerceIn(0, 100)
     val color = when {
         remaining >= 80 -> Color(0xFF22C55E)
@@ -553,44 +396,37 @@ private fun ScenarioMuscleCard(muscle: String, drain: Int) {
         else -> Color(0xFFEF4444)
     }
 
-    Card(
-        modifier = Modifier.width(168.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.34f),
-        ),
+    Surface(
+        modifier = Modifier.width(130.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)),
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
                 muscle,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-                maxLines = 2,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                "$remaining% restante",
-                style = MaterialTheme.typography.labelMedium,
+                "-$drain% drenaje",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
                 color = color,
-                fontWeight = FontWeight.Black,
             )
             LinearProgressIndicator(
                 progress = { remaining / 100f },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(7.dp)
+                    .height(4.dp)
                     .clip(RoundedCornerShape(999.dp)),
                 color = color,
-                trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.46f),
-            )
-            Text(
-                "Drenaje estimado -$drain%",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 11.sp,
+                trackColor = color.copy(alpha = 0.1f),
             )
         }
     }

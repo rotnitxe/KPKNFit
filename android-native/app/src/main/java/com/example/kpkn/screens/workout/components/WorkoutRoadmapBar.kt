@@ -268,52 +268,15 @@ fun WorkoutRoadmapBar(
                         }
                     }
 
-                    groupedByMuscle.forEach { (muscle, groups) ->
-                        Surface(
+                    val muscleList = groupedByMuscle.toList()
+                    val chunkedMuscles = remember(muscleList) { muscleList.chunked(2) }
+
+                    chunkedMuscles.forEach { pair ->
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = WorkoutUiTokens.InnerCardShape,
-                            color = Color.White.copy(alpha = 0.09f),
-                            border = null
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.padding(10.dp),
-                                verticalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                // Group Header
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = muscle,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Black,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                                    )
-
-                                    val groupDoneSets = groups.sumOf { g ->
-                                        g.exercises.sumOf { e ->
-                                            e.sets.indices.sumOf { sIdx ->
-                                                e.completionKeysForSet(sIdx).count { completedSets.containsKey(it) }
-                                            }
-                                        }
-                                    }
-                                    val groupTotalSets = groups.sumOf { g ->
-                                        g.exercises.sumOf { e ->
-                                            e.sets.indices.sumOf { e.completionKeysForSet(it).size }
-                                        }
-                                    }
-
-                                    Text(
-                                        text = "$groupDoneSets/$groupTotalSets series",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (groupDoneSets == groupTotalSets && groupTotalSets > 0) Color(0xFF66BB6A) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                    )
-                                }
-
-                                // Linear Progress bar for this muscle group
+                            pair.forEach { (muscle, groups) ->
                                 val groupDoneSets = groups.sumOf { g ->
                                     g.exercises.sumOf { e ->
                                         e.sets.indices.sumOf { sIdx ->
@@ -326,100 +289,26 @@ fun WorkoutRoadmapBar(
                                         e.sets.indices.sumOf { e.completionKeysForSet(it).size }
                                     }
                                 }
-                                val progress = if (groupTotalSets > 0) groupDoneSets.toFloat() / groupTotalSets.toFloat() else 0f
-                                
-                                LinearProgressIndicator(
-                                    progress = { progress },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(4.dp)
-                                        .clip(WorkoutUiTokens.ChipShape),
-                                    color = if (groupDoneSets == groupTotalSets && groupTotalSets > 0) Color(0xFF66BB6A) else sessionAccentColor,
-                                    trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                                )
 
-                                Spacer(Modifier.height(2.dp))
+                                val firstExercise = groups.firstOrNull()?.exercises?.firstOrNull()
+                                val targetIdx = if (firstExercise != null) exercises.indexOfFirst { it.id == firstExercise.id } else -1
 
-                                // List of exercises in this group
-                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    groups.forEach { group ->
-                                        val exercise = group.exercises.firstOrNull() ?: return@forEach
-                                        val idx = exercises.indexOfFirst { it.id == exercise.id }.coerceAtLeast(0)
-                                        val isCurrent = group.exercises.any { it.id == exercises.getOrNull(currentIdx)?.id }
-
-                                        val exerciseCompleted = group.exercises.sumOf { member ->
-                                            member.sets.indices.sumOf { sIdx ->
-                                                member.completionKeysForSet(sIdx).count { completedSets.containsKey(it) }
+                                Box(modifier = Modifier.weight(1f)) {
+                                    MuscleProgressCard(
+                                        muscle = muscle,
+                                        doneSets = groupDoneSets,
+                                        totalSets = groupTotalSets,
+                                        sessionAccentColor = sessionAccentColor,
+                                        onClick = {
+                                            if (targetIdx >= 0) {
+                                                onSelect(targetIdx)
                                             }
                                         }
-                                        val exerciseTotal = group.exercises.sumOf { member ->
-                                            member.sets.indices.sumOf { member.completionKeysForSet(it).size }
-                                        }
-                                        val isAllDone = exerciseCompleted >= exerciseTotal && exerciseTotal > 0
-
-                                        val bgGrad = if (isCurrent) {
-                                            Brush.horizontalGradient(
-                                                colors = listOf(sessionAccentColor.copy(alpha = 0.30f), sessionAccentColor.copy(alpha = 0.14f))
-                                            )
-                                        } else {
-                                            Brush.horizontalGradient(colors = listOf(Color.White.copy(alpha = 0.065f), Color.White.copy(alpha = 0.025f)))
-                                        }
-
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clip(WorkoutUiTokens.InnerCardShape)
-                                                .background(bgGrad)
-                                                .clickable {
-                                                    if (group.groupId != null && group.exercises.size > 1) {
-                                                        onSelectGroup(group.groupId)
-                                                    } else {
-                                                        onSelect(idx)
-                                                    }
-                                                }
-                                                .padding(horizontal = 8.dp, vertical = 6.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.weight(1f),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                            ) {
-                                                // Indicator Dot
-                                                Surface(
-                                                    modifier = Modifier.size(8.dp),
-                                                    shape = RoundedCornerShape(999.dp),
-                                                    color = when {
-                                                        isCurrent -> sessionAccentColor
-                                                        isAllDone -> Color(0xFF66BB6A)
-                                                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                                                    }
-                                                ) {}
-
-                                                Text(
-                                                    text = if (group.groupId != null && group.exercises.size > 1) "Superserie (${group.exercises.joinToString { it.name }})" else exercise.name,
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    fontWeight = if (isCurrent) FontWeight.Black else FontWeight.Medium,
-                                                    color = if (isCurrent) sessionAccentColor else MaterialTheme.colorScheme.onSurface,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                            }
-
-                                            Text(
-                                                text = if (isAllDone) "✓ Listo" else "$exerciseCompleted/$exerciseTotal sets",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold,
-                                                color = when {
-                                                    isAllDone -> Color(0xFF66BB6A)
-                                                    isCurrent -> sessionAccentColor
-                                                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                                }
-                                            )
-                                        }
-                                    }
+                                    )
                                 }
+                            }
+                            if (pair.size < 2) {
+                                Spacer(modifier = Modifier.weight(1f))
                             }
                         }
                     }
@@ -756,3 +645,67 @@ private fun SupersetRoadmapCard(
         }
     }
 }
+
+@Composable
+private fun MuscleProgressCard(
+    muscle: String,
+    doneSets: Int,
+    totalSets: Int,
+    sessionAccentColor: Color,
+    onClick: () -> Unit
+) {
+    val progress = if (totalSets > 0) doneSets.toFloat() / totalSets.toFloat() else 0f
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(durationMillis = 350),
+        label = "muscleProgress"
+    )
+    val isCompleted = doneSets >= totalSets && totalSets > 0
+
+    val cardColor = if (isCompleted) Color(0xFF66BB6A).copy(alpha = 0.08f) else Color.White.copy(alpha = 0.06f)
+    val borderColor = if (isCompleted) Color(0xFF66BB6A).copy(alpha = 0.25f) else Color.White.copy(alpha = 0.06f)
+    val accentColor = if (isCompleted) Color(0xFF66BB6A) else sessionAccentColor
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = WorkoutUiTokens.InnerCardShape,
+        color = cardColor,
+        border = BorderStroke(1.dp, borderColor)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = muscle,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White
+                )
+                Text(
+                    text = if (isCompleted) "✓ $doneSets/$totalSets" else "$doneSets/$totalSets",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = accentColor
+                )
+            }
+            LinearProgressIndicator(
+                progress = { animatedProgress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(5.dp)
+                    .clip(RoundedCornerShape(999.dp)),
+                color = accentColor,
+                trackColor = Color.White.copy(alpha = 0.1f)
+            )
+        }
+    }
+}
+

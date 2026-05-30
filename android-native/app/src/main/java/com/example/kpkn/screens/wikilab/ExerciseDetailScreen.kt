@@ -43,9 +43,7 @@ fun ExerciseDetailScreen(
     val canonicalInvolved = remember(exercise.id, exercise.involvedMuscles) {
         collapseInvolvedMusclesToCanonical(exercise.involvedMuscles)
     }
-    val primaryMuscles = canonicalInvolved.filter { it.role == MuscleRole.PRIMARY }
-    val secondaryMuscles = canonicalInvolved.filter { it.role == MuscleRole.SECONDARY }
-    val stabilizerMuscles = canonicalInvolved.filter { it.role == MuscleRole.STABILIZER }
+    val fatigue = remember(exercise.id) { com.example.kpkn.domain.exercises.calculateFriendlyFatigue(exercise) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val customExercises by CustomExerciseRepository.customExercises.collectAsState()
     val catalog = remember(customExercises) {
@@ -91,16 +89,13 @@ fun ExerciseDetailScreen(
                 HeaderSection(exercise)
             }
 
-            // ─── Fatiga AUGE por escenario ──────────────────────────────
-            if (exercise.involvedMuscles.isNotEmpty()) {
-                item {
-                    ExerciseFatigueScenarios(exercise = exercise)
-                }
-            }
-
-            // ─── Detalles técnicos ──────────────────────────────────────
+            // ─── Carrusel de Chips Directo ──────────────────────────────
             item {
-                ExerciseTechnicalDetails(exercise)
+                ExerciseMinimalistChipsCarousel(
+                    exercise = exercise,
+                    fatigueScore = fatigue.overall,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
 
             // ─── Ejercicios similares ───────────────────────────────────
@@ -112,20 +107,87 @@ fun ExerciseDetailScreen(
                 )
             }
 
-            // ─── Musculos (navegación) ──────────────────────────────────
-            if (primaryMuscles.isNotEmpty()) {
+            // ─── Músculos involucrados ──────────────────────────────────
+            if (canonicalInvolved.isNotEmpty()) {
                 item {
-                    MuscleSection("MÚSCULOS PRIMARIOS", primaryMuscles, onNavigateToMuscle)
-                }
-            }
-            if (secondaryMuscles.isNotEmpty()) {
-                item {
-                    MuscleSection("MÚSCULOS SECUNDARIOS", secondaryMuscles, onNavigateToMuscle)
-                }
-            }
-            if (stabilizerMuscles.isNotEmpty()) {
-                item {
-                    MuscleSection("ESTABILIZADORES", stabilizerMuscles, onNavigateToMuscle)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            "Músculos involucrados",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        canonicalInvolved.forEach { m ->
+                            val color = muscleColor(m.muscle)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .then(
+                                        if (onNavigateToMuscle != null && canonicalWikiLabMuscleId(m.muscle, m.emphasis) != null) {
+                                            Modifier.clickable {
+                                                canonicalWikiLabMuscleId(m.muscle, m.emphasis)?.let(onNavigateToMuscle)
+                                            }
+                                        } else {
+                                            Modifier
+                                        }
+                                    )
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Surface(
+                                        modifier = Modifier.size(8.dp),
+                                        shape = RoundedCornerShape(50),
+                                        color = color,
+                                    ) {}
+                                    Column {
+                                        Text(
+                                            m.muscle,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Bold,
+                                        )
+                                        val roleText = when (m.role) {
+                                            MuscleRole.PRIMARY -> "Primario"
+                                            MuscleRole.SECONDARY -> "Secundario"
+                                            else -> "Estabilizador"
+                                        }
+                                        val subText = listOfNotNull(
+                                            roleText,
+                                            m.emphasis?.let { "Porción: $it" }
+                                        ).joinToString(" · ")
+                                        Text(
+                                            subText,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
+                                m.volumeContribution?.let { act ->
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = color.copy(alpha = 0.08f),
+                                    ) {
+                                        Text(
+                                            "Aporte: +${"%.2f".format(act)}",
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = color,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -140,6 +202,13 @@ fun ExerciseDetailScreen(
             if (exercise.commonMistakes != null) {
                 item {
                     MistakesSection(exercise.commonMistakes)
+                }
+            }
+
+            // ─── Drenaje por intensidad de último ────────────────────────
+            if (exercise.involvedMuscles.isNotEmpty()) {
+                item {
+                    ExerciseFatigueScenarios(exercise = exercise)
                 }
             }
 

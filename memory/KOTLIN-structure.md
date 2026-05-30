@@ -1,114 +1,131 @@
-# Kotlin Nativo — Estructura y Estado
+# Kotlin Nativo — Estructura y Estado Real del Proyecto
 
-## Stack
-- Kotlin 2.0.21 + Jetpack Compose (BOM 2025.07.00)
-- Material 3 + NavigationSuiteScaffold (adaptive navigation)
-- Min SDK: 24 (Android 7.0) | Target/Compile SDK: 36 (Android 15)
-- Java 11 | AGP 9.0.1
-- **SIN** ViewModels, Room, Hilt, ni backend todavía
+## Stack Tecnológico Activo
+- **Kotlin 2.0.21 + Jetpack Compose** (BOM `2025.07.00`)
+- **Material 3** con soporte de Dynamic Color / Material You.
+- **Compose Navigation** (`androidx.navigation:navigation-compose`) para routing dinámico en Jetpack Compose.
+- **Room Database** (`androidx.room`) para la persistencia local de SQLite (offline-first).
+- **Android Architecture Components**: ViewModels con reactividad basada en `StateFlow`/`SharedFlow`, `lifecycleScope`.
+- **Haze Blur Effect** (`dev.chrisbanes.haze`) para efectos de glassmorphism visual.
+- **Sentry Native SDK** para monitorización de errores y telemetría de rendimiento.
+- **Configuración SDK**: Min SDK: 24 (Android 7.0) | Target/Compile SDK: 36 (Android 15) | AGP: 9.0.1 | Java: 11.
 
-## Ruta del proyecto
+## Ruta del Proyecto
 `C:/Users/valen/Downloads/kpkn-fit-(beta-test)/android-native/`
 
-## Estructura de archivos
+## Puntos de Entrada Principales
+1. **`com.example.kpkn.KpknApplication`**: Inicializa la base de datos Room, configuración de telemetría, canales de notificación, gestores de alarmas de fondo e inyecciones iniciales.
+2. **`com.example.kpkn.MainActivity`**: Contenedor principal de la app. Gestiona Edge-to-Edge, el `HazeState` global para difuminado de fondos, la estructura adaptativa de navegación (`NavigationSuiteScaffold`), el `NavHost` de Jetpack Compose y la resolución de Deep Links (`DeepLinkRouter`).
+
+---
+
+## Mapa Detallado de Archivos y Arquitectura
 
 ```
-android-native/
-├── app/src/main/
-│   ├── java/com/example/kpkn/
-│   │   ├── MainActivity.kt          ← TODA la UI actual (290 líneas)
-│   │   └── ui/theme/
-│   │       ├── Color.kt             ← Paleta Material 3 (light/dark)
-│   │       ├── Theme.kt             ← KPKNTheme() con soporte dinámico
-│   │       └── Type.kt              ← Tipografía (bodyLarge base)
-│   ├── res/
-│   │   ├── drawable/kpknicon.png    ← Logo principal
-│   │   ├── values/strings.xml       ← app_name = "KPKN"
-│   │   └── xml/ (backup_rules, data_extraction_rules)
-│   └── AndroidManifest.xml          ← Sin permisos, 1 activity
-├── app/build.gradle.kts
-├── build.gradle.kts (raíz)
-└── gradle/libs.versions.toml
+android-native/app/src/main/java/com/example/kpkn/
+├── KpknApplication.kt                ← Inicializador del ciclo de vida de la aplicación
+├── MainActivity.kt                   ← Entry point UI, setup de NavigationSuiteScaffold y HazeState
+│
+├── data/                             ← Capa de datos y persistencia
+│   ├── db/                           ← Base de datos Room
+│   │   ├── KpknDatabase.kt           ← Base de datos central (Tablas, Entidades, Migraciones)
+│   │   ├── Daos.kt                   ← Consultas Room para entrenamiento, nutrición, etc.
+│   │   ├── Entities.kt               ← Esquemas de tablas SQLite (Program, Session, Block, etc.)
+│   │   ├── WikiLabDao.kt             ← DAO para la enciclopedia local de biomecánica
+│   │   ├── WikiLabEntities.kt        ← Tablas para ejercicios, músculos, tendones y articulaciones
+│   │   ├── PerformanceSnapshotEntity.kt
+│   │   └── PerformanceRangeEntity.kt
+│   ├── models/                       ← Clases de datos del dominio (Block, Program, Session, etc.)
+│   ├── repository/                   ← Abstracción de orígenes de datos (ProgramRepository, NutritionRepository, etc.)
+│   ├── remote/                       ← Cliente Supabase y APIs para sincronización con la nube
+│   └── [modulos]/                    ← Datos específicos de splits, food, learn, voice, wikilab
+│
+├── domain/                           ← Reglas y lógica de negocio (Clean Architecture)
+│   ├── auge/                         ← Motor AUGE adaptativo (Fatiga, Readiness, Baterías de recuperación)
+│   ├── biomechanics/                 ← Biomecánica, perfiles de resistencia y tensión muscular
+│   ├── calculations/                 ← Fórmulas 1RM (Epley, Brzycki), volumen efectivo y densidad
+│   ├── energy/                       ← Cálculo de necesidades calóricas y reparto de macronutrientes
+│   └── [casos-de-uso]/               ← Lógica de entrenamiento, nutrición, rendimiento y templates
+│
+├── navigation/                       ← Routing y Deep Linking
+│   ├── Navigation.kt                 ← Definición sellada de KpknRoute y menús de navegación
+│   ├── DeepLinkRouter.kt             ← Enrutador de enlaces profundos al recibir intents
+│   ├── KpknDeepLinks.kt              ← Patrones de deep links soportados
+│   └── NavigationBus.kt              ← Bus reactivo para navegación global entre hilos de fondo/UI
+│
+├── screens/                          ← Capa de presentación (Vistas Compose + ViewModels)
+│   ├── home/                         ← Pantalla principal (RINGS card, saludo dinámico, sesión diaria)
+│   │   ├── HomeScreen.kt             ← Layout reactivo y scroll adaptativo de la cabecera
+│   │   ├── HomeViewModel.kt          ← Estado y eventos de la Home
+│   │   ├── HomeRingsSection.kt       ← Canvas personalizado de los 3 anillos AUGE (Muscular, SNC, Columna)
+│   │   ├── HomeSessionSection.kt     ← Tarjeta de sesión activa y enlace a entrenamiento
+│   │   └── [componentes-home]/       ← HomeCards, HomePrograms, HomeWikiLab, AnimatedIconBackground
+│   │
+│   ├── workout/                      ← Tracker de entrenamiento en vivo
+│   │   ├── WorkoutScreen.kt          ← Interfaz principal del entrenamiento (Cronómetro, Sets, Reps)
+│   │   ├── WorkoutViewModel.kt       ← Máquina de estados compleja que controla el entreno en tiempo real
+│   │   ├── WorkoutSetInputCard.kt    ← Control interactivo de registro de sets con RPE/RIR
+│   │   ├── WorkoutVoiceInput.kt      ← Integración de control por voz offline/online para manos libres
+│   │   ├── ReadinessGateScreen.kt    ← Puerta de validación de fatiga matutina antes del entreno
+│   │   └── [componentes-entreno]/    BarbellPlateVisualizer, WorkoutRestRecoveryModel, Rest timers, etc.
+│   │
+│   ├── nutrition/                    ← Seguimiento dietético
+│   │   ├── NutritionScreen.kt        ← Dashboard de calorías, macros, vasos de agua y comidas del día
+│   │   ├── NutritionViewModel.kt     ← Gestión de ingesta de alimentos diaria y metas
+│   │   ├── BodyProgressScreen.kt     ← Seguimiento avanzado de peso, porcentaje graso y perímetros
+│   │   └── MealHistoryScreen.kt      ← Historial cronológico de ingestas
+│   │
+│   ├── wikilab/                      ← Enciclopedia interactiva de entrenamiento
+│   │   ├── WikiHomeScreen.kt         ← Buscador de ejercicios y perfiles anatómicos
+│   │   ├── WikiViewModel.kt          ← Carga reactiva de biomecánica e índices musculares
+│   │   ├── ExerciseDetailScreen.kt   ← Detalle del ejercicio (Ángulos mecánicos, ejecución, músculos)
+│   │   └── [sub-pantallas]/          Detalles de articulaciones, tendones, cadenas mecánicas y patrones
+│   │
+│   ├── settings/                     ← Menú de configuraciones
+│   │   ├── SettingsScreen.kt         ← Menú principal
+│   │   └── [sub-settings]/           General, Profile, Nutrition, Training, Auge, Notifications, Data
+│   │
+│   └── [otros]/                      competitions, learn (cursos/quizzes), profile, programdetail, auge
+│
+├── services/                         ← Servicios nativos del sistema operativo
+│   ├── nutrition/                    ← Inferencia del modelo IA local kpkn-food-fg270m-v1
+│   ├── workout/                      ← Text-To-Speech (asistente de voz), vibración háptica, WorkoutRestAlertManager
+│   └── competition/                  ← Sincronización en tiempo real de retos
+│
+├── telemetry/                        ← Telemetría e informes de fallos
+│   └── TelemetryHelper.kt            ← Wrapper personalizado de Sentry para eventos críticos y métricas
+│
+├── ui/                               ← Elementos de diseño global y temas
+│   ├── components/                   ← Widgets compartidos (KpknSnackbar, SharedComponents, iconos Canvas)
+│   ├── theme/                        ← Color.kt, Theme.kt, Type.kt (Tokens de diseño)
+│   └── locale/                       ← LocaleManager para localización completa en Español
+│
+└── widgets/                          ← Widgets de escritorio del sistema Android
 ```
 
-## Package name actual
-`com.example.kpkn` ← **renombrar a `com.kpkn.fit` al publicar**
+---
 
-## Navegación actual
+## Pantallas Clave y sus Implementaciones
 
-```kotlin
-enum class AppDestinations(val label: String) {
-    HOME("Inicio"),
-    TRAINING("Entreno"),       // placeholder GenericScreen()
-    NUTRITION("Alimentación"), // placeholder GenericScreen()
-    WIKILAB("WikiLab")         // placeholder GenericScreen()
-}
-```
-Usa `NavigationSuiteScaffold` (adaptive: bottom nav en móvil, rail en tablet).
+1. **`HomeScreen.kt` / `HomeViewModel.kt`**:
+   - Muestra el estado del atleta usando **`HomeRingsSection.kt`**, que dibuja con Canvas interactivo tres anillos: **Muscular** (Rojo), **SNC** (Azul), y **Columna** (Amarillo).
+   - Ofrece un "CalibrationOverlay" para calibrar manualmente el estado diario mediante un gesto vertical de arrastre.
+   - Conecta a la sesión actual mediante **`HomeSessionSection.kt`**, que calcula la readiness antes de permitir iniciar la rutina.
 
-## Composables implementados
+2. **`WorkoutScreen.kt` / `WorkoutViewModel.kt`**:
+   - Una de las vistas más robustas del proyecto (260KB+ de lógica interactiva).
+   - Controla las series de ejercicios con cronómetros adaptativos, sugerencia de pesos según perfiles de fuerza anteriores (`WorkoutLoadSuggestionRules`), registro del RPE (esfuerzo percibido) y RIR (repeticiones en reserva).
+   - Incorpora entrada de datos por voz (`WorkoutVoiceInput.kt` y `WorkoutVoiceUi.kt`) para loguear series sin tocar la pantalla.
+   - Integrado con **`WorkoutRestAlertManager`** para disparar recordatorios de descanso en el sistema operativo en segundo plano.
 
-| Composable | Estado |
-|-----------|--------|
-| `KPKNApp()` | ✅ Contenedor raíz con nav + scaffold |
-| `HomeTopBar()` | ✅ Header dinámico (scroll: 100dp→70dp, logo se mueve) |
-| `HomeWithProgramScreen()` | ✅ LazyColumn: saludo + RINGS card + sesión del día |
-| `AugeRings()` | ✅ Canvas: 3 anillos (Muscular=rojo, SNC=azul, Columna=amarillo) |
-| `CalibrationOverlay()` | ✅ Modal oscuro con drag vertical para calibrar rings |
-| `RingLabel()` | ✅ Etiqueta con punto de color + porcentaje |
-| `TodaySessionCard()` | ✅ Card con nombre sesión + botón START |
-| `SectionHeader()` | ✅ Título sección en mayúsculas |
-| `GenericScreen()` | ⚠️ Placeholder para pantallas sin implementar |
-| `WikiIcon()` | ✅ "W" serif canvas |
-| `DumbbellIcon()` | ✅ Mancuerna dibujada en Canvas |
-| `NutritionIcon()` | ✅ Tenedor + plato en Canvas |
+3. **`NutritionScreen.kt` / `NutritionViewModel.kt`**:
+   - Dashboard completo de nutrición diaria.
+   - Integra indexación de bases de datos offline (USDA Foods y OpenFoodFacts) e inferencia local de IA (`kpkn-food-fg270m-v1`) para análisis inteligente de frases escritas a mano ("2 huevos y una banana").
 
-## Estado actual (en memoria de Composables, sin ViewModel)
+4. **`WikiLab` (Encyclopedia)**:
+   - Base de conocimientos local que expone la relación anatómica-mecánica de los ejercicios.
+   - Presenta detalladamente los perfiles de tensión de los músculos implicados, ángulos óptimos de trabajo articular, anatomía tendinosa y cadenas cinemáticas en pantallas nativas con visualizaciones interactivas de Canvas.
 
-```kotlin
-// En KPKNApp()
-var currentDestination    // pestaña activa
-var userName              // nombre del usuario
-var muscularProgress      // 0f–1f (actualmente 0.85f)
-var sncProgress           // 0f–1f (actualmente 0.70f)
-var columnaProgress       // 0f–1f (actualmente 0.90f)
-var selectedRingIndex     // -1 = ninguno, 0/1/2 = ring activo
-val listState             // scroll state para header dinámico
-val scrollProgress        // derived: 0f=top, 1f=scrolled
-```
-
-## Modelos de datos (hardcoded, sin Room)
-
-```kotlin
-data class Program(val id: String, val name: String, val coverImage: Int? = null)
-data class Session(val id: String, val name: String, val exercises: List<String>, val isCompleted: Boolean = false)
-
-val samplePrograms = listOf(3 programas de ejemplo)
-val todaySessions = listOf(1 sesión: "Pecho y Tríceps")
-```
-
-## Dependencias (libs.versions.toml)
-
-- `androidx.core:core-ktx:1.18.0`
-- `androidx.lifecycle:lifecycle-runtime-ktx:2.6.1`
-- `androidx.activity:activity-compose:1.8.0`
-- `compose-bom:2025.07.00` → ui, material3, material3-adaptive-navigation-suite
-- `haze:1.7.2` (importado, no usado todavía)
-
-## Estado de migración
-
-| Feature | PWA | Kotlin |
-|---------|-----|--------|
-| Home + RINGS | ✅ | ✅ Implementado |
-| Top bar dinámica | ✅ | ✅ Implementado |
-| Calibración rings | ✅ | ✅ Implementado |
-| Programas | ✅ | 🔲 Solo datos hardcoded |
-| Entrenamiento | ✅ | 🔲 GenericScreen placeholder |
-| Nutrición | ✅ | 🔲 GenericScreen placeholder |
-| WikiLab | ✅ | 🔲 GenericScreen placeholder |
-| IA / Coach | ✅ | 🔲 Sin empezar |
-| Perfil / AthleteID | ✅ | 🔲 Sin empezar |
-| Settings | ✅ | 🔲 Sin empezar |
-| Backend / Supabase | ✅ | 🔲 Sin empezar |
-| Room / Base de datos | N/A | 🔲 Sin empezar |
-| ViewModels | N/A | 🔲 Sin empezar |
+5. **`Learn` (Cursos y Aprendizaje)**:
+   - Ofrece cursos formativos interactivos directamente en el dispositivo nativo.
+   - Contiene un motor de exámenes (`LearnQuiz`), lector adaptativo (`LearnReader`) y entrega insignias de logros (`LearnBadge`).

@@ -2,6 +2,7 @@ package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.domain.auge.AugeUtils.physiologicalFloor
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.max
@@ -31,13 +32,6 @@ object AugeFatigueEngine {
     fun getAthleteCapacity(settings: Settings): Double =
         ATHLETE_CAPACITY[settings.athleteType] ?: 500.0
 
-    private fun physiologicalFloor(settings: Settings): PhysiologicalFloor = when (settings.athleteType) {
-        AthleteType.POWERLIFTER, AthleteType.WEIGHTLIFTER -> PhysiologicalFloor(muscular = 22, cns = 25, spinal = 12)
-        AthleteType.BODYBUILDER, AthleteType.POWERBUILDER -> PhysiologicalFloor(muscular = 18, cns = 22, spinal = 14)
-        AthleteType.CALISTHENICS -> PhysiologicalFloor(muscular = 20, cns = 24, spinal = 16)
-        AthleteType.HYBRID, AthleteType.ZERCHER_LIFTER -> PhysiologicalFloor(muscular = 20, cns = 25, spinal = 18)
-        AthleteType.ENTHUSIAST -> PhysiologicalFloor(muscular = 22, cns = 26, spinal = 18)
-    }
 
     private fun applySoftCap(drain: Double, accumulated: Double, cap: Double): Double {
         if (drain <= 0.0 || cap <= 0.0) return 0.0

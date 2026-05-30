@@ -226,6 +226,11 @@ object SubjectivePortionEngine {
     // ─── Pan/Masas ──────────────────────────────────────────────────────────
 
     private val BREAD_PATTERNS = listOf(
+        Triple(Regex("""\bmedia\s+marraqueta\b""", RegexOption.IGNORE_CASE), 50.0, "media_marraqueta"),
+        Triple(Regex("""\buna\s+marraqueta\b""", RegexOption.IGNORE_CASE), 100.0, "marraqueta"),
+        Triple(Regex("""\bdiente\s+de\s+marraqueta\b""", RegexOption.IGNORE_CASE), 25.0, "diente_marraqueta"),
+        Triple(Regex("""\buna\s+hallulla\b""", RegexOption.IGNORE_CASE), 80.0, "hallulla"),
+        Triple(Regex("""\bpan\s+amasado\b""", RegexOption.IGNORE_CASE), 100.0, "pan_amasado"),
         Triple(Regex("""\buna\s+rebanada\b""", RegexOption.IGNORE_CASE), 30.0, "rebanada"),
         Triple(Regex("""\buna\s+rebanadita\b""", RegexOption.IGNORE_CASE), 15.0, "rebanadita"),
         Triple(Regex("""\buna\s+hogaza\b""", RegexOption.IGNORE_CASE), 500.0, "hogaza"),
@@ -444,7 +449,7 @@ object SubjectivePortionEngine {
         val lower = foodName.lowercase()
 
         return when {
-            lower.contains("aceite") || lower.contains("mantequilla") || lower.contains("manteca") || lower.contains("ghee") -> FoodDensityCategory.FAT
+            lower.contains("aceite") || lower.contains("mantequilla") || lower.contains("manteca") || lower.contains("ghee") || lower.contains("margarina") || lower.contains("mayonesa") || lower.contains("mayo") -> FoodDensityCategory.FAT
             lower.contains("azúcar") || lower.contains("azucar") || lower.contains("harina") || lower.contains("cacao") || lower.contains("canela") -> FoodDensityCategory.POWDER
             lower.contains("arroz") || lower.contains("pasta") || lower.contains("quinoa") || lower.contains("avena") || lower.contains("lenteja") || lower.contains("garbanzo") || lower.contains("poroto") -> FoodDensityCategory.GRAIN
             lower.contains("pollo") || lower.contains("carne") || lower.contains("pescado") || lower.contains("cerdo") || lower.contains("vacuno") || lower.contains("pavo") || lower.contains("huevo") || lower.contains("merluza") || lower.contains("salmón") || lower.contains("camarón") -> FoodDensityCategory.PROTEIN

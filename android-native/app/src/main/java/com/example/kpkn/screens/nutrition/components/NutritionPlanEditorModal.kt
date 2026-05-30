@@ -109,7 +109,6 @@ private val CALORIES_COLOR = Color(0xFF42A5F5)
 private enum class EditorStep {
     OBJECTIVE,
     BODY_DATA,
-    ACTIVITY,
     MACROS,
     SUMMARY
 }
@@ -293,8 +292,7 @@ fun NutritionPlanEditorModal(
         if (currentStep != EditorStep.OBJECTIVE) {
             currentStep = when (currentStep) {
                 EditorStep.BODY_DATA -> EditorStep.OBJECTIVE
-                EditorStep.ACTIVITY -> EditorStep.BODY_DATA
-                EditorStep.MACROS -> EditorStep.ACTIVITY
+                EditorStep.MACROS -> EditorStep.BODY_DATA
                 EditorStep.SUMMARY -> EditorStep.MACROS
                 else -> EditorStep.OBJECTIVE
             }
@@ -360,11 +358,10 @@ fun NutritionPlanEditorModal(
                         Spacer(Modifier.height(4.dp))
                         Text(
                             when (currentStep) {
-                                EditorStep.OBJECTIVE -> "Paso 1: Define tu objetivo principal"
-                                EditorStep.BODY_DATA -> "Paso 2: Datos corporales"
-                                EditorStep.ACTIVITY -> "Paso 3: Nivel de actividad y dieta"
-                                EditorStep.MACROS -> "Paso 4: Ajusta tus macronutrientes"
-                                EditorStep.SUMMARY -> "Paso 5: Resumen final de tu plan"
+                                EditorStep.OBJECTIVE -> "Paso 1: Define tu objetivo"
+                                EditorStep.BODY_DATA -> "Paso 2: Tus datos, actividad y dieta"
+                                EditorStep.MACROS -> "Paso 3: Ajusta tus macros y ritmo"
+                                EditorStep.SUMMARY -> "Paso 4: Resumen final"
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = PANEL_MUTED,
@@ -518,6 +515,37 @@ fun NutritionPlanEditorModal(
                                     },
                                 )
 
+                                Spacer(Modifier.height(4.dp))
+                                SectionTitle("Nivel de actividad")
+                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        ActivityChip("Sedentario", 1, state.activityLevel, Modifier.weight(1f)) { state = state.copy(activityLevel = it) }
+                                        ActivityChip("Ligero", 2, state.activityLevel, Modifier.weight(1f)) { state = state.copy(activityLevel = it) }
+                                        ActivityChip("Moderado", 3, state.activityLevel, Modifier.weight(1f)) { state = state.copy(activityLevel = it) }
+                                    }
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        ActivityChip("Activo", 4, state.activityLevel, Modifier.weight(1f)) { state = state.copy(activityLevel = it) }
+                                        ActivityChip("Muy activo", 5, state.activityLevel, Modifier.weight(1f)) { state = state.copy(activityLevel = it) }
+                                    }
+                                }
+
+                                Spacer(Modifier.height(4.dp))
+                                SectionTitle("Preferencia alimentaria")
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    GoalChipNoBorder("Omn\u00EDvoro", state.dietaryPreference == "omnivore", Modifier.weight(1f)) { state = state.copy(dietaryPreference = "omnivore") }
+                                    GoalChipNoBorder("Vegetariano", state.dietaryPreference == "vegetarian", Modifier.weight(1f)) { state = state.copy(dietaryPreference = "vegetarian") }
+                                    GoalChipNoBorder("Vegano", state.dietaryPreference == "vegan", Modifier.weight(1f)) { state = state.copy(dietaryPreference = "vegan") }
+                                }
+
                                 if (showValidationError) {
                                     Spacer(Modifier.height(4.dp))
                                     Text(
@@ -532,139 +560,260 @@ fun NutritionPlanEditorModal(
                             }
                         }
 
-                        EditorStep.ACTIVITY -> {
-                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                SectionTitle("Nivel de actividad f\u00EDsica")
-                                ChipRow {
-                                    ActivityChip("Sedentario", 1, state.activityLevel) { state = state.copy(activityLevel = it) }
-                                    ActivityChip("Ligero", 2, state.activityLevel) { state = state.copy(activityLevel = it) }
-                                    ActivityChip("Moderado", 3, state.activityLevel) { state = state.copy(activityLevel = it) }
-                                    ActivityChip("Activo", 4, state.activityLevel) { state = state.copy(activityLevel = it) }
-                                    ActivityChip("Muy activo", 5, state.activityLevel) { state = state.copy(activityLevel = it) }
-                                }
-
-                                SectionTitle("Preferencia alimentaria")
-                                ChipRow {
-                                    GoalChipNoBorder("Omn\u00EDvoro", state.dietaryPreference == "omnivore") { state = state.copy(dietaryPreference = "omnivore") }
-                                    GoalChipNoBorder("Vegetariano", state.dietaryPreference == "vegetarian") { state = state.copy(dietaryPreference = "vegetarian") }
-                                    GoalChipNoBorder("Vegano", state.dietaryPreference == "vegan") { state = state.copy(dietaryPreference = "vegan") }
-                                }
-                            }
-                        }
-
                         EditorStep.MACROS -> {
-                            Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                            val isCustomPace = state.lastMacroTouched.isNotEmpty()
+                            
+                            fun setPace(pace: Double) {
+                                val targetKcal = if (tdee != null) tdee + when (state.goal) {
+                                    CalorieGoal.LOSE -> -((pace * 7700) / 7).roundToInt()
+                                    CalorieGoal.GAIN -> ((pace * 7700) / 7).roundToInt()
+                                    else -> 0
+                                } else 2000
+                                val p = autoProtein
+                                val f = autoFats
+                                val c = kotlin.math.max(40, kotlin.math.round((targetKcal - p * 4 - f * 9) / 4.0).toInt())
+                                
+                                state = state.copy(
+                                    weeklyChangeKg = pace,
+                                    proteinG = p.toString(),
+                                    fatsG = f.toString(),
+                                    carbsG = c.toString(),
+                                    lastMacroTouched = ""
+                                )
+                            }
+
+                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Box(
-                                        modifier = Modifier.size(150.dp),
+                                        modifier = Modifier.size(130.dp),
                                         contentAlignment = Alignment.Center,
                                     ) {
                                         MacroBabushkaRings(
                                             caloriesPct = if (tdee != null && tdee > 0) (macroCalories.toFloat() / tdee).coerceIn(0f, 1.5f) else 0.85f,
-                                            proteinPct = 0.72f,
-                                            carbsPct = 0.58f,
-                                            fatsPct = 0.48f,
+                                            proteinPct = if (autoProtein > 0) (proteinGoal.toFloat() / autoProtein).coerceIn(0f, 1.5f) else 0.72f,
+                                            carbsPct = if (autoCarbs > 0) (carbsD.toFloat() / autoCarbs).coerceIn(0f, 1.5f) else 0.58f,
+                                            fatsPct = if (autoFats > 0) (fatsD.toFloat() / autoFats).coerceIn(0f, 1.5f) else 0.48f,
                                         )
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(
-                                                "$macroCalories",
-                                                style = MaterialTheme.typography.titleLarge,
-                                                fontWeight = FontWeight.Black,
-                                                color = Color.White,
-                                            )
-                                            Text(
-                                                "kcal",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = PANEL_MUTED,
-                                            )
-                                        }
+                                        // Removed overlapping center text as per request
                                     }
 
-                                    Spacer(Modifier.width(16.dp))
+                                    Spacer(Modifier.width(18.dp))
 
                                     Column(
                                         modifier = Modifier.weight(1f),
-                                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
-                                        MacroSliderRow("Prote\u00EDna", proteinGoal, "g", PROTEIN_COLOR, (proteinGoal - 60).coerceAtLeast(20)..(proteinGoal + 80).coerceAtLeast(40)) { p ->
-                                            state = state.copy(proteinG = p.toString(), lastMacroTouched = "proteinG")
+                                        val goalColor = when (state.goal) {
+                                            CalorieGoal.LOSE -> Color(0xFFEF5350)
+                                            CalorieGoal.GAIN -> Color(0xFF2ECC71)
+                                            CalorieGoal.MAINTAIN -> Color(0xFF42A5F5)
                                         }
-                                        MacroSliderRow("Carbohidratos", carbsD.roundToInt(), "g", CARBS_COLOR, (carbsD.roundToInt() - 100).coerceAtLeast(40)..(carbsD.roundToInt() + 100).coerceAtLeast(80)) { c ->
-                                            state = state.copy(carbsG = c.toString(), lastMacroTouched = "carbsG")
-                                        }
-                                        MacroSliderRow("Grasas", fatsD.roundToInt(), "g", FATS_COLOR, (fatsD.roundToInt() - 35).coerceAtLeast(15)..(fatsD.roundToInt() + 35).coerceAtLeast(30)) { f ->
-                                            state = state.copy(fatsG = f.toString(), lastMacroTouched = "fatsG")
-                                        }
-                                    }
-                                }
-
-                                Surface(
-                                    onClick = { showAdvanced = !showAdvanced },
-                                    color = PANEL_ALT,
-                                    shape = RoundedCornerShape(18.dp),
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        Column {
-                                            Text("Ajustes avanzados", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
-                                            Text("F\u00F3rmula, ritmo y multiplicador", style = MaterialTheme.typography.bodySmall, color = PANEL_MUTED)
-                                        }
-                                        Icon(
-                                            if (showAdvanced) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                            contentDescription = null,
-                                            tint = Color.White,
-                                        )
-                                    }
-                                }
-
-                                AnimatedVisibility(showAdvanced) {
-                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        Spacer(Modifier.height(4.dp))
-                                        SectionTitle("F\u00F3rmula")
-                                        ChipRow {
-                                            GoalChipNoBorder("Mifflin", state.formula == FormulaType.MIFFLIN) { state = state.copy(formula = FormulaType.MIFFLIN) }
-                                            GoalChipNoBorder("Harris", state.formula == FormulaType.HARRIS) { state = state.copy(formula = FormulaType.HARRIS) }
-                                            GoalChipNoBorder("Katch", state.formula == FormulaType.KATCH) { state = state.copy(formula = FormulaType.KATCH) }
-                                        }
-                                        Spacer(Modifier.height(4.dp))
-                                        if (state.goal != CalorieGoal.MAINTAIN) {
-                                            val changeLabel = when (state.goalMetric) {
-                                                GoalMetric.BODY_FAT -> {
-                                                    val pct = if (weightKg > 0) state.weeklyChangeKg / weightKg * 100.0 else 0.0
-                                                    "${"%.2f".format(pct)} %/sem"
-                                                }
-                                                else -> "${"%.2f".format(state.weeklyChangeKg)} kg/sem"
-                                            }
-                                            Text("Cambio semanal: $changeLabel", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
-                                            Slider(
-                                                value = state.weeklyChangeKg.toFloat(),
-                                                onValueChange = { state = state.copy(weeklyChangeKg = ((it * 4).roundToInt() / 4f).toDouble()) },
-                                                valueRange = 0.25f..2f,
-                                                steps = 6,
+                                        Surface(
+                                            color = goalColor.copy(alpha = 0.12f),
+                                            shape = RoundedCornerShape(8.dp),
+                                            modifier = Modifier.padding(bottom = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = when (state.goal) {
+                                                    CalorieGoal.LOSE -> "D\u00C9FICIT"
+                                                    CalorieGoal.GAIN -> "SUPER\u00C1VIT"
+                                                    CalorieGoal.MAINTAIN -> "MANTENIMIENTO"
+                                                },
+                                                color = goalColor,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Black,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                maxLines = 1
                                             )
                                         }
-                                        Text("Multiplicador de salud: %.2f".format(state.healthMultiplier), color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
-                                        Slider(
-                                            value = state.healthMultiplier.toFloat(),
-                                            onValueChange = { state = state.copy(healthMultiplier = ((it * 20).roundToInt() / 20f).toDouble()) },
-                                            valueRange = 0.5f..1.5f,
-                                            steps = 19,
+                                        Text(
+                                            text = "Presupuesto",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = PANEL_MUTED
                                         )
+                                        Text(
+                                            text = "$macroCalories kcal",
+                                            style = MaterialTheme.typography.headlineMedium,
+                                            fontWeight = FontWeight.Black,
+                                            color = Color.White,
+                                            maxLines = 1
+                                        )
+                                        tdee?.let { t ->
+                                            val diff = macroCalories - t
+                                            val text = when {
+                                                diff < 0 -> "${kotlin.math.abs(diff)} kcal menos del gasto"
+                                                diff > 0 -> "+${diff} kcal de super\u00E1vit"
+                                                else -> "Equilibrado con tu gasto"
+                                            }
+                                            Text(
+                                                text = text,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = PANEL_MUTED,
+                                                maxLines = 1
+                                            )
+                                        }
                                     }
+                                }
+
+                                Spacer(Modifier.height(4.dp))
+                                SectionTitle("Ajuste de macronutrientes")
+
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    MacroSliderRow("Proteína", proteinGoal, "g", PROTEIN_COLOR, (proteinGoal - 40).coerceAtLeast(40)..(proteinGoal + 40).coerceAtLeast(80)) { p ->
+                                        state = state.copy(proteinG = p.toString(), lastMacroTouched = "proteinG")
+                                    }
+                                    MacroSliderRow("Carbohidratos", carbsD.roundToInt(), "g", CARBS_COLOR, (carbsD.roundToInt() - 60).coerceAtLeast(60)..(carbsD.roundToInt() + 60).coerceAtLeast(120)) { c ->
+                                        state = state.copy(carbsG = c.toString(), lastMacroTouched = "carbsG")
+                                    }
+                                    MacroSliderRow("Grasas", fatsD.roundToInt(), "g", FATS_COLOR, (fatsD.roundToInt() - 25).coerceAtLeast(20)..(fatsD.roundToInt() + 25).coerceAtLeast(40)) { f ->
+                                        state = state.copy(fatsG = f.toString(), lastMacroTouched = "fatsG")
+                                    }
+                                }
+
+                                Spacer(Modifier.height(4.dp))
+                                SectionTitle("Ritmo de progreso")
+
+                                when (state.goal) {
+                                    CalorieGoal.LOSE -> {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            val isLento = !isCustomPace && state.weeklyChangeKg == 0.3
+                                            val isRec = !isCustomPace && state.weeklyChangeKg == 0.5
+                                            val isRapido = !isCustomPace && state.weeklyChangeKg == 0.8
+                                            
+                                            GoalChipNoBorder("Lento", isLento, Modifier.weight(1f)) { setPace(0.3) }
+                                            GoalChipNoBorder("Recomendado", isRec, Modifier.weight(1f)) { setPace(0.5) }
+                                            GoalChipNoBorder("R\u00E1pido", isRapido, Modifier.weight(1f)) { setPace(0.8) }
+                                            if (isCustomPace) {
+                                                GoalChipNoBorder("Personalizado", true, Modifier.weight(1.2f)) {}
+                                            }
+                                        }
+                                    }
+                                    CalorieGoal.GAIN -> {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            val isLento = !isCustomPace && state.weeklyChangeKg == 0.2
+                                            val isRec = !isCustomPace && state.weeklyChangeKg == 0.4
+                                            val isRapido = !isCustomPace && state.weeklyChangeKg == 0.6
+                                            
+                                            GoalChipNoBorder("Lento", isLento, Modifier.weight(1f)) { setPace(0.2) }
+                                            GoalChipNoBorder("Recomendado", isRec, Modifier.weight(1f)) { setPace(0.4) }
+                                            GoalChipNoBorder("R\u00E1pido", isRapido, Modifier.weight(1f)) { setPace(0.6) }
+                                            if (isCustomPace) {
+                                                GoalChipNoBorder("Personalizado", true, Modifier.weight(1.2f)) {}
+                                            }
+                                        }
+                                    }
+                                    CalorieGoal.MAINTAIN -> {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            GoalChipNoBorder("Mantenimiento", !isCustomPace, Modifier.weight(1f)) { setPace(0.0) }
+                                            if (isCustomPace) {
+                                                GoalChipNoBorder("Personalizado", true, Modifier.weight(1f)) {}
+                                            }
+                                        }
+                                    }
+                                }
+
+                                val delta = macroCalories - (tdee ?: 2000)
+                                var alertText: String? = null
+                                var alertColor = Color(0xFFFF8F00)
+
+                                when {
+                                    state.goal == CalorieGoal.LOSE && delta >= 0 -> {
+                                        alertText = "Tus calor\u00EDas superan tu gasto diario. No lograr\u00E1s definirte con este ajuste."
+                                        alertColor = Color(0xFFE53935)
+                                    }
+                                    state.goal == CalorieGoal.GAIN && delta <= 0 -> {
+                                        alertText = "Tus calor\u00EDas son menores a tu gasto. No lograr\u00E1s ganar volumen."
+                                        alertColor = Color(0xFFE53935)
+                                    }
+                                    isCustomPace -> {
+                                        val trend = weeklyTrendKg ?: 0.0
+                                        val absTrend = kotlin.math.abs(trend)
+                                        if (state.goal == CalorieGoal.LOSE) {
+                                            when {
+                                                absTrend > 1.0 -> {
+                                                    alertText = "Ritmo muy agresivo. Puede ser insostenible a largo plazo."
+                                                    alertColor = Color(0xFFFF8F00)
+                                                }
+                                                absTrend < 0.15 -> {
+                                                    alertText = "Ritmo muy lento. Ver\u00E1s cambios m\u00EDnimos."
+                                                    alertColor = Color(0xFF42A5F5)
+                                                }
+                                            }
+                                        } else if (state.goal == CalorieGoal.GAIN) {
+                                            when {
+                                                absTrend > 0.6 -> {
+                                                    alertText = "Ritmo de ganancia muy agresivo. Ganar\u00E1s grasa excesiva."
+                                                    alertColor = Color(0xFFFF8F00)
+                                                }
+                                                absTrend < 0.10 -> {
+                                                    alertText = "Ritmo de ganancia muy lento. Considera comer un poco m\u00E1s."
+                                                    alertColor = Color(0xFF42A5F5)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (alertText != null) {
+                                    Spacer(Modifier.height(4.dp))
+                                    WeeklyRateAlert(
+                                        title = "Aviso del plan",
+                                        message = alertText!!,
+                                        color = alertColor
+                                    )
                                 }
                             }
                         }
 
                         EditorStep.SUMMARY -> {
+                            val weeksNeeded: Double? = when (state.goalMetric) {
+                                GoalMetric.WEIGHT -> {
+                                    val currentWeightInUnit = if (state.weightUnit == WeightUnit.LBS) {
+                                        weightKg * KG_TO_LB
+                                    } else {
+                                        weightKg
+                                    }
+                                    val diff = kotlin.math.abs(currentWeightInUnit - goalValueD)
+                                    val weeklyChangeInUnit = if (state.weightUnit == WeightUnit.LBS) {
+                                        (weeklyTrendKg?.let { kotlin.math.abs(it) * KG_TO_LB }) ?: 0.0
+                                    } else {
+                                        (weeklyTrendKg?.let { kotlin.math.abs(it) }) ?: 0.0
+                                    }
+                                    if (weeklyChangeInUnit > 0.01) diff / weeklyChangeInUnit else null
+                                }
+                                GoalMetric.BODY_FAT -> {
+                                    val currentFat = bodyFatD ?: 0.0
+                                    if (currentFat > 0.0) {
+                                        val diff = kotlin.math.abs(currentFat - goalValueD)
+                                        val weeklyPct = if (weightKg > 0 && weeklyTrendKg != null) {
+                                            kotlin.math.abs(weeklyTrendKg / weightKg * 100.0)
+                                        } else 0.0
+                                        if (weeklyPct > 0.01) diff / weeklyPct else null
+                                    } else null
+                                }
+                                else -> null
+                            }
+
+                            val dateText = if (weeksNeeded != null && weeksNeeded in 0.1..104.0) {
+                                val localDate = java.time.LocalDate.now().plusDays(kotlin.math.round(weeksNeeded * 7).toLong())
+                                val formatter = java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM, yyyy", java.util.Locale("es", "ES"))
+                                localDate.format(formatter)
+                            } else null
+
                             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                SectionTitle("Resultado del c\u00E1lculo")
+                                SectionTitle("Resultado del plan")
                                 HeroSummaryCard(
                                     calorieGoal = state.goal,
                                     goalMetric = state.goalMetric,
@@ -674,6 +823,35 @@ fun NutritionPlanEditorModal(
                                     carbsGoal = carbsD.roundToInt(),
                                     fatsGoal = fatsD.roundToInt(),
                                 )
+
+                                if (dateText != null && weeksNeeded != null) {
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(18.dp),
+                                        colors = CardDefaults.cardColors(containerColor = PANEL_ALT),
+                                    ) {
+                                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Text(
+                                                "Fecha meta estimada",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = PANEL_MUTED,
+                                                maxLines = 1
+                                            )
+                                            Text(
+                                                dateText,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Black,
+                                                color = ACCENT_GREEN,
+                                                maxLines = 1
+                                            )
+                                            Text(
+                                                "Meta alcanzable en aprox. ${weeksNeeded.roundToInt()} semanas.",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = PANEL_MUTED
+                                            )
+                                        }
+                                    }
+                                }
 
                                 Spacer(Modifier.height(4.dp))
                                 SectionTitle("Ritmo semanal estimado")
@@ -774,7 +952,7 @@ fun NutritionPlanEditorModal(
                                     SummaryMiniCard(
                                         title = "TMB estimado",
                                         value = bmr?.let { "${it.roundToInt()} kcal" } ?: "\u2014",
-                                        detail = state.formula.name.lowercase().replaceFirstChar { it.uppercase() },
+                                        detail = "F\u00F3rmula Mifflin",
                                         icon = Icons.Default.FitnessCenter,
                                         modifier = Modifier.weight(1f),
                                     )
@@ -824,15 +1002,14 @@ fun NutritionPlanEditorModal(
                             shape = RoundedCornerShape(14.dp),
                             border = BorderStroke(0.dp, Color.Transparent),
                         ) {
-                            Text("Cancelar", color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Bold)
+                            Text("Cancelar", color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         }
                     } else {
                         TextButton(
                             onClick = {
                                 currentStep = when (currentStep) {
                                     EditorStep.BODY_DATA -> EditorStep.OBJECTIVE
-                                    EditorStep.ACTIVITY -> EditorStep.BODY_DATA
-                                    EditorStep.MACROS -> EditorStep.ACTIVITY
+                                    EditorStep.MACROS -> EditorStep.BODY_DATA
                                     EditorStep.SUMMARY -> EditorStep.MACROS
                                     else -> EditorStep.OBJECTIVE
                                 }
@@ -841,7 +1018,7 @@ fun NutritionPlanEditorModal(
                             shape = RoundedCornerShape(14.dp),
                             border = BorderStroke(0.dp, Color.Transparent),
                         ) {
-                            Text("Atr\u00E1s", color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Bold)
+                            Text("Atr\u00E1s", color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         }
                     }
 
@@ -897,7 +1074,7 @@ fun NutritionPlanEditorModal(
                         ) {
                             Icon(if (activePlan == null) Icons.Default.Add else Icons.Default.Check, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text(if (activePlan == null) "Crear plan" else "Guardar cambios", fontWeight = FontWeight.Bold)
+                            Text(if (activePlan == null) "Crear plan" else "Guardar cambios", fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         }
                     } else {
                         Button(
@@ -924,16 +1101,8 @@ fun NutritionPlanEditorModal(
                                                 carbsG = autoCarbs.toString(),
                                                 fatsG = autoFats.toString(),
                                             )
-                                            currentStep = EditorStep.ACTIVITY
+                                            currentStep = EditorStep.MACROS
                                         }
-                                    }
-                                    EditorStep.ACTIVITY -> {
-                                        state = state.copy(
-                                            proteinG = autoProtein.toString(),
-                                            carbsG = autoCarbs.toString(),
-                                            fatsG = autoFats.toString(),
-                                        )
-                                        currentStep = EditorStep.MACROS
                                     }
                                     EditorStep.MACROS -> {
                                         val pVal = state.proteinG.toDoubleOrNull()
@@ -954,7 +1123,7 @@ fun NutritionPlanEditorModal(
                                 contentColor = Color.Black
                             )
                         ) {
-                            Text("Siguiente", fontWeight = FontWeight.Bold)
+                            Text("Siguiente", fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         }
                     }
                 }
@@ -1032,7 +1201,6 @@ private fun MacroSliderRow(
             value = value.toFloat(),
             onValueChange = { onValueChange(it.toInt()) },
             valueRange = range.first.toFloat()..range.last.toFloat(),
-            steps = (range.last - range.first - 1).coerceAtLeast(0),
             modifier = Modifier.height(24.dp),
             colors = SliderDefaults.colors(
                 thumbColor = color,
@@ -1167,44 +1335,37 @@ private fun HeroSummaryCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = PANEL_ALT),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.06f), Color.Transparent)))
-                .padding(18.dp),
-        ) {
-            Column {
-                Text(
-                    when (calorieGoal) {
-                        CalorieGoal.LOSE -> "Definici\u00F3n"
-                        CalorieGoal.MAINTAIN -> "Mantenci\u00F3n"
-                        CalorieGoal.GAIN -> "Super\u00E1vit"
-                    },
-                    style = MaterialTheme.typography.labelLarge,
-                    color = PANEL_MUTED,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    "${macroCalories} kcal",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    "Objetivo: ${formatGoalValue(goalMetric, goalValue)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = PANEL_MUTED,
-                )
-                Spacer(Modifier.height(14.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    HeroMetricPill("Prote\u00EDnas", "${proteinGoal} g")
-                    HeroMetricPill("Carbohidratos", "${carbsGoal} g")
-                    HeroMetricPill("Grasas", "${fatsGoal} g")
-                }
+        Column(modifier = Modifier.padding(18.dp)) {
+            Text(
+                when (calorieGoal) {
+                    CalorieGoal.LOSE -> "Definici\u00F3n"
+                    CalorieGoal.MAINTAIN -> "Mantenci\u00F3n"
+                    CalorieGoal.GAIN -> "Super\u00E1vit"
+                },
+                style = MaterialTheme.typography.labelLarge,
+                color = PANEL_MUTED,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "${macroCalories} kcal",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Black,
+                color = Color.White,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Objetivo: ${formatGoalValue(goalMetric, goalValue)}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = PANEL_MUTED,
+            )
+            Spacer(Modifier.height(14.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                HeroMetricPill("Prote\u00EDnas", "${proteinGoal} g")
+                HeroMetricPill("Carbohidratos", "${carbsGoal} g")
+                HeroMetricPill("Grasas", "${fatsGoal} g")
             }
         }
     }
@@ -1266,18 +1427,26 @@ private fun GoalChipNoBorder(
     ) {
         Text(
             label,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
             color = if (selected) Color.Black else Color.White.copy(alpha = 0.8f),
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
         )
     }
 }
 
 @Composable
-private fun ActivityChip(label: String, level: Int, selectedLevel: Int, onSelect: (Int) -> Unit) {
-    GoalChipNoBorder(label, selectedLevel == level) { onSelect(level) }
+private fun ActivityChip(
+    label: String,
+    level: Int,
+    selectedLevel: Int,
+    modifier: Modifier = Modifier,
+    onSelect: (Int) -> Unit
+) {
+    GoalChipNoBorder(label, selectedLevel == level, modifier) { onSelect(level) }
 }
 
 @Composable

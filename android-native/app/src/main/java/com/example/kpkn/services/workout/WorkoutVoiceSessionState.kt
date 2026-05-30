@@ -30,11 +30,29 @@ sealed class VoiceSessionCommand {
     data object Confirm : VoiceSessionCommand()
     data object Cancel : VoiceSessionCommand()
     data object SkipExercise : VoiceSessionCommand()
+    data object SkipSet : VoiceSessionCommand()
     data object PreviousExercise : VoiceSessionCommand()
     data object SuggestWeight : VoiceSessionCommand()
     data object RestStatus : VoiceSessionCommand()
     data object WhatExercise : VoiceSessionCommand()
     data object NextExercise : VoiceSessionCommand()
     data object TurnOffVoice : VoiceSessionCommand()
+    data object FinishSession : VoiceSessionCommand()
+    data object CancelSession : VoiceSessionCommand()
+    data class LogFeedback(
+        val technicalQuality: Int?,
+        val discomfortId: String?,
+        val perceivedIntensity: Double?,
+        val isSaveAction: Boolean = false,
+        val exerciseSearchName: String? = null,
+    ) : VoiceSessionCommand()
+    data class LogFinalFeedback(
+        val notes: String? = null,
+        val discomfortId: String? = null,
+        val additionalDiscomfortNote: String? = null,
+        val neuralBattery: Int? = null,
+        val spinalBattery: Int? = null,
+        val isSaveAction: Boolean = false,
+    ) : VoiceSessionCommand()
     data class Unknown(val raw: String) : VoiceSessionCommand()
 }

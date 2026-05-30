@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.HourglassEmpty
@@ -33,6 +34,88 @@ import com.example.kpkn.domain.exercises.buildThreeBandKinships
 import com.example.kpkn.domain.exercises.inferLearningCurveLabel
 import com.example.kpkn.domain.exercises.inferSetupTimeLabel
 import com.example.kpkn.domain.exercises.inferTransferLabel
+import com.example.kpkn.domain.exercises.resolveExerciseRegion
+import com.example.kpkn.domain.exercises.ExerciseCatalogRegion
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.shape.RoundedCornerShape
+
+@Composable
+fun ExerciseMinimalistChipsCarousel(
+    exercise: ExerciseMuscleInfo,
+    fatigueScore: Int,
+    modifier: Modifier = Modifier,
+) {
+    val rawSetup = remember(exercise.id) { inferSetupTimeLabel(exercise) }
+    val setupText = remember(rawSetup) {
+        when {
+            rawSetup.contains("Muy rápido", ignoreCase = true) || rawSetup.contains("Rápido", ignoreCase = true) || rawSetup.contains("30-60", ignoreCase = true) -> "Set-up muy rápido"
+            rawSetup.contains("45-75", ignoreCase = true) || rawSetup.contains("45-90", ignoreCase = true) || rawSetup.contains("1-2 min", ignoreCase = true) || rawSetup.contains("1 min", ignoreCase = true) -> "Set-up moderado"
+            else -> "Set-up lento"
+        }
+    }
+
+    val rawCurve = remember(exercise.id) { inferLearningCurveLabel(exercise) }
+    val curveText = remember(rawCurve) {
+        when (rawCurve) {
+            "Baja" -> "Técnica simple"
+            "Alta" -> "Técnica difícil"
+            else -> "Técnica intermedia"
+        }
+    }
+
+    val fatigueText = remember(fatigueScore) {
+        when {
+            fatigueScore <= 3 -> "Poco fatigante"
+            fatigueScore <= 6 -> "Fatiga moderada"
+            fatigueScore <= 8 -> "Bastante fatigante"
+            else -> "Muy fatigante"
+        }
+    }
+
+    val regionText = remember(exercise.id) {
+        when (resolveExerciseRegion(exercise)) {
+            ExerciseCatalogRegion.LOWER -> "Tren inferior"
+            ExerciseCatalogRegion.UPPER -> "Tren superior"
+            ExerciseCatalogRegion.CORE -> "Core"
+            else -> "Todo el cuerpo"
+        }
+    }
+
+    val chipItems = remember(setupText, curveText, fatigueText, regionText) {
+        listOf(
+            setupText to ColorSpec(Color(0xFF448AFF)), // Blue for setup
+            curveText to ColorSpec(Color(0xFF9C27B0)), // Purple for curve
+            fatigueText to ColorSpec(Color(0xFFFFFF52)), // Soft yellow/orange for fatigue
+            regionText to ColorSpec(Color(0xFFE53935)), // Red for region
+        )
+    }
+
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(vertical = 4.dp),
+    ) {
+        items(chipItems) { (text, spec) ->
+            Surface(
+                shape = RoundedCornerShape(999.dp),
+                color = spec.color.copy(alpha = 0.08f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, spec.color.copy(alpha = 0.2f)),
+            ) {
+                Text(
+                    text = text,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = spec.color,
+                )
+            }
+        }
+    }
+}
+
+private data class ColorSpec(val color: androidx.compose.ui.graphics.Color)
 
 @Composable
 fun ExerciseTechnicalDetails(

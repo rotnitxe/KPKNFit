@@ -11,7 +11,7 @@ class MacroCalculatorTest {
     @Test
     fun `scale food medium portion`() {
         val food = FoodItem(
-            id = "test1", name = "Arroz", servingSize = 100.0, unit = "g",
+            id = "test1", name = "Alimento de prueba", servingSize = 100.0, unit = "g",
             calories = 130.0, protein = 2.7, carbs = 28.0, fats = 0.3,
         )
         val logged = scaleFoodByPortion(food, quantity = 1, portion = PortionPreset.MEDIUM)
@@ -22,7 +22,7 @@ class MacroCalculatorTest {
     @Test
     fun `scale food large portion`() {
         val food = FoodItem(
-            id = "test2", name = "Arroz", servingSize = 100.0, unit = "g",
+            id = "test2", name = "Alimento de prueba", servingSize = 100.0, unit = "g",
             calories = 130.0, protein = 2.7, carbs = 28.0, fats = 0.3,
         )
         val logged = scaleFoodByPortion(food, quantity = 1, portion = PortionPreset.LARGE)
@@ -34,7 +34,7 @@ class MacroCalculatorTest {
     @Test
     fun `scale food with explicit grams`() {
         val food = FoodItem(
-            id = "test3", name = "Arroz", servingSize = 100.0, unit = "g",
+            id = "test3", name = "Alimento de prueba", servingSize = 100.0, unit = "g",
             calories = 130.0, protein = 2.7, carbs = 28.0, fats = 0.3,
         )
         val logged = scaleFoodByPortion(food, amountGrams = 250.0)
@@ -266,5 +266,49 @@ class MacroCalculatorTest {
         )
         val logged = scaleFoodByPortion(food, amountGrams = 200.0)
         assertEquals("g", logged.unit)
+    }
+
+    @Test
+    fun `getContextualDefaultServingSize handles categories logically`() {
+        val oil = FoodItem(id = "oil", name = "Aceite de Oliva", servingSize = 100.0)
+        assertEquals(10.0, getContextualDefaultServingSize(oil), 0.01)
+
+        val butter = FoodItem(id = "butter", name = "Mantequilla", servingSize = 100.0)
+        assertEquals(15.0, getContextualDefaultServingSize(butter), 0.01)
+
+        val rawChicken = FoodItem(id = "chicken_raw", name = "Pechuga de Pollo (cruda)", servingSize = 100.0)
+        assertEquals(150.0, getContextualDefaultServingSize(rawChicken), 0.01)
+
+        val cookedChicken = FoodItem(id = "chicken_cooked", name = "Pechuga de Pollo (plancha)", servingSize = 100.0)
+        assertEquals(120.0, getContextualDefaultServingSize(cookedChicken), 0.01)
+
+        val dryOats = FoodItem(id = "oats", name = "Avena en Hojuelas", servingSize = 100.0)
+        assertEquals(40.0, getContextualDefaultServingSize(dryOats), 0.01)
+
+        val rawPasta = FoodItem(id = "pasta_raw", name = "Pasta (cruda)", servingSize = 100.0)
+        assertEquals(45.0, getContextualDefaultServingSize(rawPasta), 0.01)
+
+        val cookedRice = FoodItem(id = "rice_cooked", name = "Arroz Blanco (cocido)", servingSize = 100.0)
+        assertEquals(120.0, getContextualDefaultServingSize(cookedRice), 0.01)
+    }
+
+    @Test
+    fun `scaleFoodByPortion applies portion adjustment and protein boost`() {
+        val food = FoodItem(
+            id = "chicken", name = "Pechuga de Pollo (cocida)", servingSize = 100.0,
+            calories = 195.0, protein = 30.0, carbs = 0.0, fats = 7.8
+        )
+        val logged = scaleFoodByPortion(
+            food = food,
+            quantity = 1,
+            portion = PortionPreset.MEDIUM,
+            amountGrams = null,
+            cookingMethod = null,
+            portionAdjustment = 1.1,
+            proteinBoost = 0.2
+        )
+        assertEquals(132.0, logged.amount, 0.01)
+        assertEquals(257.0, logged.calories, 1.0)
+        assertEquals(47.5, logged.protein, 0.1)
     }
 }

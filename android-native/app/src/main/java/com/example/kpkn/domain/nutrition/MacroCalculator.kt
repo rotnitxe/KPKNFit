@@ -9,15 +9,70 @@ import com.example.kpkn.data.models.*
 
 // ─── Portion Scaling ─────────────────────────────────────────────────────────
 
+fun getContextualDefaultServingSize(food: FoodItem): Double {
+    val lowerName = food.name.lowercase()
+    val densityCategory = SubjectivePortionEngine.detectDensityCategory(food.name)
+    
+    return when (densityCategory) {
+        SubjectivePortionEngine.FoodDensityCategory.FAT -> {
+            if (lowerName.contains("aceite") || lowerName.contains("oil")) {
+                if (food.servingSize >= 100.0) 10.0 else food.servingSize
+            } else {
+                if (food.servingSize >= 100.0) 15.0 else food.servingSize
+            }
+        }
+        SubjectivePortionEngine.FoodDensityCategory.PROTEIN -> {
+            if (lowerName.contains("huevo") || lowerName.contains("egg") || lowerName.contains("clara")) {
+                food.servingSize
+            } else {
+                val isCooked = lowerName.contains("cocid") || lowerName.contains("plancha") || lowerName.contains("horno") || lowerName.contains("asad") || lowerName.contains("frit")
+                if (food.servingSize >= 100.0) {
+                    if (isCooked) 120.0 else 150.0
+                } else food.servingSize
+            }
+        }
+        SubjectivePortionEngine.FoodDensityCategory.GRAIN -> {
+            if (lowerName.contains("avena") || lowerName.contains("oat")) {
+                if (food.servingSize >= 100.0) 40.0 else food.servingSize
+            } else {
+                val isRaw = lowerName.contains("crud") || lowerName.contains("sec")
+                if (food.servingSize >= 100.0) {
+                    if (isRaw) 45.0 else 120.0
+                } else food.servingSize
+            }
+        }
+        SubjectivePortionEngine.FoodDensityCategory.NUTS -> {
+            if (food.servingSize >= 100.0) 30.0 else food.servingSize
+        }
+        SubjectivePortionEngine.FoodDensityCategory.POWDER -> {
+            if (food.servingSize >= 100.0) 30.0 else food.servingSize
+        }
+        SubjectivePortionEngine.FoodDensityCategory.FRUIT -> {
+            if (food.servingSize >= 100.0) 120.0 else food.servingSize
+        }
+        SubjectivePortionEngine.FoodDensityCategory.VEGETABLE -> {
+            if (food.servingSize >= 100.0) 100.0 else food.servingSize
+        }
+        SubjectivePortionEngine.FoodDensityCategory.DAIRY -> {
+            if (food.servingSize >= 100.0) 200.0 else food.servingSize
+        }
+        else -> food.servingSize
+    }
+}
+
 fun scaleFoodByPortion(
     food: FoodItem,
     quantity: Int = 1,
     portion: PortionPreset = PortionPreset.MEDIUM,
     amountGrams: Double? = null,
     cookingMethod: CookingMethod? = null,
+    portionAdjustment: Double = 1.0,
+    proteinBoost: Double = 0.0,
 ): LoggedFood {
     val multiplier = PORTION_MULTIPLIERS[portion] ?: 1.0
-    val grams = amountGrams ?: (food.servingSize * quantity * multiplier)
+    val baseServing = if (amountGrams != null) food.servingSize else getContextualDefaultServingSize(food)
+    val baseGrams = amountGrams ?: (baseServing * quantity * multiplier)
+    val grams = baseGrams * portionAdjustment
     val ratio = if (food.servingSize > 0) grams / food.servingSize else 1.0
 
     fun extractMicronutrientAmount(vararg names: String): Double {
@@ -34,7 +89,7 @@ fun scaleFoodByPortion(
     val waterBase = extractMicronutrientAmount("agua", "water")
 
     var calPerGram = food.calories
-    var protPerGram = food.protein
+    var protPerGram = food.protein * (1.0 + proteinBoost)
     var carbPerGram = food.carbs
     var fatPerGram = food.fats
 
@@ -42,7 +97,7 @@ fun scaleFoodByPortion(
         val cf = COOKING_FACTORS[cookingMethod]
         if (cf != null) {
             calPerGram = food.calories * cf.kcal
-            protPerGram = food.protein * cf.protein
+            protPerGram = food.protein * cf.protein * (1.0 + proteinBoost)
             carbPerGram = food.carbs * cf.carbs
             fatPerGram = food.fats * cf.fats
         }

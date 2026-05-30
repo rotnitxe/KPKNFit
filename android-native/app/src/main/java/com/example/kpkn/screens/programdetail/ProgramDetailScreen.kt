@@ -695,13 +695,7 @@ private fun TrainingPanel(
             onDismissRequest = { pendingDeleteSession = null },
             title = { Text("Confirmar eliminación", fontWeight = FontWeight.Black) },
             text = {
-                Text(
-                    if (isCompetition) {
-                        "Vas a eliminar una sesión de competición. Esta acción puede dejar el programa sin sesión para la fecha clave."
-                    } else {
-                        "Vas a eliminar esta sesión. ¿Confirmas para evitar borrados accidentales?"
-                    }
-                )
+                Text("¿Confirmas que eliminas esta sesión?")
             },
             confirmButton = {
                 Button(

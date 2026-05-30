@@ -42,6 +42,9 @@ import com.example.kpkn.domain.nutrition.createLoggedFood
 import com.example.kpkn.domain.nutrition.parseMealDescription
 import com.example.kpkn.domain.nutrition.FoodCombinationParser
 import com.example.kpkn.domain.nutrition.round1
+import com.example.kpkn.domain.nutrition.ContextDetector
+import com.example.kpkn.domain.nutrition.getContextualDefaultServingSize
+import com.example.kpkn.domain.nutrition.COOKING_FACTORS
 import java.util.UUID
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -93,7 +96,37 @@ private data class ResolvedTag(
     val analysisSource: AnalysisSource = AnalysisSource.RULES,
     val statusText: String = "Pendiente",
     val isExpanded: Boolean = false,
+    val oilLevel: String = "medio",
 )
+
+private fun adjustLoggedFoodForOil(logged: LoggedFood, method: CookingMethod?, oilLevel: String): LoggedFood {
+    if (method != CookingMethod.FRITO && method != CookingMethod.EMPANIZADO_FRITO && method != CookingMethod.SALTEADO) {
+        return logged
+    }
+    val cf = COOKING_FACTORS[method] ?: return logged
+    val baseFatsFactor = cf.fats
+    if (baseFatsFactor <= 1.0) return logged
+
+    val excessFactor = baseFatsFactor - 1.0
+    val scale = when (oilLevel.lowercase()) {
+        "poco" -> 0.5
+        "abundante" -> 1.6
+        else -> 1.0 // "medio"
+    }
+
+    val baseFats = logged.fats / baseFatsFactor
+    val standardAbsorbed = logged.fats - baseFats
+    val adjustedAbsorbed = standardAbsorbed * scale
+    val newFats = kotlin.math.round((baseFats + adjustedAbsorbed) * 10.0) / 10.0
+
+    val diffFat = newFats - logged.fats
+    val newCalories = kotlin.math.round(logged.calories + diffFat * 9.0)
+
+    return logged.copy(
+        fats = newFats.coerceAtLeast(0.0),
+        calories = newCalories.coerceAtLeast(0.0)
+    )
+}
 
 private fun shouldUseAiLoggedFood(item: ParsedMealItem): Boolean {
     return item.macroOverrides != null && (
@@ -126,9 +159,11 @@ fun FoodLoggerDrawer(
     val prefs = remember { context.getSharedPreferences(PREF_FILE, android.content.Context.MODE_PRIVATE) }
 
     var description by remember { mutableStateOf(initialDescription.orEmpty()) }
+    var lastAnalyzedDescription by remember { mutableStateOf("") }
     var mealType by remember { mutableStateOf(initialMealType) }
     var logDate by remember { mutableStateOf(initialDate) }
     var tags by remember { mutableStateOf(emptyList<ResolvedTag>()) }
+    var detectedContext by remember { mutableStateOf<ContextDetector.ContextResult?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf(emptyList<FoodCandidate>()) }
     var activeTab by remember { mutableIntStateOf(initialTab.coerceIn(0, 1)) }
@@ -213,7 +248,18 @@ fun FoodLoggerDrawer(
 
     suspend fun resolveTags(parsed: ParsedMealDescription) {
         val resolvedTags = mutableListOf<ResolvedTag>()
+        val hasGreaseCooking = parsed.items.any { 
+            it.cookingMethod == CookingMethod.FRITO || 
+            it.cookingMethod == CookingMethod.EMPANIZADO_FRITO || 
+            it.cookingMethod == CookingMethod.SALTEADO 
+        }
         for (item in parsed.items) {
+            if (hasGreaseCooking) {
+                val lowerTag = item.tag.lowercase().trim()
+                if (lowerTag == "aceite" || lowerTag == "aceite vegetal" || lowerTag == "aceite de oliva" || lowerTag == "aceite de maravilla" || lowerTag == "aceite de girasol") {
+                    continue
+                }
+            }
             // Phase B: Use SmartFoodResolver for full-DB fuzzy matching
             val smartResult = nutritionRepo.resolveFoodWithSmartResolver(item.tag, item.brandHint)
             val smartCandidate = smartResult.candidates.firstOrNull()
@@ -245,8 +291,21 @@ fun FoodLoggerDrawer(
 
             val source = item.analysisSource
             val preferAiLoggedFood = shouldUseAiLoggedFood(item)
+            
+            val contextResult = detectedContext ?: ContextDetector.detect(parsed.rawDescription).also { detectedContext = it }
+            val portionAdj = contextResult.portionAdjustment
+            val proteinB = contextResult.proteinAdjustment
+            
             val resolved = if (food != null && !preferAiLoggedFood) {
-                val logged = scaleFoodByPortion(food, item.quantity, item.portion, item.amountGrams, item.cookingMethod)
+                val logged = scaleFoodByPortion(
+                    food = food,
+                    quantity = item.quantity,
+                    portion = item.portion,
+                    amountGrams = item.amountGrams,
+                    cookingMethod = item.cookingMethod,
+                    portionAdjustment = portionAdj,
+                    proteinBoost = proteinB
+                )
                 // Record learned resolution
                 nutritionRepo.recordLearnedResolution(item.tag, item.brandHint, food.id, item.amountGrams, item.cookingMethod?.name)
                 ResolvedTag(
@@ -256,11 +315,12 @@ fun FoodLoggerDrawer(
                     amountGrams = item.amountGrams,
                     cookingMethod = item.cookingMethod,
                     foodItem = food,
-                    loggedFood = logged.copy(analysisSource = AnalysisSource.DATABASE),
+                    loggedFood = adjustLoggedFoodForOil(logged.copy(analysisSource = AnalysisSource.DATABASE), item.cookingMethod, "medio"),
                     isResolved = true,
                     isFuzzyMatch = isSmartMatch && smartCandidate?.confidence != SmartFoodResolver.Confidence.HIGH,
                     analysisSource = AnalysisSource.DATABASE,
                     statusText = confidenceLabel ?: "BD ✓",
+                    oilLevel = "medio",
                 )
             } else if (item.amountGrams != null && item.amountGrams > 0) {
                 val mac = item.macroOverrides
@@ -293,11 +353,12 @@ fun FoodLoggerDrawer(
                     amountGrams = item.amountGrams,
                     cookingMethod = item.cookingMethod,
                     foodItem = null,
-                    loggedFood = logged.copy(analysisSource = source),
+                    loggedFood = adjustLoggedFoodForOil(logged.copy(analysisSource = source), item.cookingMethod, "medio"),
                     isResolved = mac != null,
                     isFuzzyMatch = true,
                     analysisSource = source,
                     statusText = trustLabel,
+                    oilLevel = "medio",
                 )
             } else {
                 ResolvedTag(
@@ -316,6 +377,9 @@ fun FoodLoggerDrawer(
 
         // Composite food context capping
         val combination = FoodCombinationParser.parse(parsed.rawDescription)
+        val contextResult = detectedContext ?: ContextDetector.detect(parsed.rawDescription).also { detectedContext = it }
+        val proteinB = contextResult.proteinAdjustment
+        
         if (combination.confidence >= 0.70 && combination.accompaniments.isNotEmpty()) {
             val totalGrams = resolvedTags.sumOf { it.loggedFood?.amount ?: 0.0 }
             val baseGrams = combination.baseProportion * totalGrams
@@ -330,7 +394,14 @@ fun FoodLoggerDrawer(
                     val existingLogged = match.loggedFood ?: continue
 
                     val maxAllowedGrams = when (accomp.role) {
-                        FoodCombinationParser.Role.SAUCE -> minOf(accomp.proportion * totalGrams, 30.0)
+                        FoodCombinationParser.Role.SAUCE -> {
+                            val lowerName = existingFood.name.lowercase()
+                            if (lowerName.contains("aceite") || lowerName.contains("oil") || lowerName.contains("mantequilla") || lowerName.contains("ghee") || lowerName.contains("margarina") || lowerName.contains("manteca") || lowerName.contains("mayonesa") || lowerName.contains("mayo")) {
+                                minOf(accomp.proportion * totalGrams, 15.0) // Fats capped tighter to 15g!
+                            } else {
+                                minOf(accomp.proportion * totalGrams, 30.0)
+                            }
+                        }
                         FoodCombinationParser.Role.TOPPING -> minOf(accomp.proportion * totalGrams, 60.0)
                         FoodCombinationParser.Role.FILLING -> minOf(accomp.proportion * totalGrams, 80.0)
                         FoodCombinationParser.Role.SIDE, FoodCombinationParser.Role.STARCH,
@@ -339,11 +410,13 @@ fun FoodLoggerDrawer(
 
                     if (maxAllowedGrams != null && existingLogged.amount > maxAllowedGrams && maxAllowedGrams > 1.0) {
                         val capped = scaleFoodByPortion(
-                            existingFood,
-                            match.quantity,
-                            PortionPreset.MEDIUM,
-                            maxAllowedGrams,
-                            match.cookingMethod,
+                            food = existingFood,
+                            quantity = match.quantity,
+                            portion = PortionPreset.MEDIUM,
+                            amountGrams = maxAllowedGrams,
+                            cookingMethod = match.cookingMethod,
+                            portionAdjustment = 1.0, // Capped explicitly
+                            proteinBoost = proteinB
                         )
                         val idx = resolvedTags.indexOfFirst { it.id == match.id }
                         if (idx >= 0) {
@@ -423,6 +496,7 @@ fun FoodLoggerDrawer(
         if (description.isBlank() || isAnalyzing) return
 
         analysisNotice = null
+        detectedContext = ContextDetector.detect(description)
         analysisStage = if (settings.useApiForDescriptions) ParseStage.ESTIMATING else ParseStage.INTERPRETING
         analysisStartedAtMs = System.currentTimeMillis()
         analysisElapsedMs = 0L
@@ -444,6 +518,7 @@ fun FoodLoggerDrawer(
                     statusText = "Memoria ✓",
                 )
             }
+            lastAnalyzedDescription = description
             analysisStage = null
             analysisStartedAtMs = 0L
             return
@@ -539,6 +614,7 @@ fun FoodLoggerDrawer(
                     }
                 }
                 resolveTags(parsed)
+                lastAnalyzedDescription = description
                 analysisNotice = buildAnalysisNotice(parsed)
                 if (parsed.aiInferredFoods.isNotEmpty()) {
                     nutritionRepo.saveAiInferredFoods(parsed.aiInferredFoods)
@@ -546,6 +622,7 @@ fun FoodLoggerDrawer(
             } catch (e: Exception) {
                 android.util.Log.w("FoodLogger", "Parse failed, usando determinístico", e)
                 resolveTags(parseMealDescription(description))
+                lastAnalyzedDescription = description
                 analysisNotice = AnalysisNotice(
                     title = "No se pudo leer la comida completa",
                     message = "Preparamos una versión base del registro para que puedas revisarla y guardar igual.",
@@ -571,15 +648,26 @@ fun FoodLoggerDrawer(
     }
 
     fun resolveFood(tagId: String, food: FoodItem) {
+        val portionAdj = detectedContext?.portionAdjustment ?: 1.0
+        val proteinB = detectedContext?.proteinAdjustment ?: 0.0
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 if (tag.analysisSource == AnalysisSource.LOCAL_AI_ESTIMATE || tag.analysisSource == AnalysisSource.EXTERNAL_API_ESTIMATE) {
                     return@map tag.copy(foodItem = food, isFuzzyMatch = false)
                 }
-                val logged = scaleFoodByPortion(food, tag.quantity, tag.portion, tag.amountGrams, tag.cookingMethod)
+                val logged = scaleFoodByPortion(
+                    food = food,
+                    quantity = tag.quantity,
+                    portion = tag.portion,
+                    amountGrams = tag.amountGrams,
+                    cookingMethod = tag.cookingMethod,
+                    portionAdjustment = portionAdj,
+                    proteinBoost = proteinB
+                )
+                val adjustedLogged = adjustLoggedFoodForOil(logged, tag.cookingMethod, tag.oilLevel)
                 tag.copy(
                     foodItem = food,
-                    loggedFood = logged.copy(analysisSource = AnalysisSource.DATABASE),
+                    loggedFood = adjustedLogged.copy(analysisSource = AnalysisSource.DATABASE),
                     isResolved = true,
                     isFuzzyMatch = false,
                     analysisSource = AnalysisSource.DATABASE,
@@ -590,30 +678,42 @@ fun FoodLoggerDrawer(
     }
 
     fun updateTagPortion(tagId: String, portion: PortionPreset) {
+        val portionAdj = detectedContext?.portionAdjustment ?: 1.0
+        val proteinB = detectedContext?.proteinAdjustment ?: 0.0
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val food = tag.foodItem
                 if (food != null && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE && tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE) {
                     val multiplier = PORTION_MULTIPLIERS[portion] ?: 1.0
                     val newGrams = food.servingSize * tag.quantity * multiplier
-                    val logged = scaleFoodByPortion(food, tag.quantity, portion, newGrams, tag.cookingMethod)
-                    tag.copy(portion = portion, amountGrams = newGrams, loggedFood = logged)
+                    val logged = scaleFoodByPortion(
+                        food = food,
+                        quantity = tag.quantity,
+                        portion = portion,
+                        amountGrams = newGrams,
+                        cookingMethod = tag.cookingMethod,
+                        portionAdjustment = portionAdj,
+                        proteinBoost = proteinB
+                    )
+                    val adjustedLogged = adjustLoggedFoodForOil(logged, tag.cookingMethod, tag.oilLevel)
+                    tag.copy(portion = portion, amountGrams = newGrams, loggedFood = adjustedLogged)
                 } else if (tag.loggedFood != null) {
                     val multiplier = PORTION_MULTIPLIERS[portion] ?: 1.0
                     val baseGrams = tag.amountGrams ?: tag.loggedFood.amount.takeIf { it > 0 } ?: 100.0
                     val newGrams = baseGrams * multiplier
                     val scale = if (baseGrams > 0.0) newGrams / baseGrams else 1.0
                     val old = tag.loggedFood
+                    val scaledLogged = old.copy(
+                        amount = newGrams,
+                        calories = old.calories * scale,
+                        protein = old.protein * scale,
+                        carbs = old.carbs * scale,
+                        fats = old.fats * scale,
+                    )
                     tag.copy(
                         portion = portion,
                         amountGrams = newGrams,
-                        loggedFood = old.copy(
-                            amount = newGrams,
-                            calories = old.calories * scale,
-                            protein = old.protein * scale,
-                            carbs = old.carbs * scale,
-                            fats = old.fats * scale,
-                        ),
+                        loggedFood = scaledLogged,
                     )
                 } else {
                     tag.copy(portion = portion)
@@ -623,11 +723,22 @@ fun FoodLoggerDrawer(
     }
 
     fun updateTagGrams(tagId: String, grams: Double) {
+        val portionAdj = detectedContext?.portionAdjustment ?: 1.0
+        val proteinB = detectedContext?.proteinAdjustment ?: 0.0
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val food = tag.foodItem
                 val logged = if (food != null && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE && tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE) {
-                    scaleFoodByPortion(food, tag.quantity, tag.portion, grams, tag.cookingMethod)
+                    val baseLogged = scaleFoodByPortion(
+                        food = food,
+                        quantity = tag.quantity,
+                        portion = tag.portion,
+                        amountGrams = grams,
+                        cookingMethod = tag.cookingMethod,
+                        portionAdjustment = portionAdj,
+                        proteinBoost = proteinB
+                    )
+                    adjustLoggedFoodForOil(baseLogged, tag.cookingMethod, tag.oilLevel)
                 } else {
                     val old = tag.loggedFood
                     val baseGrams = tag.amountGrams ?: old?.amount ?: 100.0
@@ -641,6 +752,58 @@ fun FoodLoggerDrawer(
                     )
                 }
                 tag.copy(amountGrams = grams, loggedFood = logged)
+            } else tag
+        }
+    }
+
+    fun updateTagOilLevel(tagId: String, oilLevel: String) {
+        val portionAdj = detectedContext?.portionAdjustment ?: 1.0
+        val proteinB = detectedContext?.proteinAdjustment ?: 0.0
+        tags = tags.map { tag ->
+            if (tag.id == tagId) {
+                val food = tag.foodItem
+                if (food != null && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE && tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE) {
+                    val logged = scaleFoodByPortion(
+                        food = food,
+                        quantity = tag.quantity,
+                        portion = tag.portion,
+                        amountGrams = tag.amountGrams,
+                        cookingMethod = tag.cookingMethod,
+                        portionAdjustment = portionAdj,
+                        proteinBoost = proteinB
+                    )
+                    val adjustedLogged = adjustLoggedFoodForOil(logged, tag.cookingMethod, oilLevel)
+                    tag.copy(oilLevel = oilLevel, loggedFood = adjustedLogged)
+                } else if (tag.loggedFood != null) {
+                    val old = tag.loggedFood
+                    val cf = tag.cookingMethod?.let { COOKING_FACTORS[it] }
+                    val baseFatsFactor = cf?.fats ?: 1.0
+                    val excessFactor = baseFatsFactor - 1.0
+                    val scaleStandard = when (tag.oilLevel.lowercase()) {
+                        "poco" -> 0.5
+                        "abundante" -> 1.6
+                        else -> 1.0
+                    }
+                    val scaleNew = when (oilLevel.lowercase()) {
+                        "poco" -> 0.5
+                        "abundante" -> 1.6
+                        else -> 1.0
+                    }
+                    if (baseFatsFactor > 1.0) {
+                        val baseFats = old.fats / (1.0 + excessFactor * scaleStandard)
+                        val newFats = kotlin.math.round((baseFats * (1.0 + excessFactor * scaleNew)) * 10.0) / 10.0
+                        val diffFat = newFats - old.fats
+                        val newCalories = kotlin.math.round(old.calories + diffFat * 9.0)
+                        tag.copy(
+                            oilLevel = oilLevel,
+                            loggedFood = old.copy(fats = newFats.coerceAtLeast(0.0), calories = newCalories.coerceAtLeast(0.0))
+                        )
+                    } else {
+                        tag.copy(oilLevel = oilLevel)
+                    }
+                } else {
+                    tag.copy(oilLevel = oilLevel)
+                }
             } else tag
         }
     }
@@ -769,7 +932,7 @@ fun FoodLoggerDrawer(
                         }
                     }
 
-                    OutlinedTextField(
+                    TextField(
                         value = apiDraftKey,
                         onValueChange = { apiDraftKey = it },
                         modifier = Modifier.fillMaxWidth(),
@@ -785,6 +948,14 @@ fun FoodLoggerDrawer(
                                 )
                             }
                         },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                        )
                     )
 
                     Row(
@@ -938,7 +1109,7 @@ fun FoodLoggerDrawer(
                                 )
                             }
                         }
-                        OutlinedTextField(
+                        TextField(
                             value = description,
                             onValueChange = { description = it },
                             modifier = Modifier.fillMaxWidth(),
@@ -951,19 +1122,15 @@ fun FoodLoggerDrawer(
                             maxLines = 4,
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                             keyboardActions = KeyboardActions(onDone = { analyzeDescription() }),
-                        )
-
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainerLow,
-                        ) {
-                            Text(
-                                text = "Escribe alimentos y cantidades. Mientras más simple sea la descripción, más fácil será revisar y guardar.",
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.colors(
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer
                             )
-                        }
+                        )
 
                         // Barra de progreso de copia del modelo (sólo modo PRO mientras copia)
                         AnimatedVisibility(
@@ -1021,41 +1188,6 @@ fun FoodLoggerDrawer(
                                 AnalysisNoticeCard(notice = notice)
                             }
                         }
-
-                        Button(
-                            onClick = { analyzeDescription() },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (settings.useApiForDescriptions) PRO_COLOR
-                                                 else MaterialTheme.colorScheme.primary,
-                            ),
-                            enabled = description.isNotBlank() && !isAnalyzing
-                        ) {
-                            if (isAnalyzing) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp,
-                                    color = LocalContentColor.current,
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("PREPARANDO COMIDA...")
-                            } else {
-                                Icon(
-                                    if (settings.useApiForDescriptions) Icons.Default.AutoAwesome else Icons.Default.FlashOn,
-                                    null,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Continuar")
-                            }
-                        }
-
-                        Text(
-                            text = "${foodDatabase.size} alimentos disponibles en la base",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
                     }
                 }
             }
@@ -1063,7 +1195,7 @@ fun FoodLoggerDrawer(
             // ── Search Tab ──────────────────────────────────────────────────
             if (activeTab == 1) {
                 item {
-                    OutlinedTextField(
+                    TextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
                         modifier = Modifier.fillMaxWidth(),
@@ -1072,9 +1204,17 @@ fun FoodLoggerDrawer(
                         leadingIcon = { Icon(Icons.Default.Search, null) },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = { performSearch() }),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                        )
                     )
                 }
-                items(searchResults) { food ->
+                items(searchResults, key = { "search_${it.food.name}_${it.food.brand.orEmpty()}" }) { food ->
                     FoodSearchResultCard(candidate = food, onClick = {
                         val selectedFood = food.food
                         val queryUsed = searchQuery.ifBlank { selectedFood.name }
@@ -1087,11 +1227,7 @@ fun FoodLoggerDrawer(
                             foodItem = selectedFood,
                             loggedFood = logged,
                             isResolved = true,
-                            statusText = when (food.confidence) {
-                                SearchConfidence.HIGH -> "BD ✓"
-                                SearchConfidence.MEDIUM -> "BD ~"
-                                SearchConfidence.LOW -> "BD ?"
-                            },
+                            statusText = "",
                         )
                         nutritionRepo.recordFoodSelection(queryUsed, selectedFood)
                         tags = tags + tag
@@ -1103,7 +1239,7 @@ fun FoodLoggerDrawer(
             }
 
             // ── Tag List ────────────────────────────────────────────────────
-            if (tags.isNotEmpty()) {
+            if (activeTab == 0 && tags.isNotEmpty()) {
                 item {
                     Text(
                         text = "Resumen de la comida",
@@ -1131,13 +1267,14 @@ fun FoodLoggerDrawer(
                                 nutritionRepo.recordFoodSelection(tag.tag, food)
                                 resolveFood(tag.id, food)
                             },
+                            onOilLevelChange = { level -> updateTagOilLevel(tag.id, level) },
                         )
                     }
                 }
             }
 
             // ── Totals ──────────────────────────────────────────────────────
-            if (tags.isNotEmpty()) {
+            if (activeTab == 0 && tags.isNotEmpty()) {
                 item {
                     Card(
                         shape = RoundedCornerShape(16.dp),
@@ -1153,13 +1290,13 @@ fun FoodLoggerDrawer(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column {
-                    Text("TOTAL", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.1f.sp)
-                                Text("${kotlin.math.round(tagTotals.calories)} kcal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                                Text("TOTAL", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.1f.sp)
+                                Text("${kotlin.math.round(tagTotals.calories).toInt()} kcal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                MacroBadge("P", "${kotlin.math.round(tagTotals.protein)}g", PROTEIN_COLOR)
-                                MacroBadge("C", "${kotlin.math.round(tagTotals.carbs)}g", CARBS_COLOR)
-                                MacroBadge("G", "${kotlin.math.round(tagTotals.fats)}g", FATS_COLOR)
+                                MacroBadge("P", "${kotlin.math.round(tagTotals.protein).toInt()}g", PROTEIN_COLOR)
+                                MacroBadge("C", "${kotlin.math.round(tagTotals.carbs).toInt()}g", CARBS_COLOR)
+                                MacroBadge("G", "${kotlin.math.round(tagTotals.fats).toInt()}g", FATS_COLOR)
                             }
                         }
                     }
@@ -1167,16 +1304,45 @@ fun FoodLoggerDrawer(
             }
 
             // ── Save ────────────────────────────────────────────────────────
-            item {
-                Button(
-                    onClick = { saveLog() },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = tags.any { it.loggedFood != null },
-                ) {
-                    Icon(Icons.Default.Check, null, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("REGISTRAR COMIDA", fontWeight = FontWeight.Black)
+            if (activeTab == 0) {
+                item {
+                    val hasTags = tags.isNotEmpty()
+                    val descriptionEdited = hasTags && description.trim() != lastAnalyzedDescription.trim()
+                    Button(
+                        onClick = {
+                            if (descriptionEdited) analyzeDescription()
+                            else if (hasTags) saveLog()
+                            else analyzeDescription()
+                        },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (descriptionEdited) MaterialTheme.colorScheme.primary
+                                             else if (hasTags) Color(0xFF2E7D32)
+                                             else (if (settings.useApiForDescriptions) PRO_COLOR else MaterialTheme.colorScheme.primary)
+                        ),
+                        enabled = !isAnalyzing && (hasTags || description.isNotBlank())
+                    ) {
+                        if (isAnalyzing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = LocalContentColor.current
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Interpretando...", fontWeight = FontWeight.Black)
+                        } else {
+                            val icon = if (descriptionEdited) Icons.Default.Refresh
+                                       else if (hasTags) Icons.Default.Check
+                                       else (if (settings.useApiForDescriptions) Icons.Default.AutoAwesome else Icons.Default.FlashOn)
+                            val label = if (descriptionEdited) "ACTUALIZAR Y BUSCAR"
+                                        else if (hasTags) "GUARDAR"
+                                        else "REGISTRAR"
+                            Icon(icon, null, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(label, fontWeight = FontWeight.Black)
+                        }
+                    }
                 }
             }
 
@@ -1515,7 +1681,7 @@ private fun FoodSearchResultCard(candidate: FoodCandidate, onClick: () -> Unit) 
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = food.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                Text(text = food.name.trim().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                 Text(
                     text = when (candidate.confidence) {
                         SearchConfidence.HIGH -> "Alta"
@@ -1531,7 +1697,7 @@ private fun FoodSearchResultCard(candidate: FoodCandidate, onClick: () -> Unit) 
                 )
             }
             Text(
-                text = "${kotlin.math.round(food.calories)} kcal · P ${food.protein}g · C ${food.carbs}g · G ${food.fats}g / ${food.servingSize}${food.unit}",
+                text = "${kotlin.math.round(food.calories).toInt()} kcal · P ${kotlin.math.round(food.protein).toInt()}g · C ${kotlin.math.round(food.carbs).toInt()}g · G ${kotlin.math.round(food.fats).toInt()}g / ${kotlin.math.round(food.servingSize).toInt()}${food.unit}",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -1560,6 +1726,7 @@ private fun TagCard(
     onRemove: () -> Unit,
     foodDatabase: List<FoodItem>,
     onResolve: (FoodItem) -> Unit,
+    onOilLevelChange: (String) -> Unit,
 ) {
     val logged = tag.loggedFood
 
@@ -1578,23 +1745,11 @@ private fun TagCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = tag.tag, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = tag.statusText,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = when (tag.analysisSource) {
-                                AnalysisSource.DATABASE -> Color(0xFF4CAF50)
-                                AnalysisSource.LOCAL_AI_ESTIMATE -> PRO_COLOR
-                                AnalysisSource.EXTERNAL_API_ESTIMATE -> Color(0xFF2196F3)
-                                AnalysisSource.LOCAL_HEURISTIC -> Color(0xFFFF9800)
-                                else -> if (tag.isResolved) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
-                            },
-                        )
+                        Text(text = tag.tag.trim().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                     }
                     if (logged != null) {
                         Text(
-                            text = "${kotlin.math.round(logged.calories)} kcal · P ${kotlin.math.round(logged.protein)}g · C ${kotlin.math.round(logged.carbs)}g · G ${kotlin.math.round(logged.fats)}g",
+                            text = "${kotlin.math.round(logged.calories).toInt()} kcal · P ${kotlin.math.round(logged.protein).toInt()}g · C ${kotlin.math.round(logged.carbs).toInt()}g · G ${kotlin.math.round(logged.fats).toInt()}g",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -1638,7 +1793,7 @@ private fun TagCard(
                     }
 
                     if (tag.amountGrams != null || tag.loggedFood != null) {
-                        Text("Gramos (${kotlin.math.round(tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0)}g)", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
+                        Text("Gramos (${kotlin.math.round(tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0).toInt()}g)", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
                         Slider(
                             value = ((tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0) / 500.0).toFloat().coerceIn(0f, 1f),
                             onValueChange = { onGramsChange(kotlin.math.round(it * 500.0)) },
@@ -1647,17 +1802,85 @@ private fun TagCard(
                     }
 
                     Text("Ajustar macros", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
-                    MacroOverrideRow("Calorías", logged?.calories ?: 0.0, onCaloriesChange)
-                    MacroOverrideRow("Proteína", logged?.protein ?: 0.0, onProteinChange)
-                    MacroOverrideRow("Carbohidratos", logged?.carbs ?: 0.0, onCarbsChange)
-                    MacroOverrideRow("Grasas", logged?.fats ?: 0.0, onFatsChange)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            MacroOverrideCol("Calorías", logged?.calories ?: 0.0, onCaloriesChange)
+                        }
+                        Box(modifier = Modifier.weight(1f)) {
+                            MacroOverrideCol("Proteína", logged?.protein ?: 0.0, onProteinChange)
+                        }
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            MacroOverrideCol("Carbos", logged?.carbs ?: 0.0, onCarbsChange)
+                        }
+                        Box(modifier = Modifier.weight(1f)) {
+                            MacroOverrideCol("Grasas", logged?.fats ?: 0.0, onFatsChange)
+                        }
+                    }
 
                     if (logged != null) {
                         Text(
-                            "Micros: fibra ${kotlin.math.round(logged.fiber)}g · azucar ${kotlin.math.round(logged.sugar)}g · sodio ${kotlin.math.round(logged.sodiumMg)}mg",
+                            "Fibra: ${kotlin.math.round(logged.fiber).toInt()}g · Azúcar: ${kotlin.math.round(logged.sugar).toInt()}g · Sodio: ${kotlin.math.round(logged.sodiumMg).toInt()}mg",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                    }
+
+                    if (tag.cookingMethod == CookingMethod.FRITO || tag.cookingMethod == CookingMethod.EMPANIZADO_FRITO || tag.cookingMethod == CookingMethod.SALTEADO) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.Info,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        "Se añadió grasa por tipo de cocción",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    "Ajusta la cantidad de aceite absorbido para recalcular automáticamente:",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    listOf("poco" to "Poco", "medio" to "Medio", "abundante" to "Abundante").forEach { (level, label) ->
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = if (tag.oilLevel == level) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clickable { onOilLevelChange(level) },
+                                        ) {
+                                            Text(
+                                                text = label,
+                                                modifier = Modifier.padding(vertical = 6.dp),
+                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (tag.oilLevel == level) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     if (!tag.isResolved) {
@@ -1685,7 +1908,7 @@ private fun TagCard(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                         ) {
-                                            Text(food.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                                            Text(food.name.trim().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
                                             Text(
                                                 when (candidate.confidence) {
                                                     SearchConfidence.HIGH -> "Alta"
@@ -1696,7 +1919,7 @@ private fun TagCard(
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             )
                                         }
-                                        Text("${kotlin.math.round(food.calories)} kcal / ${food.servingSize}${food.unit}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("${kotlin.math.round(food.calories).toInt()} kcal / ${food.servingSize.toInt()}${food.unit}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 }
                             }
@@ -1709,26 +1932,26 @@ private fun TagCard(
 }
 
 @Composable
-private fun MacroOverrideRow(label: String, value: Double, onChange: (Double) -> Unit) {
+private fun MacroOverrideCol(label: String, value: Double, onChange: (Double) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(text = label, style = MaterialTheme.typography.labelSmall)
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { onChange((value - 5).coerceAtLeast(0.0)) }, modifier = Modifier.size(28.dp)) {
-                Icon(Icons.Default.Remove, null, modifier = Modifier.size(14.dp))
+            IconButton(onClick = { onChange((value - 5).coerceAtLeast(0.0)) }, modifier = Modifier.size(24.dp)) {
+                Icon(Icons.Default.Remove, null, modifier = Modifier.size(12.dp))
             }
             Text(
-                text = "${kotlin.math.round(value)}",
-                style = MaterialTheme.typography.bodyMedium,
+                text = "${kotlin.math.round(value).toInt()}",
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.width(40.dp),
+                modifier = Modifier.width(36.dp),
                 textAlign = TextAlign.Center,
             )
-            IconButton(onClick = { onChange((value + 5).coerceAtMost(9999.0)) }, modifier = Modifier.size(28.dp)) {
-                Icon(Icons.Default.Add, null, modifier = Modifier.size(14.dp))
+            IconButton(onClick = { onChange((value + 5).coerceAtMost(9999.0)) }, modifier = Modifier.size(24.dp)) {
+                Icon(Icons.Default.Add, null, modifier = Modifier.size(12.dp))
             }
         }
     }

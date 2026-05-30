@@ -138,11 +138,13 @@ private fun FeedbackContent(
     postExerciseFeedbackContent: @Composable () -> Unit,
     feedbackExerciseCount: Int = 0,
 ) {
+    val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .navigationBarsPadding()
+            .verticalScroll(scrollState)
             .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -402,44 +404,7 @@ private fun NormalRestContent(
             }
         }
 
-        val alertMessages = remember(
-            state.notificationsEnabled,
-            state.exactAlarmGranted,
-            state.soundReady,
-        ) {
-            buildList {
-                if (!state.notificationsEnabled) add("Notificaciones desactivadas")
-                if (!state.exactAlarmGranted) add("Alarma exacta no disponible")
-                if (!state.soundReady) add("Audio silencioso")
-            }
-        }
-        if (alertMessages.isNotEmpty()) {
-            WorkoutGlassSurface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = WorkoutUiTokens.InnerCardShape,
-                border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.25f)),
-            ) {
-                Column(
-                    modifier = Modifier.padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text(
-                        text = "Alertas del descanso",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Black,
-                        color = sessionAccentColor,
-                    )
-                    alertMessages.forEach { message ->
-                        Text(
-                            text = message,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White.copy(alpha = 0.76f),
-                        )
-                    }
-                }
-            }
-        }
+
 
         if (lastCompletedSets.isNotEmpty()) {
             lastCompletedSets.forEach { (exerciseName, set) ->

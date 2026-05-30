@@ -5,6 +5,10 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.domain.auge.AugeFatigueEngine.calculateSetBatteryDrain
 import com.example.kpkn.domain.auge.AugeFatigueEngine.getDynamicAugeMetrics
 import com.example.kpkn.domain.auge.AugeFatigueEngine.isSetEffective
+import com.example.kpkn.domain.auge.AugeUtils.clamp
+import com.example.kpkn.domain.auge.AugeUtils.safeExp
+import com.example.kpkn.domain.auge.AugeUtils.logDateMs
+import com.example.kpkn.domain.auge.AugeUtils.physiologicalFloor
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -45,17 +49,7 @@ object AugeRecoveryEngine {
         "Abdomen", "Trapecio", "Erectores Espinales", "Core",
     )
 
-    private fun physiologicalFloor(settings: Settings): PhysiologicalFloor = when (settings.athleteType) {
-        AthleteType.POWERLIFTER, AthleteType.WEIGHTLIFTER -> PhysiologicalFloor(muscular = 15, cns = 20, spinal = 12)
-        AthleteType.BODYBUILDER, AthleteType.POWERBUILDER -> PhysiologicalFloor(muscular = 18, cns = 22, spinal = 14)
-        AthleteType.CALISTHENICS -> PhysiologicalFloor(muscular = 20, cns = 24, spinal = 16)
-        AthleteType.HYBRID, AthleteType.ZERCHER_LIFTER -> PhysiologicalFloor(muscular = 20, cns = 25, spinal = 18)
-        AthleteType.ENTHUSIAST -> PhysiologicalFloor(muscular = 22, cns = 26, spinal = 18)
-    }
-
     // ─── Helpers ─────────────────────────────────────────────────────────────
-
-    private fun clamp(v: Double, lo: Double, hi: Double) = min(hi, max(lo, v))
 
     private fun densityMultiplierForCompletedExercise(ex: CompletedExercise): Double =
         AugeFatigueEngine.getDensityMultiplierForExercise(
@@ -65,11 +59,6 @@ object AugeRecoveryEngine {
             supersetRounds = ex.supersetRounds,
             supersetRestAfter = ex.supersetRestAfter,
         )
-
-    private fun safeExp(v: Double): Double {
-        val r = exp(v)
-        return if (r.isNaN() || r.isInfinite()) 0.0 else r
-    }
 
     private fun normKey(s: String) = s
         .lowercase().trim()
@@ -116,14 +105,6 @@ object AugeRecoveryEngine {
         }
     }
 
-    private fun logDateMs(log: WorkoutLog): Long = try {
-        Instant.parse(log.date).toEpochMilli()
-    } catch (e: Exception) {
-        try {
-            val ld = LocalDate.parse(log.date.take(10))
-            ld.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        } catch (e2: Exception) { 0L }
-    }
 
     private fun parseWellbeingDate(dateStr: String): Long = try {
         val ld = LocalDate.parse(dateStr.take(10))
@@ -169,18 +150,9 @@ object AugeRecoveryEngine {
         wellbeing: DailyWellbeingLog?,
         sleepLogs: List<SleepLog>,
     ): Double {
-        val hasSleepData = sleepLogs.isNotEmpty() || wellbeing?.sleepHours != null
-        if (!hasSleepData) return 1.0
-
-        var multiplier = 1.0
-        val weightedSleep = calculateWeightedSleepHours(sleepLogs, wellbeing)
-        when {
-            weightedSleep < 5.5 -> multiplier *= 1.45
-            weightedSleep < 6.5 -> multiplier *= 1.18
-            weightedSleep >= 8.5 -> multiplier *= 0.88
-            weightedSleep >= 7.5 -> multiplier *= 0.94
-        }
-        return multiplier
+        // La recuperación sistémica sigue una curva estándar base pura.
+        // Se descartan multiplicadores directos de sueño para evitar fricción diaria.
+        return 1.0
     }
 
     private fun resolveDbInfo(
@@ -373,16 +345,6 @@ object AugeRecoveryEngine {
         val baseRecoveryTime = clamp(adaptiveHours ?: RECOVERY_PROFILES[profileKey] ?: 48.0, 18.0, 144.0)
 
         var multiplier = nutritionMultiplier
-        val hasSleepData = sleepLogs.isNotEmpty() || wellbeing?.sleepHours != null
-        if (hasSleepData) {
-            val weightedSleep = calculateWeightedSleepHours(sleepLogs, wellbeing)
-            when {
-                weightedSleep < 5.5  -> multiplier *= 1.5
-                weightedSleep < 6.5  -> multiplier *= 1.2
-                weightedSleep >= 8.5 -> multiplier *= 0.8
-                weightedSleep >= 7.5 -> multiplier *= 0.9
-            }
-        }
 
         val age = settings.userVitals.age ?: 25
         if (age > 35) multiplier *= (1.0 + (age - 35) * 0.01)
@@ -522,10 +484,12 @@ object AugeRecoveryEngine {
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         sleepLogs: List<SleepLog> = emptyList(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
+        cnsLearningDelta: Double = 0.0,
     ): Triple<Int, Int, Int> { // Triple(cnsBattery, gymLoad, lifeLoad)
         val now = nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
-        val baseTau = 36.0 * systemicRecoveryMultiplier(wellbeing, sleepLogs)
+        val adaptiveMultiplier = (1.0 - (cnsLearningDelta / 50.0)).coerceIn(0.5, 1.5)
+        val baseTau = 36.0 * systemicRecoveryMultiplier(wellbeing, sleepLogs) * adaptiveMultiplier
         val feedbackPenalty = calculateSystemFeedbackPenaltyPct(feedbacks)
         val tauHours = baseTau * (1.0 + feedbackPenalty.coerceAtLeast(0.0) / 48.0)
         val last10Days = now - 10L * 24 * 3600 * 1000
@@ -633,10 +597,12 @@ object AugeRecoveryEngine {
         feedbacks: List<PostSessionFeedback> = emptyList(),
         personalizedRecoveryHours: Map<String, Double> = emptyMap(),
         muscleDeltas: Map<String, Double> = emptyMap(),
+        spinalLearningDelta: Double = 0.0,
     ): Int {
         val now = nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
-        val tauHours = 52.0 * systemicRecoveryMultiplier(wellbeing, sleepLogs)
+        val adaptiveMultiplier = (1.0 - (spinalLearningDelta / 50.0)).coerceIn(0.5, 1.5)
+        val tauHours = 52.0 * systemicRecoveryMultiplier(wellbeing, sleepLogs) * adaptiveMultiplier
         val last10Days = now - 10L * 24 * 3600 * 1000
 
         val manualSpinal = wellbeing?.manualSpinalBattery
@@ -749,7 +715,15 @@ object AugeRecoveryEngine {
             (overallAvg * 0.5 + bottomQuartileAvg * 0.5).toInt()
         }
 
-        val (cncBattery, _, _) = calculateSystemicFatigue(history, wellbeing, settings, exerciseDb, sleepLogs, feedbacks)
+        val (cncBattery, _, _) = calculateSystemicFatigue(
+            history = history,
+            wellbeing = wellbeing,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            sleepLogs = sleepLogs,
+            feedbacks = feedbacks,
+            cnsLearningDelta = cnsLearningDelta,
+        )
         val spinalBattery = calculateSpinalBattery(
             history = history,
             wellbeing = wellbeing,
@@ -759,7 +733,8 @@ object AugeRecoveryEngine {
             nutritionLogs = nutritionLogs,
             feedbacks = feedbacks,
             personalizedRecoveryHours = personalizedRecoveryHours,
-            muscleDeltas = muscleDeltas
+            muscleDeltas = muscleDeltas,
+            spinalLearningDelta = spinalLearningDelta,
         )
 
         val avgMuscleDelta = if (muscleDeltas.isNotEmpty()) {
@@ -768,8 +743,8 @@ object AugeRecoveryEngine {
 
         return GlobalBatteries(
             muscular = clamp((max(muscularAvg, physiologicalFloor(settings).muscular) + avgMuscleDelta.toInt()).toDouble(), 0.0, 100.0).toInt(),
-            cnc      = clamp((max(cncBattery, physiologicalFloor(settings).cns) + cnsLearningDelta.toInt()).toDouble(), 0.0, 100.0).toInt(),
-            spinal   = clamp((max(spinalBattery, physiologicalFloor(settings).spinal) + spinalLearningDelta.toInt()).toDouble(), 0.0, 100.0).toInt(),
+            cnc      = clamp(max(cncBattery, physiologicalFloor(settings).cns).toDouble(), 0.0, 100.0).toInt(),
+            spinal   = clamp(max(spinalBattery, physiologicalFloor(settings).spinal).toDouble(), 0.0, 100.0).toInt(),
         )
     }
 
@@ -827,9 +802,9 @@ object AugeRecoveryEngine {
             batteries.spinal,
             ((batteries.spinal * 0.6) + (articularFloor * 0.4)).toInt(),
         ).coerceIn(0, 100)
-        val muscularScore = wellbeing?.manualMuscularBattery?.coerceIn(0, 100) ?: batteries.muscular
-        val systemScore = wellbeing?.manualNeuralBattery?.coerceIn(0, 100) ?: batteries.cnc
-        val displayStructureScore = wellbeing?.manualSpinalBattery?.coerceIn(0, 100) ?: structureScore
+        val muscularScore = batteries.muscular
+        val systemScore = batteries.cnc
+        val displayStructureScore = structureScore
 
         val baseConfidence = when {
             recentSessionCount >= 16 -> 82

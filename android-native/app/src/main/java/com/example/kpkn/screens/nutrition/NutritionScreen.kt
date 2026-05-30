@@ -254,14 +254,6 @@ fun NutritionScreen(
         initialTab = foodLoggerInitialTab,
     )
 
-    LaunchedEffect(showFoodLogger, sharedDescription) {
-        if (!showFoodLogger && !sharedDescription.isNullOrBlank()) {
-            foodLoggerInitialDescription = sharedDescription
-            foodLoggerInitialTab = sharedTab.coerceIn(0, 1)
-            showFoodLogger = true
-        }
-    }
-
     // ── Plan Editor Modal ────────────────────────────────────────────────────
     val currentSettings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsState()
     NutritionPlanEditorModal(

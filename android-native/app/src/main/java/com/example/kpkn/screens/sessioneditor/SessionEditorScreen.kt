@@ -4567,7 +4567,7 @@ private fun InlineSetRow(
     val estimatedSubtle = MaterialTheme.colorScheme.onSurfaceVariant
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
         shape = RoundedCornerShape(if (isNarrowScreen) 14.dp else 16.dp),
         color = setSurface,
         border = null,
@@ -7290,18 +7290,6 @@ internal fun ExerciseCatalogInfoDialog(
                     }
                 }
 
-                OutlinedButton(
-                    onClick = {
-                        onDismiss()
-                        onOpenExercise(exercise.id)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Abrir página completa")
-                }
-
                 exercise.description?.takeIf { it.isNotBlank() }?.let {
                     Text(
                         it,
@@ -7310,72 +7298,67 @@ internal fun ExerciseCatalogInfoDialog(
                     )
                 }
 
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ExerciseFactChip("Set-up", inferSetupTimeLabel(exercise))
-                    ExerciseFactChip("Curva", inferLearningCurveLabel(exercise))
-                    ExerciseFactChip("Fatiga", fatigueLabel(fatigue.overall))
-                    ExerciseFactChip("Región", resolveExerciseRegion(exercise).label)
-                }
-
-                ExerciseFatigueScenarios(exercise = exercise)
-
-                Card(
-                    shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)),
-                ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Utilidad del ejercicio", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                        buildExerciseUtilityBullets(exercise).forEach { bullet ->
-                            Text(
-                                "• $bullet",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                }
+                com.example.kpkn.screens.wikilab.ExerciseMinimalistChipsCarousel(
+                    exercise = exercise,
+                    fatigueScore = fatigue.overall,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 val muscleContributions = remember(exercise.id, exercise.involvedMuscles) {
                     oneSeriesVolumeContributions(exercise)
                 }
                 if (muscleContributions.isNotEmpty()) {
-                    Card(
-                        shape = RoundedCornerShape(22.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)),
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text("Músculos involucrados y aporte", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                            Text(
-                                "Aporte estimado por 1 serie efectiva del ejercicio.",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            muscleContributions.forEach { item ->
+                        Text(
+                            "Músculos involucrados",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Black
+                        )
+                        muscleContributions.forEach { item ->
+                            val color = com.example.kpkn.screens.wikilab.wikilabMuscleColor(item.muscle)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 2.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(item.muscle, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                    Surface(
+                                        modifier = Modifier.size(8.dp),
+                                        shape = RoundedCornerShape(50),
+                                        color = color,
+                                    ) {}
+                                    Column {
+                                        Text(
+                                            item.muscle,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Bold,
+                                        )
                                         Text(
                                             roleVolumeLabel(item.role),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
                                     }
-                                    Surface(
-                                        shape = RoundedCornerShape(999.dp),
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
-                                    ) {
-                                        Text(
-                                            formatSeriesEquivalent(item.seriesEquivalent),
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Black,
-                                            color = MaterialTheme.colorScheme.primary,
-                                        )
-                                    }
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = color.copy(alpha = 0.08f),
+                                ) {
+                                    Text(
+                                        formatSeriesEquivalent(item.seriesEquivalent),
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = color,
+                                    )
                                 }
                             }
                         }
@@ -7489,6 +7472,8 @@ internal fun ExerciseCatalogInfoDialog(
                         }
                     }
                 }
+
+                ExerciseFatigueScenarios(exercise = exercise)
             }
         }
     }
@@ -7647,7 +7632,13 @@ private fun HistorySheet(
     uiState: SessionEditorUiState,
     onRestoreSnapshot: (SessionDraftSnapshot) -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 18.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
         SheetHeader("Historial y borradores", "Restaura snapshots locales o revisa sesiones registradas.")
         Text("Cambios recientes del borrador", style = MaterialTheme.typography.labelLarge)
         if (uiState.localDraftHistory.isEmpty()) {
@@ -7727,6 +7718,7 @@ private fun RulesSheet(
     Column(
         Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 18.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
@@ -10557,8 +10549,8 @@ internal fun ExerciseSetsCarousel(
                                     val isLeft = side == "L"
                                     val showCard = if (isLeft) showLeftCard else showRightCard
                                     Box(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        contentAlignment = Alignment.TopCenter,
+                                        modifier = Modifier.fillMaxWidth().weight(1f),
+                                        contentAlignment = Alignment.Center,
                                     ) {
                                         if (showCard) {
                                             val isFirstVisible = orderedSides.takeWhile { it != side }.none { prior ->
@@ -10590,7 +10582,7 @@ internal fun ExerciseSetsCarousel(
                                                 accentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .height(184.dp),
+                                                    .fillMaxHeight(),
                                                 onClick = {
                                                     onUpdateSet(set.id) { s ->
                                                         val default = UnilateralTarget(
@@ -10900,7 +10892,7 @@ private fun AddSetGhostCard(onAddSet: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(172.dp)
+            .fillMaxHeight()
             .clip(RoundedCornerShape(16.dp))
             .clickable { onAddSet() },
         color = DarkEditorSurfaceSoft,

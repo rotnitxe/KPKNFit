@@ -515,7 +515,10 @@ fun WorkoutScreen(
     }
 
     val activeRestModalState = uiState.restModalState
-    if (uiState.isRestTimerRunning && activeRestModalState != null) {
+    val postExerciseTarget = visibleExercises.getOrNull(uiState.postExerciseTargetIdx) ?: currentExercise
+    val isShowingFeedback = uiState.showPostExerciseSheet && postExerciseTarget != null
+
+    if ((uiState.isRestTimerRunning && activeRestModalState != null) || isShowingFeedback) {
         val currentRoundCompletedSets = currentExercise
             ?.supersetGroupRefOrLegacyId()
             ?.let { groupId ->
@@ -527,9 +530,385 @@ fun WorkoutScreen(
                     }
             }
             .orEmpty()
+
+        val restState = activeRestModalState ?: WorkoutRestModalState(
+            exerciseId = postExerciseTarget?.id,
+            exerciseName = postExerciseTarget?.name.orEmpty(),
+            kind = RestTimerKind.STANDARD,
+            plannedSeconds = postExerciseTarget?.restTime ?: 90,
+            endsAtMs = 0L,
+            activeSeconds = 0,
+        )
+
+        val feedbackExercises = remember(postExerciseTarget) {
+            val supersetId = postExerciseTarget?.supersetGroupRefOrLegacyId()
+            if (!supersetId.isNullOrBlank()) {
+                visibleExercises.filter { it.supersetGroupRefOrLegacyId() == supersetId }
+            } else {
+                listOfNotNull(postExerciseTarget)
+            }
+        }
+
+        val feedbackContentBlock = if (isShowingFeedback) {
+            @Composable {
+                val discomfortSearchQuery = remember { mutableStateOf("") }
+                val selectedDiscomfortIds = remember {
+                    mutableStateListOf<String>().apply {
+                        feedbackExercises.forEach { ex ->
+                            val hist = uiState.postExerciseFeedbackByExerciseId[ex.id]
+                            if (hist != null && hist.discomfortIds.isNotEmpty()) {
+                                val histIds = hist.discomfortIds.filter { it != "none" }
+                                histIds.forEach { id -> if (!contains(id)) add(id) }
+                            }
+                        }
+                    }
+                }
+                var infoDiscomfortEntry by remember { mutableStateOf<DiscomfortCatalogEntry?>(null) }
+                var isDiscomfortExpanded by remember { mutableStateOf(false) }
+
+                val technicalValues = remember {
+                    mutableStateMapOf<String, Int>().apply {
+                        feedbackExercises.forEach { ex ->
+                            val hist = uiState.postExerciseFeedbackByExerciseId[ex.id]
+                            put(ex.id, hist?.technicalQuality?.coerceIn(1, 10) ?: 8)
+                        }
+                    }
+                }
+
+                val intensityValues = remember {
+                    mutableStateMapOf<String, Float>().apply {
+                        feedbackExercises.forEach { ex ->
+                            val hist = uiState.postExerciseFeedbackByExerciseId[ex.id]
+                            put(ex.id, (hist?.perceivedIntensityRpe ?: 8.0).toFloat().coerceIn(1f, 10f))
+                        }
+                    }
+                }
+
+                val failureValues = remember {
+                    mutableStateMapOf<String, Boolean>().apply {
+                        feedbackExercises.forEach { ex ->
+                            val hist = uiState.postExerciseFeedbackByExerciseId[ex.id]
+                            put(ex.id, hist?.perceivedFailure == true)
+                        }
+                    }
+                }
+
+                val filteredDiscomforts = remember(discomfortSearchQuery.value) {
+                    val normalized = discomfortSearchQuery.value.trim().lowercase(Locale.ROOT)
+                    if (normalized.isBlank()) {
+                        emptyList()
+                    } else {
+                        DISCOMFORT_CATALOG
+                            .filter { entry ->
+                                entry.label.lowercase(Locale.ROOT).contains(normalized) ||
+                                    entry.description.lowercase(Locale.ROOT).contains(normalized)
+                            }
+                            .sortedBy { it.label }
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    feedbackExercises.forEach { ex ->
+                        val showPerceivedIntensity = !exerciseHasPlannedIntensity(ex)
+                        
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(14.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Text(
+                                    ex.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White
+                                )
+
+                                Text(
+                                    "Calidad técnica",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    val techVal = technicalValues[ex.id] ?: 8
+                                    Slider(
+                                        value = techVal.toFloat(),
+                                        onValueChange = { technicalValues[ex.id] = it.toInt().coerceIn(1, 10) },
+                                        valueRange = 1f..10f,
+                                        steps = 8,
+                                        modifier = Modifier.weight(1f),
+                                        colors = SliderDefaults.colors(
+                                            thumbColor = sessionAccentColor,
+                                            activeTrackColor = sessionAccentColor,
+                                            inactiveTrackColor = Color.White.copy(alpha = 0.15f)
+                                        )
+                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = sessionAccentColor.copy(alpha = 0.2f),
+                                    ) {
+                                        Text(
+                                            "$techVal / 10",
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Black,
+                                            color = sessionAccentColor
+                                        )
+                                    }
+                                }
+
+                                if (showPerceivedIntensity) {
+                                    Text(
+                                        "Qué tan intenso fue",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White.copy(alpha = 0.8f)
+                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        val intensityVal = intensityValues[ex.id] ?: 8f
+                                        val isFailed = failureValues[ex.id] == true
+                                        Slider(
+                                            value = intensityVal,
+                                            onValueChange = {
+                                                intensityValues[ex.id] = it.coerceIn(1f, 10f)
+                                                if (it < 10f) failureValues[ex.id] = false
+                                            },
+                                            valueRange = 1f..10f,
+                                            steps = 8,
+                                            modifier = Modifier.weight(1f),
+                                            colors = SliderDefaults.colors(
+                                                thumbColor = sessionAccentColor,
+                                                activeTrackColor = sessionAccentColor,
+                                                inactiveTrackColor = Color.White.copy(alpha = 0.15f)
+                                            )
+                                        )
+                                        FilterChip(
+                                            selected = isFailed,
+                                            onClick = {
+                                                val nextVal = !isFailed
+                                                failureValues[ex.id] = nextVal
+                                                if (nextVal) intensityValues[ex.id] = 10f
+                                            },
+                                            label = { Text("Fallo") },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = sessionAccentColor.copy(alpha = 0.25f),
+                                                selectedLabelColor = sessionAccentColor,
+                                            )
+                                        )
+                                    }
+                                    Text(
+                                        "${(intensityValues[ex.id] ?: 8f).roundToInt()} / 10",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White.copy(alpha = 0.65f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Accordion for discomforts
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+                    ) {
+                        Column {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { isDiscomfortExpanded = !isDiscomfortExpanded }
+                                    .padding(14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Icon(Icons.Default.Warning, contentDescription = null, tint = sessionAccentColor)
+                                    Text("¿Sientes alguna molestia?", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = Color.White)
+                                }
+                                Icon(
+                                    if (isDiscomfortExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = Color.White.copy(alpha = 0.70f)
+                                )
+                            }
+
+                            AnimatedVisibility(visible = isDiscomfortExpanded) {
+                                Column(modifier = Modifier.padding(14.dp).padding(top = 0.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    OutlinedTextField(
+                                        value = discomfortSearchQuery.value,
+                                        onValueChange = { discomfortSearchQuery.value = it },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        singleLine = true,
+                                        label = { Text("Buscar molestia") },
+                                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White.copy(alpha = 0.5f)) },
+                                        textStyle = MaterialTheme.typography.bodySmall.copy(color = Color.White),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = sessionAccentColor,
+                                            unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                                            focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                                            unfocusedLabelColor = Color.White.copy(alpha = 0.5f),
+                                            cursorColor = Color.White,
+                                            focusedTextColor = Color.White,
+                                            unfocusedTextColor = Color.White,
+                                            focusedContainerColor = Color.White.copy(alpha = 0.03f),
+                                            unfocusedContainerColor = Color.White.copy(alpha = 0.03f),
+                                        ),
+                                    )
+
+                                    if (filteredDiscomforts.isNotEmpty()) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            filteredDiscomforts.forEach { entry ->
+                                                val selected = selectedDiscomfortIds.contains(entry.id)
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                ) {
+                                                    FilterChip(
+                                                        selected = selected,
+                                                        onClick = {
+                                                            if (selected) {
+                                                                selectedDiscomfortIds.remove(entry.id)
+                                                            } else {
+                                                                selectedDiscomfortIds.add(entry.id)
+                                                            }
+                                                        },
+                                                        label = { Text(entry.label, style = MaterialTheme.typography.labelSmall) },
+                                                        modifier = Modifier.weight(1f),
+                                                    )
+                                                    IconButton(onClick = { infoDiscomfortEntry = entry }, modifier = Modifier.size(28.dp)) {
+                                                        Icon(Icons.Default.Info, contentDescription = "Detalle", modifier = Modifier.size(16.dp), tint = Color.White.copy(alpha = 0.5f))
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else if (discomfortSearchQuery.value.isBlank()) {
+                                        Text(
+                                            "Escribe para buscar molestias...",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White.copy(alpha = 0.4f),
+                                        )
+                                    } else {
+                                        Text(
+                                            "No se encontraron resultados para \"${discomfortSearchQuery.value}\"",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White.copy(alpha = 0.4f),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (selectedDiscomfortIds.isNotEmpty()) {
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
+                            selectedDiscomfortIds.forEach { id ->
+                                val entry = DISCOMFORT_CATALOG.find { it.id == id }
+                                val label = entry?.label ?: id
+                                Surface(
+                                    shape = RoundedCornerShape(999.dp),
+                                    color = sessionAccentColor.copy(alpha = 0.2f),
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Text(
+                                            label,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = sessionAccentColor,
+                                            fontWeight = FontWeight.Medium,
+                                        )
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Quitar",
+                                            modifier = Modifier.size(14.dp).clickable { selectedDiscomfortIds.remove(id) },
+                                            tint = sessionAccentColor,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Button(
+                        onClick = {
+                            feedbackExercises.forEach { ex ->
+                                val tech = technicalValues[ex.id] ?: 8
+                                val intensity = intensityValues[ex.id]?.toDouble()
+                                val failed = failureValues[ex.id] == true
+                                viewModel.savePostExerciseFeedback(
+                                    PostExerciseFeedback(
+                                        exerciseId = ex.id,
+                                        exerciseName = ex.name,
+                                        technicalQuality = tech,
+                                        discomfortIds = selectedDiscomfortIds.toList().ifEmpty { listOf("none") },
+                                        perceivedIntensityRpe = intensity,
+                                        perceivedFailure = failed,
+                                    )
+                                )
+                            }
+                            viewModel.dismissPostExerciseSheet()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = sessionAccentColor),
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(vertical = 14.dp),
+                    ) {
+                        Text("Registrar feedback", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = Color.Black)
+                    }
+                }
+
+                infoDiscomfortEntry?.let { entry ->
+                    AlertDialog(
+                        onDismissRequest = { infoDiscomfortEntry = null },
+                        title = { Text(entry.label, fontWeight = FontWeight.Black) },
+                        text = {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(entry.description, style = MaterialTheme.typography.bodySmall)
+                                Text(
+                                    "Sección: ${entry.section.label}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { infoDiscomfortEntry = null }) { Text("Entendido") }
+                        },
+                    )
+                }
+                Unit
+            }
+        } else {
+            null
+        }
+
         RestTimerOverlay(
-            state = activeRestModalState,
-            remainingSeconds = restTimerRemaining,
+            state = restState,
+            remainingSeconds = if (uiState.isRestTimerRunning) restTimerRemaining else 0,
             hazeState = restHazeState,
             pendingRestSuggestion = uiState.pendingRestSuggestion,
             lastSetOutcome = uiState.lastSetOutcomeV2,
@@ -556,6 +935,8 @@ fun WorkoutScreen(
                 null
             },
             onUseAdaptive = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
+            postExerciseFeedbackContent = feedbackContentBlock,
+            feedbackExerciseCount = feedbackExercises.size,
         )
     }
 
@@ -1518,6 +1899,12 @@ fun WorkoutScreen(
             sessionMuscleStartBatteries = finishMuscleStartingBatteries,
             sessionMuscleVolumeByRoleSets = sessionMuscleVolumeByRoleSets,
             postExerciseFeedbackByExerciseId = uiState.postExerciseFeedbackByExerciseId,
+            voiceFinalNotes = uiState.voiceFinalNotes,
+            voiceFinalDiscomforts = uiState.voiceFinalDiscomforts,
+            voiceFinalAdditionalDiscomfortNote = uiState.voiceFinalAdditionalDiscomfortNote,
+            voiceFinalNeural = uiState.voiceFinalNeural,
+            voiceFinalSpinal = uiState.voiceFinalSpinal,
+            voiceFinalConfirmTriggered = uiState.voiceFinalConfirmTriggered,
             onConfirm = { notes, fatigue, closingFeedback, shareToStory ->
                 val share = shareToStory
                 val sessionName = session.name
@@ -1577,28 +1964,7 @@ fun WorkoutScreen(
             viewModel.recoverFromOrphanPostExerciseSheet()
         }
     }
-    val postExerciseTarget = visibleExercises.getOrNull(uiState.postExerciseTargetIdx) ?: currentExercise
-    if (uiState.showPostExerciseSheet && postExerciseTarget != null) {
-        val historicalFeedback = uiState.postExerciseFeedbackByExerciseId[postExerciseTarget.id]
-        PostExerciseFeedbackSheet(
-            exercise = postExerciseTarget,
-            historicalFeedback = historicalFeedback,
-            showPerceivedIntensity = !exerciseHasPlannedIntensity(postExerciseTarget),
-            onSave = { result ->
-                viewModel.savePostExerciseFeedback(
-                    PostExerciseFeedback(
-                        exerciseId = postExerciseTarget.id,
-                        exerciseName = postExerciseTarget.name,
-                        technicalQuality = result.technicalQuality,
-                        discomfortIds = result.discomfortIds,
-                        perceivedIntensityRpe = result.perceivedIntensityRpe,
-                        perceivedFailure = result.perceivedFailure,
-                    )
-                )
-            },
-            onDismiss = { viewModel.dismissPostExerciseSheet() },
-        )
-    }
+
 
     // ─── Exercise history sheet ────────────────────────────────────────────────
     if (uiState.showHistorySheet && uiState.historySheetExerciseDbId != null) {
@@ -2161,12 +2527,9 @@ private fun WorkoutV2Body(
             val expectedSides = currentExercise.expectedSidesForSet(uiState.currentSetIdx)
             selectedUnilateralSideOverride
                 ?.takeIf { it in expectedSides }
-                ?.takeIf { side ->
+                ?: expectedSides.firstOrNull { side ->
                     !uiState.completedSets.containsKey("${currentExercise.id}_${uiState.currentSetIdx}_${side.take(1).uppercase()}")
                 }
-                ?: expectedSides.firstOrNull { side ->
-                !uiState.completedSets.containsKey("${currentExercise.id}_${uiState.currentSetIdx}_${side.take(1).uppercase()}")
-            }
                 ?: expectedSides.firstOrNull()
         }
     }
@@ -2444,12 +2807,24 @@ private fun WorkoutV2Body(
                             activeSetIndex,
                             uiState.exerciseTags[currentExercise.id],
                         )
+                        val sessionCompletedSet = uiState.completedSets[
+                            if (isUnilateral) {
+                                when (cardSide) {
+                                    "left" -> "${currentExercise.id}_${activeSetIndex}_L"
+                                    "right" -> "${currentExercise.id}_${activeSetIndex}_R"
+                                    else -> "${currentExercise.id}_${activeSetIndex}"
+                                }
+                            } else {
+                                "${currentExercise.id}_${activeSetIndex}"
+                            }
+                        ]
                         SetInputCardV2(
                             exercise = currentExercise,
                             setIndex = activeSetIndex,
                             currentSet = activeSet,
                             recordActionHolder = recordActionHolder,
                             ghostSet = activeGhostSet,
+                            sessionCompletedSet = sessionCompletedSet,
                             weightSuggestion = activeWeightSuggestion,
                             sessionAccentColor = sessionAccentColor,
                             persistedLoadModeBySet = uiState.persistedLoadModeBySet,
@@ -2560,7 +2935,7 @@ private fun WorkoutV2Body(
     }
 
     // ─── Workout Command Dock ───────────────────────────────────────────
-    if (currentExercise != null && currentSet != null && !showingPostExerciseCard) {
+    if (currentExercise != null && currentSet != null && (!showingPostExerciseCard || uiState.currentSetIdx < currentExercise.sets.size)) {
         val dockKey = if (isUnilateral && activeSide != null) {
             "${currentExercise.id}_${uiState.currentSetIdx}_${activeSide.take(1).uppercase()}"
         } else {
@@ -4740,6 +5115,12 @@ private fun FinishWorkoutSheet(
     sessionMuscleStartBatteries: Map<String, Int> = emptyMap(),
     sessionMuscleVolumeByRoleSets: Map<String, Double> = emptyMap(),
     postExerciseFeedbackByExerciseId: Map<String, PostExerciseFeedback> = emptyMap(),
+    voiceFinalNotes: String? = null,
+    voiceFinalDiscomforts: List<String> = emptyList(),
+    voiceFinalAdditionalDiscomfortNote: String? = null,
+    voiceFinalNeural: Int? = null,
+    voiceFinalSpinal: Int? = null,
+    voiceFinalConfirmTriggered: Boolean = false,
     onConfirm: (String, Int, SessionClosingFeedback, Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -4774,6 +5155,32 @@ private fun FinishWorkoutSheet(
         )
     }
     var shareToStory by remember { mutableStateOf(false) }
+
+    LaunchedEffect(voiceFinalNotes) {
+        if (voiceFinalNotes != null) {
+            notes = voiceFinalNotes
+        }
+    }
+    LaunchedEffect(voiceFinalAdditionalDiscomfortNote) {
+        if (voiceFinalAdditionalDiscomfortNote != null) {
+            additionalDiscomfortNote = voiceFinalAdditionalDiscomfortNote
+        }
+    }
+    LaunchedEffect(voiceFinalNeural) {
+        if (voiceFinalNeural != null) {
+            neuralFinal = voiceFinalNeural
+        }
+    }
+    LaunchedEffect(voiceFinalSpinal) {
+        if (voiceFinalSpinal != null) {
+            spinalFinal = voiceFinalSpinal
+        }
+    }
+    LaunchedEffect(voiceFinalDiscomforts) {
+        if (voiceFinalDiscomforts.isNotEmpty()) {
+            selectedDiscomforts = selectedDiscomforts + voiceFinalDiscomforts
+        }
+    }
 
     val totalSets = completedSets.size
     val totalVolume = completedSets.values.sumOf { it.weight * it.reps }
@@ -5037,50 +5444,58 @@ private fun FinishWorkoutSheet(
                 textStyle = MaterialTheme.typography.bodySmall,
             )
 
-            Button(
-                onClick = {
-                    val perceivedMuscularDrop = if (muscleFinal.isEmpty()) {
-                        predictedDrain.muscular.toDouble()
-                    } else {
-                        muscleFinal.entries
-                            .map { (muscle, finalValue) ->
-                                val start = sessionMuscleStartBatteries[muscle] ?: 100
-                                (start - finalValue).toDouble()
-                            }
-                            .average()
-                    }
-                    val muscularAdjustment = (
-                        perceivedMuscularDrop.toInt() - predictedDrain.muscular
-                        ).coerceIn(-35, 35)
-                    val discomfortLabels = selectedDiscomforts
-                        .mapNotNull { id -> DISCOMFORT_CATALOG_BY_ID[id]?.label }
-                        .distinct()
+            val executeConfirm = {
+                val perceivedMuscularDrop = if (muscleFinal.isEmpty()) {
+                    predictedDrain.muscular.toDouble()
+                } else {
+                    muscleFinal.entries
+                        .map { (muscle, finalValue) ->
+                            val start = sessionMuscleStartBatteries[muscle] ?: 100
+                            (start - finalValue).toDouble()
+                        }
+                        .average()
+                }
+                val muscularAdjustment = (
+                    perceivedMuscularDrop.toInt() - predictedDrain.muscular
+                    ).coerceIn(-35, 35)
+                val discomfortLabels = selectedDiscomforts
+                    .mapNotNull { id -> DISCOMFORT_CATALOG_BY_ID[id]?.label }
+                    .distinct()
 
-                    onConfirm(
-                        notes,
-                        inferredFatigue,
-                        SessionClosingFeedback(
-                            overallFatigue = inferredFatigue,
-                            systemAdjustment = (
-                                (readinessNeuralStart - neuralFinal) - predictedDrain.cns
-                                ).coerceIn(-35, 35),
-                            muscularAdjustment = muscularAdjustment,
-                            structureAdjustment = (
-                                (readinessSpinalStart - spinalFinal) - predictedDrain.spinal
-                                ).coerceIn(-35, 35),
-                            discomforts = discomfortLabels + listOfNotNull(
-                                additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
-                            ),
-                            clarityRating = averageTechnique.toInt().coerceIn(1, 10),
-                            environmentTags = emptyList(),
-                            finalNeuralBattery = neuralFinal,
-                            finalSpinalBattery = spinalFinal,
-                            finalMuscleBatteries = muscleFinal.toMap(),
-                            additionalDiscomfortNote = additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
+                onConfirm(
+                    notes,
+                    inferredFatigue,
+                    SessionClosingFeedback(
+                        overallFatigue = inferredFatigue,
+                        systemAdjustment = (
+                            (readinessNeuralStart - neuralFinal) - predictedDrain.cns
+                            ).coerceIn(-35, 35),
+                        muscularAdjustment = muscularAdjustment,
+                        structureAdjustment = (
+                            (readinessSpinalStart - spinalFinal) - predictedDrain.spinal
+                            ).coerceIn(-35, 35),
+                        discomforts = discomfortLabels + listOfNotNull(
+                            additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
                         ),
-                        shareToStory,
-                    )
-                },
+                        clarityRating = averageTechnique.toInt().coerceIn(1, 10),
+                        environmentTags = emptyList(),
+                        finalNeuralBattery = neuralFinal,
+                        finalSpinalBattery = spinalFinal,
+                        finalMuscleBatteries = muscleFinal.toMap(),
+                        additionalDiscomfortNote = additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
+                    ),
+                    shareToStory,
+                )
+            }
+
+            LaunchedEffect(voiceFinalConfirmTriggered) {
+                if (voiceFinalConfirmTriggered) {
+                    executeConfirm()
+                }
+            }
+
+            Button(
+                onClick = { executeConfirm() },
                 modifier = Modifier.fillMaxWidth(),
             ) { Text("Guardar y Terminar", fontWeight = FontWeight.Bold) }
 

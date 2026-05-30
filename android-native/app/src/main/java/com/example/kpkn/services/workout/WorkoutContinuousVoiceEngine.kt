@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class WorkoutContinuousVoiceEngine(private val context: Context) {
 
@@ -45,17 +46,30 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
         this.scope = scope
         if (active) return
         active = true
-        startListening()
+        scope.launch(Dispatchers.Main) {
+            startListening()
+        }
     }
 
     fun pause() {
         active = false
         restarting = false
-        try {
-            recognizer?.cancel()
-            recognizer?.destroy()
-        } catch (_: Exception) {}
-        recognizer = null
+        val currentScope = scope
+        if (currentScope != null) {
+            currentScope.launch(Dispatchers.Main) {
+                try {
+                    recognizer?.cancel()
+                    recognizer?.destroy()
+                } catch (_: Exception) {}
+                recognizer = null
+            }
+        } else {
+            try {
+                recognizer?.cancel()
+                recognizer?.destroy()
+            } catch (_: Exception) {}
+            recognizer = null
+        }
     }
 
     fun stop() {
@@ -64,107 +78,112 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
 
     private fun startListening() {
         if (!active) return
+        val currentScope = scope ?: return
 
-        try {
-            recognizer?.cancel()
-            recognizer?.destroy()
-        } catch (_: Exception) {}
-        recognizer = null
+        currentScope.launch(Dispatchers.Main) {
+            if (!active) return@launch
 
-        if (!SpeechRecognizer.isRecognitionAvailable(context)) {
-            scope?.launch { _errors.emit("Reconocimiento no disponible en este dispositivo") }
-            return
-        }
+            try {
+                recognizer?.cancel()
+                recognizer?.destroy()
+            } catch (_: Exception) {}
+            recognizer = null
 
-        recognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
-            val intent = buildRecognizerIntent()
+            if (!SpeechRecognizer.isRecognitionAvailable(context)) {
+                _errors.emit("Reconocimiento no disponible en este dispositivo")
+                return@launch
+            }
 
-            setRecognitionListener(object : RecognitionListener {
-                override fun onReadyForSpeech(params: Bundle?) {}
-                override fun onBeginningOfSpeech() {}
-                override fun onRmsChanged(rmsdB: Float) {}
-                override fun onBufferReceived(buffer: ByteArray?) {}
-                override fun onEndOfSpeech() {}
-                override fun onEvent(eventType: Int, params: Bundle?) {}
+            recognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
+                val intent = buildRecognizerIntent()
 
-                override fun onPartialResults(partialResults: Bundle?) {
-                    val text = partialResults
-                        ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                        ?.firstOrNull()
-                        ?.trim()
-                        ?: return
-                    if (text.isNotBlank()) {
-                        _partialResults.tryEmit(text)
-                    }
-                }
+                setRecognitionListener(object : RecognitionListener {
+                    override fun onReadyForSpeech(params: Bundle?) {}
+                    override fun onBeginningOfSpeech() {}
+                    override fun onRmsChanged(rmsdB: Float) {}
+                    override fun onBufferReceived(buffer: ByteArray?) {}
+                    override fun onEndOfSpeech() {}
+                    override fun onEvent(eventType: Int, params: Bundle?) {}
 
-                override fun onResults(results: Bundle?) {
-                    val text = results
-                        ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                        ?.firstOrNull()
-                        ?.trim()
-                        ?: ""
-
-                    if (text.isNotBlank()) {
-                        _finalResults.tryEmit(text)
-                    }
-
-                    if (active && !restarting) {
-                        restarting = true
-                        scope?.launch {
-                            delay(300)
-                            restarting = false
-                            if (active) startListening()
+                    override fun onPartialResults(partialResults: Bundle?) {
+                        val text = partialResults
+                            ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                            ?.firstOrNull()
+                            ?.trim()
+                            ?: return
+                        if (text.isNotBlank()) {
+                            _partialResults.tryEmit(text)
                         }
                     }
-                }
 
-                override fun onError(error: Int) {
-                    if (!active) return
-                    if (error == SpeechRecognizer.ERROR_NO_MATCH ||
-                        error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
-                    ) {
+                    override fun onResults(results: Bundle?) {
+                        val text = results
+                            ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                            ?.firstOrNull()
+                            ?.trim()
+                            ?: ""
+
+                        if (text.isNotBlank()) {
+                            _finalResults.tryEmit(text)
+                        }
+
                         if (active && !restarting) {
                             restarting = true
-                            scope?.launch {
-                                delay(400)
+                            scope?.launch(Dispatchers.Main) {
+                                delay(300)
                                 restarting = false
                                 if (active) startListening()
                             }
                         }
-                        return
                     }
 
-                    if (error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY ||
-                        error == SpeechRecognizer.ERROR_CLIENT
-                    ) {
+                    override fun onError(error: Int) {
+                        if (!active) return
+                        if (error == SpeechRecognizer.ERROR_NO_MATCH ||
+                            error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
+                        ) {
+                            if (active && !restarting) {
+                                restarting = true
+                                scope?.launch(Dispatchers.Main) {
+                                    delay(400)
+                                    restarting = false
+                                    if (active) startListening()
+                                }
+                            }
+                            return
+                        }
+
+                        if (error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY ||
+                            error == SpeechRecognizer.ERROR_CLIENT
+                        ) {
+                            if (active && !restarting) {
+                                restarting = true
+                                scope?.launch(Dispatchers.Main) {
+                                    delay(800)
+                                    restarting = false
+                                    if (active) startListening()
+                                }
+                            }
+                            return
+                        }
+
+                        scope?.launch {
+                            _errors.emit("Error de reconocimiento: $error")
+                        }
+
                         if (active && !restarting) {
                             restarting = true
-                            scope?.launch {
-                                delay(800)
+                            scope?.launch(Dispatchers.Main) {
+                                delay(1000)
                                 restarting = false
                                 if (active) startListening()
                             }
                         }
-                        return
                     }
+                })
 
-                    scope?.launch {
-                        _errors.emit("Error de reconocimiento: $error")
-                    }
-
-                    if (active && !restarting) {
-                        restarting = true
-                        scope?.launch {
-                            delay(1000)
-                            restarting = false
-                            if (active) startListening()
-                        }
-                    }
-                }
-            })
-
-            startListening(intent)
+                startListening(intent)
+            }
         }
     }
 

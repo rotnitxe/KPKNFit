@@ -24,6 +24,8 @@ private val PROTECTED_ENTITIES = listOf(
     "sandwich de pollo con mayonesa", "sandwich de jamon con mayonesa",
     "sándwich de pollo con mayonesa", "sándwich de jamón con mayonesa",
     "hamburguesa con queso", "papas fritas con mayonesa", "papa fritas con mayonesa",
+    "cafe con leche", "café con leche", "te con leche", "té con leche",
+    "leche con chocolate", "leche con platano", "leche con plátano", "porotos con riendas",
 )
 
 private val LITERAL_QUANTITIES = mapOf(
@@ -273,8 +275,21 @@ private fun extractReferenceFromFragment(text: String): Pair<Double?, String> {
 
         // Find food in DB to get portion type
         val food = findFoodByNormalized(foodPart)
-        val gramsPerUnit = getGramsForReference(refType, food)
-        val grams = kotlin.math.round(gramsPerUnit * qty * 10) / 10.0
+
+        // Try high-fidelity subjective resolution first
+        val densityCategory = SubjectivePortionEngine.detectDensityCategory(foodPart)
+        val subjectiveResult = SubjectivePortionEngine.resolve(
+            expression = match.value,
+            foodCategory = densityCategory,
+            standardPortion = food?.servingSize
+        )
+
+        val grams = if (subjectiveResult != null) {
+            kotlin.math.round(subjectiveResult.grams * 10) / 10.0
+        } else {
+            val gramsPerUnit = getGramsForReference(refType, food)
+            kotlin.math.round(gramsPerUnit * qty * 10) / 10.0
+        }
 
         // Return foodPart as the working text so parseFragment can use it as the food name.
         // Using `cleaned` (text with match removed) was wrong: when the reference covers the full

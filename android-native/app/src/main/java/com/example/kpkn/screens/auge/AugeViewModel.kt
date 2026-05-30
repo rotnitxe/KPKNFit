@@ -355,7 +355,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 manualNeuralBattery = neural.coerceIn(0, 100),
                 manualSpinalBattery = spinal.coerceIn(0, 100),
                 manualMuscleBatteries = perMuscle.mapValues { (_, value) -> value.coerceIn(0, 100) },
-                manualBatteryAnchorMs = manualBatteryAnchorMs ?: System.currentTimeMillis() + 2000L,
+                manualBatteryAnchorMs = manualBatteryAnchorMs ?: System.currentTimeMillis(),
                 notes = base?.notes,
             )
             augeRepo.saveWellbeingLog(updated)

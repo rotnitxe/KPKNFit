@@ -316,21 +316,21 @@ fun DayView(
         }
     }
 
-    pendingOffScheduleSession?.let { (session, message) ->
+    pendingOffScheduleSession?.let { (session, _) ->
         AlertDialog(
             onDismissRequest = { pendingOffScheduleSession = null },
-            title = { Text("Sesión fuera de calendario", fontWeight = FontWeight.Black) },
-            text = { Text(message) },
+            title = { Text("Aviso", fontWeight = FontWeight.Black) },
+            text = { Text("La sesión que quieres iniciar no corresponde a la fecha de hoy. ¿Quieres continuar?") },
             confirmButton = {
                 Button(
                     onClick = {
                         pendingOffScheduleSession = null
                         onStartWorkout(session)
                     },
-                ) { Text("Entrenar igual") }
+                ) { Text("Continuar") }
             },
             dismissButton = {
-                TextButton(onClick = { pendingOffScheduleSession = null }) { Text("Volver al plan") }
+                TextButton(onClick = { pendingOffScheduleSession = null }) { Text("Cancelar") }
             },
         )
     }

@@ -237,6 +237,7 @@ class HomeViewModel : ViewModel() {
         }.sortedWith(
             compareBy<TodaySessionItem>(
                 { if (it.isOngoing) 0 else 1 },
+                { if (it.isCompleted) 1 else 0 },
                 { if (it.dayOfWeek == currentDayOfWeek) 0 else 1 },
                 { it.dayOfWeek },
                 { if (it.session.isMainSession) 0 else 1 },
