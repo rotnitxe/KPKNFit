@@ -154,15 +154,27 @@ fun createLoggedFood(
     portion: PortionPreset? = null,
     cookingMethod: CookingMethod? = null,
 ): LoggedFood {
+    val (adjCal, adjProt, adjCarb, adjFat) = if (cookingMethod != null && cookingMethod != CookingMethod.CRUDO) {
+        val cf = COOKING_FACTORS[cookingMethod]
+        if (cf != null) {
+            Quadruple(
+                round1(calories * cf.kcal),
+                round1(protein * cf.protein),
+                round1(carbs * cf.carbs),
+                round1(fats * cf.fats)
+            )
+        } else Quadruple(calories, protein, carbs, fats)
+    } else Quadruple(calories, protein, carbs, fats)
+
     return LoggedFood(
         id = java.util.UUID.randomUUID().toString(),
         foodName = foodName,
         amount = amount,
         unit = unit,
-        calories = calories,
-        protein = protein,
-        carbs = carbs,
-        fats = fats,
+        calories = adjCal,
+        protein = adjProt,
+        carbs = adjCarb,
+        fats = adjFat,
         fiber = fiber,
         sugar = sugar,
         sodiumMg = sodiumMg,

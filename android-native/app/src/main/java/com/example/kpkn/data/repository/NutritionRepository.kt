@@ -367,9 +367,9 @@ class NutritionRepository private constructor(context: Context) {
 
     private val foodIndexLock = Any()
 
-    suspend fun initFoodIndex() {
+    suspend fun initFoodIndex() = withContext(Dispatchers.Default) {
         synchronized(foodIndexLock) {
-            if (_foodIndex?.isBuilt() == true) return
+            if (_foodIndex?.isBuilt() == true) return@withContext
         }
         try {
             val globalFoods = withContext(Dispatchers.IO) {
@@ -408,15 +408,8 @@ class NutritionRepository private constructor(context: Context) {
      * Look up a food by ID across all sources: static, custom, and global.
      */
     suspend fun getFoodById(foodId: String): FoodItem? = withContext(Dispatchers.IO) {
-        // Check static foods
-        val static = _foodDatabase.value.find { it.id == foodId }
-        if (static != null) return@withContext static
-
-        // Check custom foods
-        val custom = db.nutritionDao().getAllCustomFoods()
-            .find { it.id == foodId }
-            ?.let { it.toFoodItem() }
-        if (custom != null) return@withContext custom
+        val cached = _foodDatabase.value.find { it.id == foodId }
+        if (cached != null) return@withContext cached
 
         // Check global foods (USDA/OFF)
         val global = runCatching {

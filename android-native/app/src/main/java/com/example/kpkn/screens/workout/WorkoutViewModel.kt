@@ -9,6 +9,7 @@ import com.example.kpkn.data.voice.VoiceState
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.AugeFatigueEngine
+import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
@@ -49,6 +50,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -157,6 +161,12 @@ data class WorkoutUiState(
     val mesocycleStressEMA: MesocycleStressEMA? = null,
     // sleepQuality (1-5) del último DailyWellbeingLog — para el sleep modifier de carga
     val sleepQuality: Int? = null,
+    // Readiness por ejercicio calculado desde AUGE real
+    val exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
+    // Readiness agregado por patrón de movimiento
+    val patternReadiness: List<MovementPatternReadiness> = emptyList(),
+    // Ajustes de carga aplicados por el usuario (solo sesión actual, en memoria)
+    val readinessAdjustments: Map<String, SetAdjustmentSuggestion> = emptyMap(),
     val liveEnergySummary: SessionEnergySummary = SessionEnergySummary(),
     val persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
@@ -205,6 +215,31 @@ class WorkoutViewModel(
 
     private val _uiState = MutableStateFlow(WorkoutUiState(programId = programId))
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
+
+    val allUserTags: StateFlow<List<String>> = combine(repository.history, repository.contextProfiles) { historyList, profilesMap ->
+        val tags = mutableSetOf<String>()
+        // Baseline presets
+        tags.addAll(listOf("Base", "Top set", "Back-off", "Tecnica", "Volumen", "Control", "PR", "Pesado", "Ligero", "Pump", "Máquina", "Sentado", "De pie", "Cable", "Unilateral", "Inclinado", "Declinado"))
+
+        // Add tags from completed sets in history
+        historyList.forEach { log ->
+            log.completedExercises.forEach { ex ->
+                ex.sets.forEach { set ->
+                    set.tagId?.takeIf { it.isNotBlank() }?.let { tags.add(it) }
+                }
+            }
+            log.exerciseTags.values.forEach { tag ->
+                tag.takeIf { it.isNotBlank() }?.let { tags.add(it) }
+            }
+        }
+
+        // Add tags from context profiles
+        profilesMap.values.forEach { profile ->
+            profile.tagId?.takeIf { it.isNotBlank() }?.let { tags.add(it) }
+        }
+
+        tags.filter { it.isNotBlank() }.toList()
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _restTimerRemaining = MutableStateFlow(0)
     val restTimerRemaining: StateFlow<Int> = _restTimerRemaining.asStateFlow()
@@ -2821,7 +2856,6 @@ class WorkoutViewModel(
                 pendingRestSuggestion = null,
                 restModalState = null,
                 editingState = null,
-                activeStepKey = null,
                 continuityTransitionTarget = null,
                 continuityFeedbackExerciseId = null,
                 isRestTimerRunning = false,
@@ -3886,6 +3920,13 @@ class WorkoutViewModel(
                 skippedExerciseIds = it.skippedExerciseIds + omittedIds,
             )
         }
+        val updatedState = _uiState.value
+        val newVisible = visibleExercises(updatedState)
+        if (updatedState.currentExerciseIdx >= newVisible.size) {
+            _uiState.update {
+                it.copy(currentExerciseIdx = (newVisible.size - 1).coerceAtLeast(0))
+            }
+        }
         openFinishSheet()
     }
 
@@ -4701,6 +4742,76 @@ class WorkoutViewModel(
         persistOngoingState()
     }
 
+    // ─── Readiness por Ejercicio y Patrón ─────────────────────────────────────
+
+    /**
+     * Calcula el readiness por ejercicio y patrón para la sesión actual.
+     * Debe invocarse UNA VEZ cuando los datos AUGE están disponibles.
+     * Usa EXCLUSIVAMENTE datos reales de AUGE (batteries, perMuscle).
+     */
+    fun computeExerciseReadiness(
+        batteries: GlobalBatteries,
+        perMuscle: Map<String, MuscleRecoveryStatus>,
+        unresolvedDiscomfortIds: List<String> = emptyList(),
+    ) {
+        val state = _uiState.value
+        val exercises = state.session?.exercises ?: return
+
+        val readinessMap = mutableMapOf<String, ExerciseReadiness>()
+
+        for (exercise in exercises) {
+            val canonicalId = canonicalExerciseKey(exercise)
+            val avgErm = if (canonicalId.isNotBlank()) {
+                getExerciseHistory(canonicalId, limit = 5)
+                    .mapNotNull { it.e1rm }
+                    .average()
+                    .takeIf { it > 0.0 }
+            } else null
+
+            val readiness = ExerciseReadinessEngine.calculatePerExerciseReadiness(
+                exercise = exercise,
+                augeBatteries = batteries,
+                perMuscle = perMuscle,
+                averageErm = avgErm,
+                unresolvedDiscomfortIds = unresolvedDiscomfortIds,
+            )
+
+            if (readiness != null) {
+                readinessMap[exercise.id] = readiness
+            }
+        }
+
+        val patterns = ExerciseReadinessEngine.calculatePerMovementPatternReadiness(
+            exercises = exercises,
+            exerciseReadinessMap = readinessMap,
+            perMuscle = perMuscle,
+        )
+
+        _uiState.update {
+            it.copy(
+                exerciseReadinessMap = readinessMap,
+                patternReadiness = patterns,
+            )
+        }
+    }
+
+    /**
+     * Aplica el ajuste de carga sugerido por readiness para la serie actual.
+     * Solo afecta la sesión actual (no persiste al cerrar).
+     */
+    fun applyReadinessAdjustment(
+        exerciseId: String,
+        setIndex: Int,
+        suggestion: SetAdjustmentSuggestion,
+    ) {
+        val key = "${exerciseId}_${setIndex}"
+        _uiState.update {
+            it.copy(
+                readinessAdjustments = it.readinessAdjustments + (key to suggestion),
+            )
+        }
+    }
+
     // ─── Tags / Setup ─────────────────────────────────────────────────────────
 
     private fun syncActiveProfileTag(exerciseId: String, tag: String?) {
@@ -4989,6 +5100,7 @@ class WorkoutViewModel(
                 },
                 omittedExercises = omittedExercises,
                 energySummary = finalEnergySummary,
+                stillPresentDiscomfortIds = closingFeedback.stillPresentDiscomfortIds,
             ).normalizedIdentityFields()
 
             repository.addWorkoutLog(log)
@@ -5002,6 +5114,7 @@ class WorkoutViewModel(
                     logId = logId,
                     sessionName = session.name,
                     muscleGroups = muscleGroups,
+                    stillPresentDiscomfortIds = closingFeedback.stillPresentDiscomfortIds,
                     scheduledTimeMs = System.currentTimeMillis() + (24 * 60 * 60 * 1000L),
                 )
             )
@@ -5186,6 +5299,28 @@ class WorkoutViewModel(
         }
     }
 
+    private fun getTagMultiplier(tag: String?): Double {
+        if (tag.isNullOrBlank()) return 1.0
+        return when (tag.trim().lowercase()) {
+            "base" -> 1.0
+            "top set" -> 1.08
+            "pr" -> 1.15
+            "pesado" -> 1.05
+            "back-off" -> 0.90
+            "tecnica", "control" -> 0.85
+            "volumen" -> 0.90
+            "ligero", "pump" -> 0.80
+            "máquina" -> 1.10
+            "sentado" -> 0.95
+            "de pie" -> 1.00
+            "cable" -> 0.90
+            "unilateral" -> 0.85
+            "inclinado" -> 0.85
+            "declinado" -> 1.05
+            else -> 1.0
+        }
+    }
+
     fun latestCompletedSessionSnapshot(): WorkoutShareSnapshot? {
         val last = repository.getLogsForSession(sessionId)
             .maxByOrNull { it.date }
@@ -5236,6 +5371,10 @@ class WorkoutViewModel(
             .getOrNull(setIdx) ?: baseEntry.sets.filter { !it.isWarmup }.lastOrNull()
         val techniqueSignal = latestTechniqueSignal(exercise.id, dbId)
 
+        val scale = if (activeTag != baseEntry.tag) {
+            getTagMultiplier(activeTag) / getTagMultiplier(baseEntry.tag)
+        } else 1.0
+
         fun adjustWithTechnique(baseLoad: Double): Double {
             if (techniqueSignal == 0) return baseLoad
             val factor = when {
@@ -5258,16 +5397,25 @@ class WorkoutViewModel(
         if (lastSet != null && lastSet.weight > 0) {
             val homologatedSuggestion = lastSet.homologatedResultV3?.suggestedNextLoad
             if (homologatedSuggestion != null) {
-                val adjusted = (adjustWithTechnique(homologatedSuggestion) * 2).toLong() / 2.0
+                val scaledSug = homologatedSuggestion * scale
+                val adjusted = (adjustWithTechnique(scaledSug) * 2).toLong() / 2.0
+                val percentText = if (scale != 1.0) {
+                    val percent = ((scale - 1.0) * 100).roundToInt()
+                    val sign = if (percent >= 0) "+" else ""
+                    " ($sign$percent% por $activeTag)"
+                } else ""
                 val baseReason = lastSet.homologatedResultV3?.suggestionReason
                     ?: if (activeTag != null && baseEntry.tag == activeTag) {
                         "Historial contextual"
                     } else {
                         "Historial homologado"
                     }
+                val finalReason = if (scale != 1.0) {
+                    "Homologado de ${baseEntry.tag ?: "Base"}$percentText"
+                } else baseReason
                 return WeightSuggestion(
                     suggestedWeight = adjusted,
-                    reason = appendTechniqueReason(baseReason),
+                    reason = appendTechniqueReason(finalReason),
                     suggestedLoadMode = lastSet.homologatedResultV3?.suggestedLoadMode,
                 )
             }
@@ -5279,9 +5427,20 @@ class WorkoutViewModel(
                 lastSet.reps > 0 && targetReps <= lastSet.reps -> lastSetWeight * 1.025
                 else -> lastSetWeight
             }
-            val rounded = (adjustWithTechnique(suggestedWeight) * 2).toLong() / 2.0
-            val reason = if (activeTag != null && baseEntry.tag == activeTag)
-                "Última sesión · $activeTag" else "Última sesión"
+            val scaledSug = suggestedWeight * scale
+            val rounded = (adjustWithTechnique(scaledSug) * 2).toLong() / 2.0
+            val percentText = if (scale != 1.0) {
+                val percent = ((scale - 1.0) * 100).roundToInt()
+                val sign = if (percent >= 0) "+" else ""
+                " ($sign$percent% por $activeTag)"
+            } else ""
+            val reason = if (activeTag != null && baseEntry.tag == activeTag) {
+                "Última sesión · $activeTag"
+            } else if (scale != 1.0) {
+                "Homologado de ${baseEntry.tag ?: "Base"}$percentText"
+            } else {
+                "Última sesión"
+            }
             return WeightSuggestion(suggestedWeight = rounded, reason = appendTechniqueReason(reason))
         }
 

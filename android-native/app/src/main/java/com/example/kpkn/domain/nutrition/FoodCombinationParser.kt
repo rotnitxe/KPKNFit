@@ -11,6 +11,9 @@ package com.example.kpkn.domain.nutrition
  */
 object FoodCombinationParser {
 
+    private val CON_Y_COMMA_LEADING_PATTERN = Regex("""^\s*(?:con|y|,)\s*""")
+    private val COMBO_SPLIT_PATTERN = Regex("""\s+(?:con|y|,)\s+""")
+
     data class ParsedCombination(
         val baseFood: String,
         val baseProportion: Double,
@@ -560,11 +563,11 @@ object FoodCombinationParser {
             if (remaining.contains(dishName)) {
                 foods.add(dishName)
                 remaining = remaining.replace(dishName, "").trim()
-                remaining = Regex("""^\s*(?:con|y|,)\s*""").replace(remaining, "").trim()
+                remaining = CON_Y_COMMA_LEADING_PATTERN.replace(remaining, "").trim()
             }
         }
         if (remaining.isNotBlank()) {
-            val parts = remaining.split(Regex("""\s+(?:con|y|,)\s+""")).map { it.trim() }.filter { it.isNotBlank() }
+            val parts = remaining.split(COMBO_SPLIT_PATTERN).map { it.trim() }.filter { it.isNotBlank() }
             foods.addAll(parts)
         }
         return foods.ifEmpty { listOf(lower) }

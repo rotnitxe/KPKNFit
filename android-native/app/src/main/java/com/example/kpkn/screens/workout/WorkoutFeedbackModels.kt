@@ -106,6 +106,7 @@ data class SessionClosingFeedback(
     val finalMuscularBattery: Int? = null,
     val finalMuscleBatteries: Map<String, Int> = emptyMap(),
     val additionalDiscomfortNote: String? = null,
+    val stillPresentDiscomfortIds: List<String> = emptyList(),
 )
 
 data class ExerciseHistoryEntry(

@@ -38,26 +38,21 @@ class CookingFactorsTest {
     }
 
     @Test
-    fun `salteado adds fat`() {
-        val f = COOKING_FACTORS[CookingMethod.SALTEADO]!!
-        assertEquals(1.25, f.kcal, 0.01)
-        assertEquals(1.30, f.fats, 0.01)
-    }
-
-    @Test
-    fun `frito major fat increase`() {
+    fun `frito water loss concentrates`() {
         val f = COOKING_FACTORS[CookingMethod.FRITO]!!
-        assertEquals(2.00, f.kcal, 0.01)
-        assertEquals(2.50, f.fats, 0.01)
+        assertEquals(1.10, f.kcal, 0.01)
+        assertEquals(1.00, f.fats, 0.01)
+        assertEquals(1.10, f.protein, 0.01)
+        assertEquals(-0.20, f.waterChange, 0.01)
     }
 
     @Test
-    fun `empanizado frito highest impact`() {
+    fun `empanizado frito applies water loss and breading carbs`() {
         val f = COOKING_FACTORS[CookingMethod.EMPANIZADO_FRITO]!!
-        assertEquals(3.50, f.kcal, 0.01)
-        assertEquals(3.50, f.fats, 0.01)
-        assertEquals(1.30, f.carbs, 0.01)
-        assertEquals(1.15, f.protein, 0.01)
+        assertEquals(1.20, f.kcal, 0.01)
+        assertEquals(1.00, f.fats, 0.01)
+        assertEquals(1.20, f.carbs, 0.01)
+        assertEquals(1.10, f.protein, 0.01)
     }
 
     @Test
@@ -86,9 +81,9 @@ class CookingFactorsTest {
     @Test
     fun `applyCookingToMacros adjusts correctly`() {
         val result = applyCookingToMacros(165.0, 31.0, 0.0, 3.6, CookingMethod.FRITO)
-        assertEquals(330.0, result.calories, 0.1)
-        assertEquals(31.0, result.protein, 0.1)
-        assertEquals(9.0, result.fats, 0.1)
+        assertEquals(181.5, result.calories, 0.1)
+        assertEquals(34.1, result.protein, 0.1)
+        assertEquals(3.6, result.fats, 0.1)
     }
 
     @Test
@@ -100,8 +95,8 @@ class CookingFactorsTest {
     }
 
     @Test
-    fun `all 12 methods have factors`() {
-        assertEquals(12, COOKING_FACTORS.size)
+    fun `all 11 methods have factors`() {
+        assertEquals(11, COOKING_FACTORS.size)
         for (method in CookingMethod.entries) {
             assert(COOKING_FACTORS.containsKey(method)) { "Missing factor for $method" }
         }

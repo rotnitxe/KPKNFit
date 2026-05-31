@@ -192,7 +192,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 personalizedRecoveryHours = adaptiveCache.personalizedRecoveryHours,
                 muscleDeltas = adaptiveCache.muscleDeltas,
             )
-            val articular = AugeTtcEngine.calculateArticularBatteries(history, exerciseDb)
+            val articular = AugeTtcEngine.calculateArticularBatteries(history, exerciseDb, feedbacks)
             val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
                 batteries = bat,
                 perMuscle = muscles,

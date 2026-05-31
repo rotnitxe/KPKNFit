@@ -160,17 +160,17 @@ class MacroCalculatorTest {
     // ─── Cooking Method Application ─────────────────────────────────────────
 
     @Test
-    fun `scale food with frito boosts fat`() {
+    fun `scale food with frito concentrates macros for meat`() {
         val food = FoodItem(
             id = "pollo", name = "Pollo", servingSize = 100.0, unit = "g",
             calories = 165.0, protein = 31.0, carbs = 0.0, fats = 3.6,
         )
         val logged = scaleFoodByPortion(food, amountGrams = 200.0, cookingMethod = CookingMethod.FRITO)
         assertEquals(200.0, logged.amount, 0.01)
-        assertEquals(660.0, logged.calories, 1.0) // 165 * 2.0 * 2 = 660
-        assertEquals(62.0, logged.protein, 0.5)
+        assertEquals(363.0, logged.calories, 1.0) // 165 * 1.10 * 2 = 363
+        assertEquals(68.2, logged.protein, 0.5)    // 31 * 1.10 * 2 = 68.2
         assertEquals(0.0, logged.carbs, 0.5)
-        assertTrue(logged.fats > 10.0) // 3.6 * 2.5 * 2 = 18.0
+        assertEquals(7.2, logged.fats, 0.5)       // 3.6 * 1.00 * 2 = 7.2
         assertEquals(CookingMethod.FRITO, logged.cookingMethod)
     }
 
@@ -188,17 +188,16 @@ class MacroCalculatorTest {
     }
 
     @Test
-    fun `scale food with empanizado frito boosts everything`() {
+    fun `scale food with empanizado frito concentrates macros and carbs`() {
         val food = FoodItem(
             id = "merluza", name = "Merluza", servingSize = 100.0, unit = "g",
             calories = 120.0, protein = 22.0, carbs = 0.0, fats = 3.0,
         )
         val logged = scaleFoodByPortion(food, amountGrams = 150.0, cookingMethod = CookingMethod.EMPANIZADO_FRITO)
         assertEquals(150.0, logged.amount, 0.01)
-        // kcal: 120 * 3.5 * 1.5 = 630
-        assertTrue(logged.calories > 550.0)
-        // carbs: 0 * 1.3 * 1.5 = 0 but breading... well it's from base 0
-        assertTrue(logged.fats > 10.0)
+        assertEquals(216.0, logged.calories, 1.0)
+        assertEquals(36.3, logged.protein, 0.5)
+        assertEquals(4.5, logged.fats, 0.5)
     }
 
     @Test
@@ -226,16 +225,16 @@ class MacroCalculatorTest {
     }
 
     @Test
-    fun `scale food with salteado boosts fat`() {
+    fun `scale food with frito concentrates macros`() {
         val food = FoodItem(
             id = "verduras", name = "Verduras", servingSize = 100.0, unit = "g",
             calories = 28.0, protein = 2.0, carbs = 5.0, fats = 0.3,
         )
-        val logged = scaleFoodByPortion(food, amountGrams = 150.0, cookingMethod = CookingMethod.SALTEADO)
-        // kcal: 28 * 1.25 * 1.5 = 52.5
-        // fats: 0.3 * 1.30 * 1.5 = 0.585
-        assertTrue(logged.fats > 0.5)
-        assertTrue(logged.calories > 28.0) // boosted
+        val logged = scaleFoodByPortion(food, amountGrams = 150.0, cookingMethod = CookingMethod.FRITO)
+        // kcal: 28 * 1.10 * 1.5 = 46.2, which rounds to 46.0
+        // fats: 0.3 * 1.00 * 1.5 = 0.45, which rounds to 0.5
+        assertEquals(46.0, logged.calories, 0.1)
+        assertEquals(0.5, logged.fats, 0.1)
     }
 
     @Test

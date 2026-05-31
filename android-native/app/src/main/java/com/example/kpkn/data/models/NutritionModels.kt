@@ -8,7 +8,7 @@ enum class PortionPreset { SMALL, MEDIUM, LARGE, EXTRA }
 
 enum class CookingMethod {
     CRUDO, COCIDO, PLANCHA, HORNO, FRITO, EMPANIZADO_FRITO,
-    SALTEADO, AHUMADO, VAPOR, OLLA, ASADO_PARRILLA, GUISADO
+    AHUMADO, VAPOR, OLLA, ASADO_PARRILLA, GUISADO
 }
 
 enum class PortionReference {

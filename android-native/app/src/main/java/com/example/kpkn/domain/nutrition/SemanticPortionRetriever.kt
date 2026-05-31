@@ -45,6 +45,16 @@ object SemanticPortionRetriever {
         val carbsMedian: Double,
     )
 
+    private val MN_PATTERN = Regex("\\p{Mn}+")
+    private val NON_ALPHANUMERIC_PATTERN = Regex("[^\\p{L}\\p{Nd}]+")
+    private val SPACES_PATTERN = Regex("\\s+")
+    private val GRAMS_DE_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*g\s+de\s+([a-záéíóúñü\s]{2,}?)(?:\s*,|\s+y\s+|\s*\(|\s*$)""")
+    private val PAREN_GRAMS_PATTERN = Regex("""([a-záéíóúñü\s]{2,}?)\s*\((\d+(?:[.,]\d+)?)\s*g\)""")
+    private val KCAL_MATCH_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*kcal""")
+    private val PROTEIN_MATCH_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*[pP]""")
+    private val FATS_MATCH_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*[gG](?:rasas?)?""")
+    private val CARBS_MATCH_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*[cC](?:arbohidratos?)?""")
+
     private val SPANISH_STOPWORDS = setOf(
         "de", "la", "el", "con", "sin", "a", "al", "en", "por", "y", "o", "un", "una",
         "unos", "unas", "del", "las", "los", "lo", "para", "que", "es", "su", "se",
@@ -195,15 +205,15 @@ object SemanticPortionRetriever {
 
     private fun normalize(text: String): String {
         return java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)
-            .replace(Regex("\\p{Mn}+"), "")
+            .replace(MN_PATTERN, "")
             .lowercase()
-            .replace(Regex("[^\\p{L}\\p{Nd}]+"), " ")
-            .replace(Regex("\\s+"), " ")
+            .replace(NON_ALPHANUMERIC_PATTERN, " ")
+            .replace(SPACES_PATTERN, " ")
             .trim()
     }
 
     private fun tokenize(normalized: String): List<String> {
-        return normalized.split(Regex("\\s+"))
+        return normalized.split(SPACES_PATTERN)
             .filter { it.length >= 2 && it !in SPANISH_STOPWORDS }
     }
 
@@ -237,8 +247,7 @@ object SemanticPortionRetriever {
             val instruction = match.instruction.lowercase()
 
             // Extract "Xg de food" patterns
-            val gramPattern = Regex("""(\d+(?:[.,]\d+)?)\s*g\s+de\s+([a-záéíóúñü\s]{2,}?)(?:\s*,|\s+y\s+|\s*\(|\s*$)""")
-            for (gramMatch in gramPattern.findAll(instruction)) {
+            for (gramMatch in GRAMS_DE_PATTERN.findAll(instruction)) {
                 val grams = gramMatch.groupValues[1].replace(",", ".").toDoubleOrNull() ?: continue
                 val food = gramMatch.groupValues[2].trim()
                 if (grams > 0 && grams <= 2000 && food.length >= 2) {
@@ -247,8 +256,7 @@ object SemanticPortionRetriever {
             }
 
             // Extract "food (Xg)" patterns
-            val parenPattern = Regex("""([a-záéíóúñü\s]{2,}?)\s*\((\d+(?:[.,]\d+)?)\s*g\)""")
-            for (parenMatch in parenPattern.findAll(instruction)) {
+            for (parenMatch in PAREN_GRAMS_PATTERN.findAll(instruction)) {
                 val grams = parenMatch.groupValues[2].replace(",", ".").toDoubleOrNull() ?: continue
                 val food = parenMatch.groupValues[1].trim()
                 if (grams > 0 && grams <= 2000 && food.length >= 2) {
@@ -310,10 +318,10 @@ object SemanticPortionRetriever {
         val lower = instruction.lowercase()
 
         // Look for output patterns in the instruction itself
-        val kcalMatch = Regex("""(\d+(?:[.,]\d+)?)\s*kcal""").find(lower)
-        val proteinMatch = Regex("""(\d+(?:[.,]\d+)?)\s*[pP]""").findAll(lower).lastOrNull()
-        val fatsMatch = Regex("""(\d+(?:[.,]\d+)?)\s*[gG](?:rasas?)?""").findAll(lower).lastOrNull()
-        val carbsMatch = Regex("""(\d+(?:[.,]\d+)?)\s*[cC](?:arbohidratos?)?""").findAll(lower).lastOrNull()
+        val kcalMatch = KCAL_MATCH_PATTERN.find(lower)
+        val proteinMatch = PROTEIN_MATCH_PATTERN.findAll(lower).lastOrNull()
+        val fatsMatch = FATS_MATCH_PATTERN.findAll(lower).lastOrNull()
+        val carbsMatch = CARBS_MATCH_PATTERN.findAll(lower).lastOrNull()
 
         val kcal = kcalMatch?.groupValues?.get(1)?.replace(",", ".")?.toDoubleOrNull()
         val protein = proteinMatch?.groupValues?.get(1)?.replace(",", ".")?.toDoubleOrNull()?.takeIf { it > 0 && it <= 500 }

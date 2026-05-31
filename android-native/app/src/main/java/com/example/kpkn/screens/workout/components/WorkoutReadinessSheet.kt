@@ -8,11 +8,16 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Settings
@@ -36,6 +41,7 @@ import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,7 +49,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.Gender
+import com.example.kpkn.data.models.MovementPatternReadiness
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -60,7 +69,10 @@ fun WorkoutReadinessSheet(
     readinessSpinalStart: Int,
     hazeState: HazeState,
     onSave: (neural: Int, muscular: Int?, spinal: Int, perMuscle: Map<String, Int>) -> Unit,
-    onDismissWithoutVerify: () -> Unit
+    onDismissWithoutVerify: () -> Unit,
+    patternReadiness: List<MovementPatternReadiness> = emptyList(),
+    exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
+    sessionExercises: List<Exercise> = emptyList(),
 ) {
     if (!showReadinessSheet) return
 
@@ -345,6 +357,170 @@ fun WorkoutReadinessSheet(
                             }
                         }
                     }
+                }
+
+                // ── 2b. Sección colapsable: Preparación por ejercicio ──
+                if (exerciseReadinessMap.isNotEmpty()) {
+                    var expandedEjercicios by rememberSaveable { mutableStateOf(true) }
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { expandedEjercicios = !expandedEjercicios }
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    Icons.Default.FitnessCenter,
+                                    null,
+                                    Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                )
+                                Text(
+                                    "Preparación por ejercicio",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Text(
+                                    "${exerciseReadinessMap.size} ejercicios",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                )
+                                Icon(
+                                    if (expandedEjercicios) Icons.Default.ExpandLess
+                                    else Icons.Default.ExpandMore,
+                                    null,
+                                    Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                )
+                            }
+                        }
+
+                        if (expandedEjercicios) {
+                            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+                                // Patrones (Movement Patterns)
+                                val patternsByName = patternReadiness.associateBy { it.patternLabel }
+                                if (patternsByName.isNotEmpty()) {
+                                    Text(
+                                        "Por patrón de movimiento",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                        modifier = Modifier.padding(bottom = 8.dp),
+                                    )
+                                    FlowRow(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.padding(bottom = 12.dp),
+                                    ) {
+                                        patternsByName.forEach { (_, pattern) ->
+                                            val color = when {
+                                                pattern.overallScore >= 75 -> Color(0xFF4CAF50)
+                                                pattern.overallScore >= 50 -> Color(0xFFFFC107)
+                                                else -> Color(0xFFFF5252)
+                                            }
+                                            Surface(
+                                                shape = RoundedCornerShape(999.dp),
+                                                color = color.copy(alpha = 0.12f),
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.padding(
+                                                        horizontal = 12.dp,
+                                                        vertical = 6.dp,
+                                                    ),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(22.dp)
+                                                            .clip(CircleShape)
+                                                            .background(color),
+                                                        contentAlignment = Alignment.Center,
+                                                    ) {
+                                                        Text(
+                                                            "${pattern.overallScore}%",
+                                                            style = TextStyle(
+                                                                fontSize = 8.sp,
+                                                                fontWeight = FontWeight.Black,
+                                                            ),
+                                                            color = Color.White,
+                                                        )
+                                                    }
+                                                    Text(
+                                                        pattern.patternLabel,
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        fontWeight = FontWeight.Medium,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Ejercicios individuales
+                                Text(
+                                    "Por ejercicio",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                    modifier = Modifier.padding(bottom = 8.dp),
+                                )
+                                exerciseReadinessMap.forEach { (exerciseId, readiness) ->
+                                    val exercise = sessionExercises.find { it.id == exerciseId }
+                                    val color = when {
+                                        readiness.overallScore >= 75 -> Color(0xFF4CAF50)
+                                        readiness.overallScore >= 50 -> Color(0xFFFFC107)
+                                        else -> Color(0xFFFF5252)
+                                    }
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(10.dp)
+                                                .clip(CircleShape)
+                                                .background(color),
+                                        )
+                                        Text(
+                                            exercise?.name ?: exerciseId,
+                                            modifier = Modifier.weight(1f),
+                                            style = MaterialTheme.typography.bodySmall,
+                                        )
+                                        Text(
+                                            "${readiness.overallScore}%",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = color,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
                 }
 
                 // 3. BOTÓN PRINCIPAL

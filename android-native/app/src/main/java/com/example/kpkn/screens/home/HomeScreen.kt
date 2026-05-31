@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,6 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.R
 import com.example.kpkn.data.models.MuscleFeedbackEntry
 import com.example.kpkn.data.models.MuscleRecoveryStatus
+import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.RecoveryChannelId
@@ -253,6 +255,7 @@ fun HomeScreen(
                 sessionName = augePending!!.sessionName,
                 muscleGroups = augePending!!.muscleGroups,
                 logId = augePending!!.logId,
+                stillPresentDiscomfortIds = augePending!!.stillPresentDiscomfortIds,
                 onSave = { fb ->
                     augeViewModel.savePostSessionFeedback(fb)
                     showPostSessionSheet = false
@@ -591,8 +594,21 @@ private fun MiniNutritionCard(dailyCalorieGoal: Int, consumedCalories: Int, onAd
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PostSessionFeedbackSheet(sessionName: String, muscleGroups: List<String>, logId: String, onSave: (PostSessionFeedback) -> Unit, onDismiss: () -> Unit) {
-    var cnsRecovery by remember { mutableIntStateOf(7) }; val muscleDoms = remember(muscleGroups) { mutableStateMapOf<String, Int>().also { m -> muscleGroups.forEach { m[it] = 1 } } }
+private fun PostSessionFeedbackSheet(
+    sessionName: String,
+    muscleGroups: List<String>,
+    logId: String,
+    stillPresentDiscomfortIds: List<String> = emptyList(),
+    onSave: (PostSessionFeedback) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var cnsRecovery by remember { mutableIntStateOf(7) }
+    val muscleDoms = remember(muscleGroups) { mutableStateMapOf<String, Int>().also { m -> muscleGroups.forEach { m[it] = 1 } } }
+    val unresolvedStill = remember(stillPresentDiscomfortIds) {
+        mutableStateMapOf<String, Boolean>().also { m ->
+            stillPresentDiscomfortIds.forEach { id -> m[id] = true }
+        }
+    }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), shape = MaterialTheme.shapes.extraLarge, containerColor = MaterialTheme.colorScheme.surface) {
         Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 24.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -613,7 +629,65 @@ private fun PostSessionFeedbackSheet(sessionName: String, muscleGroups: List<Str
                     }
                 }
             }
-            Button(onClick = { onSave(PostSessionFeedback(logId = logId, date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()), cnsRecovery = cnsRecovery, muscleFeedback = muscleDoms.mapValues { (_, v) -> MuscleFeedbackEntry(doms = v) })) }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.extraLarge) { Text("Guardar feedback", fontWeight = FontWeight.Black, modifier = Modifier.padding(vertical = 4.dp)) }
+            if (stillPresentDiscomfortIds.isNotEmpty()) {
+                Text("Molestias persistentes", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                stillPresentDiscomfortIds.forEach { id ->
+                    val stillUnresolved = unresolvedStill[id] ?: true
+                    val label = DISCOMFORT_CATALOG_BY_ID[id]?.label ?: id
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        color = if (stillUnresolved) Color(0xFF1B3A1B) else Color(0xFF2A2A2A),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (stillUnresolved) Color.White else Color.White.copy(alpha = 0.5f),
+                                textDecoration = if (stillUnresolved) TextDecoration.None else TextDecoration.LineThrough,
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                FilterChip(
+                                    selected = stillUnresolved,
+                                    onClick = { unresolvedStill[id] = true },
+                                    label = { Text("Sigue", style = MaterialTheme.typography.labelSmall) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Color(0xFF2E7D32),
+                                        containerColor = Color(0xFF3A3A3A),
+                                    ),
+                                )
+                                FilterChip(
+                                    selected = !stillUnresolved,
+                                    onClick = { unresolvedStill[id] = false },
+                                    label = { Text("Resuelta", style = MaterialTheme.typography.labelSmall) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Color(0xFF4A4A4A),
+                                        containerColor = Color(0xFF3A3A3A),
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            Button(
+                onClick = {
+                    val unresolvedIds = unresolvedStill.filterValues { it }.keys.toList()
+                    onSave(PostSessionFeedback(
+                        logId = logId,
+                        date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()),
+                        cnsRecovery = cnsRecovery,
+                        muscleFeedback = muscleDoms.mapValues { (_, v) -> MuscleFeedbackEntry(doms = v) },
+                        unresolvedDiscomfortIds = unresolvedIds,
+                    ))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.extraLarge,
+            ) { Text("Guardar feedback", fontWeight = FontWeight.Black, modifier = Modifier.padding(vertical = 4.dp)) }
             Spacer(Modifier.height(8.dp))
         }
     }

@@ -83,14 +83,20 @@ object WorkoutShareService {
                 if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
 
-            if (instagramIntent.resolveActivity(context.packageManager) != null) {
+            var sharedDirectly = false
+            try {
                 context.grantUriPermission(
                     INSTAGRAM_PACKAGE,
                     uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION,
                 )
                 context.startActivity(instagramIntent)
-            } else {
+                sharedDirectly = true
+            } catch (_: Exception) {
+                // Instagram is not installed or failed to launch. Fallback.
+            }
+
+            if (!sharedDirectly) {
                 val fallback = Intent(Intent.ACTION_SEND).apply {
                     type = "image/png"
                     putExtra(Intent.EXTRA_STREAM, uri)

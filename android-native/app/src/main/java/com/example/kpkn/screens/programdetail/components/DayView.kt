@@ -138,7 +138,6 @@ fun DayView(
     val startDay = program.startDay ?: 1
     val weekDays = program.weekDays ?: 7
     val days = remember(startDay, weekDays) { getDynamicDays(startDay, weekDays) }
-    var expandedDays by remember(startDay) { mutableStateOf(setOf(days.firstOrNull()?.id ?: 1)) }
     var dayLayout by remember(sessions) {
         mutableStateOf(
             sessions.map { session ->
@@ -156,6 +155,22 @@ fun DayView(
     var startDaySessionMode by remember { mutableStateOf(StartDaySessionMode.KEEP_DAYS) }
     val outsideProgramDays = selectedWeek?.outsideProgramDays.orEmpty()
     val trainingDayDates = selectedWeek?.trainingDayDates.orEmpty()
+
+    val initialExpandedDay = remember(startDay, trainingDayDates) {
+        val todayStr = java.time.LocalDate.now().toString()
+        val calendarDayId = trainingDayDates.entries.firstOrNull { it.value == todayStr }?.key
+        if (calendarDayId != null) {
+            setOf(calendarDayId)
+        } else {
+            val todayDow = java.time.LocalDate.now().dayOfWeek.value
+            if (days.any { it.id == todayDow }) {
+                setOf(todayDow)
+            } else {
+                setOf(days.firstOrNull()?.id ?: 1)
+            }
+        }
+    }
+    var expandedDays by remember(initialExpandedDay) { mutableStateOf(initialExpandedDay) }
 
     LaunchedEffect(sessions) {
         dayLayout = sessions.map { session ->
@@ -351,7 +366,7 @@ private fun calendarStartWarning(isOutsideProgram: Boolean, scheduledDate: Strin
 private fun formatDayDateLabel(raw: String): String? {
     return try {
         val date = LocalDate.parse(raw)
-        "%02d/%02d".format(date.monthValue, date.dayOfMonth)
+        "%02d/%02d".format(date.dayOfMonth, date.monthValue)
     } catch (_: DateTimeParseException) {
         raw.takeIf { it.isNotBlank() }
     }

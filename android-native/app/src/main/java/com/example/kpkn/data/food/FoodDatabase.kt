@@ -9,7 +9,7 @@ import com.example.kpkn.data.models.Micronutrient
  * Contains generic foods (90 items), plus Chilean-specific foods.
  */
 
-fun buildFoodDatabase(): List<FoodItem> = GENERIC_FOODS + CHILEAN_FOODS
+fun buildFoodDatabase(): List<FoodItem> = ALL_FOODS
 
 // ─── Generic Foods (serving 100g unless noted) ───────────────────────────────
 
@@ -438,11 +438,14 @@ val PORTION_REFERENCES: List<PortionRef> = listOf(
     PortionRef("piece", 120.0),
 )
 
+// Cacheado estático para evitar la concatenación repetida de miles de elementos
+private val ALL_FOODS: List<FoodItem> by lazy { GENERIC_FOODS + CHILEAN_FOODS }
+
 // ─── Lookup Helpers ──────────────────────────────────────────────────────────
 
 // O(1) HashMap para búsqueda rápida por nombre exacto
 private val foodByExactName: Map<String, FoodItem> by lazy {
-    val allFoods = GENERIC_FOODS + CHILEAN_FOODS
+    val allFoods = ALL_FOODS
     buildMap {
         allFoods.forEach { food ->
             put(food.name.lowercase(), food)
@@ -468,7 +471,7 @@ fun findFoodByNormalized(text: String): FoodItem? {
     foodByExactName[normalized]?.let { return it }
 
     // Fallback: contains search (O(n), sólo cuando no hay match exacto)
-    val allFoods = GENERIC_FOODS + CHILEAN_FOODS
+    val allFoods = ALL_FOODS
     allFoods.find { it.name.lowercase().contains(alias) }?.let { return it }
     allFoods.find { alias.contains(it.name.lowercase()) && it.name.length > 3 }?.let { return it }
 

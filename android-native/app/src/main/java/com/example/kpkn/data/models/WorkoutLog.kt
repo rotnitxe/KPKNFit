@@ -22,6 +22,7 @@ data class WorkoutLog(
     val mesoIndex: Int? = null,
     val clarityRating: Int? = null,        // 1–10: mental clarity / freshness
     val environmentTags: List<String> = emptyList(), // e.g. "gym", "casa", "cansado", "buen sueño"
+    val stillPresentDiscomfortIds: List<String> = emptyList(),
     val planDeviations: List<PlanDeviation> = emptyList(), // deviations from planned session
     val exerciseTags: Map<String, String> = emptyMap(),    // exerciseId → tag used this session
     val contextualPerformanceStateV2: Map<String, ContextPerformanceStateV2> = emptyMap(),

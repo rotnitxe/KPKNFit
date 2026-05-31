@@ -501,6 +501,17 @@ class ProgramRepository private constructor(context: Context) {
     ): ProgramWeekLocation? {
         val locations = allWeekLocations()
         if (locations.isEmpty()) return null
+
+        if (com.example.kpkn.domain.training.ProgramCalendarEngine.isCalendarized(this)) {
+            val projection = com.example.kpkn.domain.training.ProgramCalendarEngine.project(this)
+            val today = java.time.LocalDate.now()
+            val calendarWeek = projection.weekForDate(today)
+            if (calendarWeek != null) {
+                val resolved = locations.firstOrNull { it.week.id == calendarWeek.weekId }
+                if (resolved != null) return resolved
+            }
+        }
+
         return locations.firstOrNull { location ->
             location.week.sessions.any { it.matchesDay(dayOfWeek) }
         } ?: locations.first()
@@ -519,6 +530,30 @@ class ProgramRepository private constructor(context: Context) {
         val program = programs.find { it.id == state.programId } ?: return state
         val locations = program.allWeekLocations()
         if (locations.isEmpty()) return state
+
+        if (com.example.kpkn.domain.training.ProgramCalendarEngine.isCalendarized(program)) {
+            val projection = com.example.kpkn.domain.training.ProgramCalendarEngine.project(program)
+            val today = java.time.LocalDate.now()
+            val calendarWeek = projection.weekForDate(today)
+            if (calendarWeek != null) {
+                val resolved = locations.firstOrNull { it.week.id == calendarWeek.weekId }
+                if (resolved != null) {
+                    if (state.currentWeekId != resolved.week.id ||
+                        state.currentMacrocycleIndex != resolved.macroIndex ||
+                        state.currentBlockIndex != resolved.blockIndex ||
+                        state.currentMesocycleIndex != resolved.mesocycleIndex
+                    ) {
+                        return state.copy(
+                            currentMacrocycleIndex = resolved.macroIndex,
+                            currentBlockIndex = resolved.blockIndex,
+                            currentMesocycleIndex = resolved.mesocycleIndex,
+                            currentWeekId = resolved.week.id,
+                        )
+                    }
+                    return state
+                }
+            }
+        }
 
         val exact = locations.firstOrNull { location ->
             location.macroIndex == state.currentMacrocycleIndex &&

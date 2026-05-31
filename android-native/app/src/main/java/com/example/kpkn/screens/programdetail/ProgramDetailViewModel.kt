@@ -193,25 +193,40 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
     // ─── Init: Auto-select + Tour ─────────────────────────────────────────
 
     init {
-        // Auto-select first block when roadmapBlocks changes
+        // Auto-select active/first block when activeProgramState, program, or roadmapBlocks changes
         viewModelScope.launch {
-            roadmapBlocks.collect { blocks ->
-                if (blocks.isNotEmpty() && _uiState.value.selectedBlockId == null) {
+            combine(activeProgramState, program, roadmapBlocks) { active, p, blocks ->
+                if (p == null || blocks.isEmpty()) return@combine
+                if (active != null && active.programId == programId && active.status == ProgramStatus.ACTIVE) {
+                    val activeBlock = ProgramDetailHelpers.findActiveBlockId(active, programId, blocks)
+                    if (activeBlock != null && _uiState.value.selectedBlockId != activeBlock) {
+                        _uiState.update { it.copy(selectedBlockId = activeBlock) }
+                    }
+                } else if (_uiState.value.selectedBlockId == null) {
                     _uiState.update { it.copy(selectedBlockId = blocks.first().id) }
                 }
-            }
+            }.collect {}
         }
 
-        // Auto-select first week when currentWeeks changes
+        // Auto-select active/first week when activeProgramState, program, or currentWeeks changes
         viewModelScope.launch {
-            currentWeeks.collect { weeks ->
+            combine(activeProgramState, program, currentWeeks) { active, p, weeks ->
+                if (p == null || weeks.isEmpty()) return@combine
+                if (active != null && active.programId == programId && active.status == ProgramStatus.ACTIVE) {
+                    val activeWeek = active.currentWeekId
+                    if (activeWeek != null && weeks.any { it.id == activeWeek }) {
+                        if (_uiState.value.selectedWeekId != activeWeek) {
+                            _uiState.update { it.copy(selectedWeekId = activeWeek) }
+                        }
+                        return@combine
+                    }
+                }
                 val current = _uiState.value.selectedWeekId
-                if (weeks.isNotEmpty() && (current == null || weeks.none { it.id == current })) {
+                if (current == null || weeks.none { it.id == current }) {
                     _uiState.update { it.copy(selectedWeekId = weeks.first().id) }
                 }
-            }
+            }.collect {}
         }
-
     }
 
     // ─── Actions ──────────────────────────────────────────────────────────

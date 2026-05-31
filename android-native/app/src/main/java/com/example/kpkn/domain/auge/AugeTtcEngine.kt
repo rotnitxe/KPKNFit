@@ -3,7 +3,9 @@ package com.example.kpkn.domain.auge
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeFatigueEngine.getEffectiveRPE
 import com.example.kpkn.domain.auge.AugeUtils.logDateMs
+import java.text.SimpleDateFormat
 import java.time.Instant
+import java.util.Locale
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.max
@@ -26,6 +28,8 @@ object AugeTtcEngine {
     private const val CUMULATIVE_PENALTY = 0.1
     private const val IMBALANCE_THRESHOLD = 30
     private const val DISCOMFORT_ARTICULAR_BASE_PENALTY = 10.0
+    private const val DISCOMFORT_UNRESOLVED_BASE_PENALTY = 15.0
+    private const val DISCOMFORT_UNRESOLVED_DECAY_HOURS = 168.0 // 7 días
 
     private fun clamp(v: Double, lo: Double, hi: Double) = min(hi, max(lo, v))
     private fun safeExp(v: Double): Double {
@@ -155,10 +159,13 @@ object AugeTtcEngine {
     /**
      * Calcula el estado de las 6 baterías articulares desde el historial de 10 días.
      * Equivalente a calculateArticularBatteries() en tendonRecovery.ts.
+     *
+     * @param feedbacks  PostSessionFeedback — las unresolvedDiscomfortIds aplican estrés articular adicional (Fase 7)
      */
     fun calculateArticularBatteries(
         history: List<WorkoutLog>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
+        feedbacks: List<PostSessionFeedback> = emptyList(),
     ): Map<ArticularBattery, ArticularBatteryState> {
         val now = System.currentTimeMillis()
         val tenDaysMs = 10L * 24 * 3600 * 1000
@@ -248,11 +255,34 @@ object AugeTtcEngine {
             }
         }
 
+        // Estrés adicional por molestias no resueltas en feedback post-sesión (Fase 7)
+        val unresolvedStress = ArticularBattery.entries.associateWith { 0.0 }.toMutableMap()
+        for (fb in feedbacks) {
+            val fbDateMs = try {
+                SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(fb.date)?.time ?: 0L
+            } catch (_: Exception) { 0L }
+            if (fbDateMs <= 0L) continue
+            val hoursSince = max(0.0, (now - fbDateMs) / 3_600_000.0)
+            val decayFactor = max(0.0, 1.0 - hoursSince / DISCOMFORT_UNRESOLVED_DECAY_HOURS)
+            if (decayFactor <= 0.0) continue
+            for (id in fb.unresolvedDiscomfortIds) {
+                val entry = DISCOMFORT_CATALOG_BY_ID[id] ?: continue
+                val targets = entry.relatedArticular
+                if (targets.isEmpty()) continue
+                val split = 1.0 / targets.size
+                for (ab in targets) {
+                    unresolvedStress[ab] = (unresolvedStress[ab] ?: 0.0) +
+                        (DISCOMFORT_UNRESOLVED_BASE_PENALTY * decayFactor * split)
+                }
+            }
+        }
+
         // Finalizar baterías
         return ArticularBattery.entries.associateWith { ab ->
             val acc     = accumulatedStress[ab] ?: 0.0
             val discomfortAcc = discomfortStress[ab] ?: 0.0
-            val totalAcc = acc + discomfortAcc
+            val unresolvedAcc = unresolvedStress[ab] ?: 0.0
+            val totalAcc = acc + discomfortAcc + unresolvedAcc
             val battery = clamp(100.0 - (totalAcc / TENDON_CAPACITY_BASE) * 100.0, 0.0, 100.0)
             val score   = battery.toInt()
             val status  = when {

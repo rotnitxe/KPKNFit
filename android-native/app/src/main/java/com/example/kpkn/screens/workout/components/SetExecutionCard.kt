@@ -29,8 +29,10 @@ import androidx.compose.ui.unit.sp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
+import kotlin.math.roundToInt
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.screens.workout.*
 
 private data class DropSetEntry(
@@ -554,6 +556,9 @@ internal fun SetInputCardV2(
         bodyWeight: Double?,
         side: String?,
     ) -> Unit,
+    exerciseReadiness: ExerciseReadiness? = null,
+    readinessAdjustment: SetAdjustmentSuggestion? = null,
+    onApplyReadinessAdjustment: ((SetAdjustmentSuggestion) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val isNarrowScreen = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 360
@@ -615,15 +620,16 @@ internal fun SetInputCardV2(
     val draftWeightText = initialDraft?.weightText?.takeIf { it.isNotBlank() }
     val draftValueText = initialDraft?.valueText?.takeIf { it.isNotBlank() }
     var weightText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
-        mutableStateOf(draftWeightText.orEmpty())
+        mutableStateOf(draftWeightText ?: completedWeightText ?: "")
     }
     var lastAutoFilledWeight by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) { mutableStateOf(defaultWeight) }
     var hasManualWeightOverride by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
-        mutableStateOf(!draftWeightText.isNullOrBlank())
+        mutableStateOf(!draftWeightText.isNullOrBlank() || completedWeightText != null)
     }
     var valueText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
         mutableStateOf(draftValueText ?: defaultValue)
     }
+    var showReadinessAdjustmentSheet by remember { mutableStateOf(false) }
     val targetLeftWeight = currentSet.leftTarget?.weight?.toTrimmedNumberString() ?: defaultWeight
     val targetRightWeight = currentSet.rightTarget?.weight?.toTrimmedNumberString() ?: defaultWeight
     val initialLeftWeight = if (initialSelectedSide == "left") draftWeightText ?: targetLeftWeight else targetLeftWeight
@@ -1151,6 +1157,77 @@ internal fun SetInputCardV2(
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center
                             )
+                        }
+                    }
+
+                    // ── Ajuste por readiness (Transversal a todo tipo de carga) ──
+                    if (exerciseReadiness != null &&
+                        exerciseReadiness.overallScore < ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD &&
+                        onApplyReadinessAdjustment != null &&
+                        readinessAdjustment == null
+                    ) {
+                        Spacer(Modifier.height(6.dp))
+                        TextButton(
+                            onClick = { showReadinessAdjustmentSheet = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = sessionAccentColor,
+                            ),
+                        ) {
+                            Icon(
+                                Icons.Default.Tune,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                "Ajustar a estado actual",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+
+                    // ── Indicador de ajuste aplicado ──
+                    if (readinessAdjustment != null && (readinessAdjustment.reductionPercent > 0.0 || readinessAdjustment.suggestedLoadMode != (currentSet.loadModeV2 ?: LoadModeV2.LOAD))) {
+                        val plannedMode = currentSet.loadModeV2 ?: LoadModeV2.LOAD
+                        val adjustmentText = when {
+                            readinessAdjustment.suggestedLoadMode == LoadModeV2.ASSISTED && plannedMode != LoadModeV2.ASSISTED -> {
+                                "Ajustado: +${readinessAdjustment.suggestedWeight.roundToInt()}kg Asistencia"
+                            }
+                            readinessAdjustment.suggestedLoadMode == LoadModeV2.BODYWEIGHT && plannedMode != LoadModeV2.BODYWEIGHT -> {
+                                "Ajustado: Usar Peso Corporal"
+                            }
+                            plannedMode == LoadModeV2.ASSISTED -> {
+                                "Ajustado: +${readinessAdjustment.suggestedWeight.roundToInt()}kg Asistencia"
+                            }
+                            else -> {
+                                "Ajustado −${(readinessAdjustment.reductionPercent * 100).roundToInt()}%"
+                            }
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFF1B3A1B),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    Icons.Default.Info, null,
+                                    Modifier.size(14.dp),
+                                    tint = Color(0xFF4CAF50),
+                                )
+                                Text(
+                                    adjustmentText,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF4CAF50),
+                                )
+                            }
                         }
                     }
                 }
@@ -1825,5 +1902,31 @@ internal fun SetInputCardV2(
                 }
             }
         }
+    }
+
+    // ── Overlay de ajuste por readiness ──
+    if (showReadinessAdjustmentSheet && exerciseReadiness != null) {
+        val rm1 = lastHomologatedResultV3?.estimatedRm
+            ?: ghostSet?.let { ghost ->
+                if (ghost.weight > 0 && ghost.reps > 0 && ghost.reps < 37) {
+                    ghost.weight / (1.0278 - 0.0278 * ghost.reps)
+                } else {
+                    null
+                }
+            }
+        SetAdjustmentOverlay(
+            exercise = exercise,
+            currentSet = currentSet,
+            setIndex = setIndex,
+            exerciseReadiness = exerciseReadiness,
+            weightSuggestion = weightSuggestion,
+            averageErm = rm1,
+            bodyWeight = initialBodyWeight ?: bodyWeightText.toDoubleOrNull(),
+            onDismiss = { showReadinessAdjustmentSheet = false },
+            onApply = { suggestion ->
+                onApplyReadinessAdjustment?.invoke(suggestion)
+                showReadinessAdjustmentSheet = false
+            },
+        )
     }
 }

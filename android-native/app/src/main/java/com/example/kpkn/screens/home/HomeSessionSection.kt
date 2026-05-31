@@ -60,7 +60,16 @@ fun HomeSessionSection(
 
     Column(modifier.fillMaxWidth()) {
         val current = sessions.getOrNull(activeIndex) ?: sessions.firstOrNull()
-        val isCurrentToday = current?.dayOfWeek == currentDayOfWeek
+        val isCurrentToday = remember(current) {
+            current?.let { item ->
+                if (com.example.kpkn.domain.training.ProgramCalendarEngine.isCalendarized(item.program)) {
+                    val projection = com.example.kpkn.domain.training.ProgramCalendarEngine.project(item.program)
+                    projection.scheduledDateFor(item.session, item.location.weekId) == java.time.LocalDate.now()
+                } else {
+                    item.dayOfWeek == currentDayOfWeek
+                }
+            } ?: false
+        }
         val isCurrentCompleted = current?.isCompleted == true
         val headerTitle = if (isCurrentToday && !isCurrentCompleted) "Sesión de hoy" else "Próxima sesión"
 
@@ -104,7 +113,14 @@ private fun SessionCard(
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isToday = item.dayOfWeek == currentDayOfWeek
+    val isToday = remember(item) {
+        if (com.example.kpkn.domain.training.ProgramCalendarEngine.isCalendarized(item.program)) {
+            val projection = com.example.kpkn.domain.training.ProgramCalendarEngine.project(item.program)
+            projection.scheduledDateFor(item.session, item.location.weekId) == java.time.LocalDate.now()
+        } else {
+            item.dayOfWeek == currentDayOfWeek
+        }
+    }
 
     val sessionMuscles = remember(item.session) {
         getSessionInvolvedMuscles(item.session)

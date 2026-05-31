@@ -189,6 +189,27 @@ object TextNormalizer {
         RegexOption.IGNORE_CASE
     )
 
+    private val SPACES_PATTERN = Regex("\\s+")
+    private val MULTISPACE_PATTERN = Regex("\\s{2,}")
+
+    private val TYPO_REGEX_LIST: List<Pair<Regex, String>> by lazy {
+        TYPO_MAP.map { (typo, correction) ->
+            Regex("""\b${Regex.escape(typo)}\b""", RegexOption.IGNORE_CASE) to correction
+        }
+    }
+
+    private val EN_ES_REGEX_LIST: List<Pair<Regex, String>> by lazy {
+        EN_ES_MAP.map { (en, es) ->
+            Regex("""\b${Regex.escape(en)}\b""", RegexOption.IGNORE_CASE) to es
+        }
+    }
+
+    private val NUMBER_WORD_REGEX_LIST: List<Triple<String, Regex, String>> by lazy {
+        NUMBER_WORDS.map { (word, num) ->
+            Triple(word, Regex("""\b${Regex.escape(word)}\b""", RegexOption.IGNORE_CASE), num.toString())
+        }
+    }
+
     /**
      * Full normalization pipeline. Apply before FoodParser and SmartFoodResolver.
      */
@@ -228,7 +249,7 @@ object TextNormalizer {
         text = convertNumberWords(text)
 
         // 11. Final cleanup: collapse multiple spaces
-        text = text.replace(Regex("\\s{2,}"), " ").trim()
+        text = text.replace(MULTISPACE_PATTERN, " ").trim()
 
         return text
     }
@@ -239,7 +260,7 @@ object TextNormalizer {
      */
     fun normalizeFoodName(name: String): String {
         var normalized = name.trim().lowercase()
-            .replace(Regex("\\s+"), " ")
+            .replace(SPACES_PATTERN, " ")
 
         // Diminutivos: -ito/-ita/-illo/-illa/-cito/-cita/-ecito/-ecita
         // Handle vowel elision: "pollito" → "pollo", "panecito" → "pan"
@@ -275,27 +296,33 @@ object TextNormalizer {
 
     // ─── Internal ──────────────────────────────────────────────────────────
 
+    private fun stripRemainingEmojis(text: String): String {
+        return text.filter { ch ->
+            val type = Character.getType(ch)
+            type != Character.SURROGATE.toInt() && type != Character.PRIVATE_USE.toInt() &&
+            !(ch in '\uD800'..'\uDFFF') && !(ch in '\uE000'..'\uF8FF')
+        }
+    }
+
     private fun replaceEmojis(text: String): String {
         var result = text
         for ((emoji, word) in EMOJI_MAP) {
             result = result.replace(emoji, " $word ")
         }
-        // Strip remaining emojis
-        result = result.replace(Regex("[\\p{So}\\p{Cn}]"), "")
-        return result
+        return stripRemainingEmojis(result)
     }
 
     private fun applyShorthand(text: String): String {
         return SHORTHAND_PATTERN.replace(text) { match ->
             val word = match.value.lowercase()
             when {
-                word.matches(Regex("xq|pq|porq")) -> "porque"
+                word == "xq" || word == "pq" || word == "porq" -> "porque"
                 word == "q" || word == "ke" -> "que"
-                word.matches(Regex("tmb|tb")) -> "tambien"
-                word.matches(Regex("grs?|gramit[oa]s|gramines?|gramos?|gr")) -> "g"
-                word.matches(Regex("kilit[oa]s|kls|kgs")) -> "kg"
-                word.matches(Regex("mililitr[oa]s|mlts")) -> "ml"
-                word.matches(Regex("cdas?|cdita|cucharadita")) -> "cucharada"
+                word == "tmb" || word == "tb" -> "tambien"
+                word == "gr" || word == "g" || word == "grs" || word == "gramos" || word.startsWith("gramit") || word.startsWith("gramin") -> "g"
+                word == "kls" || word == "kgs" || word.startsWith("kilit") -> "kg"
+                word == "ml" || word == "mlts" || word.startsWith("mililitr") -> "ml"
+                word == "cdita" || word == "cucharadita" || word.startsWith("cda") -> "cucharada"
                 else -> word
             }
         }
@@ -303,17 +330,16 @@ object TextNormalizer {
 
     private fun applyTypos(text: String): String {
         var result = text
-        for ((typo, correction) in TYPO_MAP) {
-            // Only replace whole words
-            result = result.replace(Regex("""\b$typo\b""", RegexOption.IGNORE_CASE), correction)
+        for ((regex, correction) in TYPO_REGEX_LIST) {
+            result = result.replace(regex, correction)
         }
         return result
     }
 
     private fun applyEnglishMapping(text: String): String {
         var result = text
-        for ((en, es) in EN_ES_MAP) {
-            result = result.replace(Regex("""\b$en\b""", RegexOption.IGNORE_CASE), es)
+        for ((regex, correction) in EN_ES_REGEX_LIST) {
+            result = result.replace(regex, correction)
         }
         return result
     }
@@ -331,10 +357,10 @@ object TextNormalizer {
 
     private fun convertNumberWords(text: String): String {
         var result = text
-        val words = text.lowercase().split(Regex("\\s+"))
-        for ((word, num) in NUMBER_WORDS) {
+        val words = text.lowercase().split(SPACES_PATTERN)
+        for ((word, regex, numStr) in NUMBER_WORD_REGEX_LIST) {
             if (word in words) {
-                result = result.replace(Regex("""\b$word\b""", RegexOption.IGNORE_CASE), num.toString())
+                result = result.replace(regex, numStr)
             }
         }
         return result

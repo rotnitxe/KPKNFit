@@ -464,9 +464,11 @@ object SubjectivePortionEngine {
 
     // ─── Internal ──────────────────────────────────────────────────────────
 
+    private val DE_FOOD_PATTERN = Regex("""de\s+([a-záéíóúñü\s]{2,})""", RegexOption.IGNORE_CASE)
+
     private fun extractFoodName(expression: String): String? {
         // Try to extract food name after "de"
-        val deMatch = Regex("""de\s+([a-záéíóúñü\s]{2,})""", RegexOption.IGNORE_CASE).find(expression)
+        val deMatch = DE_FOOD_PATTERN.find(expression)
         if (deMatch != null) {
             return deMatch.groupValues[1].trim()
         }

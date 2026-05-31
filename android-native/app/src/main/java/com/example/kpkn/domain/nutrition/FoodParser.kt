@@ -20,10 +20,11 @@ private val CONNECTOR_CON = Regex("""\s+con\s+""", RegexOption.IGNORE_CASE)
 
 private val PROTECTED_ENTITIES = listOf(
     "arroz con leche", "arroz con pollo", "pollo con papas", "pan con queso", "pan con palta",
-    "pan con mantequilla", "papas con mayo", "pastel de choclo", "empanada de pino",
+    "pan con mantequilla", "papas con mayo", "pastel de choclo", "pasteles de choclo",
+    "empanada de pino", "empanadas de pino", "empanada de queso", "empanadas de queso",
     "sandwich de pollo con mayonesa", "sandwich de jamon con mayonesa",
     "sándwich de pollo con mayonesa", "sándwich de jamón con mayonesa",
-    "hamburguesa con queso", "papas fritas con mayonesa", "papa fritas con mayonesa",
+    "hamburguesa con queso", "hamburguesas con queso", "papas fritas con mayonesa", "papa fritas con mayonesa",
     "cafe con leche", "café con leche", "te con leche", "té con leche",
     "leche con chocolate", "leche con platano", "leche con plátano", "porotos con riendas",
 )
@@ -52,18 +53,37 @@ private val PORTION_PATTERNS = listOf(
 )
 
 private val COOKING_PATTERNS = listOf(
-    Pair(Regex("""\b(apanado|apanada|apanados|apanadas|empanizado|empanizada)\b""", RegexOption.IGNORE_CASE), CookingMethod.EMPANIZADO_FRITO),
-    Pair(Regex("""\b(a\s+la\s+)?plancha\b""", RegexOption.IGNORE_CASE), CookingMethod.PLANCHA),
-    Pair(Regex("""\b(hornead[oa]|al\s+horno|horno)\b""", RegexOption.IGNORE_CASE), CookingMethod.HORNO),
-    Pair(Regex("""\b(frit[oa]|frito|fritos)\b""", RegexOption.IGNORE_CASE), CookingMethod.FRITO),
-    Pair(Regex("""\b(cocid[oa]|cocido|cocidos)\b""", RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
-    Pair(Regex("""\b(crud[oa]|crudo|crudos)\b""", RegexOption.IGNORE_CASE), CookingMethod.CRUDO),
-    Pair(Regex("""\bsalte[aá]d[oa]s?\b|\bsofrito\b|\bsoffritos?\b""", RegexOption.IGNORE_CASE), CookingMethod.SALTEADO),
-    Pair(Regex("""\bahumad[oa]s?\b|\bhumad[oa]\b""", RegexOption.IGNORE_CASE), CookingMethod.AHUMADO),
-    Pair(Regex("""\b(al\s+)?vapor\b|\bvaporizad[oa]\b""", RegexOption.IGNORE_CASE), CookingMethod.VAPOR),
-    Pair(Regex("""\b(a\s+la\s+)?olla\b|\bhervid[oa]s?\b|\bestofad[oa]\b""", RegexOption.IGNORE_CASE), CookingMethod.OLLA),
-    Pair(Regex("""\bas[aá]d[oa]s?\b|\ba\s+la\s+parrilla\b|\bparrill[ae]r[oa]?\b""", RegexOption.IGNORE_CASE), CookingMethod.ASADO_PARRILLA),
-    Pair(Regex("""\bguisad[oa]s?\b|\bcazuel[ae]d[oa]?\b""", RegexOption.IGNORE_CASE), CookingMethod.GUISADO),
+    Pair(Regex("""\b(?:empanizad[oa]s?|empanad[o]s?|apanad[oa]s?|breaded)\b""", RegexOption.IGNORE_CASE), CookingMethod.EMPANIZADO_FRITO),
+    
+    // 2. PLANCHA / PLANCHADO
+    Pair(Regex("""\b(?:a\s+la\s+)?(?:plancha|planchad[oa]s?)\b""", RegexOption.IGNORE_CASE), CookingMethod.PLANCHA),
+    
+    // 3. HORNO
+    Pair(Regex("""\b(?:al\s+)?horno\b|\bhorn(?:ead[oa]s?|er[oa]?)\b|\b(?:baked|airfryer|air\s*fryer|frito\s+al\s+aire)\b""", RegexOption.IGNORE_CASE), CookingMethod.HORNO),
+    
+    // 4. FRITO + SALTEADO + REVUELTO (unificados como PWA)
+    Pair(Regex("""\b(?:frit[oa]s?|fre[ií]d[oa]s?|revuelt[oa]s?|saltead[oa]s?|saltear|sofrit[oa]s?|soffrit[oa]s?|fried)\b""", RegexOption.IGNORE_CASE), CookingMethod.FRITO),
+    
+    // 5. COCIDO / HERVIDO / SANCOCHADO
+    Pair(Regex("""\b(?:cocid[oa]s?|hervid[oa]s?|sancochad[oa]s?|boiled|estofad[oa]s?)\b""", RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
+    
+    // 6. CRUDO
+    Pair(Regex("""\b(?:crud[oa]s?|fresc[oa]s?|raw)\b""", RegexOption.IGNORE_CASE), CookingMethod.CRUDO),
+    
+    // 7. VAPOR
+    Pair(Regex("""\b(?:al\s+)?vapor\b|\bvaporizad[oa]s?\b|\bsteamed\b""", RegexOption.IGNORE_CASE), CookingMethod.VAPOR),
+    
+    // 8. OLLA
+    Pair(Regex("""\b(?:a\s+la\s+)?olla\b""", RegexOption.IGNORE_CASE), CookingMethod.OLLA),
+    
+    // 9. ASADO_PARRILLA (ahora separado de plancha)
+    Pair(Regex("""\b(?:a\s+la\s+)?parrilla\b|\bparrill[ae]r[oa]s?\b|\b(?:grilled|asad[oa]s?|al\s+carb[oó]n)\b""", RegexOption.IGNORE_CASE), CookingMethod.ASADO_PARRILLA),
+    
+    // 10. GUISADO
+    Pair(Regex("""\bguisad[oa]s?\b|\bcazuel[ae]d[oa]s?\b""", RegexOption.IGNORE_CASE), CookingMethod.GUISADO),
+    
+    // 11. AHUMADO
+    Pair(Regex("""\bahumad[oa]s?\b|\bhumad[oa]s?\b|\bsmoked\b""", RegexOption.IGNORE_CASE), CookingMethod.AHUMADO),
 )
 
 private val REFERENCE_PATTERNS = listOf(
@@ -89,6 +109,33 @@ private val REFERENCE_PATTERNS = listOf(
     Pair(Regex("""\b(poquito|poquita)\s+(?:de\s+)?(.+)""", RegexOption.IGNORE_CASE), "little"),
     Pair(Regex("""\b(una?\s+pizca)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "pinch"),
     Pair(Regex("""\b(un\s+chorrito)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "splash"),
+)
+
+// Precompiled Regex patterns for optimization
+private val GROUP_PATTERN = Regex("^(.+?)\\s*\\((.+)\\)\\s*$")
+private val STARTS_WITH_DIGIT = Regex("""^\d""")
+private val NEGATION_PATTERN = Regex("""\b(?:sin|menos|no)\b""", RegexOption.IGNORE_CASE)
+private val GRAM_UNIT_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*(g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)""", RegexOption.IGNORE_CASE)
+private val KG_LITER_PATTERN = Regex("kg|l$|litros?")
+private val OZ_PATTERN = Regex("oz|onzas?")
+private val LB_PATTERN = Regex("lb|libras?")
+private val MULTISPACE_PATTERN = Regex("\\s{2,}")
+private val HALF_PATTERN = Regex("""\b1/2\b""")
+private val QUARTER_PATTERN = Regex("""\b1/4\b""")
+private val THREE_QUARTERS_PATTERN = Regex("""\b3/4\b""")
+private val RANGE_QUANTITY_PATTERN = Regex("""^(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s+(.+)$""")
+private val NUMBER_QUANTITY_PATTERN = Regex("""^(\d+(?:\.\d+)?)\s*(?:x\s*)?(.+)$""")
+private val LITERAL_QUANTITY_PATTERN = Regex("""^(un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciséis|dieciseis|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintidós|veintidos|veintitrés|veintitres|veinticuatro|veinticinco|treinta|media|medio|mitad|cuarto|tercio|doble|triple)\s+(.+)$""", RegexOption.IGNORE_CASE)
+private val SPACES_PATTERN = Regex("\\s+")
+private val LEADING_DE_PATTERN = Regex("^de\\s+")
+private val PORTION_PREFIX_PATTERN = Regex("^(?:plato|porcion|porción|taza|vaso|bol|bowl|fuente)\\s+de\\s+")
+private val ARTICLE_PORTION_PREFIX_PATTERN = Regex("^(?:un|una)\\s+(?:plato|porcion|porción|taza|vaso|bol|bowl|fuente)\\s+de\\s+")
+private val TRAILING_DE_PATTERN = Regex("\\s+de\\s+$")
+private val DIMINUTIVE_PATTERN = Regex("""(\w+?)(cito|cita|ito|ita|illo|illa|ecito|ecita)$""")
+
+private val PROTECTED_ENTITIES_REGEX = Regex(
+    PROTECTED_ENTITIES.joinToString("|") { "\\b${Regex.escape(it)}\\b" },
+    RegexOption.IGNORE_CASE
 )
 
 // ─── Main Parser ─────────────────────────────────────────────────────────────
@@ -134,7 +181,7 @@ private fun parseFragment(frag: String): ParsedMealItem? {
     if (text.isEmpty()) return null
 
     // Handle group: "Recipe (item1, item2)"
-    val groupMatch = Regex("^(.+?)\\s*\\((.+)\\)\\s*$").find(text)
+    val groupMatch = GROUP_PATTERN.find(text)
     if (groupMatch != null) {
         val groupName = groupMatch.groupValues[1].trim()
         val content = groupMatch.groupValues[2].trim()
@@ -181,7 +228,7 @@ private fun parseFragment(frag: String): ParsedMealItem? {
     if (foodName.length < 2) return null
 
     // Canonical resolution
-    val shouldSingularize = Regex("""^\d""").containsMatchIn(working.trim())
+    val shouldSingularize = STARTS_WITH_DIGIT.containsMatchIn(working.trim())
     val canonical = normalizeFoodName(foodName, singularize = shouldSingularize)
 
     return ParsedMealItem(
@@ -206,13 +253,10 @@ private fun splitByListConnectors(description: String): List<String> {
 
     // Mask protected entities
     val masks = mutableListOf<Pair<String, String>>()
-    PROTECTED_ENTITIES.forEachIndexed { index, entity ->
-        val regex = Regex("""\b$entity\b""", RegexOption.IGNORE_CASE)
-        trimmed = trimmed.replace(regex) { match ->
-            val token = "__PROTECTED_${index}__"
-            masks.add(token to match.value)
-            token
-        }
+    trimmed = PROTECTED_ENTITIES_REGEX.replace(trimmed) { match ->
+        val token = "__PROTECTED_${masks.size}__"
+        masks.add(token to match.value)
+        token
     }
 
     // Split by connectors
@@ -231,7 +275,7 @@ private fun splitByListConnectors(description: String): List<String> {
             unmasked = unmasked.replace(token, original)
         }
         // Remove "sin X" that isn't a known modifier
-        val negMatch = Regex("""\b(?:sin|menos|no)\b""", RegexOption.IGNORE_CASE).find(unmasked)
+        val negMatch = NEGATION_PATTERN.find(unmasked)
         if (negMatch != null) {
             unmasked = unmasked.substring(0, negMatch.range.first)
         }
@@ -245,19 +289,19 @@ private fun splitByListConnectors(description: String): List<String> {
 
 private fun extractGramsFromFragment(text: String): Pair<Double?, String> {
     val match = GRAM_PATTERN.find(text) ?: return Pair(null, text)
-    val numMatch = Regex("""(\d+(?:[.,]\d+)?)\s*(g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)""", RegexOption.IGNORE_CASE).find(match.value) ?: return Pair(null, text)
+    val numMatch = GRAM_UNIT_PATTERN.find(match.value) ?: return Pair(null, text)
 
     var value = numMatch.groupValues[1].replace(",", ".").toDoubleOrNull() ?: return Pair(null, text)
     val unit = numMatch.groupValues[2].lowercase()
 
     value = when {
-        unit.matches(Regex("kg|l$|litros?")) -> value * 1000
-        unit.matches(Regex("oz|onzas?")) -> value * 28.3495
-        unit.matches(Regex("lb|libras?")) -> value * 453.592
+        unit.matches(KG_LITER_PATTERN) -> value * 1000
+        unit.matches(OZ_PATTERN) -> value * 28.3495
+        unit.matches(LB_PATTERN) -> value * 453.592
         else -> value
     }
 
-    val cleaned = text.replace(match.value, " ").replace(Regex("\\s{2,}"), " ").trim()
+    val cleaned = text.replace(match.value, " ").replace(MULTISPACE_PATTERN, " ").trim()
     return Pair(value, cleaned)
 }
 
@@ -304,7 +348,7 @@ private fun extractReferenceFromFragment(text: String): Pair<Double?, String> {
 private fun extractCookingMethod(text: String): Pair<CookingMethod?, String> {
     for ((pattern, method) in COOKING_PATTERNS) {
         val match = pattern.find(text) ?: continue
-        val cleaned = text.replace(match.value, " ").replace(Regex("\\s{2,}"), " ").trim()
+        val cleaned = text.replace(match.value, " ").replace(MULTISPACE_PATTERN, " ").trim()
         return Pair(method, cleaned)
     }
     return Pair(null, text)
@@ -315,7 +359,7 @@ private fun extractCookingMethod(text: String): Pair<CookingMethod?, String> {
 private fun extractPortionFromFragment(text: String): Pair<PortionPreset, String> {
     for ((pattern, preset, _) in PORTION_PATTERNS) {
         val match = pattern.find(text) ?: continue
-        val cleaned = text.replace(match.value, " ").replace(Regex("\\s{2,}"), " ").trim()
+        val cleaned = text.replace(match.value, " ").replace(MULTISPACE_PATTERN, " ").trim()
         return Pair(preset, cleaned)
     }
     return Pair(PortionPreset.MEDIUM, text)
@@ -324,12 +368,12 @@ private fun extractPortionFromFragment(text: String): Pair<PortionPreset, String
 // ─── Quantity Multiplier ─────────────────────────────────────────────────────
 
 private fun parseQuantityMultiplier(text: String): Pair<Int, String> {
-    val trimmed = text.trim().replace(Regex("""\b1/2\b"""), "0.5")
-        .replace(Regex("""\b1/4\b"""), "0.25")
-        .replace(Regex("""\b3/4\b"""), "0.75")
+    val trimmed = text.trim().replace(HALF_PATTERN, "0.5")
+        .replace(QUARTER_PATTERN, "0.25")
+        .replace(THREE_QUARTERS_PATTERN, "0.75")
 
     // Range: "1-2 manzanas"
-    val rangeMatch = Regex("""^(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s+(.+)$""").find(trimmed)
+    val rangeMatch = RANGE_QUANTITY_PATTERN.find(trimmed)
     if (rangeMatch != null) {
         val qty1 = rangeMatch.groupValues[1].toDoubleOrNull() ?: 1.0
         val qty2 = rangeMatch.groupValues[2].toDoubleOrNull() ?: 1.0
@@ -341,7 +385,7 @@ private fun parseQuantityMultiplier(text: String): Pair<Int, String> {
     }
 
     // Number: "2 manzanas", "3 huevos"
-    val numMatch = Regex("""^(\d+(?:\.\d+)?)\s*(?:x\s*)?(.+)$""").find(trimmed)
+    val numMatch = NUMBER_QUANTITY_PATTERN.find(trimmed)
     if (numMatch != null) {
         val qty = numMatch.groupValues[1].toDoubleOrNull() ?: 1.0
         val rest = numMatch.groupValues[2].trim()
@@ -351,7 +395,7 @@ private fun parseQuantityMultiplier(text: String): Pair<Int, String> {
     }
 
     // Literal: "dos huevos", "media manzana"
-    val literalMatch = Regex("""^(un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciséis|dieciseis|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintidós|veintidos|veintitrés|veintitres|veinticuatro|veinticinco|treinta|media|medio|mitad|cuarto|tercio|doble|triple)\s+(.+)$""", RegexOption.IGNORE_CASE).find(trimmed)
+    val literalMatch = LITERAL_QUANTITY_PATTERN.find(trimmed)
     if (literalMatch != null) {
         val qty = LITERAL_QUANTITIES[literalMatch.groupValues[1].lowercase()]
         val rest = literalMatch.groupValues[2].trim()
@@ -375,15 +419,15 @@ private fun extractGlobalPortion(description: String): PortionPreset {
 private fun normalizeFoodName(name: String, singularize: Boolean = false): String {
     var normalized = name.trim()
         .lowercase()
-        .replace(Regex("\\s+"), " ")
-        .replace(Regex("^de\\s+"), "")
-        .replace(Regex("^(?:plato|porcion|porción|taza|vaso|bol|bowl|fuente)\\s+de\\s+"), "")
-        .replace(Regex("^(?:un|una)\\s+(?:plato|porcion|porción|taza|vaso|bol|bowl|fuente)\\s+de\\s+"), "")
-        .replace(Regex("\\s+de\\s+$"), "")
+        .replace(SPACES_PATTERN, " ")
+        .replace(LEADING_DE_PATTERN, "")
+        .replace(PORTION_PREFIX_PATTERN, "")
+        .replace(ARTICLE_PORTION_PREFIX_PATTERN, "")
+        .replace(TRAILING_DE_PATTERN, "")
 
     // Diminutivos: -ito/-ita/-illo/-illa/-cito/-cita → quitar preservando raíz
     normalized = normalized
-        .replace(Regex("""(\w+?)(cito|cita|ito|ita|illo|illa|ecito|ecita)$"""), "$1")
+        .replace(DIMINUTIVE_PATTERN, "$1")
 
     if (singularize) {
         normalized = when {
@@ -445,7 +489,7 @@ private fun extractModifiers(text: String, currentGrams: Double?): Triple<MacroS
 
     for ((pattern, scale) in MODIFIER_PATTERNS) {
         val match = pattern.find(working) ?: continue
-        working = working.replace(match.value, " ").replace(Regex("\\s{2,}"), " ").trim()
+        working = working.replace(match.value, " ").replace(MULTISPACE_PATTERN, " ").trim()
 
         // Check if it's a portion modifier (grande/colmada or rasa/pequeña)
         val matchText = match.value.lowercase()

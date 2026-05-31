@@ -182,6 +182,16 @@ class HomeViewModel : ViewModel() {
         val locations = program.allWeekLocations()
         if (locations.isEmpty()) return null
 
+        if (com.example.kpkn.domain.training.ProgramCalendarEngine.isCalendarized(program)) {
+            val projection = com.example.kpkn.domain.training.ProgramCalendarEngine.project(program)
+            val today = java.time.LocalDate.now()
+            val calendarWeek = projection.weekForDate(today)
+            if (calendarWeek != null) {
+                val resolved = locations.firstOrNull { it.week.id == calendarWeek.weekId }
+                if (resolved != null) return resolved
+            }
+        }
+
         val exactMatch = active?.takeIf { it.programId == program.id }?.let { state ->
             locations.firstOrNull { location ->
                 location.macroIndex == state.currentMacrocycleIndex &&
@@ -214,31 +224,73 @@ class HomeViewModel : ViewModel() {
         ongoing: com.example.kpkn.data.models.OngoingWorkoutState?,
     ): List<TodaySessionItem> {
         val weekLocation = resolveWeekLocation(program, active, currentDayOfWeek) ?: return emptyList()
-        val sessions = weekLocation.week.sessions
+        val locations = program.allWeekLocations()
+        val currentIndex = locations.indexOfFirst { it.week.id == weekLocation.week.id }
+        var resolvedWeekLocation = weekLocation
+
+        if (currentIndex != -1) {
+            var tempIndex = currentIndex
+            while (tempIndex < locations.size) {
+                val currentLoc = locations[tempIndex]
+                val allCompleted = currentLoc.week.sessions.all { session ->
+                    history.any { log ->
+                        log.sessionId == session.id &&
+                            (log.weekId == currentLoc.week.id || log.date.startsWith(LocalDate.now().toString()))
+                    }
+                }
+                if (allCompleted) {
+                    tempIndex++
+                    if (tempIndex < locations.size) {
+                        resolvedWeekLocation = locations[tempIndex]
+                    }
+                } else {
+                    resolvedWeekLocation = currentLoc
+                    break
+                }
+            }
+        }
+
+        val sessions = resolvedWeekLocation.week.sessions
+
+        val projection = if (com.example.kpkn.domain.training.ProgramCalendarEngine.isCalendarized(program)) {
+            com.example.kpkn.domain.training.ProgramCalendarEngine.project(program)
+        } else {
+            null
+        }
+
+        val sessionIsToday = sessions.associate { session ->
+            val isToday = if (projection != null) {
+                projection.scheduledDateFor(session, resolvedWeekLocation.week.id) == LocalDate.now()
+            } else {
+                val day = session.dayOfWeek ?: session.assignedDays.firstOrNull() ?: currentDayOfWeek
+                day == currentDayOfWeek
+            }
+            session.id to isToday
+        }
 
         return sessions.map { session ->
-            val logForToday = history.find { log ->
+            val matchingLog = history.find { log ->
                 log.sessionId == session.id &&
-                    log.date.startsWith(java.time.LocalDate.now().toString())
+                    (log.weekId == resolvedWeekLocation.week.id || log.date.startsWith(LocalDate.now().toString()))
             }
             TodaySessionItem(
                 session = session,
                 program = program,
                 location = com.example.kpkn.data.models.SessionLocation(
-                    macroIndex = weekLocation.macroIndex,
-                    mesoIndex = weekLocation.mesocycleIndex,
-                    weekId = weekLocation.week.id,
+                    macroIndex = resolvedWeekLocation.macroIndex,
+                    mesoIndex = resolvedWeekLocation.mesocycleIndex,
+                    weekId = resolvedWeekLocation.week.id,
                 ),
-                isCompleted = logForToday != null,
+                isCompleted = matchingLog != null,
                 dayOfWeek = session.dayOfWeek ?: session.assignedDays.firstOrNull() ?: currentDayOfWeek,
-                log = logForToday,
+                log = matchingLog,
                 isOngoing = ongoing?.programId == program.id && ongoing.session.id == session.id,
             )
         }.sortedWith(
             compareBy<TodaySessionItem>(
                 { if (it.isOngoing) 0 else 1 },
                 { if (it.isCompleted) 1 else 0 },
-                { if (it.dayOfWeek == currentDayOfWeek) 0 else 1 },
+                { if (sessionIsToday[it.session.id] == true) 0 else 1 },
                 { it.dayOfWeek },
                 { if (it.session.isMainSession) 0 else 1 },
             )

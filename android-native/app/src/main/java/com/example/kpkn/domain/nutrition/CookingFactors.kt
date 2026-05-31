@@ -26,11 +26,10 @@ val COOKING_FACTORS: Map<CookingMethod, CookingFactor> = mapOf(
     CookingMethod.PLANCHA to CookingFactor(kcal = 1.00, fats = 0.95, carbs = 1.00, protein = 1.05, waterChange = -0.15),
     CookingMethod.ASADO_PARRILLA to CookingFactor(kcal = 1.05, fats = 0.90, carbs = 1.00, protein = 1.10, waterChange = -0.20),
     CookingMethod.HORNO to CookingFactor(kcal = 1.15, fats = 0.95, carbs = 1.05, protein = 1.10, waterChange = -0.25),
-    CookingMethod.SALTEADO to CookingFactor(kcal = 1.25, fats = 1.30, carbs = 1.00, protein = 1.00, waterChange = -0.10),
     CookingMethod.GUISADO to CookingFactor(kcal = 1.30, fats = 1.20, carbs = 1.00, protein = 1.00, waterChange = 0.05),
     CookingMethod.AHUMADO to CookingFactor(kcal = 1.10, fats = 0.95, carbs = 1.00, protein = 1.05, waterChange = -0.15),
-    CookingMethod.FRITO to CookingFactor(kcal = 2.00, fats = 2.50, carbs = 1.00, protein = 1.00, waterChange = -0.15),
-    CookingMethod.EMPANIZADO_FRITO to CookingFactor(kcal = 3.50, fats = 3.50, carbs = 1.30, protein = 1.15, waterChange = 0.10),
+    CookingMethod.FRITO to CookingFactor(kcal = 1.10, fats = 1.00, carbs = 1.00, protein = 1.10, waterChange = -0.20),
+    CookingMethod.EMPANIZADO_FRITO to CookingFactor(kcal = 1.20, fats = 1.00, carbs = 1.20, protein = 1.10, waterChange = -0.15),
 )
 
 /**

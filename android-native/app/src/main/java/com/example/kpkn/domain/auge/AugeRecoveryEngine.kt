@@ -972,6 +972,7 @@ object AugeRecoveryEngine {
                 logId         = log.id,
                 sessionName   = log.sessionName,
                 muscleGroups  = emptyList(), // Se llena en la UI con los músculos del log
+                stillPresentDiscomfortIds = log.stillPresentDiscomfortIds,
                 scheduledTimeMs = logDateMs(log) + 24 * 3600 * 1000,
             )
         }

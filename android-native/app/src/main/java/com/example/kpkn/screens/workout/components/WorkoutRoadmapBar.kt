@@ -70,10 +70,7 @@ fun WorkoutRoadmapBar(
     onModeChange: (RoadmapMode) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val isKeyboardVisible = WindowInsets.isImeVisible
-
-    // Enforce COMPACT mode when virtual keyboard is active to prevent overlapping conflicts
-    val activeMode = if (isKeyboardVisible) RoadmapMode.COMPACT else mode
+    val activeMode = mode
 
     val accentByPartId = remember(parts) {
         parts.associate { part ->
@@ -164,44 +161,43 @@ fun WorkoutRoadmapBar(
                         Modifier.background(Color.Black.copy(alpha = 0.38f))
                     }
                 )
+                .clickable(enabled = activeMode == RoadmapMode.COMPACT) {
+                    onModeChange(RoadmapMode.EXPANDED)
+                }
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-            // Drag handle to toggle Compact vs Expanded mode (hidden if keyboard is active)
-            if (!isKeyboardVisible) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(32.dp)
-                        .clickable {
-                            onModeChange(if (activeMode == RoadmapMode.COMPACT) RoadmapMode.EXPANDED else RoadmapMode.COMPACT)
-                        },
-                    contentAlignment = Alignment.Center
+            // Drag handle to toggle Compact vs Expanded mode
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(32.dp)
+                    .clickable {
+                        onModeChange(if (activeMode == RoadmapMode.COMPACT) RoadmapMode.EXPANDED else RoadmapMode.COMPACT)
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(vertical = 4.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DragHandle,
-                            contentDescription = "Desplegar roadmap",
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Icon(
-                            imageVector = if (activeMode == RoadmapMode.EXPANDED) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.DragHandle,
+                        contentDescription = "Desplegar roadmap",
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Icon(
+                        imageVector = if (activeMode == RoadmapMode.EXPANDED) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
-            } else {
-                Spacer(Modifier.height(8.dp))
             }
 
             AnimatedVisibility(

@@ -42,6 +42,7 @@ data class PostSessionFeedback(
     val date: String,
     val cnsRecovery: Int = 7,          // 1-10
     val muscleFeedback: Map<String, MuscleFeedbackEntry> = emptyMap(),
+    val unresolvedDiscomfortIds: List<String> = emptyList(),
 )
 
 @Serializable
@@ -57,6 +58,7 @@ data class PendingQuestionnaire(
     val logId: String,
     val sessionName: String,
     val muscleGroups: List<String> = emptyList(),
+    val stillPresentDiscomfortIds: List<String> = emptyList(),
     val scheduledTimeMs: Long,
 )
 
@@ -329,3 +331,56 @@ data class SleepLogExtended(
         duration = duration,
     )
 }
+
+// ─── Readiness por Patrón de Movimiento y Ejercicio ───────────────────────────
+
+/**
+ * Readiness agregado para un patrón de movimiento (e.g. "Empuje", "Tirón").
+ * Las fuentes de datos son exclusivamente AUGE real (batteries + perMuscle).
+ */
+data class MovementPatternReadiness(
+    val patternId: String,
+    val patternLabel: String,
+    val overallScore: Int,
+    val exerciseCount: Int,
+    val totalSets: Int,
+    val contributingMuscles: List<String>,
+    val averageMuscleRecovery: Int,
+)
+
+/**
+ * Readiness para un ejercicio específico, derivado de baterías AUGE reales,
+ * con pesos dinámicos según el perfil biomecánico del ejercicio.
+ */
+data class ExerciseReadiness(
+    val exerciseId: String,
+    val exerciseName: String,
+    val overallScore: Int,
+    val muscularComponent: Int,
+    val cnsComponent: Int,
+    val spinalComponent: Int,
+    val muscularWeight: Double,
+    val cnsWeight: Double,
+    val spinalWeight: Double,
+    val setsPenaltyFactor: Double,
+    val intensityPenaltyFactor: Double,
+    val ermProximityFactor: Double,
+    val patternId: String?,
+    val involvedMuscleIds: List<String>,
+)
+/**
+ * Sugerencia de ajuste de carga para una serie,
+ * basada en el readiness del ejercicio y la severidad del slider.
+ */
+data class SetAdjustmentSuggestion(
+    val exerciseId: String,
+    val setIndex: Int,
+    val currentPlannedWeight: Double,
+    val readinessScore: Int,
+    val severityFactor: Double,
+    val reductionPercent: Double,
+    val suggestedWeight: Double,
+    val averageErm: Double?,
+    val reason: String,
+    val suggestedLoadMode: LoadModeV2 = LoadModeV2.LOAD,
+)

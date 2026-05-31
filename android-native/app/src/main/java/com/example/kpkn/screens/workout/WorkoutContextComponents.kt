@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -75,9 +76,12 @@ internal fun WorkoutExerciseTabs(
     rmCurrentLoadMode: LoadModeV2? = null,
     onRmWeightSelected: ((Double) -> Unit)? = null,
     allowExerciseManagementActions: Boolean = true,
+    userTags: List<String> = emptyList(),
+    exerciseReadiness: ExerciseReadiness? = null,
     modifier: Modifier = Modifier,
 ) {
-    val tagsOverflow = WORKOUT_COMMON_TAGS.size > 6
+    val mergedTags = remember(userTags) { (WORKOUT_COMMON_TAGS + userTags).distinct() }
+    val tagsOverflow = mergedTags.size > 6
     val setupCues = currentExercise.setupCues + currentExercise.executionCues
     val setupOverflow = setupCues.size > 4 || (currentExercise.setupDetails?.equipmentNotes?.length ?: 0) > 100
     val tabs = listOf(
@@ -94,30 +98,69 @@ internal fun WorkoutExerciseTabs(
     }
 
     Column(modifier = modifier) {
-        if (selectedTab != WorkoutExerciseContextTab.HISTORY && ghostSet != null && (ghostSet.weight > 0 || ghostSet.reps > 0)) {
-            Surface(
-                onClick = onExpandHistory,
-                shape = RoundedCornerShape(8.dp),
-                color = Color(0xFF448AFF).copy(alpha = 0.1f),
-                modifier = Modifier.padding(bottom = 4.dp),
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (exerciseReadiness != null) {
+                val score = exerciseReadiness.overallScore
+                val color = when {
+                    score >= 75 -> Color(0xFF4CAF50)
+                    score >= 50 -> Color(0xFFFFC107)
+                    else -> Color(0xFFFF5252)
+                }
+                val label = com.example.kpkn.domain.auge.ExerciseReadinessEngine.readinessLabel(score)
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = color.copy(alpha = 0.12f),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.History, null, Modifier.size(14.dp), tint = Color(0xFF448AFF))
-                    Text(
-                        buildString {
-                            append("Última ")
-                            if (ghostSet.weight > 0) append("${ghostSet.weight.toTrimmedNumberString()}kg")
-                            if (ghostSet.weight > 0 && ghostSet.reps > 0) append(" · ")
-                            if (ghostSet.reps > 0) append(ghostSet.reps)
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF448AFF),
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(color)
+                        )
+                        Text(
+                            text = "Prep: $label ($score%)",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = color
+                        )
+                    }
+                }
+            }
+            if (selectedTab != WorkoutExerciseContextTab.HISTORY && ghostSet != null && (ghostSet.weight > 0 || ghostSet.reps > 0)) {
+                Surface(
+                    onClick = onExpandHistory,
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF448AFF).copy(alpha = 0.1f),
+                    modifier = if (exerciseReadiness != null) Modifier.weight(1f) else Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Default.History, null, Modifier.size(14.dp), tint = Color(0xFF448AFF))
+                        Text(
+                            buildString {
+                                append("Última ")
+                                if (ghostSet.weight > 0) append("${ghostSet.weight.toTrimmedNumberString()}kg")
+                                if (ghostSet.weight > 0 && ghostSet.reps > 0) append(" · ")
+                                if (ghostSet.reps > 0) append(ghostSet.reps)
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF448AFF),
+                        )
+                    }
                 }
             }
         }
@@ -195,6 +238,7 @@ internal fun WorkoutExerciseTabs(
                                 onDismiss = {},
                                 showDismissButton = false,
                                 maxVisibleTags = 6,
+                                userTags = userTags,
                             )
                             if (tagsOverflow) {
                                 TextButton(
@@ -389,10 +433,14 @@ internal fun ExerciseTagSheetContent(
     onTagSet: (String) -> Unit,
     onDismiss: () -> Unit,
     showDismissButton: Boolean = true,
-    maxVisibleTags: Int = WORKOUT_COMMON_TAGS.size,
+    maxVisibleTags: Int = Int.MAX_VALUE,
+    userTags: List<String> = emptyList(),
 ) {
     var tagText by remember { mutableStateOf(currentTag ?: "") }
-    val commonTags = WORKOUT_COMMON_TAGS.take(maxVisibleTags.coerceAtLeast(0))
+    val commonTags = remember(userTags, maxVisibleTags) {
+        val merged = (WORKOUT_COMMON_TAGS + userTags).distinct()
+        if (maxVisibleTags < merged.size) merged.take(maxVisibleTags) else merged
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Tag activo", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)

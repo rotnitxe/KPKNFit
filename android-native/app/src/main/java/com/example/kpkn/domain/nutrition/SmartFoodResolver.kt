@@ -331,7 +331,7 @@ class SmartFoodResolver(
             if (qt.length >= 5) {
                 for (ft in food.tokens) {
                     if (ft.length >= 4) {
-                        val dist = levenshteinDistance(qt, ft)
+                        val dist = levenshteinDistance(qt, ft, 3)
                         val maxLen = maxOf(qt.length, ft.length)
                         val sim = 1.0 - (dist.toDouble() / maxLen)
                         if (sim > bestLevenshtein) bestLevenshtein = sim
@@ -358,23 +358,36 @@ class SmartFoodResolver(
         return bonus
     }
 
-    private fun levenshteinDistance(s1: String, s2: String): Int {
+    private fun levenshteinDistance(s1: String, s2: String, maxDistance: Int = 3): Int {
         val m = s1.length
         val n = s2.length
-        val dp = Array(m + 1) { IntArray(n + 1) }
-        for (i in 0..m) dp[i][0] = i
-        for (j in 0..n) dp[0][j] = j
+        if (Math.abs(m - n) > maxDistance) return maxDistance + 1
+
+        var prev = IntArray(n + 1) { it }
+        var curr = IntArray(n + 1)
+
         for (i in 1..m) {
+            curr[0] = i
+            var minInRow = curr[0]
             for (j in 1..n) {
                 val cost = if (s1[i - 1] == s2[j - 1]) 0 else 1
-                dp[i][j] = minOf(
-                    dp[i - 1][j] + 1,
-                    dp[i][j - 1] + 1,
-                    dp[i - 1][j - 1] + cost,
+                curr[j] = minOf(
+                    prev[j] + 1,
+                    curr[j - 1] + 1,
+                    prev[j - 1] + cost
                 )
+                if (curr[j] < minInRow) {
+                    minInRow = curr[j]
+                }
             }
+            if (minInRow > maxDistance) {
+                return maxDistance + 1
+            }
+            val temp = prev
+            prev = curr
+            curr = temp
         }
-        return dp[m][n]
+        return prev[n]
     }
 
     private fun scoreToConfidence(
