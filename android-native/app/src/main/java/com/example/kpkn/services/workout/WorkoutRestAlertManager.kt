@@ -397,6 +397,7 @@ class WorkoutRestAlertManager(private val context: Context) {
             .setUsesChronometer(true)
             .setChronometerCountDown(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .build()
 
         notificationManager.notify(NOTIF_ID_ONGOING, notification)
@@ -424,6 +425,7 @@ class WorkoutRestAlertManager(private val context: Context) {
             .setAutoCancel(true)
             .setContentIntent(openPending)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
 
         if (preferAudibleFallback) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {

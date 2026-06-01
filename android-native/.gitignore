@@ -15,5 +15,13 @@
 local.properties
 keystore.properties
 *.keystore
+.cache/
+.kotlin/
+.settings/
+.project
+*.bak
+build_last_compile*.txt
+qa-screenshots/
+app/google-services.json
 Studio/sheiqo-decompiled/sources/nul
 nul

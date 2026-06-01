@@ -42,9 +42,9 @@ fun HomeCornersSection(
 
         Spacer(Modifier.height(12.dp))
 
-        // Learn
+        // Enciclopedia
         CornerCard(
-            title = "Learn",
+            title = "Enciclopedia",
             subtitle = "Ciencia del entrenamiento y biomecánica.",
             icon = {
                 WikiIcon(tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f))

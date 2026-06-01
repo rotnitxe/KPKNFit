@@ -172,5 +172,5 @@ val bottomNavItems = listOf(
     BottomNavItem(KpknRoute.Home.route, "Inicio", Icons.Default.Home),
     BottomNavItem(KpknRoute.Training.route, "Entreno", Icons.Default.Home),
     BottomNavItem(KpknRoute.Nutrition.route, "Nutrición", Icons.Default.ShoppingCart),
-    BottomNavItem(KpknRoute.WikiLab.route, "Learn", Icons.Default.Info),
+    BottomNavItem(KpknRoute.WikiLab.route, "Enciclopedia", Icons.Default.Info),
 )

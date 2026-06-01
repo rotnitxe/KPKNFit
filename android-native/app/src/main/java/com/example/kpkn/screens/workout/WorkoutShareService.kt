@@ -63,7 +63,8 @@ object WorkoutShareService {
                 previousBestEstimated1RM = previousBestEstimated1RM,
                 currentBestEstimated1RM = currentBestEstimated1RM,
             )
-            val file = File(context.cacheDir, "workout-story-${System.currentTimeMillis()}.png")
+            val shareDir = File(context.cacheDir, "shares").apply { mkdirs() }
+            val file = File(shareDir, "workout-story-${System.currentTimeMillis()}.png")
             FileOutputStream(file).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }

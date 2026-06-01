@@ -271,6 +271,15 @@ class NutritionRepository private constructor(context: Context) {
         scope.launch { db.nutritionDao().upsertPlan(plan.toEntity()) }
     }
 
+    fun deleteNutritionPlan(planId: String) {
+        _nutritionPlans.update { list -> list.filter { it.id != planId } }
+        if (_activeNutritionPlanId.value == planId) {
+            _activeNutritionPlanId.value = null
+            scope.launch { db.nutritionDao().clearActiveState() }
+        }
+        scope.launch { db.nutritionDao().deletePlan(planId) }
+    }
+
     fun activatePlan(planId: String) {
         _nutritionPlans.update { list -> list.map { it.copy(isActive = it.id == planId) } }
         _activeNutritionPlanId.value = planId

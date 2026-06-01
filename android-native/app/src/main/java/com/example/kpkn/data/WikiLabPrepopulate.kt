@@ -13,6 +13,12 @@ import kotlinx.serialization.json.jsonPrimitive
 
 private val prepopulateJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
+private fun logWikiLabError(category: String, throwable: Throwable) {
+    if (com.example.kpkn.BuildConfig.DEBUG) {
+        android.util.Log.e("WikiLabPrepopulate", "Error prepopulating $category", throwable)
+    }
+}
+
 /**
  * Prepopulates WikiLab Room tables from JSON assets on first run.
  * Call from coroutine scope after database creation.
@@ -52,7 +58,7 @@ suspend fun prepopulateWikiLabAssets(context: Context, db: KpknDatabase) = withC
         }
         dao.insertMuscles(muscleEntities)
     } catch (e: Exception) {
-        e.printStackTrace()
+        logWikiLabError("muscles", e)
     }
 
     // ─── Joints ──────────────────────────────────────────────────────
@@ -75,7 +81,7 @@ suspend fun prepopulateWikiLabAssets(context: Context, db: KpknDatabase) = withC
         }
         dao.insertJoints(jointEntities)
     } catch (e: Exception) {
-        e.printStackTrace()
+        logWikiLabError("joints", e)
     }
 
     // ─── Tendons ──────────────────────────────────────────────────────
@@ -95,7 +101,7 @@ suspend fun prepopulateWikiLabAssets(context: Context, db: KpknDatabase) = withC
         }
         dao.insertTendons(tendonEntities)
     } catch (e: Exception) {
-        e.printStackTrace()
+        logWikiLabError("tendons", e)
     }
 
     // ─── Movement Patterns ────────────────────────────────────────────
@@ -116,7 +122,7 @@ suspend fun prepopulateWikiLabAssets(context: Context, db: KpknDatabase) = withC
         }
         dao.insertPatterns(patternEntities)
     } catch (e: Exception) {
-        e.printStackTrace()
+        logWikiLabError("patterns", e)
     }
 
     // ─── Kinetic Chains ────────────────────────────────────────────────
@@ -134,7 +140,7 @@ suspend fun prepopulateWikiLabAssets(context: Context, db: KpknDatabase) = withC
         }
         dao.insertChains(chainEntities)
     } catch (e: Exception) {
-        e.printStackTrace()
+        logWikiLabError("chains", e)
     }
 }
 

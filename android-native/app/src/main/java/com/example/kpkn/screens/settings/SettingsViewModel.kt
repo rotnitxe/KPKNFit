@@ -8,6 +8,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.db.dbJson
+import com.example.kpkn.data.models.ApiKeys
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
@@ -129,7 +130,7 @@ class SettingsViewModel : ViewModel() {
                 val augeRepository = AugeRepository.getInstance(context.applicationContext)
                 val payload = SettingsExportPayload(
                     exportedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    settings = programRepository.settings.value,
+                    settings = programRepository.settings.value.copy(apiKeys = ApiKeys()),
                     programs = programRepository.programs.value,
                     workoutLogs = programRepository.history.value,
                     activeProgramState = programRepository.activeProgramState.value,
@@ -146,7 +147,8 @@ class SettingsViewModel : ViewModel() {
                 )
                 val exportJson = dbJson.encodeToString(payload)
                 val fileName = "kpkn-export-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))}.json"
-                val exportFile = File(context.cacheDir, fileName)
+                val exportDir = File(context.cacheDir, "exports").apply { mkdirs() }
+                val exportFile = File(exportDir, fileName)
                 exportFile.writeText(exportJson)
                 shareExportFile(context, exportFile)
             }.onFailure { error ->

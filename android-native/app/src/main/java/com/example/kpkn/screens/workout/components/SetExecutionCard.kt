@@ -7,6 +7,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -1009,24 +1010,64 @@ internal fun SetInputCardV2(
                 }
             }
 
-            if (!supportsIndependentSides && ghostSet != null && (ghostSet.weight > 0 || ghostSet.reps > 0)) {
-                Row(
-                    modifier = Modifier.clickable(onClick = onShowHistory),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Default.History, null, Modifier.size(14.dp), tint = Color(0xFF448AFF))
-                    Text(
-                        buildString {
-                            append("Última ")
-                            if (ghostSet.weight > 0) append("${ghostSet.weight.toTrimmedNumberString()}kg")
-                            if (ghostSet.weight > 0 && ghostSet.reps > 0) append(" · ")
-                            if (ghostSet.reps > 0) append(ghostSet.reps)
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF448AFF),
-                    )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (!supportsIndependentSides && ghostSet != null && (ghostSet.weight > 0 || ghostSet.reps > 0)) {
+                    Row(
+                        modifier = Modifier.clickable(onClick = onShowHistory),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Default.History, null, Modifier.size(14.dp), tint = Color(0xFF448AFF))
+                        Text(
+                            buildString {
+                                append("Última ")
+                                if (ghostSet.weight > 0) append("${ghostSet.weight.toTrimmedNumberString()}kg")
+                                if (ghostSet.weight > 0 && ghostSet.reps > 0) append(" · ")
+                                if (ghostSet.reps > 0) append(ghostSet.reps)
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF448AFF),
+                        )
+                    }
+                } else {
+                    Spacer(Modifier.width(1.dp))
+                }
+
+                // ── Chip de readiness por ejercicio en la Card ──
+                if (exerciseReadiness != null) {
+                    val score = exerciseReadiness.overallScore
+                    val chipColor = when {
+                        score >= 75 -> Color(0xFF4CAF50)
+                        score >= 50 -> Color(0xFFFFC107)
+                        else -> Color(0xFFFF5252)
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(99.dp))
+                            .background(chipColor.copy(alpha = 0.15f))
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(chipColor)
+                        )
+                        Text(
+                            text = "Mi estado: ${score}%",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.9f),
+                            fontWeight = FontWeight.Black,
+                            fontSize = 11.sp,
+                        )
+                    }
                 }
             }
 
@@ -1160,31 +1201,79 @@ internal fun SetInputCardV2(
                         }
                     }
 
-                    // ── Ajuste por readiness (Transversal a todo tipo de carga) ──
-                    if (exerciseReadiness != null &&
-                        exerciseReadiness.overallScore < ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD &&
-                        onApplyReadinessAdjustment != null &&
-                        readinessAdjustment == null
-                    ) {
+                    // ── Ajuste por rendimiento / readiness (Transversal a todo tipo de carga) ──
+                    if (exerciseReadiness != null && onApplyReadinessAdjustment != null) {
                         Spacer(Modifier.height(6.dp))
-                        TextButton(
-                            onClick = { showReadinessAdjustmentSheet = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = sessionAccentColor,
-                            ),
-                        ) {
-                            Icon(
-                                Icons.Default.Tune,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp),
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text(
-                                "Ajustar a estado actual",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                            )
+                        if (readinessAdjustment == null) {
+                            val isRecommended = exerciseReadiness.overallScore < ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD
+                            OutlinedButton(
+                                onClick = { showReadinessAdjustmentSheet = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                border = BorderStroke(
+                                    width = 1.dp,
+                                    color = if (isRecommended) Color(0xFFFF5252).copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                ),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = if (isRecommended) Color(0xFFFF5252) else sessionAccentColor,
+                                ),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Tune,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    if (isRecommended) "Adaptar según cómo me siento (Recomendado)" else "Adaptar según cómo me siento",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        } else {
+                            // Si ya hay un ajuste aplicado, mostramos la opción de cambiarlo o borrarlo
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                TextButton(
+                                    onClick = { showReadinessAdjustmentSheet = true },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.textButtonColors(contentColor = sessionAccentColor),
+                                    contentPadding = PaddingValues(0.dp)
+                                ) {
+                                    Icon(Icons.Default.Edit, null, Modifier.size(12.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("Ajustar de nuevo", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                }
+                                TextButton(
+                                    onClick = {
+                                        // Para borrar el ajuste, enviamos un SetAdjustmentSuggestion vacío
+                                        val emptySuggestion = SetAdjustmentSuggestion(
+                                            exerciseId = exercise.id,
+                                            setIndex = setIndex,
+                                            currentPlannedWeight = currentSet.weight ?: 0.0,
+                                            readinessScore = exerciseReadiness?.overallScore ?: 100,
+                                            severityFactor = 0.0,
+                                            reductionPercent = 0.0,
+                                            suggestedWeight = currentSet.weight ?: 0.0,
+                                            averageErm = null,
+                                            reason = "Reset manual",
+                                            suggestedLoadMode = currentSet.loadModeV2 ?: LoadModeV2.LOAD,
+                                        )
+                                        onApplyReadinessAdjustment.invoke(emptySuggestion)
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                                    contentPadding = PaddingValues(0.dp)
+                                ) {
+                                    Icon(Icons.Default.Delete, null, Modifier.size(12.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("Restablecer original", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                }
+                            }
                         }
                     }
 
@@ -1193,16 +1282,16 @@ internal fun SetInputCardV2(
                         val plannedMode = currentSet.loadModeV2 ?: LoadModeV2.LOAD
                         val adjustmentText = when {
                             readinessAdjustment.suggestedLoadMode == LoadModeV2.ASSISTED && plannedMode != LoadModeV2.ASSISTED -> {
-                                "Ajustado: +${readinessAdjustment.suggestedWeight.roundToInt()}kg Asistencia"
+                                "Adaptado: +${readinessAdjustment.suggestedWeight.roundToInt()}kg Asistencia"
                             }
                             readinessAdjustment.suggestedLoadMode == LoadModeV2.BODYWEIGHT && plannedMode != LoadModeV2.BODYWEIGHT -> {
-                                "Ajustado: Usar Peso Corporal"
+                                "Adaptado: Usar Peso Corporal"
                             }
                             plannedMode == LoadModeV2.ASSISTED -> {
-                                "Ajustado: +${readinessAdjustment.suggestedWeight.roundToInt()}kg Asistencia"
+                                "Adaptado: +${readinessAdjustment.suggestedWeight.roundToInt()}kg Asistencia"
                             }
                             else -> {
-                                "Ajustado −${(readinessAdjustment.reductionPercent * 100).roundToInt()}%"
+                                "Adaptado −${(readinessAdjustment.reductionPercent * 100).roundToInt()}%"
                             }
                         }
                         Spacer(Modifier.height(6.dp))

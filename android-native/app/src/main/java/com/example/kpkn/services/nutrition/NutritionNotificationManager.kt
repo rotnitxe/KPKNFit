@@ -226,6 +226,7 @@ class NutritionNotificationManager(private val context: Context) {
             .setContentText(deficitItems.first())
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setAutoCancel(true)
             .setContentIntent(mainActivityPendingIntent())
             .build()
@@ -252,6 +253,7 @@ class NutritionNotificationManager(private val context: Context) {
             .setContentTitle(appCtx.getString(com.example.kpkn.R.string.notif_measurement_title))
             .setContentText(appCtx.getString(com.example.kpkn.R.string.notif_measurement_text, label))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setAutoCancel(true)
             .setContentIntent(mainActivityPendingIntent())
             .build()
@@ -365,6 +367,7 @@ class NutritionAlertReceiver : BroadcastReceiver() {
             .setContentTitle(context.getString(com.example.kpkn.R.string.notif_app_title))
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setAutoCancel(true)
             .setContentIntent(
                 KpknDeepLinks.pendingActivityIntent(

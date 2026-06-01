@@ -2,11 +2,14 @@ package com.example.kpkn.screens.learn
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.School
@@ -64,20 +67,34 @@ fun LearnHomeScreen(
     val completedCount = LearnRepository.completedCoursesCount()
 
     Scaffold(
+        containerColor = Color.Black,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Aprende", fontWeight = FontWeight.Black) },
+                title = {
+                    Text(
+                        "Cursos",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
                     }
                 },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.Black,
+                )
             )
         }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Black)
                 .padding(padding),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 164.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -96,7 +113,10 @@ fun LearnHomeScreen(
                 item {
                     Text(
                         "Tus insignias",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White
+                        ),
                         fontWeight = FontWeight.Black,
                     )
                 }
@@ -111,8 +131,8 @@ fun LearnHomeScreen(
                             }
                             Surface(
                                 shape = RoundedCornerShape(12.dp),
-                                color = tierColor.copy(alpha = 0.12f),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, tierColor.copy(alpha = 0.3f)),
+                                color = Color(0xFF121212),
+                                border = BorderStroke(1.dp, tierColor.copy(alpha = 0.25f)),
                             ) {
                                 Column(
                                     modifier = Modifier.padding(10.dp),
@@ -122,7 +142,10 @@ fun LearnHomeScreen(
                                     Spacer(Modifier.height(4.dp))
                                     Text(
                                         badge.courseName,
-                                        style = MaterialTheme.typography.labelSmall,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontFamily = FontFamily.Serif,
+                                            color = Color.White.copy(alpha = 0.9f)
+                                        ),
                                         fontWeight = FontWeight.Bold,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
@@ -145,12 +168,15 @@ fun LearnHomeScreen(
                         Spacer(
                             Modifier.width(4.dp).height(20.dp)
                                 .clip(RoundedCornerShape(2.dp))
-                                .background(category.color),
+                                .background(category.color.copy(alpha = 0.8f)),
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
                             category.label,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontFamily = FontFamily.Serif,
+                                color = Color.White
+                            ),
                             fontWeight = FontWeight.ExtraBold,
                         )
                     }
@@ -184,24 +210,32 @@ private fun LearnHeaderCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = Color(0xFF121212),
         ),
-        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
+        shape = RoundedCornerShape(16.dp),
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.School, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
+                Icon(Icons.Default.School, null, tint = Color.White.copy(alpha = 0.8f), modifier = Modifier.size(24.dp))
                 Spacer(Modifier.width(10.dp))
                 Column {
-                    Text("Aprende", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                    Text(
+                        "Formación",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White
+                        )
+                    )
                     Text(
                         "Cursos serios y compactos sobre entrenamiento y nutrición.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = Color.White.copy(alpha = 0.5f),
                     )
                 }
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(20.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -218,8 +252,19 @@ private fun LearnHeaderCard(
 @Composable
 private fun StatItem(value: String, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            value,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Black,
+                color = Color.White
+            )
+        )
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.40f)
+        )
     }
 }
 
@@ -234,7 +279,11 @@ private fun CourseCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF121212),
+        ),
+        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -242,8 +291,8 @@ private fun CourseCard(
         ) {
             // Icono del curso
             Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceContainer,
+                shape = RoundedCornerShape(10.dp),
+                color = Color(0xFF1A1A1A),
                 modifier = Modifier.size(48.dp),
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -257,7 +306,10 @@ private fun CourseCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         module.title,
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White
+                        ),
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -272,30 +324,31 @@ private fun CourseCard(
                         )
                     }
                 }
-                Spacer(Modifier.height(2.dp))
+                Spacer(Modifier.height(4.dp))
                 Text(
                     module.shortDescription,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = Color.White.copy(alpha = 0.55f)
+                    ),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         "${module.estimatedMinutes} min · ${module.submodules.size} módulos",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = Color.White.copy(alpha = 0.4f),
                     )
                     if (module.isSpecial) {
                         Spacer(Modifier.width(8.dp))
                         Surface(
                             shape = RoundedCornerShape(4.dp),
-                            color = Color(0xFFE53935).copy(alpha = 0.1f),
+                            color = Color(0xFFE53935).copy(alpha = 0.12f),
                         ) {
                             Text(
                                 "RECOMENDADO",
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Black,
                                 fontSize = 9.sp,
@@ -305,7 +358,7 @@ private fun CourseCard(
                     }
                 }
                 if (progress > 0f && !isCompleted) {
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(8.dp))
                     LinearProgressIndicator(
                         progress = { progress },
                         modifier = Modifier
@@ -313,7 +366,7 @@ private fun CourseCard(
                             .height(4.dp)
                             .clip(RoundedCornerShape(2.dp)),
                         color = module.category.color,
-                        trackColor = module.category.color.copy(alpha = 0.15f),
+                        trackColor = module.category.color.copy(alpha = 0.12f),
                     )
                 }
             }
@@ -322,7 +375,7 @@ private fun CourseCard(
             Icon(
                 Icons.AutoMirrored.Filled.ArrowForward,
                 null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = Color.White.copy(alpha = 0.3f),
                 modifier = Modifier.size(20.dp),
             )
         }

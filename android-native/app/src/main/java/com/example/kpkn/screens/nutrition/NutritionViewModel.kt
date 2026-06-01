@@ -264,7 +264,7 @@ class NutritionViewModel : ViewModel() {
     }
 
     fun deletePlan(planId: String) {
-        // TODO: implement deleteNutritionPlan in NutritionRepository
+        nutritionRepo.deleteNutritionPlan(planId)
     }
 
     // ─── Body KPIs ──────────────────────────────────────────────────────────

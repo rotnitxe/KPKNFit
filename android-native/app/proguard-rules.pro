@@ -13,13 +13,6 @@
 # hide the original source file name.
 -renamesourcefileattribute SourceFile
 
-# ── llama.cpp JNI bridge ──────────────────────────────────────────────────────
-# Explicit keep for the JNI class AND a generic rule covering any future native methods.
--keep class com.example.kpkn.data.localai.LlamaCppEngine { *; }
--keepclasseswithmembernames class * { native <methods>; }
--keep class com.google.android.gms.tflite.** { *; }
--dontwarn com.google.android.gms.tflite.**
-
 # ── kotlinx.serialization ──────────────────────────────────────────────────────
 -keepattributes *Annotation*, InnerClasses, Signature
 -dontnote kotlinx.serialization.AnnotationsKt

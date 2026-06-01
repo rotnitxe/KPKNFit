@@ -687,23 +687,28 @@ object AugeRecoveryEngine {
         muscleDeltas: Map<String, Double> = emptyMap(),
         cnsLearningDelta: Double = 0.0,
         spinalLearningDelta: Double = 0.0,
+        precomputedMuscles: Map<String, MuscleRecoveryStatus>? = null,
     ): GlobalBatteries {
         val stressLevel = wellbeing?.stressLevel ?: 3
         val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
 
-        val pillarBatteries = PILLAR_MUSCLES.map { muscle ->
-            calculateMuscleBattery(
-                muscleName = muscle,
-                history = history,
-                wellbeing = wellbeing,
-                settings = settings,
-                exerciseDb = exerciseDb,
-                nutritionMultiplier = nutritionMultiplier,
-                sleepLogs = sleepLogs,
-                feedbacks = feedbacks,
-                personalizedRecoveryHours = personalizedRecoveryHours,
-                muscleDeltas = muscleDeltas,
-            ).recoveryScore
+        val pillarBatteries = if (precomputedMuscles != null) {
+            PILLAR_MUSCLES.mapNotNull { precomputedMuscles[it]?.recoveryScore }
+        } else {
+            PILLAR_MUSCLES.map { muscle ->
+                calculateMuscleBattery(
+                    muscleName = muscle,
+                    history = history,
+                    wellbeing = wellbeing,
+                    settings = settings,
+                    exerciseDb = exerciseDb,
+                    nutritionMultiplier = nutritionMultiplier,
+                    sleepLogs = sleepLogs,
+                    feedbacks = feedbacks,
+                    personalizedRecoveryHours = personalizedRecoveryHours,
+                    muscleDeltas = muscleDeltas,
+                ).recoveryScore
+            }
         }
         val muscularAvg = if (pillarBatteries.isEmpty()) {
             100

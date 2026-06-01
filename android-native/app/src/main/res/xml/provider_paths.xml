@@ -2,5 +2,8 @@
 <paths>
     <cache-path
         name="exports"
-        path="." />
+        path="exports/" />
+    <cache-path
+        name="shares"
+        path="shares/" />
 </paths>

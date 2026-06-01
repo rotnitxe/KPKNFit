@@ -360,7 +360,11 @@ internal fun SetAdjustmentOverlay(
                     ),
                 ) {
                     Text(
-                        "Aplicar ${adjustment.suggestedWeight.toTrimmedNumberString()}kg",
+                        when (adjustment.suggestedLoadMode) {
+                            LoadModeV2.BODYWEIGHT -> "Aplicar Peso Corporal"
+                            LoadModeV2.ASSISTED -> "Aplicar +${adjustment.suggestedWeight.toTrimmedNumberString()}kg Asist."
+                            else -> "Aplicar ${adjustment.suggestedWeight.toTrimmedNumberString()}kg"
+                        },
                         fontWeight = FontWeight.Bold,
                     )
                 }

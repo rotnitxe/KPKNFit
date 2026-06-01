@@ -230,29 +230,37 @@ private data class CookingEstimateBoost(
     val additiveCarbs: Double = 0.0,
 )
 
+private val REGEX_FRITO = Regex("""\bfrit[oa]s?\b|\bfritura\b|\bfre[ií]do\b""")
+private val REGEX_EMPANIZADO = Regex("""\bempanizad[oa]s?\b|\bapanad[oa]s?\b|\brebozad[oa]s?\b|\btempura\b|\bcapead[oa]s?\b""")
+private val REGEX_SALTEADO = Regex("""\bsaltead[oa]s?\b|\bsofrit[oa]s?\b|\bwokead[oa]s?\b""")
+private val REGEX_CONFITADO = Regex("""\bconfitad[oa]s?\b""")
+private val REGEX_GRATINADO = Regex("""\bgratinad[oa]s?\b|\bcon\s+queso\s+gratinado\b""")
+private val REGEX_PLANCHA = Regex("""\bplancha\b|\ba\s+la\s+plancha\b""")
+private val REGEX_PARRILLA = Regex("""\bparrilla\b|\basad[oa]s?\s+a\s+la\s+parrilla\b""")
+
 private fun detectCookingBoost(foodName: String): CookingEstimateBoost? {
     val lower = foodName.lowercase()
     var boost: CookingEstimateBoost? = null
 
-    if (Regex("""\bfrit[oa]s?\b|\bfritura\b|\bfre[ií]do\b""").containsMatchIn(lower)) {
+    if (REGEX_FRITO.containsMatchIn(lower)) {
         boost = CookingEstimateBoost(kcal = 2.0, fats = 3.0)
     }
-    if (Regex("""\bempanizad[oa]s?\b|\bapanad[oa]s?\b|\brebozad[oa]s?\b|\btempura\b|\bcapead[oa]s?\b""").containsMatchIn(lower)) {
+    if (REGEX_EMPANIZADO.containsMatchIn(lower)) {
         boost = CookingEstimateBoost(kcal = 3.0, fats = 3.0, additiveCarbs = 15.0)
     }
-    if (Regex("""\bsaltead[oa]s?\b|\bsofrit[oa]s?\b|\bwokead[oa]s?\b""").containsMatchIn(lower)) {
+    if (REGEX_SALTEADO.containsMatchIn(lower)) {
         boost = CookingEstimateBoost(kcal = 1.5, fats = 1.8)
     }
-    if (Regex("""\bconfitad[oa]s?\b""").containsMatchIn(lower)) {
+    if (REGEX_CONFITADO.containsMatchIn(lower)) {
         boost = CookingEstimateBoost(kcal = 2.5, fats = 3.5)
     }
-    if (Regex("""\bgratinad[oa]s?\b|\bcon\s+queso\s+gratinado\b""").containsMatchIn(lower)) {
+    if (REGEX_GRATINADO.containsMatchIn(lower)) {
         boost = CookingEstimateBoost(kcal = 1.8, fats = 2.0, protein = 1.15)
     }
-    if (Regex("""\bplancha\b|\ba\s+la\s+plancha\b""").containsMatchIn(lower)) {
+    if (REGEX_PLANCHA.containsMatchIn(lower)) {
         boost = CookingEstimateBoost(kcal = 1.0, fats = 0.9, protein = 1.05)
     }
-    if (Regex("""\bparrilla\b|\basad[oa]s?\s+a\s+la\s+parrilla\b""").containsMatchIn(lower)) {
+    if (REGEX_PARRILLA.containsMatchIn(lower)) {
         boost = CookingEstimateBoost(kcal = 1.05, fats = 0.9, protein = 1.10)
     }
 

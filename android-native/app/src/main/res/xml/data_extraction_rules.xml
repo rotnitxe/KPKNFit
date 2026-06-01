@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
-    <!--
-        Excluir la base de datos Room de los backups automáticos de Google.
-        Esto asegura que al reinstalar la app se comience con datos limpios,
-        evitando que datos de sesiones anteriores reaparezcan.
-    -->
     <cloud-backup>
-        <exclude domain="database" path="kpkn.db"/>
-        <exclude domain="database" path="kpkn.db-shm"/>
-        <exclude domain="database" path="kpkn.db-wal"/>
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="file" path="." />
     </cloud-backup>
     <device-transfer>
-        <exclude domain="database" path="kpkn.db"/>
-        <exclude domain="database" path="kpkn.db-shm"/>
-        <exclude domain="database" path="kpkn.db-wal"/>
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="file" path="." />
     </device-transfer>
 </data-extraction-rules>

@@ -1,5 +1,7 @@
 package com.example.kpkn
 
+import com.example.kpkn.BuildConfig
+
 import android.Manifest
 import android.app.AlarmManager
 import android.content.Intent
@@ -22,6 +24,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Tab
@@ -30,6 +33,7 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -130,79 +135,79 @@ class MainActivity : ComponentActivity() {
         pendingDeepLinkRoute.value = resolveNavigationRouteFromIntent(intent)
         pendingSharedNutritionText.value = extractSharedNutritionText(intent)
 
-        runCatching {
-            com.example.kpkn.data.exercises.initializeExerciseDatabase(this)
-        }.onFailure { it.printStackTrace() }
-
-        // Sync Room appLanguage → SharedPreferences on first load (retrocompat)
         lifecycleScope.launch(Dispatchers.IO) {
+            // 1. Initialize repositories and primary database
             runCatching {
-                val savedLang = ProgramRepository
-                    .init(this@MainActivity).settings.value.appLanguage
+                ProgramRepository.init(this@MainActivity)
+                com.example.kpkn.data.repository.CompetitionRepository.init(this@MainActivity)
+                com.example.kpkn.data.repository.AugeRepository.getInstance(this@MainActivity)
+                com.example.kpkn.data.repository.NutritionRepository.init(this@MainActivity)
+                com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this@MainActivity)
+                com.example.kpkn.data.repository.LearnRepository.initialize(this@MainActivity)
+            }.onFailure { logKpknError("MainActivity", "Error initializing repositories", it) }
+
+            // 2. Initialize Exercise Database
+            runCatching {
+                com.example.kpkn.data.exercises.initializeExerciseDatabase(this@MainActivity)
+            }.onFailure { logKpknError("MainActivity", "Error initializing exercise database", it) }
+
+            // 3. Initialize WikiLab
+            runCatching {
+                val db = com.example.kpkn.data.db.KpknDatabase.getInstance(this@MainActivity)
+                com.example.kpkn.data.repository.WikiLabRepository.initialize(this@MainActivity, db)
+            }.onFailure { logKpknError("MainActivity", "Error initializing WikiLab", it) }
+
+            // 4. Sync Room appLanguage -> SharedPreferences (retrocompat)
+            runCatching {
+                val savedLang = ProgramRepository.getInstance().settings.value.appLanguage
                 LocaleManager.persist(this@MainActivity, savedLang)
-            }.onFailure { it.printStackTrace() }
+            }.onFailure { logKpknError("MainActivity", "Error syncing app language", it) }
+
+            // 5. Load Custom Exercises
+            runCatching {
+                com.example.kpkn.data.exercises.loadCustomExercisesAsync(this@MainActivity)
+            }.onFailure { logKpknError("MainActivity", "Error loading custom exercises", it) }
+
+            // 6. Ensure channels and alert managers
+            runCatching {
+                WorkoutRestAlertManager(this@MainActivity).ensureChannels()
+            }.onFailure { logKpknError("MainActivity", "Error setting up WorkoutRestAlertManager channels", it) }
+
+            // 7. Setup nutrition notification channels + reminders
+            runCatching {
+                val nutritionNotifManager = com.example.kpkn.services.nutrition.NutritionNotificationManager(this@MainActivity)
+                nutritionNotifManager.createChannels()
+                val settings = ProgramRepository.getInstance().settings.value
+                if (settings.mealReminderEnabled) {
+                    nutritionNotifManager.scheduleMealReminders(
+                        breakfastTime = settings.mealReminderBreakfast,
+                        lunchTime = settings.mealReminderLunch,
+                        dinnerTime = settings.mealReminderDinner,
+                    )
+                    nutritionNotifManager.scheduleDailyMacroCheck()
+                }
+            }.onFailure { logKpknError("MainActivity", "Error setting up nutrition notifications", it) }
+
+            // 8. Setup workout reminders
+            runCatching {
+                val workoutReminderManager = com.example.kpkn.services.workout.WorkoutReminderManager(this@MainActivity)
+                workoutReminderManager.createChannels()
+                com.example.kpkn.services.workout.LoopNotificationManager(this@MainActivity).createChannels()
+                com.example.kpkn.services.competition.CompetitionReminderManager(this@MainActivity).createChannels()
+                val settings = ProgramRepository.getInstance().settings.value
+                if (settings.workoutReminderEnabled) {
+                    workoutReminderManager.scheduleWorkoutReminder(settings.workoutReminderTime)
+                }
+                if (settings.sleepReminderEnabled) {
+                    workoutReminderManager.scheduleSleepReminder(settings.sleepReminderTime)
+                }
+            }.onFailure { logKpknError("MainActivity", "Error setting up workout reminders", it) }
         }
 
         // API ≤ 32: observe locale change events emitted by SettingsViewModel
         lifecycleScope.launch {
             LocaleManager.recreateEvent.collect { recreate() }
         }
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            runCatching {
-                com.example.kpkn.data.exercises.loadCustomExercisesAsync(this@MainActivity)
-            }.onFailure { it.printStackTrace() }
-        }
-
-        runCatching {
-            WorkoutRestAlertManager(this).ensureChannels()
-        }.onFailure { it.printStackTrace() }
-
-        // Setup nutrition notification channels + reminders based on settings
-        runCatching {
-            val nutritionNotifManager = com.example.kpkn.services.nutrition.NutritionNotificationManager(this)
-            nutritionNotifManager.createChannels()
-            val settings = ProgramRepository.getInstance().settings.value
-            if (settings.mealReminderEnabled) {
-                nutritionNotifManager.scheduleMealReminders(
-                    breakfastTime = settings.mealReminderBreakfast,
-                    lunchTime = settings.mealReminderLunch,
-                    dinnerTime = settings.mealReminderDinner,
-                )
-                nutritionNotifManager.scheduleDailyMacroCheck()
-            }
-        }.onFailure { it.printStackTrace() }
-
-        // Setup workout reminder channels + reminders based on settings
-        runCatching {
-            val workoutReminderManager = com.example.kpkn.services.workout.WorkoutReminderManager(this)
-            workoutReminderManager.createChannels()
-            com.example.kpkn.services.workout.LoopNotificationManager(this).createChannels()
-            com.example.kpkn.services.competition.CompetitionReminderManager(this).createChannels()
-            val settings = ProgramRepository.getInstance().settings.value
-            if (settings.workoutReminderEnabled) {
-                workoutReminderManager.scheduleWorkoutReminder(settings.workoutReminderTime)
-            }
-            if (settings.sleepReminderEnabled) {
-                workoutReminderManager.scheduleSleepReminder(settings.sleepReminderTime)
-            }
-        }.onFailure { it.printStackTrace() }
-
-        // Initialize repositories (loads Room data → StateFlows)
-        runCatching {
-            ProgramRepository.init(this)
-            com.example.kpkn.data.repository.CompetitionRepository.init(this)
-            com.example.kpkn.data.repository.AugeRepository.getInstance(this)
-            com.example.kpkn.data.repository.NutritionRepository.init(this)
-            com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this)
-            com.example.kpkn.data.repository.LearnRepository.initialize(this)
-        }.onFailure { it.printStackTrace() }
-
-        // Initialize WikiLab (muscle/joint/tendon/pattern/chain data)
-        runCatching {
-            val db = com.example.kpkn.data.db.KpknDatabase.getInstance(this)
-            com.example.kpkn.data.repository.WikiLabRepository.initialize(this, db)
-        }.onFailure { it.printStackTrace() }
 
         requestRequiredPermissions()
 
@@ -240,6 +245,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun logKpknError(tag: String, message: String, throwable: Throwable?) {
+        if (BuildConfig.DEBUG) {
+            android.util.Log.e(tag, message, throwable)
+        }
+    }
+
     override fun onStop() {
         super.onStop()
         telemetryHelper.logAppBackground()
@@ -249,7 +260,7 @@ class MainActivity : ComponentActivity() {
                 withTimeoutOrNull(1500L) {
                     ProgramRepository.getInstance().flushPendingWrites()
                 }
-            }.onFailure { it.printStackTrace() }
+            }.onFailure { logKpknError("MainActivity", "Error flushing pending writes on stop", it) }
         }
     }
 
@@ -259,10 +270,6 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
-        }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 1002)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -352,10 +359,6 @@ fun KPKNApp(
                         missing.add("Notificaciones (Recordatorios y Alertas de Descanso)")
                     }
                 }
-                val micGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-                if (!micGranted) {
-                    missing.add("Micrófono (Control de Entrenamiento por Voz)")
-                }
                 missingPermissions = missing
                 showPermissionAlert = missing.isNotEmpty()
             }
@@ -405,9 +408,14 @@ fun KPKNApp(
     var programContextTab by remember { mutableStateOf(MainTab.TRAINING) }
     var onProgramContextTabChange by remember { mutableStateOf<(MainTab) -> Unit>({}) }
     var programContextReady by remember { mutableStateOf(false) }
+    var wikiSearchQuery by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(currentRoute) {
         programContextReady = currentRoute != KpknRoute.ProgramDetail.route
+    }
+
+    LaunchedEffect(currentTab) {
+        if (currentTab != KpknRoute.WikiLab.route) wikiSearchQuery = ""
     }
 
     LaunchedEffect(pendingDeepLinkRoute) {
@@ -467,7 +475,9 @@ fun KPKNApp(
     }
     val showNutritionSubtabbar = currentTab == KpknRoute.Nutrition.route &&
             selectedNutritionContextTab != null
-    val showContextualSubtabbar = showTrainingSubtabbar || showNutritionSubtabbar
+    val showWikiSearchSubtabbar = currentTab == KpknRoute.WikiLab.route &&
+            currentRoute == KpknRoute.WikiLab.route
+    val showContextualSubtabbar = showTrainingSubtabbar || showNutritionSubtabbar || showWikiSearchSubtabbar
 
     val hazeState = remember { HazeState() }
     val bottomBarGlassStyle = remember {
@@ -491,6 +501,8 @@ fun KPKNApp(
                     programContextTab = activeTab
                     onProgramContextTabChange = onChange
                 },
+                wikiSearchQuery = wikiSearchQuery,
+                onWikiSearchQueryChange = { wikiSearchQuery = it },
             )
         } else {
             Box(
@@ -513,6 +525,8 @@ fun KPKNApp(
                         onProgramContextTabChange = onChange
                         programContextReady = true
                     },
+                    wikiSearchQuery = wikiSearchQuery,
+                    onWikiSearchQueryChange = { wikiSearchQuery = it },
                 )
                 }
 
@@ -685,6 +699,12 @@ fun KPKNApp(
                                             }
                                         }
                                     },
+                                )
+                            } else if (showWikiSearchSubtabbar) {
+                                WikiSearchSubtabbar(
+                                    query = wikiSearchQuery,
+                                    onQueryChange = { wikiSearchQuery = it },
+                                    onClear = { wikiSearchQuery = "" },
                                 )
                             }
                         }
@@ -899,6 +919,77 @@ private fun NutritionContextSubtabbar(
     }
 }
 
+// ─── WikiLab Search Subtabs ────────────────────────────────────────────
+@Composable
+private fun WikiSearchSubtabbar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onClear: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 4.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .background(Color(0xFF1E1E1E), RoundedCornerShape(20.dp))
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Default.Search,
+                null,
+                modifier = Modifier.size(16.dp),
+                tint = Color.White.copy(alpha = 0.4f),
+            )
+            Spacer(Modifier.width(8.dp))
+            val textValue = query
+            BasicTextField(
+                value = textValue,
+                onValueChange = onQueryChange,
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodySmall.copy(
+                    color = Color.White,
+                    fontSize = 13.sp,
+                ),
+                decorationBox = { innerTextField: @Composable () -> Unit ->
+                    Box {
+                        if (query.isEmpty()) {
+                            Text(
+                                "Buscar ejercicio, músculo, concepto...",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = Color.White.copy(alpha = 0.3f),
+                                    fontSize = 12.sp,
+                                ),
+                            )
+                        }
+                        innerTextField()
+                    }
+                },
+            )
+            if (query.isNotEmpty()) {
+                Spacer(Modifier.width(4.dp))
+                IconButton(
+                    onClick = onClear,
+                    modifier = Modifier.size(24.dp),
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        "Limpiar",
+                        modifier = Modifier.size(14.dp),
+                        tint = Color.White.copy(alpha = 0.5f),
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun KPKNNavGraph(
     navController: androidx.navigation.NavHostController,
@@ -907,6 +998,8 @@ private fun KPKNNavGraph(
     primaryProgramId: String?,
     nutritionViewModel: NutritionViewModel,
     onProgramContextTabStateChange: (MainTab, (MainTab) -> Unit) -> Unit,
+    wikiSearchQuery: String = "",
+    onWikiSearchQueryChange: (String) -> Unit = {},
 ) {
     NavHost(navController = navController, startDestination = KpknRoute.Home.route) {
         composable(KpknRoute.Home.route) {
@@ -1050,6 +1143,8 @@ private fun KPKNNavGraph(
         // ─── WikiLab Routes ───────────────────────────────────────────
         composable(KpknRoute.WikiLab.route) {
             WikiLabHomeScreen(
+                searchQuery = wikiSearchQuery,
+                onSearchQueryChange = onWikiSearchQueryChange,
                 onNavigateToExercises = { navController.navigate(KpknRoute.WikiLabExercises.route) },
                 onNavigateToMuscleAnatomy = { navController.navigate(KpknRoute.WikiLabMuscleAnatomy.route) },
                 onNavigateToJoints = { navController.navigate(KpknRoute.WikiLabJoints.route) },

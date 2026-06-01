@@ -1,8 +1,13 @@
 package com.example.kpkn.screens.wikilab
 
-import androidx.compose.animation.animateContentSize
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
+import android.graphics.Typeface
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -10,6 +15,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -17,9 +25,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -27,18 +41,55 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.repository.CustomExerciseRepository
-import com.example.kpkn.domain.exercises.calculateSearchScore
 import com.example.kpkn.data.repository.WikiLabRepository
+import com.example.kpkn.domain.exercises.calculateSearchScore
 import com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE
 import com.example.kpkn.data.wikilab.searchConcepts
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 // ═══════════════════════════════════════════════════════════════════════
-// LEARN HOME — "Wikipedia del Entrenamiento"
+// MUTED LENS PALETTE
+// ═══════════════════════════════════════════════════════════════════════
+
+private val LENS_EXERCISE = Color(0xFFC27A7A)
+private val LENS_MUSCLE = Color(0xFFA07AB0)
+private val LENS_JOINT = Color(0xFF7A9AB8)
+private val LENS_PATTERN = Color(0xFF7AAA7A)
+private val LENS_CHAIN = Color(0xFFC0A870)
+private val LENS_CONCEPT = Color(0xFF7A9CA8)
+
+// ═══════════════════════════════════════════════════════════════════════
+// WIKI LENS TYPES
+// ═══════════════════════════════════════════════════════════════════════
+
+private data class WikiLensConcept(
+    val key: String,
+    val id: String,
+    val label: String,
+    val type: WikiLensConceptType,
+    val color: Color,
+)
+
+private enum class WikiLensConceptType {
+    EXERCISE,
+    MUSCLE,
+    JOINT,
+    PATTERN,
+    CHAIN,
+    CONCEPT,
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MAIN ENCYCLOPEDIA SCREEN
 // ═══════════════════════════════════════════════════════════════════════
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WikiLabHomeScreen(
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
     onNavigateToExercises: () -> Unit,
     onNavigateToMuscleAnatomy: () -> Unit,
     onNavigateToJoints: () -> Unit,
@@ -66,11 +117,21 @@ fun WikiLabHomeScreen(
             .toList()
     }
 
-    var searchQuery by remember { mutableStateOf("") }
     val isSearching = searchQuery.isNotBlank()
     val listState = rememberLazyListState()
     LaunchedEffect(searchQuery) {
         listState.scrollToItem(0)
+    }
+
+    // ─── Build canonicals for muscle navigation ──────────────────────
+    val canonicalMuscles = remember(muscles) {
+        muscles.mapNotNull { m ->
+            val canonicalId = canonicalWikiLabMuscleIdFromEntityId(m.id)
+            if (canonicalId != null) {
+                val canonical = WikiLabRepository.getMuscleById(canonicalId)
+                if (canonical != null) canonical to canonicalId else null
+            } else null
+        }
     }
 
     // ─── Search results ──────────────────────────────────────────────
@@ -79,53 +140,37 @@ fun WikiLabHomeScreen(
         val q = searchQuery.lowercase()
         val results = mutableListOf<SearchResult>()
 
-        // Search exercises
         exerciseCatalog
-            .filter {
-                calculateSearchScore(it, searchQuery) > 0
-            }
+            .filter { calculateSearchScore(it, searchQuery) > 0 }
             .sortedWith(
                 compareByDescending<ExerciseMuscleInfo> { calculateSearchScore(it, searchQuery) }
                     .thenBy { kotlin.math.abs(it.name.length - q.length) }
                     .thenBy { it.name }
             )
             .take(5).mapTo(results) {
-            SearchResult(it.id, it.name, "Ejercicio", SearchResultType.EXERCISE, Color(0xFFE53935))
-        }
-
-        // Search muscles
-        muscles.filter {
-            it.name.lowercase().contains(q) || it.description.lowercase().contains(q)
-        }.mapNotNull {
-            val canonicalId = canonicalWikiLabMuscleIdFromEntityId(it.id) ?: return@mapNotNull null
-            WikiLabRepository.getMuscleById(canonicalId)
-        }.distinctBy { it.id }
-            .take(5)
-            .mapTo(results) {
-                SearchResult(
-                    it.id,
-                    it.name,
-                    "Músculo · ${WikiLabRepository.getBodyPartLabel(it.bodyPart)}",
-                    SearchResultType.MUSCLE,
-                    Color(0xFF9C27B0),
-                )
+                SearchResult(it.id, it.name, "Ejercicio", SearchResultType.EXERCISE, Color(0xFFE53935))
             }
 
-        // Search joints
-        joints.filter {
-            it.name.lowercase().contains(q) || it.description.lowercase().contains(q)
-        }.take(4).mapTo(results) {
-            SearchResult(it.id, it.name, "Articulación · ${WikiLabRepository.getJointTypeLabel(it.type)}", SearchResultType.JOINT, Color(0xFF1E88E5))
-        }
+        muscles.filter { it.name.lowercase().contains(q) || it.description.lowercase().contains(q) }
+            .mapNotNull {
+                val canonicalId = canonicalWikiLabMuscleIdFromEntityId(it.id) ?: return@mapNotNull null
+                WikiLabRepository.getMuscleById(canonicalId)
+            }.distinctBy { it.id }
+            .take(5)
+            .mapTo(results) {
+                SearchResult(it.id, it.name, "Músculo · ${WikiLabRepository.getBodyPartLabel(it.bodyPart)}", SearchResultType.MUSCLE, Color(0xFF9C27B0))
+            }
 
-        // Search patterns
-        patterns.filter {
-            it.name.lowercase().contains(q) || it.description.lowercase().contains(q)
-        }.take(4).mapTo(results) {
-            SearchResult(it.id, it.name, "Patrón de Movimiento", SearchResultType.PATTERN, Color(0xFF43A047))
-        }
+        joints.filter { it.name.lowercase().contains(q) || it.description.lowercase().contains(q) }
+            .take(4).mapTo(results) {
+                SearchResult(it.id, it.name, "Articulación · ${WikiLabRepository.getJointTypeLabel(it.type)}", SearchResultType.JOINT, Color(0xFF1E88E5))
+            }
 
-        // Search concepts
+        patterns.filter { it.name.lowercase().contains(q) || it.description.lowercase().contains(q) }
+            .take(4).mapTo(results) {
+                SearchResult(it.id, it.name, "Patrón de Movimiento", SearchResultType.PATTERN, Color(0xFF43A047))
+            }
+
         searchConcepts(searchQuery).take(5).mapTo(results) {
             SearchResult(it.id, it.name, "Concepto · ${it.category.label}", SearchResultType.CONCEPT, it.category.color)
         }
@@ -133,104 +178,139 @@ fun WikiLabHomeScreen(
         results
     }
 
+    // ─── Build concept pool for the lens ────────────────────────────
+    val lensConcepts = remember(canonicalMuscles, joints, patterns, chains, exerciseCatalog) {
+        val list = mutableListOf<WikiLensConcept>()
+        var idx = 0
+
+        for (ex in exerciseCatalog.shuffled().take(12)) {
+            list.add(WikiLensConcept("ex$idx", ex.id, ex.name.take(12), WikiLensConceptType.EXERCISE, LENS_EXERCISE))
+            idx++
+        }
+        for ((muscle, canonicalId) in canonicalMuscles.take(10)) {
+            list.add(WikiLensConcept("mu$idx", canonicalId, muscle.name.take(14), WikiLensConceptType.MUSCLE, LENS_MUSCLE))
+            idx++
+        }
+        for (j in joints.shuffled().take(8)) {
+            list.add(WikiLensConcept("jo$idx", j.id, j.name.take(12), WikiLensConceptType.JOINT, LENS_JOINT))
+            idx++
+        }
+        for (p in patterns.shuffled().take(6)) {
+            list.add(WikiLensConcept("pa$idx", p.id, p.name.take(12), WikiLensConceptType.PATTERN, LENS_PATTERN))
+            idx++
+        }
+        for (ch in chains) {
+            list.add(WikiLensConcept("ch$idx", ch.id, ch.name.take(14), WikiLensConceptType.CHAIN, chainColor(ch.id)))
+            idx++
+        }
+        val conceptShortNames = mapOf(
+            "volumen-entrenamiento" to "Volumen",
+            "intensidad" to "Intensidad",
+            "rir" to "RIR",
+            "fallo-muscular" to "Fallo",
+            "tension-mecanica" to "Tensión",
+            "sobrecarga-progresiva" to "Sobrecarga",
+            "rom" to "ROM",
+            "deload" to "Deload",
+        )
+        for (c in TRAINING_CONCEPTS_DATABASE.shuffled().take(8)) {
+            val label = conceptShortNames[c.id] ?: c.name.take(10)
+            list.add(WikiLensConcept("co$idx", c.id, label, WikiLensConceptType.CONCEPT, LENS_CONCEPT))
+            idx++
+        }
+        list
+    }
+
+    // ─── Ring distribution coordinates ──────────────────────────────
+    val nodeCoords = remember(lensConcepts) {
+        val coords = mutableMapOf<String, Offset>()
+        val count = lensConcepts.size
+        if (count == 0) return@remember coords
+
+        val ringDefs = listOf(
+            0.18f to 4,
+            0.30f to 6,
+            0.42f to 10,
+            0.54f to 14,
+            0.66f to null,
+        )
+
+        var idx = 0
+        val toRad = kotlin.math.PI / 180.0
+        val centerDp = 225f
+        val maxRadiusDp = 185f
+
+        ringDefs.forEachIndexed { ringIndex, (radiusFrac, maxCount) ->
+            val effectiveCount = if (maxCount != null) minOf(maxCount, count - idx) else count - idx
+            if (effectiveCount <= 0) return@forEachIndexed
+            val radius = maxRadiusDp * radiusFrac
+            val angleStep = 360.0 / effectiveCount
+            val angleOffset = ringIndex * 27.0
+            for (i in 0 until effectiveCount) {
+                val theta = (angleOffset + i * angleStep) * toRad
+                coords[lensConcepts[idx].key] = Offset(
+                    centerDp + radius * cos(theta).toFloat(),
+                    centerDp + radius * sin(theta).toFloat(),
+                )
+                idx++
+            }
+        }
+        coords
+    }
+
     LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 164.dp),
+        modifier = Modifier.fillMaxSize().background(Color.Black),
+        contentPadding = PaddingValues(bottom = 180.dp),
     ) {
         // ═══════════════════════════════════════════════════════════════
-        // HERO BANNER + SEARCH
+        // CONCEPT LENS (title is curved on the circle)
         // ═══════════════════════════════════════════════════════════════
         item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFF101317),
-                                Color(0xFF181C22),
-                                Color(0xFF222831),
-                                MaterialTheme.colorScheme.surface,
-                            )
-                        )
-                    )
-                    .statusBarsPadding()
-                    .padding(horizontal = 20.dp)
-                    .padding(top = 24.dp, bottom = 24.dp),
+                    .padding(top = 40.dp),
+                contentAlignment = Alignment.TopCenter,
             ) {
-                Column {
-                    Column {
-                        Text(
-                            "Aprende",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                            letterSpacing = (-0.5).sp,
-                        )
-                        Text(
-                            "Biblioteca técnica de entrenamiento",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.68f),
-                        )
-                    }
+                WikiConceptLens(
+                    concepts = lensConcepts,
+                    coords = nodeCoords,
+                    onNavigate = { concept ->
+                        when (concept.type) {
+                            WikiLensConceptType.EXERCISE -> onNavigateToExercise(concept.id)
+                            WikiLensConceptType.MUSCLE -> onNavigateToMuscle(concept.id)
+                            WikiLensConceptType.JOINT -> onNavigateToJoint(concept.id)
+                            WikiLensConceptType.PATTERN -> onNavigateToPattern(concept.id)
+                            WikiLensConceptType.CHAIN -> onNavigateToChain(concept.id)
+                            WikiLensConceptType.CONCEPT -> onNavigateToConcept(concept.id)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                )
+            }
+        }
 
-                    Spacer(Modifier.height(14.dp))
-
-                    Text(
-                        "Explora ejercicios, anatomía, biomecánica y conceptos con una interfaz más limpia y directa.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.72f),
-                    )
-
-                    Spacer(Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        StatBadge("${exerciseCatalog.size}", "Ejercicios")
-                        StatBadge("${muscles.size}", "Músculos")
-                        StatBadge("${joints.size}", "Articulaciones")
-                        StatBadge("${TRAINING_CONCEPTS_DATABASE.size}", "Conceptos")
-                    }
-
-                    Spacer(Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = {
-                            Text(
-                                "Buscar ejercicio, músculo, articulación, concepto...",
-                                color = Color.White.copy(alpha = 0.42f),
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Default.Search, null, tint = Color.White.copy(alpha = 0.66f))
-                        },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(Icons.Default.Close, "Limpiar", tint = Color.White.copy(alpha = 0.66f))
-                                }
-                            }
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(18.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.White.copy(alpha = 0.16f),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.10f),
-                            cursorColor = Color.White,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedContainerColor = Color.White.copy(alpha = 0.06f),
-                            unfocusedContainerColor = Color.White.copy(alpha = 0.04f),
-                        ),
-                    )
-                }
+        // ═══════════════════════════════════════════════════════════════
+        // COMPACT STATS BADGES
+        // ═══════════════════════════════════════════════════════════════
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                CompactStat("${exerciseCatalog.size}", "Ejercicios")
+                Spacer(Modifier.width(12.dp))
+                Text("•", color = Color.White.copy(alpha = 0.25f))
+                Spacer(Modifier.width(12.dp))
+                CompactStat("${muscles.size}", "Músculos")
+                Spacer(Modifier.width(12.dp))
+                Text("•", color = Color.White.copy(alpha = 0.25f))
+                Spacer(Modifier.width(12.dp))
+                CompactStat("${TRAINING_CONCEPTS_DATABASE.size}", "Conceptos")
             }
         }
 
@@ -258,6 +338,7 @@ fun WikiLabHomeScreen(
                             SearchResultType.PATTERN -> onNavigateToPattern(result.id)
                             SearchResultType.CONCEPT -> onNavigateToConcept(result.id)
                         }
+                        onSearchQueryChange("")
                     },
                 )
             }
@@ -294,9 +375,9 @@ fun WikiLabHomeScreen(
         // ═══════════════════════════════════════════════════════════════
         if (!isSearching) {
 
-            // ─── Section Grid (2 columns) ────────────────────────────────
+            // ─── Section Grid ─────────────────────────────────────────
             item {
-                SectionLabel("EXPLORAR", modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 8.dp))
+                SectionLabel("EXPLORAR", modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 8.dp))
             }
 
             item {
@@ -307,17 +388,13 @@ fun WikiLabHomeScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         WikiSectionTile(
                             title = "Ejercicios",
-                            subtitle = "${exerciseCatalog.size} ejercicios",
-                            icon = Icons.Default.FitnessCenter,
-                            color = Color(0xFFE53935),
+                            subtitle = "${exerciseCatalog.size} catalogados",
                             onClick = onNavigateToExercises,
                             modifier = Modifier.weight(1f),
                         )
                         WikiSectionTile(
                             title = "Atlas Anatómico",
                             subtitle = "${muscles.size} músculos",
-                            icon = Icons.Default.Accessibility,
-                            color = Color(0xFF9C27B0),
                             onClick = onNavigateToMuscleAnatomy,
                             modifier = Modifier.weight(1f),
                         )
@@ -325,17 +402,13 @@ fun WikiLabHomeScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         WikiSectionTile(
                             title = "Articulaciones",
-                            subtitle = "${joints.size} articulaciones",
-                            icon = Icons.Default.Hub,
-                            color = Color(0xFF1E88E5),
+                            subtitle = "${joints.size} principales",
                             onClick = onNavigateToJoints,
                             modifier = Modifier.weight(1f),
                         )
                         WikiSectionTile(
-                            title = "Patrones",
+                            title = "Patrones de Fuerza",
                             subtitle = "${patterns.size} patrones",
-                            icon = Icons.Default.Sync,
-                            color = Color(0xFF43A047),
                             onClick = onNavigateToMovementPatterns,
                             modifier = Modifier.weight(1f),
                         )
@@ -343,40 +416,115 @@ fun WikiLabHomeScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         WikiSectionTile(
                             title = "Biomecánica",
-                            subtitle = "Palitos y palancas",
-                            icon = Icons.Default.Architecture,
-                            color = Color(0xFFFF8F00),
+                            subtitle = "Análisis mecánico",
                             onClick = onNavigateToBiomechanics,
                             modifier = Modifier.weight(1f),
                         )
                         WikiSectionTile(
                             title = "Conceptos Clave",
-                            subtitle = "${TRAINING_CONCEPTS_DATABASE.size} conceptos",
-                            icon = Icons.Default.School,
-                            color = Color(0xFF5C6BC0),
+                            subtitle = "${TRAINING_CONCEPTS_DATABASE.size} lecciones",
                             onClick = onNavigateToConcepts,
                             modifier = Modifier.weight(1f),
                         )
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        WikiSectionTile(
-                            title = "Learn",
-                            subtitle = "Aprende y mejora",
-                            icon = Icons.Default.School,
-                            color = Color(0xFF7E57C2),
-                            onClick = onNavigateToLearn,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onNavigateToLearn),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF161616)),
+                        border = BorderStroke(1.dp, Color(0xFF262626)),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(18.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = "FORMACIÓN CIENTÍFICA",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White.copy(alpha = 0.4f),
+                                        letterSpacing = 1.5.sp,
+                                    ),
+                                )
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = Color(0xFF242424),
+                                ) {
+                                    Text(
+                                        text = "6 Especialidades",
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White.copy(alpha = 0.7f),
+                                        ),
+                                    )
+                                }
+                            }
+                            Text(
+                                text = "Cursos",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontFamily = FontFamily.Serif,
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                ),
+                            )
+                            Text(
+                                text = "Estudia y domina las bases científicas del entrenamiento. Mejora tu programación, biomecánica y nutrición con lecciones guiadas por pasos.",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    lineHeight = 16.sp,
+                                ),
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                listOf(
+                                    "Programación Científica de Rutinas",
+                                    "Biomecánica y Selección de Ejercicios",
+                                    "Nutrición Deportiva y Composición Corporal",
+                                ).forEach { item ->
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(4.dp)
+                                                .background(Color.White.copy(alpha = 0.4f), CircleShape),
+                                        )
+                                        Text(
+                                            text = item,
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontFamily = FontFamily.Serif,
+                                                fontSize = 11.sp,
+                                                color = Color.White.copy(alpha = 0.5f),
+                                            ),
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
 
-            // ─── Conceptos Destacados ────────────────────────────────────
+            // ─── Featured Concepts ────────────────────────────────────
             item {
                 SectionLabel(
                     "CONCEPTOS DESTACADOS",
-                    modifier = Modifier.padding(start = 20.dp, top = 20.dp, bottom = 8.dp),
+                    modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 8.dp),
                 )
             }
 
@@ -394,92 +542,167 @@ fun WikiLabHomeScreen(
                         FeaturedConceptCard(
                             name = concept.name,
                             shortDesc = concept.shortDescription,
-                            color = concept.category.color,
-                            categoryLabel = concept.category.label,
                             onClick = { onNavigateToConcept(concept.id) },
                         )
                     }
                 }
             }
+        }
+    }
+}
 
-            // ─── Cadenas Cinéticas ───────────────────────────────────────
-            item {
-                SectionLabel(
-                    "CADENAS CINÉTICAS",
-                    modifier = Modifier.padding(start = 20.dp, top = 20.dp, bottom = 8.dp),
-                )
-            }
+// ═══════════════════════════════════════════════════════════════════════
+// WIKI CONCEPT LENS — Concentric arc title OUTSIDE the circle
+// ═══════════════════════════════════════════════════════════════════════
 
-            item {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    items(chains) { chain ->
-                        KineticChainCard(
-                            name = chain.name,
-                            description = chain.description.take(90) + if (chain.description.length > 90) "..." else "",
-                            muscleCount = WikiLabRepository.parseStringList(chain.muscles).size,
-                            color = chainColor(chain.id),
-                            onClick = { onNavigateToChain(chain.id) },
-                        )
-                    }
-                }
-            }
+@Composable
+private fun WikiConceptLens(
+    concepts: List<WikiLensConcept>,
+    coords: Map<String, Offset>,
+    onNavigate: (WikiLensConcept) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val density = LocalDensity.current
+    var scale by remember { mutableStateOf(1.0f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+    val titleTopInset = 44.dp
+    val arcMargin = 10.dp
 
-            // ─── Músculos Populares ──────────────────────────────────────
-            item {
-                SectionLabel(
-                    "MÚSCULOS POPULARES",
-                    modifier = Modifier.padding(start = 20.dp, top = 20.dp, bottom = 8.dp),
-                )
-            }
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val lensSize = minOf(maxWidth, 390.dp)
+        val contentSize = lensSize * 1.25f
+        val outerHeight = lensSize + titleTopInset
+        val radiusPx = with(density) { lensSize.toPx() / 2f }
+        val lensSizePx = with(density) { lensSize.toPx() }
+        val titleTopInsetPx = with(density) { titleTopInset.toPx() }
+        val arcMarginPx = with(density) { arcMargin.toPx() }
 
-            item {
-                val popular = listOf(
-                    "pectoral", "espalda", "cuádriceps", "glúteos",
-                    "bíceps", "tríceps", "deltoides", "isquiosurales",
-                )
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    items(popular) { id ->
-                        val muscle = WikiLabRepository.getMuscleById(id)
-                        if (muscle != null) {
-                            PopularMuscleCard(
-                                name = muscle.name,
-                                bodyPart = WikiLabRepository.getBodyPartLabel(muscle.bodyPart),
-                                color = bodyPartColorSimple(muscle.bodyPart),
-                                onClick = { onNavigateToMuscle(id) },
+        val panLimit = ((scale - 1f).coerceAtLeast(0f) * lensSizePx * 0.40f) + with(density) { 40.dp.toPx() }
+        val contentCenterDp = contentSize.value / 2f
+        val contentMaxRadiusDp = contentCenterDp * 0.82f
+
+        // Outer Box taller to fit title above the circle
+        Box(
+            modifier = Modifier
+                .width(lensSize)
+                .height(outerHeight)
+                .align(Alignment.Center),
+        ) {
+            // Circle at bottom
+            Box(
+                modifier = Modifier
+                    .size(lensSize)
+                    .align(Alignment.BottomCenter)
+                    .background(Color(0xFF040404))
+                    .border(BorderStroke(1.5.dp, Color(0xFF161616)), CircleShape)
+                    .clip(CircleShape)
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            scale = (scale * zoom).coerceIn(0.85f, 2.6f)
+                            offset = Offset(
+                                (offset.x + pan.x).coerceIn(-panLimit, panLimit),
+                                (offset.y + pan.y).coerceIn(-panLimit, panLimit),
                             )
+                        }
+                    },
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer(
+                            scaleX = scale, scaleY = scale,
+                            translationX = offset.x, translationY = offset.y,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(modifier = Modifier.requiredSize(contentSize).background(Color.Transparent)) {
+                        concepts.forEach { concept ->
+                            val coord = coords[concept.key] ?: return@forEach
+                            Box(
+                                modifier = Modifier
+                                    .offset(x = coord.x.dp - 38.dp, y = coord.y.dp - 11.dp)
+                                    .size(76.dp, 22.dp)
+                                    .graphicsLayer {
+                                        val dx = coord.x - contentCenterDp
+                                        val dy = coord.y - contentCenterDp
+                                        val rx = dx * scale + (offset.x / this.density)
+                                        val ry = dy * scale + (offset.y / this.density)
+                                        val dist = sqrt(rx * rx + ry * ry)
+                                        val progress = (dist / contentMaxRadiusDp).coerceIn(0f, 1f)
+                                        val lensEffect = 1.0f - progress
+                                        scaleX = 0.55f + (lensEffect * 0.70f)
+                                        scaleY = 0.55f + (lensEffect * 0.70f)
+                                        alpha = 0.15f + (lensEffect * 0.85f)
+                                    }
+                                    .clickable { onNavigate(concept) },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = concept.label,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        fontWeight = FontWeight.Medium,
+                                        color = concept.color,
+                                        fontSize = 10.sp,
+                                    ),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
                         }
                     }
                 }
-            }
-
-            // ─── Articulaciones Principales ──────────────────────────────
-            item {
-                SectionLabel(
-                    "ARTICULACIONES PRINCIPALES",
-                    modifier = Modifier.padding(start = 20.dp, top = 20.dp, bottom = 8.dp),
+                Box(
+                    modifier = Modifier.fillMaxSize().background(
+                        Brush.radialGradient(
+                            0.0f to Color.Transparent,
+                            0.40f to Color.Transparent,
+                            0.70f to Color.Black.copy(alpha = 0.25f),
+                            0.88f to Color.Black.copy(alpha = 0.70f),
+                            1.0f to Color.Black,
+                            center = Offset(radiusPx, radiusPx),
+                            radius = radiusPx,
+                        ),
+                    ),
                 )
             }
 
-            item {
-                val mainJoints = joints.take(6)
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    items(mainJoints) { joint ->
-                        JointQuickCard(
-                            name = joint.name,
-                            type = WikiLabRepository.getJointTypeLabel(joint.type),
-                            injuryCount = WikiLabRepository.parseInjuries(joint.commonInjuries).size,
-                            onClick = { onNavigateToJoint(joint.id) },
-                        )
-                    }
+            // Curved title OUTSIDE the circle — CONCENTRIC arc
+            // Same center as circle, radius = circleRadius + arcMargin
+            val titlePaint = remember {
+                Paint().apply {
+                    isAntiAlias = true
+                    color = android.graphics.Color.WHITE
+                    typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD)
+                    textAlign = Paint.Align.CENTER
+                }
+            }
+
+            Canvas(Modifier.fillMaxSize()) {
+                val cvW = size.width
+                val cvH = size.height
+                val circleCx = cvW / 2f
+                val circleCy = cvH - radiusPx
+                val arcR = radiusPx + arcMarginPx
+
+                titlePaint.textSize = circleCx * 0.18f
+
+                val arcPath = Path().apply {
+                    addArc(
+                        RectF(circleCx - arcR, circleCy - arcR, circleCx + arcR, circleCy + arcR),
+                        215f,
+                        110f,
+                    )
+                }
+                drawIntoCanvas { canvas ->
+                    canvas.nativeCanvas.drawTextOnPath(
+                        "Enciclopedia",
+                        arcPath,
+                        0f,
+                        -4.dp.toPx(),
+                        titlePaint,
+                    )
                 }
             }
         }
@@ -491,30 +714,28 @@ fun WikiLabHomeScreen(
 // ═══════════════════════════════════════════════════════════════════════
 
 @Composable
-private fun StatBadge(value: String, label: String) {
-    Surface(
-        modifier = Modifier.width(78.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = Color.White.copy(alpha = 0.05f),
+private fun CompactStat(value: String, label: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(horizontal = 2.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                value,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black,
+        Text(
+            value,
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
                 color = Color.White,
-            )
-            Text(
-                label,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.58f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+            ),
+        )
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 9.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White.copy(alpha = 0.5f),
+                letterSpacing = 1.sp,
+            ),
+        )
     }
 }
 
@@ -523,10 +744,12 @@ private fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     Text(
         text,
         modifier = modifier,
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.ExtraBold,
-        letterSpacing = 1.sp,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.labelSmall.copy(
+            fontFamily = FontFamily.Serif,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = 1.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+        ),
     )
 }
 
@@ -534,50 +757,42 @@ private fun SectionLabel(text: String, modifier: Modifier = Modifier) {
 private fun WikiSectionTile(
     title: String,
     subtitle: String,
-    icon: ImageVector,
-    color: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier
-            .height(100.dp)
+            .height(78.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
+        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(14.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.Center,
         ) {
-            Surface(
-                modifier = Modifier.size(36.dp),
-                shape = RoundedCornerShape(10.dp),
-                color = color.copy(alpha = 0.12f),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(icon, null, modifier = Modifier.size(20.dp), tint = color)
-                }
-            }
-            Column {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleSmall,
+            AutoFitText(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                )
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                )
-            }
+                    color = Color.White,
+                ),
+                maxLines = 1,
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 11.sp,
+                    color = Color.White.copy(alpha = 0.45f),
+                ),
+                maxLines = 1,
+            )
         }
     }
 }
@@ -586,197 +801,48 @@ private fun WikiSectionTile(
 private fun FeaturedConceptCard(
     name: String,
     shortDesc: String,
-    color: Color,
-    categoryLabel: String,
     onClick: () -> Unit,
 ) {
     Card(
         modifier = Modifier
             .width(220.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = color.copy(alpha = 0.08f),
-        ),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
+        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            Surface(
-                shape = RoundedCornerShape(6.dp),
-                color = color.copy(alpha = 0.15f),
-            ) {
-                Text(
-                    categoryLabel,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = color,
-                )
-            }
-            Spacer(Modifier.height(8.dp))
             Text(
-                name,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = color,
+                text = "CONCEPTO DESTACADO",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.45f),
+                    letterSpacing = 1.sp,
+                ),
+            )
+            Spacer(Modifier.height(6.dp))
+            AutoFitText(
+                text = name,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                ),
                 maxLines = 1,
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 shortDesc,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 11.sp,
+                    color = Color.White.copy(alpha = 0.55f),
+                    lineHeight = 15.sp,
+                ),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                lineHeight = 15.sp,
             )
-        }
-    }
-}
-
-@Composable
-private fun KineticChainCard(
-    name: String,
-    description: String,
-    muscleCount: Int,
-    color: Color,
-    onClick: () -> Unit,
-) {
-    Card(
-        modifier = Modifier
-            .width(200.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.08f)),
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    name,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = color,
-                    modifier = Modifier.weight(1f),
-                )
-                Surface(
-                    shape = CircleShape,
-                    color = color.copy(alpha = 0.15f),
-                    modifier = Modifier.size(24.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            "$muscleCount",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            color = color,
-                        )
-                    }
-                }
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(
-                description,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 15.sp,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
-
-@Composable
-private fun PopularMuscleCard(
-    name: String,
-    bodyPart: String,
-    color: Color,
-    onClick: () -> Unit,
-) {
-    Card(
-        modifier = Modifier
-            .width(150.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.08f)),
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Surface(
-                modifier = Modifier.size(32.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = color.copy(alpha = 0.15f),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Surface(Modifier.size(12.dp), CircleShape, color) {}
-                }
-            }
-            Spacer(Modifier.height(8.dp))
-            Text(
-                name,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = color,
-                maxLines = 1,
-            )
-            Text(
-                bodyPart,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun JointQuickCard(
-    name: String,
-    type: String,
-    injuryCount: Int,
-    onClick: () -> Unit,
-) {
-    Card(
-        modifier = Modifier
-            .width(160.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.Hub,
-                    null,
-                    modifier = Modifier.size(16.dp),
-                    tint = Color(0xFF1E88E5),
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    name,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            Spacer(Modifier.height(4.dp))
-            Text(
-                type,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF1E88E5),
-            )
-            if (injuryCount > 0) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "$injuryCount lesiones documentadas",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
         }
     }
 }
@@ -861,18 +927,35 @@ private fun SearchResultCard(
 // ═══════════════════════════════════════════════════════════════════════
 
 private fun chainColor(id: String): Color = when (id) {
-    "tren-superior" -> Color(0xFF1E88E5)
-    "tren-inferior" -> Color(0xFF43A047)
-    "core" -> Color(0xFFFF8F00)
-    "cadena-anterior" -> Color(0xFFE53935)
-    "cadena-posterior" -> Color(0xFF9C27B0)
-    else -> Color(0xFF757575)
+    "tren-superior" -> Color(0xFF7A9AB8)
+    "tren-inferior" -> Color(0xFF7AAA7A)
+    "core" -> Color(0xFFC0A870)
+    "cadena-anterior" -> Color(0xFFC27A7A)
+    "cadena-posterior" -> Color(0xFFA07AB0)
+    else -> Color(0xFF7A7A7A)
 }
 
-private fun bodyPartColorSimple(bodyPart: String?): Color = when (bodyPart) {
-    "upper" -> Color(0xFF1E88E5)
-    "lower" -> Color(0xFF43A047)
-    "core" -> Color(0xFFFF8F00)
-    "spine" -> Color(0xFF9C27B0)
-    else -> Color(0xFF757575)
+@Composable
+private fun AutoFitText(
+    text: String,
+    style: androidx.compose.ui.text.TextStyle,
+    modifier: Modifier = Modifier,
+    maxLines: Int = 1,
+    textAlign: TextAlign = TextAlign.Start,
+) {
+    var sizeMultiplier by remember(text) { mutableStateOf(1f) }
+
+    Text(
+        text = text,
+        modifier = modifier,
+        style = style.copy(fontSize = style.fontSize * sizeMultiplier),
+        maxLines = maxLines,
+        textAlign = textAlign,
+        overflow = TextOverflow.Ellipsis,
+        onTextLayout = { textLayoutResult ->
+            if (textLayoutResult.hasVisualOverflow && sizeMultiplier > 0.65f) {
+                sizeMultiplier *= 0.85f
+            }
+        },
+    )
 }

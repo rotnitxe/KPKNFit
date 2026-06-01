@@ -80,7 +80,7 @@ fun HomeWikiLabSection(onNavigate: (String) -> Unit) {
                     ) { WikiIcon(tint = conceptColor) }
                     Column {
                         Text(
-                            text = "LEARN",
+                            text = "ENCICLOPEDIA",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Black,
                             letterSpacing = 1.4.sp,

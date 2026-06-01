@@ -2,6 +2,7 @@ package com.example.kpkn.screens.learn
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,6 +39,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -67,8 +71,8 @@ fun LearnCourseScreen(
     var showDisclaimer by remember { mutableStateOf(false) }
 
     if (module == null) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Curso no encontrado")
+        Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+            Text("Curso no encontrado", color = Color.White)
         }
         return
     }
@@ -81,37 +85,66 @@ fun LearnCourseScreen(
     if (showDisclaimer) {
         AlertDialog(
             onDismissRequest = { showDisclaimer = false },
-            title = { Text("Aviso") },
-            text = { Text(module.disclaimer ?: "") },
+            containerColor = Color(0xFF161616),
+            title = {
+                Text(
+                    "Aviso importante",
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            },
+            text = {
+                Text(
+                    module.disclaimer ?: "",
+                    color = Color.White.copy(alpha = 0.8f)
+                )
+            },
             confirmButton = {
-                TextButton(onClick = {
-                    LearnRepository.markDisclaimerShown(courseId)
-                    showDisclaimer = false
-                }) {
-                    Text("Entendido")
+                TextButton(
+                    onClick = {
+                        LearnRepository.markDisclaimerShown(courseId)
+                        showDisclaimer = false
+                    }
+                ) {
+                    Text("Entendido", fontWeight = FontWeight.Bold, color = Color.White)
                 }
             },
         )
     }
 
     Scaffold(
+        containerColor = Color.Black,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(module.title) },
+                title = {
+                    Text(
+                        module.title,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
                     }
                 },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.Black,
+                )
             )
         }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Black)
                 .padding(padding),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Header del curso
             item {
@@ -128,10 +161,17 @@ fun LearnCourseScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
-                            Text("Progreso", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                            Text("$completed/$totalSubs módulos", style = MaterialTheme.typography.labelMedium)
+                            Text(
+                                "Progreso del curso",
+                                style = MaterialTheme.typography.labelMedium.copy(color = Color.White.copy(alpha = 0.6f)),
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "$completed/$totalSubs módulos",
+                                style = MaterialTheme.typography.labelMedium.copy(color = Color.White.copy(alpha = 0.6f))
+                            )
                         }
-                        Spacer(Modifier.height(4.dp))
+                        Spacer(Modifier.height(6.dp))
                         LinearProgressIndicator(
                             progress = { completed.toFloat() / totalSubs.coerceAtLeast(1) },
                             modifier = Modifier
@@ -148,8 +188,11 @@ fun LearnCourseScreen(
             // Submódulos
             item {
                 Text(
-                    "Contenido",
-                    style = MaterialTheme.typography.titleMedium,
+                    "Contenido del programa",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White
+                    ),
                     fontWeight = FontWeight.ExtraBold,
                 )
             }
@@ -182,7 +225,11 @@ fun LearnCourseScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable(enabled = allSubsCompleted && !finalQuizDone) { onStartFinalQuiz() },
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF121212),
+                    ),
+                    border = BorderStroke(1.dp, Color(0xFF1E1E1E))
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -193,7 +240,7 @@ fun LearnCourseScreen(
                             color = when {
                                 moduleProgress?.isCompleted == true -> Color(0xFFFFD700).copy(alpha = 0.15f)
                                 allSubsCompleted -> Color(0xFF43A047).copy(alpha = 0.15f)
-                                else -> MaterialTheme.colorScheme.surfaceVariant
+                                else -> Color(0xFF1A1A1A)
                             },
                             modifier = Modifier.size(40.dp),
                         ) {
@@ -201,29 +248,32 @@ fun LearnCourseScreen(
                                 when {
                                     moduleProgress?.isCompleted == true -> Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFFFD700))
                                     allSubsCompleted -> Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFF43A047))
-                                    else -> Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    else -> Icon(Icons.Default.Lock, null, tint = Color.White.copy(alpha = 0.3f))
                                 }
                             }
                         }
                         Spacer(Modifier.width(14.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "Quiz Final",
-                                style = MaterialTheme.typography.titleSmall,
+                                "Evaluación Final",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontFamily = FontFamily.Serif,
+                                    color = Color.White
+                                ),
                                 fontWeight = FontWeight.Bold,
                             )
                             Text(
                                 when {
                                     moduleProgress?.isCompleted == true -> "Completado con ${moduleProgress.finalQuizScore} aciertos"
                                     allSubsCompleted -> "${module.finalQuiz.size} preguntas · Listo para rendir"
-                                    else -> "Completa todos los módulos primero"
+                                    else -> "Completa todos los módulos para desbloquear"
                                 },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = Color.White.copy(alpha = 0.5f),
                             )
                         }
                         if (allSubsCompleted && !finalQuizDone) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White.copy(alpha = 0.5f))
                         }
                     }
                 }
@@ -238,7 +288,11 @@ fun LearnCourseScreen(
 private fun CourseHeader(module: LearnModule, moduleProgress: com.example.kpkn.data.learn.CourseProgress?) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF121212),
+        ),
+        border = BorderStroke(1.dp, Color(0xFF1E1E1E))
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -248,30 +302,54 @@ private fun CourseHeader(module: LearnModule, moduleProgress: com.example.kpkn.d
             Spacer(Modifier.height(12.dp))
             Text(
                 module.title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White
+                ),
                 textAlign = TextAlign.Center,
             )
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(8.dp))
             Text(
                 module.shortDescription,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${module.estimatedMinutes}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-                    Text("minutos", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "${module.estimatedMinutes}",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White
+                        )
+                    )
+                    Text("minutos", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.4f))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${module.submodules.size}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-                    Text("módulos", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "${module.submodules.size}",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White
+                        )
+                    )
+                    Text("módulos", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.4f))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${module.finalQuiz.size}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-                    Text("quiz final", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "${module.finalQuiz.size}",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White
+                        )
+                    )
+                    Text("quiz final", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.4f))
                 }
             }
         }
@@ -293,6 +371,10 @@ private fun SubmoduleCard(
             .fillMaxWidth()
             .clickable(enabled = isUnlocked, onClick = onClick),
         shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF121212),
+        ),
+        border = BorderStroke(1.dp, Color(0xFF1E1E1E))
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -302,17 +384,17 @@ private fun SubmoduleCard(
             Surface(
                 shape = CircleShape,
                 color = when {
-                    isCompleted -> Color(0xFF43A047)
-                    isUnlocked -> MaterialTheme.colorScheme.primary
-                    else -> MaterialTheme.colorScheme.surfaceVariant
+                    isCompleted -> Color(0xFF43A047).copy(alpha = 0.15f)
+                    isUnlocked -> Color.White.copy(alpha = 0.1f)
+                    else -> Color(0xFF1A1A1A)
                 },
                 modifier = Modifier.size(36.dp),
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     when {
-                        isCompleted -> Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        isCompleted -> Icon(Icons.Default.Check, null, tint = Color(0xFF43A047), modifier = Modifier.size(18.dp))
                         isUnlocked -> Text("$index", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black, color = Color.White)
-                        else -> Icon(Icons.Default.Lock, null, modifier = Modifier.size(16.dp))
+                        else -> Icon(Icons.Default.Lock, null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(16.dp))
                     }
                 }
             }
@@ -322,19 +404,27 @@ private fun SubmoduleCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     title,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontFamily = FontFamily.Serif,
+                        color = if (isUnlocked) Color.White else Color.White.copy(alpha = 0.4f)
+                    ),
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    if (isCompleted && quizScore != null) "Quiz: $quizScore/$questionsCount correctas"
+                    if (isCompleted && quizScore != null) "Completado · $quizScore/$questionsCount correctas"
                     else "$questionsCount preguntas en el quiz",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.4f),
                 )
             }
 
             if (isUnlocked && !isCompleted) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowForward,
+                    null,
+                    tint = Color.White.copy(alpha = 0.4f),
+                    modifier = Modifier.size(18.dp)
+                )
             }
         }
     }

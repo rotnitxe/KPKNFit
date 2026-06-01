@@ -24,6 +24,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -136,6 +137,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -432,8 +434,8 @@ fun SessionEditorScreen(
         )
     ),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val allTemplates by viewModel.allTemplates.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val allTemplates by viewModel.allTemplates.collectAsStateWithLifecycle()
     val session = uiState.session
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -525,6 +527,8 @@ fun SessionEditorScreen(
     var exerciseDropTargetKey by remember { mutableStateOf<String?>(null) }
     var exerciseDropTargetPartId by remember { mutableStateOf<String?>(null) }
     var exerciseDropTargetIndex by remember { mutableStateOf<Int?>(null) }
+    var dragStartPartRect by remember { mutableStateOf<Rect?>(null) }
+    var dragStartExerciseRect by remember { mutableStateOf<Rect?>(null) }
 
     fun beginExerciseDrag(partId: String, exerciseId: String) {
         draggingExerciseId = exerciseId
@@ -533,6 +537,7 @@ fun SessionEditorScreen(
         exerciseDropTargetKey = null
         exerciseDropTargetPartId = null
         exerciseDropTargetIndex = null
+        dragStartExerciseRect = exerciseBounds["$partId|$exerciseId"]
     }
 
     fun updateExerciseDrag(delta: Offset) {
@@ -541,8 +546,8 @@ fun SessionEditorScreen(
         val activeExerciseId = draggingExerciseId ?: return
         val currentPartId = draggingExercisePartId ?: return
         draggingExerciseOffset += delta
-        val activeRect = exerciseBounds["$currentPartId|$activeExerciseId"] ?: return
-        val center = Offset(activeRect.center.x + draggingExerciseOffset.x, activeRect.center.y + draggingExerciseOffset.y)
+        val startRect = dragStartExerciseRect ?: exerciseBounds["$currentPartId|$activeExerciseId"] ?: return
+        val center = Offset(startRect.center.x + draggingExerciseOffset.x, startRect.center.y + draggingExerciseOffset.y)
         val targetPartId = when {
             looseContentBounds?.contains(center) == true -> "__loose__"
             else -> groupedPartsForDrag.firstOrNull { candidate -> partContentBounds[candidate.id]?.contains(center) == true }?.id
@@ -610,6 +615,7 @@ fun SessionEditorScreen(
         exerciseDropTargetKey = null
         exerciseDropTargetPartId = null
         exerciseDropTargetIndex = null
+        dragStartExerciseRect = null
     }
 
     if (session == null) {
@@ -1180,14 +1186,15 @@ fun SessionEditorScreen(
                         draggingPartOffsetY = 0f
                         partDropTargetId = null
                         partDropTargetIndex = null
+                        dragStartPartRect = partBounds[part.id]
                     },
                     onDrag = { deltaY ->
                         val activeId = draggingPartId ?: return@GroupEditorCard
                         draggingPartOffsetY += deltaY
-                        val activeRect = partBounds[activeId] ?: return@GroupEditorCard
-                        val centerY = activeRect.center.y + draggingPartOffsetY
+                        val startRect = dragStartPartRect ?: partBounds[activeId] ?: return@GroupEditorCard
+                        val centerY = startRect.center.y + draggingPartOffsetY
                         val targetId = groupedParts.firstOrNull { candidate ->
-                            candidate.id != activeId && partBounds[candidate.id]?.contains(Offset(activeRect.center.x, centerY)) == true
+                            candidate.id != activeId && partBounds[candidate.id]?.contains(Offset(startRect.center.x, centerY)) == true
                         }?.id
                         partDropTargetId = targetId
                         if (targetId != null) {
@@ -1208,6 +1215,7 @@ fun SessionEditorScreen(
                         draggingPartOffsetY = 0f
                         partDropTargetId = null
                         partDropTargetIndex = null
+                        dragStartPartRect = null
                     },
                     onAddExercise = { viewModel.openPicker(part.id) },
                     content = {
@@ -2738,7 +2746,7 @@ private fun GroupEditorCard(
                             modifier = Modifier
                                 .size(18.dp)
                                 .pointerInput(part.id) {
-                                    detectDragGesturesAfterLongPress(
+                                    detectDragGestures(
                                         onDragStart = { onDragStart() },
                                         onDragCancel = { onDragEnd() },
                                         onDragEnd = { onDragEnd() },
@@ -2971,10 +2979,10 @@ private fun SupersetGroupEditorCard(
             .fillMaxWidth()
             .onGloballyPositioned { onBoundsChange(it.boundsInRoot()) }
             .graphicsLayer {
-                translationX = if (isDragging) dragOffset.x else 0f
-                translationY = if (isDragging) dragOffset.y else 0f
-                alpha = if (isDragging) 0.94f else 1f
-                shadowElevation = if (isDragging) 22.dp.toPx() else 0f
+                translationX = 0f
+                translationY = 0f
+                alpha = if (isDragging) 0.22f else 1f
+                shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
             .zIndex(if (isDragging) 12f else 0f)
             .clip(RoundedCornerShape(14.dp))
@@ -3001,7 +3009,7 @@ private fun SupersetGroupEditorCard(
                     modifier = Modifier
                         .size(18.dp)
                         .pointerInput(group.id) {
-                            detectDragGesturesAfterLongPress(
+                            detectDragGestures(
                                 onDragStart = { onDragStart() },
                                 onDragCancel = { onDragEnd() },
                                 onDragEnd = { onDragEnd() },
@@ -3737,10 +3745,10 @@ private fun ExerciseEditorCard(
             .fillMaxWidth()
             .onGloballyPositioned { onBoundsChange(it.boundsInRoot()) }
             .graphicsLayer {
-                translationX = if (isDragging) dragOffset.x else 0f
-                translationY = if (isDragging) dragOffset.y else 0f
-                alpha = if (isDragging) 0.94f else 1f
-                shadowElevation = if (isDragging) 22.dp.toPx() else 0f
+                translationX = 0f
+                translationY = 0f
+                alpha = if (isDragging) 0.22f else 1f
+                shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
             .zIndex(if (isDragging) 12f else 0f)
             .then(containerModifier),
@@ -3766,7 +3774,7 @@ private fun ExerciseEditorCard(
                 modifier = Modifier
                     .size(40.dp)
                     .pointerInput(exercise.id) {
-                        detectDragGesturesAfterLongPress(
+                        detectDragGestures(
                             onDragStart = { onDragStart() },
                             onDragCancel = { onDragEnd() },
                             onDragEnd = { onDragEnd() },
@@ -6521,7 +6529,7 @@ internal fun ExercisePickerSheet(
     highlightedExerciseId: String? = null,
     onSelectionChange: (List<ExerciseMuscleInfo>) -> Unit = {},
 ) {
-    val customExercises by CustomExerciseRepository.customExercises.collectAsState()
+    val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
     val fullCatalog = remember(catalog, customExercises) {
         (customExercises + catalog)
             .distinctBy { it.id.lowercase() }

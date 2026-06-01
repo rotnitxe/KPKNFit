@@ -168,6 +168,17 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         val adaptiveCache = augeRepo.getAdaptiveCache()
 
         val (batteries, perMuscle, dashboard, readiness, pending, articular) = withContext(Dispatchers.Default) {
+            val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
+                history = history,
+                wellbeing = wellbeing,
+                settings = settings,
+                exerciseDb = exerciseDb,
+                sleepLogs = sleepLogs,
+                nutritionLogs = nutritionLogs,
+                feedbacks = feedbacks,
+                personalizedRecoveryHours = adaptiveCache.personalizedRecoveryHours,
+                muscleDeltas = adaptiveCache.muscleDeltas,
+            )
             val bat = AugeRecoveryEngine.calculateGlobalBatteries(
                 history = history,
                 wellbeing = wellbeing,
@@ -180,17 +191,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 muscleDeltas = adaptiveCache.muscleDeltas,
                 cnsLearningDelta = adaptiveCache.cnsLearningDelta,
                 spinalLearningDelta = adaptiveCache.spinalLearningDelta,
-            )
-            val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
-                history = history,
-                wellbeing = wellbeing,
-                settings = settings,
-                exerciseDb = exerciseDb,
-                sleepLogs = sleepLogs,
-                nutritionLogs = nutritionLogs,
-                feedbacks = feedbacks,
-                personalizedRecoveryHours = adaptiveCache.personalizedRecoveryHours,
-                muscleDeltas = adaptiveCache.muscleDeltas,
+                precomputedMuscles = muscles,
             )
             val articular = AugeTtcEngine.calculateArticularBatteries(history, exerciseDb, feedbacks)
             val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(

@@ -50,6 +50,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.core.graphics.toColorInt
 import androidx.compose.ui.Alignment
@@ -199,10 +200,10 @@ fun WorkoutScreen(
             restAlertManager = restAlertManager,
         )
     )
-    val uiState by viewModel.uiState.collectAsState()
-    val allUserTags by viewModel.allUserTags.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val session = uiState.session
-    val restTimerRemaining by viewModel.restTimerRemaining.collectAsState()
+    val restTimerRemaining by viewModel.restTimerRemaining.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showExitDialog by remember { mutableStateOf(false) }
     var roadmapMode by rememberSaveable(programId, sessionId) { mutableStateOf(RoadmapMode.COMPACT) }
@@ -227,11 +228,11 @@ fun WorkoutScreen(
     var readinessSheetDismissed by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
     val showReadinessSheet = !readinessSheetDismissed && !isMeetOrComp && uiState.readinessNeuralOverride == null
 
-    val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsState()
+    val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
 
     // Recovery data
-    val augeSnapshot by augeViewModel.snapshot.collectAsState()
-    val perMuscle by augeViewModel.perMuscle.collectAsState()
+    val augeSnapshot by augeViewModel.snapshot.collectAsStateWithLifecycle()
+    val perMuscle by augeViewModel.perMuscle.collectAsStateWithLifecycle()
 
     val augeRepository = remember(context) { AugeRepository.getInstance(context) }
     val todayWellbeing by produceState<DailyWellbeingLog?>(initialValue = null) {
@@ -396,7 +397,7 @@ fun WorkoutScreen(
     val weightSuggestion = currentExercise?.let {
         viewModel.getWeightSuggestionWithAutoRegulation(it, uiState.currentSetIdx, activeTag)
     }
-    var elapsedSeconds by remember(uiState.startTimeMs) { mutableIntStateOf(0) }
+
     var lastAnnouncedSetKey by rememberSaveable { mutableStateOf<String?>(null) }
     var exerciseContextExerciseId by remember { mutableStateOf<String?>(null) }
     var showReplaceExercisePicker by remember { mutableStateOf(false) }
@@ -439,12 +440,7 @@ fun WorkoutScreen(
         selectedExerciseContextTab = null
     }
 
-    LaunchedEffect(uiState.startTimeMs, uiState.isComplete) {
-        while (!uiState.isComplete) {
-            elapsedSeconds = ((System.currentTimeMillis() - uiState.startTimeMs) / 1000L).toInt().coerceAtLeast(0)
-            kotlinx.coroutines.delay(1000L)
-        }
-    }
+
 
     LaunchedEffect(uiState.setJustLoggedKey, uiState.lastHomologatedResultV3) {
         val loggedKey = uiState.setJustLoggedKey
@@ -522,7 +518,8 @@ fun WorkoutScreen(
             headerExerciseName = currentExercise?.name ?: session.name,
             headerSessionName = session.name,
             headerGroupName = headerGroup,
-            headerElapsedSeconds = elapsedSeconds,
+            headerStartTimeMs = uiState.startTimeMs,
+            headerIsComplete = uiState.isComplete,
             headerBackground = session.background,
             headerExerciseTag = activeTag,
             exerciseReadinessMap = uiState.exerciseReadinessMap,
@@ -1803,7 +1800,7 @@ fun WorkoutScreen(
     if (addCatalogToSupersetGroupId != null) {
         val targetGroupId = addCatalogToSupersetGroupId!!
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
-        val workoutLogs by programRepository.history.collectAsState()
+        val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
         val addCatalogSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
         ModalBottomSheet(
@@ -1872,7 +1869,7 @@ fun WorkoutScreen(
 
     if (showReplaceExercisePicker && replaceTargetExerciseId != null) {
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
-        val workoutLogs by programRepository.history.collectAsState()
+        val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
 
         val replaceSheetState = rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
@@ -2440,11 +2437,39 @@ internal fun resolveSessionAccentColor(background: SessionBackground?): Color {
 }
 
 @Composable
+private fun WorkoutChronometer(
+    startTimeMs: Long,
+    isComplete: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    var elapsedSeconds by remember(startTimeMs) { androidx.compose.runtime.mutableIntStateOf(0) }
+
+    LaunchedEffect(startTimeMs, isComplete) {
+        if (!isComplete) {
+            while (true) {
+                elapsedSeconds = ((System.currentTimeMillis() - startTimeMs) / 1000L).toInt().coerceAtLeast(0)
+                kotlinx.coroutines.delay(1000L)
+            }
+        }
+    }
+
+    Text(
+        text = formatElapsed(elapsedSeconds),
+        style = MaterialTheme.typography.labelSmall,
+        color = Color.White.copy(alpha = 0.85f),
+        fontWeight = FontWeight.Black,
+        fontSize = 11.sp,
+        modifier = modifier,
+    )
+}
+
+@Composable
 private fun WorkoutHeaderBar(
     exerciseName: String,
     sessionName: String,
     groupName: String?,
-    elapsedSeconds: Int,
+    startTimeMs: Long,
+    isComplete: Boolean,
     background: SessionBackground?,
     exerciseTag: String? = null,
     isSuperset: Boolean = false,
@@ -2545,12 +2570,9 @@ private fun WorkoutHeaderBar(
                                 tint = Color.White.copy(alpha = 0.85f),
                             )
                             Spacer(Modifier.width(5.dp))
-                            Text(
-                                text = formatElapsed(elapsedSeconds),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.White.copy(alpha = 0.85f),
-                                fontWeight = FontWeight.Black,
-                                fontSize = 11.sp,
+                            WorkoutChronometer(
+                                startTimeMs = startTimeMs,
+                                isComplete = isComplete,
                             )
                         }
 
@@ -2672,7 +2694,8 @@ private fun WorkoutV2Body(
     headerExerciseName: String,
     headerSessionName: String,
     headerGroupName: String?,
-    headerElapsedSeconds: Int,
+    headerStartTimeMs: Long,
+    headerIsComplete: Boolean,
     headerBackground: SessionBackground?,
     headerExerciseTag: String?,
     rmSelectedWeight: Double? = null,
@@ -2684,7 +2707,7 @@ private fun WorkoutV2Body(
     onExpandEdit: () -> Unit,
     exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
 ) {
-    val allUserTags by viewModel.allUserTags.collectAsState()
+    val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val scroll = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     val recordActionHolder = remember { RecordActionHolder() }
@@ -2755,7 +2778,8 @@ private fun WorkoutV2Body(
                 exerciseName = headerExerciseName,
                 sessionName = headerSessionName,
                 groupName = headerGroupName,
-                elapsedSeconds = headerElapsedSeconds,
+                startTimeMs = headerStartTimeMs,
+                isComplete = headerIsComplete,
                 background = headerBackground,
                 exerciseTag = headerExerciseTag,
                 isSuperset = currentExercise?.isInSuperset() == true,

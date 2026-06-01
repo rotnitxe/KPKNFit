@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -29,12 +30,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,30 +58,52 @@ fun LearnReaderScreen(
     val submodule = module.submodules.getOrNull(submoduleIndex) ?: return
 
     Scaffold(
+        containerColor = Color.Black,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(submodule.title) },
+                title = {
+                    Text(
+                        submodule.title,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
                     }
                 },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.Black,
+                )
             )
         },
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shadowElevation = 8.dp,
+                color = Color.Black,
             ) {
                 Button(
                     onClick = onStartQuiz,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF1E1E1E),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Hacer quiz del módulo", fontWeight = FontWeight.Bold)
+                    Text(
+                        "Hacer quiz del módulo",
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Bold
+                    )
                     Spacer(Modifier.width(8.dp))
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White)
                 }
             }
         }
@@ -86,24 +111,28 @@ fun LearnReaderScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Black)
                 .padding(padding),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Progress indicator
             item {
                 val total = module.submodules.size
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = module.category.color.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(6.dp),
+                    color = Color(0xFF121212),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, module.category.color.copy(alpha = 0.25f)),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
                         "Módulo ${submoduleIndex + 1} de $total",
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = module.category.color,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Bold,
+                            color = module.category.color
+                        ),
                     )
                 }
             }
@@ -124,26 +153,33 @@ private fun ContentBlockRenderer(block: ContentBlock) {
         ContentType.HEADING -> {
             Text(
                 block.text,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.padding(top = 4.dp),
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                ),
+                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
             )
         }
         ContentType.PARAGRAPH -> {
             Text(
                 block.text,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = Color.White.copy(alpha = 0.8f)
+                ),
                 lineHeight = 22.sp,
             )
         }
         ContentType.BULLET -> {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 block.items.forEach { item ->
                     Row(verticalAlignment = Alignment.Top) {
-                        Text("• ", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                        Text("• ", style = MaterialTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.8f)), fontWeight = FontWeight.Bold)
                         Text(
                             item,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = Color.White.copy(alpha = 0.8f)
+                            ),
                             lineHeight = 22.sp,
                             modifier = Modifier.weight(1f),
                         )
@@ -155,27 +191,28 @@ private fun ContentBlockRenderer(block: ContentBlock) {
             CalloutBlock(
                 icon = Icons.Default.Lightbulb,
                 text = block.text,
-                bgColor = Color(0xFF43A047).copy(alpha = 0.08f),
+                bgColor = Color(0xFF121212),
                 iconColor = Color(0xFF43A047),
-                borderColor = Color(0xFF43A047).copy(alpha = 0.2f),
+                borderColor = Color(0xFF43A047).copy(alpha = 0.25f),
             )
         }
         ContentType.WARNING -> {
             CalloutBlock(
                 icon = Icons.Default.Warning,
                 text = block.text,
-                bgColor = Color(0xFFFF8F00).copy(alpha = 0.08f),
+                bgColor = Color(0xFF121212),
                 iconColor = Color(0xFFFF8F00),
-                borderColor = Color(0xFFFF8F00).copy(alpha = 0.2f),
+                borderColor = Color(0xFFFF8F00).copy(alpha = 0.25f),
             )
         }
         ContentType.CALLOUT -> {
+            val accentColorVal = block.accentColor?.let { Color(it) } ?: Color(0xFF448AFF)
             CalloutBlock(
                 icon = Icons.Default.CheckCircle,
                 text = block.text,
-                bgColor = (block.accentColor?.let { Color(it) } ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.08f),
-                iconColor = block.accentColor?.let { Color(it) } ?: MaterialTheme.colorScheme.primary,
-                borderColor = (block.accentColor?.let { Color(it) } ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.2f),
+                bgColor = Color(0xFF121212),
+                iconColor = accentColorVal,
+                borderColor = accentColorVal.copy(alpha = 0.25f),
             )
         }
     }
@@ -190,7 +227,7 @@ private fun CalloutBlock(
     borderColor: Color,
 ) {
     Surface(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(8.dp),
         color = bgColor,
         border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
     ) {
@@ -207,7 +244,9 @@ private fun CalloutBlock(
             Spacer(Modifier.width(10.dp))
             Text(
                 text,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = Color.White.copy(alpha = 0.8f)
+                ),
                 lineHeight = 20.sp,
             )
         }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,6 +33,11 @@ fun PostSessionSheet(
             questionnaire.muscleGroups.forEach { muscle ->
                 map[muscle] = MuscleFeedbackState()
             }
+        }
+    }
+    val unresolvedDiscomfortIds = remember {
+        mutableStateListOf<String>().apply {
+            addAll(questionnaire.stillPresentDiscomfortIds)
         }
     }
 
@@ -118,6 +124,54 @@ fun PostSessionSheet(
                 }
             }
 
+            // ─── Molestias registradas ───
+            if (questionnaire.stillPresentDiscomfortIds.isNotEmpty()) {
+                Text(
+                    "¿Sigues sintiendo estas molestias?",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Black,
+                )
+                
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    questionnaire.stillPresentDiscomfortIds.forEach { discomfortId ->
+                        val label = DISCOMFORT_CATALOG_BY_ID[discomfortId]?.label ?: discomfortId
+                        val isSelected = unresolvedDiscomfortIds.contains(discomfortId)
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = {
+                                if (isSelected) {
+                                    unresolvedDiscomfortIds.remove(discomfortId)
+                                } else {
+                                    unresolvedDiscomfortIds.add(discomfortId)
+                                }
+                            },
+                            label = {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            },
+                            leadingIcon = if (isSelected) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            } else null,
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f),
+                                selectedLabelColor = MaterialTheme.colorScheme.error,
+                                selectedLeadingIconColor = MaterialTheme.colorScheme.error,
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.height(4.dp))
 
             // ─── Save button ──────────────────────────────────────────────────
@@ -131,6 +185,7 @@ fun PostSessionSheet(
                         muscleFeedback = muscleFeedback.mapValues { (_, s) ->
                             MuscleFeedbackEntry(doms = s.doms, jointPain = s.jointPain, strengthCapacity = s.strengthCapacity)
                         },
+                        unresolvedDiscomfortIds = unresolvedDiscomfortIds.toList(),
                     )
                     onSave(fb)
                     onDismiss()

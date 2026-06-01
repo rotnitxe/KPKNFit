@@ -11,6 +11,17 @@ import kotlin.math.roundToInt
 class TelemetryHelper(private val context: Context) {
     
     private val telemetry = KpknTelemetry.getInstance(context)
+
+    private fun anonymizeText(text: String?): String {
+        if (text.isNullOrBlank()) return ""
+        return try {
+            val digest = java.security.MessageDigest.getInstance("SHA-256")
+            val hashBytes = digest.digest(text.trim().lowercase().toByteArray(Charsets.UTF_8))
+            hashBytes.joinToString("") { "%02x".format(it) }.take(12)
+        } catch (e: Exception) {
+            "anonymized"
+        }
+    }
     
     /**
      * Log app lifecycle events
@@ -44,7 +55,7 @@ class TelemetryHelper(private val context: Context) {
     fun logLoginSuccess(userId: String? = null) {
         context.logKpknEvent(
             TelemetryEvents.LOGIN_SUCCESS,
-            TelemetryParameters.USER_ID to userId,
+            TelemetryParameters.USER_ID to userId?.let { anonymizeText(it) },
             TelemetryParameters.SUCCESS to true
         )
     }
@@ -118,13 +129,15 @@ class TelemetryHelper(private val context: Context) {
         reps: Int,
         weight: Double?
     ) {
+        // Round exercise load to nearest 2.5 unit to prevent precise tracking of personal performance profiles
+        val roundedWeight = weight?.let { (it / 2.5).roundToInt() * 2.5 }
         context.logKpknEvent(
             TelemetryEvents.SET_COMPLETE,
             TelemetryParameters.EXERCISE_ID to exerciseId,
             TelemetryParameters.EXERCISE_NAME to exerciseName,
             TelemetryParameters.SET_NUMBER to setNumber,
             TelemetryParameters.REPS to reps,
-            TelemetryParameters.WEIGHT to weight
+            TelemetryParameters.WEIGHT to roundedWeight
         )
     }
     
@@ -186,7 +199,7 @@ class TelemetryHelper(private val context: Context) {
         context.logKpknEvent(
             TelemetryEvents.FOOD_SEARCH,
             TelemetryParameters.ACTION to "search",
-            TelemetryParameters.AI_INPUT to query
+            TelemetryParameters.AI_INPUT to anonymizeText(query)
         )
     }
     
@@ -194,7 +207,7 @@ class TelemetryHelper(private val context: Context) {
         context.logKpknEvent(
             TelemetryEvents.FOOD_ITEM_ADD,
             TelemetryParameters.FOOD_ID to foodId,
-            TelemetryParameters.FOOD_NAME to foodName,
+            TelemetryParameters.FOOD_NAME to anonymizeText(foodName),
             TelemetryParameters.CALORIES to calories?.roundToInt()
         )
     }
@@ -270,7 +283,7 @@ class TelemetryHelper(private val context: Context) {
         context.logKpknEvent(
             TelemetryEvents.EXERCICE_SEARCH,
             TelemetryParameters.ACTION to "search",
-            TelemetryParameters.AI_INPUT to query
+            TelemetryParameters.AI_INPUT to anonymizeText(query)
         )
     }
     
@@ -317,7 +330,7 @@ class TelemetryHelper(private val context: Context) {
             TelemetryEvents.AI_REQUEST,
             TelemetryParameters.AI_TYPE to type,
             TelemetryParameters.AI_MODEL to model,
-            TelemetryParameters.AI_INPUT to input
+            TelemetryParameters.AI_INPUT to input?.let { anonymizeText(it) }
         )
     }
     
@@ -326,7 +339,7 @@ class TelemetryHelper(private val context: Context) {
             TelemetryEvents.AI_SUCCESS,
             TelemetryParameters.AI_TYPE to type,
             TelemetryParameters.AI_MODEL to model,
-            TelemetryParameters.AI_OUTPUT to output?.take(100), // Limit output length
+            TelemetryParameters.AI_OUTPUT to output?.let { anonymizeText(it) },
             TelemetryParameters.SUCCESS to true
         )
     }

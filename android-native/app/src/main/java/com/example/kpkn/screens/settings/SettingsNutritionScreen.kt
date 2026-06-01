@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.ApiProvider
@@ -215,6 +216,7 @@ fun SettingsNutritionScreen(
                                 }
                             },
                             keyboardType = KeyboardType.Password,
+                            visualTransformation = PasswordVisualTransformation(),
                         )
                         ApiProvider.GPT -> SettingsTextFieldItem(
                             label = "API Key OpenAI",
@@ -225,6 +227,7 @@ fun SettingsNutritionScreen(
                                 }
                             },
                             keyboardType = KeyboardType.Password,
+                            visualTransformation = PasswordVisualTransformation(),
                         )
                         ApiProvider.DEEPSEEK -> SettingsTextFieldItem(
                             label = "API Key DeepSeek",
@@ -235,6 +238,7 @@ fun SettingsNutritionScreen(
                                 }
                             },
                             keyboardType = KeyboardType.Password,
+                            visualTransformation = PasswordVisualTransformation(),
                         )
                     }
                 }

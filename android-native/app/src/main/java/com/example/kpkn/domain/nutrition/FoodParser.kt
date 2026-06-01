@@ -138,6 +138,30 @@ private val PROTECTED_ENTITIES_REGEX = Regex(
     RegexOption.IGNORE_CASE
 )
 
+private val REFERENCE_KEYWORDS_FAST = listOf(
+    "cucharad", "taza", "puñ", "vaso", "rebanad", "tajad", "lata",
+    "scoop", "medida", "porcion", "porción", "trozo", "pedazo",
+    "poco", "poquit", "pizca", "chorrit"
+)
+
+private val COOKING_KEYWORDS_FAST = listOf(
+    "empaniz", "apanad", "breaded", "empanad", "plancha", "horno", "horn",
+    "baked", "airfryer", "air fryer", "frito", "freid", "freíd", "revuelt",
+    "saltea", "sofrit", "soffrit", "fried", "cocid", "hervid", "sancoch",
+    "boiled", "estofad", "crud", "fresc", "raw", "vapor", "steamed", "olla",
+    "parrill", "grilled", "asado", "carbón", "carbon", "guisad", "cazuel",
+    "ahumad", "humad", "smoked"
+)
+
+private val PORTION_KEYWORDS_FAST = listOf(
+    "grand", "generos", "plato", "median", "pequeñ", "chico", "chica"
+)
+
+private val MODIFIER_KEYWORDS_FAST = listOf(
+    "piel", "grasa", "miga", "clara", "descremad", "light", "0%", "almibar",
+    "almíbar", "azucar", "azúcar", "integral", "colmad", "generos", "rasa", "fina", "pequeñ"
+)
+
 // ─── Main Parser ─────────────────────────────────────────────────────────────
 
 fun parseMealDescription(description: String): ParsedMealDescription {
@@ -308,6 +332,10 @@ private fun extractGramsFromFragment(text: String): Pair<Double?, String> {
 // ─── Extract Portion Reference ───────────────────────────────────────────────
 
 private fun extractReferenceFromFragment(text: String): Pair<Double?, String> {
+    val lower = text.lowercase()
+    if (REFERENCE_KEYWORDS_FAST.none { lower.contains(it) }) {
+        return Pair(null, text)
+    }
     for ((pattern, refType) in REFERENCE_PATTERNS) {
         val match = pattern.find(text) ?: continue
         val foodPart = (match.groupValues.lastOrNull { it.isNotEmpty() } ?: continue).trim()
@@ -346,6 +374,10 @@ private fun extractReferenceFromFragment(text: String): Pair<Double?, String> {
 // ─── Extract Cooking Method ──────────────────────────────────────────────────
 
 private fun extractCookingMethod(text: String): Pair<CookingMethod?, String> {
+    val lower = text.lowercase()
+    if (COOKING_KEYWORDS_FAST.none { lower.contains(it) }) {
+        return Pair(null, text)
+    }
     for ((pattern, method) in COOKING_PATTERNS) {
         val match = pattern.find(text) ?: continue
         val cleaned = text.replace(match.value, " ").replace(MULTISPACE_PATTERN, " ").trim()
@@ -357,6 +389,10 @@ private fun extractCookingMethod(text: String): Pair<CookingMethod?, String> {
 // ─── Extract Portion ─────────────────────────────────────────────────────────
 
 private fun extractPortionFromFragment(text: String): Pair<PortionPreset, String> {
+    val lower = text.lowercase()
+    if (PORTION_KEYWORDS_FAST.none { lower.contains(it) }) {
+        return Pair(PortionPreset.MEDIUM, text)
+    }
     for ((pattern, preset, _) in PORTION_PATTERNS) {
         val match = pattern.find(text) ?: continue
         val cleaned = text.replace(match.value, " ").replace(MULTISPACE_PATTERN, " ").trim()
@@ -483,6 +519,10 @@ private val MODIFIER_PATTERNS = listOf(
 )
 
 private fun extractModifiers(text: String, currentGrams: Double?): Triple<MacroScale?, Double?, String> {
+    val lower = text.lowercase()
+    if (MODIFIER_KEYWORDS_FAST.none { lower.contains(it) }) {
+        return Triple(null, currentGrams, text)
+    }
     var working = text
     var resultScale: MacroScale? = null
     var gramsOverride = currentGrams
