@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.Calendar
 import java.util.UUID
 
@@ -184,21 +186,35 @@ class ProgramRepository private constructor(context: Context) {
 
     private val _ongoingWorkout = MutableStateFlow<OngoingWorkoutState?>(null)
     val ongoingWorkout: StateFlow<OngoingWorkoutState?> = _ongoingWorkout.asStateFlow()
+    private val ongoingWorkoutMutex = Mutex()
 
     fun startWorkout(state: OngoingWorkoutState) {
         val normalized = state.normalizedIdentityFields()
         _ongoingWorkout.value = normalized
-        scope.launch { db.stateDao().upsertOngoingWorkout(normalized.toEntity()) }
+        scope.launch {
+            ongoingWorkoutMutex.withLock {
+                db.stateDao().upsertOngoingWorkout(normalized.toEntity())
+            }
+        }
     }
 
     fun updateOngoingWorkout(update: (OngoingWorkoutState) -> OngoingWorkoutState) {
         _ongoingWorkout.update { current -> current?.let(update)?.normalizedIdentityFields() }
-        _ongoingWorkout.value?.let { scope.launch { db.stateDao().upsertOngoingWorkout(it.toEntity()) } }
+        val target = _ongoingWorkout.value ?: return
+        scope.launch {
+            ongoingWorkoutMutex.withLock {
+                db.stateDao().upsertOngoingWorkout(target.toEntity())
+            }
+        }
     }
 
     fun clearOngoingWorkout() {
         _ongoingWorkout.value = null
-        scope.launch { db.stateDao().clearOngoingWorkout() }
+        scope.launch {
+            ongoingWorkoutMutex.withLock {
+                db.stateDao().clearOngoingWorkout()
+            }
+        }
     }
 
     /**

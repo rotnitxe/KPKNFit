@@ -537,6 +537,7 @@ internal fun SetInputCardV2(
     onExecutionError: (() -> Unit)? = null,
     persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
+    activeTag: String? = null,
     amrapCalibrationMessage: String? = null,
     activeSide: String? = null,
     sideLocked: Boolean = false,
@@ -715,6 +716,7 @@ internal fun SetInputCardV2(
     val persistedLoadMode = resolvePersistedLoadModeForSet(
         exerciseId = exercise.id,
         setIdx = setIndex,
+        tagId = activeTag,
         persistedLoadModeBySet = persistedLoadModeBySet,
         persistedLoadModeByExercise = persistedLoadModeByExercise,
     )
@@ -743,6 +745,19 @@ internal fun SetInputCardV2(
     }
     var partialSets by remember(exercise.id, setIndex) {
         mutableStateOf(listOf(0))
+    }
+    LaunchedEffect(currentSet?.id) {
+        dropSetEnabled = currentSet?.isDropSet == true || currentSet?.dropSets?.isNotEmpty() == true
+        restPauseEnabled = currentSet?.isRestPause == true || currentSet?.restPauses?.isNotEmpty() == true
+        if (dropSetEnabled) {
+            dropSets = currentSet?.dropSets?.takeIf { it.isNotEmpty() }?.map {
+                DropSetEntry(weight = it.weight, reps = it.reps)
+            } ?: listOf(DropSetEntry(weight = 0.0, reps = 0))
+        }
+        if (restPauseEnabled) {
+            restPauseSets = currentSet?.restPauses?.takeIf { it.isNotEmpty() }
+                ?: listOf(RestPauseData(restTime = 20, reps = 0))
+        }
     }
     var reportedIntensityMode by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
         mutableStateOf(
@@ -2011,6 +2026,7 @@ internal fun SetInputCardV2(
             weightSuggestion = weightSuggestion,
             averageErm = rm1,
             bodyWeight = initialBodyWeight ?: bodyWeightText.toDoubleOrNull(),
+            loadMode = loadMode,
             onDismiss = { showReadinessAdjustmentSheet = false },
             onApply = { suggestion ->
                 onApplyReadinessAdjustment?.invoke(suggestion)

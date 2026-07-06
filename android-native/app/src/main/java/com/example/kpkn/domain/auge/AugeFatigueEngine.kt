@@ -390,15 +390,18 @@ object AugeFatigueEngine {
         val systemDensityMult = 1.0 + (density - 1.0) * 1.05
         val structureDensityMult = 1.0 + (density - 1.0) * 1.15
 
+        val assistedCount = set.assistedReps ?: 0
+        val assistedMultiplier = 1.0 + (assistedCount * 0.20)
+
         val rawMuscular =
             metrics.efc * repsFactor * rpeMult * setProgressiveMult * localRestMult * muscularBias *
-                techniqueFactor * muscularDensityMult * (1.0 + (nearRmMult - 1.0) * 0.35) * 1.85
+                techniqueFactor * muscularDensityMult * (1.0 + (nearRmMult - 1.0) * 0.35) * 1.85 * assistedMultiplier
         val rawCns =
             metrics.cnc * repsFactor * rpeMult * setProgressiveMult * systemRestMult * systemBias *
-                techniqueFactor * systemDensityMult * nearRmMult * 1.15
+                techniqueFactor * systemDensityMult * nearRmMult * 1.15 * assistedMultiplier
         val rawSpinal =
             metrics.ssc * repsFactor * rpeMult * setProgressiveMult * structureRestMult * structureBias * loadFactor *
-                techniqueFactor * structureDensityMult * (1.0 + (nearRmMult - 1.0) * 1.20) * 5.2
+                techniqueFactor * structureDensityMult * (1.0 + (nearRmMult - 1.0) * 1.20) * 5.2 * assistedMultiplier
 
         return SetDrain(
             muscularDrainPct = (rawMuscular / tanks.muscular * 100).coerceIn(0.0, 100.0),
@@ -728,5 +731,14 @@ object AugeFatigueEngine {
         val lowReadiness = readinessScore < 40
         
         return highFatigue && lowReadiness
+    }
+
+    private fun getBiomechanicalMultipliers(tag: String?): Triple<Double, Double, Double> {
+        val lower = tag?.lowercase()?.trim().orEmpty()
+        return when {
+            lower.contains("estiramiento") || lower.contains("stretch") -> Triple(1.2, 1.1, 1.0)
+            lower.contains("acortamiento") || lower.contains("shorten") -> Triple(0.8, 0.9, 1.0)
+            else -> Triple(1.0, 1.0, 1.0)
+        }
     }
 }

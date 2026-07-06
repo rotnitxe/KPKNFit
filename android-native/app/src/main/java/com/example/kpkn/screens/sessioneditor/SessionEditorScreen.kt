@@ -763,6 +763,16 @@ fun SessionEditorScreen(
                     sessionsOnSameDay = uiState.siblingSessions.filter { it.dayOfWeek == session.dayOfWeek },
                     onSwitchSession = viewModel::requestSessionSwitch,
                     onSetMainSession = viewModel::setMainSessionForDay,
+                    // Feature 2
+                    targetDurationMinutes = uiState.targetDurationMinutes ?: session.targetDurationMinutes,
+                    sessionTimeBreakdown = uiState.sessionTimeBreakdown,
+                    onSetTargetDuration = viewModel::setTargetDuration,
+                    // Feature 3
+                    activeVariant = uiState.activeVariant,
+                    availableVariants = uiState.availableVariants,
+                    onCreateVariant = { variant, name -> viewModel.createVariant(variant, name) },
+                    onDeleteVariant = { viewModel.deleteVariant(it) },
+                    onSwitchVariant = { viewModel.commitActiveVariantChanges(); viewModel.switchVariant(it) },
                 )
             }
 
@@ -1901,6 +1911,16 @@ private fun SessionHero(
     sessionsOnSameDay: List<Session> = emptyList(),
     onSwitchSession: (String) -> Unit = {},
     onSetMainSession: (String) -> Unit = {},
+    // Feature 2: duración objetivo
+    targetDurationMinutes: Int? = null,
+    sessionTimeBreakdown: com.example.kpkn.domain.calculations.SessionTimeBreakdown? = null,
+    onSetTargetDuration: (Int?) -> Unit = {},
+    // Feature 3: variantes derivadas de la original
+    activeVariant: WeekVariant = WeekVariant.A,
+    availableVariants: List<WeekVariant> = listOf(WeekVariant.A),
+    onCreateVariant: (WeekVariant, String) -> Unit = { _, _ -> },
+    onDeleteVariant: (WeekVariant) -> Unit = {},
+    onSwitchVariant: (WeekVariant) -> Unit = {},
 ) {
       val background = session.background
       val brightness = background?.style?.brightness ?: 0.92f
@@ -2127,10 +2147,286 @@ private fun SessionHero(
                         }
                     }
                 }
+
+                // ─── Feature 2: Barra de progreso de duración objetivo ────────
+                var showTargetDurationDialog by remember { mutableStateOf(false) }
+                val estimatedTotal = sessionTimeBreakdown?.totalSeconds
+                if (targetDurationMinutes != null && estimatedTotal != null) {
+                    val targetSeconds = targetDurationMinutes * 60
+                    val progress = (estimatedTotal.toFloat() / targetSeconds).coerceIn(0f, 1.5f)
+                    val barColor = when {
+                        progress > 1f -> Color(0xFFEF4444)      // Rojo: excedido
+                        progress >= 0.8f -> Color(0xFFF59E0B)   // Ámbar: 80–100%
+                        else -> Color(0xFF22C55E)                // Verde: ≤ 80%
+                    }
+                    val deltaMin = ((estimatedTotal - targetSeconds) / 60)
+                    val deltaText = when {
+                        deltaMin > 0 -> "Excedido por ${deltaMin} min"
+                        deltaMin < 0 -> "Faltan ${-deltaMin} min"
+                        else -> "Justo en el objetivo"
+                    }
+                    val targetLabel = if (targetDurationMinutes >= 60) {
+                        "${targetDurationMinutes / 60}h ${targetDurationMinutes % 60}min"
+                    } else {
+                        "${targetDurationMinutes}min"
+                    }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            // Chip clickable de tiempo objetivo
+                            Surface(
+                                onClick = { showTargetDurationDialog = true },
+                                shape = RoundedCornerShape(999.dp),
+                                color = Color.White.copy(alpha = 0.18f),
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Icon(
+                                        Icons.Default.Timer,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(14.dp),
+                                    )
+                                    Text(
+                                        "⏱ $targetLabel",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                }
+                            }
+                            Text(
+                                "${(progress * 100).toInt()}%  $deltaText",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = barColor,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                        LinearProgressIndicator(
+                            progress = { progress.coerceIn(0f, 1f) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(999.dp)),
+                            color = barColor,
+                            trackColor = Color.White.copy(alpha = 0.15f),
+                        )
+                    }
+                } else {
+                    // Sin objetivo configurado: chip para configurar
+                    Surface(
+                        onClick = { showTargetDurationDialog = true },
+                        shape = RoundedCornerShape(999.dp),
+                        color = Color.White.copy(alpha = 0.12f),
+                        modifier = Modifier.padding(top = 6.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                Icons.Default.Timer,
+                                contentDescription = null,
+                                tint = Color.White.copy(alpha = 0.7f),
+                                modifier = Modifier.size(14.dp),
+                            )
+                            Text(
+                                "Sin límite de tiempo",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.7f),
+                            )
+                        }
+                    }
+                }
+
+                // Dialog para configurar duración objetivo
+                if (showTargetDurationDialog) {
+                    var pickerHours by remember { mutableIntStateOf((targetDurationMinutes ?: 60) / 60) }
+                    var pickerMins by remember { mutableIntStateOf((targetDurationMinutes ?: 60) % 60) }
+                    AlertDialog(
+                        onDismissRequest = { showTargetDurationDialog = false },
+                        title = { Text("Duración objetivo") },
+                        text = {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text("Define cuánto tiempo quieres que dure tu sesión.", style = MaterialTheme.typography.bodySmall)
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("Horas", style = MaterialTheme.typography.labelSmall)
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            IconButton(onClick = { if (pickerHours > 0) pickerHours-- }) {
+                                                Text("-", fontWeight = FontWeight.Black, fontSize = 18.sp)
+                                            }
+                                            Text("$pickerHours", fontWeight = FontWeight.Black, fontSize = 22.sp)
+                                            IconButton(onClick = { if (pickerHours < 5) pickerHours++ }) {
+                                                Text("+", fontWeight = FontWeight.Black, fontSize = 18.sp)
+                                            }
+                                        }
+                                    }
+                                    Text(":", fontWeight = FontWeight.Black, fontSize = 22.sp)
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("Minutos", style = MaterialTheme.typography.labelSmall)
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            IconButton(onClick = { if (pickerMins > 0) pickerMins -= 5 else pickerMins = 55 }) {
+                                                Text("-", fontWeight = FontWeight.Black, fontSize = 18.sp)
+                                            }
+                                            Text("${pickerMins.toString().padStart(2, '0')}", fontWeight = FontWeight.Black, fontSize = 22.sp)
+                                            IconButton(onClick = { if (pickerMins < 55) pickerMins += 5 else pickerMins = 0 }) {
+                                                Text("+", fontWeight = FontWeight.Black, fontSize = 18.sp)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                val total = pickerHours * 60 + pickerMins
+                                onSetTargetDuration(if (total > 0) total else null)
+                                showTargetDurationDialog = false
+                            }) { Text("Aplicar") }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { onSetTargetDuration(null); showTargetDurationDialog = false }) {
+                                Text("Sin límite")
+                            }
+                        },
+                    )
+                }
+
+                // ─── Feature 3: Variantes derivadas ──────────────────────────
+                if (availableVariants.size > 1 || session.sessionB == null && session.sessionC == null && session.sessionD == null) {
+                    var showVariantMenu by remember { mutableStateOf(false) }
+                    var showCreateVariantDialog by remember { mutableStateOf(false) }
+                    var newVariantName by remember { mutableStateOf("") }
+                    val nextVariant = listOf(WeekVariant.B, WeekVariant.C, WeekVariant.D)
+                        .firstOrNull { it !in availableVariants }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp)
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        availableVariants.forEach { variant ->
+                            val isActive = variant == activeVariant
+                            val variantName = when (variant) {
+                                WeekVariant.A -> "Original"
+                                WeekVariant.B -> session.sessionB?.name ?: "Derivada"
+                                WeekVariant.C -> session.sessionC?.name ?: "Derivada"
+                                WeekVariant.D -> session.sessionD?.name ?: "Derivada"
+                            }
+                            AssistChip(
+                                onClick = { if (!isActive) onSwitchVariant(variant) },
+                                label = {
+                                    Text(
+                                        variantName,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = if (isActive) FontWeight.Black else FontWeight.Normal,
+                                    )
+                                },
+                                leadingIcon = if (isActive) ({ Icon(Icons.Default.Check, null, Modifier.size(13.dp)) }) else null,
+                                trailingIcon = if (isActive && variant != WeekVariant.A) ({
+                                    Box {
+                                        Icon(
+                                            Icons.Default.MoreVert, null,
+                                            Modifier.size(13.dp).clickable { showVariantMenu = true },
+                                        )
+                                        DropdownMenu(expanded = showVariantMenu, onDismissRequest = { showVariantMenu = false }) {
+                                            DropdownMenuItem(
+                                                text = { Text("Eliminar variante") },
+                                                onClick = { showVariantMenu = false; onDeleteVariant(variant) },
+                                            )
+                                        }
+                                    }
+                                }) else null,
+                                shape = RoundedCornerShape(999.dp),
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = if (isActive) Color.White.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.10f),
+                                    labelColor = Color.White,
+                                ),
+                            )
+                        }
+                        // Botón para crear nueva variante derivada
+                        if (nextVariant != null) {
+                            Surface(
+                                onClick = {
+                                    newVariantName = "${session.name} – Rápida"
+                                    showCreateVariantDialog = true
+                                },
+                                shape = RoundedCornerShape(999.dp),
+                                color = Color.White.copy(alpha = 0.08f),
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Icon(Icons.Default.Add, null, modifier = Modifier.size(12.dp), tint = Color.White.copy(alpha = 0.75f))
+                                    Text("Derivada", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.75f))
+                                }
+                            }
+                        }
+                    }
+                    // Dialog para nombrar la variante al crearla
+                    if (showCreateVariantDialog && nextVariant != null) {
+                        AlertDialog(
+                            onDismissRequest = { showCreateVariantDialog = false },
+                            title = { Text("Nueva variante") },
+                            text = {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text(
+                                        "Crea una variante derivada de la sesión original. " +
+                                        "Tendrá sus propios ejercicios, series y descansos independientes.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                    OutlinedTextField(
+                                        value = newVariantName,
+                                        onValueChange = { newVariantName = it },
+                                        label = { Text("Nombre de la variante") },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        if (newVariantName.isNotBlank()) {
+                                            onCreateVariant(nextVariant, newVariantName.trim())
+                                            showCreateVariantDialog = false
+                                        }
+                                    },
+                                    enabled = newVariantName.isNotBlank(),
+                                ) { Text("Crear variante") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showCreateVariantDialog = false }) { Text("Cancelar") }
+                            },
+                        )
+                    }
+                }
             }
         }
     }
 }
+
+
 
 @Composable
 private fun SessionBackgroundLayer(background: SessionBackground?, blurDp: androidx.compose.ui.unit.Dp) {
@@ -3952,6 +4248,20 @@ private fun ExerciseEditorCard(
                         )
                     }
 
+                    // Track ROM toggle chip
+                    item("track-rom") {
+                        DarkChoiceChip(
+                            label = "MEDIR ROM",
+                            selected = exercise.trackRom,
+                            accentColor = accentColor,
+                            onClick = {
+                                onUpdateExercise { current ->
+                                    current.copy(trackRom = !current.trackRom)
+                                }
+                            },
+                        )
+                    }
+
                     item("relationship") {
                         DarkChoiceChip(
                             label = relationshipAnchorName?.let { "ANCLA: $it" } ?: "VINCULAR",
@@ -4910,9 +5220,262 @@ private fun InlineSetRow(
             }
 
             // AMRAP ahora es un TrainingMode gestionado desde el selector de modo
+
+            // ─── Feature 4: Selector de técnica programada (Dropset / Rest-Pause) ─
+            val currentTechniques = set.plannedIntensityTechniques
+            val hasDropSet = currentTechniques.any { it.type == TechniqueType.DROP_SET }
+            val hasRestPause = currentTechniques.any { it.type == TechniqueType.REST_PAUSE }
+
+            var showDropSetConfig by rememberSaveable(set.id) { mutableStateOf(hasDropSet) }
+            var showRestPauseConfig by rememberSaveable(set.id) { mutableStateOf(hasRestPause) }
+
+            // Chips de técnica
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Chip Drop-set
+                FilterChip(
+                    selected = hasDropSet,
+                    onClick = {
+                        if (hasDropSet) {
+                            // Quitar drop-set
+                            onUpdate { current ->
+                                current.copy(
+                                    plannedIntensityTechniques = current.plannedIntensityTechniques.filter { it.type != TechniqueType.DROP_SET },
+                                    isDropSet = false,
+                                )
+                            }
+                            showDropSetConfig = false
+                        } else {
+                            // Añadir drop-set con defaults: 3 drops (-15%, -25%, -35%)
+                            onUpdate { current ->
+                                val newTechnique = PlannedTechnique(
+                                    id = java.util.UUID.randomUUID().toString(),
+                                    type = TechniqueType.DROP_SET,
+                                    params = mapOf("weightPcts" to "-15,-25,-35", "count" to "3"),
+                                )
+                                current.copy(
+                                    plannedIntensityTechniques = current.plannedIntensityTechniques + newTechnique,
+                                    isDropSet = true,
+                                )
+                            }
+                            showDropSetConfig = true
+                        }
+                    },
+                    label = { Text("Drop-set", style = MaterialTheme.typography.labelSmall) },
+                    leadingIcon = if (hasDropSet) ({ Icon(Icons.Default.Check, null, Modifier.size(12.dp)) }) else null,
+                    shape = RoundedCornerShape(999.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
+                        selectedLabelColor = MaterialTheme.colorScheme.primary,
+                    ),
+                )
+                // Chip Rest-pause
+                FilterChip(
+                    selected = hasRestPause,
+                    onClick = {
+                        if (hasRestPause) {
+                            onUpdate { current ->
+                                current.copy(
+                                    plannedIntensityTechniques = current.plannedIntensityTechniques.filter { it.type != TechniqueType.REST_PAUSE },
+                                    isRestPause = false,
+                                )
+                            }
+                            showRestPauseConfig = false
+                        } else {
+                            onUpdate { current ->
+                                val newTechnique = PlannedTechnique(
+                                    id = java.util.UUID.randomUUID().toString(),
+                                    type = TechniqueType.REST_PAUSE,
+                                    params = mapOf("count" to "3", "pauseSeconds" to "10", "reps" to "3"),
+                                )
+                                current.copy(
+                                    plannedIntensityTechniques = current.plannedIntensityTechniques + newTechnique,
+                                    isRestPause = true,
+                                )
+                            }
+                            showRestPauseConfig = true
+                        }
+                    },
+                    label = { Text("Rest-pause", style = MaterialTheme.typography.labelSmall) },
+                    leadingIcon = if (hasRestPause) ({ Icon(Icons.Default.Check, null, Modifier.size(12.dp)) }) else null,
+                    shape = RoundedCornerShape(999.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.22f),
+                        selectedLabelColor = MaterialTheme.colorScheme.secondary,
+                    ),
+                )
+            }
+
+            // Config expandida de Drop-set
+            if (showDropSetConfig && hasDropSet) {
+                val dsTechnique = currentTechniques.firstOrNull { it.type == TechniqueType.DROP_SET }
+                if (dsTechnique != null) {
+                    val dropPcts = (dsTechnique.params["weightPcts"] ?: "-15,-25,-35")
+                        .split(",").map { it.trim() }
+                    AnimatedVisibility(visible = true, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                            ),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                Text(
+                                    "Drop-set programado",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                                Text(
+                                    "Mini-drops: ${dropPcts.size}  ·  Reducciones: ${dropPcts.joinToString(", ")}%",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                // Botón para configurar número de drops
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Text("Drops:", style = MaterialTheme.typography.labelSmall)
+                                    listOf(2, 3, 4).forEach { n ->
+                                        val isSelected = dropPcts.size == n
+                                        val defaultPcts = when (n) {
+                                            2 -> "-15,-25"
+                                            3 -> "-15,-25,-35"
+                                            4 -> "-10,-20,-30,-40"
+                                            else -> "-15,-25,-35"
+                                        }
+                                        OutlinedButton(
+                                            onClick = {
+                                                onUpdate { current ->
+                                                    val updated = dsTechnique.copy(
+                                                        params = mapOf("weightPcts" to defaultPcts, "count" to n.toString()),
+                                                    )
+                                                    current.copy(
+                                                        plannedIntensityTechniques = current.plannedIntensityTechniques.map {
+                                                            if (it.id == dsTechnique.id) updated else it
+                                                        },
+                                                    )
+                                                }
+                                            },
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                            colors = ButtonDefaults.outlinedButtonColors(
+                                                containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent,
+                                                contentColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            ),
+                                        ) {
+                                            Text("$n", style = MaterialTheme.typography.labelSmall, fontWeight = if (isSelected) FontWeight.Black else FontWeight.Normal)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Config expandida de Rest-pause
+            if (showRestPauseConfig && hasRestPause) {
+                val rpTechnique = currentTechniques.firstOrNull { it.type == TechniqueType.REST_PAUSE }
+                if (rpTechnique != null) {
+                    val rpCount = rpTechnique.params["count"]?.toIntOrNull() ?: 3
+                    val rpPause = rpTechnique.params["pauseSeconds"]?.toIntOrNull() ?: 10
+                    val rpReps  = rpTechnique.params["reps"]?.toIntOrNull() ?: 3
+                    AnimatedVisibility(visible = true, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f),
+                            ),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                Text(
+                                    "Rest-pause programado",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    // Mini-sets
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("Mini-series", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            IconButton(onClick = {
+                                                if (rpCount > 2) onUpdate { current ->
+                                                    val updated = rpTechnique.copy(params = rpTechnique.params + ("count" to (rpCount - 1).toString()))
+                                                    current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == rpTechnique.id) updated else it })
+                                                }
+                                            }, modifier = Modifier.size(24.dp)) { Text("-", fontWeight = FontWeight.Black) }
+                                            Text("$rpCount", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                            IconButton(onClick = {
+                                                if (rpCount < 6) onUpdate { current ->
+                                                    val updated = rpTechnique.copy(params = rpTechnique.params + ("count" to (rpCount + 1).toString()))
+                                                    current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == rpTechnique.id) updated else it })
+                                                }
+                                            }, modifier = Modifier.size(24.dp)) { Text("+", fontWeight = FontWeight.Black) }
+                                        }
+                                    }
+                                    // Pausa
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("Pausa (s)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            IconButton(onClick = {
+                                                if (rpPause > 5) onUpdate { current ->
+                                                    val updated = rpTechnique.copy(params = rpTechnique.params + ("pauseSeconds" to (rpPause - 5).toString()))
+                                                    current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == rpTechnique.id) updated else it })
+                                                }
+                                            }, modifier = Modifier.size(24.dp)) { Text("-", fontWeight = FontWeight.Black) }
+                                            Text("${rpPause}s", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                            IconButton(onClick = {
+                                                if (rpPause < 30) onUpdate { current ->
+                                                    val updated = rpTechnique.copy(params = rpTechnique.params + ("pauseSeconds" to (rpPause + 5).toString()))
+                                                    current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == rpTechnique.id) updated else it })
+                                                }
+                                            }, modifier = Modifier.size(24.dp)) { Text("+", fontWeight = FontWeight.Black) }
+                                        }
+                                    }
+                                    // Reps por mini-serie
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("Reps", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            IconButton(onClick = {
+                                                if (rpReps > 1) onUpdate { current ->
+                                                    val updated = rpTechnique.copy(params = rpTechnique.params + ("reps" to (rpReps - 1).toString()))
+                                                    current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == rpTechnique.id) updated else it })
+                                                }
+                                            }, modifier = Modifier.size(24.dp)) { Text("-", fontWeight = FontWeight.Black) }
+                                            Text("$rpReps", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                            IconButton(onClick = {
+                                                if (rpReps < 10) onUpdate { current ->
+                                                    val updated = rpTechnique.copy(params = rpTechnique.params + ("reps" to (rpReps + 1).toString()))
+                                                    current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == rpTechnique.id) updated else it })
+                                                }
+                                            }, modifier = Modifier.size(24.dp)) { Text("+", fontWeight = FontWeight.Black) }
+                                        }
+                                    }
+                                }
+                                Text(
+                                    "Resumen: $rpCount × $rpReps reps · Pausa ${rpPause}s entre mini-series",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
+
 
 private fun SessionPart.isUncategorized(): Boolean =
     name.trim().lowercase() in setOf("sin categoría", "sin categoria", "sin grupo")
@@ -8312,6 +8875,9 @@ private fun AssistantSheet(
     val accentColor = augeStatusColor(summary.status, summary.hasCriticalAlerts)
     var ringsExpanded by rememberSaveable { mutableStateOf(false) }
     var volumeExpanded by rememberSaveable { mutableStateOf(true) }
+    var countIndirectVolume by rememberSaveable { mutableStateOf(false) }
+    var adjustVolumeByIntensity by rememberSaveable { mutableStateOf(false) }
+    var expandedMuscleName by remember { mutableStateOf<String?>(null) }
     var muscleChartMode by rememberSaveable { mutableStateOf(AssistantMuscleChartMode.AUGE_DRAIN) }
     var suggestionsExpanded by rememberSaveable { mutableStateOf(false) }
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
@@ -8358,7 +8924,105 @@ private fun AssistantSheet(
         }
 
         val energySummary = summary.sessionEnergy
+        // ─── Feature 1: Tarjeta de desglose de tiempos ───────────────────────────
+        val timeBreakdown = uiState.sessionTimeBreakdown
+        if (timeBreakdown != null) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.18f),
+                ),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            "Tiempo Estimado de Sesión",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Black,
+                        )
+                        Icon(
+                            Icons.Default.Timer,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                    // Desglose de 3 líneas
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "Preparación",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "${timeBreakdown.setupMinutes} min",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "Ejecución",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "${timeBreakdown.executionMinutes} min",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "Descansos",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "${timeBreakdown.restMinutes} min",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.18f))
+                    // Total grande
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            "Duración estimada: ",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            "${timeBreakdown.totalMinutes} min",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+        }
+
         if (energySummary.totalKcal.mid > 0) {
+
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
@@ -8461,9 +9125,21 @@ private fun AssistantSheet(
 
         // Muscle chart section (volume or AUGE drain)
         val isDrainMode = muscleChartMode == AssistantMuscleChartMode.AUGE_DRAIN
-        val sortedVolumeEntries = remember(report, summary.sessionVolumeByMuscle) {
-            (report?.volumenPorMusculo ?: summary.sessionVolumeByMuscle)
-                .entries
+        val sortedVolumeEntries = remember(uiState.session, countIndirectVolume, adjustVolumeByIntensity) {
+            val session = uiState.session ?: return@remember emptyList<Map.Entry<String, Double>>()
+            val exerciseIndex = EXERCISE_DATABASE.associateBy { it.id.lowercase() }
+            val volumeMap = mutableMapOf<String, Double>()
+            session.allExercises().forEach { exercise ->
+                val effectiveSets = countDisplaySets(exercise.sets, adjustVolumeByIntensity)
+                if (effectiveSets <= 0.0) return@forEach
+                val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: return@forEach
+                
+                val contributions = buildDisplayContributions(dbInfo.involvedMuscles, countIndirectVolume)
+                contributions.forEach { (canonical, multiplier) ->
+                    volumeMap[canonical] = (volumeMap[canonical] ?: 0.0) + effectiveSets * multiplier
+                }
+            }
+            volumeMap.entries
                 .filter { it.value > 0.0 }
                 .sortedByDescending { it.value }
         }
@@ -8523,6 +9199,46 @@ private fun AssistantSheet(
                         }
                     }
                     if (volumeExpanded) {
+                        if (!isDrainMode) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Indirecto",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Switch(
+                                        checked = countIndirectVolume,
+                                        onCheckedChange = { countIndirectVolume = it },
+                                        modifier = Modifier.scale(0.75f)
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Ajustar RPE",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Switch(
+                                        checked = adjustVolumeByIntensity,
+                                        onCheckedChange = { adjustVolumeByIntensity = it },
+                                        modifier = Modifier.scale(0.75f)
+                                    )
+                                }
+                            }
+                        }
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -8554,8 +9270,17 @@ private fun AssistantSheet(
                                 } else {
                                     "${if (value == value.toLong().toDouble()) value.toLong().toString() else "%.1f".format(value)} sets"
                                 }
+                                val isExpanded = expandedMuscleName == muscle
                                 Column(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable {
+                                            if (!isDrainMode && (muscle == "Deltoides" || muscle == "Glúteos")) {
+                                                expandedMuscleName = if (isExpanded) null else muscle
+                                            }
+                                        }
+                                        .padding(vertical = 4.dp),
                                     verticalArrangement = Arrangement.spacedBy(4.dp),
                                 ) {
                                     Row(
@@ -8580,6 +9305,14 @@ private fun AssistantSheet(
                                         color = indicatorColor,
                                         trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.42f),
                                     )
+                                    if (isExpanded && !isDrainMode && uiState.session != null) {
+                                        SessionSubMuscleBreakdownList(
+                                            muscleName = muscle,
+                                            session = uiState.session,
+                                            countIndirect = countIndirectVolume,
+                                            adjustByIntensity = adjustVolumeByIntensity
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -11563,4 +12296,195 @@ private fun TemplateCatalogBrowser(
         }
     }
 }
+private fun resolveSpecificSubMuscle(muscle: String, emphasis: String?): String {
+    val lower = muscle.lowercase().replace("-", " ").replace("_", " ").trim()
+    if (lower.contains("deltoides") || lower.contains("hombro")) {
+        return when {
+            lower.contains("posterior") || lower.contains("trasero") -> "Deltoides Posterior"
+            lower.contains("lateral") || lower.contains("medio") -> "Deltoides Lateral"
+            else -> "Deltoides Anterior"
+        }
+    }
+    if (lower.contains("glúteo") || lower.contains("gluteo") || lower.contains("tensor de la fascia lata") || lower.contains("tensor fascia")) {
+        return when {
+            lower.contains("medio") || lower.contains("medius") || lower.contains("mínimo") || lower.contains("minimus") || lower.contains("tensor") -> "Glúteo Medio"
+            else -> "Glúteo Mayor"
+        }
+    }
+    return muscle
+}
 
+private fun com.example.kpkn.data.models.ExerciseSet.effectiveTargetRpe(): Double {
+    if (isFailure || intensityMode == com.example.kpkn.data.models.IntensityMode.FAILURE) return 10.0
+    targetRPE?.let { return it.coerceIn(1.0, 10.0) }
+    targetRIR?.let { return (10 - it).toDouble().coerceIn(1.0, 10.0) }
+    return 8.0
+}
+
+private fun buildDisplayContributions(
+    involvedMuscles: List<com.example.kpkn.data.models.InvolvedMuscle>,
+    countIndirect: Boolean
+): Map<String, Double> {
+    val grouped = linkedMapOf<String, Double>()
+    involvedMuscles.forEach { involvement ->
+        val isMatch = if (countIndirect) {
+            involvement.role == com.example.kpkn.data.models.MuscleRole.SECONDARY || involvement.role == com.example.kpkn.data.models.MuscleRole.STABILIZER
+        } else {
+            involvement.role == com.example.kpkn.data.models.MuscleRole.PRIMARY
+        }
+        if (isMatch) {
+            val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
+            val contribution = com.example.kpkn.data.models.resolveMuscleVolumeContribution(involvement)
+            val current = grouped[canonical] ?: 0.0
+            if (contribution > current) {
+                grouped[canonical] = contribution
+            }
+        }
+    }
+    return grouped.filterValues { it > 0.0 }
+}
+
+private fun countDisplaySets(exerciseSets: List<com.example.kpkn.data.models.ExerciseSet>, adjustByIntensity: Boolean): Double {
+    var total = 0.0
+    val activeSets = exerciseSets.filterNot { it.isIneffective }
+    val counted = activeSets.filter { set ->
+        ((set.completedReps ?: set.targetReps ?: 0) > 0 || (set.weight ?: 0.0) > 0.0)
+    }
+    val targetList = if (counted.isEmpty()) activeSets else counted
+    targetList.forEach { set ->
+        val mult = if (adjustByIntensity) {
+            com.example.kpkn.domain.auge.AugeClassifiers.getEffectiveVolumeMultiplier(set.effectiveTargetRpe())
+        } else {
+            1.0
+        }
+        total += mult
+    }
+    return total
+}
+
+private fun calculateSubMuscleBreakdown(
+    canonicalMuscle: String,
+    session: Session,
+    exerciseIndex: Map<String, ExerciseMuscleInfo>,
+    countIndirect: Boolean,
+    adjustByIntensity: Boolean
+): List<Pair<String, List<Pair<String, Double>>>> {
+    val targetSubMuscles = when (canonicalMuscle) {
+        "Deltoides" -> listOf("Deltoides Anterior", "Deltoides Lateral", "Deltoides Posterior")
+        "Glúteos" -> listOf("Glúteo Mayor", "Glúteo Medio")
+        else -> return emptyList()
+    }
+    
+    val subMuscleVolumes = targetSubMuscles.associateWith { mutableMapOf<String, Double>() }.toMutableMap()
+    
+    session.allExercises().forEach { exercise ->
+        val effectiveSets = countDisplaySets(exercise.sets, adjustByIntensity)
+        if (effectiveSets <= 0.0) return@forEach
+        val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: return@forEach
+        
+        dbInfo.involvedMuscles.forEach { involvement ->
+            val isMatch = if (countIndirect) {
+                involvement.role == com.example.kpkn.data.models.MuscleRole.SECONDARY || involvement.role == com.example.kpkn.data.models.MuscleRole.STABILIZER
+            } else {
+                involvement.role == com.example.kpkn.data.models.MuscleRole.PRIMARY
+            }
+            if (isMatch) {
+                val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
+                if (canonical == canonicalMuscle) {
+                    val subMuscle = resolveSpecificSubMuscle(involvement.muscle, involvement.emphasis)
+                    val map = subMuscleVolumes[subMuscle]
+                    if (map != null) {
+                        val contribution = com.example.kpkn.data.models.resolveMuscleVolumeContribution(involvement)
+                        val current = map[exercise.name] ?: 0.0
+                        if (effectiveSets * contribution > current) {
+                            map[exercise.name] = effectiveSets * contribution
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    return targetSubMuscles.map { subName ->
+        val exerciseMap = subMuscleVolumes[subName] ?: emptyMap()
+        subName to exerciseMap.entries
+            .map { it.key to it.value }
+            .filter { it.second > 0.0 }
+            .sortedByDescending { it.second }
+    }
+}
+
+@Composable
+private fun SessionSubMuscleBreakdownList(
+    muscleName: String,
+    session: Session,
+    countIndirect: Boolean,
+    adjustByIntensity: Boolean,
+) {
+    val exerciseIndex = remember { EXERCISE_DATABASE.associateBy { it.id.lowercase() } }
+    val breakdown = remember(muscleName, session, countIndirect, adjustByIntensity) {
+        calculateSubMuscleBreakdown(muscleName, session, exerciseIndex, countIndirect, adjustByIntensity)
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 12.dp, top = 4.dp, bottom = 4.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        breakdown.forEach { (subName, exercises) ->
+            val totalSubSets = exercises.sumOf { it.second }
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = subName,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "${if (totalSubSets == totalSubSets.toLong().toDouble()) totalSubSets.toLong().toString() else "%.1f".format(totalSubSets)} sets",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                if (exercises.isEmpty()) {
+                    Text(
+                        text = "  Sin aportes registrados para esta cabeza.",
+                        fontSize = 9.sp,
+                        color = Color.White.copy(alpha = 0.5f)
+                    )
+                } else {
+                    exercises.forEach { (exName, valSets) ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(start = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "• $exName",
+                                fontSize = 9.sp,
+                                color = Color.White.copy(alpha = 0.8f),
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                text = "${if (valSets == valSets.toLong().toDouble()) valSets.toLong().toString() else "%.1f".format(valSets)} sets",
+                                fontSize = 9.sp,
+                                color = Color.White.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

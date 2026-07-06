@@ -36,6 +36,8 @@ data class SetAdvancedFeedback(
     val actualIntensityValue: Double? = null,
     val timerElapsedSeconds: Int? = null,
     val timerTargetSeconds: Int? = null,
+    val rom: Int? = null,
+    val assistedReps: Int? = null,
 )
 
 data class PostExerciseFeedback(
@@ -193,6 +195,8 @@ fun applyAdvancedFeedback(
         isWarmup = advanced.isWarmup,
         actualIntensityMode = advanced.actualIntensityMode,
         actualIntensityValue = advanced.actualIntensityValue,
+        rom = advanced.rom,
+        assistedReps = advanced.assistedReps,
     )
 }
 

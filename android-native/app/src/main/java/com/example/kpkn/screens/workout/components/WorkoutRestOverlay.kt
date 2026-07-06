@@ -55,6 +55,7 @@ fun RestTimerOverlay(
     onUseAdaptive: (() -> Unit)? = null,
     postExerciseFeedbackContent: (@Composable () -> Unit)? = null,
     feedbackExerciseCount: Int = 0,
+    onMinimize: (() -> Unit)? = null,
 ) {
     val totalSeconds = state.activeSeconds.coerceAtLeast(1)
     val timerProgress = (remainingSeconds.toFloat() / totalSeconds).coerceIn(0f, 1f)
@@ -118,6 +119,7 @@ fun RestTimerOverlay(
                     skipExerciseLabel = skipExerciseLabel,
                     onSkipExercise = onSkipExercise,
                     onUseAdaptive = onUseAdaptive,
+                    onMinimize = onMinimize,
                 )
             }
         }
@@ -268,6 +270,7 @@ private fun NormalRestContent(
     skipExerciseLabel: String?,
     onSkipExercise: (() -> Unit)?,
     onUseAdaptive: (() -> Unit)?,
+    onMinimize: (() -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -280,6 +283,28 @@ private fun NormalRestContent(
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Spacer(Modifier.height(10.dp))
+
+        if (onMinimize != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                IconButton(
+                    onClick = onMinimize,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color.White.copy(alpha = 0.08f), CircleShape)
+                        .border(1.dp, Color.White.copy(alpha = 0.06f), CircleShape),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Minimizar",
+                        tint = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
 
         Box(
             modifier = Modifier.size(204.dp),
@@ -704,5 +729,81 @@ private fun formatIntensity(intensity: Double): String {
         intensity.toInt().toString()
     } else {
         String.format(Locale.getDefault(), "%.1f", intensity)
+    }
+}
+
+@Composable
+fun RestTimerPill(
+    remainingSeconds: Int,
+    totalSeconds: Int,
+    exerciseName: String,
+    sessionAccentColor: Color = Color.White,
+    onClick: () -> Unit,
+) {
+    val progress = (remainingSeconds.toFloat() / totalSeconds.coerceAtLeast(1)).coerceIn(0f, 1f)
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(50),
+        color = Color(0xFF1A1A2E).copy(alpha = 0.92f),
+        border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.35f)),
+        shadowElevation = 8.dp,
+        modifier = Modifier.zIndex(7f),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Box(modifier = Modifier.size(28.dp), contentAlignment = Alignment.Center) {
+                Canvas(modifier = Modifier.matchParentSize()) {
+                    val sw = 2.5.dp.toPx()
+                    val radius = (size.minDimension - sw) / 2f
+                    val rect = Size(radius * 2f, radius * 2f)
+                    val center = Offset(size.width / 2f, size.height / 2f)
+                    drawArc(
+                        color = Color.White.copy(alpha = 0.1f),
+                        startAngle = -90f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        topLeft = Offset(center.x - radius, center.y - radius),
+                        size = rect,
+                        style = Stroke(sw, cap = StrokeCap.Round),
+                    )
+                    drawArc(
+                        color = sessionAccentColor,
+                        startAngle = -90f,
+                        sweepAngle = 360f * progress,
+                        useCenter = false,
+                        topLeft = Offset(center.x - radius, center.y - radius),
+                        size = rect,
+                        style = Stroke(sw, cap = StrokeCap.Round),
+                    )
+                }
+                Text(
+                    text = formatTime(remainingSeconds.coerceAtLeast(0)),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White,
+                    fontSize = 10.sp,
+                )
+            }
+            if (exerciseName.isNotBlank()) {
+                Text(
+                    text = exerciseName,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 100.dp),
+                )
+            }
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowUp,
+                contentDescription = "Expandir",
+                tint = Color.White.copy(alpha = 0.5f),
+                modifier = Modifier.size(14.dp),
+            )
+        }
     }
 }

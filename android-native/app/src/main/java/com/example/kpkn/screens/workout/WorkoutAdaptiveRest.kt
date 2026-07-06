@@ -32,6 +32,8 @@ object WorkoutAdaptiveRest {
         val sessionProgress: Double? = null, // 0..1
         val exerciseType: ExerciseType = ExerciseType.UNKNOWN,
         val isSuperset: Boolean = false,
+        val rom: Int? = null,
+        val sessionPaceFactor: Double? = null,
     )
 
     fun compute(baseRestSeconds: Int, advanced: SetAdvancedFeedback): Int {
@@ -47,6 +49,8 @@ object WorkoutAdaptiveRest {
         factor *= rpeFactor(context.effectiveRpe)
         factor *= sessionProgressFactor(context.sessionProgress)
         factor *= exerciseTypeFactor(context.exerciseType, context.isSuperset)
+        factor *= romFactor(context.rom)
+        context.sessionPaceFactor?.let { factor *= it }
 
         val boundedFactor = factor.coerceIn(MIN_FACTOR, MAX_FACTOR)
         return (baseRestSeconds * boundedFactor).toInt().coerceIn(MIN_REST, MAX_REST)
@@ -108,5 +112,36 @@ object WorkoutAdaptiveRest {
             ExerciseType.UNKNOWN -> 1.0
         }
         return if (isSuperset) base * 1.06 else base
+    }
+
+    private fun romFactor(rom: Int?): Double {
+        val r = rom ?: return 1.0
+        return when {
+            r < 50 -> 0.92
+            r < 60 -> 0.95
+            r < 80 -> 1.0
+            else -> 1.02
+        }
+    }
+
+    fun computeSessionPaceFactor(
+        elapsedMs: Long,
+        targetMinutes: Int?,
+        completedSets: Int,
+        totalSets: Int,
+    ): Double? {
+        if (targetMinutes == null || totalSets <= 0) return null
+        if (completedSets <= 0) return null
+        val elapsedMin = elapsedMs / 60000.0
+        val expectedMin = targetMinutes * (completedSets.toDouble() / totalSets)
+        if (expectedMin <= 0) return null
+        val ratio = elapsedMin / expectedMin
+        return when {
+            ratio < 0.70 -> 0.88
+            ratio < 0.85 -> 0.93
+            ratio < 1.15 -> 1.0
+            ratio < 1.30 -> 1.07
+            else -> 1.14
+        }
     }
 }

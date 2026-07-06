@@ -40,7 +40,6 @@ import kotlin.math.roundToInt
 internal enum class WorkoutExerciseContextTab {
     HISTORY,
     TAGS,
-    SETUP,
     DRAIN,
     ENERGY,
     REPLACE,
@@ -79,15 +78,21 @@ internal fun WorkoutExerciseTabs(
     userTags: List<String> = emptyList(),
     exerciseReadiness: ExerciseReadiness? = null,
     modifier: Modifier = Modifier,
+    // New multi-tag parameters
+    userWorkoutTags: List<WorkoutTag> = emptyList(),
+    activeMainTagIds: List<String> = emptyList(),
+    activeSubTagIds: List<String> = emptyList(),
+    onMainTagToggle: (String) -> Unit = {},
+    onSubTagToggle: (String) -> Unit = {},
+    onCreateTag: (String) -> Unit = {},
+    onDeleteTag: (String) -> Unit = {},
+    onAddSubTag: (String, String, SubTagCategory) -> Unit = { _, _, _ -> },
+    onRemoveSubTag: (String, String) -> Unit = { _, _ -> },
 ) {
-    val mergedTags = remember(userTags) { (WORKOUT_COMMON_TAGS + userTags).distinct() }
-    val tagsOverflow = mergedTags.size > 6
-    val setupCues = currentExercise.setupCues + currentExercise.executionCues
-    val setupOverflow = setupCues.size > 4 || (currentExercise.setupDetails?.equipmentNotes?.length ?: 0) > 100
+    val tagsOverflow = userWorkoutTags.size > 6
     val tabs = listOf(
         WorkoutExerciseContextTab.HISTORY to "Historial",
         WorkoutExerciseContextTab.TAGS to "Etiquetas",
-        WorkoutExerciseContextTab.SETUP to "Set-Up",
         WorkoutExerciseContextTab.DRAIN to "Drenaje",
         WorkoutExerciseContextTab.ENERGY to "Gasto calórico",
         WorkoutExerciseContextTab.REPLACE to "Reemplazar",
@@ -232,13 +237,18 @@ internal fun WorkoutExerciseTabs(
                 ) {
                     when (selectedTab) {
                         WorkoutExerciseContextTab.TAGS -> {
-                            ExerciseTagSheetContent(
-                                currentTag = exerciseTag,
-                                onTagSet = onTagSet,
-                                onDismiss = {},
-                                showDismissButton = false,
+                            WorkoutMultiTagContent(
+                                userWorkoutTags = userWorkoutTags,
+                                activeMainTagIds = activeMainTagIds,
+                                activeSubTagIds = activeSubTagIds,
+                                onMainTagToggle = onMainTagToggle,
+                                onSubTagToggle = onSubTagToggle,
+                                onCreateTag = onCreateTag,
+                                onDeleteTag = onDeleteTag,
+                                onAddSubTag = onAddSubTag,
+                                onRemoveSubTag = onRemoveSubTag,
+                                sessionAccentColor = sessionAccentColor,
                                 maxVisibleTags = 6,
-                                userTags = userTags,
                             )
                             if (tagsOverflow) {
                                 TextButton(
@@ -247,30 +257,6 @@ internal fun WorkoutExerciseTabs(
                                     colors = ButtonDefaults.textButtonColors(contentColor = sessionAccentColor)
                                 ) {
                                     Text("Ver todas las etiquetas", fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                        WorkoutExerciseContextTab.SETUP -> {
-                            WorkoutExerciseSetupContent(
-                                exercise = currentExercise,
-                                currentSet = currentSet,
-                                profiles = profiles,
-                                activeProfileId = activeProfileId,
-                                onSelectProfile = onSelectProfile,
-                                onSaveProfile = onSaveProfile,
-                                onUpdateExercise = onUpdateExercise,
-                                onUpdateSet = onUpdateCurrentSetPlan,
-                                sessionAccentColor = sessionAccentColor,
-                                maxVisibleCues = 4,
-                                exerciseTag = exerciseTag,
-                            )
-                            if (setupOverflow) {
-                                TextButton(
-                                    onClick = onExpandSetup,
-                                    modifier = Modifier.align(Alignment.End),
-                                    colors = ButtonDefaults.textButtonColors(contentColor = sessionAccentColor)
-                                ) {
-                                    Text("Expandir set-up", fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -427,6 +413,186 @@ internal fun WorkoutExerciseHistoryContent(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun WorkoutMultiTagContent(
+    userWorkoutTags: List<WorkoutTag>,
+    activeMainTagIds: List<String>,
+    activeSubTagIds: List<String>,
+    onMainTagToggle: (String) -> Unit,
+    onSubTagToggle: (String) -> Unit,
+    onCreateTag: (String) -> Unit,
+    onDeleteTag: (String) -> Unit,
+    onAddSubTag: (String, String, SubTagCategory) -> Unit,
+    onRemoveSubTag: (String, String) -> Unit,
+    sessionAccentColor: Color,
+    maxVisibleTags: Int = Int.MAX_VALUE,
+) {
+    var createTagText by remember { mutableStateOf("") }
+    var showCreateTagField by remember { mutableStateOf(false) }
+    var editingTagId by remember { mutableStateOf<String?>(null) }
+    var addSubTagForTagId by remember { mutableStateOf<String?>(null) }
+    var subTagName by remember { mutableStateOf("") }
+    var subTagCategory by remember { mutableStateOf(SubTagCategory.LIBRE) }
+
+    val visibleTags = if (maxVisibleTags < userWorkoutTags.size) {
+        userWorkoutTags.take(maxVisibleTags)
+    } else userWorkoutTags
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("Etiquetas", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+
+        if (userWorkoutTags.isEmpty() && !showCreateTagField) {
+            Text(
+                "Sin etiquetas. Crea una para este ejercicio.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        // Tag chips
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            visibleTags.forEach { tag ->
+                val isActive = tag.id in activeMainTagIds
+                FilterChip(
+                    selected = isActive,
+                    onClick = { onMainTagToggle(tag.id) },
+                    label = { Text(tag.name, style = MaterialTheme.typography.labelSmall) },
+                    trailingIcon = {
+                        IconButton(onClick = { editingTagId = if (editingTagId == tag.id) null else tag.id }, modifier = Modifier.size(16.dp)) {
+                            Icon(Icons.Default.MoreVert, "Editar", Modifier.size(12.dp))
+                        }
+                    },
+                )
+                // Show active sub-tags under the main tag
+                val activeSubs = tag.subTags.filter { it.id in activeSubTagIds }
+                activeSubs.forEach { subTag ->
+                    InputChip(
+                        selected = true,
+                        onClick = { onSubTagToggle(subTag.id) },
+                        label = { Text(subTag.name, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp)) },
+                        trailingIcon = {
+                            Icon(Icons.Default.Close, "Quitar", Modifier.size(10.dp))
+                        },
+                    )
+                }
+            }
+        }
+
+        // Show sub-tag options for an active tag
+        editingTagId?.let { tagId ->
+            val tag = userWorkoutTags.firstOrNull { it.id == tagId } ?: return@let
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                        Text(tag.name, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                        IconButton(onClick = {
+                            onDeleteTag(tagId)
+                            editingTagId = null
+                        }, modifier = Modifier.size(20.dp)) {
+                            Icon(Icons.Default.Delete, "Eliminar etiqueta", Modifier.size(14.dp), tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                    // Sub-tags of this tag
+                    tag.subTags.forEach { sub ->
+                        val isActive = sub.id in activeSubTagIds
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            FilterChip(
+                                selected = isActive,
+                                onClick = { onSubTagToggle(sub.id) },
+                                label = { Text(sub.name, style = MaterialTheme.typography.labelSmall) },
+                                modifier = Modifier.weight(1f),
+                            )
+                            IconButton(onClick = { onRemoveSubTag(tagId, sub.id) }, modifier = Modifier.size(18.dp)) {
+                                Icon(Icons.Default.Close, "Quitar", Modifier.size(10.dp))
+                            }
+                        }
+                    }
+                    // Add sub-tag
+                    if (addSubTagForTagId == tagId) {
+                        OutlinedTextField(
+                            value = subTagName,
+                            onValueChange = { subTagName = it },
+                            label = { Text("Nombre") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            SubTagCategory.entries.forEach { cat ->
+                                FilterChip(
+                                    selected = subTagCategory == cat,
+                                    onClick = { subTagCategory = cat },
+                                    label = { Text(cat.name.take(4), style = MaterialTheme.typography.labelSmall) },
+                                )
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = {
+                                    if (subTagName.isNotBlank()) {
+                                        onAddSubTag(tagId, subTagName, subTagCategory)
+                                        subTagName = ""
+                                        addSubTagForTagId = null
+                                    }
+                                },
+                                enabled = subTagName.isNotBlank(),
+                            ) { Text("Agregar") }
+                            TextButton(onClick = { addSubTagForTagId = null }) { Text("Cancelar") }
+                        }
+                    } else {
+                        TextButton(onClick = { addSubTagForTagId = tagId }) {
+                            Icon(Icons.Default.Add, null, Modifier.size(12.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Añadir sub-etiqueta", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+            }
+        }
+
+        // Create tag field
+        if (showCreateTagField) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = createTagText,
+                    onValueChange = { createTagText = it },
+                    label = { Text("Nueva etiqueta") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(
+                    onClick = {
+                        if (createTagText.isNotBlank()) {
+                            onCreateTag(createTagText)
+                            createTagText = ""
+                            showCreateTagField = false
+                        }
+                    },
+                    enabled = createTagText.isNotBlank(),
+                ) {
+                    Icon(Icons.Default.Check, "Crear")
+                }
+                IconButton(onClick = { showCreateTagField = false; createTagText = "" }) {
+                    Icon(Icons.Default.Close, "Cancelar")
+                }
+            }
+        } else {
+            OutlinedButton(
+                onClick = { showCreateTagField = true },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Default.Add, null, Modifier.size(14.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Crear etiqueta", style = MaterialTheme.typography.labelSmall)
+            }
+        }
+    }
+}
+
 @Composable
 internal fun ExerciseTagSheetContent(
     currentTag: String?,
@@ -437,15 +603,11 @@ internal fun ExerciseTagSheetContent(
     userTags: List<String> = emptyList(),
 ) {
     var tagText by remember { mutableStateOf(currentTag ?: "") }
-    val commonTags = remember(userTags, maxVisibleTags) {
-        val merged = (WORKOUT_COMMON_TAGS + userTags).distinct()
-        if (maxVisibleTags < merged.size) merged.take(maxVisibleTags) else merged
-    }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Tag activo", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            commonTags.forEach { tag ->
+            (userTags).distinct().forEach { tag ->
                 FilterChip(
                     selected = tagText == tag,
                     onClick = { tagText = tag; onTagSet(tag) },
@@ -879,15 +1041,16 @@ internal fun ExerciseSetupSheetContent(
     showTagControls: Boolean = true,
     showDismissButton: Boolean = true,
     maxVisibleCues: Int = 6,
+    userTags: List<String> = emptyList(),
 ) {
     var tagText by remember { mutableStateOf(currentTag ?: "") }
-    val commonTags = WORKOUT_COMMON_TAGS
+    val mergedUserTags = remember(userTags) { userTags.distinct() }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (showTagControls) {
             Text("Tag activo", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                commonTags.forEach { tag ->
+                mergedUserTags.forEach { tag ->
                     FilterChip(
                         selected = tagText == tag,
                         onClick = { tagText = tag; onTagSet(tag) },
@@ -1569,19 +1732,6 @@ internal fun WorkoutSessionEnergyContent(
         }
     }
 }
-
-private val WORKOUT_COMMON_TAGS = listOf(
-    "Base",
-    "Top set",
-    "Back-off",
-    "Tecnica",
-    "Volumen",
-    "Control",
-    "PR",
-    "Pesado",
-    "Ligero",
-    "Pump",
-)
 
 internal fun normalizeWorkoutMuscleKey(value: String): String =
     value

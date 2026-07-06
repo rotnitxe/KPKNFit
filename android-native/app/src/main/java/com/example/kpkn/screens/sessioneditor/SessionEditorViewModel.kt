@@ -20,6 +20,7 @@ import com.example.kpkn.data.sessions.SessionTemplateApplyDecision
 import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.data.sessions.SessionTemplateTag
+import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.domain.templates.SessionTemplateEngine
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.auge.AugeFatigueEngine
@@ -28,9 +29,11 @@ import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
 import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.estimateSessionDurationMinutes
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
+import com.example.kpkn.domain.calculations.SessionTimeBreakdown
 import com.example.kpkn.domain.calculations.suggestRestSeconds
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
@@ -170,6 +173,8 @@ data class SessionEditorAugeSummary(
     val volumeThresholdsByMuscle: Map<String, SessionEditorVolumeThreshold> = emptyMap(),
     val usesCalibratedVolumeThresholds: Boolean = false,
     val sessionEnergy: SessionEnergySummary = SessionEnergySummary(),
+    /** Desglose detallado de tiempos (Feature 1) */
+    val sessionTimeBreakdown: SessionTimeBreakdown? = null,
 ) {
     val alertCount: Int
         get() = alerts.size
@@ -216,6 +221,10 @@ data class SessionEditorUiState(
     val hasUnsavedChanges: Boolean = false,
     val autoSaveEnabled: Boolean = true,
     val estimatedDurationMinutes: Int = 0,
+    /** Feature 1: desglose de tiempos calculado */
+    val sessionTimeBreakdown: SessionTimeBreakdown? = null,
+    /** Feature 2: duración objetivo configurable (min) */
+    val targetDurationMinutes: Int? = null,
     val predictedDrain: PredictedDrain? = null,
     val augeSummary: SessionEditorAugeSummary = SessionEditorAugeSummary(),
     val ruleDefaults: SessionEditorRuleDefaults = SessionEditorRuleDefaults(),
@@ -249,7 +258,18 @@ data class SessionEditorUiState(
     val hasActiveLoops: Boolean = false,
     // ─── Exercise Picker Selection ─────────────────────────────────────────────
     val selectedExercisesIds: Set<String> = emptySet(),
-)
+    // ─── Feature 3: Variantes de sesión ────────────────────────────────────────
+    val activeVariant: WeekVariant = WeekVariant.A,
+    val availableVariants: List<WeekVariant> = listOf(WeekVariant.A),
+) {
+    /** La sesión de la variante activa (A = sesión principal, B/C/D = sessionB/C/D). */
+    val activeVariantSession: Session? get() = when (activeVariant) {
+        WeekVariant.A -> session
+        WeekVariant.B -> session?.sessionB
+        WeekVariant.C -> session?.sessionC
+        WeekVariant.D -> session?.sessionD
+    }
+}
 
 data class SessionDraftSnapshot(
     val id: String,
@@ -775,20 +795,150 @@ class SessionEditorViewModel(
                 allTemplates = templates,
             )
         }.getOrNull()
+        val timeBreakdown = runCatching {
+            calculateSessionTimeBreakdown(
+                exercises = exercises,
+                supersetGroups = session.allSupersetGroups(),
+            )
+        }.getOrNull()
         _uiState.update {
             it.copy(
-                estimatedDurationMinutes = estimateSessionDurationMinutes(totalSets, averageRest),
+                estimatedDurationMinutes = timeBreakdown?.totalMinutes
+                    ?: estimateSessionDurationMinutes(totalSets, averageRest),
+                sessionTimeBreakdown = timeBreakdown,
                 predictedDrain = summary.sessionDrain,
-                augeSummary = summary.copy(sessionEnergy = sessionEnergy),
+                augeSummary = summary.copy(
+                    sessionEnergy = sessionEnergy,
+                    sessionTimeBreakdown = timeBreakdown,
+                    sessionDurationMinutes = timeBreakdown?.totalMinutes
+                        ?: estimateSessionDurationMinutes(totalSets, averageRest),
+                ),
                 assistantReport = assistantReport,
                 ghostExerciseCards = assistantReport?.tarjetasFantasma ?: emptyList(),
             )
         }
     }
 
+    // ─── Feature 2: Duración objetivo ────────────────────────────────────────────
+
+    /** Actualiza la duración objetivo de la sesión (Feature 2). null = sin límite. */
+    fun setTargetDuration(minutes: Int?) {
+        _uiState.update { state ->
+            val updatedSession = state.session?.copy(targetDurationMinutes = minutes)
+            state.copy(
+                session = updatedSession,
+                targetDurationMinutes = minutes,
+                hasUnsavedChanges = true,
+            )
+        }
+        scheduleAutoSave()
+        scheduleAugeRecalc()
+    }
+
+    // ─── Feature 3: Variantes de sesión ──────────────────────────────────────────
+
+    /**
+     * Crea una variante derivada de la sesión original. La variante es una copia
+     * independiente con su propio nombre, ejercicios, series y descansos.
+     * @param variant slot B/C/D donde se almacena (nunca A).
+     * @param variantName nombre descriptivo (ej. "Rápida 45min", "Enfoque fuerza").
+     */
+    fun createVariant(variant: WeekVariant, variantName: String): Boolean {
+        val state = _uiState.value
+        val base = state.session ?: return false
+        if (variant == WeekVariant.A) return false
+        val alreadyExists = when (variant) {
+            WeekVariant.B -> base.sessionB != null
+            WeekVariant.C -> base.sessionC != null
+            WeekVariant.D -> base.sessionD != null
+            else -> false
+        }
+        if (alreadyExists) return false
+        val copy = base.copy(
+            id = java.util.UUID.randomUUID().toString(),
+            name = variantName,
+            sessionB = null, sessionC = null, sessionD = null,
+        )
+        val updated = when (variant) {
+            WeekVariant.B -> base.copy(sessionB = copy)
+            WeekVariant.C -> base.copy(sessionC = copy)
+            WeekVariant.D -> base.copy(sessionD = copy)
+            else -> base
+        }
+        _uiState.update {
+            it.copy(
+                session = updated,
+                activeVariant = variant,
+                availableVariants = computeAvailableVariants(updated),
+                hasUnsavedChanges = true,
+            )
+        }
+        scheduleAutoSave()
+        return true
+    }
+
+    /** Elimina la variante especificada de la sesión principal. */
+    fun deleteVariant(variant: WeekVariant): Boolean {
+        if (variant == WeekVariant.A) return false
+        val base = _uiState.value.session ?: return false
+        val updated = when (variant) {
+            WeekVariant.B -> base.copy(sessionB = null)
+            WeekVariant.C -> base.copy(sessionC = null)
+            WeekVariant.D -> base.copy(sessionD = null)
+            else -> return false
+        }
+        _uiState.update {
+            it.copy(
+                session = updated,
+                activeVariant = WeekVariant.A,
+                availableVariants = computeAvailableVariants(updated),
+                hasUnsavedChanges = true,
+            )
+        }
+        scheduleAutoSave()
+        return true
+    }
+
+    /** Cambia la variante activa en el editor (sólo UI, no persiste nada). */
+    fun switchVariant(variant: WeekVariant) {
+        _uiState.update { it.copy(activeVariant = variant) }
+    }
+
+    /**
+     * Guarda los cambios actuales del editor en la variante activa de la sesión base.
+     * Llamar antes de switchVariant para no perder cambios.
+     */
+    fun commitActiveVariantChanges() {
+        val state = _uiState.value
+        val base = state.session ?: return
+        val currentVariantSession = state.activeVariantSession ?: return
+        val updated = when (state.activeVariant) {
+            WeekVariant.A -> base.copy(
+                name = currentVariantSession.name,
+                description = currentVariantSession.description,
+                exercises = currentVariantSession.exercises,
+                parts = currentVariantSession.parts,
+                warmup = currentVariantSession.warmup,
+                targetDurationMinutes = currentVariantSession.targetDurationMinutes,
+            )
+            WeekVariant.B -> base.copy(sessionB = currentVariantSession)
+            WeekVariant.C -> base.copy(sessionC = currentVariantSession)
+            WeekVariant.D -> base.copy(sessionD = currentVariantSession)
+        }
+        _uiState.update { it.copy(session = updated, hasUnsavedChanges = true) }
+    }
+
+    private fun computeAvailableVariants(session: Session): List<WeekVariant> = buildList {
+        add(WeekVariant.A)
+        if (session.sessionB != null) add(WeekVariant.B)
+        if (session.sessionC != null) add(WeekVariant.C)
+        if (session.sessionD != null) add(WeekVariant.D)
+    }
+
     fun updateSessionName(name: String) = updateSession { it.copy(name = name) }
     fun updateSessionDescription(description: String) = updateSession { it.copy(description = description) }
     fun updateSessionMeetDay(isMeetDay: Boolean) = updateSession {
+
         if (isMeetDay) {
             it.copy(
                 isMeetDay = true,
@@ -1355,6 +1505,7 @@ class SessionEditorViewModel(
     }
 
     fun removeSet(partId: String?, exerciseId: String, setId: String) = updateExercise(partId, exerciseId) { exercise ->
+        if (exercise.sets.size <= 1) return@updateExercise exercise
         exercise.copy(sets = exercise.sets.filterNot { it.id == setId })
     }
 

@@ -127,9 +127,15 @@ class WorkoutRestAlertManager(private val context: Context) {
         setInfo: String = "",
         exerciseImage: ByteArray? = null,
         endAtOverrideMs: Long? = null,
+        isAdjustment: Boolean = false,
     ): String {
         ensureChannels()
-        cancelRestAlerts()
+        if (isAdjustment) {
+            cancelAlarm(REQUEST_CODE_ALARM)
+            cancelAlarm(REQUEST_CODE_PREALERT)
+        } else {
+            cancelRestAlerts()
+        }
 
         val timerId = UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
@@ -254,14 +260,8 @@ class WorkoutRestAlertManager(private val context: Context) {
                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMs, pending)
                 }
 
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-                    // API 31+: setAlarmClock also requires SCHEDULE_EXACT_ALARM.
-                    // Without the permission, fall back to inexact alarm.
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMs, pending)
-                }
-
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
-                    // API 23–30: setAlarmClock is allowed without exact-alarm permission.
+                    // API 23+: setAlarmClock is allowed without exact-alarm permission.
                     alarmManager.setAlarmClock(
                         AlarmManager.AlarmClockInfo(triggerAtMs, createOpenWorkoutPendingIntent(REQUEST_CODE_ALARM + requestCode)),
                         pending,

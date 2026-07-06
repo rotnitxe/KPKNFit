@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -121,23 +122,12 @@ fun WorkoutReadinessSheet(
         }
     }
 
-    var allowSheetDismiss by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
-        confirmValueChange = { target ->
-            when (target) {
-                SheetValue.Hidden -> allowSheetDismiss
-                SheetValue.PartiallyExpanded -> false
-                SheetValue.Expanded -> true
-            }
-        },
+        confirmValueChange = { target -> target != SheetValue.Hidden }
     )
-
-    @Suppress("UNUSED_VALUE")
-    var showDismissConfirmDialog by remember { mutableStateOf(false) }
-
     ModalBottomSheet(
-        onDismissRequest = { showDismissConfirmDialog = true },
+        onDismissRequest = {},
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = Color.Transparent,
@@ -527,7 +517,6 @@ fun WorkoutReadinessSheet(
                 Button(
                     onClick = {
                         onSave(neural, derivedMuscular, spinal, muscleAdjustments.toMap())
-                        allowSheetDismiss = true
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -555,67 +544,23 @@ fun WorkoutReadinessSheet(
                         )
                     }
                 }
-            }
-        }
-    }
 
-    if (showDismissConfirmDialog) {
-        Dialog(
-            onDismissRequest = { showDismissConfirmDialog = false },
-        ) {
-            Surface(
-                modifier = Modifier
-                    .widthIn(min = 280.dp, max = 560.dp)
-                    .wrapContentHeight(),
-                shape = RoundedCornerShape(28.dp),
-                color = Color(0xFF161616),
-                tonalElevation = 6.dp,
-            ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                Spacer(Modifier.height(4.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        onDismissWithoutVerify()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(999.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
                 ) {
-                    Text(
-                        "¿Empezar sin verificar RINGS?",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                    )
-                    Text(
-                        "Puedes ajustar tu energía, columna y músculos antes de empezar, o saltar este paso y comenzar directamente.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Button(
-                            onClick = {
-                                allowSheetDismiss = true
-                                onDismissWithoutVerify()
-                                showDismissConfirmDialog = false
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                            ),
-                            shape = RoundedCornerShape(999.dp)
-                        ) {
-                            Text("Iniciar sin verificar", fontWeight = FontWeight.Bold)
-                        }
-                        OutlinedButton(
-                            onClick = { showDismissConfirmDialog = false },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(999.dp)
-                        ) {
-                            Text("Volver", fontWeight = FontWeight.Bold)
-                        }
-                    }
+                    Text("Omitir y Entrenar", fontWeight = FontWeight.Bold)
                 }
             }
         }

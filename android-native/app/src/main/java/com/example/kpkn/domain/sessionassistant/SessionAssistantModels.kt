@@ -102,6 +102,8 @@ data class SessionAssistantReport(
     val drenajeEstimado: PredictedDrain,
     val duracionEstimada: Int,
     val resumenTexto: String,
+    val totalRestSeconds: Int = 0,
+    val estimatedWorkSeconds: Int = 0,
 )
 
 data class SessionEditorRuleLimits(

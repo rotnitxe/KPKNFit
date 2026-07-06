@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -24,6 +26,8 @@ data class WorkoutSetDraft(
     val voiceFields: Set<WorkoutVoiceField> = emptySet(),
     val isDirty: Boolean = false,
     val updatedAtMs: Long = System.currentTimeMillis(),
+    val rom: Int? = null,
+    val assistedReps: Int? = null,
 )
 
 @Serializable
@@ -48,18 +52,48 @@ internal fun workoutSetKey(exerciseId: String, setIdx: Int, side: String? = null
     else -> "${exerciseId}_${setIdx}"
 }
 
+internal fun workoutSetContextKey(exerciseId: String, setIdx: Int, tagId: String?): String {
+    val cleanTag = tagId?.trim()?.lowercase()?.takeIf { it.isNotEmpty() } ?: "na"
+    return "$exerciseId|$setIdx|$cleanTag"
+}
+
+internal fun workoutExerciseContextKey(exerciseId: String, tagId: String?): String {
+    val cleanTag = tagId?.trim()?.lowercase()?.takeIf { it.isNotEmpty() } ?: "na"
+    return "$exerciseId|$cleanTag"
+}
+
 internal fun resolvePersistedLoadModeForSet(
     exerciseId: String,
     setIdx: Int,
+    tagId: String?,
     persistedLoadModeBySet: Map<String, LoadModeV2>,
     persistedLoadModeByExercise: Map<String, LoadModeV2>,
 ): LoadModeV2? {
     for (candidateIdx in setIdx downTo 0) {
-        val key = workoutSetKey(exerciseId, candidateIdx)
+        val baseKey = "${exerciseId}_${candidateIdx}"
+        persistedLoadModeBySet[baseKey]?.let { return it }
+        persistedLoadModeBySet["${baseKey}_L"]?.let { return it }
+        persistedLoadModeBySet["${baseKey}_R"]?.let { return it }
+        
+        val key = workoutSetContextKey(exerciseId, candidateIdx, tagId)
         persistedLoadModeBySet[key]?.let { return it }
     }
-    return persistedLoadModeByExercise[exerciseId]
+    val exKey = workoutExerciseContextKey(exerciseId, tagId)
+    persistedLoadModeByExercise[exKey]?.let { return it }
+    persistedLoadModeByExercise[exerciseId]?.let { return it }
+    return null
 }
+
+internal fun resolveEffectiveLoadMode(
+    draftLoadMode: LoadModeV2?,
+    persistedLoadMode: LoadModeV2?,
+    plannedLoadMode: LoadModeV2?,
+    defaultCatalogMode: LoadModeV2?,
+): LoadModeV2 = draftLoadMode
+    ?: persistedLoadMode
+    ?: plannedLoadMode
+    ?: defaultCatalogMode
+    ?: LoadModeV2.LOAD
 
 internal fun isWorkoutPulseActive(
     pulseToken: Long?,
@@ -68,4 +102,16 @@ internal fun isWorkoutPulseActive(
 ): Boolean {
     if (pulseToken == null) return false
     return nowMs - pulseToken in 0..ttlMs
+}
+
+internal fun inferDefaultLoadModeFromCatalog(exercise: Exercise): LoadModeV2 {
+    val canonicalId = exercise.resolvedCanonicalExerciseId()
+    val info = com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID[canonicalId] ?: return LoadModeV2.LOAD
+    val equipment = info.equipment?.lowercase().orEmpty()
+    val name = exercise.name.lowercase()
+    return when {
+        equipment.contains("peso corporal") || equipment.contains("bodyweight") || equipment.contains("calistenia") -> LoadModeV2.BODYWEIGHT
+        equipment.contains("asist") || name.contains("asist") || equipment.contains("assisted") || name.contains("assisted") -> LoadModeV2.ASSISTED
+        else -> LoadModeV2.LOAD
+    }
 }

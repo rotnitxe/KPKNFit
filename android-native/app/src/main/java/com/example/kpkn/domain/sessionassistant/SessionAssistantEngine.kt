@@ -35,10 +35,34 @@ object SessionAssistantEngine {
         val drain = calcularDrenajeEstimado(input)
         val thresholds = buildVolumeThresholds(input, volumeResult.volumeMap)
         val ajustes = generarAjustesPorRings(input, volumeResult, drain)
-        val duracion = estimateSessionDurationMinutes(
-            volumeResult.totalSets,
-            input.allExercisesInSession.mapNotNull { it.restTime }.ifEmpty { listOf(90) }.average().toInt(),
-        )
+                // 1. Total de descansos sumados (incluyendo transiciones de 60s entre ejercicios)
+        var totalRestSeconds = 0
+        for (ex in input.allExercisesInSession) {
+            val exRest = ex.restTime ?: 90
+            val setsCount = ex.sets.size
+            if (setsCount > 0) {
+                totalRestSeconds += exRest * (setsCount - 1)
+            }
+        }
+        val exerciseCount = input.allExercisesInSession.size
+        if (exerciseCount > 1) {
+            totalRestSeconds += (exerciseCount - 1) * 60
+        }
+
+        // 2. Set-up de cada ejercicio (tiempo dinámico desde la base de datos o fallback de 120s) + Ejecución de series (45s por serie)
+        val defaultSetupTime = 120
+        val workSecondsPerSet = 45
+        val totalWorkSeconds = volumeResult.totalSets * workSecondsPerSet
+        
+        var totalSetupSeconds = 0
+        for (ex in input.allExercisesInSession) {
+            val info = resolveExerciseInfo(ex, input.exerciseIndex)
+            val setupTime = info?.setupTime ?: defaultSetupTime
+            totalSetupSeconds += setupTime
+        }
+        val estimatedWorkSeconds = totalWorkSeconds + totalSetupSeconds
+
+        val duracion = ((totalRestSeconds + estimatedWorkSeconds) + 59) / 60
 
         return SessionAssistantReport(
             veredicto = Verdict.OPTIMAL,
@@ -1000,5 +1024,150 @@ object SessionAssistantEngine {
                 mrv = (weeklyMrv / 3.0).coerceAtLeast(1.0),
             )
         }
+    }
+
+    fun findNextSessionWithMuscles(
+        currentSessionId: String,
+        weekSessions: List<com.example.kpkn.data.models.Session>,
+        muscleIds: List<String>,
+        exerciseIndex: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo>,
+    ): com.example.kpkn.data.models.Session? {
+        val currentIdx = weekSessions.indexOfFirst { it.id == currentSessionId }
+        if (currentIdx == -1) return null
+        
+        for (i in (currentIdx + 1) until weekSessions.size) {
+            val session = weekSessions[i]
+            if (sessionContainsAnyMuscle(session, muscleIds, exerciseIndex)) {
+                return session
+            }
+        }
+        
+        for (i in 0 until currentIdx) {
+            val session = weekSessions[i]
+            if (sessionContainsAnyMuscle(session, muscleIds, exerciseIndex)) {
+                return session
+            }
+        }
+        return null
+    }
+
+    private fun sessionContainsAnyMuscle(
+        session: com.example.kpkn.data.models.Session,
+        muscleIds: List<String>,
+        exerciseIndex: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo>,
+    ): Boolean {
+        for (ex in session.allExercises()) {
+            val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
+            val info = exerciseIndex[dbId] ?: continue
+            for (muscle in info.involvedMuscles) {
+                if (muscle.role == com.example.kpkn.data.models.MuscleRole.PRIMARY) {
+                    val mId = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
+                    if (muscleIds.contains(mId)) return true
+                }
+            }
+        }
+        return false
+    }
+
+    fun computeProposedDiscounts(
+        currentSession: com.example.kpkn.data.models.Session,
+        nextSession: com.example.kpkn.data.models.Session,
+        targetMuscles: List<String>,
+        completedSets: Map<String, com.example.kpkn.data.models.CompletedSet>,
+        exerciseIndex: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo>,
+    ): List<com.example.kpkn.data.models.MuscleAdvance> {
+        val muscleAdvances = mutableListOf<com.example.kpkn.data.models.MuscleAdvance>()
+        val completedByExercise = mutableMapOf<String, Int>()
+        for ((key, _) in completedSets) {
+            var exerciseId = key.substringBeforeLast("_")
+            if (exerciseId.endsWith("_L") || exerciseId.endsWith("_R")) {
+                exerciseId = exerciseId.substringBeforeLast("_")
+            }
+            completedByExercise[exerciseId] = (completedByExercise[exerciseId] ?: 0) + 1
+        }
+
+        for (muscleId in targetMuscles) {
+            var plannedSets = 0.0
+            for (ex in currentSession.allExercises()) {
+                val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
+                val info = exerciseIndex[dbId] ?: continue
+                for (m in info.involvedMuscles) {
+                    if (m.role != com.example.kpkn.data.models.MuscleRole.PRIMARY) continue
+                    val mId = VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis)
+                    if (mId == muscleId) {
+                        plannedSets += ex.sets.size
+                    }
+                }
+            }
+
+            var actualSets = 0.0
+            for (ex in currentSession.allExercises()) {
+                val sets = completedByExercise[ex.id] ?: 0
+                if (sets == 0) continue
+                val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
+                val info = exerciseIndex[dbId] ?: continue
+                for (m in info.involvedMuscles) {
+                    if (m.role != com.example.kpkn.data.models.MuscleRole.PRIMARY) continue
+                    val mId = VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis)
+                    if (mId == muscleId) {
+                        actualSets += sets
+                    }
+                }
+            }
+
+            val delta = actualSets - plannedSets
+            if (delta <= 0.0) continue
+
+            val proposals = mutableListOf<com.example.kpkn.data.models.VolumeDiscountProposal>()
+            var remainingDiscount = delta
+            
+            for (ex in nextSession.allExercises()) {
+                if (remainingDiscount <= 0.0) break
+                val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
+                val info = exerciseIndex[dbId] ?: continue
+                var trainsMuscle = false
+                for (m in info.involvedMuscles) {
+                    if (m.role != com.example.kpkn.data.models.MuscleRole.PRIMARY) continue
+                    val mId = VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis)
+                    if (mId == muscleId) {
+                        trainsMuscle = true
+                        break
+                    }
+                }
+                
+                if (trainsMuscle) {
+                    val maxDiscount = (ex.sets.size - 1).coerceAtLeast(0).toDouble()
+                    if (maxDiscount > 0) {
+                        val discount = remainingDiscount.coerceAtMost(maxDiscount)
+                        proposals.add(
+                            com.example.kpkn.data.models.VolumeDiscountProposal(
+                                exerciseId = ex.id,
+                                exerciseName = ex.name,
+                                currentRole = "PRIMARY",
+                                discountSets = discount,
+                                reason = "Excedente de volumen de " + muscleId + " (+" + delta.toInt() + " series)",
+                            )
+                        )
+                        remainingDiscount -= discount
+                    }
+                }
+            }
+
+            if (proposals.isNotEmpty()) {
+                muscleAdvances.add(
+                    com.example.kpkn.data.models.MuscleAdvance(
+                        muscleId = muscleId,
+                        muscleName = muscleId,
+                        currentSets = actualSets,
+                        targetSets = plannedSets,
+                        deficitSets = delta,
+                        targetSessionId = nextSession.id,
+                        targetSessionName = nextSession.name,
+                        discountProposals = proposals,
+                    )
+                )
+            }
+        }
+        return muscleAdvances
     }
 }

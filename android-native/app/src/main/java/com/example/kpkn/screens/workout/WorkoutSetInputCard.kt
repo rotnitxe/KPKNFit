@@ -61,6 +61,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -96,6 +98,7 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.effectiveRepEquivalent
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 private fun filterDecimal(input: String): String {
     var hasDot = false
@@ -195,6 +198,7 @@ internal fun SetInputCardV2(
     val persistedLoadMode = resolvePersistedLoadModeForSet(
         exerciseId = exercise.id,
         setIdx = setIndex,
+        tagId = exerciseTag,
         persistedLoadModeBySet = persistedLoadModeBySet,
         persistedLoadModeByExercise = persistedLoadModeByExercise,
     )
@@ -219,6 +223,9 @@ internal fun SetInputCardV2(
     var showDropSetModal by remember { mutableStateOf(false) }
     var showRestPauseModal by remember { mutableStateOf(false) }
     var showSuperSetPicker by remember { mutableStateOf(false) }
+    var romValue by rememberSaveable(exercise.id, setIndex, editingSide) { mutableStateOf<Int?>(initialDraft?.rom ?: ghostSet?.rom ?: 100) }
+    var assistedReps by rememberSaveable(exercise.id, setIndex, editingSide) { mutableStateOf<Int?>(initialDraft?.assistedReps) }
+    var showAssistedDialog by remember { mutableStateOf(false) }
     var dropSets by remember(exercise.id, setIndex) { mutableStateOf(currentSet.dropSets) }
     var restPauses by remember(exercise.id, setIndex) { mutableStateOf(currentSet.restPauses) }
     var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
@@ -258,6 +265,7 @@ internal fun SetInputCardV2(
         loadMode = initialDraft?.loadMode ?: resolvePersistedLoadModeForSet(
             exerciseId = exercise.id,
             setIdx = setIndex,
+            tagId = exerciseTag,
             persistedLoadModeBySet = persistedLoadModeBySet,
             persistedLoadModeByExercise = persistedLoadModeByExercise,
         ) ?: currentSet.loadModeV2 ?: LoadModeV2.LOAD
@@ -266,21 +274,26 @@ internal fun SetInputCardV2(
         reportedIntensityMode = defaultReportedIntensityMode
         selectedSide = initialDraft?.selectedSide ?: editingSide ?: if (exercise.isUnilateral) "left" else null
         voiceFields = initialDraft?.voiceFields ?: emptySet()
+        romValue = initialDraft?.rom ?: ghostSet?.rom ?: 100
+        assistedReps = initialDraft?.assistedReps
     }
 
-    LaunchedEffect(weightText, valueText, intensityText, loadMode, selectedSide, partialReps, reachedFailure, voiceFields) {
+    LaunchedEffect(weightText, valueText, intensityText, loadMode, selectedSide, partialReps, reachedFailure, voiceFields, romValue, assistedReps) {
         val isDirty = weightText != initialWeightText ||
             valueText != initialValue ||
             intensityText != initialIntensityText ||
             loadMode != (initialDraft?.loadMode ?: resolvePersistedLoadModeForSet(
                 exerciseId = exercise.id,
                 setIdx = setIndex,
+                tagId = exerciseTag,
                 persistedLoadModeBySet = persistedLoadModeBySet,
                 persistedLoadModeByExercise = persistedLoadModeByExercise,
             ) ?: currentSet.loadModeV2 ?: LoadModeV2.LOAD) ||
             selectedSide != (initialDraft?.selectedSide ?: editingSide ?: if (exercise.isUnilateral) "left" else null) ||
             partialReps != (initialDraft?.partialReps ?: currentSet.partialReps) ||
-            reachedFailure != (initialDraft?.reachedFailure ?: initialReachedFailure)
+            reachedFailure != (initialDraft?.reachedFailure ?: initialReachedFailure) ||
+            romValue != (initialDraft?.rom ?: ghostSet?.rom) ||
+            assistedReps != initialDraft?.assistedReps
         onDraftChange(
             WorkoutSetDraft(
                 weightText = weightText,
@@ -292,6 +305,8 @@ internal fun SetInputCardV2(
                 reachedFailure = reachedFailure,
                 voiceFields = voiceFields,
                 isDirty = isDirty,
+                rom = romValue,
+                assistedReps = assistedReps,
             ),
             selectedSide,
         )
@@ -384,12 +399,15 @@ internal fun SetInputCardV2(
         loadMode != (initialDraft?.loadMode ?: resolvePersistedLoadModeForSet(
             exerciseId = exercise.id,
             setIdx = setIndex,
+            tagId = exerciseTag,
             persistedLoadModeBySet = persistedLoadModeBySet,
             persistedLoadModeByExercise = persistedLoadModeByExercise,
         ) ?: currentSet.loadModeV2 ?: LoadModeV2.LOAD) ||
         selectedSide != (initialDraft?.selectedSide ?: editingSide ?: if (exercise.isUnilateral) "left" else null) ||
         partialReps != (initialDraft?.partialReps ?: currentSet.partialReps) ||
-        reachedFailure != (initialDraft?.reachedFailure ?: initialReachedFailure)
+        reachedFailure != (initialDraft?.reachedFailure ?: initialReachedFailure) ||
+        romValue != (initialDraft?.rom ?: ghostSet?.rom) ||
+        assistedReps != initialDraft?.assistedReps
     val contextualVoiceState = remember(voiceUiState, exercise.id, setIndex) {
         when (voiceUiState) {
             is WorkoutVoiceUiState.Listening -> voiceUiState.takeIf {
@@ -443,7 +461,7 @@ internal fun SetInputCardV2(
         weightError = false
         valueError = false
         
-        val weight = weightText.toDoubleOrNull() ?: 0.0
+        val weight = if (loadMode == LoadModeV2.BODYWEIGHT) 0.0 else (weightText.toDoubleOrNull() ?: 0.0)
         val value = if (isTimeMode) {
             (if (timerElapsedSeconds > 0) timerElapsedSeconds else valueText.toIntOrNull() ?: 0).toDouble()
         } else {
@@ -483,6 +501,8 @@ internal fun SetInputCardV2(
             actualIntensityValue = intensity,
             timerElapsedSeconds = if (isTimeMode) value.toInt() else null,
             timerTargetSeconds = if (isTimeMode) currentSet.targetDuration else null,
+            rom = romValue,
+            assistedReps = assistedReps,
         )
         onRecordV2(
             loadMode,
@@ -1004,20 +1024,25 @@ internal fun SetInputCardV2(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.Top,
                 ) {
-                    WorkoutStepperButton("-") {
-                        val current = weightText.toDoubleOrNull() ?: 0.0
-                        weightText = (current - 2.5).coerceAtLeast(0.0).toTrimmedNumberString()
-                        voiceFields = voiceFields - WorkoutVoiceField.WEIGHT
-                        weightError = false
-                    }
-                    OutlinedTextField(
-                        value = weightText,
-                        onValueChange = {
-                            weightText = filterDecimal(it)
+                    if (loadMode != LoadModeV2.BODYWEIGHT) {
+                        WorkoutStepperButton("-") {
+                            val current = weightText.toDoubleOrNull() ?: 0.0
+                            weightText = (current - 2.5).coerceAtLeast(0.0).toTrimmedNumberString()
                             voiceFields = voiceFields - WorkoutVoiceField.WEIGHT
                             weightError = false
+                        }
+                    }
+                    OutlinedTextField(
+                        value = if (loadMode == LoadModeV2.BODYWEIGHT) "Peso corporal" else weightText,
+                        onValueChange = {
+                            if (loadMode != LoadModeV2.BODYWEIGHT) {
+                                weightText = filterDecimal(it)
+                                voiceFields = voiceFields - WorkoutVoiceField.WEIGHT
+                                weightError = false
+                            }
                         },
                         modifier = Modifier.weight(1f),
+                        enabled = loadMode != LoadModeV2.BODYWEIGHT,
                         label = { Text(workoutLoadFieldLabel(loadMode)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -1037,11 +1062,13 @@ internal fun SetInputCardV2(
                         },
                         colors = workoutVoiceFieldColors(WorkoutVoiceField.WEIGHT in voiceFields, sessionAccentColor),
                     )
-                    WorkoutStepperButton("+") {
-                        val current = weightText.toDoubleOrNull() ?: 0.0
-                        weightText = (current + 2.5).toTrimmedNumberString()
-                        voiceFields = voiceFields - WorkoutVoiceField.WEIGHT
-                        weightError = false
+                    if (loadMode != LoadModeV2.BODYWEIGHT) {
+                        WorkoutStepperButton("+") {
+                            val current = weightText.toDoubleOrNull() ?: 0.0
+                            weightText = (current + 2.5).toTrimmedNumberString()
+                            voiceFields = voiceFields - WorkoutVoiceField.WEIGHT
+                            weightError = false
+                        }
                     }
                     WorkoutLoadModeControls(
                         modifier = Modifier.weight(1f),
@@ -1056,20 +1083,25 @@ internal fun SetInputCardV2(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        WorkoutStepperButton("-") {
-                            val current = weightText.toDoubleOrNull() ?: 0.0
-                            weightText = (current - 2.5).coerceAtLeast(0.0).toTrimmedNumberString()
-                            voiceFields = voiceFields - WorkoutVoiceField.WEIGHT
-                            weightError = false
-                        }
-                        OutlinedTextField(
-                            value = weightText,
-                            onValueChange = {
-                                weightText = filterDecimal(it)
+                        if (loadMode != LoadModeV2.BODYWEIGHT) {
+                            WorkoutStepperButton("-") {
+                                val current = weightText.toDoubleOrNull() ?: 0.0
+                                weightText = (current - 2.5).coerceAtLeast(0.0).toTrimmedNumberString()
                                 voiceFields = voiceFields - WorkoutVoiceField.WEIGHT
                                 weightError = false
+                            }
+                        }
+                        OutlinedTextField(
+                            value = if (loadMode == LoadModeV2.BODYWEIGHT) "Peso corporal" else weightText,
+                            onValueChange = {
+                                if (loadMode != LoadModeV2.BODYWEIGHT) {
+                                    weightText = filterDecimal(it)
+                                    voiceFields = voiceFields - WorkoutVoiceField.WEIGHT
+                                    weightError = false
+                                }
                             },
                             modifier = Modifier.weight(1f),
+                            enabled = loadMode != LoadModeV2.BODYWEIGHT,
                             label = { Text(workoutLoadFieldLabel(loadMode)) },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -1089,11 +1121,13 @@ internal fun SetInputCardV2(
                             },
                             colors = workoutVoiceFieldColors(WorkoutVoiceField.WEIGHT in voiceFields, sessionAccentColor),
                         )
-                        WorkoutStepperButton("+") {
-                            val current = weightText.toDoubleOrNull() ?: 0.0
-                            weightText = (current + 2.5).toTrimmedNumberString()
-                            voiceFields = voiceFields - WorkoutVoiceField.WEIGHT
-                            weightError = false
+                        if (loadMode != LoadModeV2.BODYWEIGHT) {
+                            WorkoutStepperButton("+") {
+                                val current = weightText.toDoubleOrNull() ?: 0.0
+                                weightText = (current + 2.5).toTrimmedNumberString()
+                                voiceFields = voiceFields - WorkoutVoiceField.WEIGHT
+                                weightError = false
+                            }
                         }
                     }
                     WorkoutLoadModeControls(
@@ -1347,6 +1381,65 @@ internal fun SetInputCardV2(
                 }
             }
 
+            if (exercise.trackRom) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Surface(
+                    color = Color.White.copy(alpha = 0.03f),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Rango de Movimiento (ROM)",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White.copy(alpha = 0.85f)
+                            )
+                            Text(
+                                text = "${romValue ?: 100}%",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Black,
+                                color = sessionAccentColor
+                            )
+                        }
+                        Slider(
+                            value = (romValue ?: 100).toFloat(),
+                            onValueChange = { romValue = it.roundToInt() },
+                            valueRange = 10f..100f,
+                            steps = 17,
+                            colors = SliderDefaults.colors(
+                                thumbColor = sessionAccentColor,
+                                activeTrackColor = sessionAccentColor,
+                                inactiveTrackColor = Color.White.copy(alpha = 0.15f)
+                            ),
+                            modifier = Modifier.fillMaxWidth().height(24.dp)
+                        )
+                        val romText = when {
+                            (romValue ?: 100) == 100 -> "ROM Completo (máximo estímulo y estiramiento)"
+                            (romValue ?: 100) >= 80 -> "ROM Casi Completo (buen estímulo mecánico)"
+                            (romValue ?: 100) >= 50 -> "ROM Parcial (estímulo reducido o específico)"
+                            else -> "ROM Muy Corto (parciales acotadas)"
+                        }
+                        Text(
+                            text = romText,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontStyle = FontStyle.Italic
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -1403,6 +1496,14 @@ internal fun SetInputCardV2(
                         },
                     )
                 }
+                AssistChip(
+                    onClick = { showAssistedDialog = true },
+                    label = {
+                        Text(
+                            assistedReps?.takeIf { it > 0 }?.let { "+$it asistidas" } ?: "Agregar asistidas"
+                        )
+                    }
+                )
                 if (isTimeMode) {
                     AssistChip(
                         onClick = {},
@@ -1583,6 +1684,16 @@ internal fun SetInputCardV2(
                 partialReps = it
                 showPartialDialog = false
             },
+        )
+    }
+    if (showAssistedDialog) {
+        AssistedRepsDialog(
+            initialValue = assistedReps,
+            onDismiss = { showAssistedDialog = false },
+            onConfirm = {
+                assistedReps = it
+                showAssistedDialog = false
+            }
         )
     }
     if (showDropSetModal) {
@@ -1866,6 +1977,42 @@ private fun PartialRepsDialog(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
+        },
+        confirmButton = {
+            Button(onClick = { onConfirm(text.toIntOrNull()?.takeIf { it > 0 }) }) {
+                Text("Guardar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onConfirm(null) }) {
+                Text("Limpiar")
+            }
+        },
+    )
+}
+
+@Composable
+private fun AssistedRepsDialog(
+    initialValue: Int?,
+    onDismiss: () -> Unit,
+    onConfirm: (Int?) -> Unit,
+) {
+    var text by remember(initialValue) { mutableStateOf(initialValue?.toString().orEmpty()) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Repeticiones Asistidas", fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Ingresa el número de repeticiones completadas con ayuda externa (forzadas).")
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it.filter(Char::isDigit) },
+                    label = { Text("Repeticiones con ayuda") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         },
         confirmButton = {
             Button(onClick = { onConfirm(text.toIntOrNull()?.takeIf { it > 0 }) }) {

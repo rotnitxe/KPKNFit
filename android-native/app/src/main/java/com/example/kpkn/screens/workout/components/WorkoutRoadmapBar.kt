@@ -211,36 +211,27 @@ fun WorkoutRoadmapBar(
                     animationSpec = tween(durationMillis = 220),
                 ) + fadeOut(animationSpec = tween(durationMillis = 140)),
             ) {
-                // EXPANDED MODE: Grouped muscular cockpit grid view
-                val groupedByMuscle = remember(roadmapGroups, parts) {
-                    roadmapGroups.groupBy { group ->
-                        val exercise = group.exercises.firstOrNull()
-                        val part = parts.firstOrNull { it.exercises.any { e -> e.id == exercise?.id } }
-                        guessMuscleGroup(exercise?.name.orEmpty(), part?.name)
-                    }
-                }
-
+                // EXPANDED MODE: Linear timeline roadmap connected with dashed vertical lines
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 380.dp)
                         .verticalScroll(rememberScrollState())
-                        .padding(start = 12.dp, end = 12.dp, bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Cockpit de Entrenamiento",
+                            text = "Cockpit de la Sesión",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        
-                        val totalExercisesCount = exercises.size
+
                         val totalCompletedCount = exercises.sumOf { e ->
                             e.sets.indices.sumOf { sIdx ->
                                 e.completionKeysForSet(sIdx).count { completedSets.containsKey(it) }
@@ -264,47 +255,124 @@ fun WorkoutRoadmapBar(
                         }
                     }
 
-                    val muscleList = groupedByMuscle.toList()
-                    val chunkedMuscles = remember(muscleList) { muscleList.chunked(2) }
+                    roadmapGroups.forEachIndexed { groupIdx, group ->
+                        val exercise = group.exercises.firstOrNull()
+                        if (exercise != null) {
+                            val idx = exercises.indexOfFirst { it.id == exercise.id }.coerceAtLeast(0)
+                            val part = parts.firstOrNull { it.exercises.any { e -> e.id == exercise.id } }
+                            val accent = accentByPartId[part?.id] ?: sessionAccentColor
+                            val partName = part?.name?.takeIf { it.isNotBlank() }
 
-                    chunkedMuscles.forEach { pair ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            pair.forEach { (muscle, groups) ->
-                                val groupDoneSets = groups.sumOf { g ->
-                                    g.exercises.sumOf { e ->
-                                        e.sets.indices.sumOf { sIdx ->
-                                            e.completionKeysForSet(sIdx).count { completedSets.containsKey(it) }
-                                        }
-                                    }
-                                }
-                                val groupTotalSets = groups.sumOf { g ->
-                                    g.exercises.sumOf { e ->
-                                        e.sets.indices.sumOf { e.completionKeysForSet(it).size }
-                                    }
-                                }
-
-                                val firstExercise = groups.firstOrNull()?.exercises?.firstOrNull()
-                                val targetIdx = if (firstExercise != null) exercises.indexOfFirst { it.id == firstExercise.id } else -1
-
-                                Box(modifier = Modifier.weight(1f)) {
-                                    MuscleProgressCard(
-                                        muscle = muscle,
-                                        doneSets = groupDoneSets,
-                                        totalSets = groupTotalSets,
-                                        sessionAccentColor = sessionAccentColor,
-                                        onClick = {
-                                            if (targetIdx >= 0) {
-                                                onSelect(targetIdx)
-                                            }
-                                        }
-                                    )
+                            val completedCount = group.exercises.sumOf { member ->
+                                member.sets.indices.sumOf { setIdx ->
+                                    member.completionKeysForSet(setIdx).count { key -> completedSets.containsKey(key) }
                                 }
                             }
-                            if (pair.size < 2) {
-                                Spacer(modifier = Modifier.weight(1f))
+                            val totalSets = group.exercises.sumOf { member ->
+                                member.sets.indices.sumOf { setIdx -> member.completionKeysForSet(setIdx).size }
+                            }
+                            val isAllDone = completedCount >= totalSets && totalSets > 0
+                            val isCurrent = group.exercises.any { it.id == exercises.getOrNull(currentIdx)?.id }
+                            val isLast = groupIdx == roadmapGroups.lastIndex
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(IntrinsicSize.Min)
+                            ) {
+                                // Left vertical dashed connection column
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.width(36.dp).fillMaxHeight()
+                                ) {
+                                    val dotColor = when {
+                                        isCurrent -> accent
+                                        isAllDone -> Color(0xFF66BB6A)
+                                        else -> Color.White.copy(alpha = 0.25f)
+                                    }
+                                    Spacer(Modifier.height(18.dp))
+                                    Surface(
+                                        shape = RoundedCornerShape(999.dp),
+                                        color = dotColor,
+                                        modifier = Modifier.size(12.dp)
+                                    ) {}
+                                    if (!isLast) {
+                                        androidx.compose.foundation.Canvas(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .width(2.dp)
+                                        ) {
+                                            val pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                                            drawLine(
+                                                color = Color.White.copy(alpha = 0.20f),
+                                                start = androidx.compose.ui.geometry.Offset(size.width / 2, 0f),
+                                                end = androidx.compose.ui.geometry.Offset(size.width / 2, size.height),
+                                                strokeWidth = 2f,
+                                                pathEffect = pathEffect
+                                            )
+                                        }
+                                    } else {
+                                        Spacer(Modifier.weight(1f))
+                                    }
+                                }
+
+                                // Right card content
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(bottom = 16.dp)
+                                ) {
+                                    if (group.groupId == null || group.exercises.size == 1) {
+                                        ExerciseRoadmapCard(
+                                            exercise = exercise,
+                                            completedCount = completedCount,
+                                            totalCount = totalSets,
+                                            isCurrent = isCurrent,
+                                            isAllDone = isAllDone,
+                                            accent = accent,
+                                            groupName = partName,
+                                            onClick = { onSelect(idx) },
+                                            onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
+                                        )
+                                    } else {
+                                        val currentRound = if (isCurrent) currentSetIdx + 1 else null
+                                        val totalRounds = group.groupId
+                                            ?.let(supersetGroupById::get)
+                                            ?.rounds
+                                            ?.takeIf { it > 0 }
+                                            ?: (group.exercises.maxOfOrNull { it.sets.size } ?: 0)
+                                        val badgeText = currentRound?.let { "Superserie • Ronda $it/$totalRounds" } ?: "Superserie • $totalRounds Rondas"
+
+                                        Surface(
+                                            shape = RoundedCornerShape(4.dp),
+                                            color = accent.copy(alpha = 0.15f),
+                                            modifier = Modifier.padding(bottom = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = badgeText,
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                                fontWeight = FontWeight.Black,
+                                                color = accent,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                        SupersetRoadmapCard(
+                                            exercises = group.exercises,
+                                            supersetNumber = group.groupId?.let(supersetOrdinalById::get) ?: 1,
+                                            supersetCount = supersetOrdinalById.size,
+                                            roundCount = totalRounds,
+                                            completedSets = completedSets,
+                                            isCurrent = isCurrent,
+                                            isAllDone = isAllDone,
+                                            accent = accent,
+                                            groupName = partName,
+                                            currentExerciseId = exercises.getOrNull(currentIdx)?.id,
+                                            currentRound = currentRound,
+                                            onClick = { onSelectGroup(group.groupId) },
+                                            onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

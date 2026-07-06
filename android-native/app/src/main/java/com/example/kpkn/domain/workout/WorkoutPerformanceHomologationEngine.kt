@@ -310,9 +310,25 @@ object WorkoutPerformanceHomologationEngine {
             )
         }
 
+        if (entry.rom != null && entry.rom < 85) {
+            return Suggestion(
+                suggestedLoad = currentLoad,
+                reason = "Priorizar mejorar ROM (${entry.rom}% registrado, objetivo >=85%)",
+                isFailure = entry.reachedFailure,
+            )
+        }
+
+        if (entry.assistedReps != null && entry.assistedReps > 0) {
+            return Suggestion(
+                suggestedLoad = currentLoad,
+                reason = "Consolidar carga sin ayuda (se reportaron ${entry.assistedReps} reps asistidas)",
+                isFailure = entry.reachedFailure,
+            )
+        }
+
         return when (entry.loadMode) {
             LoadModeV2.LOAD -> {
-                val base = currentLoad ?: return Suggestion(reason = "Sin carga registrada", isFailure = entry.reachedFailure)
+                val base = currentLoad ?: return Suggestion(reason = "Sin carga registrada", isFailure = entry.reachedFailure, suggestedLoadMode = LoadModeV2.LOAD)
                 val factor = when {
                     historyColor == HistoryColorV2.YELLOW || score >= 72 -> 1.025
                     score >= 58 -> 1.015
@@ -321,6 +337,7 @@ object WorkoutPerformanceHomologationEngine {
                 Suggestion(
                     suggestedLoad = roundToHalf(base * factor),
                     reason = if (factor > 1.0) "Subir carga por rendimiento" else "Mantener carga",
+                    suggestedLoadMode = LoadModeV2.LOAD,
                     isFailure = entry.reachedFailure,
                 )
             }
@@ -331,6 +348,7 @@ object WorkoutPerformanceHomologationEngine {
                         suggestedLoad = currentLoad,
                         suggestedTimeSeconds = entry.actualValue.toInt() + 5,
                         reason = "Subir tiempo objetivo +5s",
+                        suggestedLoadMode = LoadModeV2.BODYWEIGHT,
                         isFailure = entry.reachedFailure,
                     )
                 }
@@ -339,13 +357,6 @@ object WorkoutPerformanceHomologationEngine {
                     return Suggestion(
                         suggestedLoad = 0.0,
                         reason = "Registra tu peso en Nutrición para guía de lastre",
-                        isFailure = entry.reachedFailure,
-                    )
-                }
-                if (prior.consecutiveGreenSessions >= 2 || historyColor == HistoryColorV2.YELLOW) {
-                    return Suggestion(
-                        suggestedLoad = 0.0,
-                        reason = "Consolidar peso corporal antes de lastre",
                         suggestedLoadMode = LoadModeV2.BODYWEIGHT,
                         isFailure = entry.reachedFailure,
                     )
@@ -356,11 +367,11 @@ object WorkoutPerformanceHomologationEngine {
                 // Can do 4+ reps with +5kg? Derivation: r >= 37 - 33 * bw / (bw + 5)
                 val minRepsFor5kg = 37.0 - 33.0 * bodyW / (bodyW + 5.0)
                 val ready = safeReps.toDouble() >= minRepsFor5kg && score >= 55.0
-                if (ready) {
+                if (ready || prior.consecutiveGreenSessions >= 2 || historyColor == HistoryColorV2.YELLOW) {
                     return Suggestion(
-                        suggestedLoad = 0.0,
-                        reason = "Consolidar peso corporal antes de lastre",
-                        suggestedLoadMode = LoadModeV2.BODYWEIGHT,
+                        suggestedLoad = 2.5,
+                        reason = "Iniciar con lastre (+2.5kg)",
+                        suggestedLoadMode = LoadModeV2.LASTRE,
                         isFailure = entry.reachedFailure,
                     )
                 }
@@ -368,6 +379,7 @@ object WorkoutPerformanceHomologationEngine {
                 Suggestion(
                     suggestedLoad = 0.0,
                     reason = if (targetMinReps > safeReps) "Progresar reps (meta ~${targetMinReps} para lastre)" else "Solo peso corporal",
+                    suggestedLoadMode = LoadModeV2.BODYWEIGHT,
                     isFailure = entry.reachedFailure,
                 )
             }
@@ -378,6 +390,7 @@ object WorkoutPerformanceHomologationEngine {
                     return Suggestion(
                         suggestedLoad = roundToHalf(external + 2.5),
                         reason = "Agregar lastre",
+                        suggestedLoadMode = LoadModeV2.LASTRE,
                         isFailure = entry.reachedFailure,
                     )
                 }
@@ -386,6 +399,7 @@ object WorkoutPerformanceHomologationEngine {
                         suggestedLoad = currentLoad,
                         suggestedTimeSeconds = entry.actualValue.toInt() + 5,
                         reason = "Subir tiempo objetivo +5s",
+                        suggestedLoadMode = LoadModeV2.LASTRE,
                         isFailure = entry.reachedFailure,
                     )
                 }
@@ -393,6 +407,7 @@ object WorkoutPerformanceHomologationEngine {
                     return Suggestion(
                         suggestedLoad = roundToHalf(external + 2.5),
                         reason = "Transición a lastre",
+                        suggestedLoadMode = LoadModeV2.LASTRE,
                         isFailure = entry.reachedFailure,
                     )
                 }
@@ -400,18 +415,20 @@ object WorkoutPerformanceHomologationEngine {
                     return Suggestion(
                         suggestedLoad = roundToHalf(2.5),
                         reason = "Iniciar con lastre",
+                        suggestedLoadMode = LoadModeV2.LASTRE,
                         isFailure = entry.reachedFailure,
                     )
                 }
                 Suggestion(
                     suggestedLoad = currentLoad,
                     reason = "Progresar por reps/intensidad",
+                    suggestedLoadMode = LoadModeV2.LASTRE,
                     isFailure = entry.reachedFailure,
                 )
             }
 
             LoadModeV2.ASSISTED -> {
-                val assistance = currentLoad ?: return Suggestion(reason = "Sin asistencia registrada", isFailure = entry.reachedFailure)
+                val assistance = currentLoad ?: return Suggestion(reason = "Sin asistencia registrada", isFailure = entry.reachedFailure, suggestedLoadMode = LoadModeV2.ASSISTED)
                 val beatPlannedTarget = entry.plannedTarget?.let { target ->
                     entry.actualValue >= target + 1.0
                 } ?: false
@@ -431,12 +448,14 @@ object WorkoutPerformanceHomologationEngine {
                     return Suggestion(
                         suggestedLoad = roundToHalf(nextAssistance),
                         reason = "Reducir asistencia",
+                        suggestedLoadMode = LoadModeV2.ASSISTED,
                         isFailure = entry.reachedFailure,
                     )
                 }
                 Suggestion(
                     suggestedLoad = roundToHalf(assistance),
                     reason = "Mantener asistencia",
+                    suggestedLoadMode = LoadModeV2.ASSISTED,
                     isFailure = entry.reachedFailure,
                 )
             }
@@ -459,7 +478,14 @@ object WorkoutPerformanceHomologationEngine {
             UnitModeV2.TIME -> {
                 val load = normalizeLoad(entry)
                 val seconds = entry.actualValue.coerceAtLeast(1.0)
-                (load * seconds.pow(0.35)).coerceAtLeast(1.0)
+                if (entry.loadMode == LoadModeV2.ASSISTED) {
+                    val assistance = entry.loggedLoad ?: 0.0
+                    ((200.0 - assistance) * seconds.pow(0.35)).coerceAtLeast(1.0)
+                } else if (entry.loadMode == LoadModeV2.BODYWEIGHT) {
+                    seconds.pow(0.35).coerceAtLeast(1.0)
+                } else {
+                    (load * seconds.pow(0.35)).coerceAtLeast(1.0)
+                }
             }
 
             UnitModeV2.DISTANCE -> {
@@ -473,16 +499,23 @@ object WorkoutPerformanceHomologationEngine {
             -> {
                 val load = normalizeLoad(entry)
                 val reps = entry.actualValue.toInt().coerceAtLeast(1)
-                calculateHybrid1RM(load, reps, isAmrap = entry.amrapOverride).coerceAtLeast(1.0)
+                if (entry.loadMode == LoadModeV2.ASSISTED) {
+                    val assistance = entry.loggedLoad ?: 0.0
+                    (200.0 - assistance) * (1.0 + reps * 0.03)
+                } else if (entry.loadMode == LoadModeV2.BODYWEIGHT) {
+                    reps.toDouble()
+                } else {
+                    calculateHybrid1RM(load, reps, isAmrap = entry.amrapOverride).coerceAtLeast(1.0)
+                }
             }
         }
     }
 
     private fun normalizeLoad(entry: SetEntryV2): Double = when (entry.loadMode) {
         LoadModeV2.LOAD -> entry.loggedLoad ?: 0.0
-        LoadModeV2.BODYWEIGHT -> entry.bodyWeight ?: 0.0
-        LoadModeV2.LASTRE -> (entry.bodyWeight ?: 0.0) + (entry.loggedLoad ?: 0.0) + (entry.barWeightKg ?: 0.0)
-        LoadModeV2.ASSISTED -> max(0.0, (entry.bodyWeight ?: 0.0) - (entry.loggedLoad ?: 0.0))
+        LoadModeV2.BODYWEIGHT -> 0.0
+        LoadModeV2.LASTRE -> entry.loggedLoad ?: 0.0
+        LoadModeV2.ASSISTED -> entry.loggedLoad ?: 0.0
     }
 
     private fun normalizeScore(metric: Double, mean: Double, stdDev: Double): Double {

@@ -37,6 +37,7 @@ import com.example.kpkn.services.workout.ActiveWorkoutHolder
 import com.example.kpkn.services.workout.TimerAction
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.services.workout.WorkoutVoiceController
+import com.example.kpkn.services.workout.WorkoutTtsManager
 import com.example.kpkn.services.workout.VoiceSessionCommand
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.services.workout.VoicePipelineStage
@@ -118,7 +119,10 @@ data class WorkoutUiState(
     val startTimeMs: Long = System.currentTimeMillis(),
     val isComplete: Boolean = false,
     // Tanda 1: tags, history
-    val exerciseTags: Map<String, String> = emptyMap(),   // exerciseId → active tag
+    val exerciseTags: Map<String, String> = emptyMap(),   // exerciseId → active tag (legacy compat)
+    val activeTagsByExercise: Map<String, List<String>> = emptyMap(), // exerciseId → active main tag IDs
+    val activeSubTagsByExercise: Map<String, List<String>> = emptyMap(), // exerciseId → active sub-tag IDs
+    val userCreatedTags: Map<String, List<WorkoutTag>> = emptyMap(), // exerciseKey → all user-created tags
     val showHistorySheet: Boolean = false,
     val historySheetExerciseDbId: String? = null,
     // Tanda 2: deviations
@@ -173,7 +177,14 @@ data class WorkoutUiState(
     val previousSessionDiscomforts: List<String> = emptyList(),
     val showExecutionErrorDiscomfortSheet: Boolean = false,
     val amrapCalibrationMessage: String? = null,
+    val targetDurationMinutes: Int? = null,
+    val customTargetDurationMinutes: Int? = null,
+    val sessionTimeRemainingSeconds: Int? = null,
+    val pacingAlertMessage: String? = null,
     val recordingSetKey: String? = null,
+    val coachPaceAlert: String? = null,
+    val pendingVolumeAdvances: List<MuscleAdvance> = emptyList(),
+    val showVolumeAdvanceModal: Boolean = false,
 )
 
 data class WorkoutShareSnapshot(
@@ -206,8 +217,18 @@ class WorkoutViewModel(
 ) : ViewModel() {
 
     private val repository = ProgramRepository.getInstance()
+    private var deferredOnComplete: (() -> Unit)? = null
+    private val exerciseIndex by lazy {
+        val base = com.example.kpkn.data.exercises.EXERCISE_DATABASE.associateBy { it.id.lowercase() }
+        val aliases = com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES.mapNotNull { (alias, canonical) ->
+            base[canonical]?.let { alias.lowercase() to it }
+        }.toMap()
+        base + aliases
+    }
     private val voiceRecognizer = WorkoutVoiceRecognizer(appContext.applicationContext)
     private val voiceController = WorkoutVoiceController(appContext.applicationContext)
+    private val sessionTtsManager = WorkoutTtsManager(appContext.applicationContext)
+    private var sessionTimerJob: Job? = null
     private val performanceRangeDao: PerformanceRangeDao = KpknDatabase.getInstance(appContext).performanceRangeDao()
     private val performanceSnapshotDao: PerformanceSnapshotDao = KpknDatabase.getInstance(appContext).performanceSnapshotDao()
     private val performanceRangeCache = mutableMapOf<String, PerformanceRangeData>()
@@ -216,12 +237,18 @@ class WorkoutViewModel(
     private val _uiState = MutableStateFlow(WorkoutUiState(programId = programId))
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
 
-    val allUserTags: StateFlow<List<String>> = combine(repository.history, repository.contextProfiles) { historyList, profilesMap ->
+    val allUserTags: StateFlow<List<String>> = combine(repository.history, repository.contextProfiles, _uiState) { historyList, profilesMap, state ->
         val tags = mutableSetOf<String>()
-        // Baseline presets
-        tags.addAll(listOf("Base", "Top set", "Back-off", "Tecnica", "Volumen", "Control", "PR", "Pesado", "Ligero", "Pump", "Máquina", "Sentado", "De pie", "Cable", "Unilateral", "Inclinado", "Declinado"))
 
-        // Add tags from completed sets in history
+        // Add tags from user-created WorkoutTag names (new system)
+        state.userCreatedTags.values.flatten().forEach { tag ->
+            tag.name.takeIf { it.isNotBlank() }?.let { tags.add(it) }
+            tag.subTags.forEach { sub ->
+                sub.name.takeIf { it.isNotBlank() }?.let { tags.add("${tag.name}·$it") }
+            }
+        }
+
+        // Legacy: tags from completed sets in history
         historyList.forEach { log ->
             log.completedExercises.forEach { ex ->
                 ex.sets.forEach { set ->
@@ -233,7 +260,7 @@ class WorkoutViewModel(
             }
         }
 
-        // Add tags from context profiles
+        // Legacy: tags from context profiles
         profilesMap.values.forEach { profile ->
             profile.tagId?.takeIf { it.isNotBlank() }?.let { tags.add(it) }
         }
@@ -280,6 +307,7 @@ class WorkoutViewModel(
     val lastLog: WorkoutLog? get() = repository.getLogsForSession(sessionId).firstOrNull()
 
     init {
+        sessionTtsManager.initialize()
         voiceController.initialize(viewModelScope)
         voiceController.exerciseInfoProvider = provider@{
             val s = _uiState.value
@@ -383,6 +411,32 @@ class WorkoutViewModel(
                 putIfAbsent(exerciseId, profileTag)
             }
         }
+        val restoredActiveTags = if (resumedState != null) {
+            resumedState.activeTags.takeIf { it.isNotEmpty() }?.toMutableMap()
+                ?: buildMap {
+                    restoredTags.forEach { (exId, tagName) ->
+                        put(exId, listOf(tagName))
+                    }
+                }.toMutableMap()
+        } else {
+            mutableMapOf<String, List<String>>()
+        }
+        val restoredActiveSubTags = resumedState?.activeSubTags?.toMutableMap() ?: mutableMapOf()
+        val restoredUserCreatedTags = resumedState?.userCreatedTags?.toMutableMap() ?: mutableMapOf()
+
+        // Auto-migrate legacy tags to userCreatedTags
+        if (resumedState == null) {
+            exercisesForMode.forEach { exercise ->
+                val exKey = canonicalExerciseKey(exercise)
+                if (!restoredUserCreatedTags.containsKey(exKey)) {
+                    val migrated = migrateContextProfilesToTags(hydratedProfiles.first, exKey)
+                    if (migrated.isNotEmpty()) {
+                        restoredUserCreatedTags[exKey] = migrated
+                    }
+                }
+            }
+        }
+
         if (resumedState == null) {
             val historicalLogs = repository.history.value
             val dayOfWeek = java.time.LocalDate.now().dayOfWeek
@@ -459,6 +513,9 @@ class WorkoutViewModel(
                 warmupCompletedExerciseIds = restoredWarmupCompletedExerciseIds,
                 mobilityCompletedExerciseIds = restoredMobilityCompletedExerciseIds,
                 exerciseTags = restoredTags,
+                activeTagsByExercise = restoredActiveTags,
+                activeSubTagsByExercise = restoredActiveSubTags,
+                userCreatedTags = restoredUserCreatedTags,
                 startTimeMs = restoredStartTime,
                 featureFlags = featureFlags,
                 contextualPerformanceCache = repository.contextPerformance.value,
@@ -476,6 +533,8 @@ class WorkoutViewModel(
                 editingState = restoredEditingState,
                 persistedLoadModeBySet = resumedState?.persistedLoadModeBySet ?: emptyMap(),
                 persistedLoadModeByExercise = resumedState?.persistedLoadModeByExercise ?: emptyMap(),
+                customTargetDurationMinutes = resumedState?.customTargetDurationMinutes,
+                targetDurationMinutes = resumedState?.customTargetDurationMinutes ?: restoredSession.targetDurationMinutes,
             )
         }
 
@@ -525,6 +584,10 @@ class WorkoutViewModel(
                     mesoIndex = foundMesoIdx,
                     weekId = foundWeekId,
                     activeMode = restoredMode,
+                    exerciseTags = restoredTags,
+                    activeTags = restoredActiveTags,
+                    activeSubTags = restoredActiveSubTags,
+                    userCreatedTags = restoredUserCreatedTags,
                     contextProfilesV3 = hydratedProfiles.first,
                     activeContextProfileByExerciseId = restoredActiveProfiles,
                     skippedExerciseIds = restoredSkippedExerciseIds,
@@ -562,6 +625,12 @@ class WorkoutViewModel(
             ?: emptyList()
         if (lastDiscomforts.isNotEmpty()) {
             _uiState.update { it.copy(previousSessionDiscomforts = lastDiscomforts) }
+        }
+        val targetMinutes = _uiState.value.customTargetDurationMinutes ?: restoredSession.targetDurationMinutes
+        if (targetMinutes != null) {
+            val elapsedSeconds = ((System.currentTimeMillis() - restoredStartTime) / 1000L).coerceAtLeast(0)
+            val remainingSeconds = ((targetMinutes * 60) - elapsedSeconds).toInt()
+            startSessionTimer(remainingSeconds)
         }
         return true
     }
@@ -601,7 +670,7 @@ class WorkoutViewModel(
         }
     }
 
-    private fun canonicalExerciseKey(exercise: Exercise): String = exercise.resolvedCanonicalExerciseId()
+    fun canonicalExerciseKey(exercise: Exercise): String = exercise.resolvedCanonicalExerciseId()
 
     private fun inferDefaultLoadModeFromCatalog(exercise: Exercise): LoadModeV2 {
         val info = catalogInfoForExercise(exercise) ?: return LoadModeV2.LOAD
@@ -728,9 +797,15 @@ class WorkoutViewModel(
     fun setActiveContextProfile(exerciseId: String, profileId: String) {
         val profile = _uiState.value.contextProfilesV3[profileId] ?: return
         _uiState.update {
+            val tagIds = if (profile.tagId != null) {
+                val existingTags = tagsForExercise(exerciseId)
+                val match = existingTags.firstOrNull { it.name == profile.tagId }
+                if (match != null) listOf(match.id) else emptyList()
+            } else emptyList()
             it.copy(
                 activeContextProfileByExerciseId = it.activeContextProfileByExerciseId + (exerciseId to profileId),
                 exerciseTags = if (profile.tagId != null) it.exerciseTags + (exerciseId to profile.tagId) else it.exerciseTags,
+                activeTagsByExercise = if (tagIds.isNotEmpty()) it.activeTagsByExercise + (exerciseId to tagIds) else it.activeTagsByExercise,
             )
         }
         persistOngoingState()
@@ -748,6 +823,11 @@ class WorkoutViewModel(
         )
         repository.upsertContextProfile(updated)
         _uiState.update {
+            val tagIds = if (updated.tagId != null && makeActive) {
+                val existingTags = tagsForExercise(exercise.id)
+                val match = existingTags.firstOrNull { it.name == updated.tagId }
+                if (match != null) listOf(match.id) else emptyList()
+            } else emptyList()
             it.copy(
                 contextProfilesV3 = it.contextProfilesV3 + (updated.id to updated),
                 activeContextProfileByExerciseId = if (makeActive) {
@@ -756,9 +836,210 @@ class WorkoutViewModel(
                     it.activeContextProfileByExerciseId
                 },
                 exerciseTags = if (updated.tagId != null) it.exerciseTags + (exercise.id to updated.tagId) else it.exerciseTags,
+                activeTagsByExercise = if (tagIds.isNotEmpty()) it.activeTagsByExercise + (exercise.id to tagIds) else it.activeTagsByExercise,
             )
         }
         persistOngoingState()
+    }
+
+    // ─── Tag CRUD (new multi-tag system) ──────────────────────────────────────
+
+    fun createTag(exerciseId: String, name: String): WorkoutTag {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return WorkoutTag()
+        val exKey = canonicalExerciseKey(exercise)
+        val tag = WorkoutTag(
+            id = UUID.randomUUID().toString(),
+            name = name.trim(),
+            exerciseKey = exKey,
+            createdAtIso = java.time.Instant.now().toString(),
+            lastUsedAtIso = java.time.Instant.now().toString(),
+            usageCount = 0,
+        )
+        val existingForEx = state.userCreatedTags[exKey].orEmpty()
+        _uiState.update {
+            it.copy(userCreatedTags = it.userCreatedTags + (exKey to (existingForEx + tag)))
+        }
+        persistOngoingState()
+        toggleMainTagActive(exerciseId, tag.id)
+        return tag
+    }
+
+    fun deleteTag(exerciseId: String, tagId: String) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
+        val exKey = canonicalExerciseKey(exercise)
+        val tagName = state.userCreatedTags[exKey].orEmpty().firstOrNull { it.id == tagId }?.name
+        val existingForEx = state.userCreatedTags[exKey].orEmpty().filter { it.id != tagId }
+        _uiState.update {
+            it.copy(
+                userCreatedTags = it.userCreatedTags + (exKey to existingForEx),
+                activeTagsByExercise = it.activeTagsByExercise.mapValues { (exId, tagIds) ->
+                    if (exId == exerciseId) tagIds.filter { it != tagId } else tagIds
+                },
+                exerciseTags = if (tagName != null && state.exerciseTags[exerciseId] == tagName) it.exerciseTags - exerciseId else it.exerciseTags,
+            )
+        }
+        persistOngoingState()
+    }
+
+    fun renameTag(exerciseId: String, tagId: String, newName: String) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
+        val exKey = canonicalExerciseKey(exercise)
+        val trimmedName = newName.trim()
+        val oldTag = state.userCreatedTags[exKey].orEmpty().firstOrNull { it.id == tagId } ?: return
+        val oldName = oldTag.name
+        val updatedForEx = state.userCreatedTags[exKey].orEmpty().map { tag ->
+            if (tag.id == tagId) tag.copy(name = trimmedName) else tag
+        }
+        _uiState.update {
+            it.copy(
+                userCreatedTags = it.userCreatedTags + (exKey to updatedForEx),
+                exerciseTags = if (oldName == it.exerciseTags[exerciseId]) {
+                    it.exerciseTags + (exerciseId to trimmedName)
+                } else {
+                    it.exerciseTags
+                },
+            )
+        }
+        persistOngoingState()
+    }
+
+    fun toggleMainTagActive(exerciseId: String, tagId: String) {
+        _uiState.update { state ->
+            val currentTags = state.activeTagsByExercise[exerciseId].orEmpty()
+            val updatedTags = if (tagId in currentTags) {
+                currentTags - tagId  // Desactivar
+            } else {
+                currentTags + tagId  // Activar (reemplaza la selección única)
+            }
+            val activeTagName = state.userCreatedTags.values.flatten()
+                .firstOrNull { it.id == tagId }?.name
+            state.copy(
+                activeTagsByExercise = state.activeTagsByExercise + (exerciseId to updatedTags),
+                exerciseTags = if (activeTagName != null) {
+                    state.exerciseTags + (exerciseId to activeTagName)
+                } else {
+                    state.exerciseTags - exerciseId
+                },
+            )
+        }
+        persistOngoingState()
+    }
+
+    fun addSubTag(exerciseId: String, tagId: String, name: String, category: SubTagCategory) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
+        val exKey = canonicalExerciseKey(exercise)
+        val subTag = WorkoutSubTag(
+            id = UUID.randomUUID().toString(),
+            name = name.trim(),
+            category = category,
+        )
+        val existingForEx = state.userCreatedTags[exKey].orEmpty()
+        val updatedForEx = existingForEx.map { tag ->
+            if (tag.id == tagId) tag.copy(subTags = tag.subTags + subTag) else tag
+        }
+        _uiState.update {
+            it.copy(userCreatedTags = it.userCreatedTags + (exKey to updatedForEx))
+        }
+        persistOngoingState()
+    }
+
+    fun removeSubTag(exerciseId: String, tagId: String, subTagId: String) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
+        val exKey = canonicalExerciseKey(exercise)
+        val existingForEx = state.userCreatedTags[exKey].orEmpty()
+        val updatedForEx = existingForEx.map { tag ->
+            if (tag.id == tagId) tag.copy(subTags = tag.subTags.filter { it.id != subTagId }) else tag
+        }
+        _uiState.update {
+            it.copy(
+                userCreatedTags = it.userCreatedTags + (exKey to updatedForEx),
+                activeSubTagsByExercise = it.activeSubTagsByExercise.mapValues { (exId, subIds) ->
+                    if (exId == exerciseId) subIds.filter { it != subTagId } else subIds
+                },
+            )
+        }
+        persistOngoingState()
+    }
+
+    fun toggleSubTagActive(exerciseId: String, subTagId: String) {
+        _uiState.update { state ->
+            val currentSubIds = state.activeSubTagsByExercise[exerciseId].orEmpty()
+            val updatedSubIds = if (subTagId in currentSubIds) {
+                currentSubIds - subTagId
+            } else {
+                currentSubIds + subTagId
+            }
+            state.copy(
+                activeSubTagsByExercise = state.activeSubTagsByExercise + (exerciseId to updatedSubIds),
+            )
+        }
+        persistOngoingState()
+    }
+
+    fun clearAllTags(exerciseId: String) {
+        _uiState.update {
+            it.copy(
+                activeTagsByExercise = it.activeTagsByExercise - exerciseId,
+                activeSubTagsByExercise = it.activeSubTagsByExercise - exerciseId,
+                exerciseTags = it.exerciseTags - exerciseId,
+            )
+        }
+        persistOngoingState()
+    }
+
+    fun tagsForExercise(exerciseId: String): List<WorkoutTag> {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return emptyList()
+        val exKey = canonicalExerciseKey(exercise)
+        return state.userCreatedTags[exKey].orEmpty()
+    }
+
+    fun activeMainTags(exerciseId: String): List<WorkoutTag> {
+        val state = _uiState.value
+        val tagIds = state.activeTagsByExercise[exerciseId].orEmpty()
+        return tagsForExercise(exerciseId).filter { it.id in tagIds }
+    }
+
+    fun activeSubTags(exerciseId: String): List<WorkoutSubTag> {
+        val state = _uiState.value
+        val subTagIds = state.activeSubTagsByExercise[exerciseId].orEmpty()
+        return tagsForExercise(exerciseId).flatMap { it.subTags }.filter { it.id in subTagIds }
+    }
+
+    /**
+     * Auto-migrate legacy WorkoutContextProfile → WorkoutTag
+     */
+    private fun migrateContextProfilesToTags(
+        profiles: Map<String, WorkoutContextProfile>,
+        exerciseKey: String,
+    ): List<WorkoutTag> {
+        return profiles.values
+            .filter { it.exerciseKey == exerciseKey }
+            .filter { it.tagId != null || it.setupLabel != null }
+            .distinctBy { (it.tagId ?: it.setupLabel ?: it.id) }
+            .map { profile ->
+                val subTags = buildList {
+                    profile.machineBrand?.let { add(WorkoutSubTag(name = it, category = SubTagCategory.MARCA)) }
+                    profile.setupDetails?.seatPosition?.let { add(WorkoutSubTag(name = "Asiento: $it", category = SubTagCategory.SETUP)) }
+                    profile.setupDetails?.pinPosition?.let { add(WorkoutSubTag(name = "Pin: $it", category = SubTagCategory.SETUP)) }
+                    profile.setupDetails?.barWeightKg?.let { add(WorkoutSubTag(name = "Barra: ${it}kg", category = SubTagCategory.SETUP)) }
+                    profile.setupDetails?.equipmentNotes?.let { add(WorkoutSubTag(name = it, category = SubTagCategory.SETUP)) }
+                }
+                WorkoutTag(
+                    id = profile.id,
+                    name = profile.tagId ?: profile.setupLabel ?: "Migrado",
+                    exerciseKey = profile.exerciseKey,
+                    subTags = subTags,
+                    createdAtIso = profile.createdAtIso ?: "",
+                    lastUsedAtIso = profile.lastUsedAtIso ?: "",
+                    usageCount = profile.usageCount,
+                )
+            }
     }
 
     private fun inferUnitMode(exercise: Exercise, set: ExerciseSet): UnitModeV2 {
@@ -778,11 +1059,13 @@ class WorkoutViewModel(
             resolvePersistedLoadModeForSet(
                 exerciseId = exercise.id,
                 setIdx = setIdx,
+                tagId = state.exerciseTags[exercise.id],
                 persistedLoadModeBySet = state.persistedLoadModeBySet,
                 persistedLoadModeByExercise = state.persistedLoadModeByExercise,
             )?.let { return it }
         } else {
-            state.persistedLoadModeByExercise[exercise.id]?.let { return it }
+            val exKey = workoutExerciseContextKey(exercise.id, state.exerciseTags[exercise.id])
+            state.persistedLoadModeByExercise[exKey]?.let { return it }
         }
         val plannedSet = setIdx?.let { exercise.sets.getOrNull(it) }
         return plannedSet?.let(::inferLoadMode)
@@ -884,7 +1167,12 @@ class WorkoutViewModel(
             resolvedLoadMode = LoadModeV2.BODYWEIGHT
         }
         val resolvedBodyWeight = bodyWeight ?: currentBodyWeight()
-        val resolvedTagId = tagId ?: activeProfile?.tagId ?: state.exerciseTags[exercise.id]
+        val resolvedTagId = tagId ?: activeProfile?.tagId
+            ?: state.activeTagsByExercise[exercise.id]?.let { ids ->
+                state.userCreatedTags.values.flatten().firstOrNull { it.id in ids }?.name
+            }
+            ?: state.exerciseTags[exercise.id]
+        val resolvedSubTagIds = state.activeSubTagsByExercise[exercise.id].orEmpty()
         val resolvedSetupId = setupId ?: activeProfile?.setupProfileId ?: plannedSet?.defaultSetupProfileIdV3 ?: plannedSet?.setupId
         val resolvedMachineBrand = machineBrand ?: activeProfile?.machineBrand ?: plannedSet?.machineBrand
         val isUnilateralExercise = exercise.isEffectivelyUnilateral()
@@ -904,12 +1192,19 @@ class WorkoutViewModel(
             0.0
         }
 
+        val techSubTags = state.userCreatedTags.values.flatten()
+            .flatMap { tag -> tag.subTags.filter { it.id in resolvedSubTagIds && it.category in setOf(SubTagCategory.TECNICA, SubTagCategory.MARCA) } }
+            .map { it.name.lowercase().replace(" ", "_") }
+            .sorted()
+            .joinToString("+")
+            .ifBlank { null }
         val contextKey = buildWorkoutContextKey(
             exerciseId = canonicalExerciseKey(exercise),
             machineBrand = resolvedMachineBrand,
             tagId = resolvedTagId,
             loadMode = resolvedLoadMode,
             unitMode = resolvedUnitMode,
+            techSubTags = techSubTags,
         )
 
         val actualIntensityMode = advanced.actualIntensityMode ?: when {
@@ -1000,6 +1295,8 @@ class WorkoutViewModel(
             contextKey = contextKey,
             timeProgressionStrategy = plannedSet?.timeProgressionStrategyV3 ?: TimeProgressionStrategyV3.LOAD_THEN_TIME,
             barWeightKg = resolvedBarWeightKg,
+            rom = advanced.rom,
+            assistedReps = advanced.assistedReps,
         )
 
         val evaluation = if (
@@ -1060,6 +1357,7 @@ class WorkoutViewModel(
                 debt = outcome.debt,
                 contextProfileId = activeProfile?.id,
                 tagId = resolvedTagId,
+                subTagIds = resolvedSubTagIds,
                 setupProfileId = resolvedSetupId,
                 machineBrand = resolvedMachineBrand,
                 supersetId = exercise.supersetGroupRefOrLegacyId(),
@@ -1229,18 +1527,34 @@ class WorkoutViewModel(
                 -> plannedRestForKind.coerceAtLeast(0)
                 RestTimerKind.STANDARD -> plannedRestForKind.coerceAtLeast(10)
             }.let { if (wasLastSet && it <= 0) 10 else it }
+            val adjustedPlanned = adjustRestTimeForPace(plannedRest)
+            val adjustedAdaptive = adjustRestTimeForPace(adaptiveRest)
+
+            // ── Feature 4: Skip/ajuste de timer para dropsets/rest-pause programados ──
+            val hasPlannedDropSet = plannedSet?.plannedIntensityTechniques?.any {
+                it.type == com.example.kpkn.data.models.TechniqueType.DROP_SET
+            } == true
+            val hasPlannedRestPause = plannedSet?.plannedIntensityTechniques?.any {
+                it.type == com.example.kpkn.data.models.TechniqueType.REST_PAUSE
+            } == true
+            val effectivePlanned = when {
+                hasPlannedDropSet -> 0   // Drop-set: sin descanso, avance inmediato
+                hasPlannedRestPause -> 10 // Rest-pause: timer fijo de 10 s
+                else -> adjustedPlanned
+            }
+
             val pendingSuggestion = PendingRestSuggestion(
-                plannedSeconds = plannedRest,
-                adaptiveSeconds = adaptiveRest.coerceAtLeast(10),
+                plannedSeconds = effectivePlanned,
+                adaptiveSeconds = if (hasPlannedDropSet) 0 else adjustedAdaptive.coerceAtLeast(10),
                 exerciseName = exercise.name,
                 exerciseId = exercise.id,
                 lastSet = completedSet,
                 advancedFeedback = advanced,
             )
             _uiState.update { it.copy(pendingRestSuggestion = pendingSuggestion) }
-            if (plannedRest > 0 && !(isExecutionError && !wasLastSet)) {
+            if (effectivePlanned > 0 && !(isExecutionError && !wasLastSet)) {
                 startRestTimer(
-                    seconds = plannedRest,
+                    seconds = effectivePlanned,
                     advanceOnFinish = false,
                     lastSet = completedSet,
                     advancedFeedback = advanced,
@@ -1288,6 +1602,7 @@ class WorkoutViewModel(
             setDrain = setDrain,
             sessionProgress = sessionProgress,
         )
+        checkPaceCoachAlert()
         } finally {
             recordingGate.finish(recordingKey)
             _uiState.update { current ->
@@ -1298,6 +1613,83 @@ class WorkoutViewModel(
                 }
             }
         }
+    }
+
+    fun checkPaceCoachAlert() {
+        val state = _uiState.value
+        val targetMin = state.customTargetDurationMinutes ?: state.session?.targetDurationMinutes
+        if (targetMin == null || targetMin <= 0 || state.isComplete) {
+            if (state.coachPaceAlert != null || state.pacingAlertMessage != null) {
+                _uiState.update { it.copy(coachPaceAlert = null, pacingAlertMessage = null) }
+            }
+            return
+        }
+
+        val elapsedSeconds = ((System.currentTimeMillis() - state.startTimeMs) / 1000L).coerceAtLeast(0)
+        val remainingSeconds = ((targetMin * 60) - elapsedSeconds).toInt()
+        val remainingMin = remainingSeconds / 60
+        val allExercises = visibleExercises(state)
+        val totalSets = allExercises.sumOf { it.sets.size }
+        if (totalSets == 0) return
+
+        val uniqueCompletedSets = state.completedSets.keys.map { key ->
+            val parts = key.split("_")
+            if (parts.size >= 2) "${parts[0]}_${parts[1]}" else key
+        }.distinct().size
+
+        val progress = uniqueCompletedSets.toDouble() / totalSets.toDouble()
+        if (progress >= 1.0) return
+
+        // Expected progress at current time
+        val expectedProgress = elapsedSeconds.toDouble() / (targetMin * 60.0)
+
+        // 1. Determine alert category
+        val newAlert = when {
+            remainingMin <= 0 -> "excedido"
+            progress < expectedProgress - 0.15 && elapsedSeconds > 5 * 60 -> "retrasado"
+            progress < expectedProgress - 0.05 && elapsedSeconds > 5 * 60 -> "apurar"
+            else -> null
+        }
+
+        val alertChanged = state.coachPaceAlert != newAlert
+        if (alertChanged) {
+            _uiState.update { it.copy(coachPaceAlert = newAlert) }
+        }
+
+        // 2. TTS and user-facing messages
+        if (progress < expectedProgress - 0.15 && elapsedSeconds > 5 * 60) {
+            val remainingSets = totalSets - uniqueCompletedSets
+            val safeRemainingMin = remainingMin.coerceAtLeast(0)
+            val message = "Ritmo lento. Quedan $remainingSets series y solo $safeRemainingMin minutos."
+            _uiState.update { it.copy(pacingAlertMessage = message) }
+            sessionTtsManager.speak(message, queueFlush = true)
+        } else if (remainingMin <= 0) {
+            val message = "Tiempo estimado de sesión agotado."
+            _uiState.update { it.copy(pacingAlertMessage = message) }
+            if (alertChanged) {
+                sessionTtsManager.speak(message, queueFlush = true)
+            }
+        } else {
+            _uiState.update { it.copy(pacingAlertMessage = null) }
+        }
+    }
+
+    private fun adjustRestTimeForPace(baseSeconds: Int): Int {
+        val state = _uiState.value
+        val targetMin = state.customTargetDurationMinutes ?: state.session?.targetDurationMinutes ?: return baseSeconds
+        if (targetMin <= 0) return baseSeconds
+
+        val elapsedMin = ((System.currentTimeMillis() - state.startTimeMs) / 60000).toInt()
+        val remainingMin = targetMin - elapsedMin
+        val totalSets = visibleExercises(state).sumOf { it.sets.size }
+        val completedSets = state.completedSets.size
+        val progress = if (totalSets > 0) completedSets.toFloat() / totalSets else 0f
+
+        val needsHurry = remainingMin <= 15 && progress < 0.50f
+        if (needsHurry && baseSeconds > 60) {
+            return 60.coerceAtLeast(baseSeconds - 30)
+        }
+        return baseSeconds
     }
 
     // ─── Navigation ───────────────────────────────────────────────────────────
@@ -2531,6 +2923,9 @@ class WorkoutViewModel(
                     dynamicWeights = state.loadSuggestions.mapValues { it.value.suggestedWeight },
                     loadSuggestionReasons = state.loadSuggestions.mapValues { it.value.reason },
                     exerciseTags = state.exerciseTags,
+                    activeTags = state.activeTagsByExercise,
+                    activeSubTags = state.activeSubTagsByExercise,
+                    userCreatedTags = state.userCreatedTags,
                     contextProfilesV3 = state.contextProfilesV3,
                     activeContextProfileByExerciseId = state.activeContextProfileByExerciseId,
                     skippedExerciseIds = state.skippedExerciseIds,
@@ -2546,6 +2941,7 @@ class WorkoutViewModel(
                     restModalState = state.restModalState,
                     persistedLoadModeBySet = state.persistedLoadModeBySet,
                     persistedLoadModeByExercise = state.persistedLoadModeByExercise,
+                    customTargetDurationMinutes = state.customTargetDurationMinutes,
                 )
             }
         }
@@ -4312,6 +4708,7 @@ class WorkoutViewModel(
             sessionName = sessionName,
             exerciseName = exerciseName,
             endAtOverrideMs = endMs,
+            isAdjustment = preserveElapsed,
         )
 
         _uiState.update {
@@ -4544,7 +4941,94 @@ class WorkoutViewModel(
         )?.suggestedWeight?.takeIf { it > 0.0 }
     }
 
+    fun startSessionTimer(totalSeconds: Int) {
+        sessionTimerJob?.cancel()
+        sessionTimerJob = viewModelScope.launch {
+            var remaining = totalSeconds
+            while (remaining >= -3600) { // Keep running even if limit is exceeded up to 1 hour to show negative countdown
+                _uiState.update { it.copy(sessionTimeRemainingSeconds = remaining) }
+                
+                // Alert at exactly 5 minutes remaining
+                if (remaining == 300) {
+                    sessionTtsManager.speak("Quedan 5 minutos para completar la sesión.", queueFlush = true)
+                }
+                // Alert at exactly 1 minute remaining
+                if (remaining == 60) {
+                    sessionTtsManager.speak("Queda un minuto para completar la sesión de entrenamiento.", queueFlush = true)
+                }
+                // Estimated time limit completed
+                if (remaining == 0) {
+                    sessionTtsManager.speak("Tiempo estimado de entrenamiento agotado.", queueFlush = true)
+                }
+                
+                checkPacingStatus()
+                
+                delay(1000L)
+                remaining--
+            }
+        }
+    }
+
+    fun adjustSessionTimeLimit(minutes: Int) {
+        val currentLimit = _uiState.value.customTargetDurationMinutes 
+            ?: _uiState.value.targetDurationMinutes 
+            ?: _uiState.value.session?.targetDurationMinutes 
+            ?: 60
+        val newLimit = (currentLimit + minutes).coerceAtLeast(5)
+        
+        val now = System.currentTimeMillis()
+        val elapsedSeconds = ((now - _uiState.value.startTimeMs) / 1000L).coerceAtLeast(0)
+        val newRemainingSeconds = ((newLimit * 60) - elapsedSeconds).toInt()
+        
+        _uiState.update {
+            it.copy(
+                customTargetDurationMinutes = newLimit,
+                targetDurationMinutes = newLimit,
+                sessionTimeRemainingSeconds = newRemainingSeconds
+            )
+        }
+        persistOngoingState()
+        startSessionTimer(newRemainingSeconds)
+    }
+
+    private fun checkPacingStatus() {
+        val state = _uiState.value
+        val totalMinutes = state.customTargetDurationMinutes ?: state.targetDurationMinutes ?: return
+        val remainingSeconds = state.sessionTimeRemainingSeconds ?: return
+        
+        val allExercises = visibleExercises(state)
+        val totalSets = allExercises.sumOf { it.sets.size }
+        if (totalSets == 0) return
+        
+        val uniqueCompletedSets = state.completedSets.keys.map { key ->
+            val parts = key.split("_")
+            if (parts.size >= 2) "${parts[0]}_${parts[1]}" else key
+        }.distinct().size
+
+        val progress = uniqueCompletedSets.toDouble() / totalSets.toDouble()
+        if (progress >= 1.0) return // Complete
+
+        val totalSeconds = totalMinutes * 60
+        val elapsedSeconds = totalSeconds - remainingSeconds
+        if (elapsedSeconds < 5 * 60) return // Skip early checks (first 5 minutes)
+
+        val expectedProgress = elapsedSeconds.toDouble() / totalSeconds.toDouble()
+
+        if (progress < expectedProgress - 0.15) {
+            val remainingSets = totalSets - uniqueCompletedSets
+            val remainingMinutes = if (remainingSeconds > 0) remainingSeconds / 60 else 0
+            val message = "Ritmo lento. Quedan $remainingSets series y solo $remainingMinutes minutos."
+            if (message != state.pacingAlertMessage) {
+                sessionTtsManager.speak(message, queueFlush = true)
+            }
+            _uiState.update { it.copy(pacingAlertMessage = message) }
+        } else if (state.pacingAlertMessage != null) {
+            _uiState.update { it.copy(pacingAlertMessage = null) }
+        }
+    }
+
     fun cancelWorkout() {
+        sessionTimerJob?.cancel()
         timerJob?.cancel()
         restAlertManager.cancelRestAlerts()
         activeRestTimerId = null
@@ -4844,8 +5328,18 @@ class WorkoutViewModel(
     }
 
     fun setExerciseTag(exerciseId: String, tag: String) {
-        _uiState.update { it.copy(exerciseTags = it.exerciseTags + (exerciseId to tag)) }
+        // Bridge: try to find or create a WorkoutTag with this name
         val state = _uiState.value
+        val existingTags = tagsForExercise(exerciseId)
+        val match = existingTags.firstOrNull { it.name == tag }
+        if (match != null) {
+            toggleMainTagActive(exerciseId, match.id)
+        } else {
+            val created = createTag(exerciseId, tag)
+            toggleMainTagActive(exerciseId, created.id)
+        }
+        // Legacy compat: also set exerciseTags
+        _uiState.update { it.copy(exerciseTags = it.exerciseTags + (exerciseId to tag)) }
         val exerciseKey = visibleExercises(state).firstOrNull { it.id == exerciseId }?.let { canonicalExerciseKey(it) }
         val bestProfile = exerciseKey?.let { key ->
             state.contextProfilesV3.values
@@ -4861,7 +5355,7 @@ class WorkoutViewModel(
     }
 
     fun clearExerciseTag(exerciseId: String) {
-        _uiState.update { it.copy(exerciseTags = it.exerciseTags - exerciseId) }
+        clearAllTags(exerciseId)
         syncActiveProfileTag(exerciseId, null)
         persistOngoingState()
     }
@@ -5206,10 +5700,199 @@ class WorkoutViewModel(
                 }
             }
 
+            val currentState = _uiState.value
+            val currentSession = currentState.session
+            if (currentSession != null && currentState.programId.isNotEmpty()) {
+                val deltas = computeWorkoutVolumeDelta(
+                    plannedSession = currentSession,
+                    completedSets = currentState.completedSets
+                )
+                if (deltas.isNotEmpty()) {
+                    deferredOnComplete = onComplete
+                    _uiState.update { it.copy(
+                        pendingVolumeAdvances = deltas,
+                        showVolumeAdvanceModal = true,
+                        showFinishSheet = false,
+                    )}
+                    return@launch
+                }
+            }
             _uiState.update { it.copy(isComplete = true, showFinishSheet = false, sessionStressScore = stressScore) }
             ActiveWorkoutHolder.clear()
             onComplete()
         }
+    }
+
+    private fun computeWorkoutVolumeDelta(
+        plannedSession: Session,
+        completedSets: Map<String, CompletedSet>,
+    ): List<MuscleAdvance> {
+        val programId = _uiState.value.programId
+        if (programId.isEmpty()) return emptyList()
+
+        // 1. Agrupar sets planeados por músculo PRIMARY
+        val plannedPerMuscle = mutableMapOf<String, Double>()
+        for (ex in plannedSession.allExercises()) {
+            val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
+            val info = exerciseIndex[dbId] ?: continue
+            for (muscle in info.involvedMuscles) {
+                if (muscle.role != MuscleRole.PRIMARY) continue
+                val muscleId = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
+                plannedPerMuscle[muscleId] = (plannedPerMuscle[muscleId] ?: 0.0) + ex.sets.size
+            }
+        }
+
+        // 2. Agrupar sets completados por músculo PRIMARY
+        val actualPerMuscle = mutableMapOf<String, Double>()
+        val completedByExercise = mutableMapOf<String, Int>()
+        for ((key, _) in completedSets) {
+            var exerciseId = key.substringBeforeLast("_")
+            if (exerciseId.endsWith("_L") || exerciseId.endsWith("_R")) {
+                exerciseId = exerciseId.substringBeforeLast("_")
+            }
+            completedByExercise[exerciseId] = (completedByExercise[exerciseId] ?: 0) + 1
+        }
+        for (ex in plannedSession.allExercises()) {
+            val sets = completedByExercise[ex.id] ?: 0
+            if (sets == 0) continue
+            val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
+            val info = exerciseIndex[dbId] ?: continue
+            for (muscle in info.involvedMuscles) {
+                if (muscle.role != MuscleRole.PRIMARY) continue
+                val muscleId = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
+                actualPerMuscle[muscleId] = (actualPerMuscle[muscleId] ?: 0.0) + sets
+            }
+        }
+
+        // 3. Delta positivo = se hizo más de lo planeado
+        val surplusMuscles = mutableListOf<String>()
+        for ((muscle, planned) in plannedPerMuscle) {
+            val actual = actualPerMuscle[muscle] ?: 0.0
+            val delta = actual - planned
+            if (delta > 0) surplusMuscles.add(muscle)
+        }
+        if (surplusMuscles.isEmpty()) return emptyList()
+
+        // 4. Obtener week sessions del programa
+        val program = repository.getProgramById(programId) ?: return emptyList()
+        val state = _uiState.value
+        val week = program.macrocycles
+            .getOrNull(state.macroIndex)?.blocks
+            ?.flatMap { it.mesocycles }
+            ?.getOrNull(state.mesoIndex)?.weeks
+            ?.firstOrNull { it.id == state.weekId } ?: return emptyList()
+        val weekSessions = week.sessions
+
+        // 5. Buscar próxima sesión con esos músculos y calcular descuentos
+        val nextSession = com.example.kpkn.domain.sessionassistant.SessionAssistantEngine.findNextSessionWithMuscles(
+            currentSessionId = plannedSession.id,
+            weekSessions = weekSessions,
+            muscleIds = surplusMuscles,
+            exerciseIndex = exerciseIndex,
+        ) ?: return emptyList()
+
+        return com.example.kpkn.domain.sessionassistant.SessionAssistantEngine.computeProposedDiscounts(
+            currentSession = plannedSession,
+            nextSession = nextSession,
+            targetMuscles = surplusMuscles,
+            completedSets = completedSets,
+            exerciseIndex = exerciseIndex,
+        )
+    }
+
+    fun acceptVolumeAdvance() {
+        val state = _uiState.value
+        val advances = state.pendingVolumeAdvances
+        if (advances.isEmpty()) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val programId = state.programId
+            val weekId = state.weekId
+            val macroIndex = state.macroIndex
+            val mesoIndex = state.mesoIndex
+
+            val program = repository.getProgramById(programId)
+            if (program != null) {
+                val week = program.macrocycles
+                    .getOrNull(macroIndex)?.blocks
+                    ?.flatMap { it.mesocycles }
+                    ?.getOrNull(mesoIndex)?.weeks
+                    ?.firstOrNull { it.id == weekId }
+                if (week != null) {
+                    for (advance in advances) {
+                        val nextSession = week.sessions.firstOrNull { it.id == advance.targetSessionId } ?: continue
+                        var updatedNext = nextSession
+                        for (proposal in advance.discountProposals) {
+                            val setsToRemove = proposal.discountSets.toInt().coerceAtMost(99)
+                            if (setsToRemove <= 0) continue
+                            updatedNext = updatedNext.copy(
+                                exercises = updatedNext.exercises.map { ex ->
+                                    if (ex.id == proposal.exerciseId) ex.copy(sets = ex.sets.dropLast(setsToRemove)) else ex
+                                },
+                                parts = updatedNext.parts.map { part ->
+                                    part.copy(exercises = part.exercises.map { ex ->
+                                        if (ex.id == proposal.exerciseId) ex.copy(sets = ex.sets.dropLast(setsToRemove)) else ex
+                                    })
+                                },
+                            )
+                        }
+                        repository.upsertSessionInProgram(programId, weekId, macroIndex, mesoIndex, updatedNext)
+                    }
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+                val cb = deferredOnComplete
+                deferredOnComplete = null
+                _uiState.update { it.copy(
+                    pendingVolumeAdvances = emptyList(),
+                    showVolumeAdvanceModal = false,
+                    isComplete = true,
+                )}
+                ActiveWorkoutHolder.clear()
+                cb?.invoke()
+            }
+        }
+    }
+
+    fun dismissVolumeAdvance() {
+        val cb = deferredOnComplete
+        deferredOnComplete = null
+        _uiState.update { it.copy(
+            pendingVolumeAdvances = emptyList(),
+            showVolumeAdvanceModal = false,
+            isComplete = true,
+        )}
+        ActiveWorkoutHolder.clear()
+        cb?.invoke()
+    }
+
+
+
+    private fun insertExerciseAfter(session: Session, currentExerciseId: String, newExercise: Exercise): Session {
+        if (session.parts.isNotEmpty()) {
+            return session.copy(parts = session.parts.map { part ->
+                val idx = part.exercises.indexOfFirst { it.id == currentExerciseId }
+                if (idx == -1) part
+                else {
+                    part.copy(exercises = part.exercises.toMutableList().apply { add(idx + 1, newExercise) })
+                }
+            })
+        }
+        val idx = session.exercises.indexOfFirst { it.id == currentExerciseId }
+        if (idx == -1) return insertExerciseAtEnd(session, newExercise)
+        return session.copy(exercises = session.exercises.toMutableList().apply { add(idx + 1, newExercise) })
+    }
+
+    private fun insertExerciseAtEnd(session: Session, newExercise: Exercise): Session {
+        if (session.parts.isNotEmpty()) {
+            return session.copy(parts = session.parts.mapIndexed { idx, part ->
+                if (idx == session.parts.lastIndex) {
+                    part.copy(exercises = part.exercises + newExercise)
+                } else part
+            })
+        }
+        return session.copy(exercises = session.exercises + newExercise)
     }
 
     // ─── Ghost performance ────────────────────────────────────────────────────
@@ -5451,13 +6134,7 @@ class WorkoutViewModel(
         val payload = set.recordedPayloadV3
         return when (loadMode) {
             LoadModeV2.ASSISTED -> payload?.assistedLoad ?: set.weight
-            LoadModeV2.BODYWEIGHT,
-            LoadModeV2.LASTRE,
-            -> {
-                val bodyW = payload?.bodyWeightSnapshot ?: currentBodyWeight() ?: 0.0
-                (set.weight - bodyW).coerceAtLeast(0.0)
-            }
-            LoadModeV2.LOAD -> payload?.externalLoad ?: set.weight
+            else -> payload?.externalLoad ?: set.weight
         }
     }
 
@@ -5891,6 +6568,8 @@ class WorkoutViewModel(
         ActiveWorkoutHolder.clear()
         voiceJob?.cancel()
         runCatching { voiceController.shutdown() }
+        sessionTimerJob?.cancel()
+        runCatching { sessionTtsManager.shutdown() }
         timerJob?.cancel()
         restReferenceSet = null
         restReferenceAdvanced = null
@@ -5914,4 +6593,7 @@ class WorkoutViewModel(
             }
     }
 }
+
+
+
 

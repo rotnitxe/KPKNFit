@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import kotlin.math.exp
@@ -452,3 +453,118 @@ fun estimateSessionDurationMinutes(totalSets: Int, averageRestSeconds: Int): Int
     val transitions = (totalSets / 3) * 20
     return ((workSeconds + restSeconds + transitions) / 60.0).roundToInt().coerceAtLeast(5)
 }
+
+// ─── Session Time Breakdown ───────────────────────────────────────────────────
+
+data class SessionTimeBreakdown(
+    /** Tiempo de setup por ejercicio (ajuste de máquina, cambio de peso, etc.) */
+    val setupSeconds: Int,
+    /** Tiempo de ejecución de todas las series (trabajo real) */
+    val executionSeconds: Int,
+    /** Sumatoria total de todos los descansos (incluyendo supersets) */
+    val restSeconds: Int,
+    /** setupSeconds + executionSeconds + restSeconds */
+    val totalSeconds: Int,
+    val exerciseCount: Int,
+    val totalSetCount: Int,
+) {
+    val totalMinutes: Int get() = (totalSeconds / 60.0).roundToInt().coerceAtLeast(1)
+    val setupMinutes: Int get() = (setupSeconds / 60.0).roundToInt()
+    val executionMinutes: Int get() = (executionSeconds / 60.0).roundToInt()
+    val restMinutes: Int get() = (restSeconds / 60.0).roundToInt()
+}
+
+/**
+ * Calcula un desglose detallado del tiempo estimado de sesión.
+ *
+ * - Ejercicios TIME: usa [ExerciseSet.targetDuration] para el tiempo de ejecución.
+ * - Dropsets programados: cada mini-drop añade ~6 s al execution (3 reps × 2 s).
+ * - Rest-pause programados: cada mini-serie añade sus reps + tiempo de pausa al total.
+ * - Supersets: el descanso entre ejercicios del mismo superset se cuenta 1 sola vez
+ *   (no se duplica por cada miembro del superset).
+ */
+fun calculateSessionTimeBreakdown(
+    exercises: List<Exercise>,
+    supersetGroups: List<com.example.kpkn.data.models.SupersetGroup>,
+    averageSetupSeconds: Int = 60,
+    averageWorkSeconds: Int = 45,
+): SessionTimeBreakdown {
+    var setupSec = 0
+    var executionSec = 0
+    var restSec = 0
+
+    // IDs de supersets ya procesados (para no duplicar descanso intra-superset)
+    val supersetGroupsProcessed = mutableSetOf<String>()
+
+    exercises.forEach { exercise ->
+        setupSec += averageSetupSeconds
+        val sets = exercise.sets.ifEmpty {
+            List(3) { com.example.kpkn.data.models.ExerciseSet(id = "placeholder_$it") }
+        }
+
+        sets.forEach { set ->
+            // ── Ejecución de la serie principal ──────────────────────────────
+            val setExecSec = when (exercise.trainingMode) {
+                TrainingMode.TIME -> set.targetDuration ?: averageWorkSeconds
+                else -> averageWorkSeconds
+            }
+            executionSec += setExecSec
+
+            // ── Drop-sets programados (cada drop ~3 reps × 2 s = 6 s) ───────
+            val drops = set.plannedIntensityTechniques.filter {
+                it.type == com.example.kpkn.data.models.TechniqueType.DROP_SET
+            }
+            val dropCount = drops.sumOf { technique ->
+                technique.params["weightPcts"]?.split(",")?.size ?: 3
+            }.coerceAtLeast(if (set.isDropSet && set.dropSets.isEmpty()) 3 else 0)
+            executionSec += dropCount * 6
+
+            // ── Rest-pause programados ────────────────────────────────────────
+            val rpTechniques = set.plannedIntensityTechniques.filter {
+                it.type == com.example.kpkn.data.models.TechniqueType.REST_PAUSE
+            }
+            rpTechniques.forEach { technique ->
+                val miniSetCount = technique.params["count"]?.toIntOrNull() ?: 3
+                val pauseSec    = technique.params["pauseSeconds"]?.toIntOrNull() ?: 10
+                val miniReps    = technique.params["reps"]?.toIntOrNull() ?: 3
+                executionSec += miniSetCount * miniReps * 2   // ~2 s por rep
+                restSec      += miniSetCount * pauseSec
+            }
+            // Fallback: rest-pauses directos en el set (sin technique planeada)
+            if (set.isRestPause && rpTechniques.isEmpty()) {
+                val rpCount = set.restPauses.size.coerceAtLeast(3)
+                executionSec += rpCount * 3 * 2
+                restSec      += rpCount * 10
+            }
+        }
+
+        // ── Descanso del ejercicio ─────────────────────────────────────────────
+        val exerciseRestSec = exercise.restTime ?: 90
+        val supersetRef = exercise.supersetGroupRefOrLegacyId()
+
+        if (supersetRef != null) {
+            val group = supersetGroups.firstOrNull { it.id == supersetRef }
+            if (group != null && supersetRef !in supersetGroupsProcessed) {
+                // Descanso intra-superset y post-superset se cuentan 1 sola vez por grupo
+                val rounds = sets.size.coerceAtLeast(1)
+                restSec += group.restBetweenExercises * (group.exerciseOrder.size - 1) * rounds
+                restSec += group.restAfterSuperset * rounds
+                supersetGroupsProcessed.add(supersetRef)
+            }
+            // Para miembros adicionales del superset no se añade descanso individual
+        } else {
+            restSec += exerciseRestSec * sets.size
+        }
+    }
+
+    val total = setupSec + executionSec + restSec
+    return SessionTimeBreakdown(
+        setupSeconds    = setupSec,
+        executionSeconds = executionSec,
+        restSeconds     = restSec,
+        totalSeconds    = total,
+        exerciseCount   = exercises.size,
+        totalSetCount   = exercises.sumOf { it.sets.size.coerceAtLeast(1) },
+    )
+}
+

@@ -79,6 +79,32 @@ enum class TimeProgressionStrategyV3 {
 }
 
 @Serializable
+data class WorkoutTag(
+    val id: String = "",
+    val name: String = "",
+    val exerciseKey: String = "",
+    val subTags: List<WorkoutSubTag> = emptyList(),
+    val createdAtIso: String = "",
+    val lastUsedAtIso: String = "",
+    val usageCount: Int = 0,
+)
+
+@Serializable
+data class WorkoutSubTag(
+    val id: String = "",
+    val name: String = "",
+    val category: SubTagCategory = SubTagCategory.LIBRE,
+)
+
+@Serializable
+enum class SubTagCategory {
+    MARCA,
+    SETUP,
+    TECNICA,
+    LIBRE,
+}
+
+@Serializable
 data class WorkoutContextProfile(
     val id: String,
     val exerciseKey: String,
@@ -200,6 +226,8 @@ data class SetEntryV2(
     val contextKey: String,
     val timeProgressionStrategy: TimeProgressionStrategyV3 = TimeProgressionStrategyV3.LOAD_THEN_TIME,
     val barWeightKg: Double? = null,
+    val rom: Int? = null,
+    val assistedReps: Int? = null,
 )
 
 @Serializable
@@ -274,13 +302,16 @@ fun buildWorkoutContextKey(
     tagId: String?,
     loadMode: LoadModeV2,
     unitMode: UnitModeV2,
+    techSubTags: String? = null,
 ): String {
     val brandPart = machineBrand?.trim().orEmpty().ifBlank { "na" }
     val tagPart = tagId?.trim().orEmpty().ifBlank { "na" }
+    val techPart = techSubTags?.takeIf { it.isNotBlank() } ?: "na"
     return listOf(
         exerciseId.trim().ifBlank { "unknown" },
         brandPart,
         tagPart,
+        techPart,
         loadMode.name,
         unitMode.name,
     ).joinToString("|")

@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -52,6 +54,7 @@ private data class ProgressPoint(
     val estimated1RM: Double,
     val bestLoad: Double,
     val reps: Int,
+    val tagId: String?,
 )
 
 private data class ExerciseProgressDetail(
@@ -253,6 +256,8 @@ private fun RelativeStrengthSection(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 16.sp,
                 )
+
+                TagComparativeChart(exercise = selectedExercise)
             }
         }
     }
@@ -605,6 +610,8 @@ private fun buildExerciseProgressDetails(
                 val key = exercise.analyticsExerciseKey()
                 val bestSet = exercise.sets.maxByOrNull { it.weight * it.reps } ?: return@mapNotNull null
                 val estimated1RM = calculateEpley1RM(bestSet.weight, bestSet.reps)
+                val exerciseDbId = exercise.exerciseDbId ?: ""
+                val tagId = log.exerciseTags[exerciseDbId] ?: log.exerciseTags[exercise.exerciseId]
                 Triple(
                     key,
                     exercise,
@@ -613,6 +620,7 @@ private fun buildExerciseProgressDetails(
                         estimated1RM = estimated1RM,
                         bestLoad = bestSet.weight,
                         reps = bestSet.reps,
+                        tagId = tagId
                     )
                 )
             }
@@ -833,3 +841,137 @@ private fun calculateEpley1RM(load: Double, reps: Int): Double {
 }
 
 private fun formatOneDecimal(value: Double): String = String.format("%.1f", value)
+
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun TagComparativeChart(
+    exercise: ExerciseProgressDetail,
+) {
+    val pointsByTag = remember(exercise.points) {
+        exercise.points.groupBy { it.tagId?.trim().orEmpty().ifBlank { "Base" } }
+    }
+    
+    if (exercise.points.isEmpty()) return
+    
+    val colors = listOf(
+        MaterialTheme.colorScheme.primary,
+        Color(0xFF38BDF8), // Sky Blue
+        Color(0xFF34D399), // Emerald
+        Color(0xFFFBBF24), // Amber
+        Color(0xFFF87171), // Rose
+        Color(0xFFC084FC)  // Purple
+    )
+    
+    val tags = pointsByTag.keys.toList()
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Evolución comparativa por Variante/Etiqueta (eRM)",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        
+        // Legends
+        androidx.compose.foundation.layout.FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            tags.forEachIndexed { index, tag ->
+                val color = colors[index % colors.size]
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(8.dp)
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(color)
+                    )
+                    Text(tag, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface)
+                }
+            }
+        }
+        
+        // Chart Canvas
+        val minVal = remember(exercise.points) { (exercise.points.minOf { it.estimated1RM } * 0.95).coerceAtLeast(0.0) }
+        val maxVal = remember(exercise.points) { (exercise.points.maxOf { it.estimated1RM } * 1.05).coerceAtLeast(1.0) }
+        val dateInstants = remember(exercise.points) {
+            exercise.points.map { 
+                runCatching { java.time.Instant.parse(it.date).toEpochMilli() }.getOrDefault(0L)
+            }
+        }
+        val minTime = remember(dateInstants) { dateInstants.minOrNull() ?: 0L }
+        val maxTime = remember(dateInstants) { dateInstants.maxOrNull() ?: 1L }
+        val timeRange = (maxTime - minTime).coerceAtLeast(1L)
+        val valRange = (maxVal - minVal).coerceAtLeast(1.0)
+
+        androidx.compose.foundation.Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+                .background(Color.Black.copy(alpha = 0.2f), shape = RoundedCornerShape(12.dp))
+                .padding(12.dp)
+        ) {
+            val width = size.width
+            val height = size.height
+            
+            // Draw horizontal guide lines
+            val numGuides = 3
+            for (i in 0..numGuides) {
+                val y = height * (i.toFloat() / numGuides)
+                drawLine(
+                    color = Color.White.copy(alpha = 0.08f),
+                    start = androidx.compose.ui.geometry.Offset(0f, y),
+                    end = androidx.compose.ui.geometry.Offset(width, y),
+                    strokeWidth = 1f
+                )
+            }
+            
+            // Plot lines for each tag
+            tags.forEachIndexed { tagIndex, tag ->
+                val tagPoints = pointsByTag[tag].orEmpty().sortedBy { it.date }
+                if (tagPoints.isEmpty()) return@forEachIndexed
+                
+                val color = colors[tagIndex % colors.size]
+                val path = androidx.compose.ui.graphics.Path()
+                
+                tagPoints.forEachIndexed { pIndex, pt ->
+                    val time = runCatching { java.time.Instant.parse(pt.date).toEpochMilli() }.getOrDefault(0L)
+                    val x = if (timeRange == 0L) width / 2f else ((time - minTime).toFloat() / timeRange.toFloat()) * width
+                    val y = height - (((pt.estimated1RM - minVal) / valRange) * height).toFloat()
+                    
+                    val offset = androidx.compose.ui.geometry.Offset(x, y)
+                    
+                    if (pIndex == 0) {
+                        path.moveTo(x, y)
+                    } else {
+                        path.lineTo(x, y)
+                    }
+                    
+                    drawCircle(
+                        color = color,
+                        radius = 4f,
+                        center = offset
+                    )
+                }
+                
+                if (tagPoints.size > 1) {
+                    drawPath(
+                        path = path,
+                        color = color,
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3f)
+                    )
+                }
+            }
+        }
+    }
+}

@@ -37,10 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.R
-import com.example.kpkn.data.models.MuscleFeedbackEntry
 import com.example.kpkn.data.models.MuscleRecoveryStatus
-import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
-import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
@@ -58,9 +55,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.ui.theme.AppThemeMode
-import java.text.SimpleDateFormat
 import java.time.LocalDate
-import java.util.Date
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,7 +77,6 @@ fun HomeScreen(
     nutritionViewModel: NutritionViewModel? = null,
 ) {
     val augePerMuscle by augeViewModel.perMuscle.collectAsState()
-    val augePending by augeViewModel.pendingQuestionnaire.collectAsState()
     val augeSnapshot by augeViewModel.snapshot.collectAsState()
 
     val muscularProgress = augeSnapshot.ringScore(RecoveryChannelId.MUSCULAR) / 100f
@@ -243,29 +237,6 @@ fun HomeScreen(
             hazeState = hazeState,
             glassStyle = hazeStyle,
         )
-
-        var showPostSessionSheet by remember { mutableStateOf(false) }
-        LaunchedEffect(augePending?.logId) {
-            if (augePending != null) {
-                showPostSessionSheet = true
-            }
-        }
-        if (showPostSessionSheet && augePending != null) {
-            PostSessionFeedbackSheet(
-                sessionName = augePending!!.sessionName,
-                muscleGroups = augePending!!.muscleGroups,
-                logId = augePending!!.logId,
-                stillPresentDiscomfortIds = augePending!!.stillPresentDiscomfortIds,
-                onSave = { fb ->
-                    augeViewModel.savePostSessionFeedback(fb)
-                    showPostSessionSheet = false
-                },
-                onDismiss = {
-                    augeViewModel.dismissPendingQuestionnaire()
-                    showPostSessionSheet = false
-                },
-            )
-        }
 
         FoodLoggerDrawer(
             nutritionRepo = nutritionRepo,
@@ -589,106 +560,5 @@ private fun MiniNutritionCard(dailyCalorieGoal: Int, consumedCalories: Int, onAd
             LinearProgressIndicator(progress = { pct.coerceAtMost(1f) }, modifier = Modifier.padding(top = 2.dp, end = 8.dp).fillMaxWidth().height(3.dp).clip(RoundedCornerShape(50)), color = progressColor, trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
         }
         IconButton(onClick = onAddMeal, modifier = Modifier.size(32.dp)) { Icon(Icons.Default.Add, "Agregar", modifier = Modifier.size(18.dp)) }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PostSessionFeedbackSheet(
-    sessionName: String,
-    muscleGroups: List<String>,
-    logId: String,
-    stillPresentDiscomfortIds: List<String> = emptyList(),
-    onSave: (PostSessionFeedback) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var cnsRecovery by remember { mutableIntStateOf(7) }
-    val muscleDoms = remember(muscleGroups) { mutableStateMapOf<String, Int>().also { m -> muscleGroups.forEach { m[it] = 1 } } }
-    val unresolvedStill = remember(stillPresentDiscomfortIds) {
-        mutableStateMapOf<String, Boolean>().also { m ->
-            stillPresentDiscomfortIds.forEach { id -> m[id] = true }
-        }
-    }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), shape = MaterialTheme.shapes.extraLarge, containerColor = MaterialTheme.colorScheme.surface) {
-        Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 24.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Column { Text("¿Cómo quedaste tras «$sessionName»?", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black); Text("Feedback post-sesión", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, "Cerrar") }
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) { Text("Recuperación del sistema", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold); Slider(value = cnsRecovery.toFloat(), onValueChange = { cnsRecovery = it.toInt().coerceIn(1, 10) }, valueRange = 1f..10f, steps = 8); Text("${cnsRecovery}/10", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) }
-            if (muscleGroups.isNotEmpty()) {
-                Text("Agujetas por músculo", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-                muscleGroups.take(6).forEach { muscle ->
-                    val doms = muscleDoms[muscle] ?: 1
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(muscle, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { (1..5).forEach { level ->
-                            val active = level <= doms; val color = when (level) { 1, 2 -> Color(0xFF22C55E); 3 -> Color(0xFFFACC15); else -> MaterialTheme.colorScheme.error }
-                            Box(modifier = Modifier.size(28.dp).clip(CircleShape).background(if (active) color else MaterialTheme.colorScheme.surfaceVariant).clickable { muscleDoms[muscle] = level }, contentAlignment = Alignment.Center) { Text("$level", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant) }
-                        } }
-                    }
-                }
-            }
-            if (stillPresentDiscomfortIds.isNotEmpty()) {
-                Text("Molestias persistentes", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-                stillPresentDiscomfortIds.forEach { id ->
-                    val stillUnresolved = unresolvedStill[id] ?: true
-                    val label = DISCOMFORT_CATALOG_BY_ID[id]?.label ?: id
-                    Surface(
-                        shape = MaterialTheme.shapes.medium,
-                        color = if (stillUnresolved) Color(0xFF1B3A1B) else Color(0xFF2A2A2A),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Row(
-                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                label,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (stillUnresolved) Color.White else Color.White.copy(alpha = 0.5f),
-                                textDecoration = if (stillUnresolved) TextDecoration.None else TextDecoration.LineThrough,
-                            )
-                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                FilterChip(
-                                    selected = stillUnresolved,
-                                    onClick = { unresolvedStill[id] = true },
-                                    label = { Text("Sigue", style = MaterialTheme.typography.labelSmall) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Color(0xFF2E7D32),
-                                        containerColor = Color(0xFF3A3A3A),
-                                    ),
-                                )
-                                FilterChip(
-                                    selected = !stillUnresolved,
-                                    onClick = { unresolvedStill[id] = false },
-                                    label = { Text("Resuelta", style = MaterialTheme.typography.labelSmall) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Color(0xFF4A4A4A),
-                                        containerColor = Color(0xFF3A3A3A),
-                                    ),
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            Button(
-                onClick = {
-                    val unresolvedIds = unresolvedStill.filterValues { it }.keys.toList()
-                    onSave(PostSessionFeedback(
-                        logId = logId,
-                        date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()),
-                        cnsRecovery = cnsRecovery,
-                        muscleFeedback = muscleDoms.mapValues { (_, v) -> MuscleFeedbackEntry(doms = v) },
-                        unresolvedDiscomfortIds = unresolvedIds,
-                    ))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.extraLarge,
-            ) { Text("Guardar feedback", fontWeight = FontWeight.Black, modifier = Modifier.padding(vertical = 4.dp)) }
-            Spacer(Modifier.height(8.dp))
-        }
     }
 }

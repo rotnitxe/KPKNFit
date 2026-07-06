@@ -33,6 +33,8 @@ data class Session(
     val trainingBackup: TrainingBackup? = null,
     val supersetGroups: List<SupersetGroup> = emptyList(),
     val lastModifiedAtMs: Long = 0L,
+    val targetDurationMinutes: Int? = null,
+    val volumeAdvances: List<VolumeAdvance> = emptyList(),
 ) {
     fun allSupersetGroups(): List<SupersetGroup> {
         val local = supersetGroups.ifEmpty { legacySupersetGroups() }
@@ -76,6 +78,34 @@ data class SupersetGroup(
 data class SupersetVisualPlacement(
     val partId: String? = null,
     val anchorExerciseId: String? = null,
+)
+
+@Serializable
+data class VolumeAdvance(
+    val id: String,
+    val muscleAdvances: List<MuscleAdvance> = emptyList(),
+    val acceptedAtMs: Long? = null,
+)
+
+@Serializable
+data class MuscleAdvance(
+    val muscleId: String,
+    val muscleName: String,
+    val currentSets: Double,
+    val targetSets: Double,
+    val deficitSets: Double,
+    val targetSessionId: String,
+    val targetSessionName: String,
+    val discountProposals: List<VolumeDiscountProposal> = emptyList(),
+)
+
+@Serializable
+data class VolumeDiscountProposal(
+    val exerciseId: String,
+    val exerciseName: String,
+    val currentRole: String,
+    val discountSets: Double,
+    val reason: String,
 )
 
 @Serializable
@@ -197,6 +227,7 @@ data class Exercise(
     val targetSessionGoal: String? = null,
     val isStarTarget: Boolean = false,
     val trackHeartRate: Boolean = false,
+    val trackRom: Boolean = false,
     val setupDetails: ExerciseSetupDetails? = null,
     val supersetId: String? = null,
     val supersetRestBetween: Int? = null,
@@ -250,6 +281,7 @@ enum class TechniqueType { DROP_SET, REST_PAUSE, PARTIALS, ISO_HOLD, NEGATIVES, 
 
 @Serializable
 data class PlannedTechnique(
+    val id: String = "",
     val type: TechniqueType,
     val params: Map<String, String> = emptyMap(),
 )
@@ -286,6 +318,8 @@ data class ExerciseSet(
     val isIneffective: Boolean = false,
     val isPartial: Boolean = false,
     val partialReps: Int? = null,
+    val isDropSet: Boolean = false,
+    val isRestPause: Boolean = false,
     val machineBrand: String? = null,
     val isChangeOfPlans: Boolean = false,
     val dropSets: List<DropSetData> = emptyList(),

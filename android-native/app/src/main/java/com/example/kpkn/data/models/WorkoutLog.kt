@@ -117,11 +117,14 @@ data class CompletedSet(
     val debt: Double = 0.0,
     val contextProfileId: String? = null,
     val tagId: String? = null,
+    val subTagIds: List<String> = emptyList(),
     val setupProfileId: String? = null,
     val machineBrand: String? = null,
     val recordedPayloadV3: RecordedSetPayload? = null,
     val homologatedResultV3: HomologatedPerformanceResult? = null,
     val setOutcomeV2: SetOutcomeV2? = null,
+    val rom: Int? = null,
+    val assistedReps: Int? = null,
 )
 
 fun CompletedSet.effectiveRepEquivalent(): Double =
@@ -149,7 +152,10 @@ data class OngoingWorkoutState(
     val macroIndex: Int? = null,
     val mesoIndex: Int? = null,
     val weekId: String? = null,
-    val exerciseTags: Map<String, String> = emptyMap(), // exerciseId → active tag
+    val exerciseTags: Map<String, String> = emptyMap(), // exerciseId → active tag (legacy)
+    val activeTags: Map<String, List<String>> = emptyMap(), // exerciseId → active main tag IDs
+    val activeSubTags: Map<String, List<String>> = emptyMap(), // exerciseId → active sub-tag IDs
+    val userCreatedTags: Map<String, List<WorkoutTag>> = emptyMap(), // exerciseKey → tags for this exercise
     val contextProfilesV3: Map<String, WorkoutContextProfile> = emptyMap(),
     val activeContextProfileByExerciseId: Map<String, String> = emptyMap(),
     val skippedExerciseIds: Set<String> = emptySet(),
@@ -162,6 +168,7 @@ data class OngoingWorkoutState(
     val restModalState: com.example.kpkn.screens.workout.WorkoutRestModalState? = null,
     val persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
+    val customTargetDurationMinutes: Int? = null,
 )
 
 /** Summary card data for the Home screen "Sesión de hoy" */

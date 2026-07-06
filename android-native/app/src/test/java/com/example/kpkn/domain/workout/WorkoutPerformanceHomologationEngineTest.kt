@@ -243,7 +243,7 @@ class WorkoutPerformanceHomologationEngineTest {
     }
 
     @Test
-    fun bodyweight_green_run_consolidates_zero_before_external_load() {
+    fun bodyweight_green_run_suggests_lastre_when_ready() {
         val key = buildWorkoutContextKey("pullup", null, "base", LoadModeV2.BODYWEIGHT, UnitModeV2.REPS)
         val previous = ContextPerformanceStateV2(
             contextKey = key,
@@ -269,9 +269,9 @@ class WorkoutPerformanceHomologationEngineTest {
 
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous)
 
-        assertEquals("Consolidar peso corporal antes de lastre", result.outcome.suggestionReason)
-        assertEquals(LoadModeV2.BODYWEIGHT, result.outcome.suggestedLoadMode)
-        assertEquals(0.0, result.outcome.suggestedNextLoad ?: -1.0, 0.001)
+        assertEquals("Iniciar con lastre", result.outcome.suggestionReason)
+        assertEquals(LoadModeV2.LASTRE, result.outcome.suggestedLoadMode)
+        assertEquals(2.5, result.outcome.suggestedNextLoad ?: -1.0, 0.001)
     }
 
     @Test

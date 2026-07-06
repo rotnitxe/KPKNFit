@@ -114,6 +114,9 @@ import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.WorkoutContextProfile
+import com.example.kpkn.data.models.WorkoutTag
+import com.example.kpkn.data.models.WorkoutSubTag
+import com.example.kpkn.data.models.SubTagCategory
 import com.example.kpkn.data.models.WorkoutHeaderWidgets
 import com.example.kpkn.screens.workout.ExerciseHistoryEntry
 import com.example.kpkn.screens.workout.PostExerciseFeedback
@@ -142,6 +145,7 @@ import com.example.kpkn.screens.workout.components.WorkoutCommandDock
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
 import com.example.kpkn.screens.workout.components.RoadmapMode
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
+import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import com.example.kpkn.screens.workout.components.AdjustableRingCompact
 import com.example.kpkn.screens.workout.components.MinimalMuscleSlider
@@ -1773,7 +1777,16 @@ fun WorkoutScreen(
         val setupEx = visibleExercises.firstOrNull { it.id == setupSheetExerciseId }
         val currentExTag = uiState.exerciseTags[setupSheetExerciseId]
         val setupSet = if (setupEx?.id == currentExercise?.id) currentSet else setupEx?.sets?.firstOrNull()
+        val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
+        val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
         if (setupEx != null) {
+            val suggestedTag = remember(setupEx, workoutLogs) {
+                com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine.detectDayRecurrence(
+                    exerciseDbId = setupEx.exerciseDbId.orEmpty(),
+                    dayOfWeek = java.time.LocalDate.now().dayOfWeek,
+                    logs = workoutLogs
+                ).tagId
+            }
             WorkoutDrawer(
                 title = "${setupEx.name} · Setup",
                 onDismiss = { setupSheetExerciseId = null },
@@ -1792,6 +1805,7 @@ fun WorkoutScreen(
                     onDismiss = { setupSheetExerciseId = null },
                     sessionAccentColor = sessionAccentColor,
                     userTags = allUserTags,
+                    suggestedTag = suggestedTag,
                 )
             }
         }
@@ -2114,6 +2128,15 @@ fun WorkoutScreen(
         )
     }
 
+    if (uiState.showVolumeAdvanceModal && uiState.pendingVolumeAdvances.isNotEmpty()) {
+        BackHandler(enabled = true) { /* El adelanto de volumen requiere acción explícita. */ }
+        VolumeAdvanceModal(
+            advances = uiState.pendingVolumeAdvances,
+            onAccept = { viewModel.acceptVolumeAdvance() },
+            onDismiss = { viewModel.dismissVolumeAdvance() },
+        )
+    }
+
     // ─── Post-exercise feedback sheet ─────────────────────────────────────────
     LaunchedEffect(uiState.showPostExerciseSheet, uiState.postExerciseTargetIdx, visibleExercises.size) {
         if (uiState.showPostExerciseSheet) {
@@ -2254,16 +2277,6 @@ private val LOWER_SESSION_MUSCLE_KEYS = setOf(
     "pantorrillas",
 )
 
-private val WORKOUT_COMMON_TAGS = listOf(
-    "Base",
-    "Máquina",
-    "Sentado",
-    "De pie",
-    "Cable",
-    "Unilateral",
-    "Inclinado",
-    "Declinado",
-)
 
 internal enum class ExerciseDrainOverlayChannel {
     ENERGY,
@@ -2440,9 +2453,12 @@ internal fun resolveSessionAccentColor(background: SessionBackground?): Color {
 private fun WorkoutChronometer(
     startTimeMs: Long,
     isComplete: Boolean,
+    sessionTimeRemainingSeconds: Int?,
+    onAdjustTimeLimit: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var elapsedSeconds by remember(startTimeMs) { androidx.compose.runtime.mutableIntStateOf(0) }
+    var showAdjustDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(startTimeMs, isComplete) {
         if (!isComplete) {
@@ -2453,14 +2469,87 @@ private fun WorkoutChronometer(
         }
     }
 
+    val hasLimit = sessionTimeRemainingSeconds != null
+    val displayRemaining = sessionTimeRemainingSeconds ?: 0
+    val isExceeded = hasLimit && displayRemaining < 0
+
+    val text = if (hasLimit) {
+        val absSeconds = kotlin.math.abs(displayRemaining)
+        val minutes = absSeconds / 60
+        val seconds = absSeconds % 60
+        val sign = if (isExceeded) "-" else ""
+        "Lim: $sign${"%02d:%02d".format(minutes, seconds)}"
+    } else {
+        formatElapsed(elapsedSeconds)
+    }
+
+    val textColor = if (isExceeded) {
+        Color(0xFFFF5252)
+    } else {
+        Color.White.copy(alpha = 0.85f)
+    }
+
     Text(
-        text = formatElapsed(elapsedSeconds),
+        text = text,
         style = MaterialTheme.typography.labelSmall,
-        color = Color.White.copy(alpha = 0.85f),
+        color = textColor,
         fontWeight = FontWeight.Black,
         fontSize = 11.sp,
-        modifier = modifier,
+        modifier = modifier.clickable { showAdjustDialog = true },
     )
+
+    if (showAdjustDialog) {
+        AlertDialog(
+            onDismissRequest = { showAdjustDialog = false },
+            title = { Text("Límite de Tiempo de Sesión", style = MaterialTheme.typography.titleMedium) },
+            text = {
+                Column {
+                    Text(
+                        if (hasLimit) {
+                            "Tiempo restante: ${displayRemaining / 60} min.\n¿Deseas ajustar la duración de la sesión?"
+                        } else {
+                            "No se ha configurado un límite de tiempo para esta sesión.\n¿Deseas fijar un límite?"
+                        },
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        FilledTonalButton(onClick = { onAdjustTimeLimit(-5); showAdjustDialog = false }) {
+                            Text("-5 min")
+                        }
+                        FilledTonalButton(onClick = { onAdjustTimeLimit(5); showAdjustDialog = false }) {
+                            Text("+5 min")
+                        }
+                        FilledTonalButton(onClick = { onAdjustTimeLimit(15); showAdjustDialog = false }) {
+                            Text("+15 min")
+                        }
+                    }
+                    if (!hasLimit) {
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Button(onClick = { onAdjustTimeLimit(30); showAdjustDialog = false }) {
+                                Text("Fijar 30 min")
+                            }
+                            Button(onClick = { onAdjustTimeLimit(60); showAdjustDialog = false }) {
+                                Text("Fijar 60 min")
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAdjustDialog = false }) {
+                    Text("Cerrar")
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -2471,9 +2560,16 @@ private fun WorkoutHeaderBar(
     startTimeMs: Long,
     isComplete: Boolean,
     background: SessionBackground?,
+    sessionTimeRemainingSeconds: Int?,
+    onAdjustTimeLimit: (Int) -> Unit,
     exerciseTag: String? = null,
     isSuperset: Boolean = false,
     exerciseReadiness: ExerciseReadiness? = null,
+    activeMainTags: List<WorkoutTag> = emptyList(),
+    activeSubTags: List<WorkoutSubTag> = emptyList(),
+    onTagClick: (String) -> Unit = {},
+    onRemoveSubTag: (String) -> Unit = {},
+    onCreateTagClick: () -> Unit = {},
 ) {
     val colors = remember(background) {
         when {
@@ -2573,6 +2669,8 @@ private fun WorkoutHeaderBar(
                             WorkoutChronometer(
                                 startTimeMs = startTimeMs,
                                 isComplete = isComplete,
+                                sessionTimeRemainingSeconds = sessionTimeRemainingSeconds,
+                                onAdjustTimeLimit = onAdjustTimeLimit,
                             )
                         }
 
@@ -2636,7 +2734,81 @@ private fun WorkoutHeaderBar(
                                 }
                             }
                         }
-                        if (!exerciseTag.isNullOrBlank()) {
+                        // Multi-tag chips (new system)
+                        activeMainTags.forEach { tag ->
+                            Surface(
+                                onClick = { onTagClick(tag.id) },
+                                color = Color.White.copy(alpha = 0.18f),
+                                shape = RoundedCornerShape(99.dp),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                ) {
+                                    Text(
+                                        text = tag.name,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White.copy(alpha = 0.9f),
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 10.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    Icon(
+                                        Icons.Default.ArrowDropDown,
+                                        contentDescription = "Editar",
+                                        modifier = Modifier.size(12.dp),
+                                        tint = Color.White.copy(alpha = 0.7f),
+                                    )
+                                }
+                            }
+                        }
+                        activeSubTags.forEach { subTag ->
+                            Surface(
+                                onClick = { onRemoveSubTag(subTag.id) },
+                                color = Color.White.copy(alpha = 0.10f),
+                                shape = RoundedCornerShape(99.dp),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                ) {
+                                    Text(
+                                        text = subTag.name,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White.copy(alpha = 0.7f),
+                                        fontSize = 9.sp,
+                                        maxLines = 1,
+                                    )
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Quitar",
+                                        modifier = Modifier.size(10.dp),
+                                        tint = Color.White.copy(alpha = 0.5f),
+                                    )
+                                }
+                            }
+                        }
+                        // Create tag button
+                        Surface(
+                            onClick = onCreateTagClick,
+                            color = Color.Transparent,
+                            shape = RoundedCornerShape(99.dp),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.20f)),
+                        ) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = "Crear etiqueta",
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 3.dp).size(12.dp),
+                                tint = Color.White.copy(alpha = 0.8f),
+                            )
+                        }
+                        // Legacy fallback: show exerciseTag if no active main tags
+                        if (activeMainTags.isEmpty() && !exerciseTag.isNullOrBlank()) {
                             Surface(
                                 color = Color.White.copy(alpha = 0.16f),
                                 shape = RoundedCornerShape(99.dp),
@@ -2724,6 +2896,24 @@ private fun WorkoutV2Body(
     val showingPostExerciseCard = currentExercise != null &&
         uiState.showPostExerciseSheet &&
         uiState.postExerciseTargetIdx == uiState.currentExerciseIdx
+    var tagManagerTagId by remember { mutableStateOf<String?>(null) }
+    var showCreateTagDialog by remember { mutableStateOf(false) }
+    val currentExerciseKey = remember(currentExercise?.id) {
+        currentExercise?.let { viewModel.canonicalExerciseKey(it) } ?: ""
+    }
+    val currentExerciseTags: List<WorkoutTag> = remember(currentExerciseKey, uiState.userCreatedTags) {
+        uiState.userCreatedTags[currentExerciseKey].orEmpty()
+    }
+    val currentExerciseActiveMainTags = remember(currentExercise?.id, currentExerciseTags, uiState.activeTagsByExercise) {
+        val exId = currentExercise?.id ?: return@remember emptyList<WorkoutTag>()
+        val tagIds = uiState.activeTagsByExercise[exId].orEmpty()
+        currentExerciseTags.filter { it.id in tagIds }
+    }
+    val currentExerciseActiveSubTags = remember(currentExercise?.id, currentExerciseTags, uiState.activeSubTagsByExercise) {
+        val exId = currentExercise?.id ?: return@remember emptyList<WorkoutSubTag>()
+        val subTagIds = uiState.activeSubTagsByExercise[exId].orEmpty()
+        currentExerciseTags.flatMap { it.subTags }.filter { it.id in subTagIds }
+    }
     var drainOverlayState by remember { mutableStateOf<ExerciseDrainOverlayState?>(null) }
     var expandedSupersetWarmups by remember { mutableStateOf<Set<String>>(emptySet()) }
 
@@ -2781,10 +2971,117 @@ private fun WorkoutV2Body(
                 startTimeMs = headerStartTimeMs,
                 isComplete = headerIsComplete,
                 background = headerBackground,
+                sessionTimeRemainingSeconds = uiState.sessionTimeRemainingSeconds,
+                onAdjustTimeLimit = { viewModel.adjustSessionTimeLimit(it) },
                 exerciseTag = headerExerciseTag,
                 isSuperset = currentExercise?.isInSuperset() == true,
                 exerciseReadiness = currentExerciseReadiness,
+                activeMainTags = currentExerciseActiveMainTags,
+                activeSubTags = currentExerciseActiveSubTags,
+                onTagClick = { tagId -> tagManagerTagId = tagId },
+                onRemoveSubTag = { subTagId -> viewModel.toggleSubTagActive(currentExercise?.id ?: "", subTagId) },
+                onCreateTagClick = { showCreateTagDialog = true },
             )
+
+            // ─── Tag manager modal ────────────────────────────────────────────
+            if (tagManagerTagId != null && currentExercise != null) {
+                val tag = currentExerciseActiveMainTags.firstOrNull { it.id == tagManagerTagId }
+                if (tag != null) {
+                    WorkoutTagManagerModal(
+                        tag = tag,
+                        exerciseId = currentExercise.id,
+                        onRename = { newName ->
+                            viewModel.renameTag(currentExercise.id, tag.id, newName)
+                            tagManagerTagId = null
+                        },
+                        onDelete = {
+                            viewModel.deleteTag(currentExercise.id, tag.id)
+                            tagManagerTagId = null
+                        },
+                        onAddSubTag = { name, category ->
+                            viewModel.addSubTag(currentExercise.id, tag.id, name, category)
+                        },
+                        onRemoveSubTag = { subTagId ->
+                            viewModel.removeSubTag(currentExercise.id, tag.id, subTagId)
+                        },
+                        onToggleSubTagActive = { subTagId ->
+                            viewModel.toggleSubTagActive(currentExercise.id, subTagId)
+                        },
+                        activeSubTagIds = uiState.activeSubTagsByExercise[currentExercise.id].orEmpty(),
+                        onDismiss = { tagManagerTagId = null },
+                    )
+                } else {
+                    tagManagerTagId = null
+                }
+            }
+
+            // ─── Create tag dialog ────────────────────────────────────────────
+            if (showCreateTagDialog && currentExercise != null) {
+                var newTagName by remember { mutableStateOf("") }
+                AlertDialog(
+                    onDismissRequest = { showCreateTagDialog = false },
+                    title = { Text("Nueva etiqueta", fontWeight = FontWeight.Black) },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = newTagName,
+                                onValueChange = { newTagName = it },
+                                label = { Text("Nombre de la etiqueta") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Text(
+                                "Puedes agregar sub-etiquetas después de crearla.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                if (newTagName.isNotBlank()) {
+                                    viewModel.createTag(currentExercise.id, newTagName)
+                                }
+                                showCreateTagDialog = false
+                            },
+                            enabled = newTagName.isNotBlank()
+                        ) { Text("Crear") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showCreateTagDialog = false }) { Text("Cancelar") }
+                    }
+                )
+            }
+
+            val pacingMsg = uiState.pacingAlertMessage
+            if (!pacingMsg.isNullOrBlank()) {
+                Spacer(Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFE08E45).copy(alpha = 0.15f))
+                        .border(1.dp, Color(0xFFE08E45).copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Alerta de ritmo",
+                        tint = Color(0xFFE08E45),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = pacingMsg,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
 
             if (currentExercise != null && currentExercise.warmupSets.isNotEmpty() && currentExercise.id !in uiState.warmupCompletedExerciseIds) {
                 val warmupWorkingWeight = remember(currentExercise.id, uiState.exerciseTags[currentExercise.id]) {
@@ -2899,6 +3196,15 @@ private fun WorkoutV2Body(
                         allowExerciseManagementActions = !currentExercise.isInSuperset(),
                         userTags = allUserTags,
                         exerciseReadiness = uiState.exerciseReadinessMap[currentExercise.id],
+                        userWorkoutTags = currentExerciseTags,
+                        activeMainTagIds = uiState.activeTagsByExercise[currentExercise.id].orEmpty(),
+                        activeSubTagIds = currentExerciseActiveSubTags.map { it.id },
+                        onMainTagToggle = { tagId -> viewModel.toggleMainTagActive(currentExercise.id, tagId) },
+                        onSubTagToggle = { subTagId -> viewModel.toggleSubTagActive(currentExercise.id, subTagId) },
+                        onCreateTag = { name -> viewModel.createTag(currentExercise.id, name) },
+                        onDeleteTag = { tagId -> viewModel.deleteTag(currentExercise.id, tagId) },
+                        onAddSubTag = { tagId, name, category -> viewModel.addSubTag(currentExercise.id, tagId, name, category) },
+                        onRemoveSubTag = { tagId, subTagId -> viewModel.removeSubTag(currentExercise.id, tagId, subTagId) },
                     )
 
                     val setPagerPages = remember(currentExercise.id, currentExercise.sets, currentExercise.unilateralSideOrder, isUnilateral) {
@@ -2916,7 +3222,12 @@ private fun WorkoutV2Body(
                     }
                     val totalSetPages = setPagerPages.size.coerceAtLeast(1)
                     key(currentExercise.id, totalSetPages) {
-                    val pagerState = rememberPagerState(pageCount = { totalSetPages })
+                    val activeSwipePageIndex = remember(setPagerPages, uiState.currentSetIdx, activeSide, isUnilateral) {
+                        setPagerPages.indexOfFirst { page ->
+                            page.setIndex == uiState.currentSetIdx && (!isUnilateral || page.side == activeSide)
+                        }.takeIf { it >= 0 } ?: uiState.currentSetIdx.coerceIn(0, totalSetPages - 1)
+                    }
+                    val pagerState = rememberPagerState(initialPage = activeSwipePageIndex, pageCount = { totalSetPages })
                     val programmaticScrollRef = remember(currentExercise.id) { booleanArrayOf(false) }
 
                     LaunchedEffect(pagerState.settledPage, setPagerPages) {
@@ -2930,11 +3241,6 @@ private fun WorkoutV2Body(
                         if (page.setIndex != uiState.currentSetIdx && page.setIndex < currentExercise.sets.size) {
                             viewModel.jumpToSet(page.setIndex)
                         }
-                    }
-                    val activeSwipePageIndex = remember(setPagerPages, uiState.currentSetIdx, activeSide, isUnilateral) {
-                        setPagerPages.indexOfFirst { page ->
-                            page.setIndex == uiState.currentSetIdx && (!isUnilateral || page.side == activeSide)
-                        }.takeIf { it >= 0 } ?: uiState.currentSetIdx.coerceIn(0, totalSetPages - 1)
                     }
                     LaunchedEffect(activeSwipePageIndex, totalSetPages) {
                         if (activeSwipePageIndex in 0 until totalSetPages && activeSwipePageIndex != pagerState.currentPage) {
@@ -3086,6 +3392,7 @@ private fun WorkoutV2Body(
                                         loadMode = resolvePersistedLoadModeForSet(
                                             exerciseId = currentExercise.id,
                                             setIdx = activeSetIndex,
+                                            tagId = uiState.exerciseTags[currentExercise.id],
                                             persistedLoadModeBySet = uiState.persistedLoadModeBySet,
                                             persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
                                         ) ?: activeSet.loadModeV2,
@@ -6267,25 +6574,39 @@ private fun ExerciseTagSheetContent(
     onTagSet: (String) -> Unit,
     onDismiss: () -> Unit,
     userTags: List<String> = emptyList(),
+    suggestedTag: String? = null,
 ) {
     var tagText by remember { mutableStateOf(currentTag ?: "") }
-    val commonTags = remember(userTags) { (WORKOUT_COMMON_TAGS + userTags).distinct() }
+    val commonTags = remember(userTags, suggestedTag) {
+        val base = userTags.distinct()
+        if (suggestedTag != null && suggestedTag !in base) {
+            listOf(suggestedTag) + base
+        } else {
+            base
+        }
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Etiquetas sugeridas", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             commonTags.forEach { tag ->
+                val isSuggested = tag == suggestedTag
                 FilterChip(
                     selected = tagText == tag,
                     onClick = { 
                         tagText = tag
                         onTagSet(tag)
                     },
-                    label = { Text(tag, style = MaterialTheme.typography.labelSmall) },
+                    label = {
+                        Text(
+                            text = if (isSuggested) "✨ $tag" else tag,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                        labelColor = Color.White.copy(alpha = 0.7f)
+                        labelColor = if (tag == suggestedTag) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.7f)
                     )
                 )
             }
@@ -6323,6 +6644,144 @@ private fun ExerciseTagSheetContent(
     }
 }
 
+// ─── WorkoutTag Manager Modal ─────────────────────────────────────────────────
+
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun WorkoutTagManagerModal(
+    tag: WorkoutTag,
+    exerciseId: String,
+    onRename: (String) -> Unit,
+    onDelete: () -> Unit,
+    onAddSubTag: (String, SubTagCategory) -> Unit,
+    onRemoveSubTag: (String) -> Unit,
+    onToggleSubTagActive: (String) -> Unit,
+    activeSubTagIds: List<String>,
+    onDismiss: () -> Unit,
+) {
+    var editName by remember { mutableStateOf(tag.name) }
+    var showAddSubTag by remember { mutableStateOf(false) }
+    var newSubTagName by remember { mutableStateOf("") }
+    var newSubTagCategory by remember { mutableStateOf(SubTagCategory.LIBRE) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Editar etiqueta", fontWeight = FontWeight.Black) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = editName,
+                    onValueChange = { editName = it },
+                    label = { Text("Nombre") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                if (editName != tag.name) {
+                    TextButton(onClick = { onRename(editName) }) {
+                        Text("Guardar nombre")
+                    }
+                }
+
+                HorizontalDivider()
+
+                if (tag.subTags.isNotEmpty()) {
+                    Text("Sub-etiquetas", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    tag.subTags.forEach { subTag ->
+                        val isActive = subTag.id in activeSubTagIds
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            FilterChip(
+                                selected = isActive,
+                                onClick = { onToggleSubTagActive(subTag.id) },
+                                label = {
+                                    Column {
+                                        Text(subTag.name, style = MaterialTheme.typography.labelSmall)
+                                        Text(
+                                            when (subTag.category) {
+                                                SubTagCategory.MARCA -> "Marca"
+                                                SubTagCategory.SETUP -> "Setup"
+                                                SubTagCategory.TECNICA -> "Técnica"
+                                                SubTagCategory.LIBRE -> "Libre"
+                                            },
+                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
+                            IconButton(onClick = { onRemoveSubTag(subTag.id) }, modifier = Modifier.size(24.dp)) {
+                                Icon(Icons.Default.Close, "Eliminar", Modifier.size(14.dp))
+                            }
+                        }
+                    }
+                }
+
+                if (showAddSubTag) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = newSubTagName,
+                            onValueChange = { newSubTagName = it },
+                            label = { Text("Nombre de sub-etiqueta") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            SubTagCategory.entries.forEach { cat ->
+                                FilterChip(
+                                    selected = newSubTagCategory == cat,
+                                    onClick = { newSubTagCategory = cat },
+                                    label = { Text(cat.name, style = MaterialTheme.typography.labelSmall) },
+                                )
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = {
+                                    if (newSubTagName.isNotBlank()) {
+                                        onAddSubTag(newSubTagName, newSubTagCategory)
+                                        newSubTagName = ""
+                                        showAddSubTag = false
+                                    }
+                                },
+                                enabled = newSubTagName.isNotBlank(),
+                            ) { Text("Agregar") }
+                            TextButton(onClick = { showAddSubTag = false }) { Text("Cancelar") }
+                        }
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = { showAddSubTag = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.Add, null, Modifier.size(14.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Añadir sub-etiqueta", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+
+                HorizontalDivider()
+
+                TextButton(
+                    onClick = onDelete,
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) {
+                    Icon(Icons.Default.Delete, null, Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Eliminar etiqueta")
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) { Text("Cerrar") }
+        },
+    )
+}
+
 // ─── Exercise Setup Sheet ─────────────────────────────────────────────────────
 
 @Composable
@@ -6340,13 +6799,15 @@ private fun ExerciseSetupSheetContent(
     onDismiss: () -> Unit,
     sessionAccentColor: Color,
     userTags: List<String> = emptyList(),
+    suggestedTag: String? = null,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         ExerciseTagSheetContent(
             currentTag = currentTag,
             onTagSet = onTagSet,
             onDismiss = {},
-            userTags = userTags
+            userTags = userTags,
+            suggestedTag = suggestedTag,
         )
         
         HorizontalDivider(color = Color.White.copy(alpha = 0.1f))

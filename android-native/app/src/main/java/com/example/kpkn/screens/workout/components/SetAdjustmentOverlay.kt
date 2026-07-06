@@ -31,12 +31,11 @@ internal fun SetAdjustmentOverlay(
     weightSuggestion: WeightSuggestion?,
     averageErm: Double?,
     bodyWeight: Double? = null,
+    loadMode: LoadModeV2,
     onDismiss: () -> Unit,
     onApply: (SetAdjustmentSuggestion) -> Unit,
 ) {
     var severitySlider by remember { mutableFloatStateOf(0.5f) }
-
-    val loadMode = currentSet.loadModeV2 ?: LoadModeV2.LOAD
     val plannedWeight = when (loadMode) {
         LoadModeV2.BODYWEIGHT -> 0.0
         else -> currentSet.weight
@@ -89,8 +88,13 @@ internal fun SetAdjustmentOverlay(
         else -> "${adjustment.suggestedWeight.toTrimmedNumberString()}kg"
     }
 
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { target -> target != SheetValue.Hidden }
+    )
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {},
+        sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
     ) {
