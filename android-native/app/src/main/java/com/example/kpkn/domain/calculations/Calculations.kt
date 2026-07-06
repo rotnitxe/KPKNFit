@@ -463,7 +463,9 @@ data class SessionTimeBreakdown(
     val executionSeconds: Int,
     /** Sumatoria total de todos los descansos (incluyendo supersets) */
     val restSeconds: Int,
-    /** setupSeconds + executionSeconds + restSeconds */
+    /** Tiempo de calentamiento/movilidad global + series de aproximación + movilidad por ejercicio */
+    val warmupSeconds: Int,
+    /** setupSeconds + executionSeconds + restSeconds + warmupSeconds */
     val totalSeconds: Int,
     val exerciseCount: Int,
     val totalSetCount: Int,
@@ -472,6 +474,7 @@ data class SessionTimeBreakdown(
     val setupMinutes: Int get() = (setupSeconds / 60.0).roundToInt()
     val executionMinutes: Int get() = (executionSeconds / 60.0).roundToInt()
     val restMinutes: Int get() = (restSeconds / 60.0).roundToInt()
+    val warmupMinutes: Int get() = (warmupSeconds / 60.0).roundToInt()
 }
 
 /**
@@ -482,22 +485,67 @@ data class SessionTimeBreakdown(
  * - Rest-pause programados: cada mini-serie añade sus reps + tiempo de pausa al total.
  * - Supersets: el descanso entre ejercicios del mismo superset se cuenta 1 sola vez
  *   (no se duplica por cada miembro del superset).
+ * - Series de movilidad ([com.example.kpkn.data.models.WarmupExercise]): se suman al bloque
+ *   de calentamiento global, usando su [WarmupExercise.duration] si está disponible, o
+ *   estimando a partir de sus series y repeticiones.
+ * - Series de aproximación por ejercicio ([com.example.kpkn.data.models.WarmupSetDefinition]):
+ *   ~30 s de ejecución + descanso propio de cada serie de aproximación.
+ * - Series de movilidad por ejercicio ([com.example.kpkn.data.models.MobilitySeries]):
+ *   usa [MobilitySeries.durationSeconds] si está disponible, o estima 30 s por serie.
  */
 fun calculateSessionTimeBreakdown(
     exercises: List<Exercise>,
     supersetGroups: List<com.example.kpkn.data.models.SupersetGroup>,
+    sessionWarmup: List<com.example.kpkn.data.models.WarmupExercise> = emptyList(),
     averageSetupSeconds: Int = 60,
     averageWorkSeconds: Int = 45,
 ): SessionTimeBreakdown {
     var setupSec = 0
     var executionSec = 0
     var restSec = 0
+    var warmupSec = 0
+
+    // ── Bloque de calentamiento/movilidad global (session.warmup) ─────────────
+    // Cada WarmupExercise aporta su duración explícita, o una estimación basada en
+    // sus series y repeticiones (4 s/rep como referencia), más 15 s de transición.
+    sessionWarmup.forEach { warmupExercise ->
+        val exerciseDuration = when {
+            warmupExercise.duration != null && warmupExercise.duration > 0 ->
+                warmupExercise.duration
+            else -> {
+                val sets = warmupExercise.sets?.coerceAtLeast(1) ?: 1
+                val repsStr = warmupExercise.reps
+                val repsEstimate = repsStr?.filter { it.isDigit() }?.toIntOrNull() ?: 10
+                sets * repsEstimate * 4  // ~4 s/rep
+            }
+        }
+        warmupSec += exerciseDuration + 15  // +15 s de transición entre ejercicios de movilidad
+    }
 
     // IDs de supersets ya procesados (para no duplicar descanso intra-superset)
     val supersetGroupsProcessed = mutableSetOf<String>()
 
     exercises.forEach { exercise ->
         setupSec += averageSetupSeconds
+
+        // ── Series de aproximación (exercise.warmupSets) ──────────────────────
+        // Cada WarmupSetDefinition = ~30 s de ejecución + descanso propio (restBetween ?: 45 s)
+        exercise.warmupSets.forEach { approxSet ->
+            warmupSec += 30  // ejecución de la serie de aproximación
+            warmupSec += (approxSet.restBetween ?: 45)  // descanso post-serie
+        }
+
+        // ── Series de movilidad por ejercicio (exercise.mobilitySeries) ───────
+        // Usa durationSeconds si está definido, o estima 30 s × número de sets.
+        exercise.mobilitySeries.forEach { mobility ->
+            val mobilityDuration = when {
+                mobility.durationSeconds != null && mobility.durationSeconds > 0 ->
+                    mobility.durationSeconds * mobility.sets.coerceAtLeast(1)
+                else -> 30 * mobility.sets.coerceAtLeast(1)
+            }
+            warmupSec += mobilityDuration
+        }
+
         val sets = exercise.sets.ifEmpty {
             List(3) { com.example.kpkn.data.models.ExerciseSet(id = "placeholder_$it") }
         }
@@ -557,14 +605,15 @@ fun calculateSessionTimeBreakdown(
         }
     }
 
-    val total = setupSec + executionSec + restSec
+    val total = setupSec + executionSec + restSec + warmupSec
     return SessionTimeBreakdown(
-        setupSeconds    = setupSec,
+        setupSeconds     = setupSec,
         executionSeconds = executionSec,
-        restSeconds     = restSec,
-        totalSeconds    = total,
-        exerciseCount   = exercises.size,
-        totalSetCount   = exercises.sumOf { it.sets.size.coerceAtLeast(1) },
+        restSeconds      = restSec,
+        warmupSeconds    = warmupSec,
+        totalSeconds     = total,
+        exerciseCount    = exercises.size,
+        totalSetCount    = exercises.sumOf { it.sets.size.coerceAtLeast(1) },
     )
 }
 

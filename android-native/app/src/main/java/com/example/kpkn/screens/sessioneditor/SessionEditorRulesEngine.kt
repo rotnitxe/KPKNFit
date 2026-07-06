@@ -32,15 +32,20 @@ object SessionEditorRulesEngine {
         val safeSideRest = defaults.betweenSidesRestSeconds.coerceAtLeast(0)
 
         fun Exercise.applyRuleDefaults(): Exercise {
+            val mode = when (defaults.intensityType) {
+                DefaultIntensityType.RIR -> IntensityMode.RIR
+                DefaultIntensityType.FALLO -> IntensityMode.FAILURE
+                else -> IntensityMode.RPE
+            }
             val nextSets = List(safeSetCount) { index ->
                 val existing = sets.getOrNull(index)
                 val target = (existing ?: ExerciseSet(id = UUID.randomUUID().toString())).copy(
                     targetReps = safeReps,
-                    targetRPE = safeRpe,
-                    intensityMode = IntensityMode.RPE,
-                    targetRIR = null,
+                    targetRPE = if (mode == IntensityMode.RPE) safeRpe else null,
+                    targetRIR = if (mode == IntensityMode.RIR) safeRpe.toInt().coerceIn(0, 5) else null,
+                    intensityMode = mode,
                     targetPercentageRM = null,
-                    isFailure = false,
+                    isFailure = mode == IntensityMode.FAILURE,
                 )
                 normalizeSet(target, this)
             }

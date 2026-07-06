@@ -64,11 +64,18 @@ object SessionAssistantEngine {
 
         val duracion = ((totalRestSeconds + estimatedWorkSeconds) + 59) / 60
 
+        val timeAjustes = if (input.targetDurationMinutes != null && duracion > input.targetDurationMinutes) {
+            val overage = duracion - input.targetDurationMinutes
+            buildTimeSuggestions(input, overage)
+        } else {
+            emptyList()
+        }
+
         return SessionAssistantReport(
             veredicto = Verdict.OPTIMAL,
             scoreEstimado = 0,
             riesgos = emptyList(),
-            ajustes = ajustes,
+            ajustes = ajustes + timeAjustes,
             oportunidades = emptyList(),
             tarjetasFantasma = emptyList(),
             plantillasCompatibles = emptyList(),
@@ -76,8 +83,102 @@ object SessionAssistantEngine {
             umbralesPorMusculo = thresholds,
             drenajeEstimado = drain,
             duracionEstimada = duracion,
+            totalRestSeconds = totalRestSeconds,
+            estimatedWorkSeconds = estimatedWorkSeconds,
             resumenTexto = "",
         )
+    }
+
+    // ─── Time Overage Suggestions ─────────────────────────────────────────────
+
+    private const val MAX_REDUCE_REST_SUGGESTIONS = 2
+    private const val MAX_SUPERSET_SUGGESTIONS = 2
+    private const val MAX_DROPSET_SUGGESTIONS = 2
+
+    private fun buildTimeSuggestions(
+        input: SessionAssistantInput,
+        overageMinutes: Int
+    ): List<AssistantSuggestion> {
+        val suggestions = mutableListOf<AssistantSuggestion>()
+        val exercises = input.allExercisesInSession
+
+        // Only suggest reduce-rest if average rest > 45s
+        val avgRest = exercises.map { it.restTime ?: 90 }.average()
+        if (avgRest > 45 && suggestions.size < MAX_REDUCE_REST_SUGGESTIONS) {
+            suggestions.add(
+                AssistantSuggestion(
+                    id = "time_reduce_rest",
+                    type = com.example.kpkn.domain.sessionassistant.AssistantActionType.REDUCE_REST_TIME,
+                    title = "Reducir descansos en 15s",
+                    message = "Ahorro estimado de ~${(exercises.size * 15) / 60} min. Sesión excede por $overageMinutes min el límite.",
+                    priority = 30,
+                )
+            )
+        }
+
+        // Supersets: pair consecutive exercises
+        if (exercises.size >= 2 && suggestions.size < MAX_SUPERSET_SUGGESTIONS + 1) {
+            for (i in 0 until exercises.size - 1) {
+                val ex = exercises[i]
+                val next = exercises[i + 1]
+                if (ex.sets.any { it.isDropSet || it.isRestPause }) continue
+                if (next.sets.any { it.isDropSet || it.isRestPause }) continue
+                suggestions.add(
+                    AssistantSuggestion(
+                        id = "time_superset_${ex.id}",
+                        type = com.example.kpkn.domain.sessionassistant.AssistantActionType.CONVERT_TO_SUPERSET,
+                        title = "Superserie con siguiente ejercicio",
+                        message = "Ahorra ~90s por ronda de descanso eliminada. Sesión excede por $overageMinutes min.",
+                        exerciseId = ex.id,
+                        priority = 40,
+                    )
+                )
+                if (suggestions.size >= MAX_SUPERSET_SUGGESTIONS + 1) break
+            }
+        }
+
+        // Drop sets: convert suitable exercises
+        if (suggestions.size < MAX_DROPSET_SUGGESTIONS + MAX_SUPERSET_SUGGESTIONS + 1) {
+            for (ex in exercises) {
+                val multiSet = ex.sets.size > 1
+                val notAlreadyDrop = ex.sets.none { it.isDropSet }
+                val notRestPause = ex.sets.none { it.isRestPause }
+                if (!multiSet || !notAlreadyDrop || !notRestPause) continue
+                suggestions.add(
+                    AssistantSuggestion(
+                        id = "time_dropset_${ex.id}",
+                        type = com.example.kpkn.domain.sessionassistant.AssistantActionType.CONVERT_TO_DROPSET,
+                        title = "Convertir a dropset",
+                        message = "Reduce descansos intra-ejercicio a ~10s. Sesión excede por $overageMinutes min.",
+                        exerciseId = ex.id,
+                        priority = 25,
+                    )
+                )
+                if (suggestions.size >= MAX_DROPSET_SUGGESTIONS + MAX_SUPERSET_SUGGESTIONS + 1) break
+            }
+        }
+
+        // Reduce sets as final option
+        if (suggestions.size >= 2) {
+            val targetMuscles = calcularVolumenPorMusculo(input).volumeMap.entries
+                .filter { (_, acc) -> acc.flat > 0 }
+                .map { it.key }
+            val muscle = targetMuscles.firstOrNull()
+            if (muscle != null) {
+                suggestions.add(
+                    AssistantSuggestion(
+                        id = "time_reduce_sets",
+                        type = com.example.kpkn.domain.sessionassistant.AssistantActionType.REDUCE_SET,
+                        title = "Reducir una serie en $muscle",
+                        message = "Impacto directo en duración. Sesión excede por $overageMinutes min.",
+                        muscle = muscle,
+                        priority = 20,
+                    )
+                )
+            }
+        }
+
+        return suggestions
     }
 
     // ─── Volume Calculation ───────────────────────────────────────────────────

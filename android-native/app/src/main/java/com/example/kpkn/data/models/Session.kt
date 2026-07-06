@@ -114,6 +114,7 @@ data class SessionPart(
     val name: String,
     val exercises: List<Exercise> = emptyList(),
     val color: String? = null,
+    val targetDurationMinutes: Int? = null,
 )
 
 @Serializable
@@ -254,6 +255,7 @@ data class Exercise(
     val defaultContextProfileIdV3: String? = null,
     val mobilitySeries: List<MobilitySeries> = emptyList(),
     val timeStrategy: TimeStrategy? = null,
+    val targetDurationMinutes: Int? = null,
 )
 
 @Serializable

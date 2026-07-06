@@ -61,6 +61,9 @@ import java.util.UUID
 import kotlin.math.roundToInt
 
 @Serializable
+enum class DefaultIntensityType { RPE, FALLO, RIR }
+
+@Serializable
 data class SessionEditorRuleDefaults(
     val setCount: Int = 3,
     val reps: Int = 10,
@@ -70,6 +73,7 @@ data class SessionEditorRuleDefaults(
     val supersetBetweenRestSeconds: Int = 60,
     val supersetRoundRestSeconds: Int = 120,
     val applyToNewItems: Boolean = false,
+    val intensityType: DefaultIntensityType = DefaultIntensityType.RPE,
 )
 
 @Serializable
@@ -92,6 +96,7 @@ private data class PersistedSessionEditorDraft(
     val dayOfWeek: Int? = null,
     val session: Session,
     val ruleDefaults: SessionEditorRuleDefaults = SessionEditorRuleDefaults(),
+    val partRuleDefaults: Map<String, SessionEditorRuleDefaults> = emptyMap(),
     val ruleLimits: SessionEditorRuleLimits = SessionEditorRuleLimits(),
     val selectedExercisesIds: Set<String> = emptySet(),
     val savedAtMs: Long = System.currentTimeMillis(),
@@ -228,6 +233,7 @@ data class SessionEditorUiState(
     val predictedDrain: PredictedDrain? = null,
     val augeSummary: SessionEditorAugeSummary = SessionEditorAugeSummary(),
     val ruleDefaults: SessionEditorRuleDefaults = SessionEditorRuleDefaults(),
+    val partRuleDefaults: Map<String, SessionEditorRuleDefaults> = emptyMap(),
     val ruleLimits: SessionEditorRuleLimits = SessionEditorRuleLimits(),
     val pendingSessionSwitchId: String? = null,
     val pendingWeekId: String? = null,
@@ -413,6 +419,7 @@ class SessionEditorViewModel(
             dayOfWeek = state.dayOfWeek,
             session = session,
             ruleDefaults = state.ruleDefaults,
+            partRuleDefaults = state.partRuleDefaults,
             ruleLimits = state.ruleLimits,
             selectedExercisesIds = state.selectedExercisesIds,
         )
@@ -568,6 +575,7 @@ class SessionEditorViewModel(
             )
         }
         val resolvedRuleDefaults = persistedDraft?.ruleDefaults ?: SessionEditorRuleDefaults()
+        val resolvedPartRuleDefaults = persistedDraft?.partRuleDefaults ?: emptyMap()
         val resolvedRuleLimits = persistedDraft?.ruleLimits ?: SessionEditorRuleLimits()
         val loadedFromDraft = persistedDraft != null && persistedDraft.session != existing
         val roadmapOptions = buildRoadmapOptions(program)
@@ -638,6 +646,7 @@ class SessionEditorViewModel(
             selectedSiblingSessionId = draft.id,
             localDraftHistory = listOf(buildDraftSnapshot(session = draft, previous = null, reason = "Inicio")),
             ruleDefaults = resolvedRuleDefaults,
+            partRuleDefaults = resolvedPartRuleDefaults,
             ruleLimits = resolvedRuleLimits,
             hasUnsavedChanges = loadedFromDraft,
             isSimpleProgram = program.isSimpleTemporalProgram,
@@ -791,6 +800,7 @@ class SessionEditorViewModel(
                     ),
                     mesoIndex = state.mesoIndex,
                     programId = state.programId,
+                    targetDurationMinutes = session.targetDurationMinutes,
                 ),
                 allTemplates = templates,
             )
@@ -799,6 +809,7 @@ class SessionEditorViewModel(
             calculateSessionTimeBreakdown(
                 exercises = exercises,
                 supersetGroups = session.allSupersetGroups(),
+                sessionWarmup = session.warmup,
             )
         }.getOrNull()
         _uiState.update {
@@ -833,6 +844,30 @@ class SessionEditorViewModel(
         }
         scheduleAutoSave()
         scheduleAugeRecalc()
+    }
+
+    /** Actualiza la duración objetivo de una categoría/parte específica. */
+    fun setPartTargetDuration(partId: String, minutes: Int?) {
+        updateCurrentSession { session ->
+            session.copy(parts = session.parts.map {
+                if (it.id == partId) it.copy(targetDurationMinutes = minutes) else it
+            })
+        }
+    }
+
+    /** Actualiza la duración objetivo de un ejercicio específico. */
+    fun setExerciseTargetDuration(exerciseId: String, minutes: Int?) {
+        updateCurrentSession { session ->
+            val updatedExercises = session.exercises.map {
+                if (it.id == exerciseId) it.copy(targetDurationMinutes = minutes) else it
+            }
+            val updatedParts = session.parts.map { part ->
+                part.copy(exercises = part.exercises.map {
+                    if (it.id == exerciseId) it.copy(targetDurationMinutes = minutes) else it
+                })
+            }
+            session.copy(exercises = updatedExercises, parts = updatedParts)
+        }
     }
 
     // ─── Feature 3: Variantes de sesión ──────────────────────────────────────────
@@ -1267,11 +1302,16 @@ class SessionEditorViewModel(
         exercise.copy(relationshipNotes = notes).normalizedIdentityFields()
     }
 
+    fun getRuleDefaultsForPart(partId: String?): SessionEditorRuleDefaults {
+        if (partId == null) return _uiState.value.ruleDefaults
+        return _uiState.value.partRuleDefaults[partId] ?: _uiState.value.ruleDefaults
+    }
+
     fun addExerciseToPart(partId: String?, info: ExerciseMuscleInfo): String {
         val currentSession = _uiState.value.session
         val newExercise = createExerciseFromInfo(info, repository.history.value).let { base ->
             if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-        }.withSessionEditorDefaults(_uiState.value.ruleDefaults)
+        }.withSessionEditorDefaults(getRuleDefaultsForPart(partId))
         updateSession { session ->
             if (partId == null) {
                 session.copy(exercises = session.exercises + newExercise)
@@ -1288,7 +1328,7 @@ class SessionEditorViewModel(
         val newExercises = infos.map { info ->
             createExerciseFromInfo(info, repository.history.value).let { base ->
                 if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-            }.withSessionEditorDefaults(_uiState.value.ruleDefaults)
+            }.withSessionEditorDefaults(getRuleDefaultsForPart(partId))
         }
         updateSession { session ->
             if (partId == null) {
@@ -1308,7 +1348,7 @@ class SessionEditorViewModel(
         val currentSession = _uiState.value.session
         val newExercise = createBlankExercise().let { base ->
             if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-        }.withSessionEditorDefaults(_uiState.value.ruleDefaults)
+        }.withSessionEditorDefaults(getRuleDefaultsForPart(partId))
         updateSession { session ->
             if (partId == null) {
                 session.copy(exercises = session.exercises + newExercise)
@@ -1657,7 +1697,7 @@ class SessionEditorViewModel(
     fun updateWarmupSets(partId: String?, exerciseId: String, sets: List<WarmupSetDefinition>) = updateExercise(partId, exerciseId) { it.copy(warmupSets = sets) }
 
     fun applyRuleDefaultsToSession(partId: String? = null) {
-        val defaults = _uiState.value.ruleDefaults
+        val defaults = getRuleDefaultsForPart(partId)
         updateSession { session ->
             SessionEditorRulesEngine.applyDefaults(
                 session = session,
@@ -1669,6 +1709,7 @@ class SessionEditorViewModel(
     }
 
     fun updateRuleDefaults(
+        partId: String? = null,
         setCount: Int? = null,
         reps: Int? = null,
         rpe: Double? = null,
@@ -1677,20 +1718,40 @@ class SessionEditorViewModel(
         supersetBetweenRestSeconds: Int? = null,
         supersetRoundRestSeconds: Int? = null,
         applyToNewItems: Boolean? = null,
+        intensityType: DefaultIntensityType? = null,
     ) {
         _uiState.update { state ->
-            state.copy(
-                ruleDefaults = state.ruleDefaults.copy(
-                    setCount = setCount ?: state.ruleDefaults.setCount,
-                    reps = reps ?: state.ruleDefaults.reps,
-                    rpe = rpe ?: state.ruleDefaults.rpe,
-                    normalRestSeconds = normalRestSeconds ?: state.ruleDefaults.normalRestSeconds,
-                    betweenSidesRestSeconds = betweenSidesRestSeconds ?: state.ruleDefaults.betweenSidesRestSeconds,
-                    supersetBetweenRestSeconds = supersetBetweenRestSeconds ?: state.ruleDefaults.supersetBetweenRestSeconds,
-                    supersetRoundRestSeconds = supersetRoundRestSeconds ?: state.ruleDefaults.supersetRoundRestSeconds,
-                    applyToNewItems = applyToNewItems ?: state.ruleDefaults.applyToNewItems,
+            if (partId == null) {
+                state.copy(
+                    ruleDefaults = state.ruleDefaults.copy(
+                        setCount = setCount ?: state.ruleDefaults.setCount,
+                        reps = reps ?: state.ruleDefaults.reps,
+                        rpe = rpe ?: state.ruleDefaults.rpe,
+                        normalRestSeconds = normalRestSeconds ?: state.ruleDefaults.normalRestSeconds,
+                        betweenSidesRestSeconds = betweenSidesRestSeconds ?: state.ruleDefaults.betweenSidesRestSeconds,
+                        supersetBetweenRestSeconds = supersetBetweenRestSeconds ?: state.ruleDefaults.supersetBetweenRestSeconds,
+                        supersetRoundRestSeconds = supersetRoundRestSeconds ?: state.ruleDefaults.supersetRoundRestSeconds,
+                        applyToNewItems = applyToNewItems ?: state.ruleDefaults.applyToNewItems,
+                        intensityType = intensityType ?: state.ruleDefaults.intensityType,
+                    )
                 )
-            )
+            } else {
+                val current = state.partRuleDefaults[partId] ?: state.ruleDefaults
+                val updatedPart = current.copy(
+                    setCount = setCount ?: current.setCount,
+                    reps = reps ?: current.reps,
+                    rpe = rpe ?: current.rpe,
+                    normalRestSeconds = normalRestSeconds ?: current.normalRestSeconds,
+                    betweenSidesRestSeconds = betweenSidesRestSeconds ?: current.betweenSidesRestSeconds,
+                    supersetBetweenRestSeconds = supersetBetweenRestSeconds ?: current.supersetBetweenRestSeconds,
+                    supersetRoundRestSeconds = supersetRoundRestSeconds ?: current.supersetRoundRestSeconds,
+                    applyToNewItems = applyToNewItems ?: current.applyToNewItems,
+                    intensityType = intensityType ?: current.intensityType,
+                )
+                val newMap = state.partRuleDefaults.toMutableMap()
+                newMap[partId] = updatedPart
+                state.copy(partRuleDefaults = newMap)
+            }
         }
     }
 
@@ -2603,6 +2664,7 @@ class SessionEditorViewModel(
                 sheet = SessionEditorSheet.NONE,
                 localDraftHistory = listOf(buildDraftSnapshot(session = resolvedSession, previous = null, reason = "Cambio de sesión")),
                 ruleDefaults = persistedDraft?.ruleDefaults ?: it.ruleDefaults,
+                partRuleDefaults = persistedDraft?.partRuleDefaults ?: emptyMap(),
                 ruleLimits = persistedDraft?.ruleLimits ?: it.ruleLimits,
                 selectedExercisesIds = persistedDraft?.selectedExercisesIds.orEmpty(),
             )
@@ -2926,6 +2988,44 @@ class SessionEditorViewModel(
             com.example.kpkn.domain.sessionassistant.AssistantActionType.REMOVE_FAILURE -> {
                 updateSession { session ->
                     convertFailureToRir(session)
+                }
+            }
+            com.example.kpkn.domain.sessionassistant.AssistantActionType.REDUCE_REST_TIME -> {
+                updateSession { session ->
+                    session.transformExercises { exercise ->
+                        val currentRest = exercise.restTime ?: 90
+                        exercise.copy(restTime = maxOf(30, currentRest - 15))
+                    }
+                }
+            }
+            com.example.kpkn.domain.sessionassistant.AssistantActionType.CONVERT_TO_DROPSET -> {
+                val exerciseId = suggestion.exerciseId ?: return
+                updateSession { session ->
+                    session.transformExercises { exercise ->
+                        if (exercise.id != exerciseId) return@transformExercises exercise
+                        val updatedSets = exercise.sets.map { set ->
+                            if (set.isDropSet) set else set.copy(isDropSet = true, dropSets = listOf(com.example.kpkn.data.models.DropSetData(weight = set.weight ?: 0.0, reps = (set.targetReps ?: 8) / 2)))
+                        }
+                        exercise.copy(sets = updatedSets)
+                    }
+                }
+            }
+            com.example.kpkn.domain.sessionassistant.AssistantActionType.CONVERT_TO_SUPERSET -> {
+                val targetExerciseId = suggestion.exerciseId ?: return
+                val session = _uiState.value.session ?: return
+                val allExercises = session.allExercises()
+                val targetIdx = allExercises.indexOfFirst { it.id == targetExerciseId }
+                if (targetIdx < 0) return
+                val partner = allExercises.getOrNull(targetIdx + 1) ?: return
+                if (partner.id == targetExerciseId) return
+                val groupId = "superset_group_${System.currentTimeMillis()}"
+                updateSession { s ->
+                    s.copy(
+                        supersetGroups = s.supersetGroups + com.example.kpkn.data.models.SupersetGroup(
+                            id = groupId,
+                            exerciseOrder = listOf(targetExerciseId, partner.id),
+                        )
+                    )
                 }
             }
             else -> Unit
@@ -3501,7 +3601,12 @@ private fun accumulateSessionVolume(
         val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return@forEach
         exercise.validAugeSets().forEach { set ->
             val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(set.effectiveTargetRpe())
-            VolumeCalculator.buildPerExerciseMuscleContributions(info.involvedMuscles).forEach { (normalized, hyperFactor) ->
+            // Bug fix #3: usamos SessionMuscleFilter.relevantMusclesFor(info) en lugar de
+            // info.involvedMuscles crudo, para que el volumen semanal acumulado use el mismo
+            // filtro de músculos que computeSessionAugeComputation y los números sean coherentes.
+            VolumeCalculator.buildPerExerciseMuscleContributions(
+                SessionMuscleFilter.relevantMusclesFor(info)
+            ).forEach { (normalized, hyperFactor) ->
                 val bucket = targetMap.getOrPut(normalized) { AugeVolumeAccumulator() }
                 bucket.flat += hyperFactor
                 bucket.effective += hyperFactor * volumeMultiplier

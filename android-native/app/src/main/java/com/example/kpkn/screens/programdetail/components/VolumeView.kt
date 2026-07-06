@@ -653,7 +653,8 @@ private fun CanonicalVolumeBarsCard(
                                             ExerciseBreakdownList(
                                                 muscleName = entry.muscleName,
                                                 weeks = selectedVolumeScope?.weeks ?: emptyList(),
-                                                averageByWeek = selectedVolumeScope?.averageByWeek ?: false
+                                                averageByWeek = selectedVolumeScope?.averageByWeek ?: false,
+                                                countIndirect = showIndirectVolume,
                                             )
                                         }
                                     }
@@ -748,9 +749,10 @@ private fun ExerciseBreakdownList(
     muscleName: String,
     weeks: List<ProgramWeek>,
     averageByWeek: Boolean,
+    countIndirect: Boolean = false,
 ) {
-    val breakdown = remember(muscleName, weeks, averageByWeek) {
-        calculateExerciseBreakdownForMuscle(muscleName, weeks, averageByWeek)
+    val breakdown = remember(muscleName, weeks, averageByWeek, countIndirect) {
+        calculateExerciseBreakdownForMuscle(muscleName, weeks, averageByWeek, countIndirect)
     }
 
     if (breakdown.isEmpty()) {
@@ -1131,7 +1133,10 @@ private fun countEffectiveSets(exerciseSets: List<com.example.kpkn.data.models.E
 private fun calculateExerciseBreakdownForMuscle(
     muscleName: String,
     weeks: List<ProgramWeek>,
-    averageByWeek: Boolean
+    averageByWeek: Boolean,
+    // Bug fix #2: el breakdown de ejercicios ahora respeta el mismo flag que las barras
+    // principales, mostrando solo directos o directos+indirectos según corresponda.
+    countIndirect: Boolean = false,
 ): List<ExerciseVolumeBreakdown> {
     val exerciseIndex = EXERCISE_DATABASE.associateBy { it.id.lowercase() }
     val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
@@ -1143,20 +1148,31 @@ private fun calculateExerciseBreakdownForMuscle(
             val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] }
             if (dbInfo != null) {
                 val musclesToCount = SessionMuscleFilter.relevantMusclesFor(dbInfo)
+                    .filter { involvement ->
+                        if (countIndirect) true
+                        else involvement.role == com.example.kpkn.data.models.MuscleRole.PRIMARY
+                    }
                 val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(musclesToCount)
                 val multiplier = contributions[muscleName]
                 if (multiplier != null && multiplier > 0.0) {
-                    val currentVal = breakdownMap[exercise.name] ?: (0.0 to 0)
-                    breakdownMap[exercise.name] = (currentVal.first + countedSets * multiplier) to (currentVal.second + countedSets)
+                    // Agrupamos por exerciseDbId (fallback a nombre) para evitar fusionar
+                    // ejercicios distintos que casualmente compartan el mismo nombre.
+                    val key = exercise.exerciseDbId?.takeIf { it.isNotBlank() } ?: exercise.name
+                    val currentVal = breakdownMap[key] ?: (0.0 to 0)
+                    breakdownMap[key] = (currentVal.first + countedSets * multiplier) to (currentVal.second + countedSets)
                 }
             }
         }
     }
 
     return breakdownMap.entries
-        .map { (name, pair) ->
+        .map { (key, pair) ->
+            // Recuperamos el nombre del ejercicio para mostrar en UI
+            val displayName = weeks.flatMap { it.sessions }.flatMap { it.allExercises() }
+                .firstOrNull { (it.exerciseDbId?.takeIf { id -> id.isNotBlank() } ?: it.name) == key }
+                ?.name ?: key
             ExerciseVolumeBreakdown(
-                exerciseName = name,
+                exerciseName = displayName,
                 weeklySetsContribution = (pair.first / divisor * 10.0).toInt() / 10.0,
                 totalSets = pair.second
             )
@@ -1323,8 +1339,11 @@ private fun buildDisplayContributions(
 ): Map<String, Double> {
     val grouped = linkedMapOf<String, Double>()
     involvedMuscles.forEach { involvement ->
+        // Bug fix #1: cuando countIndirect=true incluimos TODOS los roles (primary + secondary +
+        // stabilizer). Antes se excluía erróneamente el PRIMARY, lo que hacía que las barras
+        // mostrasen menos series al activar el switch en lugar de más.
         val isMatch = if (countIndirect) {
-            involvement.role == com.example.kpkn.data.models.MuscleRole.SECONDARY || involvement.role == com.example.kpkn.data.models.MuscleRole.STABILIZER
+            true
         } else {
             involvement.role == com.example.kpkn.data.models.MuscleRole.PRIMARY
         }

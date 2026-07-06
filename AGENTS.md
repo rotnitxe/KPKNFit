@@ -35,6 +35,7 @@ npm run cap:sync             # Build (Android variant) + Capacitor sync
 npm run cap:open             # Open in Android Studio
 cd android && .\gradlew.bat :app:bundleDebug   # Android debug bundle
 cd android && .\gradlew.bat :app:bundleRelease  # Android release bundle
+.\android-native\deploy.ps1 # Build APK + install to emulator-5554 + launch
 ```
 
 ### Local AI model (Android only)
@@ -42,6 +43,10 @@ cd android && .\gradlew.bat :app:bundleRelease  # Android release bundle
 npm run local-ai:stage-model -- --src "C:\path\to\model-export" --clean
 npm run local-ai:check-model
 ```
+
+## Deployment Rule
+
+After every code implementation that modifies the Kotlin native app (`android-native/`), you MUST run `.\android-native\deploy.ps1` to build, install, and launch the app on the emulator.
 
 ## Restricciones de Git
 

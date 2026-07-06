@@ -14,6 +14,7 @@ data class SessionAssistantInput(
     val ruleLimits: SessionEditorRuleLimits,
     val mesoIndex: Int,
     val programId: String,
+    val targetDurationMinutes: Int? = null,
     val customDrain: PredictedDrain? = null,
     val customTemplateDrains: Map<String, PredictedDrain> = emptyMap(),
 )
@@ -43,6 +44,9 @@ enum class AssistantActionType {
     APPLY_TEMPLATE,
     KEEP,
     BLOCK_ADD,
+    REDUCE_REST_TIME,
+    CONVERT_TO_SUPERSET,
+    CONVERT_TO_DROPSET,
 }
 
 data class AssistantSuggestion(
