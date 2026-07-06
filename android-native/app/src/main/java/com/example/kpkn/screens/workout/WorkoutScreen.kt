@@ -145,6 +145,7 @@ import com.example.kpkn.screens.workout.components.WorkoutCommandDock
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
 import com.example.kpkn.screens.workout.components.RoadmapMode
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
+import com.example.kpkn.screens.workout.components.RestTimerPill
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import com.example.kpkn.screens.workout.components.AdjustableRingCompact
@@ -553,7 +554,7 @@ fun WorkoutScreen(
     val postExerciseTarget = visibleExercises.getOrNull(uiState.postExerciseTargetIdx) ?: currentExercise
     val isShowingFeedback = uiState.showPostExerciseSheet && postExerciseTarget != null
 
-    if ((uiState.isRestTimerRunning && activeRestModalState != null) || isShowingFeedback) {
+    if ((uiState.isRestTimerRunning && activeRestModalState != null && !uiState.isRestMinimized) || isShowingFeedback) {
         val currentRoundCompletedSets = currentExercise
             ?.supersetGroupRefOrLegacyId()
             ?.let { groupId ->
@@ -1052,7 +1053,18 @@ fun WorkoutScreen(
             onUseAdaptive = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
             postExerciseFeedbackContent = feedbackContentBlock,
             feedbackExerciseCount = feedbackExercises.size,
+            onMinimize = { viewModel.toggleRestMinimized() },
         )
+    } else if (uiState.isRestTimerRunning && uiState.isRestMinimized && activeRestModalState != null) {
+        Box(modifier = Modifier.fillMaxSize().zIndex(6f), contentAlignment = Alignment.TopCenter) {
+            RestTimerPill(
+                remainingSeconds = if (uiState.isRestTimerRunning) restTimerRemaining else 0,
+                totalSeconds = activeRestModalState.activeSeconds.coerceAtLeast(1),
+                exerciseName = activeRestModalState.exerciseName,
+                sessionAccentColor = sessionAccentColor,
+                onClick = { viewModel.toggleRestMinimized() },
+            )
+        }
     }
 
     // ─── Readiness sheet overlay ───────────────────────────────────────────────

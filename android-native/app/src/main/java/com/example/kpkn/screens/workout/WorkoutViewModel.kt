@@ -185,6 +185,7 @@ data class WorkoutUiState(
     val coachPaceAlert: String? = null,
     val pendingVolumeAdvances: List<MuscleAdvance> = emptyList(),
     val showVolumeAdvanceModal: Boolean = false,
+    val isRestMinimized: Boolean = false,
 )
 
 data class WorkoutShareSnapshot(
@@ -5867,7 +5868,9 @@ class WorkoutViewModel(
         cb?.invoke()
     }
 
-
+    fun toggleRestMinimized() {
+        _uiState.update { it.copy(isRestMinimized = !it.isRestMinimized) }
+    }
 
     private fun insertExerciseAfter(session: Session, currentExerciseId: String, newExercise: Exercise): Session {
         if (session.parts.isNotEmpty()) {
