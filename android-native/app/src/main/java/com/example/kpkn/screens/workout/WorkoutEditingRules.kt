@@ -81,7 +81,10 @@ object WorkoutEditingRules {
                 ReplacementPersistenceScopeV2.PERMANENT,
             )
         } else {
-            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY)
+            listOf(
+                ReplacementPersistenceScopeV2.SESSION_ONLY,
+                ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING,
+            )
         }
     }
 

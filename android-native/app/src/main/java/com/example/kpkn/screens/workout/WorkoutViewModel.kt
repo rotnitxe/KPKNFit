@@ -1,6 +1,15 @@
 package com.example.kpkn.screens.workout
 
 import android.content.Context
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -41,6 +50,7 @@ import com.example.kpkn.services.workout.WorkoutTtsManager
 import com.example.kpkn.services.workout.VoiceSessionCommand
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.services.workout.VoicePipelineStage
+import com.example.kpkn.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -70,6 +80,23 @@ data class PendingReplacementPersistencePrompt(
     val sourceExerciseDbId: String,
     val sourceExerciseSlot: Int?,
 )
+
+sealed class PendingStructuralChange {
+    data class AddSet(
+        val exerciseId: String,
+        val exerciseName: String,
+    ) : PendingStructuralChange()
+    data class AddExercise(
+        val afterExerciseId: String,
+        val newExerciseId: String,
+        val newExerciseName: String,
+    ) : PendingStructuralChange()
+    data class ReorderExercises(
+        val orderedExerciseIds: List<String>,
+        val originalPartMap: Map<String, String>,
+        val isGlobal: Boolean,
+    ) : PendingStructuralChange()
+}
 
 data class PendingRestSuggestion(
     val plannedSeconds: Int,
@@ -134,6 +161,7 @@ data class WorkoutUiState(
     val contextProfilesV3: Map<String, WorkoutContextProfile> = emptyMap(),
     val activeContextProfileByExerciseId: Map<String, String> = emptyMap(),
     val pendingReplacementPersistencePrompt: PendingReplacementPersistencePrompt? = null,
+    val pendingStructuralPersistence: PendingStructuralChange? = null,
     val pendingRestSuggestion: PendingRestSuggestion? = null,
     val restModalState: WorkoutRestModalState? = null,
     val headerWidgets: WorkoutHeaderWidgets = WorkoutHeaderWidgets(),
@@ -186,6 +214,7 @@ data class WorkoutUiState(
     val pendingVolumeAdvances: List<MuscleAdvance> = emptyList(),
     val showVolumeAdvanceModal: Boolean = false,
     val isRestMinimized: Boolean = false,
+    val pendingEditSheetExerciseId: String? = null,
 )
 
 data class WorkoutShareSnapshot(
@@ -234,6 +263,55 @@ class WorkoutViewModel(
     private val performanceSnapshotDao: PerformanceSnapshotDao = KpknDatabase.getInstance(appContext).performanceSnapshotDao()
     private val performanceRangeCache = mutableMapOf<String, PerformanceRangeData>()
     private val performanceRangePrefetchInFlight = mutableSetOf<String>()
+    private val pacingNotifManager by lazy { NotificationManagerCompat.from(appContext) }
+
+    private fun ensurePacingChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val nm = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channel = NotificationChannel(
+            NOTIF_CHANNEL_PACING,
+            "Ritmo de sesión",
+            NotificationManager.IMPORTANCE_HIGH,
+        ).apply {
+            description = "Alertas críticas de ritmo de sesión"
+            setShowBadge(true)
+            enableVibration(true)
+            setSound(
+                android.provider.Settings.System.DEFAULT_NOTIFICATION_URI,
+                android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION_EVENT)
+                    .build(),
+            )
+        }
+        nm.createNotificationChannel(channel)
+    }
+
+    private fun canPostPacingNotification(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(appContext, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        } else true
+    }
+
+    private fun postPacingNotification(message: String) {
+        ensurePacingChannel()
+        if (!canPostPacingNotification()) return
+        val intent = appContext.packageManager.getLaunchIntentForPackage(appContext.packageName)
+        val pendingIntent = PendingIntent.getActivity(appContext, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val notification = NotificationCompat.Builder(appContext, NOTIF_CHANNEL_PACING)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("Ritmo de sesión")
+            .setContentText(message)
+            .setContentIntent(pendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .build()
+        pacingNotifManager.notify(NOTIF_ID_PACING, notification)
+    }
+
+    private fun cancelPacingNotification() {
+        pacingNotifManager.cancel(NOTIF_ID_PACING)
+    }
 
     private val _uiState = MutableStateFlow(WorkoutUiState(programId = programId))
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
@@ -1540,7 +1618,12 @@ class WorkoutViewModel(
             } == true
             val effectivePlanned = when {
                 hasPlannedDropSet -> 0   // Drop-set: sin descanso, avance inmediato
-                hasPlannedRestPause -> 10 // Rest-pause: timer fijo de 10 s
+                hasPlannedRestPause -> {
+                    val rpSeconds = plannedSet?.plannedIntensityTechniques
+                        ?.firstOrNull { it.type == com.example.kpkn.data.models.TechniqueType.REST_PAUSE }
+                        ?.params?.get("pauseSeconds")?.toIntOrNull()
+                    rpSeconds ?: 10
+                }
                 else -> adjustedPlanned
             }
 
@@ -1657,21 +1740,24 @@ class WorkoutViewModel(
             _uiState.update { it.copy(coachPaceAlert = newAlert) }
         }
 
-        // 2. TTS and user-facing messages
+        // 2. Native notification for critical pacing
         if (progress < expectedProgress - 0.15 && elapsedSeconds > 5 * 60) {
             val remainingSets = totalSets - uniqueCompletedSets
             val safeRemainingMin = remainingMin.coerceAtLeast(0)
-            val message = "Ritmo lento. Quedan $remainingSets series y solo $safeRemainingMin minutos."
-            _uiState.update { it.copy(pacingAlertMessage = message) }
-            sessionTtsManager.speak(message, queueFlush = true)
-        } else if (remainingMin <= 0) {
-            val message = "Tiempo estimado de sesión agotado."
-            _uiState.update { it.copy(pacingAlertMessage = message) }
-            if (alertChanged) {
-                sessionTtsManager.speak(message, queueFlush = true)
+            val message = "Ritmo lento · $remainingSets series · $safeRemainingMin min"
+            if (message != state.pacingAlertMessage) {
+                postPacingNotification(message)
             }
+            _uiState.update { it.copy(pacingAlertMessage = message) }
+        } else if (remainingMin <= 0) {
+            val message = "Tiempo de sesión agotado"
+            if (alertChanged) {
+                postPacingNotification(message)
+            }
+            _uiState.update { it.copy(pacingAlertMessage = message) }
         } else {
             _uiState.update { it.copy(pacingAlertMessage = null) }
+            cancelPacingNotification()
         }
     }
 
@@ -3036,6 +3122,58 @@ class WorkoutViewModel(
         }
     }
 
+    private fun Session.globalReorder(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>): Session {
+        if (orderedExerciseIds.isEmpty()) return this
+        if (parts.isEmpty()) {
+            val lookup = exercises.associateBy { it.id }
+            return copy(exercises = orderedExerciseIds.mapNotNull(lookup::get))
+        }
+        data class ExBlock(val partId: String?, val ids: List<String>)
+        val blocks = mutableListOf<ExBlock>()
+        var curPart: String? = originalPartMap[orderedExerciseIds[0]]
+        var curIds = mutableListOf<String>()
+        for (id in orderedExerciseIds) {
+            val p = originalPartMap[id]
+            if (p != curPart && curIds.isNotEmpty()) {
+                blocks.add(ExBlock(curPart, curIds.toList()))
+                curIds = mutableListOf()
+                curPart = p
+            }
+            curIds.add(id)
+        }
+        if (curIds.isNotEmpty()) blocks.add(ExBlock(curPart, curIds.toList()))
+
+        val newPartOf = mutableMapOf<String, String?>()
+        for (i in blocks.indices) {
+            val block = blocks[i]
+            val ids = block.ids
+            val originalBlockPart = block.partId
+            if (ids.size == 1) {
+                val prevPart = if (i > 0) blocks[i - 1].partId else null
+                val nextPart = if (i < blocks.lastIndex) blocks[i + 1].partId else null
+                if (prevPart != null && nextPart != null && prevPart == nextPart && prevPart != originalBlockPart) {
+                    newPartOf[ids[0]] = prevPart
+                    continue
+                }
+            }
+            ids.forEach { id -> newPartOf[id] = originalBlockPart }
+        }
+
+        val allEx = allExercises().associateBy { it.id }
+        val partGroups = mutableMapOf<String?, MutableList<Exercise>>()
+        for (id in orderedExerciseIds) {
+            val ex = allEx[id] ?: continue
+            partGroups.getOrPut(newPartOf[id]) { mutableListOf() }.add(ex)
+        }
+
+        val newParts = parts.map { part ->
+            val list = partGroups.remove(part.name) ?: emptyList()
+            part.copy(exercises = list)
+        }
+        val topLevel = partGroups.remove(null) ?: emptyList()
+        return copy(parts = newParts, exercises = topLevel + partGroups.values.flatten())
+    }
+
     private fun ExerciseSet.normalizeWorkoutSet(exercise: Exercise): ExerciseSet {
         val normalized = WorkoutEditingRules.normalizeLiveEditedSet(exercise.trainingMode, this)
         val autoWeight = calculateSuggestedLoad(exercise, normalized) ?: normalized.weight
@@ -3483,6 +3621,59 @@ class WorkoutViewModel(
         applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId)
     }
 
+    fun reorderExercisesPreservingParts(orderedExerciseIds: List<String>) {
+        val state = _uiState.value
+        val base = state.session ?: return
+        val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            if (modeSession.parts.isEmpty()) {
+                val lookup = modeSession.exercises.associateBy { it.id }
+                val reordered = orderedExerciseIds.mapNotNull(lookup::get)
+                if (reordered == modeSession.exercises) modeSession
+                else modeSession.copy(exercises = reordered)
+            } else {
+                var changed = false
+                val newParts = modeSession.parts.map { part ->
+                    val partOrdered = orderedExerciseIds.filter { id -> part.exercises.any { it.id == id } }
+                    if (partOrdered.size != part.exercises.size) return@map part
+                    val lookup = part.exercises.associateBy { it.id }
+                    val reordered = partOrdered.mapNotNull(lookup::get)
+                    if (reordered == part.exercises) part
+                    else { changed = true; part.copy(exercises = reordered) }
+                }
+                if (changed) modeSession.copy(parts = newParts) else modeSession
+            }
+        }
+        if (updatedSession == base) return
+        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId)
+    }
+
+    fun reorderExercisesGlobally(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>) {
+        val state = _uiState.value
+        val base = state.session ?: return
+        val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            modeSession.globalReorder(orderedExerciseIds.distinct(), originalPartMap)
+        }
+        if (updatedSession == base) return
+        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId)
+    }
+
+    fun applyReorderAndPromptPersistence(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>, isGlobal: Boolean) {
+        if (isGlobal) {
+            reorderExercisesGlobally(orderedExerciseIds, originalPartMap)
+        } else {
+            reorderExercisesPreservingParts(orderedExerciseIds)
+        }
+        _uiState.update { it.copy(
+            pendingStructuralPersistence = PendingStructuralChange.ReorderExercises(
+                orderedExerciseIds = orderedExerciseIds.distinct(),
+                originalPartMap = originalPartMap,
+                isGlobal = isGlobal,
+            )
+        )}
+    }
+
     fun updateExerciseDefinition(exerciseId: String, transform: (Exercise) -> Exercise) {
         val state = _uiState.value
         val base = state.session ?: return
@@ -3508,6 +3699,8 @@ class WorkoutViewModel(
     fun addSetToCurrentExercise() {
         val currentExerciseIdx = _uiState.value.currentExerciseIdx
         val currentExerciseId = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)?.id ?: return
+        val exerciseName = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)?.name ?: ""
+        // Add the set to the live session immediately
         updateExerciseDefinition(currentExerciseId) { exercise ->
             val lastSet = exercise.sets.lastOrNull()
             val lastSetIdx = exercise.sets.lastIndex
@@ -3526,6 +3719,159 @@ class WorkoutViewModel(
                 isAmrap = false,
             )
             exercise.copy(sets = exercise.sets + newSet)
+        }
+        // Show persistence prompt
+        _uiState.update { it.copy(
+            pendingStructuralPersistence = PendingStructuralChange.AddSet(
+                exerciseId = currentExerciseId,
+                exerciseName = exerciseName,
+            )
+        )}
+    }
+
+    fun addExerciseAfter(exerciseId: String, info: ExerciseMuscleInfo) {
+        val state = _uiState.value
+        val base = state.session ?: return
+        val newId = UUID.randomUUID().toString()
+        val newExerciseName = info.name
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            val template = modeSession.allExercises().firstOrNull { it.id == exerciseId }
+                ?: modeSession.allExercises().lastOrNull()
+                ?: return@withModeSession modeSession
+            val newExercise = buildReplacementExercise(template.copy(id = newId), info).copy(
+                id = newId,
+                sets = listOf(ExerciseSet(id = UUID.randomUUID().toString())),
+            )
+            insertExerciseAfter(modeSession, exerciseId, newExercise)
+        }
+        if (updatedSession == base) return
+        applySessionMutation(updatedSession, preferredExerciseId = newId)
+        _uiState.update { it.copy(
+            pendingEditSheetExerciseId = newId,
+            pendingStructuralPersistence = PendingStructuralChange.AddExercise(
+                afterExerciseId = exerciseId,
+                newExerciseId = newId,
+                newExerciseName = newExerciseName,
+            ),
+        )}
+    }
+
+    fun clearPendingEditSheetExerciseId() {
+        _uiState.update { it.copy(pendingEditSheetExerciseId = null) }
+    }
+
+    fun clearPendingStructuralPersistence() {
+        _uiState.update { it.copy(pendingStructuralPersistence = null) }
+    }
+
+    fun commitStructuralPersistence(scope: ReplacementPersistenceScopeV2) {
+        val state = _uiState.value
+        val change = state.pendingStructuralPersistence ?: return
+        val program = repository.getProgramById(programId)
+        val location = program?.let { findSessionLocation(it, sessionId) }
+
+        if (program != null && location != null && scope != ReplacementPersistenceScopeV2.SESSION_ONLY) {
+            when (change) {
+                is PendingStructuralChange.AddSet -> {
+                    // Persist additional set to program's session template
+                    val week = program.macrocycles
+                        .getOrNull(location.macroIndex)?.blocks
+                        ?.flatMap { it.mesocycles }
+                        ?.getOrNull(location.mesoIndex)?.weeks
+                        ?.firstOrNull { it.id == state.weekId }
+                    week?.let { targetWeek ->
+                        val targetSession = targetWeek.sessions.firstOrNull { it.id == sessionId }
+                        if (targetSession == null) return@let
+                        val updatedSession = withModeSession(targetSession, state.activeMode) { modeSession ->
+                            modeSession.replaceExerciseById(change.exerciseId) { ex ->
+                                val lastSet = ex.sets.lastOrNull()
+                                val newSet = ExerciseSet(
+                                    id = UUID.randomUUID().toString(),
+                                    targetReps = lastSet?.targetReps,
+                                    targetRPE = lastSet?.targetRPE,
+                                    targetRIR = lastSet?.targetRIR,
+                                    weight = lastSet?.weight,
+                                    loadModeV2 = ex.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD,
+                                    unitModeV2 = lastSet?.unitModeV2,
+                                    intensityMode = lastSet?.intensityMode,
+                                    targetDuration = lastSet?.targetDuration,
+                                    targetPercentageRM = lastSet?.targetPercentageRM,
+                                    isAmrap = false,
+                                )
+                                WorkoutEditingRules.normalizeLiveEditedExercise(ex.copy(sets = ex.sets + newSet))
+                            }
+                        }
+                        repository.upsertSessionInProgram(programId, state.weekId, location.macroIndex, location.mesoIndex, updatedSession)
+                    }
+                }
+                is PendingStructuralChange.AddExercise -> {
+                    // Persist new exercise to program's session template
+                    state.session?.let { liveSession ->
+                        val liveExercise = liveSession.allExercises().firstOrNull { it.id == change.newExerciseId }
+                        if (liveExercise == null) return@let
+                        val week = program.macrocycles
+                            .getOrNull(location.macroIndex)?.blocks
+                            ?.flatMap { it.mesocycles }
+                            ?.getOrNull(location.mesoIndex)?.weeks
+                            ?.firstOrNull { it.id == state.weekId }
+                        week?.let { targetWeek ->
+                            val targetSession = targetWeek.sessions.firstOrNull { it.id == sessionId }
+                            if (targetSession == null) return@let
+                            val updatedSession = insertExerciseAfter(targetSession, change.afterExerciseId, liveExercise)
+                            repository.upsertSessionInProgram(programId, state.weekId, location.macroIndex, location.mesoIndex, updatedSession)
+                        }
+                    }
+                }
+                is PendingStructuralChange.ReorderExercises -> {
+                    state.session?.let { liveSession ->
+                        val week = program.macrocycles
+                            .getOrNull(location.macroIndex)?.blocks
+                            ?.flatMap { it.mesocycles }
+                            ?.getOrNull(location.mesoIndex)?.weeks
+                            ?.firstOrNull { it.id == state.weekId }
+                        week?.let { targetWeek ->
+                            val targetSession = targetWeek.sessions.firstOrNull { it.id == sessionId }
+                            if (targetSession == null) return@let
+                            val updatedSession = withModeSession(targetSession, state.activeMode) { modeSession ->
+                                if (change.isGlobal) {
+                                    modeSession.globalReorder(change.orderedExerciseIds, change.originalPartMap)
+                                } else {
+                                    if (modeSession.parts.isEmpty()) {
+                                        val lookup = modeSession.exercises.associateBy { it.id }
+                                        modeSession.copy(exercises = change.orderedExerciseIds.mapNotNull(lookup::get))
+                                    } else {
+                                        var changed = false
+                                        val newParts = modeSession.parts.map { part ->
+                                            val partOrdered = change.orderedExerciseIds.filter { id -> part.exercises.any { it.id == id } }
+                                            if (partOrdered.size != part.exercises.size) return@map part
+                                            val lookup = part.exercises.associateBy { it.id }
+                                            val reordered = partOrdered.mapNotNull(lookup::get)
+                                            if (reordered == part.exercises) part
+                                            else { changed = true; part.copy(exercises = reordered) }
+                                        }
+                                        if (changed) modeSession.copy(parts = newParts) else modeSession
+                                    }
+                                }
+                            }
+                            repository.upsertSessionInProgram(programId, state.weekId, location.macroIndex, location.mesoIndex, updatedSession)
+                        }
+                    }
+                }
+            }
+        }
+
+        _uiState.update { it.copy(pendingStructuralPersistence = null) }
+
+        // Connect with volume advance: recalculate pending deltas after structural change
+        val currentSession = _uiState.value.session
+        if (currentSession != null && programId.isNotEmpty()) {
+            val deltas = computeWorkoutVolumeDelta(currentSession, _uiState.value.completedSets)
+            if (deltas.isNotEmpty()) {
+                _uiState.update { it.copy(
+                    pendingVolumeAdvances = deltas,
+                    showVolumeAdvanceModal = true,
+                )}
+            }
         }
     }
 
@@ -5018,12 +5364,13 @@ class WorkoutViewModel(
         if (progress < expectedProgress - 0.15) {
             val remainingSets = totalSets - uniqueCompletedSets
             val remainingMinutes = if (remainingSeconds > 0) remainingSeconds / 60 else 0
-            val message = "Ritmo lento. Quedan $remainingSets series y solo $remainingMinutes minutos."
+            val message = "Ritmo lento · $remainingSets series · $remainingMinutes min"
             if (message != state.pacingAlertMessage) {
-                sessionTtsManager.speak(message, queueFlush = true)
+                postPacingNotification(message)
             }
             _uiState.update { it.copy(pacingAlertMessage = message) }
         } else if (state.pacingAlertMessage != null) {
+            cancelPacingNotification()
             _uiState.update { it.copy(pacingAlertMessage = null) }
         }
     }
@@ -6583,6 +6930,9 @@ class WorkoutViewModel(
     }
 
     companion object {
+        private const val NOTIF_ID_PACING = 9001
+        private const val NOTIF_CHANNEL_PACING = "workout_pacing_critical"
+
         fun factory(
             appContext: Context,
             programId: String,

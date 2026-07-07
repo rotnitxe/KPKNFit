@@ -1249,7 +1249,7 @@ private fun MacroSliderCard(
             Spacer(Modifier.height(8.dp))
             Slider(
                 value = value.toFloat(),
-                onValueChange = { onValueChange(it.toInt()) },
+                onValueChange = { onValueChange(kotlin.math.round(it).toInt()) },
                 valueRange = valueRange.first.toFloat()..valueRange.last.toFloat(),
                 steps = (valueRange.last - valueRange.first - 1).coerceAtLeast(0),
                 colors = SliderDefaults.colors(

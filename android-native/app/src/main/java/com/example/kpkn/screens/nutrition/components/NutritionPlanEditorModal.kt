@@ -201,7 +201,7 @@ fun NutritionPlanEditorModal(
         else -> 1.0
     }
 
-    val proteinGoal = (proteinD * proteinMultiplier).roundToInt()
+    val proteinGoal = proteinD.roundToInt()
     val macroCalories = (proteinGoal * 4) + carbsD.roundToInt() * 4 + fatsD.roundToInt() * 9
     val weeklyTrendKg = if (tdee != null && tdee > 0 && state.goal == CalorieGoal.LOSE) {
         -((tdee - macroCalories) * 7) / 7700.0
@@ -662,13 +662,13 @@ fun NutritionPlanEditorModal(
                                 SectionTitle("Ajuste de macronutrientes")
 
                                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    MacroSliderRow("Proteína", proteinGoal, "g", PROTEIN_COLOR, (proteinGoal - 40).coerceAtLeast(40)..(proteinGoal + 40).coerceAtLeast(80)) { p ->
+                                    MacroSliderRow("Proteína", proteinGoal, "g", PROTEIN_COLOR, (autoProtein - 60).coerceAtLeast(40)..(autoProtein + 60).coerceAtLeast(80)) { p ->
                                         state = state.copy(proteinG = p.toString(), lastMacroTouched = "proteinG")
                                     }
-                                    MacroSliderRow("Carbohidratos", carbsD.roundToInt(), "g", CARBS_COLOR, (carbsD.roundToInt() - 60).coerceAtLeast(60)..(carbsD.roundToInt() + 60).coerceAtLeast(120)) { c ->
+                                    MacroSliderRow("Carbohidratos", carbsD.roundToInt(), "g", CARBS_COLOR, (autoCarbs - 100).coerceAtLeast(60)..(autoCarbs + 100).coerceAtLeast(120)) { c ->
                                         state = state.copy(carbsG = c.toString(), lastMacroTouched = "carbsG")
                                     }
-                                    MacroSliderRow("Grasas", fatsD.roundToInt(), "g", FATS_COLOR, (fatsD.roundToInt() - 25).coerceAtLeast(20)..(fatsD.roundToInt() + 25).coerceAtLeast(40)) { f ->
+                                    MacroSliderRow("Grasas", fatsD.roundToInt(), "g", FATS_COLOR, (autoFats - 30).coerceAtLeast(20)..(autoFats + 30).coerceAtLeast(40)) { f ->
                                         state = state.copy(fatsG = f.toString(), lastMacroTouched = "fatsG")
                                     }
                                 }
@@ -1199,7 +1199,7 @@ private fun MacroSliderRow(
         Spacer(Modifier.height(2.dp))
         Slider(
             value = value.toFloat(),
-            onValueChange = { onValueChange(it.toInt()) },
+            onValueChange = { onValueChange(kotlin.math.round(it).toInt()) },
             valueRange = range.first.toFloat()..range.last.toFloat(),
             modifier = Modifier.height(24.dp),
             colors = SliderDefaults.colors(

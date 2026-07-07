@@ -15,8 +15,11 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -74,7 +77,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
@@ -402,6 +404,36 @@ fun WorkoutScreen(
         viewModel.getWeightSuggestionWithAutoRegulation(it, uiState.currentSetIdx, activeTag)
     }
 
+    val recordActionHolder = remember { RecordActionHolder() }
+    val isUnilateralDock = currentExercise?.isEffectivelyUnilateral() == true
+    var selectedUnilateralSideOverride by remember(currentExercise?.id, uiState.currentSetIdx) {
+        mutableStateOf<String?>(null)
+    }
+    val activeDockSide = remember(
+        currentExercise?.id,
+        currentExercise?.unilateralSideOrder,
+        uiState.completedSets,
+        uiState.currentSetIdx,
+        isUnilateralDock,
+        selectedUnilateralSideOverride,
+    ) {
+        if (currentExercise == null || !isUnilateralDock) {
+            null
+        } else {
+            val expectedSides = currentExercise.expectedSidesForSet(uiState.currentSetIdx)
+            selectedUnilateralSideOverride
+                ?.takeIf { it in expectedSides }
+                ?: expectedSides.firstOrNull { side ->
+                    !uiState.completedSets.containsKey("${currentExercise.id}_${uiState.currentSetIdx}_${side.take(1).uppercase()}")
+                }
+                ?: expectedSides.firstOrNull()
+        }
+    }
+    val showingPostExerciseCardDock = currentExercise != null &&
+        uiState.showPostExerciseSheet &&
+        uiState.postExerciseTargetIdx == uiState.currentExerciseIdx
+    val cardsHazeStateDock = remember { HazeState() }
+
     var lastAnnouncedSetKey by rememberSaveable { mutableStateOf<String?>(null) }
     var exerciseContextExerciseId by remember { mutableStateOf<String?>(null) }
     var showReplaceExercisePicker by remember { mutableStateOf(false) }
@@ -417,9 +449,13 @@ fun WorkoutScreen(
     var supersetSettingsGroupId by remember { mutableStateOf<String?>(null) }
     var addCatalogToSupersetGroupId by remember { mutableStateOf<String?>(null) }
     var addCatalogSearchQuery by remember { mutableStateOf("") }
+    var addExerciseAfterId by remember { mutableStateOf<String?>(null) }
+    var addExerciseSearchQuery by remember { mutableStateOf("") }
     var showReorderSheet by remember { mutableStateOf(false) }
-    var reorderSheetPartId by remember { mutableStateOf<String?>(null) }
     var reorderSheetExerciseIds by remember { mutableStateOf<List<String>>(emptyList()) }
+    var showReorderCrossBoundaryConfirm by remember { mutableStateOf(false) }
+    var reorderCrossBoundaryMessages by remember { mutableStateOf<List<String>>(emptyList()) }
+    var pendingGlobalReorderIds by remember { mutableStateOf<List<String>>(emptyList()) }
 
     val renderedParts = remember(modeSession) {
         if (modeSession.parts.isNotEmpty()) {
@@ -433,6 +469,16 @@ fun WorkoutScreen(
                 )
             )
         }
+    }
+
+    val originalExercisePartMap = remember(renderedParts) {
+        val map = mutableMapOf<String, String>()
+        for (part in renderedParts) {
+            for (ex in part.exercises) {
+                map[ex.id] = part.name
+            }
+        }
+        map
     }
 
     val currentPartName = remember(uiState.currentExerciseIdx, modeSession.parts, visibleExercises) {
@@ -465,6 +511,7 @@ fun WorkoutScreen(
 
     val sessionAccentColor = remember(session.background) { resolveSessionAccentColor(session.background) }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.fillMaxSize()
             .hazeSource(state = readinessHaze)
@@ -472,31 +519,6 @@ fun WorkoutScreen(
             .hazeSource(state = bottomHazeState),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
-        bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                WorkoutRoadmapBar(
-                    exercises = visibleExercises,
-                    parts = renderedParts,
-                    supersetGroups = modeSession.allSupersetGroups(),
-                    currentIdx = uiState.currentExerciseIdx,
-                    currentSetIdx = uiState.currentSetIdx,
-                    completedSets = uiState.completedSets,
-                    onSelect = { viewModel.selectExercise(it) },
-                    onSelectGroup = { viewModel.selectSupersetGroup(it) },
-                    onOpenContext = { exId -> exerciseContextExerciseId = exId },
-                    enableLongPress = true,
-                    sessionAccentColor = sessionAccentColor,
-                    hazeState = bottomHazeState,
-                    mode = roadmapMode,
-                    onModeChange = { roadmapMode = it },
-                )
-            }
-        },
     ) { padding ->
         val headerExerciseInfo = currentExercise?.let { workoutCatalogInfo(it) }
         val headerGroup = resolveWorkoutHeaderGroupLabel(
@@ -527,6 +549,13 @@ fun WorkoutScreen(
             headerBackground = session.background,
             headerExerciseTag = activeTag,
             exerciseReadinessMap = uiState.exerciseReadinessMap,
+            recordActionHolder = recordActionHolder,
+            cardsHazeState = cardsHazeStateDock,
+            isUnilateral = isUnilateralDock,
+            selectedUnilateralSideOverride = selectedUnilateralSideOverride,
+            onSelectedUnilateralSideOverride = { selectedUnilateralSideOverride = it },
+            activeSide = activeDockSide,
+            showingPostExerciseCard = showingPostExerciseCardDock,
             onExpandHistory = {
                 val dbId = currentExercise?.exerciseDbId ?: currentExercise?.exerciseId
                 if (dbId != null) viewModel.showHistoryFor(dbId)
@@ -547,6 +576,66 @@ fun WorkoutScreen(
                 currentExercise?.id?.let { editSheetExerciseId = it }
             },
         )
+    }
+
+    LaunchedEffect(uiState.pendingEditSheetExerciseId) {
+        uiState.pendingEditSheetExerciseId?.let { exId ->
+            editSheetExerciseId = exId
+            viewModel.clearPendingEditSheetExerciseId()
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.BottomCenter)
+            .navigationBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .zIndex(5f),
+    ) {
+        WorkoutRoadmapBar(
+            exercises = visibleExercises,
+            parts = renderedParts,
+            supersetGroups = modeSession.allSupersetGroups(),
+            currentIdx = uiState.currentExerciseIdx,
+            currentSetIdx = uiState.currentSetIdx,
+            completedSets = uiState.completedSets,
+            onSelect = { viewModel.selectExercise(it) },
+            onSelectGroup = { viewModel.selectSupersetGroup(it) },
+            onOpenContext = { exId -> exerciseContextExerciseId = exId },
+            enableLongPress = true,
+            sessionAccentColor = sessionAccentColor,
+            hazeState = bottomHazeState,
+            mode = roadmapMode,
+            onModeChange = { roadmapMode = it },
+        )
+    }
+
+    if (currentExercise != null && currentSet != null && (!showingPostExerciseCardDock || uiState.currentSetIdx < currentExercise.sets.size)) {
+        val dockKey = if (isUnilateralDock && activeDockSide != null) {
+            "${currentExercise.id}_${uiState.currentSetIdx}_${activeDockSide.take(1).uppercase()}"
+        } else {
+            "${currentExercise.id}_${uiState.currentSetIdx}"
+        }
+        WorkoutCommandDock(
+            exercise = currentExercise,
+            setIndex = uiState.currentSetIdx,
+            activeSide = activeDockSide,
+            isUnilateral = isUnilateralDock,
+            voiceSessionEnabled = uiState.voiceSessionEnabled,
+            voiceSessionState = uiState.voiceSessionState,
+            onToggleVoice = { viewModel.toggleVoiceSession() },
+            onPrimaryAction = { recordActionHolder.action?.invoke() },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .zIndex(6f)
+                .padding(horizontal = 12.dp)
+                .padding(bottom = 152.dp),
+            sessionAccentColor = sessionAccentColor,
+            hazeState = cardsHazeStateDock,
+            isUpdateMode = uiState.completedSets.containsKey(dockKey),
+        )
+    }
     }
 
     val activeRestModalState = uiState.restModalState
@@ -1222,6 +1311,7 @@ fun WorkoutScreen(
         WorkoutDrawer(
             title = if (contextSupersetGroupId != null) "Superserie" else contextExercise?.name ?: "Acciones del ejercicio",
             onDismiss = { exerciseContextExerciseId = null },
+            hazeState = bottomHazeState,
         ) {
             if (contextExercise != null && contextSupersetGroupId != null) {
                 val members = remember(contextSupersetGroupId, modeSession) {
@@ -1307,11 +1397,14 @@ fun WorkoutScreen(
             } else {
                 FilledTonalButton(
                     onClick = {
-                        val targetExerciseId = contextExercise?.id ?: return@FilledTonalButton
-                        val targetPart = renderedParts.firstOrNull { part -> part.exercises.any { it.id == targetExerciseId } }
-                        val targetExercises = targetPart?.exercises ?: modeSession.exercises
-                        reorderSheetPartId = targetPart?.id?.takeIf { it != "default" }
-                        reorderSheetExerciseIds = targetExercises.map { it.id }
+                        addExerciseAfterId = contextExercise?.id
+                        exerciseContextExerciseId = null
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Icon(Icons.Default.Add, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Agregar otro ejercicio") }
+                FilledTonalButton(
+                    onClick = {
+                        reorderSheetExerciseIds = visibleExercises.map { it.id }
                         showReorderSheet = true
                         exerciseContextExerciseId = null
                     },
@@ -1406,13 +1499,15 @@ fun WorkoutScreen(
         }
     }
 
-    if (showReorderSheet) {
-        fun closeReorderSheet() {
-            showReorderSheet = false
-            reorderSheetPartId = null
-            reorderSheetExerciseIds = emptyList()
-        }
+    fun closeReorderSheet() {
+        showReorderSheet = false
+        reorderSheetExerciseIds = emptyList()
+        showReorderCrossBoundaryConfirm = false
+        reorderCrossBoundaryMessages = emptyList()
+        pendingGlobalReorderIds = emptyList()
+    }
 
+    if (showReorderSheet) {
         fun moveReorderItem(fromIndex: Int, delta: Int) {
             if (reorderSheetExerciseIds.isEmpty() || fromIndex !in reorderSheetExerciseIds.indices) return
             val targetIndex = (fromIndex + delta).coerceIn(0, reorderSheetExerciseIds.lastIndex)
@@ -1423,24 +1518,46 @@ fun WorkoutScreen(
             }
         }
 
-        val reorderExercises = when (reorderSheetPartId) {
-            null -> modeSession.exercises
-            else -> modeSession.parts.firstOrNull { it.id == reorderSheetPartId }?.exercises.orEmpty()
-        }
-        val reorderExerciseLookup = remember(reorderSheetPartId, reorderExercises) { reorderExercises.associateBy { it.id } }
-        val reorderScopeLabel = remember(reorderSheetPartId, renderedParts) {
-            when (val partId = reorderSheetPartId) {
-                null -> "la sesión principal"
-                else -> renderedParts.firstOrNull { it.id == partId }?.name ?: "este grupo"
+        val reorderExerciseLookup = remember(visibleExercises) { visibleExercises.associateBy { it.id } }
+
+        fun detectCrossBoundaryMoves(orderedIds: List<String>, partMap: Map<String, String>): List<String> {
+            if (orderedIds.size < 2) return emptyList()
+            val messages = mutableListOf<String>()
+            data class ExBlock(val part: String?, val ids: List<String>)
+            val blocks = mutableListOf<ExBlock>()
+            var currentPart: String? = orderedIds.firstOrNull()?.let(partMap::get)
+            var currentIds = mutableListOf<String>()
+            for (id in orderedIds) {
+                val p = partMap[id]
+                if (p != currentPart && currentIds.isNotEmpty()) {
+                    blocks.add(ExBlock(currentPart, currentIds.toList()))
+                    currentIds = mutableListOf()
+                    currentPart = p
+                }
+                currentIds.add(id)
             }
+            if (currentIds.isNotEmpty()) blocks.add(ExBlock(currentPart, currentIds.toList()))
+            for (i in blocks.indices) {
+                val block = blocks[i]
+                if (block.ids.size != 1) continue
+                val prevPart = if (i > 0) blocks[i - 1].part else null
+                val nextPart = if (i < blocks.lastIndex) blocks[i + 1].part else null
+                if (prevPart != null && nextPart != null && prevPart == nextPart && prevPart != block.part) {
+                    val exId = block.ids[0]
+                    val exName = reorderExerciseLookup[exId]?.name ?: exId
+                    messages.add("$exName (${block.part ?: "Sesión Principal"} → $prevPart)")
+                }
+            }
+            return messages
         }
+
         AlertDialog(
             onDismissRequest = { closeReorderSheet() },
             title = { Text("Reordenar ejercicios", fontWeight = FontWeight.Black) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "Reordena los ejercicios de $reorderScopeLabel.",
+                        "Reordena todos los ejercicios globalmente.",
                         style = MaterialTheme.typography.bodySmall,
                     )
                     if (reorderSheetExerciseIds.isEmpty()) {
@@ -1453,6 +1570,7 @@ fun WorkoutScreen(
                         LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
                             itemsIndexed(reorderSheetExerciseIds, key = { _, exId -> exId }) { index, exId ->
                                 val ex = reorderExerciseLookup[exId]
+                                val partName = originalExercisePartMap[exId]
                                 if (ex != null) {
                                     Surface(
                                         shape = RoundedCornerShape(8.dp),
@@ -1465,7 +1583,16 @@ fun WorkoutScreen(
                                         ) {
                                             Text("${index + 1}", modifier = Modifier.width(20.dp), fontWeight = FontWeight.Black)
                                             Spacer(Modifier.width(8.dp))
-                                            Text(ex.name, modifier = Modifier.weight(1f))
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Text(ex.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                if (partName != null) {
+                                                    Text(
+                                                        partName,
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                    )
+                                                }
+                                            }
                                             IconButton(
                                                 onClick = { moveReorderItem(index, -1) },
                                                 enabled = index > 0,
@@ -1489,14 +1616,76 @@ fun WorkoutScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.reorderExercises(reorderSheetPartId, reorderSheetExerciseIds)
-                        closeReorderSheet()
+                        val crossBoundaryMessages = detectCrossBoundaryMoves(reorderSheetExerciseIds, originalExercisePartMap)
+                        if (crossBoundaryMessages.isEmpty()) {
+                            viewModel.applyReorderAndPromptPersistence(reorderSheetExerciseIds, originalExercisePartMap, false)
+                            closeReorderSheet()
+                        } else {
+                            reorderCrossBoundaryMessages = crossBoundaryMessages
+                            pendingGlobalReorderIds = reorderSheetExerciseIds
+                            showReorderCrossBoundaryConfirm = true
+                        }
                     },
                     enabled = reorderSheetExerciseIds.size >= 2,
                 ) { Text("Guardar", fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
                 TextButton(onClick = { closeReorderSheet() }) { Text("Cancelar") }
+            },
+        )
+    }
+
+    if (showReorderCrossBoundaryConfirm) {
+        AlertDialog(
+            onDismissRequest = {
+                showReorderCrossBoundaryConfirm = false
+                reorderCrossBoundaryMessages = emptyList()
+                pendingGlobalReorderIds = emptyList()
+            },
+            title = { Text("Cambio de grupo", fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Los siguientes ejercicios se saldrán del grupo en el que estaban:",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    reorderCrossBoundaryMessages.forEach { message ->
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                        ) {
+                            Text(
+                                "⚠ $message",
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                            )
+                        }
+                    }
+                    Text(
+                        "¿Estás seguro de mantener este orden? Los ejercicios cambiarán al grupo donde fueron colocados.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.applyReorderAndPromptPersistence(pendingGlobalReorderIds, originalExercisePartMap, true)
+                        closeReorderSheet()
+                    },
+                ) { Text("Guardar de todas formas", fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showReorderCrossBoundaryConfirm = false
+                        reorderCrossBoundaryMessages = emptyList()
+                        pendingGlobalReorderIds = emptyList()
+                    },
+                ) { Text("Cancelar") }
             },
         )
     }
@@ -1616,7 +1805,8 @@ fun WorkoutScreen(
             WorkoutDrawer(
                 title = "${draftExercise.name} · Editar series",
                 onDismiss = { editSheetExerciseId = null },
-            ) {
+                hazeState = bottomHazeState,
+                ) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1772,7 +1962,8 @@ fun WorkoutScreen(
             WorkoutDrawer(
                 title = "${tagEx.name} · Etiquetas",
                 onDismiss = { tagSheetExerciseId = null },
-            ) {
+                hazeState = bottomHazeState,
+                ) {
                 ExerciseTagSheetContent(
                     currentTag = currentExTag,
                     onTagSet = { tag -> if (tag.isBlank()) viewModel.clearExerciseTag(tagEx.id) else viewModel.setExerciseTag(tagEx.id, tag) },
@@ -1801,7 +1992,8 @@ fun WorkoutScreen(
             WorkoutDrawer(
                 title = "${setupEx.name} · Setup",
                 onDismiss = { setupSheetExerciseId = null },
-            ) {
+                hazeState = bottomHazeState,
+                ) {
                 ExerciseSetupSheetContent(
                     exercise = setupEx,
                     currentSet = setupSet,
@@ -1884,6 +2076,79 @@ fun WorkoutScreen(
                             onDismiss = {
                                 addCatalogToSupersetGroupId = null
                                 addCatalogSearchQuery = ""
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    if (addExerciseAfterId != null) {
+        val targetExerciseId = addExerciseAfterId!!
+        val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
+        val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
+        val addExerciseSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+        ModalBottomSheet(
+            onDismissRequest = {
+                addExerciseAfterId = null
+                addExerciseSearchQuery = ""
+            },
+            sheetState = addExerciseSheetState,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            containerColor = Color(0xFF1E1E1E),
+            contentColor = Color.White,
+            tonalElevation = 0.dp,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.2f)) },
+        ) {
+            MaterialTheme(
+                colorScheme = darkColorScheme(
+                    primary = Color(0xFFFFD600),
+                    onPrimary = Color.Black,
+                    primaryContainer = Color(0xFF333333),
+                    onPrimaryContainer = Color.White,
+                    secondary = Color(0xFF3B82F6),
+                    onSecondary = Color.White,
+                    secondaryContainer = Color(0xFF222222),
+                    onSecondaryContainer = Color.White,
+                    tertiary = Color(0xFFFFD600),
+                    onTertiary = Color.Black,
+                    surface = Color(0xFF1E1E1E),
+                    onSurface = Color.White,
+                    surfaceVariant = Color(0xFF2C2C2C),
+                    onSurfaceVariant = Color.White,
+                    background = Color(0xFF1E1E1E),
+                    onBackground = Color.White,
+                    outline = Color.White.copy(alpha = 0.5f),
+                    outlineVariant = Color.White.copy(alpha = 0.3f),
+                )
+            ) {
+                androidx.compose.runtime.CompositionLocalProvider(
+                    androidx.compose.material3.LocalContentColor provides Color.White
+                ) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                        color = Color(0xFF1E1E1E),
+                        contentColor = Color.White
+                    ) {
+                        com.example.kpkn.screens.sessioneditor.ExercisePickerSheet(
+                            query = addExerciseSearchQuery,
+                            catalog = EXERCISE_DATABASE,
+                            workoutLogs = workoutLogs,
+                            editingExisting = false,
+                            onSearch = { addExerciseSearchQuery = it },
+                            onSelect = { info ->
+                                viewModel.addExerciseAfter(targetExerciseId, info)
+                                addExerciseAfterId = null
+                                addExerciseSearchQuery = ""
+                            },
+                            onMultiSelect = { emptyList() },
+                            onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
+                            onOpenExerciseCreator = { },
+                            onDismiss = {
+                                addExerciseAfterId = null
+                                addExerciseSearchQuery = ""
                             },
                         )
                     }
@@ -2014,6 +2279,61 @@ fun WorkoutScreen(
         )
     }
 
+    uiState.pendingStructuralPersistence?.let { change ->
+        val options = viewModel.replacementScopeOptions()
+        val title = when (change) {
+            is PendingStructuralChange.AddSet -> "Añadir serie"
+            is PendingStructuralChange.AddExercise -> "Agregar ejercicio"
+            is PendingStructuralChange.ReorderExercises -> "Reordenar ejercicios"
+        }
+        AlertDialog(
+            onDismissRequest = {
+                viewModel.clearPendingStructuralPersistence()
+            },
+            title = { Text(title, fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        when (change) {
+                            is PendingStructuralChange.AddSet -> {
+                                "Se añadió una serie a «${change.exerciseName}». ¿Cómo quieres guardar este cambio?"
+                            }
+                            is PendingStructuralChange.AddExercise -> {
+                                "Se agregó «${change.newExerciseName}». ¿Cómo quieres guardar este cambio?"
+                            }
+                            is PendingStructuralChange.ReorderExercises -> {
+                                "Se reordenaron los ejercicios. ¿Cómo quieres guardar este cambio?"
+                            }
+                        }
+                    )
+                    options.forEach { scope ->
+                        OutlinedButton(
+                            onClick = {
+                                viewModel.commitStructuralPersistence(scope)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                when (scope) {
+                                    ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
+                                    ReplacementPersistenceScopeV2.PERMANENT -> "Guardar permanente"
+                                    ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> "Guardar en sesiones coincidentes del mesociclo"
+                                }
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.clearPendingStructuralPersistence()
+                    }
+                ) { Text("Cancelar") }
+            },
+        )
+    }
+
     // ─── Quick discomfort sheet (execution error, non-last-set) ────────────────
     if (uiState.showExecutionErrorDiscomfortSheet && currentExercise != null) {
         QuickExecutionErrorDiscomfortSheet(
@@ -2021,7 +2341,6 @@ fun WorkoutScreen(
             onSave = { discomfortIds -> viewModel.dismissExecutionErrorDiscomfortSheet(discomfortIds) },
             onDismiss = { viewModel.dismissExecutionErrorDiscomfortSheet(emptyList()) },
             hazeState = bottomHazeState,
-            glassStyle = glassStyle,
         )
     }
 
@@ -2166,7 +2485,7 @@ fun WorkoutScreen(
         val history = remember(historyDbId, historyTag) {
             viewModel.getExerciseHistory(historyDbId, preferredTag = historyTag)
         }
-        WorkoutDrawer(title = "Historial", onDismiss = { viewModel.hideHistorySheet() }) {
+        WorkoutDrawer(title = "Historial", onDismiss = { viewModel.hideHistorySheet() }, hazeState = bottomHazeState) {
             if (historyTag != null) {
                 Surface(
                     shape = RoundedCornerShape(999.dp),
@@ -2889,13 +3208,18 @@ private fun WorkoutV2Body(
     onExpandReplace: () -> Unit,
     onExpandEdit: () -> Unit,
     exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
+    recordActionHolder: RecordActionHolder = remember { RecordActionHolder() },
+    cardsHazeState: HazeState = remember { HazeState() },
+    isUnilateral: Boolean = false,
+    selectedUnilateralSideOverride: String? = null,
+    onSelectedUnilateralSideOverride: (String?) -> Unit = {},
+    activeSide: String? = null,
+    showingPostExerciseCard: Boolean = false,
 ) {
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val scroll = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
-    val recordActionHolder = remember { RecordActionHolder() }
     var pendingUpdateAction by remember { mutableStateOf<(() -> Unit)?>(null) }
-    val cardsHazeState = remember { HazeState() }
     val cardsGlassStyle = remember {
         HazeStyle(
             blurRadius = 28.dp,
@@ -2904,9 +3228,6 @@ private fun WorkoutV2Body(
             noiseFactor = 0.02f,
         )
     }
-    val showingPostExerciseCard = currentExercise != null &&
-        uiState.showPostExerciseSheet &&
-        uiState.postExerciseTargetIdx == uiState.currentExerciseIdx
     var tagManagerTagId by remember { mutableStateOf<String?>(null) }
     var showCreateTagDialog by remember { mutableStateOf(false) }
     val currentExerciseKey = remember(currentExercise?.id) {
@@ -2927,31 +3248,6 @@ private fun WorkoutV2Body(
     }
     var drainOverlayState by remember { mutableStateOf<ExerciseDrainOverlayState?>(null) }
     var expandedSupersetWarmups by remember { mutableStateOf<Set<String>>(emptySet()) }
-
-    val isUnilateral = currentExercise?.isEffectivelyUnilateral() == true
-    var selectedUnilateralSideOverride by remember(currentExercise?.id, uiState.currentSetIdx) {
-        mutableStateOf<String?>(null)
-    }
-    val activeSide = remember(
-        currentExercise?.id,
-        currentExercise?.unilateralSideOrder,
-        uiState.completedSets,
-        uiState.currentSetIdx,
-        isUnilateral,
-        selectedUnilateralSideOverride,
-    ) {
-        if (currentExercise == null || !isUnilateral) {
-            null
-        } else {
-            val expectedSides = currentExercise.expectedSidesForSet(uiState.currentSetIdx)
-            selectedUnilateralSideOverride
-                ?.takeIf { it in expectedSides }
-                ?: expectedSides.firstOrNull { side ->
-                    !uiState.completedSets.containsKey("${currentExercise.id}_${uiState.currentSetIdx}_${side.take(1).uppercase()}")
-                }
-                ?: expectedSides.firstOrNull()
-        }
-    }
 
     LaunchedEffect(currentExercise?.id, uiState.currentSetIdx) {
         recordActionHolder.action = null
@@ -3064,37 +3360,6 @@ private fun WorkoutV2Body(
                     }
                 )
             }
-
-            val pacingMsg = uiState.pacingAlertMessage
-            if (!pacingMsg.isNullOrBlank()) {
-                Spacer(Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFE08E45).copy(alpha = 0.15f))
-                        .border(1.dp, Color(0xFFE08E45).copy(alpha = 0.4f), RoundedCornerShape(12.dp))
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = "Alerta de ritmo",
-                        tint = Color(0xFFE08E45),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = pacingMsg,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-
 
             Column(
                 modifier = Modifier.padding(horizontal = 10.dp),
@@ -3274,7 +3539,7 @@ private fun WorkoutV2Body(
                                 }
                                 if (isUnilateral) {
                                     if (selectedUnilateralSideOverride != pageSpec.side) {
-                                        selectedUnilateralSideOverride = pageSpec.side
+                                        onSelectedUnilateralSideOverride(pageSpec.side)
                                     }
                                 }
                             }
@@ -3457,6 +3722,7 @@ private fun WorkoutV2Body(
                                 val safeSetIdx = setIdx.coerceIn(0, currentExercise.sets.lastIndex.coerceAtLeast(0))
                                 uiState.completedSets.containsKey("${currentExercise.id}_${safeSetIdx}_${side.take(1).uppercase()}")
                             } else null,
+                            onAddSet = { viewModel.addSetToCurrentExercise() },
                         )
                     }
 
@@ -3808,32 +4074,6 @@ private fun WorkoutV2Body(
             }
             Spacer(Modifier.height(120.dp))
         }
-    }
-
-    // ─── Workout Command Dock ───────────────────────────────────────────
-    if (currentExercise != null && currentSet != null && (!showingPostExerciseCard || uiState.currentSetIdx < currentExercise.sets.size)) {
-        val dockKey = if (isUnilateral && activeSide != null) {
-            "${currentExercise.id}_${uiState.currentSetIdx}_${activeSide.take(1).uppercase()}"
-        } else {
-            "${currentExercise.id}_${uiState.currentSetIdx}"
-        }
-        WorkoutCommandDock(
-            exercise = currentExercise,
-            setIndex = uiState.currentSetIdx,
-            activeSide = activeSide,
-            isUnilateral = isUnilateral,
-            voiceSessionEnabled = uiState.voiceSessionEnabled,
-            voiceSessionState = uiState.voiceSessionState,
-            onToggleVoice = { viewModel.toggleVoiceSession() },
-            onPrimaryAction = { recordActionHolder.action?.invoke() },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 12.dp)
-                .padding(bottom = 8.dp),
-            sessionAccentColor = sessionAccentColor,
-            hazeState = cardsHazeState,
-            isUpdateMode = uiState.completedSets.containsKey(dockKey),
-        )
     }
 
     if (pendingUpdateAction != null) {
@@ -4320,131 +4560,105 @@ private fun WorkoutDrawer(
     onDismiss: () -> Unit,
     dismissible: Boolean = true,
     showCloseButton: Boolean = true,
+    hazeState: HazeState? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    var allowDismiss by remember { mutableStateOf(false) }
-    var showDismissConfirmDialog by remember { mutableStateOf(false) }
+    var showContent by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { showContent = true }
 
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { target ->
-            if (target == SheetValue.Hidden) {
-                if (allowDismiss) {
-                    true
-                } else {
-                    showDismissConfirmDialog = true
-                    false
-                }
-            } else true
-        }
-    )
-
-    fun handleDismiss() {
-        allowDismiss = true
-        scope.launch { sheetState.hide() }.invokeOnCompletion {
-            onDismiss()
-        }
+    val sheetGlassStyle = remember {
+        HazeStyle(
+            blurRadius = 20.dp,
+            tint = HazeTint(Color.Black.copy(alpha = 0.50f)),
+            backgroundColor = Color.Black.copy(alpha = 0.0f),
+            noiseFactor = 0.03f,
+        )
     }
 
-    if (showDismissConfirmDialog) {
-        Dialog(onDismissRequest = { showDismissConfirmDialog = false }) {
+    fun handleDismiss() {
+        showContent = false
+        onDismiss()
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Full-screen blur overlay (covers 100% of screen, including area behind the sheet)
+        AnimatedVisibility(
+            visible = showContent,
+            enter = fadeIn(animationSpec = tween(250)),
+            exit = fadeOut(animationSpec = tween(250)),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (hazeState != null) Modifier.hazeEffect(state = hazeState, style = sheetGlassStyle)
+                        else Modifier
+                    )
+                    .clickable(
+                        onClick = { handleDismiss() }
+                    )
+            )
+        }
+
+        // Bottom sheet panel
+        AnimatedVisibility(
+            visible = showContent,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = tween(300, easing = FastOutSlowInEasing)
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it },
+                animationSpec = tween(250)
+            ),
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
             Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = Color(0xFF2C2C2C),
-                tonalElevation = 6.dp
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .navigationBarsPadding(),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                color = Color(0xFF1E1E1E).copy(alpha = 0.40f),
+                tonalElevation = 0.dp,
+                shadowElevation = 8.dp,
             ) {
                 Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Text(
-                        "¿Cerrar ventana?",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    Text(
-                        "Has deslizado la ventana. ¿Deseas cerrarla y perder los cambios no guardados?",
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        color = Color.White.copy(alpha = 0.7f)
-                    )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        OutlinedButton(
-                            onClick = { showDismissConfirmDialog = false },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Mantener")
-                        }
-                        Button(
-                            onClick = { 
-                                showDismissConfirmDialog = false
-                                handleDismiss()
-                            },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                        ) {
-                            Text("Cerrar")
+                        Text(
+                            title,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White
+                        )
+                        if (showCloseButton) {
+                            IconButton(
+                                onClick = { handleDismiss() },
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = Color.White.copy(alpha = 0.08f),
+                                    contentColor = Color.White
+                                )
+                            ) {
+                                Icon(Icons.Default.Close, contentDescription = "Cerrar")
+                            }
                         }
                     }
+                    content()
+                    Spacer(Modifier.height(24.dp))
                 }
             }
         }
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = { 
-            if (allowDismiss) onDismiss() else showDismissConfirmDialog = true 
-        },
-        sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = Color(0xFF1E1E1E), // High contrast dark grey
-        tonalElevation = 0.dp,
-        dragHandle = {
-            BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.2f))
-        }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.92f)
-                .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            content = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White
-                    )
-                    if (showCloseButton) {
-                        IconButton(
-                            onClick = { handleDismiss() },
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = Color.White.copy(alpha = 0.08f),
-                                contentColor = Color.White
-                            )
-                        ) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar")
-                        }
-                    }
-                }
-                content()
-                Spacer(Modifier.height(24.dp))
-            },
-        )
     }
 }
 
@@ -4959,7 +5173,7 @@ private fun PostExerciseFeedbackSheet(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
+                .padding(bottom = 100.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             ) {
                 Text("Guardar y continuar", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)

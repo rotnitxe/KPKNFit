@@ -676,6 +676,9 @@ internal fun SetInputCardV2(
     }
     var bodyWeightText by remember(exercise.id) { mutableStateOf(initialBodyWeight?.toTrimmedNumberString().orEmpty()) }
     var showBodyWeightPrompt by remember(exercise.id) { mutableStateOf(false) }
+    var romValue by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
+        mutableStateOf<Int?>(initialDraft?.rom ?: sessionCompletedSet?.rom ?: 100)
+    }
     var selectedSide by remember(exercise.id, setIndex, lockedSide) { mutableStateOf(initialSelectedSide) }
 
     fun valueTextForSide(side: String): String = if (side == "left") leftValueText else rightValueText
@@ -735,6 +738,9 @@ internal fun SetInputCardV2(
     var dropSetEnabled by remember(exercise.id, setIndex) { mutableStateOf(false) }
     var restPauseEnabled by remember(exercise.id, setIndex) { mutableStateOf(false) }
     var showPartialsMode by remember(exercise.id, setIndex) { mutableStateOf(false) }
+    var assistedRepsValue by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
+        mutableIntStateOf(initialDraft?.assistedReps ?: sessionCompletedSet?.assistedReps ?: 0)
+    }
     var adjustmentsTab by remember(exercise.id, setIndex) { mutableIntStateOf(-1) }
     var loadModeMenuExpanded by remember(exercise.id, setIndex) { mutableStateOf(false) }
     var dropSets by remember(exercise.id, setIndex) {
@@ -1460,6 +1466,54 @@ internal fun SetInputCardV2(
                                 modifier = Modifier.fillMaxWidth()
                             )
 
+                            if (!isTimeMode) {
+                                Spacer(modifier = Modifier.height(if (roomyStepper) 6.dp else 4.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    IconButton(
+                                        onClick = { assistedRepsValue = (assistedRepsValue - 1).coerceAtLeast(0) },
+                                        modifier = Modifier.size(24.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Remove,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(12.dp),
+                                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                        )
+                                    }
+                                    
+                                    val maxReps = reportValueText.toIntOrNull() ?: 0
+                                    if (assistedRepsValue > maxReps) {
+                                        assistedRepsValue = maxReps
+                                    }
+                                    
+                                    Text(
+                                        text = if (assistedRepsValue > 0) "${assistedRepsValue} con ayuda" else "Sin ayuda",
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = if (assistedRepsValue > 0) sessionAccentColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                        modifier = Modifier.padding(horizontal = 2.dp)
+                                    )
+                                    
+                                    IconButton(
+                                        onClick = { 
+                                            val limit = reportValueText.toIntOrNull() ?: 0
+                                            assistedRepsValue = (assistedRepsValue + 1).coerceAtMost(limit) 
+                                        },
+                                        modifier = Modifier.size(24.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(12.dp),
+                                            tint = sessionAccentColor
+                                        )
+                                    }
+                                }
+                            }
+
                             if (isTimeMode) {
                                 Spacer(Modifier.height(if (roomyStepper) 8.dp else 6.dp))
                                 Box(
@@ -1535,6 +1589,64 @@ internal fun SetInputCardV2(
                     ) {
                         ValueStepperBlock(Modifier.weight(1f))
                         IntensityStepperBlock(Modifier.weight(1f))
+                    }
+
+                    if (exercise.trackRom) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Surface(
+                            color = Color.White.copy(alpha = 0.02f),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Rango de Movimiento (ROM)",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White.copy(alpha = 0.6f)
+                                    )
+                                    Text(
+                                        text = "${romValue ?: 100}%",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = sessionAccentColor
+                                    )
+                                }
+                                Slider(
+                                    value = (romValue ?: 100).toFloat(),
+                                    onValueChange = { romValue = it.roundToInt() },
+                                    valueRange = 10f..100f,
+                                    steps = 17,
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = sessionAccentColor,
+                                        activeTrackColor = sessionAccentColor,
+                                        inactiveTrackColor = Color.White.copy(alpha = 0.15f)
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                val romText = when {
+                                    (romValue ?: 100) == 100 -> "ROM Completo (máximo estímulo y estiramiento)"
+                                    (romValue ?: 100) >= 80 -> "ROM Casi Completo (buen estímulo mecánico)"
+                                    (romValue ?: 100) >= 50 -> "ROM Parcial (estímulo reducido o específico)"
+                                    else -> "ROM Muy Corto (parciales acotadas)"
+                                }
+                                Text(
+                                    text = romText,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                                    color = Color.White.copy(alpha = 0.5f),
+                                    fontStyle = FontStyle.Italic
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -1733,7 +1845,10 @@ internal fun SetInputCardV2(
                                             labelColor = MaterialTheme.colorScheme.onSurface,
                                         ),
                                     )
+
                                 }
+
+
 
                                 if (showPartialsMode) {
                                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -1890,6 +2005,8 @@ internal fun SetInputCardV2(
                 selectedSide,
                 reachedFailure,
                 partialRepsTotal,
+                romValue,
+                assistedRepsValue,
             ) {
                 if (!isActivePage) return@LaunchedEffect
                 val initialLoadMode = currentSet.loadModeV2 ?: persistedLoadMode ?: LoadModeV2.LOAD
@@ -1901,7 +2018,9 @@ internal fun SetInputCardV2(
                     loadMode != initialLoadMode ||
                     reachedFailure != initialFailure ||
                     partialRepsTotal != (initialDraft?.partialReps ?: 0) ||
-                    (supportsIndependentSides && selectedSide != initialSide)
+                    (supportsIndependentSides && selectedSide != initialSide) ||
+                    romValue != (initialDraft?.rom ?: sessionCompletedSet?.rom) ||
+                    assistedRepsValue != (initialDraft?.assistedReps ?: 0)
                 if (isDirty || initialDraft != null) {
                     onDraftChange(
                         WorkoutSetDraft(
@@ -1913,6 +2032,8 @@ internal fun SetInputCardV2(
                             partialReps = partialRepsTotal.takeIf { it > 0 },
                             reachedFailure = reachedFailure,
                             isDirty = isDirty,
+                            rom = romValue,
+                            assistedReps = assistedRepsValue.takeIf { it > 0 },
                         ),
                         if (supportsIndependentSides) selectedSide else null,
                     )
@@ -1954,6 +2075,8 @@ internal fun SetInputCardV2(
                 },
                 timerElapsedSeconds = if (isTimeMode && timerElapsedSeconds > 0) timerElapsedSeconds else valueText.toIntOrNull(),
                 timerTargetSeconds = if (isTimeMode) plannedTarget else null,
+                rom = romValue,
+                assistedReps = assistedRepsValue.takeIf { it > 0 },
             )
 
             SideEffect {

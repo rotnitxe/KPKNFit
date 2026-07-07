@@ -7,6 +7,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,6 +35,7 @@ internal fun WorkoutSetPager(
     sideCompleted: ((Int, String) -> Boolean)? = null,
     completedPreviousSets: Int = 0,
     nextExerciseSetCount: Int = 0,
+    onAddSet: (() -> Unit)? = null,
 ) {
     if (items.isEmpty()) return
 
@@ -93,6 +97,30 @@ internal fun WorkoutSetPager(
                     accent = accent,
                     modifier = Modifier.padding(start = 4.dp),
                 )
+            }
+
+            if (onAddSet != null) {
+                Spacer(Modifier.width(4.dp))
+                Surface(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                        ) { onAddSet() },
+                    shape = CircleShape,
+                    color = accent.copy(alpha = 0.22f),
+                    border = BorderStroke(1.dp, accent.copy(alpha = 0.42f)),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Añadir serie",
+                            tint = accent.copy(alpha = 0.78f),
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
+                }
             }
         }
     }

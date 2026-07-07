@@ -810,25 +810,53 @@ fun FoodLoggerDrawer(
 
     fun updateTagCalories(tagId: String, calories: Double) {
         tags = tags.map { tag ->
-            if (tag.id == tagId) { val old = tag.loggedFood ?: return@map tag; tag.copy(loggedFood = old.copy(calories = calories)) } else tag
+            if (tag.id == tagId) {
+                val old = tag.loggedFood ?: return@map tag
+                if (old.calories <= 0.0) return@map tag
+                val scale = calories / old.calories
+                tag.copy(loggedFood = old.copy(
+                    calories = calories,
+                    protein = kotlin.math.round(old.protein * scale * 10) / 10.0,
+                    carbs = kotlin.math.round(old.carbs * scale * 10) / 10.0,
+                    fats = kotlin.math.round(old.fats * scale * 10) / 10.0,
+                ))
+            } else tag
         }
     }
 
     fun updateTagProtein(tagId: String, protein: Double) {
         tags = tags.map { tag ->
-            if (tag.id == tagId) { val old = tag.loggedFood ?: return@map tag; tag.copy(loggedFood = old.copy(protein = protein)) } else tag
+            if (tag.id == tagId) {
+                val old = tag.loggedFood ?: return@map tag
+                tag.copy(loggedFood = old.copy(
+                    protein = protein,
+                    calories = protein * 4 + old.carbs * 4 + old.fats * 9,
+                ))
+            } else tag
         }
     }
 
     fun updateTagCarbs(tagId: String, carbs: Double) {
         tags = tags.map { tag ->
-            if (tag.id == tagId) { val old = tag.loggedFood ?: return@map tag; tag.copy(loggedFood = old.copy(carbs = carbs)) } else tag
+            if (tag.id == tagId) {
+                val old = tag.loggedFood ?: return@map tag
+                tag.copy(loggedFood = old.copy(
+                    carbs = carbs,
+                    calories = old.protein * 4 + carbs * 4 + old.fats * 9,
+                ))
+            } else tag
         }
     }
 
     fun updateTagFats(tagId: String, fats: Double) {
         tags = tags.map { tag ->
-            if (tag.id == tagId) { val old = tag.loggedFood ?: return@map tag; tag.copy(loggedFood = old.copy(fats = fats)) } else tag
+            if (tag.id == tagId) {
+                val old = tag.loggedFood ?: return@map tag
+                tag.copy(loggedFood = old.copy(
+                    fats = fats,
+                    calories = old.protein * 4 + old.carbs * 4 + fats * 9,
+                ))
+            } else tag
         }
     }
 

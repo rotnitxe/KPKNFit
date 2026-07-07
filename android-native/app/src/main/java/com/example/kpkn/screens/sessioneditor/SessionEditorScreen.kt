@@ -7,6 +7,8 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -1784,8 +1786,9 @@ fun SessionEditorScreen(
             viewModel.closeSheet()
         },
         onRestoreSnapshot = viewModel::restoreDraftSnapshot,
-        onRuleDefaultsChange = { setCount, reps, rpe, normalRest, sideRest, supersetBetween, supersetRound, applyToNew ->
+        onRuleDefaultsChange = { partId, setCount, reps, rpe, normalRest, sideRest, supersetBetween, supersetRound, applyToNew, intensityType ->
             viewModel.updateRuleDefaults(
+                partId = partId,
                 setCount = setCount,
                 reps = reps,
                 rpe = rpe,
@@ -1794,6 +1797,7 @@ fun SessionEditorScreen(
                 supersetBetweenRestSeconds = supersetBetween,
                 supersetRoundRestSeconds = supersetRound,
                 applyToNewItems = applyToNew,
+                intensityType = intensityType,
             )
         },
         onRuleLimitsChange = { maxRPE, maxExercisesPerMuscle ->
@@ -1838,6 +1842,9 @@ fun SessionEditorScreen(
         onConfirmApplyTemplate = viewModel::confirmTemplateApply,
         onCancelTemplateApply = viewModel::cancelTemplateApply,
         onTemplateSearchChange = viewModel::setTemplateSearchQuery,
+        setTargetDuration = viewModel::setTargetDuration,
+        setPartTargetDuration = viewModel::setPartTargetDuration,
+        setExerciseTargetDuration = viewModel::setExerciseTargetDuration,
     )
 
     if (showDiscardDialog) {
@@ -1922,6 +1929,13 @@ private fun SessionHero(
     onDeleteVariant: (WeekVariant) -> Unit = {},
     onSwitchVariant: (WeekVariant) -> Unit = {},
 ) {
+    var showVariantMenu by remember { mutableStateOf(false) }
+    var showCreateVariantDialog by remember { mutableStateOf(false) }
+    var newVariantName by remember { mutableStateOf("") }
+    val nextVariant = remember(availableVariants, session) {
+        listOf(WeekVariant.B, WeekVariant.C, WeekVariant.D)
+            .firstOrNull { it !in availableVariants }
+    }
       val background = session.background
       val brightness = background?.style?.brightness ?: 0.92f
       val blur = (background?.style?.blur ?: 0f).dp
@@ -1962,39 +1976,112 @@ private fun SessionHero(
               ) {
                   Row(
                       modifier = Modifier.fillMaxWidth(),
-                      horizontalArrangement = Arrangement.End,
+                      horizontalArrangement = Arrangement.SpaceBetween,
                       verticalAlignment = Alignment.CenterVertically,
                   ) {
-                      DarkChoiceChip(
-                          label = if (autoSaveEnabled) "Auto: On" else "Auto: Off",
-                          selected = autoSaveEnabled,
-                          onClick = onAutoSaveToggle,
-                      )
-                      Spacer(Modifier.width(6.dp))
-                      Surface(
-                          onClick = onOpenCoverSheet,
-                          shape = CircleShape,
-                          color = DarkEditorChip,
-                      ) {
-                          Box(
-                              modifier = Modifier.size(34.dp),
-                              contentAlignment = Alignment.Center,
+                      // Left side: Variant chips
+                      if (availableVariants.size > 1 || session.sessionB == null && session.sessionC == null && session.sessionD == null) {
+                          Row(
+                              modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                              horizontalArrangement = Arrangement.spacedBy(6.dp),
+                              verticalAlignment = Alignment.CenterVertically,
                           ) {
-                              Icon(
-                                  Icons.Default.Palette,
-                                  "Editar fondo",
-                                  tint = Color.White,
-                                  modifier = Modifier.size(18.dp),
-                              )
+                              availableVariants.forEach { variant ->
+                                  val isActive = variant == activeVariant
+                                  val variantName = when (variant) {
+                                      WeekVariant.A -> "Original"
+                                      WeekVariant.B -> session.sessionB?.name ?: "Derivada"
+                                      WeekVariant.C -> session.sessionC?.name ?: "Derivada"
+                                      WeekVariant.D -> session.sessionD?.name ?: "Derivada"
+                                  }
+                                  AssistChip(
+                                      onClick = { if (!isActive) onSwitchVariant(variant) },
+                                      label = {
+                                          Text(
+                                              variantName,
+                                              style = MaterialTheme.typography.labelSmall,
+                                              fontWeight = if (isActive) FontWeight.Black else FontWeight.Normal,
+                                          )
+                                      },
+                                      leadingIcon = if (isActive) ({ Icon(Icons.Default.Check, null, Modifier.size(13.dp)) }) else null,
+                                      trailingIcon = if (isActive && variant != WeekVariant.A) ({
+                                          Box {
+                                              Icon(
+                                                  Icons.Default.MoreVert, null,
+                                                  Modifier.size(13.dp).clickable { showVariantMenu = true },
+                                              )
+                                              DropdownMenu(expanded = showVariantMenu, onDismissRequest = { showVariantMenu = false }) {
+                                                  DropdownMenuItem(
+                                                      text = { Text("Eliminar variante") },
+                                                      onClick = { showVariantMenu = false; onDeleteVariant(variant) },
+                                                  )
+                                              }
+                                          }
+                                      }) else null,
+                                      shape = RoundedCornerShape(999.dp),
+                                      colors = AssistChipDefaults.assistChipColors(
+                                          containerColor = if (isActive) Color.White.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.10f),
+                                          labelColor = Color.White,
+                                      ),
+                                  )
+                              }
+                              // Botón para crear nueva variante derivada
+                              if (nextVariant != null) {
+                                  Surface(
+                                      onClick = {
+                                          newVariantName = "${session.name} – Rápida"
+                                          showCreateVariantDialog = true
+                                      },
+                                      shape = RoundedCornerShape(999.dp),
+                                      color = Color.White.copy(alpha = 0.08f),
+                                  ) {
+                                      Row(
+                                          modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                          horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                          verticalAlignment = Alignment.CenterVertically,
+                                      ) {
+                                          Icon(Icons.Default.Add, null, modifier = Modifier.size(12.dp), tint = Color.White.copy(alpha = 0.75f))
+                                          Text("Derivada", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.75f))
+                                      }
+                                  }
+                              }
                           }
                       }
-                      Spacer(Modifier.width(6.dp))
-                      HeroGlassIconButton(
-                          icon = Icons.Default.Save,
-                          contentDescription = "Guardar sesión",
-                          onClick = onSave,
-                          showUnsavedDot = hasChanges,
-                      )
+                      Spacer(Modifier.width(8.dp))
+                      // Right side: Auto:on, color, save
+                      Row(
+                          horizontalArrangement = Arrangement.spacedBy(6.dp),
+                          verticalAlignment = Alignment.CenterVertically,
+                      ) {
+                          DarkChoiceChip(
+                              label = if (autoSaveEnabled) "Auto: On" else "Auto: Off",
+                              selected = autoSaveEnabled,
+                              onClick = onAutoSaveToggle,
+                          )
+                          Surface(
+                              onClick = { onOpenCoverSheet() },
+                              shape = CircleShape,
+                              color = DarkEditorChip,
+                          ) {
+                              Box(
+                                  modifier = Modifier.size(34.dp),
+                                  contentAlignment = Alignment.Center,
+                                  ) {
+                                  Icon(
+                                      Icons.Default.Palette,
+                                      "Editar fondo",
+                                      tint = Color.White,
+                                      modifier = Modifier.size(18.dp),
+                                  )
+                              }
+                          }
+                          HeroGlassIconButton(
+                              icon = Icons.Default.Save,
+                              contentDescription = "Guardar sesión",
+                              onClick = onSave,
+                              showUnsavedDot = hasChanges,
+                          )
+                      }
                   }
 
                   val titleFontSize = when {
@@ -2056,7 +2143,7 @@ private fun SessionHero(
                  ) {
                      SessionHeroActionChip("Transferir", Icons.Default.SwapHoriz, onOpenTransfer)
                      SessionHeroActionChip("Historial", Icons.Default.History, onOpenHistory)
-                     SessionHeroActionChip("Reglas", Icons.Default.Settings, onOpenRules)
+                     SessionHeroActionChip("Reglas y tiempo", Icons.Default.Settings, onOpenRules)
                  }
 
                 // Multi-session day: session switcher row
@@ -2148,278 +2235,42 @@ private fun SessionHero(
                     }
                 }
 
-                // ─── Feature 2: Barra de progreso de duración objetivo ────────
-                var showTargetDurationDialog by remember { mutableStateOf(false) }
-                val estimatedTotal = sessionTimeBreakdown?.totalSeconds
-                if (targetDurationMinutes != null && estimatedTotal != null) {
-                    val targetSeconds = targetDurationMinutes * 60
-                    val progress = (estimatedTotal.toFloat() / targetSeconds).coerceIn(0f, 1.5f)
-                    val barColor = when {
-                        progress > 1f -> Color(0xFFEF4444)      // Rojo: excedido
-                        progress >= 0.8f -> Color(0xFFF59E0B)   // Ámbar: 80–100%
-                        else -> Color(0xFF22C55E)                // Verde: ≤ 80%
-                    }
-                    val deltaMin = ((estimatedTotal - targetSeconds) / 60)
-                    val deltaText = when {
-                        deltaMin > 0 -> "Excedido por ${deltaMin} min"
-                        deltaMin < 0 -> "Faltan ${-deltaMin} min"
-                        else -> "Justo en el objetivo"
-                    }
-                    val targetLabel = if (targetDurationMinutes >= 60) {
-                        "${targetDurationMinutes / 60}h ${targetDurationMinutes % 60}min"
-                    } else {
-                        "${targetDurationMinutes}min"
-                    }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            // Chip clickable de tiempo objetivo
-                            Surface(
-                                onClick = { showTargetDurationDialog = true },
-                                shape = RoundedCornerShape(999.dp),
-                                color = Color.White.copy(alpha = 0.18f),
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Icon(
-                                        Icons.Default.Timer,
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(14.dp),
-                                    )
-                                    Text(
-                                        "⏱ $targetLabel",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                }
-                            }
-                            Text(
-                                "${(progress * 100).toInt()}%  $deltaText",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = barColor,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
-                        LinearProgressIndicator(
-                            progress = { progress.coerceIn(0f, 1f) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(4.dp)
-                                .clip(RoundedCornerShape(999.dp)),
-                            color = barColor,
-                            trackColor = Color.White.copy(alpha = 0.15f),
-                        )
-                    }
-                } else {
-                    // Sin objetivo configurado: chip para configurar
-                    Surface(
-                        onClick = { showTargetDurationDialog = true },
-                        shape = RoundedCornerShape(999.dp),
-                        color = Color.White.copy(alpha = 0.12f),
-                        modifier = Modifier.padding(top = 6.dp),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                Icons.Default.Timer,
-                                contentDescription = null,
-                                tint = Color.White.copy(alpha = 0.7f),
-                                modifier = Modifier.size(14.dp),
-                            )
-                            Text(
-                                "Sin límite de tiempo",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.White.copy(alpha = 0.7f),
-                            )
-                        }
-                    }
-                }
-
-                // Dialog para configurar duración objetivo
-                if (showTargetDurationDialog) {
-                    var pickerHours by remember { mutableIntStateOf((targetDurationMinutes ?: 60) / 60) }
-                    var pickerMins by remember { mutableIntStateOf((targetDurationMinutes ?: 60) % 60) }
+                // Dialog para nombrar la variante al crearla
+                if (showCreateVariantDialog && nextVariant != null) {
                     AlertDialog(
-                        onDismissRequest = { showTargetDurationDialog = false },
-                        title = { Text("Duración objetivo") },
+                        onDismissRequest = { showCreateVariantDialog = false },
+                        title = { Text("Nueva variante") },
                         text = {
-                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Text("Define cuánto tiempo quieres que dure tu sesión.", style = MaterialTheme.typography.bodySmall)
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("Horas", style = MaterialTheme.typography.labelSmall)
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            IconButton(onClick = { if (pickerHours > 0) pickerHours-- }) {
-                                                Text("-", fontWeight = FontWeight.Black, fontSize = 18.sp)
-                                            }
-                                            Text("$pickerHours", fontWeight = FontWeight.Black, fontSize = 22.sp)
-                                            IconButton(onClick = { if (pickerHours < 5) pickerHours++ }) {
-                                                Text("+", fontWeight = FontWeight.Black, fontSize = 18.sp)
-                                            }
-                                        }
-                                    }
-                                    Text(":", fontWeight = FontWeight.Black, fontSize = 22.sp)
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("Minutos", style = MaterialTheme.typography.labelSmall)
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            IconButton(onClick = { if (pickerMins > 0) pickerMins -= 5 else pickerMins = 55 }) {
-                                                Text("-", fontWeight = FontWeight.Black, fontSize = 18.sp)
-                                            }
-                                            Text("${pickerMins.toString().padStart(2, '0')}", fontWeight = FontWeight.Black, fontSize = 22.sp)
-                                            IconButton(onClick = { if (pickerMins < 55) pickerMins += 5 else pickerMins = 0 }) {
-                                                Text("+", fontWeight = FontWeight.Black, fontSize = 18.sp)
-                                            }
-                                        }
-                                    }
-                                }
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(
+                                    "Crea una variante derivada de la sesión original. " +
+                                    "Tendrá sus propios ejercicios, series y descansos independientes.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                OutlinedTextField(
+                                    value = newVariantName,
+                                    onValueChange = { newVariantName = it },
+                                    label = { Text("Nombre de la variante") },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
                             }
                         },
                         confirmButton = {
-                            TextButton(onClick = {
-                                val total = pickerHours * 60 + pickerMins
-                                onSetTargetDuration(if (total > 0) total else null)
-                                showTargetDurationDialog = false
-                            }) { Text("Aplicar") }
+                            TextButton(
+                                onClick = {
+                                    if (newVariantName.isNotBlank()) {
+                                        onCreateVariant(nextVariant, newVariantName.trim())
+                                        showCreateVariantDialog = false
+                                    }
+                                },
+                                enabled = newVariantName.isNotBlank(),
+                            ) { Text("Crear variante") }
                         },
                         dismissButton = {
-                            TextButton(onClick = { onSetTargetDuration(null); showTargetDurationDialog = false }) {
-                                Text("Sin límite")
-                            }
+                            TextButton(onClick = { showCreateVariantDialog = false }) { Text("Cancelar") }
                         },
                     )
-                }
-
-                // ─── Feature 3: Variantes derivadas ──────────────────────────
-                if (availableVariants.size > 1 || session.sessionB == null && session.sessionC == null && session.sessionD == null) {
-                    var showVariantMenu by remember { mutableStateOf(false) }
-                    var showCreateVariantDialog by remember { mutableStateOf(false) }
-                    var newVariantName by remember { mutableStateOf("") }
-                    val nextVariant = listOf(WeekVariant.B, WeekVariant.C, WeekVariant.D)
-                        .firstOrNull { it !in availableVariants }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 6.dp)
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        availableVariants.forEach { variant ->
-                            val isActive = variant == activeVariant
-                            val variantName = when (variant) {
-                                WeekVariant.A -> "Original"
-                                WeekVariant.B -> session.sessionB?.name ?: "Derivada"
-                                WeekVariant.C -> session.sessionC?.name ?: "Derivada"
-                                WeekVariant.D -> session.sessionD?.name ?: "Derivada"
-                            }
-                            AssistChip(
-                                onClick = { if (!isActive) onSwitchVariant(variant) },
-                                label = {
-                                    Text(
-                                        variantName,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = if (isActive) FontWeight.Black else FontWeight.Normal,
-                                    )
-                                },
-                                leadingIcon = if (isActive) ({ Icon(Icons.Default.Check, null, Modifier.size(13.dp)) }) else null,
-                                trailingIcon = if (isActive && variant != WeekVariant.A) ({
-                                    Box {
-                                        Icon(
-                                            Icons.Default.MoreVert, null,
-                                            Modifier.size(13.dp).clickable { showVariantMenu = true },
-                                        )
-                                        DropdownMenu(expanded = showVariantMenu, onDismissRequest = { showVariantMenu = false }) {
-                                            DropdownMenuItem(
-                                                text = { Text("Eliminar variante") },
-                                                onClick = { showVariantMenu = false; onDeleteVariant(variant) },
-                                            )
-                                        }
-                                    }
-                                }) else null,
-                                shape = RoundedCornerShape(999.dp),
-                                colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = if (isActive) Color.White.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.10f),
-                                    labelColor = Color.White,
-                                ),
-                            )
-                        }
-                        // Botón para crear nueva variante derivada
-                        if (nextVariant != null) {
-                            Surface(
-                                onClick = {
-                                    newVariantName = "${session.name} – Rápida"
-                                    showCreateVariantDialog = true
-                                },
-                                shape = RoundedCornerShape(999.dp),
-                                color = Color.White.copy(alpha = 0.08f),
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Icon(Icons.Default.Add, null, modifier = Modifier.size(12.dp), tint = Color.White.copy(alpha = 0.75f))
-                                    Text("Derivada", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.75f))
-                                }
-                            }
-                        }
-                    }
-                    // Dialog para nombrar la variante al crearla
-                    if (showCreateVariantDialog && nextVariant != null) {
-                        AlertDialog(
-                            onDismissRequest = { showCreateVariantDialog = false },
-                            title = { Text("Nueva variante") },
-                            text = {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text(
-                                        "Crea una variante derivada de la sesión original. " +
-                                        "Tendrá sus propios ejercicios, series y descansos independientes.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                                    OutlinedTextField(
-                                        value = newVariantName,
-                                        onValueChange = { newVariantName = it },
-                                        label = { Text("Nombre de la variante") },
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth(),
-                                    )
-                                }
-                            },
-                            confirmButton = {
-                                TextButton(
-                                    onClick = {
-                                        if (newVariantName.isNotBlank()) {
-                                            onCreateVariant(nextVariant, newVariantName.trim())
-                                            showCreateVariantDialog = false
-                                        }
-                                    },
-                                    enabled = newVariantName.isNotBlank(),
-                                ) { Text("Crear variante") }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { showCreateVariantDialog = false }) { Text("Cancelar") }
-                            },
-                        )
-                    }
                 }
             }
         }
@@ -6090,6 +5941,9 @@ private fun SessionEditorSheets(
                 onRuleLimitsChange = onRuleLimitsChange,
                 onAdvancedRuleLimitsChange = onAdvancedRuleLimitsChange,
                 onApplyGlobalIntensityAdjustment = onApplyGlobalIntensityAdjustment,
+                setTargetDuration = setTargetDuration,
+                setPartTargetDuration = setPartTargetDuration,
+                setExerciseTargetDuration = setExerciseTargetDuration,
             )
             SessionEditorSheet.TRANSFER -> SessionClonerSheet(
                 uiState = uiState,
@@ -8279,8 +8133,6 @@ private fun HistorySheet(
 }
 
 @Composable
-
-@Composable
 private fun RestTimeField(
 label: String,
 seconds: Int,
@@ -8869,7 +8721,6 @@ Text(" min", style = MaterialTheme.typography.bodySmall, color = Color.White)
 }
 }
 }
-}
 Spacer(Modifier.height(8.dp))
 FilledTonalButton(
 onClick = {
@@ -8881,6 +8732,7 @@ modifier = Modifier.fillMaxWidth(),
 shape = RoundedCornerShape(16.dp),
 ) {
 Text("Guardar cambios", fontWeight = FontWeight.Black)
+}
 }
 }
 }
