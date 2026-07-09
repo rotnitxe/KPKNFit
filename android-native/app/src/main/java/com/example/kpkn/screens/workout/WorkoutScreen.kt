@@ -3,6 +3,11 @@ package com.example.kpkn.screens.workout
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -206,6 +211,14 @@ fun WorkoutScreen(
             restAlertManager = restAlertManager,
         )
     )
+    val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                viewModel.enableVoice()
+            }
+        }
+    )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val session = uiState.session
@@ -246,19 +259,22 @@ fun WorkoutScreen(
     }
 
     // Calcular readiness por ejercicio cuando los datos AUGE están listos
-    LaunchedEffect(augeSnapshot.batteries, perMuscle) {
+    val unresolvedDiscomfortIds by remember(uiState.postExerciseFeedbackByExerciseId) {
+        derivedStateOf {
+            uiState.postExerciseFeedbackByExerciseId.values
+                .flatMap { it.discomfortIds }
+                .filter { it.isNotBlank() }
+                .distinct()
+        }
+    }
+    LaunchedEffect(augeSnapshot.batteries, perMuscle, unresolvedDiscomfortIds) {
         if (augeSnapshot.isLoading) return@LaunchedEffect
         val state = uiState
         if (state.session != null && (state.exerciseReadinessMap.isEmpty() || augeSnapshot.batteries.muscular > 0)) {
-            val unresolvedIds = augeRepository.getPostSessionFeedbacks()
-                .filter { it.unresolvedDiscomfortIds.isNotEmpty() }
-                .maxByOrNull { it.date }
-                ?.unresolvedDiscomfortIds
-                ?: emptyList()
             viewModel.computeExerciseReadiness(
                 batteries = augeSnapshot.batteries,
                 perMuscle = perMuscle,
-                unresolvedDiscomfortIds = unresolvedIds,
+                unresolvedDiscomfortIds = unresolvedDiscomfortIds,
             )
         }
     }
@@ -624,7 +640,16 @@ fun WorkoutScreen(
             isUnilateral = isUnilateralDock,
             voiceSessionEnabled = uiState.voiceSessionEnabled,
             voiceSessionState = uiState.voiceSessionState,
-            onToggleVoice = { viewModel.toggleVoiceSession() },
+            onToggleVoice = {
+                val hasPerm = ContextCompat.checkSelfPermission(
+                    context, Manifest.permission.RECORD_AUDIO
+                ) == PackageManager.PERMISSION_GRANTED
+                if (hasPerm) {
+                    viewModel.toggleVoiceSession()
+                } else {
+                    recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                }
+            },
             onPrimaryAction = { recordActionHolder.action?.invoke() },
             modifier = Modifier
                 .align(Alignment.BottomCenter)

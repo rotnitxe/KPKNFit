@@ -10,6 +10,7 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import kotlin.math.exp
 import kotlin.math.pow
+import kotlin.math.round
 import kotlin.math.roundToInt
 
 // ─── 1RM Formulas ────────────────────────────────────────────────────────────
@@ -25,7 +26,7 @@ fun calculateBrzycki1RM(weight: Double, reps: Int, isAmrap: Boolean = false): Do
     val effectiveReps = reps.coerceAtMost(30)
     var e1rm = weight * (36.0 / (37 - effectiveReps))
     if (isAmrap && reps > 3) e1rm *= 1.025
-    return (e1rm * 10).toLong() / 10.0
+    return round(e1rm * 10.0) / 10.0
 }
 
 /** Epley formula. Better for higher reps (11–20). */
@@ -33,7 +34,7 @@ fun calculateEpley1RM(weight: Double, reps: Int): Double {
     if (weight <= 0 || reps <= 0) return 0.0
     if (reps == 1) return weight
     val e1rm = weight * (1 + reps / 30.0)
-    return (e1rm * 10).toLong() / 10.0
+    return round(e1rm * 10.0) / 10.0
 }
 
 /**
@@ -45,7 +46,7 @@ fun calculateLander1RM(weight: Double, reps: Int): Double {
     if (reps == 1) return weight
     val denominator = 101.3 - 2.67123 * reps
     if (denominator <= 0) return 0.0
-    return (weight * 10000 / denominator).toLong() / 100.0
+    return round(weight * 10000.0 / denominator) / 100.0
 }
 
 /**
@@ -62,7 +63,7 @@ fun calculateHybrid1RM(weight: Double, reps: Int, isAmrap: Boolean = false): Dou
         else    -> weight * (1 + 20.0 / 30) * (1 + (r - 20) / 80.0).pow(0.9)
     }
     val adjusted = if (isAmrap && reps > 3) e1rm * 1.025 else e1rm
-    return (adjusted * 10).toLong() / 10.0
+    return round(adjusted * 10.0) / 10.0
 }
 
 /** Inverse of Hybrid1RM: weight from 1RM and target reps. */
@@ -75,7 +76,7 @@ fun calculateWeightFrom1RM(e1rm: Double, reps: Int): Double {
         r <= 20 -> e1rm / (1 + r / 30.0)
         else    -> e1rm / ((1 + 20.0 / 30) * (1 + (r - 20) / 80.0).pow(0.9))
     }
-    return maxOf(0.0, (weight * 10).toLong() / 10.0)
+    return maxOf(0.0, round(weight * 10.0) / 10.0)
 }
 
 /**
@@ -109,7 +110,7 @@ fun calculateGeneralizedCapacity(load: Double, metric: Double): Double {
         normalizedMetric <= 20.0 -> load * (1.0 + normalizedMetric / 30.0)
         else -> load * (1 + 20.0 / 30.0) * (1 + (normalizedMetric - 20.0) / 80.0).pow(0.9)
     }
-    return (capacity * 10).toLong() / 10.0
+    return round(capacity * 10.0) / 10.0
 }
 
 fun calculateLoadFromGeneralizedCapacity(capacity: Double, metric: Double): Double {
@@ -121,7 +122,7 @@ fun calculateLoadFromGeneralizedCapacity(capacity: Double, metric: Double): Doub
         normalizedMetric <= 20.0 -> capacity / (1.0 + normalizedMetric / 30.0)
         else -> capacity / ((1 + 20.0 / 30.0) * (1 + (normalizedMetric - 20.0) / 80.0).pow(0.9))
     }
-    return (load * 10).toLong() / 10.0
+    return round(load * 10.0) / 10.0
 }
 
 fun estimateRepsFromPercent1RM(percent: Double): Int {
@@ -355,10 +356,10 @@ fun calculateFFMI(heightCm: Double, weightKg: Double, bodyFatPercent: Double): F
         else                 -> "Novato"
     }
     return FfmiResult(
-        ffmi = (ffmi * 10).toLong() / 10.0,
-        normalizedFfmi = (normalizedFfmi * 10).toLong() / 10.0,
+        ffmi = round(ffmi * 10.0) / 10.0,
+        normalizedFfmi = round(normalizedFfmi * 10.0) / 10.0,
         interpretation = interpretation,
-        leanBodyMass = (leanBodyMass * 10).toLong() / 10.0,
+        leanBodyMass = round(leanBodyMass * 10.0) / 10.0,
     )
 }
 
@@ -394,14 +395,15 @@ fun calculateIPFGLPoints(
     val denominator = coeffs.a - coeffs.b * exp(-coeffs.c * bwKg)
     if (denominator == 0.0) return 0.0
     val coefficient = 100.0 / denominator
-    return (coefficient * totalKg * 100).toLong() / 100.0
+    return round(coefficient * totalKg * 100.0) / 100.0
 }
 
 // ─── Weight rounding ─────────────────────────────────────────────────────────
 
 fun roundWeight(weight: Double, unit: String = "kg"): Double {
     val increment = if (unit == "lbs") 2.5 else 1.25
-    return (weight / increment).toLong() * increment
+    val result = round(weight / increment) * increment
+    return if (result < 0.0) 0.0 else result
 }
 
 fun estimatePercent1RM(repsToFailure: Int): Double {

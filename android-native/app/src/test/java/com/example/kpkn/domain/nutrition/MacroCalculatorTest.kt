@@ -14,7 +14,7 @@ class MacroCalculatorTest {
             id = "test1", name = "Alimento de prueba", servingSize = 100.0, unit = "g",
             calories = 130.0, protein = 2.7, carbs = 28.0, fats = 0.3,
         )
-        val logged = scaleFoodByPortion(food, quantity = 1, portion = PortionPreset.MEDIUM)
+        val logged = scaleFoodByPortion(food, quantity = 1.0, portion = PortionPreset.MEDIUM)
         assertEquals(130.0, logged.calories, 0.01)
         assertEquals(2.7, logged.protein, 0.01)
     }
@@ -25,7 +25,7 @@ class MacroCalculatorTest {
             id = "test2", name = "Alimento de prueba", servingSize = 100.0, unit = "g",
             calories = 130.0, protein = 2.7, carbs = 28.0, fats = 0.3,
         )
-        val logged = scaleFoodByPortion(food, quantity = 1, portion = PortionPreset.LARGE)
+        val logged = scaleFoodByPortion(food, quantity = 1.0, portion = PortionPreset.LARGE)
         // large = 1.5x
         assertEquals(195.0, logged.calories, 0.5)
         assertEquals(4.1, logged.protein, 0.1)
@@ -299,7 +299,7 @@ class MacroCalculatorTest {
         )
         val logged = scaleFoodByPortion(
             food = food,
-            quantity = 1,
+            quantity = 1.0,
             portion = PortionPreset.MEDIUM,
             amountGrams = null,
             cookingMethod = null,

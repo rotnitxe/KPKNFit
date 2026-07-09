@@ -228,6 +228,7 @@ data class SetEntryV2(
     val barWeightKg: Double? = null,
     val rom: Int? = null,
     val assistedReps: Int? = null,
+    val isFirstEvaluationInSession: Boolean = false,
 )
 
 @Serializable

@@ -15,6 +15,7 @@ import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import kotlin.math.round
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -105,7 +106,8 @@ object WorkoutPerformanceHomologationEngine {
             recentScores = contextStats.recent,
             consecutiveGreenSessions = when {
                 historyColor == HistoryColorV2.RED -> 0
-                else -> prior.consecutiveGreenSessions + 1
+                entry.isFirstEvaluationInSession -> prior.consecutiveGreenSessions + 1
+                else -> prior.consecutiveGreenSessions
             },
             lastSuggestedLoad = suggestion.suggestedLoad,
             lastUpdatedAtIso = java.time.Instant.now().toString(),
@@ -489,7 +491,11 @@ object WorkoutPerformanceHomologationEngine {
             }
 
             UnitModeV2.DISTANCE -> {
-                val load = normalizeLoad(entry)
+                val load = if (entry.loadMode == LoadModeV2.BODYWEIGHT) {
+                    entry.bodyWeight ?: normalizeLoad(entry)
+                } else {
+                    normalizeLoad(entry)
+                }
                 val distance = entry.actualValue.coerceAtLeast(1.0)
                 calculateGeneralizedCapacity(load, distance).coerceAtLeast(1.0)
             }
@@ -546,5 +552,5 @@ object WorkoutPerformanceHomologationEngine {
         }
     }
 
-    private fun roundToHalf(value: Double): Double = (value * 2.0).toInt() / 2.0
+    private fun roundToHalf(value: Double): Double = round(value * 2.0) / 2.0
 }

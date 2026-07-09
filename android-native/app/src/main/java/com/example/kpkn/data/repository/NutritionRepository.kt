@@ -96,7 +96,7 @@ class NutritionRepository private constructor(context: Context) {
         get() = _smartResolver ?: SmartFoodResolver(db.nutritionDao(), foodIndex, db.learnedResolutionDao()).also { resolver ->
             _smartResolver = resolver
             // Preload learned resolutions from DB
-            kotlinx.coroutines.GlobalScope.launch {
+            scope.launch {
                 resolver.preloadLearned()
             }
         }

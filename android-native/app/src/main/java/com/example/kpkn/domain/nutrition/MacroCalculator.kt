@@ -62,7 +62,7 @@ fun getContextualDefaultServingSize(food: FoodItem): Double {
 
 fun scaleFoodByPortion(
     food: FoodItem,
-    quantity: Int = 1,
+    quantity: Double = 1.0,
     portion: PortionPreset = PortionPreset.MEDIUM,
     amountGrams: Double? = null,
     cookingMethod: CookingMethod? = null,
@@ -154,17 +154,18 @@ fun createLoggedFood(
     portion: PortionPreset? = null,
     cookingMethod: CookingMethod? = null,
 ): LoggedFood {
+    val ratio = if (amount > 0) amount / 100.0 else 1.0
     val (adjCal, adjProt, adjCarb, adjFat) = if (cookingMethod != null && cookingMethod != CookingMethod.CRUDO) {
         val cf = COOKING_FACTORS[cookingMethod]
         if (cf != null) {
             Quadruple(
-                round1(calories * cf.kcal),
-                round1(protein * cf.protein),
-                round1(carbs * cf.carbs),
-                round1(fats * cf.fats)
+                round1(calories * cf.kcal * ratio),
+                round1(protein * cf.protein * ratio),
+                round1(carbs * cf.carbs * ratio),
+                round1(fats * cf.fats * ratio),
             )
-        } else Quadruple(calories, protein, carbs, fats)
-    } else Quadruple(calories, protein, carbs, fats)
+        } else Quadruple(calories * ratio, protein * ratio, carbs * ratio, fats * ratio)
+    } else Quadruple(calories * ratio, protein * ratio, carbs * ratio, fats * ratio)
 
     return LoggedFood(
         id = java.util.UUID.randomUUID().toString(),

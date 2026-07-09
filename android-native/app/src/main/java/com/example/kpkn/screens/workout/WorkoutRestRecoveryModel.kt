@@ -77,7 +77,7 @@ object WorkoutRestRecoveryModel {
     ): Double {
         val advancedFromMode = when (advanced?.actualIntensityMode) {
             IntensityMode.RIR -> {
-                val rir = advanced.actualIntensityValue ?: advanced.rir?.toDouble()
+                val rir = advanced.rir?.toDouble() ?: advanced.actualIntensityValue
                 rir?.let { 10.0 - it }
             }
 
@@ -86,7 +86,10 @@ object WorkoutRestRecoveryModel {
         if (advancedFromMode != null) return advancedFromMode.coerceIn(1.0, 10.0)
 
         val setFromMode = when (completedSet?.actualIntensityMode) {
-            IntensityMode.RIR -> completedSet.actualIntensityValue?.let { 10.0 - it }
+            IntensityMode.RIR -> {
+                val rir = completedSet.rir?.toDouble() ?: completedSet.actualIntensityValue
+                rir?.let { 10.0 - it }
+            }
             else -> completedSet?.actualIntensityValue
         }
         if (setFromMode != null) return setFromMode.coerceIn(1.0, 10.0)

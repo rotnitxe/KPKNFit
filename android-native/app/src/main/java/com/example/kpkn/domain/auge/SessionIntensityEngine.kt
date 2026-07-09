@@ -21,9 +21,9 @@ object SessionIntensityEngine {
         val base = when {
             set.actualIntensityMode == IntensityMode.FAILURE -> 10.0
             set.actualIntensityMode == IntensityMode.RPE && set.actualIntensityValue != null -> set.actualIntensityValue
+            set.rir != null -> (10 - set.rir).toDouble()
             set.actualIntensityMode == IntensityMode.RIR && set.actualIntensityValue != null -> 10.0 - set.actualIntensityValue
             set.rpe != null -> set.rpe
-            set.rir != null -> (10 - set.rir).toDouble()
             else -> 7.0
         }
         return base.coerceIn(1.0, 10.0)

@@ -166,6 +166,8 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
                     unmuteSystemVolume()
                     if (!active) return
 
+                    destroyRecognizer()
+
                     if (error == SpeechRecognizer.ERROR_NO_MATCH ||
                         error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
                     ) {

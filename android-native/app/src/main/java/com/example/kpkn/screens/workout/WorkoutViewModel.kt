@@ -364,6 +364,7 @@ class WorkoutViewModel(
     private var restStartedAtMs: Long? = null
     private var voiceJob: Job? = null
     private val recordingGate = WorkoutRecordingGate()
+    private val evaluatedContextKeysThisSession = mutableSetOf<String>()
 
     private fun updatePredictionBiasFromClosingFeedback(closingFeedback: SessionClosingFeedback) {
         repository.updateSettings { settings ->
@@ -1180,12 +1181,32 @@ class WorkoutViewModel(
         )
         repository.upsertContextPerformanceState(result.nextState)
         repository.upsertGlobalPerformanceState(result.nextGlobalState)
+        val canonicalId = entry.resolvedCanonicalExerciseId()
+        val rangeData = performanceRangeCache[canonicalId]
+        val homologatedWithRange = if (rangeData != null && rangeData.ermMax > rangeData.ermMin) {
+            result.homologated.copy(
+                ermRangeMin = rangeData.ermMin,
+                ermRangeMax = rangeData.ermMax,
+            )
+        } else {
+            result.homologated
+        }
         _uiState.update {
             it.copy(
                 contextualPerformanceCache = it.contextualPerformanceCache + (entry.contextKey to result.nextState),
                 globalPerformanceCache = it.globalPerformanceCache + (result.nextGlobalState.globalKey to result.nextGlobalState),
-                lastHomologatedResultV3 = result.homologated,
+                lastHomologatedResultV3 = homologatedWithRange,
             )
+        }
+        if (rangeData == null && canonicalId.isNotBlank() && performanceRangePrefetchInFlight.add(canonicalId)) {
+            viewModelScope.launch(Dispatchers.IO) {
+                runCatching {
+                    performanceRangeDao.getByContextKey(canonicalId)?.toPerformanceRangeData()
+                }.getOrNull()?.let { loaded ->
+                    performanceRangeCache[canonicalId] = loaded
+                }
+                performanceRangePrefetchInFlight.remove(canonicalId)
+            }
         }
         return result
     }
@@ -1245,7 +1266,9 @@ class WorkoutViewModel(
         if (resolvedLoadMode == LoadModeV2.LASTRE && weight <= 0.0) {
             resolvedLoadMode = LoadModeV2.BODYWEIGHT
         }
-        val resolvedBodyWeight = bodyWeight ?: currentBodyWeight()
+        val resolvedBodyWeight = (bodyWeight ?: currentBodyWeight())?.let { bw ->
+            if (repository.settings.value.weightUnit == WeightUnit.LBS) bw * 0.45359237 else bw
+        }
         val resolvedTagId = tagId ?: activeProfile?.tagId
             ?: state.activeTagsByExercise[exercise.id]?.let { ids ->
                 state.userCreatedTags.values.flatten().firstOrNull { it.id in ids }?.name
@@ -1285,6 +1308,10 @@ class WorkoutViewModel(
             unitMode = resolvedUnitMode,
             techSubTags = techSubTags,
         )
+
+        val isFirstEvaluationInSession = contextKey !in evaluatedContextKeysThisSession.also {
+            it.add(contextKey)
+        }
 
         val actualIntensityMode = advanced.actualIntensityMode ?: when {
             advanced.reachedFailure -> IntensityMode.FAILURE
@@ -1376,6 +1403,7 @@ class WorkoutViewModel(
             barWeightKg = resolvedBarWeightKg,
             rom = advanced.rom,
             assistedReps = advanced.assistedReps,
+            isFirstEvaluationInSession = isFirstEvaluationInSession,
         )
 
         val evaluation = if (
@@ -6942,7 +6970,7 @@ class WorkoutViewModel(
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                    WorkoutViewModel(appContext, programId, sessionId, restAlertManager) as T
+                    WorkoutViewModel(appContext.applicationContext, programId, sessionId, restAlertManager) as T
             }
     }
 }

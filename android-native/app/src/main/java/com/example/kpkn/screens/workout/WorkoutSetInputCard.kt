@@ -483,8 +483,12 @@ internal fun SetInputCardV2(
             mode = activeIntensityMode,
             reachedFailure = reachedFailure,
         )
+        val rawRir = if (activeIntensityMode == IntensityMode.RIR && !reachedFailure) {
+            intensityText.toIntOrNull()
+        } else null
         val bodyWeight = bodyWeightText.toDoubleOrNull()
         val advanced = SetAdvancedFeedback(
+            rir = rawRir,
             reachedFailure = reachedFailure,
             failureReason = if (executionError) "execution_error" else null,
             executionError = executionError,
@@ -1943,9 +1947,9 @@ private fun resolveWorkoutIntensityValue(
 
 private fun resolvedIntensityForComparison(set: CompletedSet): Double? = when {
     set.actualIntensityMode == IntensityMode.FAILURE || set.isFailure -> 10.8
+    set.rir != null -> (10.0 - set.rir).coerceAtLeast(0.0)
     set.actualIntensityMode == IntensityMode.RIR && set.actualIntensityValue != null -> 10.0 - set.actualIntensityValue
     set.actualIntensityValue != null -> set.actualIntensityValue
-    set.rir != null -> 10.0 - set.rir
     else -> set.rpe
 }
 

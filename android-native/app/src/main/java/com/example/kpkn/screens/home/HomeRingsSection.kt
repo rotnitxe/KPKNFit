@@ -99,27 +99,39 @@ private fun CombinedRingsView(
                 CurvedLabelsCanvas(RingLabels, ringColors)
             }
 
-            // Porcentajes alineados bajo cada ring (más separados)
+            // Porcentajes alineados bajo cada ring
             BoxWithConstraints(
                 Modifier.fillMaxWidth().height(24.dp),
             ) {
+                val density = LocalDensity.current.density
                 val widthPx = constraints.maxWidth.toFloat()
-                val r = widthPx / 5.8f
+                val heightPx = 110f * density
+                val r = min(widthPx / 5.8f, heightPx * 0.42f)
                 val s = r * 1.9f
                 val cx = widthPx / 2f
                 val centerXs = listOf(cx - s, cx, cx + s)
-                val density = LocalDensity.current.density
+
                 progressValues.forEachIndexed { i, progress ->
-                    Text(
-                        "${(progress * 100).toInt()}%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = ringColors[i],
-                        fontWeight = FontWeight.Black,
-                        fontSize = 12.sp,
+                    Box(
                         modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .offset { IntOffset((centerXs[i] - 12f * density).toInt(), (8f * density).toInt()) },
-                    )
+                            .offset {
+                                IntOffset(
+                                    (centerXs[i] - 30f * density).toInt(),
+                                    (4f * density).toInt()
+                                )
+                            }
+                            .width(60.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "${(progress * 100).toInt()}%",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ringColors[i],
+                            fontWeight = FontWeight.Black,
+                            fontSize = 12.sp,
+                            maxLines = 1,
+                        )
+                    }
                 }
             }
     }
@@ -159,9 +171,8 @@ internal fun SingleRingCanvas(
 
 @Composable
 private fun AugeRingsCanvas(mp: Float, sp: Float, cp: Float, ringColors: List<Color> = RingColors) {
-    val density = LocalDensity.current.density
     Canvas(Modifier.fillMaxSize()) {
-        val r = size.width / 5.8f
+        val r = min(size.width / 5.8f, size.height * 0.42f)
         val s = r * 1.9f
         val cy = size.height / 2f
         val cx = size.width / 2f
@@ -196,7 +207,7 @@ private fun CurvedLabelsCanvas(labels: List<String>, ringColors: List<Color>) {
         val widthPx = constraints.maxWidth.toFloat()
         val heightPx = constraints.maxHeight.toFloat()
 
-        val r = widthPx / 5.8f
+        val r = min(widthPx / 5.8f, heightPx * 0.42f)
         val s = r * 1.9f
         val cy = heightPx / 2f
         val cx = widthPx / 2f
@@ -205,7 +216,11 @@ private fun CurvedLabelsCanvas(labels: List<String>, ringColors: List<Color>) {
         labels.forEachIndexed { i, label ->
             val center = centers[i]
             val textRadius = r - (14f * density)
-            val charAngleSpan = 13f
+            
+            // Paso angular dinámico para mantener constante la separación de las letras
+            val desiredArcLength = 7.2f * density
+            val charAngleSpan = ((desiredArcLength / textRadius) * (180f / PI.toFloat())).coerceIn(8f, 18f)
+            
             val totalSpan = charAngleSpan * (label.length - 1)
             val startAngle = -90f - (totalSpan / 2f)
 

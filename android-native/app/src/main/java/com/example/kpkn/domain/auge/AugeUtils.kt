@@ -30,23 +30,31 @@ internal object AugeUtils {
      * Convierte la fecha del WorkoutLog (generalmente ISO-8601 o yyyy-MM-dd) a milisegundos desde epoch.
      */
     fun logDateMs(log: WorkoutLog): Long = try {
-        Instant.parse(log.date).toEpochMilli()
+        java.time.OffsetDateTime.parse(log.date).toInstant().toEpochMilli()
     } catch (e: Exception) {
         try {
-            java.time.LocalDate.parse(log.date.take(10))
-                .atStartOfDay(java.time.ZoneId.systemDefault())
-                .toInstant().toEpochMilli()
-        } catch (e2: Exception) { 0L }
+            Instant.parse(log.date).toEpochMilli()
+        } catch (e2: Exception) {
+            try {
+                java.time.LocalDate.parse(log.date.take(10))
+                    .atStartOfDay(java.time.ZoneId.systemDefault())
+                    .toInstant().toEpochMilli()
+            } catch (e3: Exception) { 0L }
+        }
     }
 
     fun parseIsoMs(dateString: String): Long = try {
-        Instant.parse(dateString).toEpochMilli()
+        java.time.OffsetDateTime.parse(dateString).toInstant().toEpochMilli()
     } catch (e: Exception) {
         try {
-            java.time.LocalDate.parse(dateString.take(10))
-                .atStartOfDay(java.time.ZoneId.systemDefault())
-                .toInstant().toEpochMilli()
-        } catch (e2: Exception) { 0L }
+            Instant.parse(dateString).toEpochMilli()
+        } catch (e2: Exception) {
+            try {
+                java.time.LocalDate.parse(dateString.take(10))
+                    .atStartOfDay(java.time.ZoneId.systemDefault())
+                    .toInstant().toEpochMilli()
+            } catch (e3: Exception) { 0L }
+        }
     }
 
     fun clamp(v: Double, lo: Double, hi: Double): Double = min(hi, max(lo, v))
@@ -54,5 +62,15 @@ internal object AugeUtils {
     fun safeExp(v: Double): Double {
         val r = exp(v)
         return if (r.isNaN() || r.isInfinite()) 0.0 else r
+    }
+
+    /**
+     * Curva de desaceleración para baterías por debajo de 30%.
+     * Suaviza el drenaje de los RINGS evitando que marquen 0% artificialmente.
+     * B_final = 30 * sqrt(B_raw / 30)  cuando B_raw < 30
+     */
+    fun decelerateBattery(battery: Double): Double {
+        val b = battery.coerceIn(0.0, 100.0)
+        return if (b < 30.0) 30.0 * kotlin.math.sqrt(b / 30.0) else b
     }
 }

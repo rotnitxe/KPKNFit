@@ -168,7 +168,6 @@ object TextNormalizer {
         "cuatrocientos" to 400, "quinientos" to 500,
         "seiscientos" to 600, "setecientos" to 700, "ochocientos" to 800, "novecientos" to 900,
         "mil" to 1000,
-        "medio" to 1, "media" to 1, // handled as 0.5 in FoodParser
     )
 
     // Common food roots for augmentative validation

@@ -58,7 +58,12 @@ object AugeFatigueEngine {
     fun calculatePersonalizedBatteryTanks(settings: Settings): BatteryTanks {
         // Base tanks alineados con fatigue.ts PWA (baseMuscular=300, baseCns=250, baseSpinal=4000)
         val baseMuscular = 300.0; val baseCns = 250.0; val baseSpinal = 4000.0
-        val levelMult = 1.2 // Advanced por defecto
+        val levelMult = when (settings.athleteType) {
+            AthleteType.POWERLIFTER, AthleteType.WEIGHTLIFTER -> 1.2
+            AthleteType.BODYBUILDER, AthleteType.POWERBUILDER -> 1.1
+            AthleteType.HYBRID, AthleteType.CALISTHENICS, AthleteType.ZERCHER_LIFTER -> 1.0
+            AthleteType.ENTHUSIAST -> 0.9
+        }
         val cnsMult: Double; val muscMult: Double; val spineMult: Double
         when (settings.athleteType) {
             AthleteType.POWERLIFTER, AthleteType.WEIGHTLIFTER -> { cnsMult = 1.3; spineMult = 1.4; muscMult = 0.9 }
@@ -162,9 +167,9 @@ object AugeFatigueEngine {
         baseRpe = when {
             set.actualIntensityMode == IntensityMode.FAILURE -> 10.8
             set.actualIntensityMode == IntensityMode.RPE && set.actualIntensityValue != null -> set.actualIntensityValue
+            set.rir != null         -> (10 - set.rir).toDouble()
             set.actualIntensityMode == IntensityMode.RIR && set.actualIntensityValue != null -> 10.0 - set.actualIntensityValue
             set.rpe != null         -> set.rpe
-            set.rir != null         -> (10 - set.rir).toDouble()
             else                    -> 7.0
         }
 

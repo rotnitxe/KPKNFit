@@ -19,7 +19,7 @@ class FoodParserTest {
         val result = parseMealDescription("manzana")
         assertEquals(1, result.items.size)
         assertEquals("manzana", result.items[0].tag)
-        assertEquals(1, result.items[0].quantity)
+        assertEquals(1.0, result.items[0].quantity, 0.01)
         assertEquals(PortionPreset.MEDIUM, result.items[0].portion)
     }
 
@@ -28,7 +28,7 @@ class FoodParserTest {
         val result = parseMealDescription("2 manzanas")
         assertEquals(1, result.items.size)
         assertEquals("manzana", result.items[0].tag)
-        assertEquals(2, result.items[0].quantity)
+        assertEquals(2.0, result.items[0].quantity, 0.01)
     }
 
     @Test
@@ -36,7 +36,7 @@ class FoodParserTest {
         val result = parseMealDescription("dos huevos")
         assertEquals(1, result.items.size)
         assertEquals("huevo", result.items[0].tag)
-        assertEquals(2, result.items[0].quantity)
+        assertEquals(2.0, result.items[0].quantity, 0.01)
     }
 
     @Test
@@ -160,7 +160,7 @@ class FoodParserTest {
     fun `parse range quantity`() {
         val result = parseMealDescription("1-2 huevos")
         assertEquals(1, result.items.size)
-        assertEquals(1, result.items[0].quantity) // average of 1-2 = 1.5 → round = 2 → but 1-2 avg = 1.5 → round to 1 or 2
+        assertEquals(1.5, result.items[0].quantity, 0.01) // average of 1-2
     }
 
     // ─── Combined Descriptions ────────────────────────────────────────────
@@ -179,7 +179,7 @@ class FoodParserTest {
         val result = parseMealDescription("2 empanadas de pino")
         assertEquals(1, result.items.size)
         assertEquals("empanadas de pino", result.items[0].tag)
-        assertEquals(2, result.items[0].quantity)
+        assertEquals(2.0, result.items[0].quantity, 0.01)
     }
 
     @Test
@@ -202,21 +202,21 @@ class FoodParserTest {
     fun `parse literal twelve`() {
         val result = parseMealDescription("doce huevos")
         assertEquals(1, result.items.size)
-        assertEquals(12, result.items[0].quantity)
+        assertEquals(12.0, result.items[0].quantity, 0.01)
     }
 
     @Test
     fun `parse literal fifteen`() {
         val result = parseMealDescription("quince uvas")
         assertEquals(1, result.items.size)
-        assertEquals(15, result.items[0].quantity)
+        assertEquals(15.0, result.items[0].quantity, 0.01)
     }
 
     @Test
     fun `parse literal twenty`() {
         val result = parseMealDescription("veinte almendras")
         assertEquals(1, result.items.size)
-        assertEquals(20, result.items[0].quantity)
+        assertEquals(20.0, result.items[0].quantity, 0.01)
     }
 
     // ─── Protected Entities ────────────────────────────────────────────────

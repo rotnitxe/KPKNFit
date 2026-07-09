@@ -349,7 +349,7 @@ object SubjectivePortionEngine {
         // Check utensil patterns
         for ((pattern, baseMl, source) in UTENSIL_PATTERNS) {
             val match = pattern.find(lower) ?: continue
-            val qty = match.groupValues[1].replace(",", ".").toDoubleOrNull() ?: 1.0
+            val qty = match.groupValues.getOrNull(1)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
             val category = foodCategory ?: FoodDensityCategory.MIXED
             val grams = baseMl * qty * category.densityGPerMl
             return PortionResult(

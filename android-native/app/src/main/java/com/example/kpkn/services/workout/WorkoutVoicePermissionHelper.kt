@@ -2,9 +2,9 @@ package com.example.kpkn.services.workout
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.speech.SpeechRecognizer
-import android.speech.tts.TextToSpeech
 import androidx.core.content.ContextCompat
 
 object WorkoutVoicePermissionHelper {
@@ -25,14 +25,11 @@ object WorkoutVoicePermissionHelper {
         val recognizerAvailable = SpeechRecognizer.isRecognitionAvailable(context)
 
         val ttsAvailable = try {
-            var available = false
-            val tts = TextToSpeech(context) { status ->
-                if (status == TextToSpeech.SUCCESS) available = true
-            }
-            Thread.sleep(100)
-            tts.stop()
-            tts.shutdown()
-            available
+            val ttsIntent = Intent("android.intent.action.TTS_SERVICE")
+            val resolveInfo = context.packageManager.queryIntentServices(
+                ttsIntent, PackageManager.MATCH_DEFAULT_ONLY
+            )
+            resolveInfo.isNotEmpty()
         } catch (_: Exception) {
             false
         }

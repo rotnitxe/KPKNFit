@@ -23,8 +23,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -86,7 +88,7 @@ private data class ResolvedTag(
     val id: String = UUID.randomUUID().toString(),
     val tag: String,
     val portion: PortionPreset = PortionPreset.MEDIUM,
-    val quantity: Int = 1,
+    val quantity: Double = 1.0,
     val amountGrams: Double? = null,
     val cookingMethod: CookingMethod? = null,
     val foodItem: FoodItem? = null,
@@ -97,6 +99,8 @@ private data class ResolvedTag(
     val statusText: String = "Pendiente",
     val isExpanded: Boolean = false,
     val oilLevel: String = "medio",
+    val isExcluded: Boolean = false,
+    val hasManualEdits: Boolean = false,
 )
 
 private fun adjustLoggedFoodForOil(logged: LoggedFood, method: CookingMethod?, oilLevel: String): LoggedFood {
@@ -125,6 +129,34 @@ private fun shouldUseAiLoggedFood(item: ParsedMealItem): Boolean {
         item.analysisSource == AnalysisSource.LOCAL_AI_ESTIMATE ||
             item.analysisSource == AnalysisSource.EXTERNAL_API_ESTIMATE
     )
+}
+
+private fun isOilTag(tag: String): Boolean {
+    val lower = tag.lowercase().trim()
+    return lower == "aceite" || lower == "aceite vegetal" || lower == "aceite de oliva" || lower == "aceite de maravilla" || lower == "aceite de girasol"
+}
+
+/**
+ * Merges newly-parsed tags with existing tags that have manual edits.
+ * - Matching by tag name (case-insensitive)
+ * - If old tag has hasManualEdits=true, preserve it over the new tag
+ * - Preserve old tags not present in new tags if they have manual edits
+ */
+private fun mergeTagsPreservingManualEdits(oldTags: List<ResolvedTag>, newTags: List<ResolvedTag>): List<ResolvedTag> {
+    val oldEditable = oldTags.filter { it.hasManualEdits }
+    val merged = newTags.toMutableList()
+    
+    for (oldTag in oldEditable) {
+        val matchIdx = merged.indexOfFirst { newTag ->
+            newTag.tag.lowercase() == oldTag.tag.lowercase()
+        }
+        if (matchIdx >= 0) {
+            merged[matchIdx] = oldTag
+        } else {
+            merged.add(oldTag)
+        }
+    }
+    return merged
 }
 
 // ─── Composable ──────────────────────────────────────────────────────────────
@@ -245,17 +277,20 @@ fun FoodLoggerDrawer(
                 it.cookingMethod == CookingMethod.FRITO || 
                 it.cookingMethod == CookingMethod.EMPANIZADO_FRITO 
             }
+            val hasExcludedOil = parsed.items.any { item ->
+                item.isExcluded && isOilTag(item.tag)
+            }
             
             val contextResult = detectedContext ?: ContextDetector.detect(parsed.rawDescription)
             val portionAdj = contextResult.portionAdjustment
             val proteinB = contextResult.proteinAdjustment
             
             for (item in parsed.items) {
-                if (hasGreaseCooking) {
-                    val lowerTag = item.tag.lowercase().trim()
-                    if (lowerTag == "aceite" || lowerTag == "aceite vegetal" || lowerTag == "aceite de oliva" || lowerTag == "aceite de maravilla" || lowerTag == "aceite de girasol") {
-                        continue
-                    }
+                // Determine effective oilLevel: minimize oil if excluded, otherwise "medio"
+                val effectiveOilLevel = when {
+                    hasExcludedOil && hasGreaseCooking -> "poco"
+                    hasGreaseCooking -> "medio"
+                    else -> "medio"
                 }
 
                 // Phase B: Use SmartFoodResolver for full-DB fuzzy matching
@@ -317,12 +352,13 @@ fun FoodLoggerDrawer(
                         amountGrams = item.amountGrams,
                         cookingMethod = item.cookingMethod,
                         foodItem = effectiveFood,
-                        loggedFood = adjustLoggedFoodForOil(logged.copy(analysisSource = AnalysisSource.DATABASE), item.cookingMethod, "medio"),
+                        loggedFood = adjustLoggedFoodForOil(logged.copy(analysisSource = AnalysisSource.DATABASE), item.cookingMethod, effectiveOilLevel),
                         isResolved = true,
                         isFuzzyMatch = isSmartMatch && smartCandidate?.confidence != SmartFoodResolver.Confidence.HIGH,
                         analysisSource = AnalysisSource.DATABASE,
                         statusText = "",
-                        oilLevel = "medio",
+                        oilLevel = effectiveOilLevel,
+                        isExcluded = item.isExcluded,
                     )
                 } else if (item.amountGrams != null && item.amountGrams > 0) {
                     val mac = item.macroOverrides
@@ -349,12 +385,13 @@ fun FoodLoggerDrawer(
                         amountGrams = item.amountGrams,
                         cookingMethod = item.cookingMethod,
                         foodItem = null,
-                        loggedFood = adjustLoggedFoodForOil(logged.copy(analysisSource = source), item.cookingMethod, "medio"),
+                        loggedFood = adjustLoggedFoodForOil(logged.copy(analysisSource = source), item.cookingMethod, effectiveOilLevel),
                         isResolved = mac != null,
                         isFuzzyMatch = true,
                         analysisSource = source,
                         statusText = "",
-                        oilLevel = "medio",
+                        oilLevel = effectiveOilLevel,
+                        isExcluded = item.isExcluded,
                     )
                 } else {
                     ResolvedTag(
@@ -366,6 +403,7 @@ fun FoodLoggerDrawer(
                         isResolved = false,
                         analysisSource = source,
                         statusText = "",
+                        isExcluded = item.isExcluded,
                     )
                 }
                 resolvedTags += resolved
@@ -429,7 +467,8 @@ fun FoodLoggerDrawer(
         }
 
         detectedContext = result.second
-        tags = result.first
+        val newTags = result.first
+        tags = mergeTagsPreservingManualEdits(tags, newTags)
     }
 
     fun buildAnalysisNotice(parsed: ParsedMealDescription): AnalysisNotice? {
@@ -545,7 +584,7 @@ fun FoodLoggerDrawer(
                             val items = aiResult.items.map { item ->
                                 ParsedMealItem(
                                     tag = item.canonicalName.ifBlank { item.rawText },
-                                    quantity = item.quantity ?: 1,
+                                    quantity = item.quantity?.toDouble() ?: 1.0,
                                     amountGrams = item.grams,
                                     cookingMethod = item.preparation?.let { prep ->
                                         when (prep.lowercase()) {
@@ -672,6 +711,7 @@ fun FoodLoggerDrawer(
                     isFuzzyMatch = false,
                     analysisSource = AnalysisSource.DATABASE,
                     statusText = "",
+                    hasManualEdits = true,
                 )
             } else tag
         }
@@ -696,7 +736,7 @@ fun FoodLoggerDrawer(
                         proteinBoost = proteinB
                     )
                     val adjustedLogged = adjustLoggedFoodForOil(logged, tag.cookingMethod, tag.oilLevel)
-                    tag.copy(portion = portion, amountGrams = newGrams, loggedFood = adjustedLogged)
+                    tag.copy(portion = portion, amountGrams = newGrams, loggedFood = adjustedLogged, hasManualEdits = true)
                 } else if (tag.loggedFood != null) {
                     val multiplier = PORTION_MULTIPLIERS[portion] ?: 1.0
                     val baseGrams = tag.amountGrams ?: tag.loggedFood.amount.takeIf { it > 0 } ?: 100.0
@@ -714,9 +754,10 @@ fun FoodLoggerDrawer(
                         portion = portion,
                         amountGrams = newGrams,
                         loggedFood = scaledLogged,
+                        hasManualEdits = true,
                     )
                 } else {
-                    tag.copy(portion = portion)
+                    tag.copy(portion = portion, hasManualEdits = true)
                 }
             } else tag
         }
@@ -751,7 +792,7 @@ fun FoodLoggerDrawer(
                         fats = old.fats * scale,
                     )
                 }
-                tag.copy(amountGrams = grams, loggedFood = logged)
+                tag.copy(amountGrams = grams, loggedFood = logged, hasManualEdits = true)
             } else tag
         }
     }
@@ -773,7 +814,7 @@ fun FoodLoggerDrawer(
                         proteinBoost = proteinB
                     )
                     val adjustedLogged = adjustLoggedFoodForOil(logged, tag.cookingMethod, oilLevel)
-                    tag.copy(oilLevel = oilLevel, loggedFood = adjustedLogged)
+                    tag.copy(oilLevel = oilLevel, loggedFood = adjustedLogged, hasManualEdits = true)
                 } else if (tag.loggedFood != null) {
                     val old = tag.loggedFood
                     val cf = tag.cookingMethod?.let { COOKING_FACTORS[it] }
@@ -796,19 +837,20 @@ fun FoodLoggerDrawer(
                         val newCalories = kotlin.math.round(old.calories + diffFat * 9.0)
                         tag.copy(
                             oilLevel = oilLevel,
-                            loggedFood = old.copy(fats = newFats.coerceAtLeast(0.0), calories = newCalories.coerceAtLeast(0.0))
+                            loggedFood = old.copy(fats = newFats.coerceAtLeast(0.0), calories = newCalories.coerceAtLeast(0.0)),
+                            hasManualEdits = true,
                         )
                     } else {
-                        tag.copy(oilLevel = oilLevel)
+                        tag.copy(oilLevel = oilLevel, hasManualEdits = true)
                     }
                 } else {
-                    tag.copy(oilLevel = oilLevel)
+                    tag.copy(oilLevel = oilLevel, hasManualEdits = true)
                 }
             } else tag
         }
     }
 
-    fun updateTagCalories(tagId: String, calories: Double) {
+                    fun updateTagCalories(tagId: String, calories: Double) {
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val old = tag.loggedFood ?: return@map tag
@@ -819,7 +861,7 @@ fun FoodLoggerDrawer(
                     protein = kotlin.math.round(old.protein * scale * 10) / 10.0,
                     carbs = kotlin.math.round(old.carbs * scale * 10) / 10.0,
                     fats = kotlin.math.round(old.fats * scale * 10) / 10.0,
-                ))
+                ), hasManualEdits = true)
             } else tag
         }
     }
@@ -831,7 +873,7 @@ fun FoodLoggerDrawer(
                 tag.copy(loggedFood = old.copy(
                     protein = protein,
                     calories = protein * 4 + old.carbs * 4 + old.fats * 9,
-                ))
+                ), hasManualEdits = true)
             } else tag
         }
     }
@@ -843,7 +885,7 @@ fun FoodLoggerDrawer(
                 tag.copy(loggedFood = old.copy(
                     carbs = carbs,
                     calories = old.protein * 4 + carbs * 4 + old.fats * 9,
-                ))
+                ), hasManualEdits = true)
             } else tag
         }
     }
@@ -855,7 +897,7 @@ fun FoodLoggerDrawer(
                 tag.copy(loggedFood = old.copy(
                     fats = fats,
                     calories = old.protein * 4 + old.carbs * 4 + fats * 9,
-                ))
+                ), hasManualEdits = true)
             } else tag
         }
     }
@@ -876,7 +918,7 @@ fun FoodLoggerDrawer(
     }
 
     fun saveLog() {
-        val resolvedFoods = tags.mapNotNull { it.loggedFood }
+        val resolvedFoods = tags.filterNot { it.isExcluded }.mapNotNull { it.loggedFood }
         if (resolvedFoods.isEmpty()) {
             reviewRequired = true
             return
@@ -910,11 +952,12 @@ fun FoodLoggerDrawer(
     }
 
     val tagTotals = remember(tags) {
+        val activeTags = tags.filterNot { it.isExcluded }
         DailyMacroTotals(
-            calories = tags.sumOf { it.loggedFood?.calories ?: 0.0 },
-            protein = tags.sumOf { it.loggedFood?.protein ?: 0.0 },
-            carbs = tags.sumOf { it.loggedFood?.carbs ?: 0.0 },
-            fats = tags.sumOf { it.loggedFood?.fats ?: 0.0 },
+            calories = activeTags.sumOf { it.loggedFood?.calories ?: 0.0 },
+            protein = activeTags.sumOf { it.loggedFood?.protein ?: 0.0 },
+            carbs = activeTags.sumOf { it.loggedFood?.carbs ?: 0.0 },
+            fats = activeTags.sumOf { it.loggedFood?.fats ?: 0.0 },
         )
     }
 
@@ -1244,12 +1287,13 @@ fun FoodLoggerDrawer(
                         val tag = ResolvedTag(
                             tag = selectedFood.name,
                             portion = PortionPreset.MEDIUM,
-                            quantity = 1,
+                            quantity = 1.0,
                             amountGrams = selectedFood.servingSize,
                             foodItem = selectedFood,
                             loggedFood = logged,
                             isResolved = true,
                             statusText = "",
+                            hasManualEdits = true,
                         )
                         nutritionRepo.recordFoodSelection(queryUsed, selectedFood)
                         tags = tags + tag
@@ -1755,11 +1799,14 @@ private fun TagCard(
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (tag.isResolved) MaterialTheme.colorScheme.surfaceContainer
+            containerColor = if (tag.isExcluded) MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.4f)
+            else if (tag.isResolved) MaterialTheme.colorScheme.surfaceContainer
             else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
         ),
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(12.dp).then(
+            if (tag.isExcluded) Modifier.alpha(0.5f) else Modifier
+        )) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1767,7 +1814,13 @@ private fun TagCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = tag.tag.trim().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                        Text(text = tag.tag.trim().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, textDecoration = if (tag.isExcluded) TextDecoration.LineThrough else null)
+                        if (tag.isExcluded) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(shape = RoundedCornerShape(4.dp), color = MaterialTheme.colorScheme.errorContainer) {
+                                Text("Excluido", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer)
+                            }
+                        }
                     }
                     if (logged != null) {
                         Text(

@@ -198,11 +198,27 @@ fun parseMealDescription(description: String): ParsedMealDescription {
     return ParsedMealDescription(items = items, rawDescription = trimmed)
 }
 
+private fun isKnownNegationModifier(text: String, negMatch: MatchResult): Boolean {
+    val afterNeg = text.substring(negMatch.range.last + 1).trim().lowercase()
+    val firstWord = afterNeg.split("\\s+".toRegex()).firstOrNull() ?: return false
+    return firstWord in listOf("piel", "grasa", "miga", "pieles", "grasas")
+}
+
 // ─── Fragment Parser ─────────────────────────────────────────────────────────
 
 private fun parseFragment(frag: String): ParsedMealItem? {
     var text = frag.trim()
     if (text.isEmpty()) return null
+
+    // Handle negated items: "sin leche" → parse "leche" and mark excluded
+    var isExcluded = false
+    val sinPrefix = Regex("""^sin\s+""", RegexOption.IGNORE_CASE)
+    val sinMatch = sinPrefix.find(text)
+    if (sinMatch != null) {
+        isExcluded = true
+        text = text.removeRange(0, sinMatch.range.last + 1).trim()
+        if (text.isEmpty()) return null
+    }
 
     // Handle group: "Recipe (item1, item2)"
     val groupMatch = GROUP_PATTERN.find(text)
@@ -260,12 +276,13 @@ private fun parseFragment(frag: String): ParsedMealItem? {
         quantity = quantity,
         amountGrams = grams,
         cookingMethod = cookingMethod.first,
-        portion = if (grams != null) PortionPreset.MEDIUM else portionResult.first,
+        portion = portionResult.first,
         isFuzzyMatch = false,
         appliedCookingFactor = COOKING_FACTORS[cookingMethod.first]?.kcal ?: 1.0,
         modifierScale = modifierMacros?.let {
             MacroOverrides(calories = it.kcal, protein = it.protein, carbs = it.carbs, fats = it.fats)
         },
+        isExcluded = isExcluded,
     )
 }
 
@@ -292,18 +309,21 @@ private fun splitByListConnectors(description: String): List<String> {
     splitBy(CONNECTOR_Y)
     splitBy(CONNECTOR_CON)
 
-    // Unmask and clean negations
-    parts = parts.map { p ->
+    // Unmask and split negations into separate excluded fragments
+    parts = parts.flatMap { p ->
         var unmasked = p
         for ((token, original) in masks) {
             unmasked = unmasked.replace(token, original)
         }
-        // Remove "sin X" that isn't a known modifier
         val negMatch = NEGATION_PATTERN.find(unmasked)
-        if (negMatch != null) {
-            unmasked = unmasked.substring(0, negMatch.range.first)
+        if (negMatch != null && !isKnownNegationModifier(unmasked, negMatch)) {
+            val beforeNeg = unmasked.substring(0, negMatch.range.first).trim()
+            val afterNeg = unmasked.substring(negMatch.range.last + 1).trim()
+            val sinFragment = "sin $afterNeg"
+            listOfNotNull(beforeNeg.ifEmpty { null }, sinFragment.ifEmpty { null })
+        } else {
+            listOf(unmasked.trim())
         }
-        unmasked.trim()
     }.filter { it.isNotEmpty() }
 
     return parts
@@ -403,7 +423,7 @@ private fun extractPortionFromFragment(text: String): Pair<PortionPreset, String
 
 // ─── Quantity Multiplier ─────────────────────────────────────────────────────
 
-private fun parseQuantityMultiplier(text: String): Pair<Int, String> {
+private fun parseQuantityMultiplier(text: String): Pair<Double, String> {
     val trimmed = text.trim().replace(HALF_PATTERN, "0.5")
         .replace(QUARTER_PATTERN, "0.25")
         .replace(THREE_QUARTERS_PATTERN, "0.75")
@@ -415,7 +435,7 @@ private fun parseQuantityMultiplier(text: String): Pair<Int, String> {
         val qty2 = rangeMatch.groupValues[2].toDoubleOrNull() ?: 1.0
         val rest = rangeMatch.groupValues[3].trim()
         if (rest.length >= 2) {
-            val avg = kotlin.math.floor((qty1 + qty2) / 2.0).toInt().coerceIn(1, 50)
+            val avg = (qty1 + qty2) / 2.0
             return Pair(avg, rest)
         }
     }
@@ -426,7 +446,7 @@ private fun parseQuantityMultiplier(text: String): Pair<Int, String> {
         val qty = numMatch.groupValues[1].toDoubleOrNull() ?: 1.0
         val rest = numMatch.groupValues[2].trim()
         if (rest.length >= 2) {
-            return Pair(kotlin.math.round(qty).toInt().coerceIn(1, 50), rest)
+            return Pair(qty.coerceAtLeast(0.0), rest)
         }
     }
 
@@ -436,11 +456,11 @@ private fun parseQuantityMultiplier(text: String): Pair<Int, String> {
         val qty = LITERAL_QUANTITIES[literalMatch.groupValues[1].lowercase()]
         val rest = literalMatch.groupValues[2].trim()
         if (qty != null && rest.length >= 2) {
-            return Pair(kotlin.math.max(1, kotlin.math.round(qty).toInt()).coerceIn(1, 50), rest)
+            return Pair(qty, rest)
         }
     }
 
-    return Pair(1, trimmed)
+    return Pair(1.0, trimmed)
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -467,6 +487,7 @@ private fun normalizeFoodName(name: String, singularize: Boolean = false): Strin
 
     if (singularize) {
         normalized = when {
+            normalized.endsWith("ces") && normalized.length > 4 -> normalized.dropLast(3) + "z"
             normalized.endsWith("es") && normalized.length > 4 -> normalized.dropLast(2)
             normalized.endsWith("s") && normalized.length > 3 -> normalized.dropLast(1)
             else -> normalized

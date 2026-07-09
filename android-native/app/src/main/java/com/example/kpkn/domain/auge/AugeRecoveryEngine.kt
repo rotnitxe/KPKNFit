@@ -9,6 +9,7 @@ import com.example.kpkn.domain.auge.AugeUtils.clamp
 import com.example.kpkn.domain.auge.AugeUtils.safeExp
 import com.example.kpkn.domain.auge.AugeUtils.logDateMs
 import com.example.kpkn.domain.auge.AugeUtils.physiologicalFloor
+import com.example.kpkn.domain.auge.AugeUtils.decelerateBattery
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -37,9 +38,17 @@ object AugeRecoveryEngine {
         "Bíceps" to "fast", "Tríceps" to "fast", "Deltoides" to "fast",
         "Deltoides Anterior" to "fast", "Deltoides Lateral" to "fast", "Deltoides Posterior" to "fast",
         "Pantorrillas" to "fast", "Abdomen" to "fast", "Antebrazo" to "fast",
+        "Gemelos" to "fast", "Sóleo" to "fast", "Oblicuos" to "fast", "Costales" to "fast",
         "Pectorales" to "medium", "Dorsales" to "medium", "Hombros" to "medium", "Trapecio" to "medium",
-        "Cuádriceps" to "slow", "Glúteos" to "slow", "Aductores" to "medium",
-        "Isquiosurales" to "heavy", "Erectores Espinales" to "heavy", "Core" to "medium", "Cuello" to "medium",
+        "Romboide" to "medium", "Redondo Menor" to "medium", "Redondo Mayor" to "medium",
+        "Infraespinoso" to "medium", "Supraespinoso" to "medium", "Subescapular" to "medium",
+        "Serrato Anterior" to "medium", "Cuadriceps" to "medium",
+        "Cuádriceps" to "slow", "Glúteos" to "slow",
+        "Glúteo Mayor" to "slow", "Glúteo Medio" to "slow", "Glúteo Menor" to "slow",
+        "Aductores" to "medium", "Tensor Fascia Lata" to "medium",
+        "Isquiosurales" to "heavy", "Bíceps Femoral" to "heavy", "Semitendinoso" to "heavy",
+        "Semimembranoso" to "heavy", "Erectores Espinales" to "heavy", "Core" to "medium",
+        "Cuello" to "medium", "Psoas" to "medium", "Lumbar" to "heavy",
     )
 
     // Los músculos "pilar" para el cálculo de batería muscular global
@@ -270,7 +279,7 @@ object AugeRecoveryEngine {
     ): Double {
         val now = nowMs()
         val fourWeeksAgo = now - 28L * 24 * 3600 * 1000
-        val recentLogs = history.filter { logDateMs(it) > fourWeeksAgo }
+        val recentLogs = history.filter { logDateMs(it) > fourWeeksAgo - 7L * 24 * 3600 * 1000 } // 28-35d fade window
         val baseFloor = AugeFatigueEngine.getAthleteCapacity(settings)
 
         if (recentLogs.isEmpty()) return baseFloor
@@ -279,6 +288,12 @@ object AugeRecoveryEngine {
         var totalStress = 0.0
 
         recentLogs.forEach { log ->
+            val logMs = logDateMs(log)
+            val daysSince = (now - logMs) / (24.0 * 3600 * 1000)
+            val decay = if (daysSince <= 28.0) 1.0
+                else if (daysSince >= 35.0) 0.0
+                else (35.0 - daysSince) / 7.0
+
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
 
@@ -304,9 +319,8 @@ object AugeRecoveryEngine {
                     drain.muscularDrainPct
                 }
 
-                // Ponderar por rol de participación
                 val roleMult = FATIGUE_ROLE_MULTIPLIERS[involvement.role] ?: 1.0
-                totalStress += setStress * roleMult
+                totalStress += setStress * roleMult * decay
             }
         }
 
@@ -501,7 +515,7 @@ object AugeRecoveryEngine {
 
         val recentLogs = if (manualNeural != null && anchorMs > 0) {
             val manualBattery = manualNeural.coerceIn(0, 100).toDouble()
-            val totalFatigue = 100.0 - manualBattery
+            val totalFatigue = (100.0 - manualBattery).coerceIn(0.0, 99.9)
             val rawGymPct = if (totalFatigue <= 0.1) 0.0 else -28.0 * ln(1.0 - totalFatigue / 100.0)
             val capacity = max(80.0, tanks.cns * 1.15)
             val manualLoad = (rawGymPct * capacity / 100.0)
@@ -612,7 +626,7 @@ object AugeRecoveryEngine {
 
         val recentLogs = if (manualSpinal != null && anchorMs > 0) {
             val manualBattery = manualSpinal.coerceIn(0, 100).toDouble()
-            val totalFatigue = 100.0 - manualBattery
+            val totalFatigue = (100.0 - manualBattery).coerceIn(0.0, 99.9)
             val rawPct = if (totalFatigue <= 0.1) 0.0 else -24.0 * ln(1.0 - totalFatigue / 100.0)
             val capacity = max(70.0, tanks.spinal * 0.02)
             val manualLoad = (rawPct * capacity / 100.0)
@@ -627,7 +641,7 @@ object AugeRecoveryEngine {
 
         // Obtener el multiplicador de protección activa de columna
         val spineProtectionMultiplier = calculateSpineFatigueMultiplier(
-            history = recentLogs,
+            history = history,
             wellbeing = wellbeing,
             settings = settings,
             exerciseDb = exerciseDb,
@@ -745,11 +759,24 @@ object AugeRecoveryEngine {
         val avgMuscleDelta = if (muscleDeltas.isNotEmpty()) {
             muscleDeltas.values.average().coerceIn(-25.0, 25.0)
         } else 0.0
+        val floor = physiologicalFloor(settings)
+
+        val decelMuscular = decelerateBattery(muscularAvg.toDouble()).toInt()
+        val finalMuscular = clamp(
+            (maxOf(decelMuscular, floor.muscular) + avgMuscleDelta).toDouble(),
+            0.0, 100.0,
+        ).toInt()
+        val finalCnc = decelerateBattery(
+            maxOf(cncBattery.toDouble(), floor.cns.toDouble())
+        ).toInt().coerceIn(0, 100)
+        val finalSpinal = decelerateBattery(
+            maxOf(spinalBattery.toDouble(), floor.spinal.toDouble())
+        ).toInt().coerceIn(0, 100)
 
         return GlobalBatteries(
-            muscular = clamp((max(muscularAvg, physiologicalFloor(settings).muscular) + avgMuscleDelta.toInt()).toDouble(), 0.0, 100.0).toInt(),
-            cnc      = clamp(max(cncBattery, physiologicalFloor(settings).cns).toDouble(), 0.0, 100.0).toInt(),
-            spinal   = clamp(max(spinalBattery, physiologicalFloor(settings).spinal).toDouble(), 0.0, 100.0).toInt(),
+            muscular = finalMuscular,
+            cnc      = finalCnc,
+            spinal   = finalSpinal,
         )
     }
 

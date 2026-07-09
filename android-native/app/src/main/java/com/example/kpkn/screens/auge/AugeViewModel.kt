@@ -39,48 +39,48 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     // ─── Public state ─────────────────────────────────────────────────────────
 
     private val initialDashboard = RecoveryDashboard(
-        overallScore = 100,
-        headline = "Listo para entrenar",
-        summary = "Tu estado está equilibrado.",
-        recommendation = "Hoy puedes entrenar normal.",
-        confidenceLabel = "Media",
+        overallScore = 50,
+        headline = "Calculando...",
+        summary = "Cargando datos de recuperación.",
+        recommendation = "Espera un momento mientras cargamos tu estado.",
+        confidenceLabel = "—",
         channels = listOf(
             RecoveryChannelSnapshot(
                 id = RecoveryChannelId.MUSCULAR,
                 title = "Músculos",
                 shortTitle = "Mús.",
-                score = 100,
-                band = RecoveryBand.HIGH,
-                description = "Promedio del estado de todos tus músculos hoy.",
-                action = "Puedes entrenar normal.",
-                confidence = 70,
+                score = 50,
+                band = RecoveryBand.MODERATE,
+                description = "Calculando...",
+                action = "Espera mientras cargamos tu estado muscular.",
+                confidence = 0,
             ),
             RecoveryChannelSnapshot(
                 id = RecoveryChannelId.SYSTEM,
                 title = "Energía",
                 shortTitle = "En.",
-                score = 100,
-                band = RecoveryBand.HIGH,
-                description = "Qué tanta intensidad, coordinación y producción de fuerza toleras hoy.",
-                action = "Puedes entrenar normal.",
-                confidence = 70,
+                score = 50,
+                band = RecoveryBand.MODERATE,
+                description = "Calculando...",
+                action = "Espera mientras cargamos tu energía.",
+                confidence = 0,
             ),
             RecoveryChannelSnapshot(
                 id = RecoveryChannelId.STRUCTURE,
                 title = "Columna",
                 shortTitle = "Col.",
-                score = 100,
-                band = RecoveryBand.HIGH,
-                description = "Cómo llega hoy tu columna, tus tendones y tus articulaciones a la carga.",
-                action = "Puedes entrenar normal.",
-                confidence = 70,
+                score = 50,
+                band = RecoveryBand.MODERATE,
+                description = "Calculando...",
+                action = "Espera mientras cargamos tu columna.",
+                confidence = 0,
             ),
         ),
     )
 
     private val _snapshot = MutableStateFlow(
         AugeSnapshot(
-            batteries = GlobalBatteries(muscular = 100, cnc = 100, spinal = 100),
+            batteries = GlobalBatteries(muscular = 50, cnc = 50, spinal = 50),
             perMuscle = emptyMap(),
             readiness = null,
             dashboard = initialDashboard,
@@ -167,7 +167,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         val nutritionLogs = nutritionRepo.nutritionLogs.value
         val adaptiveCache = augeRepo.getAdaptiveCache()
 
-        val (batteries, perMuscle, dashboard, readiness, pending, articular) = withContext(Dispatchers.Default) {
+        val (batteries, perMuscle, dashboard, readiness, pending, articular, cumulativeFatigue) = withContext(Dispatchers.Default) {
             val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
                 history = history,
                 wellbeing = wellbeing,
@@ -204,24 +204,25 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             )
             val verdict = AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeing)
             val pending = AugeRecoveryEngine.checkPendingSurveys(history, feedbacks)
-            Sextuple(bat, muscles, dashboard, verdict, pending, articular)
+            
+            val twoWeeksAgo = System.currentTimeMillis() - 14L * 24 * 3600_000
+            val cumFatigue = history
+                .filter { log ->
+                    runCatching { Instant.parse(log.date).toEpochMilli() }
+                        .getOrDefault(0L) >= twoWeeksAgo
+                }
+                .sumOf { log ->
+                    AugeFatigueEngine.calculateCompletedSessionStress(
+                        completedExercises = log.completedExercises,
+                        exerciseDb = exerciseDb,
+                        settings = settings,
+                    )
+                }
+            Septuple(bat, muscles, dashboard, verdict, pending, articular, cumFatigue)
         }
 
         val resolvedPending = pending ?: augeRepo.getPendingQuestionnaire()
         exposePendingIfDue(resolvedPending)
-        val twoWeeksAgo = System.currentTimeMillis() - 14L * 24 * 3600_000
-        val cumulativeFatigue = history
-            .filter { log ->
-                runCatching { Instant.parse(log.date).toEpochMilli() }
-                    .getOrDefault(0L) >= twoWeeksAgo
-            }
-            .sumOf { log ->
-                AugeFatigueEngine.calculateCompletedSessionStress(
-                    completedExercises = log.completedExercises,
-                    exerciseDb = exerciseDb,
-                    settings = settings,
-                )
-            }
         val readinessScore = readiness?.score ?: dashboard.overallScore
         val shouldSuggestAutoDeload = AugeFatigueEngine.shouldSuggestAutoDeload(
             cumulativeFatigue = cumulativeFatigue,
@@ -279,6 +280,24 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     fun saveWellbeing(log: DailyWellbeingLog) {
         viewModelScope.launch {
             augeRepo.saveWellbeingLog(log)
+
+            // Learn from manual adjustments if any (pre-workout signal)
+            if (log.manualNeuralBattery != null || log.manualSpinalBattery != null || log.manualMuscleBatteries.isNotEmpty()) {
+                val snapshot = _snapshot.value
+                learnFromManualAdjustment(
+                    manualNeural = log.manualNeuralBattery,
+                    manualSpinal = log.manualSpinalBattery,
+                    manualMuscleBatteries = log.manualMuscleBatteries,
+                    sessionCnsDrain = 0.0,
+                    sessionSpinalDrain = 0.0,
+                    sessionMuscleDrain = 0.0,
+                    predictedNeuralBattery = snapshot.ringScore(RecoveryChannelId.SYSTEM),
+                    predictedSpinalBattery = snapshot.ringScore(RecoveryChannelId.STRUCTURE),
+                    predictedMuscleBatteries = snapshot.perMuscle.mapValues { (_, v) -> v.recoveryScore },
+                    wellbeing = log,
+                )
+            }
+
             recompute(programRepo.history.value, programRepo.settings.value)
         }
     }
@@ -361,85 +380,131 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             )
             augeRepo.saveWellbeingLog(updated)
 
-            // ─── Adaptive learning from manual ring adjustments ──────────────
-            if (sessionCnsDrain > 0 || sessionSpinalDrain > 0 || sessionMuscleDrain > 0 || perMuscle.isNotEmpty()) {
-                val cache = augeRepo.getAdaptiveCache()
-                var updatedCache = cache
-                val newTotalObs = cache.totalObservations + 1
-
-                // Learn system-level deltas from CNS/spinal adjustments
-                if (sessionCnsDrain > 0 || sessionSpinalDrain > 0) {
-                    val systemAdj = if (predictedNeuralBattery != null) {
-                        (neural - predictedNeuralBattery).coerceIn(-35, 35)
-                    } else 0
-                    val structAdj = if (predictedSpinalBattery != null) {
-                        (spinal - predictedSpinalBattery).coerceIn(-35, 35)
-                    } else 0
-                    val (newCns, newSpinal) = AugeAdaptiveEngine.updateSystemLearningDeltas(
-                        currentCnsDelta = cache.cnsLearningDelta,
-                        currentSpinalDelta = cache.spinalLearningDelta,
-                        systemAdjustment = systemAdj,
-                        structureAdjustment = structAdj,
-                        totalObservations = cache.totalObservations,
-                    )
-                    updatedCache = updatedCache.copy(
-                        cnsLearningDelta = newCns,
-                        spinalLearningDelta = newSpinal,
-                    )
-                }
-
-                // Learn per-muscle recovery hours from each muscle adjustment
-                for ((muscle, manualBattery) in perMuscle) {
-                    val predicted = predictedMuscleBatteries[muscle]
-                        ?: predictedMuscleBatteries.entries.firstOrNull {
-                            it.key.equals(muscle, ignoreCase = true)
-                        }?.value
-                        ?: 100
-
-                    if (predicted != manualBattery) {
-                        val obs = RecoveryLearningObservation(
-                            muscle = muscle,
-                            predictedBattery = predicted,
-                            actualBattery = manualBattery.coerceIn(0, 100),
-                            sessionStress = sessionMuscleDrain,
-                            hoursSinceSession = 0.25,
-                            sleepQuality = updated.sleepQuality,
-                            stressLevel = updated.stressLevel,
-                        )
-                        updatedCache = updatedCache.copy(
-                            personalizedRecoveryHours = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
-                                current = updatedCache.personalizedRecoveryHours,
-                                observation = obs,
-                                totalObservations = cache.totalObservations,
-                            ),
-                        )
-                    }
-                }
-
-                // Learn muscle deltas
-                if (predictedMuscleBatteries.isNotEmpty() && perMuscle.isNotEmpty()) {
-                    updatedCache = updatedCache.copy(
-                        muscleDeltas = AugeAdaptiveEngine.updateMuscleDeltas(
-                            current = updatedCache.muscleDeltas,
-                            manualMuscleBatteries = perMuscle,
-                            predictedMuscleBatteries = predictedMuscleBatteries,
-                            totalObservations = cache.totalObservations,
-                        ),
-                    )
-                }
-
-                updatedCache = updatedCache.copy(
-                    totalObservations = newTotalObs,
-                    lastUpdatedMs = System.currentTimeMillis(),
-                )
-                augeRepo.saveAdaptiveCache(updatedCache)
-            }
+            learnFromManualAdjustment(
+                manualNeural = neural,
+                manualSpinal = spinal,
+                manualMuscleBatteries = perMuscle,
+                sessionCnsDrain = sessionCnsDrain,
+                sessionSpinalDrain = sessionSpinalDrain,
+                sessionMuscleDrain = sessionMuscleDrain,
+                predictedNeuralBattery = predictedNeuralBattery,
+                predictedSpinalBattery = predictedSpinalBattery,
+                predictedMuscleBatteries = predictedMuscleBatteries,
+                wellbeing = updated,
+            )
 
             recompute(programRepo.history.value, programRepo.settings.value)
         }
+    }
+
+    /**
+     * Extrae y ejecuta el aprendizaje adaptativo a partir de ajustes manuales de rings,
+     * usable tanto desde applyManualBatteries (post-workout) como desde saveWellbeing (pre-workout).
+     */
+    private suspend fun learnFromManualAdjustment(
+        manualNeural: Int?,
+        manualSpinal: Int?,
+        manualMuscleBatteries: Map<String, Int>,
+        sessionCnsDrain: Double,
+        sessionSpinalDrain: Double,
+        sessionMuscleDrain: Double,
+        predictedNeuralBattery: Int?,
+        predictedSpinalBattery: Int?,
+        predictedMuscleBatteries: Map<String, Int>,
+        wellbeing: DailyWellbeingLog,
+    ) {
+        val hasSystemSignal = (manualNeural != null && predictedNeuralBattery != null) ||
+            (manualSpinal != null && predictedSpinalBattery != null)
+        val hasMuscleSignal = manualMuscleBatteries.isNotEmpty()
+        if (!hasSystemSignal && !hasMuscleSignal) return
+
+        val cache = augeRepo.getAdaptiveCache()
+        var updatedCache = cache
+        val newTotalObs = cache.totalObservations + 1
+
+        // Learn system-level deltas from CNS adjustments independently
+        if (manualNeural != null && predictedNeuralBattery != null) {
+            val systemAdj = (manualNeural - predictedNeuralBattery).coerceIn(-35, 35)
+            val (newCns, _) = AugeAdaptiveEngine.updateSystemLearningDeltas(
+                currentCnsDelta = cache.cnsLearningDelta,
+                currentSpinalDelta = cache.spinalLearningDelta,
+                systemAdjustment = systemAdj,
+                structureAdjustment = 0,
+                totalObservations = cache.totalObservations,
+            )
+            updatedCache = updatedCache.copy(cnsLearningDelta = newCns)
+        }
+
+        // Learn system-level deltas from spinal adjustments independently
+        if (manualSpinal != null && predictedSpinalBattery != null) {
+            val structAdj = (manualSpinal - predictedSpinalBattery).coerceIn(-35, 35)
+            val (_, newSpinal) = AugeAdaptiveEngine.updateSystemLearningDeltas(
+                currentCnsDelta = cache.cnsLearningDelta,
+                currentSpinalDelta = cache.spinalLearningDelta,
+                systemAdjustment = 0,
+                structureAdjustment = structAdj,
+                totalObservations = cache.totalObservations,
+            )
+            updatedCache = updatedCache.copy(spinalLearningDelta = newSpinal)
+        }
+
+        // Calculate hours elapsed since the last completed workout to scale pre-workout calibrations
+        val history = programRepo.history.value
+        val lastSession = history.maxByOrNull { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) }
+        val now = System.currentTimeMillis()
+        val derivedHoursSince = if (lastSession != null) {
+            maxOf(0.5, (now - com.example.kpkn.domain.auge.AugeUtils.logDateMs(lastSession)) / 3_600_000.0)
+        } else {
+            24.0
+        }
+
+        for ((muscle, manualBattery) in manualMuscleBatteries) {
+            val predicted = predictedMuscleBatteries[muscle]
+                ?: predictedMuscleBatteries.entries.firstOrNull {
+                    it.key.equals(muscle, ignoreCase = true)
+                }?.value
+                ?: 100
+
+            if (predicted != manualBattery) {
+                val obs = RecoveryLearningObservation(
+                    muscle = muscle,
+                    predictedBattery = predicted,
+                    actualBattery = manualBattery.coerceIn(0, 100),
+                    sessionStress = if (sessionMuscleDrain > 0.0) sessionMuscleDrain else 20.0,
+                    hoursSinceSession = if (sessionMuscleDrain > 0.0) 0.25 else derivedHoursSince,
+                    sleepQuality = wellbeing.sleepQuality,
+                    stressLevel = wellbeing.stressLevel,
+                )
+                updatedCache = updatedCache.copy(
+                    personalizedRecoveryHours = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
+                        current = updatedCache.personalizedRecoveryHours,
+                        observation = obs,
+                        totalObservations = cache.totalObservations,
+                    ),
+                )
+            }
+        }
+
+        if (predictedMuscleBatteries.isNotEmpty() && manualMuscleBatteries.isNotEmpty()) {
+            updatedCache = updatedCache.copy(
+                muscleDeltas = AugeAdaptiveEngine.updateMuscleDeltas(
+                    current = updatedCache.muscleDeltas,
+                    manualMuscleBatteries = manualMuscleBatteries,
+                    predictedMuscleBatteries = predictedMuscleBatteries,
+                    totalObservations = cache.totalObservations,
+                ),
+            )
+        }
+
+        updatedCache = updatedCache.copy(
+            totalObservations = newTotalObs,
+            lastUpdatedMs = System.currentTimeMillis(),
+        )
+        augeRepo.saveAdaptiveCache(updatedCache)
     }
 }
 
 private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 private data class Quintuple<A, B, C, D, E>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E)
 private data class Sextuple<A, B, C, D, E, F>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F)
+private data class Septuple<A, B, C, D, E, F, G>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F, val seventh: G)

@@ -100,7 +100,7 @@ data class LoggedFood(
     val micronutrients: List<Micronutrient> = emptyList(),
     val portionPreset: PortionPreset? = null,
     val cookingMethod: CookingMethod? = null,
-    val quantity: Int = 1,
+    val quantity: Double = 1.0,
     val analysisSource: AnalysisSource? = null,
 )
 
@@ -187,7 +187,7 @@ enum class AnalysisSource { RULES, DATABASE, USER_MEMORY, LOCAL_AI_ESTIMATE, EXT
 @Serializable
 data class ParsedMealItem(
     val tag: String = "",
-    val quantity: Int = 1,
+    val quantity: Double = 1.0,
     val amountGrams: Double? = null,
     val cookingMethod: CookingMethod? = null,
     val portion: PortionPreset = PortionPreset.MEDIUM,
@@ -203,6 +203,7 @@ data class ParsedMealItem(
     val resolvedFoodId: String? = null,
     val appliedCookingFactor: Double = 1.0,
     val modifierScale: MacroOverrides? = null,
+    val isExcluded: Boolean = false,
 )
 
 @Serializable

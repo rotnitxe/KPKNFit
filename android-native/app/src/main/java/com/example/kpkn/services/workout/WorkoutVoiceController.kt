@@ -157,18 +157,16 @@ class WorkoutVoiceController(private val context: Context) {
         val s = _state.value
         if (s.stage == VoicePipelineStage.DISABLED) return
 
-        scope?.launch {
-            continuousEngine.pause()
-            requestDucking()
-            updateStage(VoicePipelineStage.TTS_SPEAKING)
-            ttsManager.setOnUtteranceComplete {
-                scope?.launch {
-                    releaseDucking()
-                    resumeListening()
-                }
+        continuousEngine.pause()
+        requestDucking()
+        updateStage(VoicePipelineStage.TTS_SPEAKING)
+        ttsManager.setOnUtteranceComplete {
+            scope?.launch {
+                releaseDucking()
+                resumeListening()
             }
-            block()
         }
+        block()
     }
 
     private fun startListening() {
@@ -271,8 +269,10 @@ class WorkoutVoiceController(private val context: Context) {
             else -> {
                 _state.update { it.copy(lastCommand = command) }
                 onCommandDetected?.invoke(command)
-                releaseDucking()
-                resumeListening()
+                if (_state.value.stage != VoicePipelineStage.TTS_SPEAKING) {
+                    releaseDucking()
+                    resumeListening()
+                }
             }
         }
     }
