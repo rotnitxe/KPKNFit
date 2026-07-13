@@ -13,7 +13,7 @@ const CONNECTOR_Y = /\s+(?:y|e|mas|más)\s+/gi;
 const CONNECTOR_CON = /\s+con\s+/gi;
 
 // Gramos: "300g", "300 g", "200gr", "1.5 kg", "300 gramos de"
-const GRAM_PATTERN = /(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)(?:\s+de)?\s*/gi;
+const GRAM_PATTERN = /(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)\b(?:\s+de)?\s*/gi;
 
 const LITERAL_QUANTITIES: Record<string, number> = {
     un: 1, una: 1, uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5,
@@ -25,8 +25,8 @@ const LITERAL_QUANTITIES: Record<string, number> = {
 };
 
 const PROTECTED_ENTITIES = [
-    'arroz con leche', 'arroz con pollo', 'pollo con papas', 'pan con queso', 'pan con palta',
-    'pan con palta y jamon', 'pan con palta y jamón', 'pan con mantequilla', 'papas con mayo',
+    'arroz con leche', 'arroz con pollo', 'pollo con papas', 'pan con queso',
+    'pan con palta y jamon', 'pan con palta y jamón', 'pan con palta', 'pan con mantequilla', 'papas con mayo',
     'completo italiano', 'pastel de choclo', 'empanada de pino', 'carne al horno', 'porotos con riendas'
 ];
 
@@ -155,7 +155,7 @@ function extractGramsFromFragment(text: string): { grams?: number; cleaned: stri
     let grams: number | undefined;
     let cleaned = text;
     for (const m of match) {
-        const numMatch = m.match(/(\d+(?:[.,]\d+)?)\s*(g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)/i);
+        const numMatch = m.match(/(\d+(?:[.,]\d+)?)\s*(g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)\b/i);
         if (numMatch) {
             let val = parseFloat(numMatch[1].replace(',', '.'));
             const unit = numMatch[2].toLowerCase();
@@ -428,6 +428,7 @@ function parseFragment(frag: string): ParsedMealItem | null {
 
     let grams: number | undefined;
     let working: string;
+    let refQuantity: number | undefined;
 
     const { grams: gramsFromExplicit, cleaned: afterGrams } = extractGramsFromFragment(text);
     grams = gramsFromExplicit;
@@ -439,6 +440,7 @@ function parseFragment(frag: string): ParsedMealItem | null {
         if (refResult.grams != null) {
             grams = refResult.grams;
             working = refResult.cleaned;
+            refQuantity = refResult.quantity;
         }
     } else {
         const { multiplier, cleaned: afterDim } = extractDimensionalMultiplier(working);
@@ -479,8 +481,9 @@ function parseFragment(frag: string): ParsedMealItem | null {
     working = working.replace(/^\s*de\s+/i, '').replace(/\s+de\s+$/i, '').replace(/\s{2,}/g, ' ').trim();
     if (!working) return null;
 
-    const { quantity, foodPart } = parseQuantityMultiplier(working);
-    const foodName = foodPart || working;
+    const multiResult = parseQuantityMultiplier(working);
+    const quantity = refQuantity !== undefined ? refQuantity * multiResult.quantity : multiResult.quantity;
+    const foodName = multiResult.foodPart || working;
     if (!foodName || foodName.length < 2) return null;
 
     const canonical = resolveCanonicalFoodName(canonicalContext, foodName);

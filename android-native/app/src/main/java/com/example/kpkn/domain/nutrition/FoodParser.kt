@@ -12,14 +12,15 @@ import com.example.kpkn.data.models.*
 
 // ─── Regex Patterns ──────────────────────────────────────────────────────────
 
-private val GRAM_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)(?:\s+de)?\s*""", RegexOption.IGNORE_CASE)
+private val GRAM_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)\b(?:\s+de)?\s*""", RegexOption.IGNORE_CASE)
 
 private val COMMA_OR_PLUS = Regex("""(,\s*|\s+\+\s+)""")
 private val CONNECTOR_Y = Regex("""\s+(?:y|e|mas|más)\s+""", RegexOption.IGNORE_CASE)
 private val CONNECTOR_CON = Regex("""\s+con\s+""", RegexOption.IGNORE_CASE)
 
 private val PROTECTED_ENTITIES = listOf(
-    "arroz con leche", "arroz con pollo", "pollo con papas", "pan con queso", "pan con palta",
+    "arroz con leche", "arroz con pollo", "pollo con papas", "pan con queso",
+    "pan con palta y jamon", "pan con palta y jamón", "pan con palta",
     "pan con mantequilla", "papas con mayo", "pastel de choclo", "pasteles de choclo",
     "empanada de pino", "empanadas de pino", "empanada de queso", "empanadas de queso",
     "sandwich de pollo con mayonesa", "sandwich de jamon con mayonesa",
@@ -115,7 +116,7 @@ private val REFERENCE_PATTERNS = listOf(
 private val GROUP_PATTERN = Regex("^(.+?)\\s*\\((.+)\\)\\s*$")
 private val STARTS_WITH_DIGIT = Regex("""^\d""")
 private val NEGATION_PATTERN = Regex("""\b(?:sin|menos|no)\b""", RegexOption.IGNORE_CASE)
-private val GRAM_UNIT_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*(g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)""", RegexOption.IGNORE_CASE)
+private val GRAM_UNIT_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*(g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)\b""", RegexOption.IGNORE_CASE)
 private val KG_LITER_PATTERN = Regex("kg|l$|litros?")
 private val OZ_PATTERN = Regex("oz|onzas?")
 private val LB_PATTERN = Regex("lb|libras?")
@@ -236,13 +237,15 @@ private fun parseFragment(frag: String): ParsedMealItem? {
     val gramsResult = extractGramsFromFragment(text)
     var grams = gramsResult.first
     var working = gramsResult.second
+    var refQuantity: Double? = null
 
     // If no grams, try reference (e.g., "1 cucharada de aceite")
     if (grams == null) {
         val refResult = extractReferenceFromFragment(working)
-        if (refResult.first != null) {
-            grams = refResult.first
-            working = refResult.second
+        if (refResult.grams != null) {
+            grams = refResult.grams
+            working = refResult.foodPart
+            refQuantity = refResult.quantity
         }
     }
 
@@ -262,7 +265,7 @@ private fun parseFragment(frag: String): ParsedMealItem? {
 
     // Extract quantity multiplier ("2 panes", "3 huevos")
     val quantityResult = parseQuantityMultiplier(working)
-    val quantity = quantityResult.first
+    val quantity = if (refQuantity != null) refQuantity * quantityResult.first else quantityResult.first
     val foodName = quantityResult.second
 
     if (foodName.length < 2) return null
@@ -351,10 +354,16 @@ private fun extractGramsFromFragment(text: String): Pair<Double?, String> {
 
 // ─── Extract Portion Reference ───────────────────────────────────────────────
 
-private fun extractReferenceFromFragment(text: String): Pair<Double?, String> {
+private data class ReferenceResult(
+    val grams: Double?,
+    val quantity: Double,
+    val foodPart: String,
+)
+
+private fun extractReferenceFromFragment(text: String): ReferenceResult {
     val lower = text.lowercase()
     if (REFERENCE_KEYWORDS_FAST.none { lower.contains(it) }) {
-        return Pair(null, text)
+        return ReferenceResult(null, 1.0, text)
     }
     for ((pattern, refType) in REFERENCE_PATTERNS) {
         val match = pattern.find(text) ?: continue
@@ -386,9 +395,9 @@ private fun extractReferenceFromFragment(text: String): Pair<Double?, String> {
         // Return foodPart as the working text so parseFragment can use it as the food name.
         // Using `cleaned` (text with match removed) was wrong: when the reference covers the full
         // fragment (e.g. "una taza de avena") cleaned becomes "" → foodName.length < 2 → null item.
-        return Pair(grams, foodPart)
+        return ReferenceResult(grams, qty, foodPart)
     }
-    return Pair(null, text)
+    return ReferenceResult(null, 1.0, text)
 }
 
 // ─── Extract Cooking Method ──────────────────────────────────────────────────

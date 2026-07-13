@@ -18,7 +18,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -43,12 +42,12 @@ private data class MuscleCategory(val label: String, val keywords: List<String>,
 
 private val CATEGORIES = listOf(
     MuscleCategory("Todos", emptyList(), Color(0xFF8A9099)),
-    MuscleCategory("Pecho", listOf("Pectorales"), Color(0xFFD0D5DD)),
-    MuscleCategory("Espalda", listOf("Dorsales", "Trapecio", "Erectores Espinales"), Color(0xFFB8C0CC)),
-    MuscleCategory("Hombros", listOf("Deltoides"), Color(0xFFAAB2BD)),
-    MuscleCategory("Piernas", listOf("Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas", "Aductores"), Color(0xFF9DA6B2)),
-    MuscleCategory("Brazos", listOf("Bíceps", "Tríceps", "Antebrazo"), Color(0xFF8E98A5)),
-    MuscleCategory("Core", listOf("Core", "Abdomen"), Color(0xFF7B8592)),
+    MuscleCategory("Pecho", listOf("Pectorales"), Color(0xFF1E88E5)),
+    MuscleCategory("Espalda", listOf("Dorsales", "Trapecio", "Erectores Espinales"), Color(0xFF43A047)),
+    MuscleCategory("Hombros", listOf("Deltoides"), Color(0xFFFF8F00)),
+    MuscleCategory("Piernas", listOf("Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas", "Aductores"), Color(0xFF9C27B0)),
+    MuscleCategory("Brazos", listOf("Bíceps", "Tríceps", "Antebrazo"), Color(0xFFE53935)),
+    MuscleCategory("Core", listOf("Core", "Abdomen"), Color(0xFF00ACC1)),
 )
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -107,140 +106,129 @@ fun WikiLabScreen(
 
     Scaffold(
         containerColor = Color.Black,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Ejercicios",
-                        fontWeight = FontWeight.Black,
-                        fontFamily = FontFamily.Serif,
-                        color = Color.White,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Black,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                ),
-            )
-        },
-    ) { padding ->
+        topBar = {}, // Cabecera fija eliminada para máximo espacio de scroll
+    ) { paddingValues ->
         Box(
             modifier = modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(padding),
+                .padding(paddingValues)
         ) {
-            Surface(
-                color = Color.Black,
-                tonalElevation = 0.dp,
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF121212))
-                        .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text(
-                        "Ejercicios",
-                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif),
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                    )
-                    Text(
-                        "${exerciseCatalog.size} ejercicios con volumen muscular y drenaje estimado.",
-                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
-                        color = Color.White.copy(alpha = 0.7f),
-                    )
-                }
-
-                Spacer(Modifier.height(12.dp))
-
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Buscar ejercicio, músculo o equipo...", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif)) },
-                    leadingIcon = { Icon(Icons.Default.Search, null) },
-                    trailingIcon = {
-                        if (query.isNotEmpty()) {
-                            IconButton(onClick = { query = "" }) {
-                                Icon(Icons.Default.Close, "Limpiar")
-                            }
+                // ─── Scrollable Header (Retroceso + Título) ───────────────
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .statusBarsPadding()
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
                         }
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color.White.copy(alpha = 0.4f),
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-                        cursorColor = Color.White,
-                    ),
-                )
-
-                Spacer(Modifier.height(10.dp))
-
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    items(CATEGORIES.indices.toList()) { idx ->
-                        val cat = CATEGORIES[idx]
-                        val selected = selectedCategory == idx
-                        FilterChip(
-                            selected = selected,
-                            onClick = { selectedCategory = idx },
-                            label = {
-                                Text(
-                                    cat.label,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
-                                )
-                            },
-                            leadingIcon = if (idx > 0) {
-                                {
-                                    Surface(Modifier.size(6.dp), CircleShape, cat.color) {}
-                                }
-                            } else null,
-                            shape = RoundedCornerShape(10.dp),
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "Ejercicios",
+                            style = MaterialTheme.typography.headlineLarge.copy(fontFamily = FontFamily.Serif),
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
                         )
                     }
                 }
+
+                // ─── Subtitle & Description ───────────────────────────────
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            text = "Índice de ejercicios y guía anatómica. Selecciona un elemento para ver su nivel, músculos implicados, equipamiento y fatiga.",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+                            color = Color.White.copy(alpha = 0.7f),
+                        )
+                        Spacer(Modifier.height(4.dp))
+                    }
                 }
-            }
 
-            Text(
-                "${filtered.size} resultados",
-                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                color = Color.White.copy(alpha = 0.5f),
-                modifier = Modifier.padding(start = 16.dp, top = 144.dp, bottom = 4.dp),
-            )
+                // ─── Search Bar ───────────────────────────────────────────
+                item {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Buscar artículo...", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif)) },
+                        leadingIcon = { Icon(Icons.Default.Search, null) },
+                        trailingIcon = {
+                            if (query.isNotEmpty()) {
+                                IconButton(onClick = { query = "" }) {
+                                    Icon(Icons.Default.Close, "Limpiar")
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(4.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color.White.copy(alpha = 0.4f),
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                            cursorColor = Color.White,
+                        ),
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
 
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-                    .padding(top = 164.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
+                // ─── Category Filter Chips ────────────────────────────────
+                item {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(vertical = 4.dp),
+                    ) {
+                        items(CATEGORIES.indices.toList()) { idx ->
+                            val cat = CATEGORIES[idx]
+                            val selected = selectedCategory == idx
+                            FilterChip(
+                                selected = selected,
+                                onClick = { selectedCategory = idx },
+                                label = {
+                                    Text(
+                                        cat.label,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
+                                    )
+                                },
+                                leadingIcon = if (idx > 0) {
+                                    {
+                                        Surface(Modifier.size(6.dp), CircleShape, cat.color) {}
+                                    }
+                                } else null,
+                                shape = RoundedCornerShape(4.dp),
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
+
+                // ─── Results Counter ──────────────────────────────────────
+                item {
+                    Text(
+                        text = "${filtered.size} artículos",
+                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                        color = Color.White.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(vertical = 4.dp),
+                    )
+                    Spacer(Modifier.height(6.dp))
+                }
+
+                // ─── List of Exercise Rows ────────────────────────────────
                 items(filtered, key = { it.id }) { exercise ->
                     ExerciseCard(exercise = exercise, onClick = { onOpenExercise(exercise.id) })
                 }
-                item { Spacer(Modifier.height(120.dp)) }
+
+                item { Spacer(Modifier.height(80.dp)) }
             }
 
             FloatingActionButton(
@@ -250,6 +238,7 @@ fun WikiLabScreen(
                     .padding(16.dp),
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = RoundedCornerShape(8.dp),
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Crear ejercicio")
             }
@@ -258,7 +247,7 @@ fun WikiLabScreen(
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// EXERCISE CARD
+// EXERCISE ROW (NO CARDS)
 // ═══════════════════════════════════════════════════════════════════════
 
 @Composable
@@ -269,69 +258,38 @@ private fun ExerciseCard(exercise: ExerciseMuscleInfo, onClick: () -> Unit) {
     val primaryMuscles = canonicalInvolved.filter { it.role == MuscleRole.PRIMARY }
     val secondaryCount = canonicalInvolved.count { it.role != MuscleRole.PRIMARY }
     val equipment = exercise.equipment ?: "Peso Corporal"
-    val primaryColor = primaryMuscles.firstOrNull()?.muscle?.let { muscleColor(it) }
-        ?: MaterialTheme.colorScheme.outline
 
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
-        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // Primary muscle color indicator
-            Surface(
-                modifier = Modifier.size(40.dp),
-                shape = RoundedCornerShape(10.dp),
-                color = primaryColor.copy(alpha = 0.12f),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Surface(Modifier.size(14.dp), CircleShape, primaryColor) {}
-                }
-            }
-
-            Spacer(Modifier.width(12.dp))
-
-            Column(Modifier.weight(1f)) {
-                Text(
-                    exercise.name,
-                    style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    primaryMuscles.joinToString(", ") { it.muscle },
-                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
-                    color = primaryColor,
-                    maxLines = 1,
-                )
-                if (secondaryCount > 0) {
-                    Text(
-                        "+$secondaryCount secundario${if (secondaryCount > 1) "s" else ""}",
-                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                        color = Color.White.copy(alpha = 0.5f),
-                    )
-                }
-            }
-
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = Color(0xFF1E1E1E),
-            ) {
-                Text(
-                    equipment,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                    color = Color.White.copy(alpha = 0.7f),
-                )
-            }
-        }
+        Text(
+            text = exercise.name,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontFamily = FontFamily.Serif,
+                color = Color(0xFF29B6F6) // Wikipedia link color
+            ),
+            fontWeight = FontWeight.Bold,
+        )
+        
+        Spacer(Modifier.height(4.dp))
+        
+        Text(
+            text = "Músculos principales: " + primaryMuscles.joinToString(", ") { it.muscle } + 
+                (if (secondaryCount > 0) " (+$secondaryCount secundarios)" else ""),
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+            color = Color.White.copy(alpha = 0.8f),
+        )
+        
+        Text(
+            text = "Equipamiento: $equipment",
+            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+            color = Color.White.copy(alpha = 0.5f),
+        )
+        
+        Spacer(Modifier.height(10.dp))
+        HorizontalDivider(color = Color(0xFF1A1A1A), thickness = 1.dp)
     }
 }

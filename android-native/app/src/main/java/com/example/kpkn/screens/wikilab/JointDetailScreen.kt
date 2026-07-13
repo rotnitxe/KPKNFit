@@ -3,58 +3,30 @@ package com.example.kpkn.screens.wikilab
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Hub
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.foundation.border
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.data.db.JointEntity
 import com.example.kpkn.data.repository.InjuryInfo
 import com.example.kpkn.data.repository.WikiLabRepository
 
@@ -73,26 +45,22 @@ fun JointDetailScreen(
     if (joint == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.SearchOff, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(Icons.Default.SearchOff, null, Modifier.size(48.dp), tint = Color.White.copy(alpha = 0.5f))
                 Spacer(Modifier.height(8.dp))
-                Text("Articulacion no encontrada", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Articulación no encontrada", style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.5f))
             }
         }
         return
     }
 
     val typeLabel = WikiLabRepository.getJointTypeLabel(joint.type)
-    val muscleIds = remember(joint.musclesCrossing) {
-        WikiLabRepository.parseStringList(joint.musclesCrossing)
-            .mapNotNull { canonicalWikiLabMuscleIdFromEntityId(it) }
-            .distinct()
-    }
+    val muscleIds = WikiLabRepository.parseStringList(joint.musclesCrossing)
     val tendonIds = WikiLabRepository.parseStringList(joint.tendonsRelated)
     val patternIds = WikiLabRepository.parseStringList(joint.movementPatterns)
     val injuries = WikiLabRepository.parseInjuries(joint.commonInjuries)
     val protectionIds = WikiLabRepository.parseStringList(joint.protectiveExercises)
     val protectiveExercises = remember(protectionIds) {
-        resolveWikiLabExerciseLinks(protectionIds, subtitle = "Proteccion")
+        resolveWikiLabExerciseLinks(protectionIds, subtitle = "Protección")
     }
     val jointGuide = remember(joint.id) { buildJointGuide(joint) }
 
@@ -100,62 +68,70 @@ fun JointDetailScreen(
 
     Scaffold(
         containerColor = Color.Black,
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            joint.name,
-                            fontWeight = FontWeight.Black,
-                            fontFamily = FontFamily.Serif,
-                            color = Color.White,
-                        )
-                        Surface(shape = RoundedCornerShape(8.dp), color = Color(0xFF1E88E5).copy(alpha = 0.12f)) {
-                            Text(
-                                typeLabel,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E88E5),
-                            )
-                        }
-                    }
+                    Text(
+                        joint.name,
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White,
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black,
-                    scrolledContainerColor = Color.Black,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White,
                 ),
-                scrollBehavior = scrollBehavior,
             )
         },
-    ) { padding ->
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(paddingValues),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // ─── Title & Description ──────────────────────────────────────
             item {
-                Text(
-                    joint.description,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = FontFamily.Serif,
-                        color = Color.White.copy(alpha = 0.9f),
-                    ),
-                    lineHeight = 22.sp,
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = joint.name,
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFF1E88E5)
+                        )
+                    )
+                    Text(
+                        joint.description,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White.copy(alpha = 0.9f),
+                        ),
+                        lineHeight = 22.sp,
+                    )
+                }
             }
 
+            // ─── Infobox (Wikipedia Table) ────────────────────────────────
+            item {
+                WikiJointInfobox(joint, typeLabel)
+            }
+
+            // ─── Schematic Visual ─────────────────────────────────────────
+            item {
+                JointSchematicVisual(joint.type)
+            }
+
+            // ─── Insight Card (Notice) ────────────────────────────────────
             item {
                 WikiLabInsightCard(
                     title = jointGuide.title,
@@ -166,63 +142,183 @@ fun JointDetailScreen(
                 )
             }
 
+            // ─── Kinematics / Movement Patterns ───────────────────────────
             if (patternIds.isNotEmpty()) {
                 item {
-                    JointEntitiesCard(
-                        title = "PATRONES DE MOVIMIENTO",
-                        color = Color(0xFF43A047),
-                        icon = Icons.Default.Sync,
-                        entities = patternIds.mapNotNull { id ->
-                            WikiLabRepository.getPatternById(id)
-                        }.map { Triple(it.id, it.name, "") },
-                        onClick = onNavigateToPattern,
-                    )
+                    Column {
+                        WikiSectionHeader("Patrones de Movimiento Asociados")
+                        Spacer(Modifier.height(8.dp))
+                        patternIds.mapNotNull { id -> WikiLabRepository.getPatternById(id) }.forEach { pattern ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onNavigateToPattern(pattern.id) }
+                                    .padding(start = 12.dp).padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF43A047)) {}
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    text = pattern.name,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        color = Color(0xFF43A047)
+                                    ),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
+            // ─── Muscles Crossing ─────────────────────────────────────────
             if (muscleIds.isNotEmpty()) {
                 item {
-                    JointEntitiesCard(
-                        title = "MUSCULOS QUE LA CRUZAN",
-                        color = Color(0xFF9C27B0),
-                        icon = Icons.Default.FitnessCenter,
-                        entities = muscleIds.mapNotNull { id ->
-                            WikiLabRepository.getMuscleById(id)
-                        }.map { Triple(it.id, it.name, it.bodyPart ?: "") },
-                        onClick = onNavigateToMuscle,
-                    )
+                    Column {
+                        WikiSectionHeader("Músculos que la Cruzan")
+                        Spacer(Modifier.height(8.dp))
+                        muscleIds.mapNotNull { id -> WikiLabRepository.getMuscleById(id) }.forEach { muscle ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onNavigateToMuscle(muscle.id) }
+                                    .padding(start = 12.dp).padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF9C27B0)) {}
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    text = muscle.name,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        color = Color(0xFF9C27B0)
+                                    ),
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = "· ${WikiLabRepository.getBodyPartLabel(muscle.bodyPart)}",
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+                                    color = Color.White.copy(alpha = 0.5f)
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
+            // ─── Related Tendons ──────────────────────────────────────────
             if (tendonIds.isNotEmpty()) {
                 item {
-                    JointEntitiesCard(
-                        title = "TENDONES RELACIONADOS",
-                        color = Color(0xFFFF8F00),
-                        icon = Icons.Default.Link,
-                        entities = tendonIds.mapNotNull { id ->
-                            WikiLabRepository.getTendonById(id)
-                        }.map { Triple(it.id, it.name, it.description ?: "") },
-                        onClick = onNavigateToTendon,
-                    )
+                    Column {
+                        WikiSectionHeader("Tendones Asociados")
+                        Spacer(Modifier.height(8.dp))
+                        tendonIds.mapNotNull { id -> WikiLabRepository.getTendonById(id) }.forEach { tendon ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onNavigateToTendon(tendon.id) }
+                                    .padding(start = 12.dp).padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFFFF8F00)) {}
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    text = tendon.name,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        color = Color(0xFFFF8F00)
+                                    ),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
+            // ─── Injuries & Pathology ─────────────────────────────────────
             if (injuries.isNotEmpty()) {
-                item { InjuriesCard(injuries) }
+                item {
+                    Column {
+                        WikiSectionHeader("Lesiones Comunes y Patología")
+                        Spacer(Modifier.height(8.dp))
+                        injuries.forEach { injury ->
+                            Column(Modifier.fillMaxWidth().padding(start = 12.dp).padding(vertical = 6.dp)) {
+                                Text(
+                                    text = injury.name,
+                                    style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFE53935)
+                                )
+                                injury.description?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+                                        color = Color.White.copy(alpha = 0.8f),
+                                        lineHeight = 18.sp
+                                    )
+                                }
+                                injury.contraindications?.let { contra ->
+                                    if (contra.isNotEmpty()) {
+                                        Spacer(Modifier.height(4.dp))
+                                        Text("Contraindicaciones:", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color(0xFFE53935))
+                                        contra.forEach { c ->
+                                            Text("- $c", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.7f))
+                                        }
+                                    }
+                                }
+                                injury.returnProgressions?.let { progs ->
+                                    if (progs.isNotEmpty()) {
+                                        Spacer(Modifier.height(4.dp))
+                                        Text("Progresión de retorno:", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color(0xFF43A047))
+                                        progs.forEachIndexed { j, p ->
+                                            Text("${j + 1}. $p", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif), color = Color(0xFF43A047))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
+            // ─── Protective Exercises ─────────────────────────────────────
             if (protectiveExercises.isNotEmpty()) {
                 item {
-                    JointEntitiesCard(
-                        title = "EJERCICIOS PROTECTORES",
-                        color = Color(0xFF43A047),
-                        icon = Icons.Default.Shield,
-                        entities = protectiveExercises.map { exercise ->
-                            Triple(exercise.id, exercise.name, exercise.subtitle)
-                        },
-                        onClick = onNavigateToExercise,
-                    )
+                    Column {
+                        WikiSectionHeader("Ejercicios Protectores Recomendados")
+                        Spacer(Modifier.height(8.dp))
+                        protectiveExercises.forEach { exercise ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onNavigateToExercise(exercise.id) }
+                                    .padding(start = 12.dp).padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF66BB6A)) {}
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    text = exercise.name,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        color = Color(0xFF66BB6A)
+                                    ),
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                if (exercise.subtitle.isNotEmpty()) {
+                                    Text(
+                                        text = "· ${exercise.subtitle}",
+                                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+                                        color = Color.White.copy(alpha = 0.5f)
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -231,53 +327,72 @@ fun JointDetailScreen(
     }
 }
 
+// ─── WIKIPEDIA UI COMPONENTS ──────────────────────────────────────────────
+
 @Composable
-private fun JointEntitiesCard(
-    title: String,
-    color: Color,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    entities: List<Triple<String, String, String>>,
-    onClick: (String) -> Unit,
-) {
-    Column(
+private fun WikiSectionHeader(title: String) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Black,
+            color = Color.White
+        )
+        Spacer(Modifier.height(4.dp))
+        HorizontalDivider(color = Color(0xFF2C2C2C), thickness = 1.dp)
+    }
+}
+
+@Composable
+private fun WikiJointInfobox(joint: JointEntity, typeLabel: String) {
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
-            .padding(16.dp),
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+        border = BorderStroke(1.dp, Color(0xFF2C2C2C)),
+        shape = RoundedCornerShape(4.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, modifier = Modifier.size(14.dp), tint = color)
-            Spacer(Modifier.width(6.dp))
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
-                title,
-                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = (0.1f).sp,
-                color = Color.White.copy(alpha = 0.5f),
+                text = "Ficha Técnica Articular",
+                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
+            HorizontalDivider(color = Color(0xFF2C2C2C))
+            
+            InfoboxRow("Tipo de Articulación", typeLabel)
+            InfoboxRow("Región", when(joint.bodyPart) {
+                "upper" -> "Tren superior"
+                "lower" -> "Tren inferior"
+                "spine" -> "Columna"
+                else -> "General"
+            })
         }
-        Spacer(Modifier.height(8.dp))
-        entities.forEach { (id, name, subtitle) ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onClick(id) }
-                    .padding(vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Surface(Modifier.size(8.dp), RoundedCornerShape(50), color) {}
-                Spacer(Modifier.width(10.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(name, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif, color = Color.White), fontWeight = FontWeight.SemiBold)
-                    if (subtitle.isNotEmpty()) {
-                        Text(subtitle, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.5f))
-                    }
-                }
-                Icon(Icons.Default.ChevronRight, null, Modifier.size(16.dp), tint = color.copy(alpha = 0.4f))
-            }
-        }
+    }
+}
+
+@Composable
+private fun InfoboxRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Bold,
+            color = Color.White.copy(alpha = 0.5f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Medium,
+            color = Color.White
+        )
     }
 }
 
@@ -291,9 +406,8 @@ private fun JointSchematicVisual(type: String) {
         modifier = Modifier
             .fillMaxWidth()
             .height(160.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp)),
+            .background(Color(0xFF141414))
+            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp)),
         contentAlignment = Alignment.Center,
     ) {
         Canvas(modifier = Modifier.size(120.dp)) {
@@ -317,15 +431,6 @@ private fun JointSchematicVisual(type: String) {
                         strokeWidth = 12f,
                         cap = StrokeCap.Round,
                     )
-                    drawArc(
-                        color = accentColor.copy(alpha = 0.5f),
-                        startAngle = 180f,
-                        sweepAngle = 180f,
-                        useCenter = false,
-                        topLeft = Offset(center.x - 60f, center.y - 60f),
-                        size = Size(120f, 120f),
-                        style = Stroke(width = 4f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))),
-                    )
                 }
 
                 "hinge" -> {
@@ -345,15 +450,6 @@ private fun JointSchematicVisual(type: String) {
                     )
                     drawCircle(color = surfaceColor, radius = 8f, center = center)
                     drawCircle(color = accentColor, radius = 8f, center = center, style = Stroke(width = 4f))
-                    drawArc(
-                        color = accentColor.copy(alpha = 0.5f),
-                        startAngle = 50f,
-                        sweepAngle = 80f,
-                        useCenter = false,
-                        topLeft = Offset(center.x - 40f, center.y - 40f),
-                        size = Size(80f, 80f),
-                        style = Stroke(width = 4f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))),
-                    )
                 }
 
                 else -> {
@@ -374,59 +470,6 @@ private fun JointSchematicVisual(type: String) {
                     drawCircle(color = accentColor.copy(alpha = 0.4f), radius = 16f, center = center)
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun InjuriesCard(injuries: List<InjuryInfo>) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
-            .padding(16.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Warning, null, Modifier.size(14.dp), tint = Color(0xFFE53935))
-            Spacer(Modifier.width(6.dp))
-            Text(
-                "LESIONES COMUNES",
-                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = (0.1f).sp,
-                color = Color.White.copy(alpha = 0.5f),
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-
-        injuries.forEachIndexed { i, injury ->
-            Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                Text(injury.name, style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color(0xFFE53935))
-                injury.description?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.7f), lineHeight = 18.sp)
-                }
-                injury.contraindications?.let { contra ->
-                    if (contra.isNotEmpty()) {
-                        Spacer(Modifier.height(4.dp))
-                        Text("Contraindicaciones:", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color(0xFFE53935))
-                        contra.forEach { c ->
-                            Text("- $c", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.7f))
-                        }
-                    }
-                }
-                injury.returnProgressions?.let { progs ->
-                    if (progs.isNotEmpty()) {
-                        Spacer(Modifier.height(4.dp))
-                        Text("Progresion de retorno:", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color(0xFF43A047))
-                        progs.forEachIndexed { j, p ->
-                            Text("${j + 1}. $p", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), color = Color(0xFF43A047))
-                        }
-                    }
-                }
-            }
-            if (i < injuries.size - 1) HorizontalDivider(Modifier.padding(vertical = 6.dp), color = Color(0xFF1E1E1E))
         }
     }
 }

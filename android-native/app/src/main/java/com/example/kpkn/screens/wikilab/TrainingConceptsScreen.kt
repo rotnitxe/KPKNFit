@@ -2,7 +2,6 @@ package com.example.kpkn.screens.wikilab
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,9 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,9 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.wikilab.*
 
-// ═══════════════════════════════════════════════════════════════════════
-// CONCEPTS LIST SCREEN
-// ═══════════════════════════════════════════════════════════════════════
+// ─── CONCEPTS LIST SCREEN ────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,117 +44,82 @@ fun TrainingConceptsScreen(
         } else bySearch
     }
 
-    // Group by category
     val grouped = remember(filtered) {
         filtered.groupBy { it.category }.toSortedMap(compareBy { it.ordinal })
     }
 
     Scaffold(
         containerColor = Color.Black,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Conceptos Clave",
-                        fontWeight = FontWeight.Black,
-                        fontFamily = FontFamily.Serif,
-                        color = Color.White,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Black,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                ),
-            )
-        },
-    ) { padding ->
+        topBar = {}, // Cabecera fija eliminada para máximo espacio de scroll
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(padding),
-            contentPadding = PaddingValues(bottom = 164.dp),
+                .padding(paddingValues),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
         ) {
-            // ─── Hero Banner ──────────────────────────────────────────────
+            // ─── Scrollable Header (Retroceso + Título) ───────────────────
             item {
-                Box(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xFF101317),
-                                    Color(0xFF181C22),
-                                    Color.Black,
-                                )
-                            )
-                        )
-                        .padding(horizontal = 20.dp, vertical = 24.dp),
+                        .statusBarsPadding()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text(
-                            "Conceptos clave",
-                            style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif),
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                        )
-                        Text(
-                            "${TRAINING_CONCEPTS_DATABASE.size} conceptos fundamentales del entrenamiento.",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
-                            color = Color.White.copy(alpha = 0.7f),
-                        )
-
-                        Spacer(Modifier.height(16.dp))
-
-                        // Search
-                        OutlinedTextField(
-                            value = query,
-                            onValueChange = { query = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = {
-                                Text(
-                                    "Buscar concepto...",
-                                    color = Color.White.copy(alpha = 0.5f),
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Default.Search,
-                                    null,
-                                    tint = Color.White.copy(alpha = 0.7f),
-                                )
-                            },
-                            trailingIcon = {
-                                if (query.isNotEmpty()) {
-                                    IconButton(onClick = { query = "" }) {
-                                        Icon(Icons.Default.Close, "Limpiar", tint = Color.White.copy(alpha = 0.7f))
-                                    }
-                                }
-                            },
-                            singleLine = true,
-                            shape = RoundedCornerShape(14.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color.White.copy(alpha = 0.4f),
-                                unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-                                cursorColor = Color.White,
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                            ),
-                        )
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Conceptos Clave",
+                        style = MaterialTheme.typography.headlineLarge.copy(fontFamily = FontFamily.Serif),
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                    )
+                }
+            }
+
+            // ─── Search & Subtitle ────────────────────────────────────────
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = "Glosario enciclopédico de principios de entrenamiento, biomecánica aplicada y metodologías de fuerza.",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+                        color = Color.White.copy(alpha = 0.7f),
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Buscar concepto...", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif)) },
+                        leadingIcon = { Icon(Icons.Default.Search, null) },
+                        trailingIcon = {
+                            if (query.isNotEmpty()) {
+                                IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, "Limpiar") }
+                            }
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(4.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color.White.copy(alpha = 0.4f),
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                            cursorColor = Color.White,
+                        ),
+                    )
                 }
             }
 
             // ─── Category Chips ───────────────────────────────────────────
             item {
+                Spacer(Modifier.height(8.dp))
                 LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     item {
@@ -172,7 +132,7 @@ fun TrainingConceptsScreen(
                                     fontWeight = if (selectedCategory == null) FontWeight.Bold else FontWeight.Medium,
                                 )
                             },
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(4.dp),
                         )
                     }
                     items(categories) { cat ->
@@ -193,130 +153,65 @@ fun TrainingConceptsScreen(
                                     color = cat.color,
                                 ) {}
                             },
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(4.dp),
                         )
                     }
                 }
-            }
-
-            // ─── Results Count ────────────────────────────────────────────
-            item {
-                Text(
-                    "${filtered.size} conceptos",
-                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                    color = Color.White.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
-                )
             }
 
             // ─── Grouped Concept Cards ────────────────────────────────────
             grouped.forEach { (category, concepts) ->
                 item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                    ) {
-                        Surface(
-                            modifier = Modifier.size(10.dp),
-                            shape = CircleShape,
-                            color = category.color,
-                        ) {}
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            category.label.uppercase(),
-                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = 1.sp,
-                            color = category.color,
-                        )
-                    }
+                    WikiSectionHeader(category.label.uppercase())
                 }
 
                 items(concepts, key = { it.id }) { concept ->
-                    ConceptListCard(
+                    ConceptListRow(
                         concept = concept,
                         onClick = { onNavigateToConcept(concept.id) },
                     )
                 }
             }
+
+            item { Spacer(Modifier.height(80.dp)) }
         }
     }
 }
 
 @Composable
-private fun ConceptListCard(
+private fun ConceptListRow(
     concept: TrainingConcept,
     onClick: () -> Unit,
 ) {
-    Card(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF121212),
-        ),
-        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // Category color indicator
-            Surface(
-                modifier = Modifier.size(42.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = concept.category.color.copy(alpha = 0.12f),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        concept.name.first().toString(),
-                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
-                        fontWeight = FontWeight.Black,
-                        color = concept.category.color,
-                    )
-                }
-            }
-
-            Spacer(Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    concept.name,
-                    style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    concept.shortDescription,
-                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
-                    color = Color.White.copy(alpha = 0.7f),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 16.sp,
-                )
-            }
-
-            Spacer(Modifier.width(8.dp))
-
-            Icon(
-                Icons.Default.ChevronRight,
-                null,
-                tint = concept.category.color.copy(alpha = 0.5f),
-                modifier = Modifier.size(20.dp),
-            )
-        }
+        Text(
+            text = concept.name,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontFamily = FontFamily.Serif,
+                color = Color(0xFF29B6F6)
+            ),
+            fontWeight = FontWeight.Bold,
+        )
+        
+        Spacer(Modifier.height(4.dp))
+        
+        Text(
+            text = concept.shortDescription,
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+            color = Color.White.copy(alpha = 0.8f),
+        )
+        
+        Spacer(Modifier.height(10.dp))
+        HorizontalDivider(color = Color(0xFF1A1A1A), thickness = 1.dp)
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// CONCEPT DETAIL SCREEN
-// ═══════════════════════════════════════════════════════════════════════
+// ─── CONCEPT DETAIL SCREEN ────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -345,113 +240,98 @@ fun ConceptDetailScreen(
             TRAINING_CONCEPTS_DATABASE.find { it.id == id }
         }
     }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         containerColor = Color.Black,
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeTopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            concept.name,
-                            fontWeight = FontWeight.Black,
-                            fontFamily = FontFamily.Serif,
-                            color = concept.category.color,
-                        )
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = concept.category.color.copy(alpha = 0.12f),
-                        ) {
-                            Text(
-                                concept.category.label,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                                fontWeight = FontWeight.Bold,
-                                color = concept.category.color,
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = Color.Black,
-                    scrolledContainerColor = Color.Black,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                ),
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { padding ->
+        topBar = {}, // Cabecera fija eliminada
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+                .padding(paddingValues),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // ─── Header ──────────────────────────────────────────────────
+            // ─── Scrollable Header (Retroceso + Título) ───────────────────
             item {
-                Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
+                    }
+                    Spacer(Modifier.width(8.dp))
                     Text(
-                        concept.shortDescription,
-                        style = MaterialTheme.typography.bodyLarge.copy(
+                        text = concept.name,
+                        style = MaterialTheme.typography.headlineLarge.copy(
                             fontFamily = FontFamily.Serif,
-                            color = Color.White.copy(alpha = 0.9f)
-                        ),
-                        lineHeight = 22.sp,
+                            fontWeight = FontWeight.Black,
+                            color = concept.category.color
+                        )
                     )
                 }
+            }
+
+            // ─── Short Description ────────────────────────────────────────
+            item {
+                Text(
+                    concept.shortDescription,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White.copy(alpha = 0.9f)
+                    ),
+                    lineHeight = 22.sp,
+                )
+            }
+
+            // ─── Infobox ──────────────────────────────────────────────────
+            item {
+                WikiConceptInfobox(concept)
             }
 
             // ─── Definition ──────────────────────────────────────────────
             item {
-                WikiSection(
-                    title = "DEFINICIÓN",
-                    icon = Icons.Default.MenuBook,
-                    color = concept.category.color,
-                ) {
+                Column {
+                    WikiSectionHeader("Definición")
+                    Spacer(Modifier.height(8.dp))
                     Text(
                         concept.definition,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White.copy(alpha = 0.8f)
+                        ),
                         lineHeight = 22.sp,
+                        modifier = Modifier.padding(start = 12.dp)
                     )
                 }
             }
 
-            // ─── Key Points ──────────────────────────────────────────────
+            // ─── Key Points ───────────────────────────────────────────────
             if (concept.keyPoints.isNotEmpty()) {
                 item {
-                    WikiSection(
-                        title = "PUNTOS CLAVE",
-                        icon = Icons.Default.LightbulbCircle,
-                        color = Color(0xFFFF8F00),
-                    ) {
+                    Column {
+                        WikiSectionHeader("Puntos Clave")
+                        Spacer(Modifier.height(8.dp))
                         concept.keyPoints.forEach { point ->
                             Row(
-                                modifier = Modifier.padding(vertical = 4.dp),
-                                crossAxisAlignment = CrossAxisAlignment.Start,
+                                modifier = Modifier.padding(start = 12.dp).padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.Top,
                             ) {
                                 Surface(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .offset(y = 7.dp),
+                                    modifier = Modifier.padding(top = 8.dp).size(6.dp),
                                     shape = CircleShape,
                                     color = Color(0xFFFF8F00),
                                 ) {}
                                 Spacer(Modifier.width(10.dp))
                                 Text(
                                     point,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+                                    color = Color.White.copy(alpha = 0.8f),
                                     lineHeight = 19.sp,
                                 )
                             }
@@ -460,45 +340,44 @@ fun ConceptDetailScreen(
                 }
             }
 
-            // ─── Practical Application ───────────────────────────────────
+            // ─── Practical Application ────────────────────────────────────
             item {
-                WikiSection(
-                    title = "APLICACIÓN PRÁCTICA",
-                    icon = Icons.Default.Build,
-                    color = Color(0xFF43A047),
-                ) {
+                Column {
+                    WikiSectionHeader("Aplicación Práctica")
+                    Spacer(Modifier.height(8.dp))
                     Text(
                         concept.practicalApplication,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White.copy(alpha = 0.8f)
+                        ),
                         lineHeight = 22.sp,
+                        modifier = Modifier.padding(start = 12.dp)
                     )
                 }
             }
 
-            // ─── Examples ────────────────────────────────────────────────
+            // ─── Examples ─────────────────────────────────────────────────
             if (concept.examples.isNotEmpty()) {
                 item {
-                    WikiSection(
-                        title = "EJEMPLOS",
-                        icon = Icons.Default.Lightbulb,
-                        color = Color(0xFF1E88E5),
-                    ) {
+                    Column {
+                        WikiSectionHeader("Ejemplos")
+                        Spacer(Modifier.height(8.dp))
                         concept.examples.forEachIndexed { i, example ->
                             Row(
-                                modifier = Modifier.padding(vertical = 3.dp),
+                                modifier = Modifier.padding(start = 12.dp).padding(vertical = 4.dp),
                             ) {
                                 Text(
                                     "${i + 1}.",
-                                    style = MaterialTheme.typography.labelMedium,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF1E88E5),
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
                                     example,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+                                    color = Color.White.copy(alpha = 0.8f),
                                     lineHeight = 19.sp,
                                 )
                             }
@@ -507,29 +386,27 @@ fun ConceptDetailScreen(
                 }
             }
 
-            // ─── Common Mistakes ─────────────────────────────────────────
+            // ─── Common Mistakes ──────────────────────────────────────────
             if (concept.commonMistakes.isNotEmpty()) {
                 item {
-                    WikiSection(
-                        title = "ERRORES COMUNES",
-                        icon = Icons.Default.Warning,
-                        color = Color(0xFFE53935),
-                    ) {
+                    Column {
+                        WikiSectionHeader("Errores Comunes")
+                        Spacer(Modifier.height(8.dp))
                         concept.commonMistakes.forEach { mistake ->
                             Row(
-                                modifier = Modifier.padding(vertical = 3.dp),
+                                modifier = Modifier.padding(start = 12.dp).padding(vertical = 4.dp),
                             ) {
                                 Icon(
                                     Icons.Default.Close,
                                     null,
-                                    modifier = Modifier.size(14.dp).offset(y = 2.dp),
+                                    modifier = Modifier.size(16.dp).offset(y = 2.dp),
                                     tint = Color(0xFFE53935),
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
                                     mistake,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+                                    color = Color.White.copy(alpha = 0.8f),
                                     lineHeight = 19.sp,
                                 )
                             }
@@ -538,56 +415,41 @@ fun ConceptDetailScreen(
                 }
             }
 
-            // ─── Related Concepts ────────────────────────────────────────
+            // ─── Related Concepts ─────────────────────────────────────────
             if (relatedConcepts.isNotEmpty()) {
                 item {
-                    WikiSection(
-                        title = "CONCEPTOS RELACIONADOS",
-                        icon = Icons.Default.Link,
-                        color = Color(0xFF5C6BC0),
-                    ) {
+                    Column {
+                        WikiSectionHeader("Conceptos Relacionados")
+                        Spacer(Modifier.height(8.dp))
                         relatedConcepts.forEach { related ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(10.dp))
                                     .clickable { onNavigateToConcept(related.id) }
-                                    .padding(vertical = 6.dp, horizontal = 4.dp),
+                                    .padding(start = 12.dp).padding(vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Surface(
-                                    modifier = Modifier.size(32.dp),
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = related.category.color.copy(alpha = 0.1f),
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Text(
-                                            related.name.first().toString(),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.Black,
-                                            color = related.category.color,
-                                        )
-                                    }
-                                }
+                                    modifier = Modifier.size(6.dp),
+                                    shape = CircleShape,
+                                    color = related.category.color,
+                                ) {}
                                 Spacer(Modifier.width(10.dp))
-                                Column(modifier = Modifier.weight(1f)) {
+                                Column {
                                     Text(
-                                        related.name,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold,
+                                        text = related.name,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontFamily = FontFamily.Serif,
+                                            color = Color(0xFF29B6F6)
+                                        ),
+                                        fontWeight = FontWeight.Bold,
                                     )
                                     Text(
-                                        related.category.label,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = related.category.color,
+                                        text = related.category.label,
+                                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+                                        color = Color.White.copy(alpha = 0.5f),
                                     )
                                 }
-                                Icon(
-                                    Icons.Default.ChevronRight,
-                                    null,
-                                    modifier = Modifier.size(16.dp),
-                                    tint = related.category.color.copy(alpha = 0.5f),
-                                )
                             }
                         }
                     }
@@ -599,62 +461,66 @@ fun ConceptDetailScreen(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// SHARED COMPONENTS
-// ═══════════════════════════════════════════════════════════════════════
+// ─── WIKIPEDIA UI COMPONENTS ──────────────────────────────────────────────
 
 @Composable
-private fun WikiSection(
-    title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    color: Color,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(16.dp))
-            .padding(16.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                icon,
-                null,
-                modifier = Modifier.size(15.dp),
-                tint = color,
-            )
-            Spacer(Modifier.width(7.dp))
-            Text(
-                title,
-                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 0.8.sp,
-                color = Color.White.copy(alpha = 0.5f),
-            )
-        }
-        Spacer(Modifier.height(10.dp))
-        content()
+private fun WikiSectionHeader(title: String) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 4.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Black,
+            color = Color.White
+        )
+        Spacer(Modifier.height(4.dp))
+        HorizontalDivider(color = Color(0xFF2C2C2C), thickness = 1.dp)
     }
 }
 
-// Row helper for crossAxisAlignment
 @Composable
-private fun Row(
-    modifier: Modifier = Modifier,
-    crossAxisAlignment: CrossAxisAlignment = CrossAxisAlignment.Center,
-    content: @Composable RowScope.() -> Unit,
-) {
-    androidx.compose.foundation.layout.Row(
-        modifier = modifier,
-        verticalAlignment = when (crossAxisAlignment) {
-            CrossAxisAlignment.Start -> Alignment.Top
-            CrossAxisAlignment.End -> Alignment.Bottom
-            else -> Alignment.CenterVertically
-        },
-        content = content,
-    )
+private fun WikiConceptInfobox(concept: TrainingConcept) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+        border = BorderStroke(1.dp, Color(0xFF2C2C2C)),
+        shape = RoundedCornerShape(4.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = "Ficha Técnica Concepto",
+                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            HorizontalDivider(color = Color(0xFF2C2C2C))
+            
+            InfoboxRow("Concepto", concept.name)
+            InfoboxRow("Categoría", concept.category.label)
+        }
+    }
 }
 
-private enum class CrossAxisAlignment { Start, Center, End }
+@Composable
+private fun InfoboxRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Bold,
+            color = Color.White.copy(alpha = 0.5f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Medium,
+            color = Color.White
+        )
+    }
+}

@@ -122,9 +122,9 @@ fun BiomechanicsScreen(
                 ),
             )
         },
-    ) { padding ->
+    ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().background(Color.Black).padding(padding),
+            modifier = Modifier.fillMaxSize().background(Color.Black).padding(paddingValues),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -223,9 +223,9 @@ private fun LiftSelector(selected: LiftType, onSelect: (LiftType) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color(0xFF141414))
+            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Text(
@@ -257,7 +257,7 @@ private fun LiftSelector(selected: LiftType, onSelect: (LiftType) -> Unit) {
                     selected = selected == lift,
                     onClick  = { onSelect(lift) },
                     label    = { Text(lift.label, style = MaterialTheme.typography.labelSmall) },
-                    shape    = RoundedCornerShape(10.dp),
+                    shape    = RoundedCornerShape(4.dp),
                 )
             }
         }
@@ -284,7 +284,7 @@ private fun LiftSelector(selected: LiftType, onSelect: (LiftType) -> Unit) {
                     selected = selected == lift,
                     onClick  = { onSelect(lift) },
                     label    = { Text(lift.label, style = MaterialTheme.typography.labelSmall) },
-                    shape    = RoundedCornerShape(10.dp),
+                    shape    = RoundedCornerShape(4.dp),
                 )
             }
         }
@@ -1276,9 +1276,9 @@ private fun QuickSummaryRow(solve: BiomechanicalSolve) {
             val color = demandColor(ja.torqueRatio)
             Card(
                 modifier = Modifier.widthIn(min = 100.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
-                border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
+                shape = RoundedCornerShape(4.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+                border = BorderStroke(1.dp, Color(0xFF2C2C2C)),
             ) {
                 Column(
                     modifier = Modifier.padding(10.dp),
@@ -1356,9 +1356,9 @@ private fun BiomechanicsControls(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color(0xFF141414))
+            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1428,9 +1428,9 @@ private fun AnthropometryControlsCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color(0xFF141414))
+            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1489,9 +1489,9 @@ private fun JointAnglesCard(solve: BiomechanicalSolve) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color(0xFF141414))
+            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1529,9 +1529,9 @@ private fun LeverMechanicsCard(solve: BiomechanicalSolve) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color(0xFF141414))
+            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1558,7 +1558,7 @@ private fun LeverMechanicsCard(solve: BiomechanicalSolve) {
                 Spacer(Modifier.height(4.dp))
                 Text(lever.description, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.7f), lineHeight = 16.sp)
             }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp), color = Color(0xFF1E1E1E))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp), color = Color(0xFF2C2C2C))
         }
     }
 }
@@ -1572,9 +1572,9 @@ private fun TorqueAnalysisCard(solve: BiomechanicalSolve) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color(0xFF141414))
+            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1608,7 +1608,7 @@ private fun TorqueAnalysisCard(solve: BiomechanicalSolve) {
             }
         }
         Spacer(Modifier.height(12.dp))
-        HorizontalDivider(color = Color(0xFF1E1E1E))
+        HorizontalDivider(color = Color(0xFF2C2C2C))
         Spacer(Modifier.height(12.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column {
@@ -1630,9 +1630,9 @@ private fun AnthropometryCard(anthro: Anthropometry) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color(0xFF141414))
+            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1641,7 +1641,7 @@ private fun AnthropometryCard(anthro: Anthropometry) {
             Text("RESUMEN ANTROPOMÉTRICO", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.8.sp, color = Color.White.copy(alpha = 0.5f))
         }
         Spacer(Modifier.height(8.dp))
-        Surface(shape = RoundedCornerShape(10.dp), color = Color(0xFF1E88E5).copy(alpha = 0.08f)) {
+        Surface(shape = RoundedCornerShape(4.dp), color = Color(0xFF1E88E5).copy(alpha = 0.08f)) {
             Text(anthro.anthropometricProfile, modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.SemiBold, color = Color(0xFF1E88E5))
         }
         Spacer(Modifier.height(12.dp))
@@ -1667,7 +1667,7 @@ private fun AnthropometryCard(anthro: Anthropometry) {
             }
         }
         Spacer(Modifier.height(8.dp))
-        HorizontalDivider(color = Color(0xFF1E1E1E))
+        HorizontalDivider(color = Color(0xFF2C2C2C))
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             AnthroPropItem("Fémur/Torso", "%.2f".format(anthro.femurRatio))
@@ -1682,9 +1682,9 @@ private fun BiomechanicsDisclaimerCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color(0xFF141414))
+            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {

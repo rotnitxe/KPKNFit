@@ -3,41 +3,12 @@ package com.example.kpkn.screens.wikilab
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Biotech
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Hub
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -87,7 +58,7 @@ fun MuscleGroupDetailScreen(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Musculo no encontrado",
+                    "Músculo no encontrado",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -113,65 +84,65 @@ fun MuscleGroupDetailScreen(
 
     Scaffold(
         containerColor = Color.Black,
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = muscle.name,
-                            fontFamily = FontFamily.Serif,
-                            fontWeight = FontWeight.Black,
-                            color = color,
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Surface(Modifier.size(6.dp), RoundedCornerShape(50), color) {}
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                text = bodyPart,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontFamily = FontFamily.Serif,
-                                ),
-                                fontWeight = FontWeight.Bold,
-                                color = color,
-                            )
-                        }
-                    }
+                    Text(
+                        text = muscle.name,
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black,
-                    scrolledContainerColor = Color.Black,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White,
                 ),
-                scrollBehavior = scrollBehavior,
             )
         },
-    ) { padding ->
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(paddingValues),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // ─── Title & Description ──────────────────────────────────────
             item {
-                Text(
-                    muscle.description,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = FontFamily.Serif,
-                        color = Color.White.copy(alpha = 0.9f)
-                    ),
-                    lineHeight = 22.sp,
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = muscle.name,
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Black,
+                            color = color
+                        )
+                    )
+                    Text(
+                        text = muscle.description,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White.copy(alpha = 0.9f)
+                        ),
+                        lineHeight = 22.sp,
+                    )
+                }
             }
 
+            // ─── Infobox (Wikipedia Table) ────────────────────────────────
+            item {
+                WikiMuscleInfobox(muscle, bodyPart)
+            }
+
+            // ─── Insight Card (Notice) ────────────────────────────────────
             item {
                 WikiLabInsightCard(
                     title = visualGuide.title,
@@ -182,98 +153,246 @@ fun MuscleGroupDetailScreen(
                 )
             }
 
+            // ─── Anatomical Details ───────────────────────────────────────
             if (muscle.origin != null || muscle.insertion != null || mechFunctions.isNotEmpty()) {
-                item { AnatomicalDetailsCard(muscle, mechFunctions) }
-            }
-
-            item { ImportanceCard(muscle) }
-
-            if (muscle.mev != null || muscle.mav != null || muscle.mrv != null) {
-                item { VolumeCard(muscle) }
-            }
-
-            if (relatedJointIds.isNotEmpty()) {
                 item {
-                    RelatedEntitiesCard(
-                        title = "ARTICULACIONES RELACIONADAS",
-                        icon = Icons.Default.Hub,
-                        color = Color(0xFF1E88E5),
-                        entities = relatedJointIds.mapNotNull { id ->
-                            WikiLabRepository.getJointById(id)
-                        }.map { joint ->
-                            EntityItem(joint.id, joint.name, joint.type)
-                        },
-                        onEntityClick = onNavigateToJoint,
-                    )
-                }
-            }
-
-            if (relatedTendonIds.isNotEmpty()) {
-                item {
-                    RelatedEntitiesCard(
-                        title = "TENDONES RELACIONADOS",
-                        icon = Icons.Default.Link,
-                        color = Color(0xFFFF8F00),
-                        entities = relatedTendonIds.mapNotNull { id ->
-                            WikiLabRepository.getTendonById(id)
-                        }.map { tendon ->
-                            EntityItem(tendon.id, tendon.name, tendon.description ?: "")
-                        },
-                        onEntityClick = onNavigateToTendon,
-                    )
-                }
-            }
-
-            if (recommendedExercises.isNotEmpty()) {
-                item {
-                    RelatedEntitiesCard(
-                        title = "EJERCICIOS RECOMENDADOS",
-                        icon = Icons.Default.FitnessCenter,
-                        color = Color(0xFF43A047),
-                        entities = recommendedExercises.map { exercise ->
-                            EntityItem(exercise.id, exercise.name, exercise.subtitle)
-                        },
-                        onEntityClick = onNavigateToExercise,
-                    )
-                }
-            }
-
-            muscle.aestheticImportance?.let { aesthetic ->
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF121212))
-                            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
-                            .padding(16.dp),
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.Star,
-                                null,
-                                tint = Color(0xFFFFD600),
-                                modifier = Modifier.size(16.dp),
-                            )
-                            Spacer(Modifier.width(6.dp))
+                    Column {
+                        WikiSectionHeader("Anatomía y Función Mecánica")
+                        Spacer(Modifier.height(8.dp))
+                        
+                        muscle.origin?.let {
                             Text(
-                                "IMPORTANCIA ESTÉTICA",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontFamily = FontFamily.Serif,
-                                    color = Color.White.copy(alpha = 0.5f),
-                                ),
-                                fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = (0.1f).sp,
+                                text = "Origen",
+                                style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+                                color = Color.White.copy(alpha = 0.8f),
+                                modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
                             )
                         }
+                        
+                        muscle.origin?.let {
+                            Text(
+                                text = "Inserción",
+                                style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = muscle.insertion ?: "",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+                                color = Color.White.copy(alpha = 0.8f),
+                                modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
+                            )
+                        }
+
+                        if (mechFunctions.isNotEmpty()) {
+                            Text(
+                                text = "Funciones Mecánicas Principales",
+                                style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            mechFunctions.forEach { fn ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(start = 12.dp).padding(vertical = 2.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.ArrowForward,
+                                        null,
+                                        modifier = Modifier.size(12.dp),
+                                        tint = color,
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        text = fn,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+                                        color = Color.White.copy(alpha = 0.8f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ─── Importance Section ───────────────────────────────────────
+            if (muscle.importanceMovement != null || muscle.importanceHealth != null) {
+                item {
+                    Column {
+                        WikiSectionHeader("Importancia Funcional y Clínica")
+                        Spacer(Modifier.height(8.dp))
+                        
+                        muscle.importanceMovement?.let {
+                            Text(
+                                text = "En el Movimiento",
+                                style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+                                color = Color.White.copy(alpha = 0.8f),
+                                lineHeight = 20.sp,
+                                modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
+                            )
+                        }
+
+                        muscle.importanceHealth?.let {
+                            Text(
+                                text = "En la Salud y Prevención",
+                                style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+                                color = Color.White.copy(alpha = 0.8f),
+                                lineHeight = 20.sp,
+                                modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ─── Related Joints & Tendons ─────────────────────────────────
+            if (relatedJointIds.isNotEmpty() || relatedTendonIds.isNotEmpty()) {
+                item {
+                    Column {
+                        WikiSectionHeader("Relaciones Articulares y Tendinosas")
+                        Spacer(Modifier.height(8.dp))
+                        
+                        if (relatedJointIds.isNotEmpty()) {
+                            Text(
+                                text = "Articulaciones Relacionadas",
+                                style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            relatedJointIds.mapNotNull { id -> WikiLabRepository.getJointById(id) }.forEach { joint ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onNavigateToJoint(joint.id) }
+                                        .padding(start = 12.dp).padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF29B6F6)) {}
+                                    Spacer(Modifier.width(10.dp))
+                                    Text(
+                                        text = joint.name,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontFamily = FontFamily.Serif,
+                                            color = Color(0xFF29B6F6)
+                                        ),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        text = "(${WikiLabRepository.getJointTypeLabel(joint.type)})",
+                                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+                                        color = Color.White.copy(alpha = 0.5f)
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(8.dp))
+                        }
+
+                        if (relatedTendonIds.isNotEmpty()) {
+                            Text(
+                                text = "Tendones Relacionados",
+                                style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            relatedTendonIds.mapNotNull { id -> WikiLabRepository.getTendonById(id) }.forEach { tendon ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onNavigateToTendon(tendon.id) }
+                                        .padding(start = 12.dp).padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFFFF8F00)) {}
+                                    Spacer(Modifier.width(10.dp))
+                                    Text(
+                                        text = tendon.name,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontFamily = FontFamily.Serif,
+                                            color = Color(0xFFFF8F00)
+                                        ),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ─── Recommended Exercises ────────────────────────────────────
+            if (recommendedExercises.isNotEmpty()) {
+                item {
+                    Column {
+                        WikiSectionHeader("Ejercicios Recomendados")
+                        Spacer(Modifier.height(8.dp))
+                        recommendedExercises.forEach { exercise ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onNavigateToExercise(exercise.id) }
+                                    .padding(start = 12.dp).padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF66BB6A)) {}
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    text = exercise.name,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        color = Color(0xFF66BB6A)
+                                    ),
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                if (exercise.subtitle.isNotEmpty()) {
+                                    Text(
+                                        text = "· ${exercise.subtitle}",
+                                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+                                        color = Color.White.copy(alpha = 0.5f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ─── Aesthetic Importance ─────────────────────────────────────
+            muscle.aestheticImportance?.let { aesthetic ->
+                item {
+                    Column {
+                        WikiSectionHeader("Importancia Estética")
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            aesthetic,
+                            text = aesthetic,
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontFamily = FontFamily.Serif,
-                                color = Color.White.copy(alpha = 0.7f),
+                                color = Color.White.copy(alpha = 0.8f),
                             ),
                             lineHeight = 20.sp,
+                            modifier = Modifier.padding(start = 12.dp)
                         )
                     }
                 }
@@ -284,284 +403,71 @@ fun MuscleGroupDetailScreen(
     }
 }
 
-@Composable
-private fun MuscleSchematicVisual(color: Color) {
-    val secondaryColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
-    val accentSurfaceColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(140.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow),
-        contentAlignment = Alignment.Center,
-    ) {
-        Canvas(modifier = Modifier.size(160.dp, 80.dp)) {
-            val center = Offset(size.width / 2, size.height / 2)
-
-            drawLine(
-                color = secondaryColor,
-                start = Offset(20f, center.y),
-                end = Offset(140f, center.y),
-                strokeWidth = 14f,
-                cap = StrokeCap.Round,
-            )
-
-            drawLine(
-                color = accentSurfaceColor,
-                start = Offset(40f, center.y),
-                end = Offset(60f, center.y - 15f),
-                strokeWidth = 8f,
-                cap = StrokeCap.Round,
-            )
-            drawLine(
-                color = accentSurfaceColor,
-                start = Offset(120f, center.y),
-                end = Offset(100f, center.y - 15f),
-                strokeWidth = 8f,
-                cap = StrokeCap.Round,
-            )
-
-            val path = Path().apply {
-                moveTo(60f, center.y - 15f)
-                quadraticBezierTo(80f, center.y - 40f, 100f, center.y - 15f)
-                quadraticBezierTo(80f, center.y + 10f, 60f, center.y - 15f)
-            }
-
-            drawPath(path = path, color = color.copy(alpha = 0.4f))
-            drawPath(
-                path = path,
-                color = color,
-                style = Stroke(width = 6f, join = StrokeJoin.Round),
-            )
-
-            drawLine(
-                color = color,
-                start = Offset(70f, center.y - 15f),
-                end = Offset(85f, center.y - 15f),
-                strokeWidth = 4f,
-                cap = StrokeCap.Round,
-            )
-            drawLine(
-                color = color,
-                start = Offset(90f, center.y - 15f),
-                end = Offset(75f, center.y - 15f),
-                strokeWidth = 4f,
-                cap = StrokeCap.Round,
-            )
-        }
-    }
-}
+// ─── WIKIPEDIA UI COMPONENTS ──────────────────────────────────────────────
 
 @Composable
-private fun AnatomicalDetailsCard(
-    muscle: MuscleGroupEntity,
-    mechFunctions: List<String>,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
-            .padding(16.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Biotech, null, Modifier.size(15.dp), tint = Color(0xFF9C27B0))
-            Spacer(Modifier.width(7.dp))
-            Text(
-                "ANATOMÍA",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White.copy(alpha = 0.5f)
-                ),
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 0.8.sp,
-            )
-        }
-
-        muscle.origin?.let {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Origen",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White
-                ),
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                it,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White.copy(alpha = 0.7f)
-                )
-            )
-        }
-
-        muscle.insertion?.let {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Inserción",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White
-                ),
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                it,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White.copy(alpha = 0.7f)
-                )
-            )
-        }
-
-        if (mechFunctions.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Funciones Mecánicas",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White
-                ),
-                fontWeight = FontWeight.Bold
-            )
-            mechFunctions.forEach { fn ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                ) {
-                    Icon(
-                        Icons.Default.ArrowForward,
-                        null,
-                        modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        fn,
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontFamily = FontFamily.Serif,
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ImportanceCard(muscle: MuscleGroupEntity) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
-            .padding(16.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.TrendingUp, null, Modifier.size(15.dp), tint = Color(0xFF1E88E5))
-            Spacer(Modifier.width(7.dp))
-            Text(
-                "IMPORTANCIA",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White.copy(alpha = 0.5f)
-                ),
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 0.8.sp,
-            )
-        }
-
-        muscle.importanceMovement?.let {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "En el Movimiento",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White
-                ),
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                it,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White.copy(alpha = 0.7f)
-                ),
-                lineHeight = 18.sp,
-            )
-        }
-
-        muscle.importanceHealth?.let {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "En la Salud",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White
-                ),
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                it,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White.copy(alpha = 0.7f)
-                ),
-                lineHeight = 18.sp,
-            )
-        }
-    }
-}
-
-@Composable
-private fun VolumeCard(muscle: MuscleGroupEntity) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
-            .padding(16.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.BarChart, null, Modifier.size(15.dp), tint = Color(0xFF43A047))
-            Spacer(Modifier.width(7.dp))
-            Text(
-                "VOLUMEN DE ENTRENAMIENTO (series/semana)",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White.copy(alpha = 0.5f)
-                ),
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 0.8.sp,
-            )
-        }
-
-        Spacer(Modifier.height(4.dp))
+private fun WikiSectionHeader(title: String) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp)) {
         Text(
-            "Rangos de referencia orientativos - tu volumen real se personaliza con KPKN",
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontFamily = FontFamily.Serif,
-                color = Color.White.copy(alpha = 0.4f)
-            ),
+            text = title,
+            style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Black,
+            color = Color.White
         )
+        Spacer(Modifier.height(4.dp))
+        HorizontalDivider(color = Color(0xFF2C2C2C), thickness = 1.dp)
+    }
+}
 
-        Spacer(Modifier.height(12.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            muscle.mev?.let { VolumeBadge("Inicio", it, "Series de arranque", Color(0xFF43A047)) }
-            muscle.mav?.let { VolumeBadge("Óptimo", it, "Rango productivo", Color(0xFFFF8F00)) }
-            muscle.mrv?.let { VolumeBadge("Techo", it, "Límite de recuperación", Color(0xFFE53935)) }
+@Composable
+private fun WikiMuscleInfobox(muscle: MuscleGroupEntity, bodyPart: String) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+        border = BorderStroke(1.dp, Color(0xFF2C2C2C)),
+        shape = RoundedCornerShape(4.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = "Ficha Técnica Muscular",
+                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            HorizontalDivider(color = Color(0xFF2C2C2C))
+            
+            InfoboxRow("Parte del Cuerpo", bodyPart)
+            muscle.origin?.let { InfoboxRow("Origen", it) }
+            muscle.insertion?.let { InfoboxRow("Inserción", it) }
+            muscle.mev?.let { InfoboxRow("MEV (Mínimo Efectivo)", "$it series/sem") }
+            muscle.mav?.let { InfoboxRow("MAV (Máximo Adaptativo)", "$it series/sem") }
+            muscle.mrv?.let { InfoboxRow("MRV (Máximo Recuperable)", "$it series/sem") }
         }
+    }
+}
+
+@Composable
+private fun InfoboxRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Bold,
+            color = Color.White.copy(alpha = 0.5f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Medium,
+            color = Color.White
+        )
     }
 }
 
@@ -579,17 +485,13 @@ private fun VolumeBadge(label: String, value: String, description: String, color
             ) {
                 Text(
                     label,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontFamily = FontFamily.Serif
-                    ),
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                     fontWeight = FontWeight.Black,
                     color = color
                 )
                 Text(
                     value,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontFamily = FontFamily.Serif
-                    ),
+                    style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif),
                     fontWeight = FontWeight.Black,
                     color = color
                 )
@@ -604,72 +506,6 @@ private fun VolumeBadge(label: String, value: String, description: String, color
             modifier = Modifier.padding(top = 4.dp),
             maxLines = 1,
         )
-    }
-}
-
-@Composable
-private fun RelatedEntitiesCard(
-    title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    color: Color,
-    entities: List<EntityItem>,
-    onEntityClick: (String) -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
-            .padding(16.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, modifier = Modifier.size(14.dp), tint = color)
-            Spacer(Modifier.width(6.dp))
-            Text(
-                title,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White.copy(alpha = 0.5f)
-                ),
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = (0.1f).sp,
-            )
-        }
-
-        Spacer(Modifier.height(8.dp))
-        entities.forEach { entity ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onEntityClick(entity.id) }
-                    .padding(vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Surface(modifier = Modifier.size(8.dp), shape = RoundedCornerShape(50), color = color) {}
-                Spacer(Modifier.width(10.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        entity.name,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontFamily = FontFamily.Serif,
-                            color = Color.White
-                        ),
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    if (entity.subtitle.isNotEmpty()) {
-                        Text(
-                            entity.subtitle,
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontFamily = FontFamily.Serif,
-                                color = Color.White.copy(alpha = 0.5f)
-                            ),
-                        )
-                    }
-                }
-                Icon(Icons.Default.ChevronRight, null, modifier = Modifier.size(16.dp), tint = color.copy(alpha = 0.4f))
-            }
-        }
     }
 }
 

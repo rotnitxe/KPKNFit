@@ -225,7 +225,7 @@ function getTokens(normalized: string): Set<string> {
         normalized
             .split(/\s+/)
             .map(token => token.trim())
-            .filter(token => token.length > 2 && !/^\d+$/.test(token) && !STOPWORDS.has(token)),
+            .filter(token => token.length > 2 && !/^\d+$/.test(token) && !/^\d+-\d+$/.test(token) && !STOPWORDS.has(token)),
     );
 }
 
@@ -948,15 +948,21 @@ function scoreFoodCandidate(
     const uniqueOverlap = [...new Set(overlap)];
     const exactNormalized = queryNormalized.length > 0
         && (canonicalId === queryNormalized || Boolean(matchedAlias && normalizeFoodName(matchedAlias) === queryNormalized));
-    const directPhraseMatch = !exactNormalized
+    const directPhraseMatchName = !exactNormalized
         && queryNormalized.length > 0
         && (
             canonicalId.includes(queryNormalized)
             || queryNormalized.includes(canonicalId)
-            || matchSurface.includes(queryNormalized)
             || Boolean(matchedAlias && normalizeFoodName(matchedAlias).includes(queryNormalized))
         );
-    const queryCoverage = queryTokens.length > 0 ? uniqueOverlap.length / queryTokens.length : (directPhraseMatch ? 1 : 0);
+    const directPhraseMatchSurface = !exactNormalized
+        && !directPhraseMatchName
+        && queryNormalized.length > 0
+        && matchSurface.includes(queryNormalized);
+
+    const queryCoverage = queryTokens.length > 0
+        ? uniqueOverlap.length / queryTokens.length
+        : ((directPhraseMatchName || directPhraseMatchSurface) ? 1 : 0);
     const tokenPrecision = foodTokens.size > 0 ? uniqueOverlap.length / foodTokens.size : 0;
     const trace: string[] = [];
     let score = 0;
@@ -964,9 +970,12 @@ function scoreFoodCandidate(
     if (exactNormalized) {
         score += matchedAlias ? 0.5 : 0.54;
         trace.push(matchedAlias ? 'exact_alias' : 'exact_name');
-    } else if (directPhraseMatch) {
+    } else if (directPhraseMatchName) {
         score += matchedAlias ? 0.34 : 0.28;
         trace.push(matchedAlias ? 'alias_phrase_match' : 'phrase_match');
+    } else if (directPhraseMatchSurface) {
+        score += 0.12;
+        trace.push('surface_phrase_match');
     }
 
     if (queryCoverage > 0) {
@@ -990,19 +999,24 @@ function scoreFoodCandidate(
     let brandMatched = false;
     if (brandHint) {
         const normalizedBrand = normalizeFoodName(brandHint);
-        const normalizedFoodBrand = normalizeFoodName(food.brand || '');
-        brandMatched = normalizedFoodBrand.includes(normalizedBrand) || normalizeFoodName(food.name).includes(normalizedBrand);
-        if (brandMatched) {
-            score += 0.18;
-            trace.push('brand_match');
-        } else {
-            score -= 0.05;
-            trace.push('brand_missing');
+        if (normalizedBrand) {
+            const normalizedFoodBrand = normalizeFoodName(food.brand || '');
+            brandMatched = normalizedFoodBrand.includes(normalizedBrand) || normalizeFoodName(food.name).includes(normalizedBrand);
+            if (brandMatched) {
+                score += 0.18;
+                trace.push('brand_match');
+            } else {
+                score -= 0.05;
+                trace.push('brand_missing');
+            }
         }
-    } else if (food.brand && queryNormalized.includes(normalizeFoodName(food.brand))) {
-        brandMatched = true;
-        score += 0.08;
-        trace.push('brand_in_query');
+    } else if (food.brand) {
+        const normalizedFoodBrand = normalizeFoodName(food.brand);
+        if (normalizedFoodBrand && queryNormalized.includes(normalizedFoodBrand)) {
+            brandMatched = true;
+            score += 0.08;
+            trace.push('brand_in_query');
+        }
     }
 
     const learned = Boolean(
@@ -1034,7 +1048,7 @@ function scoreFoodCandidate(
         score,
         queryCoverage,
         exactNormalized,
-        directPhraseMatch,
+        directPhraseMatchName || directPhraseMatchSurface,
         queryTokens.length,
     );
 

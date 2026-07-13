@@ -61,68 +61,65 @@ fun MovementPatternDetailScreen(
 
     Scaffold(
         containerColor = Color.Black,
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = pattern.name,
-                            fontWeight = FontWeight.Black,
-                            fontFamily = FontFamily.Serif,
-                            color = Color.White,
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            forceTypes.forEach { ft ->
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = Color(0xFF43A047).copy(alpha = 0.12f),
-                                ) {
-                                    Text(
-                                        ft,
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF43A047),
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    Text(
+                        pattern.name,
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White,
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black,
-                    scrolledContainerColor = Color.Black,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White,
                 ),
-                scrollBehavior = scrollBehavior
             )
         },
-    ) { padding ->
+    ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().background(Color.Black).padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // ─── Header Description ──────────────────────────────────────
+            // ─── Title & Description ──────────────────────────────────────
             item {
-                Text(
-                    pattern.description,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = FontFamily.Serif,
-                        color = Color.White.copy(alpha = 0.9f),
-                    ),
-                    lineHeight = 22.sp,
-                )
-                Spacer(Modifier.height(8.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = pattern.name,
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFF43A047)
+                        )
+                    )
+                    Text(
+                        pattern.description,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White.copy(alpha = 0.9f),
+                        ),
+                        lineHeight = 22.sp,
+                    )
+                }
             }
 
+            // ─── Infobox (Wikipedia Table) ────────────────────────────────
+            item {
+                WikiPatternInfobox(pattern, forceTypes, chainTypes)
+            }
+
+            // ─── Insights ─────────────────────────────────────────────────
             insight?.let {
                 item {
                     WikiLabInsightCard(
@@ -146,134 +143,109 @@ fun MovementPatternDetailScreen(
                 }
             }
 
-            // ─── Chain Types ─────────────────────────────────────────────
-            if (chainTypes.isNotEmpty()) {
+            // ─── Primary Muscles ─────────────────────────────────────────
+            if (muscleIds.isNotEmpty()) {
                 item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF121212))
-                            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
-                            .padding(16.dp),
-                    ) {
-                        Text(
-                            "CADENAS",
-                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = (0.1f).sp,
-                            color = Color.White.copy(alpha = 0.5f),
-                        )
+                    Column {
+                        WikiSectionHeader("Motores Principales")
                         Spacer(Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            chainTypes.forEach { chain ->
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = Color(0xFF1E88E5).copy(alpha = 0.12f),
-                                ) {
-                                    Text(
-                                        when (chain) {
-                                            "anterior" -> "Cadena Anterior"
-                                            "posterior" -> "Cadena Posterior"
-                                            "full" -> "Cuerpo Completo"
-                                            else -> chain
-                                        },
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFF1E88E5),
-                                    )
-                                }
+                        muscleIds.mapNotNull { id -> WikiLabRepository.getMuscleById(id) }.forEach { muscle ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onNavigateToMuscle(muscle.id) }
+                                    .padding(start = 12.dp).padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF9C27B0)) {}
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    text = muscle.name,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        color = Color(0xFF9C27B0)
+                                    ),
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = "· ${WikiLabRepository.getBodyPartLabel(muscle.bodyPart)}",
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+                                    color = Color.White.copy(alpha = 0.5f)
+                                )
                             }
                         }
                     }
                 }
             }
 
-            // ─── Primary Muscles ─────────────────────────────────────────
-            if (muscleIds.isNotEmpty()) {
-                item {
-                    PatternEntitiesCard(
-                        title = "MOTORES PRINCIPALES",
-                        color = Color(0xFF9C27B0),
-                        icon = Icons.Default.FitnessCenter,
-                        entities = muscleIds.mapNotNull { id ->
-                            WikiLabRepository.getMuscleById(id)?.let { it.id to it.name }
-                        },
-                        onClick = onNavigateToMuscle,
-                    )
-                }
-            }
-
             // ─── Primary Joints ──────────────────────────────────────────
             if (jointIds.isNotEmpty()) {
                 item {
-                    PatternEntitiesCard(
-                        title = "EJES ARTICULARES",
-                        color = Color(0xFF1E88E5),
-                        icon = Icons.Default.Hub,
-                        entities = jointIds.mapNotNull { id ->
-                            WikiLabRepository.getJointById(id)?.let {
-                                it.id to WikiLabRepository.getJointTypeLabel(it.type) + " - " + it.name
+                    Column {
+                        WikiSectionHeader("Ejes Articulares")
+                        Spacer(Modifier.height(8.dp))
+                        jointIds.mapNotNull { id -> WikiLabRepository.getJointById(id) }.forEach { joint ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onNavigateToJoint(joint.id) }
+                                    .padding(start = 12.dp).padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF1E88E5)) {}
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    text = joint.name,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        color = Color(0xFF1E88E5)
+                                    ),
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = "· ${WikiLabRepository.getJointTypeLabel(joint.type)}",
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+                                    color = Color.White.copy(alpha = 0.5f)
+                                )
                             }
-                        },
-                        onClick = onNavigateToJoint,
-                    )
+                        }
+                    }
                 }
             }
 
             // ─── Example Exercises ───────────────────────────────────────
             if (exampleExercises.isNotEmpty()) {
                 item {
-                    PatternEntitiesCard(
-                        title = "EJERCICIOS DE EJEMPLO",
-                        color = Color(0xFF43A047),
-                        icon = Icons.Default.FitnessCenter,
-                        entities = exampleExercises.map { exercise ->
-                            exercise.id to exercise.name
-                        },
-                        onClick = onNavigateToExercise,
-                    )
+                    Column {
+                        WikiSectionHeader("Ejercicios de Ejemplo")
+                        Spacer(Modifier.height(8.dp))
+                        exampleExercises.forEach { exercise ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onNavigateToExercise(exercise.id) }
+                                    .padding(start = 12.dp).padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF66BB6A)) {}
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    text = exercise.name,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        color = Color(0xFF66BB6A)
+                                    ),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
             item { Spacer(Modifier.height(80.dp)) }
-        }
-    }
-}
-
-@Composable
-private fun PatternEntitiesCard(
-    title: String,
-    color: Color,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    entities: List<Pair<String, String>>,
-    onClick: (String) -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF121212))
-            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
-            .padding(16.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, Modifier.size(14.dp), tint = color)
-            Spacer(Modifier.width(6.dp))
-            Text(title, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.ExtraBold, letterSpacing = (0.1f).sp, color = Color.White.copy(alpha = 0.5f))
-        }
-        Spacer(Modifier.height(8.dp))
-        entities.forEach { (id, name) ->
-            Row(
-                modifier = Modifier.fillMaxWidth().clickable { onClick(id) }.padding(vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Surface(Modifier.size(8.dp), RoundedCornerShape(50), color) {}
-                Spacer(Modifier.width(10.dp))
-                Text(name, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif, color = Color.White), fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                Icon(Icons.Default.ChevronRight, null, Modifier.size(16.dp), tint = color.copy(alpha = 0.4f))
-            }
         }
     }
 }
@@ -302,163 +274,127 @@ fun KineticChainDetailScreen(
 
     Scaffold(
         containerColor = Color.Black,
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = chain.name,
-                            fontWeight = FontWeight.Black,
-                            fontFamily = FontFamily.Serif,
-                            color = Color.White,
-                        )
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0xFF1E88E5).copy(alpha = 0.12f),
-                        ) {
-                            Text(
-                                "Cadena Cinética",
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E88E5),
-                            )
-                        }
-                    }
+                    Text(
+                        chain.name,
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White,
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black,
-                    scrolledContainerColor = Color.Black,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White,
                 ),
-                scrollBehavior = scrollBehavior
             )
         },
-    ) { padding ->
+    ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().background(Color.Black).padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // ─── Title & Description ──────────────────────────────────────
             item {
-                Text(
-                    chain.description,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = FontFamily.Serif,
-                        color = Color.White.copy(alpha = 0.9f),
-                    ),
-                    lineHeight = 22.sp,
-                )
-                Spacer(Modifier.height(8.dp))
-            }
-
-            // Importance
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF121212))
-                        .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
-                        .padding(16.dp),
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "IMPORTANCIA",
-                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = (0.1f).sp,
-                        color = Color.White.copy(alpha = 0.5f),
+                        text = chain.name,
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFF1E88E5)
+                        )
                     )
-                    Spacer(Modifier.height(8.dp))
                     Text(
-                        chain.importance,
+                        chain.description,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontFamily = FontFamily.Serif,
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = Color.White.copy(alpha = 0.9f),
                         ),
                         lineHeight = 22.sp,
                     )
                 }
             }
 
-            // Muscles in this chain
+            // ─── Importance ───────────────────────────────────────────────
+            item {
+                Column {
+                    WikiSectionHeader("Importancia")
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        chain.importance,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White.copy(alpha = 0.8f),
+                        ),
+                        lineHeight = 22.sp,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                }
+            }
+
+            // ─── Muscles in Chain ─────────────────────────────────────────
             if (muscles.isNotEmpty()) {
                 item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF121212))
-                            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
-                            .padding(16.dp),
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.FitnessCenter, null, Modifier.size(14.dp), tint = Color(0xFF9C27B0))
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                "MÚSCULOS DE LA CADENA",
-                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                                fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = (0.1f).sp,
-                                color = Color.White.copy(alpha = 0.5f),
-                            )
-                        }
+                    Column {
+                        WikiSectionHeader("Músculos en la Cadena")
                         Spacer(Modifier.height(8.dp))
-
                         muscles.forEach { muscleRef ->
                             val matchingMuscle = WikiLabRepository.getMuscleById(muscleRef) ?: allMuscles.find {
                                 it.name.equals(muscleRef, ignoreCase = true) ||
                                     it.name.contains(muscleRef, ignoreCase = true)
                             }
                             val displayName = matchingMuscle?.name ?: muscleRef
+                            val isClickable = matchingMuscle != null
 
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .then(
-                                        if (matchingMuscle != null) {
-                                            Modifier.clickable { onNavigateToMuscle(matchingMuscle.id) }
+                                        if (isClickable) {
+                                            Modifier.clickable { onNavigateToMuscle(matchingMuscle!!.id) }
                                         } else {
                                             Modifier
                                         }
                                     )
-                                    .padding(vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
+                                    .padding(start = 12.dp).padding(vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Surface(
-                                    modifier = Modifier.size(8.dp),
+                                    modifier = Modifier.size(6.dp),
                                     shape = RoundedCornerShape(50),
                                     color = Color(0xFF9C27B0),
                                 ) {}
                                 Spacer(Modifier.width(10.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        displayName,
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif, color = Color.White),
-                                        fontWeight = FontWeight.SemiBold,
+                                        text = displayName,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontFamily = FontFamily.Serif,
+                                            color = if (isClickable) Color(0xFF29B6F6) else Color.White
+                                        ),
+                                        fontWeight = FontWeight.Bold,
                                     )
                                     if (matchingMuscle != null) {
                                         Text(
-                                            matchingMuscle.description.take(80) + if (matchingMuscle.description.length > 80) "..." else "",
-                                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                                            text = matchingMuscle.description.take(120) + "...",
+                                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
                                             color = Color.White.copy(alpha = 0.5f),
                                             maxLines = 2,
                                         )
                                     }
                                 }
-                                Icon(
-                                    Icons.Default.ChevronRight,
-                                    null,
-                                    Modifier.size(16.dp),
-                                    tint = Color(0xFF9C27B0).copy(alpha = 0.4f),
-                                )
                             }
                         }
                     }
@@ -467,5 +403,81 @@ fun KineticChainDetailScreen(
 
             item { Spacer(Modifier.height(80.dp)) }
         }
+    }
+}
+
+// ─── WIKIPEDIA UI COMPONENTS ──────────────────────────────────────────────
+
+@Composable
+private fun WikiSectionHeader(title: String) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Black,
+            color = Color.White
+        )
+        Spacer(Modifier.height(4.dp))
+        HorizontalDivider(color = Color(0xFF2C2C2C), thickness = 1.dp)
+    }
+}
+
+@Composable
+private fun WikiPatternInfobox(
+    pattern: com.example.kpkn.data.db.MovementPatternEntity,
+    forceTypes: List<String>,
+    chainTypes: List<String>
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+        border = BorderStroke(1.dp, Color(0xFF2C2C2C)),
+        shape = RoundedCornerShape(4.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = "Ficha Técnica Biomecánica",
+                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            HorizontalDivider(color = Color(0xFF2C2C2C))
+            
+            InfoboxRow("Patrón", pattern.name)
+            InfoboxRow("Fuerzas", forceTypes.joinToString(", "))
+            InfoboxRow("Cadenas Cinéticas", chainTypes.map {
+                when (it) {
+                    "anterior" -> "Cadena Anterior"
+                    "posterior" -> "Cadena Posterior"
+                    "full" -> "Cuerpo Completo"
+                    else -> it
+                }
+            }.joinToString(", "))
+        }
+    }
+}
+
+@Composable
+private fun InfoboxRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Bold,
+            color = Color.White.copy(alpha = 0.5f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Medium,
+            color = Color.White
+        )
     }
 }

@@ -1,10 +1,9 @@
 package com.example.kpkn.screens.wikilab.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,8 +27,8 @@ import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.roundToInt
 
 private val RingMuscular = Color(0xFFFF5252)
-private val RingSystem = Color(0xFF448AFF)
-private val RingSpinal = Color(0xFFFFD740)
+private val RingSystem = Color(0xFFFFB74D)
+private val RingSpinal = Color(0xFFB39DDB)
 
 private data class ScenarioFatigueSpec(
     val id: String,
@@ -44,59 +43,29 @@ private data class ScenarioFatigueResult(
     val spinalDrain: Int,
     val muscularDrainByMuscle: Map<String, Int>,
 ) {
-    val energyRemaining: Int
-        get() = (100 - cnsDrain).coerceIn(0, 100)
-
-    val spineRemaining: Int
-        get() = (100 - spinalDrain).coerceIn(0, 100)
-
     val averageMuscleRemaining: Int
-        get() = if (muscularDrainByMuscle.isEmpty()) 100 else {
-            val avgDrain = muscularDrainByMuscle.values.average()
-            (100.0 - avgDrain).roundToInt().coerceIn(0, 100)
-        }
+        get() = if (muscularDrainByMuscle.isEmpty()) 100
+        else (100 - muscularDrainByMuscle.values.average()).roundToInt().coerceIn(0, 100)
 
     fun overallRecoveryNeedLabel(): String {
-        val elements = buildList {
-            add(cnsDrain)
-            add(spinalDrain)
-            addAll(muscularDrainByMuscle.values)
-        }
-        val avgDrain = if (elements.isEmpty()) 0 else elements.average().roundToInt()
+        val maxMusDrain = muscularDrainByMuscle.values.maxOrNull() ?: 0
+        val maxSystemic = maxOf(cnsDrain, spinalDrain)
+        val score = maxOf(maxMusDrain, maxSystemic)
         return when {
-            avgDrain >= 55 -> "Necesidad de recuperacion: muy alta"
-            avgDrain >= 40 -> "Necesidad de recuperacion: alta"
-            avgDrain >= 25 -> "Necesidad de recuperacion: media"
-            avgDrain >= 12 -> "Necesidad de recuperacion: baja"
-            else -> "Necesidad de recuperacion: muy baja"
+            score >= 70 -> "Recuperación prolongada (48-72h)"
+            score >= 40 -> "Recuperación estándar (24-48h)"
+            else -> "Recuperación rápida (<24h)"
         }
     }
 }
 
-private data class ScenarioMuscleGroup(val label: String, val muscleKeys: List<String>)
-
-private val SCENARIO_MUSCLE_GROUPS = listOf(
-    ScenarioMuscleGroup("Pecho", listOf("Pectorales")),
-    ScenarioMuscleGroup("Espalda", listOf("Dorsales", "Trapecio", "Erectores Espinales")),
-    ScenarioMuscleGroup("Hombros", listOf("Deltoides")),
-    ScenarioMuscleGroup("Brazos", listOf("Biceps", "Triceps", "Antebrazo")),
-    ScenarioMuscleGroup("Core", listOf("Abdomen", "Core")),
-    ScenarioMuscleGroup("Piernas", listOf("Cuadriceps", "Isquiosurales", "Gluteos", "Aductores", "Pantorrillas")),
-)
-
 private fun buildScenarioSpecs(): List<ScenarioFatigueSpec> {
-    val rpeSeries = (6..10).map { rpe ->
-        val reps = when (rpe) {
-            6 -> 10
-            7 -> 8
-            8 -> 7
-            9 -> 6
-            else -> 5
-        }
+    val reps = 8
+    val rpeSeries = (6..9).map { rpe ->
         val weightValue = when (rpe) {
-            6 -> 65.0
-            7 -> 70.0
-            8 -> 74.0
+            6 -> 70.0
+            7 -> 72.5
+            8 -> 75.0
             9 -> 77.0
             else -> 80.0
         }
@@ -105,11 +74,11 @@ private fun buildScenarioSpecs(): List<ScenarioFatigueSpec> {
             shortLabel = rpe.toString(),
             title = "RPE $rpe",
             subtitle = when (rpe) {
-                6 -> "Controlada"
-                7 -> "Media"
-                8 -> "Alta"
-                9 -> "Muy alta"
-                else -> "Casi al limite"
+                6 -> "Intensidad controlada"
+                7 -> "Intensidad media"
+                8 -> "Intensidad alta"
+                9 -> "Intensidad muy alta"
+                else -> "Casi al límite"
             },
             set = CompletedSet(
                 id = "scenario-rpe-$rpe",
@@ -126,7 +95,7 @@ private fun buildScenarioSpecs(): List<ScenarioFatigueSpec> {
         id = "failure",
         shortLabel = "F",
         title = "Failure",
-        subtitle = "Serie al fallo",
+        subtitle = "Serie al fallo muscular",
         set = CompletedSet(
             id = "scenario-failure",
             weight = 80.0,
@@ -199,12 +168,8 @@ fun ExerciseFatigueScenarios(
     }
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -212,13 +177,14 @@ fun ExerciseFatigueScenarios(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "Drenaje por intensidad",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black,
+                text = "Drenaje por Intensidad",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
             Text(
-                "Impacto x${"%.2f".format(rpeMultiplier)}",
-                style = MaterialTheme.typography.labelMedium,
+                text = "Impacto x${"%.2f".format(rpeMultiplier)}",
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -227,7 +193,7 @@ fun ExerciseFatigueScenarios(
         // Intensity Slider
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -237,12 +203,12 @@ fun ExerciseFatigueScenarios(
                 Text(
                     text = selectedScenario.subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.6f)
                 )
                 Text(
                     text = if (selectedScenario.id == "failure") "Fallo muscular" else "RPE ${selectedScenario.shortLabel}",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Black,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
@@ -254,16 +220,16 @@ fun ExerciseFatigueScenarios(
                 colors = SliderDefaults.colors(
                     thumbColor = MaterialTheme.colorScheme.primary,
                     activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    inactiveTrackColor = Color.White.copy(alpha = 0.12f),
                 ),
             )
         }
 
-        // Horizontal Bars Summary
+        // Horizontal Bars Summary (CNS, Spinal, Muscle)
         ScenarioBarsSummary(selectedResult = selectedResult)
 
-        // Muscle Drain LazyRow
-        ScenarioMuscleDrainRow(selectedResult.muscularDrainByMuscle)
+        // Muscle Drain Flat List
+        ScenarioMuscleDrainList(selectedResult.muscularDrainByMuscle)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -271,15 +237,15 @@ fun ExerciseFatigueScenarios(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                selectedResult.overallRecoveryNeedLabel(),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary,
+                text = selectedResult.overallRecoveryNeedLabel(),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
             Text(
-                "Estimación por serie",
+                text = "Cálculo estimado por serie de trabajo",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.5f)
             )
         }
     }
@@ -289,20 +255,20 @@ fun ExerciseFatigueScenarios(
 private fun ScenarioBarsSummary(selectedResult: ScenarioFatigueResult) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         ScenarioBarRow(
-            label = "Fatiga Muscular",
+            label = "Fatiga Muscular Local",
             drain = (100 - selectedResult.averageMuscleRemaining).coerceIn(0, 100),
             color = RingMuscular,
         )
         ScenarioBarRow(
-            label = "Estrés Sistémico (Energía)",
+            label = "Estrés Sistémico (CNS)",
             drain = selectedResult.cnsDrain,
             color = RingSystem,
         )
         ScenarioBarRow(
-            label = "Estrés Espinal (Columna)",
+            label = "Estrés Espinal (Compresión columna)",
             drain = selectedResult.spinalDrain,
             color = RingSpinal,
         )
@@ -314,7 +280,7 @@ private fun ScenarioBarRow(
     label: String,
     drain: Int,
     color: Color,
-) {
+ ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -325,15 +291,14 @@ private fun ScenarioBarRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                label,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.7f),
             )
             Text(
-                "Drenaje -$drain%",
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Black,
+                text = "-$drain%",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
                 color = color,
             )
         }
@@ -341,8 +306,8 @@ private fun ScenarioBarRow(
             progress = { drain / 100f },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(999.dp)),
+                .height(4.dp)
+                .clip(RoundedCornerShape(2.dp)),
             color = color,
             trackColor = color.copy(alpha = 0.12f),
         )
@@ -350,7 +315,7 @@ private fun ScenarioBarRow(
 }
 
 @Composable
-private fun ScenarioMuscleDrainRow(drainByMuscle: Map<String, Int>) {
+private fun ScenarioMuscleDrainList(drainByMuscle: Map<String, Int>) {
     val items = remember(drainByMuscle) {
         drainByMuscle.entries
             .sortedWith(
@@ -361,73 +326,51 @@ private fun ScenarioMuscleDrainRow(drainByMuscle: Map<String, Int>) {
                 ),
             )
     }
-    val listState = rememberLazyListState()
+
+    if (items.isEmpty()) return
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            "Drenaje por músculo",
-            style = MaterialTheme.typography.bodySmall,
+            text = "Drenaje por Grupo Muscular",
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = Color.White
         )
-        Box(modifier = Modifier.fillMaxWidth()) {
-            LazyRow(
-                state = listState,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(end = 16.dp),
-            ) {
-                items(items, key = { it.key }) { (muscle, drain) ->
-                    ScenarioMuscleChip(muscle = muscle, drain = drain)
+        
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            items.forEach { (muscle, drain) ->
+                val remaining = (100 - drain).coerceIn(0, 100)
+                val color = when {
+                    remaining >= 80 -> Color(0xFF22C55E)
+                    remaining >= 50 -> Color(0xFFFACC15)
+                    else -> Color(0xFFEF4444)
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = muscle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.8f),
+                        modifier = Modifier.weight(1f)
+                    )
+                    
+                    Spacer(Modifier.width(16.dp))
+                    
+                    Text(
+                        text = "-$drain% drenaje",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = color,
+                    )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun ScenarioMuscleChip(muscle: String, drain: Int) {
-    val remaining = (100 - drain).coerceIn(0, 100)
-    val color = when {
-        remaining >= 80 -> Color(0xFF22C55E)
-        remaining >= 50 -> Color(0xFFFACC15)
-        else -> Color(0xFFEF4444)
-    }
-
-    Surface(
-        modifier = Modifier.width(130.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)),
-    ) {
-        Column(
-            modifier = Modifier.padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                muscle,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                "-$drain% drenaje",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = color,
-            )
-            LinearProgressIndicator(
-                progress = { remaining / 100f },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(999.dp)),
-                color = color,
-                trackColor = color.copy(alpha = 0.1f),
-            )
         }
     }
 }
@@ -438,3 +381,14 @@ private fun scenarioMuscleGroupIndex(muscle: String): Int {
     }
     return if (index >= 0) index else Int.MAX_VALUE
 }
+
+private val SCENARIO_MUSCLE_GROUPS = listOf(
+    ScenarioMuscleGroup("Pecho", listOf("pecho", "pectoral")),
+    ScenarioMuscleGroup("Espalda", listOf("espalda", "dorsal", "trapecio", "erector")),
+    ScenarioMuscleGroup("Hombros", listOf("hombro", "deltoides")),
+    ScenarioMuscleGroup("Brazos", listOf("brazo", "biceps", "triceps", "antebrazo")),
+    ScenarioMuscleGroup("Piernas", listOf("pierna", "cuadriceps", "isquio", "gluteo", "pantorrilla", "aductor")),
+    ScenarioMuscleGroup("Core", listOf("core", "abdomen"))
+)
+
+private data class ScenarioMuscleGroup(val label: String, val muscleKeys: List<String>)

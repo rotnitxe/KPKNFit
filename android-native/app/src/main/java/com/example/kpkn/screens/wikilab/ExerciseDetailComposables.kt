@@ -1,17 +1,11 @@
 package com.example.kpkn.screens.wikilab
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.HourglassEmpty
@@ -23,6 +17,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -53,9 +48,9 @@ fun ExerciseMinimalistChipsCarousel(
     val rawSetup = remember(exercise.id) { inferSetupTimeLabel(exercise) }
     val setupText = remember(rawSetup) {
         when {
-            rawSetup.contains("Muy rápido", ignoreCase = true) || rawSetup.contains("Rápido", ignoreCase = true) || rawSetup.contains("30-60", ignoreCase = true) -> "Set-up muy rápido"
-            rawSetup.contains("45-75", ignoreCase = true) || rawSetup.contains("45-90", ignoreCase = true) || rawSetup.contains("1-2 min", ignoreCase = true) || rawSetup.contains("1 min", ignoreCase = true) -> "Set-up moderado"
-            else -> "Set-up lento"
+            rawSetup.contains("Muy rápido", ignoreCase = true) || rawSetup.contains("Rápido", ignoreCase = true) || rawSetup.contains("30-60", ignoreCase = true) -> "Setup rápido"
+            rawSetup.contains("45-75", ignoreCase = true) || rawSetup.contains("45-90", ignoreCase = true) || rawSetup.contains("1-2 min", ignoreCase = true) || rawSetup.contains("1 min", ignoreCase = true) -> "Setup moderado"
+            else -> "Setup lento"
         }
     }
 
@@ -63,7 +58,7 @@ fun ExerciseMinimalistChipsCarousel(
     val curveText = remember(rawCurve) {
         when (rawCurve) {
             "Baja" -> "Técnica simple"
-            "Alta" -> "Técnica difícil"
+            "Alta" -> "Técnica compleja"
             else -> "Técnica intermedia"
         }
     }
@@ -82,16 +77,16 @@ fun ExerciseMinimalistChipsCarousel(
             ExerciseCatalogRegion.LOWER -> "Tren inferior"
             ExerciseCatalogRegion.UPPER -> "Tren superior"
             ExerciseCatalogRegion.CORE -> "Core"
-            else -> "Todo el cuerpo"
+            else -> "Cuerpo completo"
         }
     }
 
     val chipItems = remember(setupText, curveText, fatigueText, regionText) {
         listOf(
-            setupText to ColorSpec(Color(0xFF448AFF)), // Blue for setup
-            curveText to ColorSpec(Color(0xFF9C27B0)), // Purple for curve
-            fatigueText to ColorSpec(Color(0xFFFFFF52)), // Soft yellow/orange for fatigue
-            regionText to ColorSpec(Color(0xFFE53935)), // Red for region
+            setupText to Color(0xFF2196F3),
+            curveText to Color(0xFF9C27B0),
+            fatigueText to Color(0xFFFF8F00),
+            regionText to Color(0xFFE53935),
         )
     }
 
@@ -100,27 +95,25 @@ fun ExerciseMinimalistChipsCarousel(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(vertical = 4.dp),
     ) {
-        items(chipItems) { (text, spec) ->
+        items(chipItems) { (text, color) ->
             Surface(
-                shape = RoundedCornerShape(999.dp),
-                color = spec.color.copy(alpha = 0.08f),
-                border = BorderStroke(1.dp, spec.color.copy(alpha = 0.2f)),
+                shape = RoundedCornerShape(4.dp),
+                color = color.copy(alpha = 0.08f),
+                border = BorderStroke(1.dp, color.copy(alpha = 0.2f)),
             ) {
                 Text(
                     text = text,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelMedium.copy(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall.copy(
                         fontFamily = FontFamily.Serif,
                     ),
                     fontWeight = FontWeight.Bold,
-                    color = spec.color,
+                    color = color,
                 )
             }
         }
     }
 }
-
-private data class ColorSpec(val color: androidx.compose.ui.graphics.Color)
 
 @Composable
 fun ExerciseTechnicalDetails(
@@ -133,76 +126,43 @@ fun ExerciseTechnicalDetails(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(
-            "Detalles técnicos",
-            style = MaterialTheme.typography.labelLarge.copy(
+            text = "Detalles Técnicos",
+            style = MaterialTheme.typography.bodyLarge.copy(
                 fontFamily = FontFamily.Serif,
                 color = Color.White
             ),
             fontWeight = FontWeight.Bold
         )
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TechDetailBadge(
-                icon = Icons.Default.Timer,
-                title = "Set-up",
-                value = setupLabel,
-                modifier = Modifier.weight(1f),
-            )
-            TechDetailBadge(
-                icon = Icons.Default.Settings,
-                title = "Técnica",
-                value = techLabel,
-                modifier = Modifier.weight(1f),
-            )
-            TechDetailBadge(
-                icon = Icons.Default.SportsSoccer,
-                title = "Transferencia",
-                value = transferLabel,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        HorizontalDivider(color = Color(0xFF2C2C2C))
+        
+        FlatTechnicalRow("Tiempo de Setup", setupLabel)
+        FlatTechnicalRow("Curva de Aprendizaje", techLabel)
+        FlatTechnicalRow("Transferencia Deportiva", transferLabel)
     }
 }
 
 @Composable
-private fun TechDetailBadge(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        color = Color(0xFF121212),
-        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
+private fun FlatTechnicalRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Icon(icon, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(14.dp))
-            Text(
-                title,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White.copy(alpha = 0.5f)
-                )
-            )
-            Text(
-                value,
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White
-                ),
-                fontWeight = FontWeight.Bold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Bold,
+            color = Color.White.copy(alpha = 0.5f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+            fontWeight = FontWeight.Medium,
+            color = Color.White
+        )
     }
 }
 
@@ -217,20 +177,11 @@ fun ExerciseSimilarThreeBand(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Text(
-            "Ejercicios similares",
-            style = MaterialTheme.typography.labelLarge.copy(
-                fontFamily = FontFamily.Serif,
-                color = Color.White
-            ),
-            fontWeight = FontWeight.Bold
-        )
-
         if (bands.lessSetup.isNotEmpty()) {
             SimilarBandSection(
-                title = "Ahorra tiempo en setup",
+                title = "Alternativas con menor setup",
                 icon = Icons.Default.HourglassEmpty,
                 items = bands.lessSetup,
                 onSelect = onOpenExercise,
@@ -246,7 +197,7 @@ fun ExerciseSimilarThreeBand(
         }
         if (bands.lessFatigue.isNotEmpty()) {
             SimilarBandSection(
-                title = "Menor fatiga",
+                title = "Menor fatiga sistémica",
                 icon = Icons.Default.FavoriteBorder,
                 items = bands.lessFatigue,
                 onSelect = onOpenExercise,
@@ -263,21 +214,21 @@ private fun SimilarBandSection(
     items: List<ExerciseKinship>,
     onSelect: (String) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Icon(icon, null, modifier = Modifier.size(14.dp), tint = Color.White.copy(alpha = 0.5f))
             Text(
-                title,
-                style = MaterialTheme.typography.labelSmall.copy(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium.copy(
                     fontFamily = FontFamily.Serif,
-                    color = Color.White.copy(alpha = 0.5f)
+                    color = Color.White.copy(alpha = 0.6f)
                 ),
                 fontWeight = FontWeight.Bold
             )
         }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             items.forEach { kinship ->
-                SimilarChip(
+                SimilarRow(
                     name = kinship.exercise.name,
                     detail = kinship.rationale,
                     onClick = { onSelect(kinship.exercise.id) },
@@ -288,38 +239,33 @@ private fun SimilarBandSection(
 }
 
 @Composable
-private fun SimilarChip(
+private fun SimilarRow(
     name: String,
     detail: String,
     onClick: () -> Unit,
 ) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(10.dp),
-        color = Color(0xFF121212),
-        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 6.dp)
     ) {
-        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
-            Text(
-                name,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White
-                ),
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                detail,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Serif,
-                    color = Color.White.copy(alpha = 0.5f)
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontFamily = FontFamily.Serif,
+                color = Color(0xFF29B6F6)
+            ),
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = detail,
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontFamily = FontFamily.Serif,
+                color = Color.White.copy(alpha = 0.8f)
+            ),
+        )
+        Spacer(Modifier.height(4.dp))
+        HorizontalDivider(color = Color(0xFF1A1A1A))
     }
 }
