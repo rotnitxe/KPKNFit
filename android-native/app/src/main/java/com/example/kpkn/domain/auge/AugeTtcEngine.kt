@@ -56,8 +56,25 @@ object AugeTtcEngine {
         "Pantorrillas"        to listOf(ArticularBattery.ANKLE),
         "Trapecio"            to listOf(ArticularBattery.SHOULDER, ArticularBattery.CERVICAL),
         "Cuello"              to listOf(ArticularBattery.CERVICAL),
-        "Erectores Espinales" to listOf(ArticularBattery.HIP),
+        "Erectores Espinales" to listOf(ArticularBattery.LUMBAR),
         "Core"                to listOf(ArticularBattery.HIP),
+
+        // Aliases
+        "Hombros"             to listOf(ArticularBattery.SHOULDER),
+        "Cuadriceps"          to listOf(ArticularBattery.KNEE, ArticularBattery.HIP),
+        "Abdomen"             to listOf(ArticularBattery.HIP),
+
+        // Faltantes del MUSCLE_PROFILE_MAP
+        "Romboide"            to listOf(ArticularBattery.SHOULDER),
+        "Redondo Mayor"       to listOf(ArticularBattery.SHOULDER),
+        "Redondo Menor"       to listOf(ArticularBattery.SHOULDER),
+        "Infraespinoso"       to listOf(ArticularBattery.SHOULDER),
+        "Supraespinoso"       to listOf(ArticularBattery.SHOULDER),
+        "Subescapular"        to listOf(ArticularBattery.SHOULDER),
+        "Serrato Anterior"    to listOf(ArticularBattery.SHOULDER),
+        "Costales"            to listOf(ArticularBattery.LUMBAR),
+        "Psoas"               to listOf(ArticularBattery.HIP),
+        "Lumbar"              to listOf(ArticularBattery.LUMBAR),
     )
 
     fun articularLabel(ab: ArticularBattery): String = when (ab) {
@@ -67,6 +84,7 @@ object AugeTtcEngine {
         ArticularBattery.HIP      -> "Cadera"
         ArticularBattery.ANKLE    -> "Tobillo"
         ArticularBattery.CERVICAL -> "Cervical"
+        ArticularBattery.LUMBAR   -> "Lumbar"
     }
 
     // ─── 1. TTC por ejercicio ─────────────────────────────────────────────────
@@ -166,6 +184,7 @@ object AugeTtcEngine {
         history: List<WorkoutLog>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
+        wellbeing: DailyWellbeingLog? = null,
     ): Map<ArticularBattery, ArticularBatteryState> {
         val now = System.currentTimeMillis()
         val tenDaysMs = 10L * 24 * 3600 * 1000
@@ -208,6 +227,21 @@ object AugeTtcEngine {
                     }
             }
         }
+
+        wellbeing?.preWorkoutDiscomforts
+            ?.asSequence()
+            ?.filter { it != "none" }
+            ?.distinct()
+            ?.forEach { discomfortId ->
+                val entry = DISCOMFORT_CATALOG_BY_ID[discomfortId] ?: return@forEach
+                val targets = entry.relatedArticular
+                if (targets.isEmpty()) return@forEach
+                val split = 1.0 / targets.size
+                for (ab in targets) {
+                    discomfortStress[ab] = (discomfortStress[ab] ?: 0.0) +
+                        (DISCOMFORT_ARTICULAR_BASE_PENALTY * 1.0 * split)
+                }
+            }
 
         for (log in relevantLogs) {
             val logTime   = logDateMs(log)

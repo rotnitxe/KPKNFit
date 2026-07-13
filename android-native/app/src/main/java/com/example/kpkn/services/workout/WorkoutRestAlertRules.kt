@@ -50,9 +50,9 @@ internal fun workoutPrealertVibrationPattern(): LongArray = longArrayOf(
 )
 
 internal fun workoutCompletionVibrationPattern(intensity: HapticIntensity): LongArray = when (intensity) {
-    HapticIntensity.LIGHT -> longArrayOf(0L, 250L, 100L, 250L)
-    HapticIntensity.MEDIUM -> longArrayOf(0L, 400L, 150L, 400L)
-    HapticIntensity.STRONG -> longArrayOf(0L, 600L, 150L, 800L)
+    HapticIntensity.LIGHT -> longArrayOf(0L, 200L, 100L, 200L, 100L, 200L)
+    HapticIntensity.MEDIUM -> longArrayOf(0L, 350L, 150L, 350L, 150L, 350L)
+    HapticIntensity.STRONG -> longArrayOf(0L, 500L, 150L, 500L, 150L, 800L)
 }
 
 internal fun workoutCompletionVibrationAmplitudes(intensity: HapticIntensity): IntArray = when (intensity) {

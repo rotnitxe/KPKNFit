@@ -24,6 +24,7 @@ data class DailyWellbeingLog(
     val manualMuscleBatteries: Map<String, Int> = emptyMap(),
     val manualBatteryAnchorMs: Long? = null,
     val notes: String? = null,
+    val preWorkoutDiscomforts: List<String> = emptyList(),
 )
 
 @Serializable
@@ -184,7 +185,7 @@ data class SleepRecommendation(
 
 // ─── TTC / Articular Battery ──────────────────────────────────────────────────
 
-enum class ArticularBattery { SHOULDER, ELBOW, KNEE, HIP, ANKLE, CERVICAL }
+enum class ArticularBattery { SHOULDER, ELBOW, KNEE, HIP, ANKLE, CERVICAL, LUMBAR }
 
 enum class ArticularStatus { OPTIMAL, RECOVERING, EXHAUSTED }
 
@@ -359,9 +360,13 @@ data class ExerciseReadiness(
     val muscularComponent: Int,
     val cnsComponent: Int,
     val spinalComponent: Int,
+    val articularComponent: Int,       // NUEVO
+    val structuralComponent: Int,     // NUEVO (limiting)
+    val relatedArticular: List<ArticularBattery>,  // NUEVO
     val muscularWeight: Double,
     val cnsWeight: Double,
     val spinalWeight: Double,
+    val articularWeight: Double,      // NUEVO
     val setsPenaltyFactor: Double,
     val intensityPenaltyFactor: Double,
     val ermProximityFactor: Double,

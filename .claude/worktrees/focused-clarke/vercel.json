@@ -1,0 +1,5 @@
+{
+    "installCommand": "SENTRY_SKIP_SIBLINGS_CHECK=1 npm install",
+    "buildCommand": "npm run build",
+    "outputDirectory": "www"
+}

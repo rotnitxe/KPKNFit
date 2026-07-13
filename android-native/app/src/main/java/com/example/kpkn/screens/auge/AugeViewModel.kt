@@ -99,18 +99,22 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     val batteries: StateFlow<GlobalBatteries> = snapshot
         .map { it.batteries }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.batteries)
 
     val perMuscle: StateFlow<Map<String, MuscleRecoveryStatus>> = snapshot
         .map { it.perMuscle }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.perMuscle)
 
     val readiness: StateFlow<AugeReadinessVerdict?> = snapshot
         .map { it.readiness }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.readiness)
 
     val dashboard: StateFlow<RecoveryDashboard> = snapshot
         .map { it.dashboard }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.dashboard)
 
     private val _pendingQuestionnaire = MutableStateFlow<PendingQuestionnaire?>(null)
@@ -118,10 +122,12 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     val articular: StateFlow<Map<ArticularBattery, ArticularBatteryState>> = snapshot
         .map { it.articular }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.articular)
 
     val isLoading: StateFlow<Boolean> = snapshot
         .map { it.isLoading }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.isLoading)
 
     // ─── Init ─────────────────────────────────────────────────────────────────
@@ -137,10 +143,10 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         // Periodic recovery timer: rings degrade/recover over time,
-        // so recompute every 30s to let exponential decay formulas take effect.
+        // so recompute every 5 minutes to let exponential decay formulas take effect.
         recoveryTimerJob = viewModelScope.launch {
             while (isActive) {
-                delay(30_000L)
+                delay(300_000L)
                 refresh()
             }
         }
@@ -180,9 +186,9 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 sleepLogs = sleepLogs,
                 nutritionLogs = nutritionLogs,
                 feedbacks = feedbacks,
-                personalizedRecoveryHours = adaptiveCache.personalizedRecoveryHours,
-                muscleDeltas = adaptiveCache.muscleDeltas,
+                adaptiveCache = adaptiveCache,
             )
+            val articular = AugeTtcEngine.calculateArticularBatteries(history, exerciseDb, feedbacks, wellbeing)
             val bat = AugeRecoveryEngine.calculateGlobalBatteries(
                 history = history,
                 wellbeing = wellbeing,
@@ -191,13 +197,10 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 sleepLogs = sleepLogs,
                 nutritionLogs = nutritionLogs,
                 feedbacks = feedbacks,
-                personalizedRecoveryHours = adaptiveCache.personalizedRecoveryHours,
-                muscleDeltas = adaptiveCache.muscleDeltas,
-                cnsLearningDelta = adaptiveCache.cnsLearningDelta,
-                spinalLearningDelta = adaptiveCache.spinalLearningDelta,
+                adaptiveCache = adaptiveCache,
                 precomputedMuscles = muscles,
+                articularBatteries = articular,
             )
-            val articular = AugeTtcEngine.calculateArticularBatteries(history, exerciseDb, feedbacks)
             val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
                 batteries = bat,
                 perMuscle = muscles,
@@ -220,6 +223,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                         completedExercises = log.completedExercises,
                         exerciseDb = exerciseDb,
                         settings = settings,
+                        adaptiveCache = adaptiveCache,
                     )
                 }
             Septuple(bat, muscles, dashboard, verdict, pending, articular, cumFatigue)
@@ -430,27 +434,27 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         var updatedCache = cache
         var obsCount = 0
 
-        // Learn system-level deltas from CNS adjustments independently
+        // 1. Learn system-level deltas from CNS adjustments independently (no dilution)
         if (manualNeural != null && predictedNeuralBattery != null) {
             val systemAdj = (manualNeural - predictedNeuralBattery).coerceIn(-50, 50)
             val (newCns, _) = AugeAdaptiveEngine.updateSystemLearningDeltas(
                 currentCnsDelta = updatedCache.cnsLearningDelta,
                 currentSpinalDelta = updatedCache.spinalLearningDelta,
                 systemAdjustment = systemAdj,
-                structureAdjustment = 0,
+                structureAdjustment = null,
                 totalObservations = cache.totalObservations,
             )
             updatedCache = updatedCache.copy(cnsLearningDelta = newCns)
             obsCount += 1
         }
 
-        // Learn system-level deltas from spinal adjustments independently
+        // 2. Learn system-level deltas from spinal adjustments independently (no dilution)
         if (manualSpinal != null && predictedSpinalBattery != null) {
             val structAdj = (manualSpinal - predictedSpinalBattery).coerceIn(-50, 50)
             val (_, newSpinal) = AugeAdaptiveEngine.updateSystemLearningDeltas(
                 currentCnsDelta = updatedCache.cnsLearningDelta,
                 currentSpinalDelta = updatedCache.spinalLearningDelta,
-                systemAdjustment = 0,
+                systemAdjustment = null,
                 structureAdjustment = structAdj,
                 totalObservations = cache.totalObservations,
             )
@@ -458,9 +462,53 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             obsCount += 1
         }
 
-        // Calculate hours elapsed since the last completed workout to scale pre-workout calibrations
         val history = programRepo.history.value
         val lastSession = history.maxByOrNull { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) }
+
+        // 3. Reconstruct pre-workout batteries
+        val preWorkoutNeural = (predictedNeuralBattery ?: 100) + sessionCnsDrain.toInt()
+        val preWorkoutSpinal = (predictedSpinalBattery ?: 100) + sessionSpinalDrain.toInt()
+        val preWorkoutMuscleBatteries = predictedMuscleBatteries.mapValues { (muscleName, predictedVal) ->
+            val actualDrain = if (lastSession != null && sessionMuscleDrain > 0.0) {
+                AugeRecoveryEngine.calculateMuscleSessionStress(
+                    muscleName = muscleName,
+                    log = lastSession,
+                    settings = programRepo.settings.value,
+                    exerciseDb = exerciseDb,
+                    adaptiveCache = cache
+                )
+            } else {
+                0.0
+            }
+            (predictedVal + actualDrain.toInt()).coerceIn(0, 100)
+        }
+
+        // 4. Update drain multipliers (Learning Engine v2) if we have a session drain
+        if (sessionCnsDrain > 0.0 || sessionSpinalDrain > 0.0 || sessionMuscleDrain > 0.0) {
+            val (newCnsMult, newSpinalMult, newMuscleMults) = AugeAdaptiveEngine.updateDrainMultipliers(
+                currentCnsMult = updatedCache.cnsDrainMultiplier,
+                currentSpinalMult = updatedCache.spinalDrainMultiplier,
+                currentMuscleMults = updatedCache.muscleDrainMultipliers,
+                manualNeural = manualNeural,
+                manualSpinal = manualSpinal,
+                manualMuscleBatteries = manualMuscleBatteries,
+                predictedNeural = predictedNeuralBattery,
+                predictedSpinal = predictedSpinalBattery,
+                predictedMuscleBatteries = predictedMuscleBatteries,
+                preWorkoutNeural = preWorkoutNeural,
+                preWorkoutSpinal = preWorkoutSpinal,
+                preWorkoutMuscleBatteries = preWorkoutMuscleBatteries,
+                totalObservations = cache.totalObservations,
+            )
+            updatedCache = updatedCache.copy(
+                cnsDrainMultiplier = newCnsMult,
+                spinalDrainMultiplier = newSpinalMult,
+                muscleDrainMultipliers = newMuscleMults,
+            )
+            obsCount += 1
+        }
+
+        // 5. Calculate hours elapsed since the last completed workout to scale pre-workout calibrations
         val now = System.currentTimeMillis()
         val derivedHoursSince = if (lastSession != null) {
             maxOf(0.5, (now - com.example.kpkn.domain.auge.AugeUtils.logDateMs(lastSession)) / 3_600_000.0)

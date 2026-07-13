@@ -1,0 +1,26 @@
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "types": [
+      "jest"
+    ],
+    "baseUrl": ".",
+    "strict": false,
+    "paths": {
+      "@/*": ["src/*"],
+      "@kpkn/design-tokens": ["../../packages/design-tokens/src/index.ts"],
+      "@kpkn/shared-domain/*": ["../../packages/shared-domain/src/*"],
+      "@kpkn/shared-types/*": ["../../packages/shared-types/src/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "nativewind-env.d.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/Pods",
+    "src/components/analytics/**"
+  ]
+}

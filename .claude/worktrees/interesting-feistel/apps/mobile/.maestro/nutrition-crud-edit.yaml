@@ -1,0 +1,36 @@
+appId: com.yourprime.app
+---
+# Flujo: Editar descripción de un log de nutrición
+- launchApp:
+    clearState: true
+# Navegar y crear un log primero
+- tapOn:
+    text: "Nutrición"
+- tapOn:
+    id: "nutrition-example-completos"
+- tapOn:
+    id: "nutrition-analyze-button"
+- extendedWaitUntil:
+    visible: "calorías aproximadas"
+    timeout: 30000
+- tapOn:
+    id: "nutrition-save-button"
+- assertVisible: "Comida guardada."
+# Scroll hacia abajo para ver historial
+- scrollUntilVisible:
+    element: "Historial reciente"
+    direction: DOWN
+# Tocar "Editar" en el HistoryCard
+- tapOn:
+    text: "Editar"
+# Verificar que aparece el modo edición (campo de texto + botones Guardar/Cancelar)
+- assertVisible: "Guardar"
+- assertVisible: "Cancelar"
+# Limpiar y escribir nueva descripción
+- clearText
+- inputText: "2 completos italianos con extra palta"
+# Guardar edición
+- tapOn:
+    text: "Guardar"
+# Verificar que la nueva descripción aparece
+- assertVisible: "2 completos italianos con extra palta"

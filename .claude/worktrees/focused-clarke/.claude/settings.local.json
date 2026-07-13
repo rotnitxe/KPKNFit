@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/valen/Downloads/kpkn-fit-\\(beta-test\\)/android-native/**)",
+      "Bash(kotlinc -cp \"app/build/libs/*\" -no-stdlib app/src/main/java/com/example/kpkn/screens/home/AnimatedIconBackground.kt -print-home-dir)"
+    ]
+  }
+}

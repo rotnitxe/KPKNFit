@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -103,24 +106,38 @@ fun WikiLabScreen(
     }
 
     Scaffold(
+        containerColor = Color.Black,
         topBar = {
             TopAppBar(
-                title = { Text("Ejercicios", fontWeight = FontWeight.Black) },
+                title = {
+                    Text(
+                        "Ejercicios",
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White,
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Black,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                ),
             )
         },
     ) { padding ->
         Box(
             modifier = modifier
                 .fillMaxSize()
+                .background(Color.Black)
                 .padding(padding),
         ) {
             Surface(
-                color = MaterialTheme.colorScheme.surface,
+                color = Color.Black,
                 tonalElevation = 0.dp,
             ) {
                 Column(
@@ -128,25 +145,26 @@ fun WikiLabScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                 ) {
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFF121212))
+                        .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text(
-                            "Ejercicios",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Black,
-                        )
-                        Text(
-                            "${exerciseCatalog.size} ejercicios con volumen muscular y drenaje estimado.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    Text(
+                        "Ejercicios",
+                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif),
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                    )
+                    Text(
+                        "${exerciseCatalog.size} ejercicios con volumen muscular y drenaje estimado.",
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+                        color = Color.White.copy(alpha = 0.7f),
+                    )
                 }
 
                 Spacer(Modifier.height(12.dp))
@@ -155,7 +173,7 @@ fun WikiLabScreen(
                     value = query,
                     onValueChange = { query = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Buscar ejercicio, músculo o equipo...", style = MaterialTheme.typography.bodySmall) },
+                    placeholder = { Text("Buscar ejercicio, músculo o equipo...", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif)) },
                     leadingIcon = { Icon(Icons.Default.Search, null) },
                     trailingIcon = {
                         if (query.isNotEmpty()) {
@@ -166,6 +184,13 @@ fun WikiLabScreen(
                     },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color.White.copy(alpha = 0.4f),
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                        cursorColor = Color.White,
+                    ),
                 )
 
                 Spacer(Modifier.height(10.dp))
@@ -198,8 +223,8 @@ fun WikiLabScreen(
 
             Text(
                 "${filtered.size} resultados",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                color = Color.White.copy(alpha = 0.5f),
                 modifier = Modifier.padding(start = 16.dp, top = 144.dp, bottom = 4.dp),
             )
 
@@ -207,6 +232,7 @@ fun WikiLabScreen(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(Color.Black)
                     .padding(top = 164.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -249,8 +275,9 @@ private fun ExerciseCard(exercise: ExerciseMuscleInfo, onClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
+        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -272,36 +299,37 @@ private fun ExerciseCard(exercise: ExerciseMuscleInfo, onClick: () -> Unit) {
             Column(Modifier.weight(1f)) {
                 Text(
                     exercise.name,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
                     fontWeight = FontWeight.Bold,
+                    color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
                     primaryMuscles.joinToString(", ") { it.muscle },
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
                     color = primaryColor,
                     maxLines = 1,
                 )
                 if (secondaryCount > 0) {
                     Text(
                         "+$secondaryCount secundario${if (secondaryCount > 1) "s" else ""}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                        color = Color.White.copy(alpha = 0.5f),
                     )
                 }
             }
 
             Surface(
                 shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer,
+                color = Color(0xFF1E1E1E),
             ) {
                 Text(
                     equipment,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                    color = Color.White.copy(alpha = 0.7f),
                 )
             }
         }

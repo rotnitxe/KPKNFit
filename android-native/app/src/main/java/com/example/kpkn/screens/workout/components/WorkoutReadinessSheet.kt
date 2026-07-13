@@ -58,6 +58,8 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
+import com.example.kpkn.data.models.DISCOMFORT_CATALOG
+import com.example.kpkn.data.models.DiscomfortCatalogEntry
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -69,11 +71,12 @@ fun WorkoutReadinessSheet(
     readinessMuscularStart: Int,
     readinessSpinalStart: Int,
     hazeState: HazeState,
-    onSave: (neural: Int, muscular: Int?, spinal: Int, perMuscle: Map<String, Int>) -> Unit,
+    onSave: (neural: Int, muscular: Int?, spinal: Int, perMuscle: Map<String, Int>, discomforts: List<String>) -> Unit,
     onDismissWithoutVerify: () -> Unit,
     patternReadiness: List<MovementPatternReadiness> = emptyList(),
     exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
     sessionExercises: List<Exercise> = emptyList(),
+    initialDiscomforts: List<String> = emptyList(),
 ) {
     if (!showReadinessSheet) return
 
@@ -89,6 +92,7 @@ fun WorkoutReadinessSheet(
     var userEditedSpinal by rememberSaveable { mutableStateOf(false) }
     val userEditedMuscles = remember { mutableStateMapOf<String, Boolean>() }
     var initialized by rememberSaveable { mutableStateOf(false) }
+    val selectedDiscomforts = remember { mutableStateListOf<String>() }
 
     LaunchedEffect(
         initialized,
@@ -105,6 +109,8 @@ fun WorkoutReadinessSheet(
             sessionMuscleStartingBatteries.forEach { (muscleId, value) ->
                 muscleAdjustments[muscleId] = value.coerceIn(0, 100)
             }
+            selectedDiscomforts.clear()
+            selectedDiscomforts.addAll(initialDiscomforts)
             initialized = true
         } else {
             if (!userEditedNeural) neural = readinessNeuralStart
@@ -513,10 +519,20 @@ fun WorkoutReadinessSheet(
                     Spacer(Modifier.height(12.dp))
                 }
 
+                PreWorkoutDiscomfortSelector(
+                    selectedDiscomforts = selectedDiscomforts,
+                    onDiscomfortsChanged = { list ->
+                        selectedDiscomforts.clear()
+                        selectedDiscomforts.addAll(list)
+                    }
+                )
+
+                Spacer(Modifier.height(4.dp))
+
                 // 3. BOTÓN PRINCIPAL
                 Button(
                     onClick = {
-                        onSave(neural, derivedMuscular, spinal, muscleAdjustments.toMap())
+                        onSave(neural, derivedMuscular, spinal, muscleAdjustments.toMap(), selectedDiscomforts.toList())
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -767,4 +783,119 @@ internal fun MuscleSliderChip(
         value = value,
         onValueChange = onValueChange,
     )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun PreWorkoutDiscomfortSelector(
+    selectedDiscomforts: List<String>,
+    onDiscomfortsChanged: (List<String>) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Column {
+                        Text(
+                            text = "Molestias previas al entrenamiento",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        val count = selectedDiscomforts.size
+                        Text(
+                            text = if (count == 0) "Ninguna reportada" else "$count seleccionada(s)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.5f)
+                        )
+                    }
+                }
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (expanded) "Colapsar" else "Expandir",
+                    tint = Color.White.copy(alpha = 0.6f)
+                )
+            }
+
+            AnimatedVisibility(visible = expanded) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    val grouped = DISCOMFORT_CATALOG
+                        .filter { it.id != "none" }
+                        .groupBy { it.section }
+
+                    grouped.forEach { (section, items) ->
+                        Text(
+                            text = section.label,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                        )
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            items.forEach { item ->
+                                val isSelected = selectedDiscomforts.contains(item.id)
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        val newSelection = selectedDiscomforts.toMutableList()
+                                        if (isSelected) {
+                                            newSelection.remove(item.id)
+                                        } else {
+                                            newSelection.add(item.id)
+                                        }
+                                        onDiscomfortsChanged(newSelection)
+                                    },
+                                    label = { Text(item.label, fontSize = 11.sp) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+                                        selectedLabelColor = MaterialTheme.colorScheme.primary,
+                                        containerColor = Color.Transparent,
+                                        labelColor = Color.White.copy(alpha = 0.7f)
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = isSelected,
+                                        borderColor = Color.White.copy(alpha = 0.15f),
+                                        selectedBorderColor = MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

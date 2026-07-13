@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.HourglassEmpty
@@ -101,12 +104,14 @@ fun ExerciseMinimalistChipsCarousel(
             Surface(
                 shape = RoundedCornerShape(999.dp),
                 color = spec.color.copy(alpha = 0.08f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, spec.color.copy(alpha = 0.2f)),
+                border = BorderStroke(1.dp, spec.color.copy(alpha = 0.2f)),
             ) {
                 Text(
                     text = text,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontFamily = FontFamily.Serif,
+                    ),
                     fontWeight = FontWeight.Bold,
                     color = spec.color,
                 )
@@ -130,7 +135,14 @@ fun ExerciseTechnicalDetails(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("Detalles técnicos", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+        Text(
+            "Detalles técnicos",
+            style = MaterialTheme.typography.labelLarge.copy(
+                fontFamily = FontFamily.Serif,
+                color = Color.White
+            ),
+            fontWeight = FontWeight.Bold
+        )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TechDetailBadge(
@@ -164,18 +176,28 @@ private fun TechDetailBadge(
 ) {
     Surface(
         modifier = modifier,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.32f),
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFF121212),
+        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
-            Text(title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(icon, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(14.dp))
+            Text(
+                title,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.5f)
+                )
+            )
             Text(
                 value,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White
+                ),
                 fontWeight = FontWeight.Bold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -197,7 +219,14 @@ fun ExerciseSimilarThreeBand(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text("Ejercicios similares", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+        Text(
+            "Ejercicios similares",
+            style = MaterialTheme.typography.labelLarge.copy(
+                fontFamily = FontFamily.Serif,
+                color = Color.White
+            ),
+            fontWeight = FontWeight.Bold
+        )
 
         if (bands.lessSetup.isNotEmpty()) {
             SimilarBandSection(
@@ -236,8 +265,15 @@ private fun SimilarBandSection(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            Icon(icon, null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(title, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(icon, null, modifier = Modifier.size(14.dp), tint = Color.White.copy(alpha = 0.5f))
+            Text(
+                title,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.5f)
+                ),
+                fontWeight = FontWeight.Bold
+            )
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             items.forEach { kinship ->
@@ -259,16 +295,28 @@ private fun SimilarChip(
 ) {
     Surface(
         onClick = onClick,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)),
+        shape = RoundedCornerShape(10.dp),
+        color = Color(0xFF121212),
+        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
     ) {
         Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
-            Text(name, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                name,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White
+                ),
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
             Text(
                 detail,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 10.sp,
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.5f)
+                ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

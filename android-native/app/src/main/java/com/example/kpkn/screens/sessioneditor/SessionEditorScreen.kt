@@ -177,6 +177,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -6960,6 +6961,22 @@ internal fun ExercisePickerSheet(
     var showSortMenu by remember { mutableStateOf(false) }
     var infoExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
 
+    var selectedMuscle by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedHeadName by rememberSaveable { mutableStateOf<String?>(null) }
+    var showRegionMenu by remember { mutableStateOf(false) }
+    var showMuscleMenu by remember { mutableStateOf(false) }
+    var showHeadMenu by remember { mutableStateOf(false) }
+
+    var showEmphasisCard by remember { mutableStateOf(true) }
+
+    LaunchedEffect(selectedMuscle) {
+        selectedHeadName = null
+        showEmphasisCard = true
+    }
+    LaunchedEffect(selectedHeadName) {
+        showEmphasisCard = true
+    }
+
     var selectionOrder by rememberSaveable { mutableStateOf(listOf<String>()) }
     LaunchedEffect(selectedExercisesIds) {
         selectionOrder = selectionOrder.filter { it in selectedExercisesIds } +
@@ -6974,6 +6991,62 @@ internal fun ExercisePickerSheet(
     val activeRegion = selectedRegion ?: ExerciseCatalogRegion.ALL
     val showGroupBrowser = false
 
+    val filteredMuscles = remember(activeRegion, fullCatalog) {
+        if (activeRegion == ExerciseCatalogRegion.ALL) {
+            ALL_MUSCLES
+        } else {
+            ALL_MUSCLES.filter { muscle ->
+                fullCatalog.any { exercise ->
+                    resolveExerciseRegion(exercise) == activeRegion &&
+                        exercise.involvedMuscles.any { it.muscle.equals(muscle.canonicalName, ignoreCase = true) }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(filteredMuscles) {
+        if (selectedMuscle != null && filteredMuscles.none { it.canonicalName.equals(selectedMuscle, ignoreCase = true) }) {
+            selectedMuscle = null
+        }
+    }
+
+    val filteredRegions = remember(selectedMuscle, fullCatalog) {
+        val allRegions = ExerciseCatalogRegion.values().toList()
+        if (selectedMuscle == null) {
+            allRegions
+        } else {
+            allRegions.filter { region ->
+                region == ExerciseCatalogRegion.ALL || fullCatalog.any { exercise ->
+                    resolveExerciseRegion(exercise) == region &&
+                        exercise.involvedMuscles.any { it.muscle.equals(selectedMuscle, ignoreCase = true) }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(filteredRegions) {
+        val currentRegion = selectedRegion ?: ExerciseCatalogRegion.ALL
+        if (currentRegion != ExerciseCatalogRegion.ALL && filteredRegions.none { it == currentRegion }) {
+            selectedRegion = null
+        }
+    }
+
+    val filteredSortModes = remember(selectedRegion, selectedMuscle) {
+        ExerciseCatalogSort.values().filter { option ->
+            when (option) {
+                ExerciseCatalogSort.GROUP_BY_REGION -> selectedRegion == null
+                ExerciseCatalogSort.GROUP_BY_MUSCLE -> selectedMuscle == null
+                else -> true
+            }
+        }
+    }
+
+    LaunchedEffect(filteredSortModes) {
+        if (sortMode !in filteredSortModes) {
+            sortMode = ExerciseCatalogSort.RELEVANCE
+        }
+    }
+
     fun handleSelect(info: ExerciseMuscleInfo) {
         if (editingExisting) {
             onSelect(info)
@@ -6986,11 +7059,18 @@ internal fun ExercisePickerSheet(
             onToggleExerciseSelection(info.id)
         }
     }
-    val results = remember(query, fullCatalog, activeRegion, selectedTrait, sortMode) {
+    val results = remember(query, fullCatalog, activeRegion, selectedTrait, sortMode, selectedMuscle, selectedHeadName) {
+        val muscleAnatomy = selectedMuscle?.let { MUSCLE_BY_CANONICAL[it] }
+        val muscleHead = if (muscleAnatomy != null && selectedHeadName != null) {
+            muscleAnatomy.heads.firstOrNull { it.name == selectedHeadName }
+        } else null
+
         val baseFiltered = fullCatalog.filter { info ->
             val regionMatch = activeRegion == ExerciseCatalogRegion.ALL || resolveExerciseRegion(info) == activeRegion
             val traitMatch = selectedTrait == null || matchesCatalogTrait(info, selectedTrait!!)
-            regionMatch && traitMatch
+            val muscleMatch = muscleAnatomy == null || matchesMuscle(info, muscleAnatomy)
+            val headMatch = muscleHead == null || matchesMuscleHead(info, muscleAnatomy!!, muscleHead)
+            regionMatch && traitMatch && muscleMatch && headMatch
         }
 
         val searched = if (normalizedQuery.isBlank()) {
@@ -7012,12 +7092,27 @@ internal fun ExercisePickerSheet(
             ExerciseCatalogSort.FATIGUE_HIGH -> searched.sortedByDescending { calculateFriendlyFatigue(it).overall }
             ExerciseCatalogSort.FATIGUE_LOW -> searched.sortedBy { calculateFriendlyFatigue(it).overall }
             ExerciseCatalogSort.NAME -> searched.sortedBy { it.name }
-            ExerciseCatalogSort.MUSCLE -> searched.sortedWith(compareBy({ resolvePrimaryMuscleLabel(it) }, { it.name }))
+            ExerciseCatalogSort.GROUP_BY_MUSCLE -> searched.sortedWith(compareBy({ resolvePrimaryMuscleLabel(it) }, { it.name }))
+            else -> searched
         }
-        deduplicateCatalogVisualResults(sorted)
+        val finalSorted = if (selectedMuscle != null && selectedMuscle.equals("Trapecio", ignoreCase = true)) {
+            sorted.sortedBy { exercise ->
+                val involvement = exercise.involvedMuscles.find {
+                    VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis).equals("Trapecio", ignoreCase = true)
+                }
+                when (involvement?.role) {
+                    MuscleRole.PRIMARY -> 0
+                    MuscleRole.SECONDARY -> 1
+                    else -> 2
+                }
+            }
+        } else {
+            sorted
+        }
+        deduplicateCatalogVisualResults(finalSorted)
     }
     val resultListState = rememberLazyListState()
-    LaunchedEffect(normalizedQuery, activeRegion, selectedTrait, sortMode) {
+    LaunchedEffect(normalizedQuery, activeRegion, selectedTrait, sortMode, selectedMuscle, selectedHeadName) {
         resultListState.scrollToItem(0)
     }
 
@@ -7107,7 +7202,7 @@ internal fun ExercisePickerSheet(
                         Text(sortMode.label, style = MaterialTheme.typography.labelSmall)
                     }
                     DropdownMenu(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
-                        ExerciseCatalogSort.values().forEach { option ->
+                        filteredSortModes.forEach { option ->
                             DropdownMenuItem(
                                 text = { Text(option.label) },
                                 onClick = {
@@ -7128,13 +7223,157 @@ internal fun ExercisePickerSheet(
             placeholder = "Buscar por nombre, músculo o equipo",
         )
 
-         LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-             items(ExerciseCatalogRegion.values().toList(), key = { it.name }) { region ->
-                 CompactCatalogFilterChip(
-                     selected = activeRegion == region,
-                     onClick = { selectedRegion = if (region == ExerciseCatalogRegion.ALL) null else region },
-                     label = region.label,
-                 )
+         val currentHeadMuscle = selectedMuscle?.let { MUSCLE_BY_CANONICAL[it] }
+         val hasHeads = currentHeadMuscle != null && currentHeadMuscle.heads.isNotEmpty()
+         Row(
+             modifier = Modifier.fillMaxWidth(),
+             horizontalArrangement = Arrangement.spacedBy(6.dp),
+             verticalAlignment = Alignment.CenterVertically,
+         ) {
+             Box(modifier = Modifier.weight(1f)) {
+                 FilledTonalButton(
+                     onClick = { showRegionMenu = true },
+                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                     shape = RoundedCornerShape(8.dp),
+                     modifier = Modifier.fillMaxWidth(),
+                 ) {
+                     Icon(Icons.Default.Settings, null, modifier = Modifier.size(14.dp))
+                     Spacer(Modifier.width(4.dp))
+                     Text(activeRegion.label, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                     Spacer(Modifier.width(2.dp))
+                     Icon(Icons.Default.KeyboardArrowDown, null, modifier = Modifier.size(14.dp))
+                 }
+                 DropdownMenu(expanded = showRegionMenu, onDismissRequest = { showRegionMenu = false }) {
+                     filteredRegions.forEach { region ->
+                         DropdownMenuItem(
+                             text = { Text(region.label) },
+                             onClick = { selectedRegion = if (region == ExerciseCatalogRegion.ALL) null else region; showRegionMenu = false },
+                         )
+                     }
+                 }
+             }
+             Box(modifier = Modifier.weight(1f)) {
+                 FilledTonalButton(
+                     onClick = { showMuscleMenu = true },
+                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                     shape = RoundedCornerShape(8.dp),
+                     modifier = Modifier.fillMaxWidth(),
+                 ) {
+                     Icon(Icons.Default.FitnessCenter, null, modifier = Modifier.size(14.dp))
+                     Spacer(Modifier.width(4.dp))
+                     Text(selectedMuscle?.let { MUSCLE_BY_CANONICAL[it]?.displayName } ?: "Músculo", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                     Spacer(Modifier.width(2.dp))
+                     Icon(Icons.Default.KeyboardArrowDown, null, modifier = Modifier.size(14.dp))
+                 }
+                 DropdownMenu(expanded = showMuscleMenu, onDismissRequest = { showMuscleMenu = false }) {
+                     DropdownMenuItem(text = { Text("Todos") }, onClick = { selectedMuscle = null; showMuscleMenu = false })
+                     filteredMuscles.forEach { muscle ->
+                         DropdownMenuItem(
+                             text = { Text(muscle.displayName) },
+                             onClick = { selectedMuscle = muscle.canonicalName; showMuscleMenu = false },
+                         )
+                     }
+                 }
+             }
+             if (hasHeads) {
+                 Box(modifier = Modifier.weight(1f)) {
+                     FilledTonalButton(
+                         onClick = { showHeadMenu = true },
+                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                         shape = RoundedCornerShape(8.dp),
+                         modifier = Modifier.fillMaxWidth(),
+                     ) {
+                         Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(14.dp))
+                         Spacer(Modifier.width(4.dp))
+                         Text(selectedHeadName ?: "Zona", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                         Spacer(Modifier.width(2.dp))
+                         Icon(Icons.Default.KeyboardArrowDown, null, modifier = Modifier.size(14.dp))
+                     }
+                     DropdownMenu(expanded = showHeadMenu, onDismissRequest = { showHeadMenu = false }) {
+                         DropdownMenuItem(text = { Text("Completo") }, onClick = { selectedHeadName = null; showHeadMenu = false })
+                         currentHeadMuscle!!.heads.forEach { head ->
+                             DropdownMenuItem(
+                                 text = { Text(head.name) },
+                                 onClick = { selectedHeadName = head.name; showHeadMenu = false },
+                             )
+                         }
+                     }
+                 }
+             }
+         }
+
+         AnimatedVisibility(visible = hasHeads && showEmphasisCard) {
+             val emphasisTitle = if (selectedHeadName != null) {
+                 "Énfasis: $selectedHeadName"
+             } else {
+                 "Énfasis en porciones de ${currentHeadMuscle?.displayName}"
+             }
+             val emphasisBody = getMuscleEmphasisEducationalText(selectedMuscle ?: "", selectedHeadName)
+
+             Card(
+                 modifier = Modifier
+                     .fillMaxWidth()
+                     .padding(vertical = 6.dp),
+                 colors = CardDefaults.cardColors(
+                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                 ),
+                 shape = RoundedCornerShape(12.dp),
+                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+             ) {
+                 Column(modifier = Modifier.padding(12.dp)) {
+                     Row(
+                         modifier = Modifier.fillMaxWidth(),
+                         verticalAlignment = Alignment.CenterVertically,
+                         horizontalArrangement = Arrangement.SpaceBetween
+                     ) {
+                         Row(
+                             verticalAlignment = Alignment.CenterVertically,
+                             modifier = Modifier.weight(1f)
+                         ) {
+                             Icon(
+                                 imageVector = Icons.Default.Info,
+                                 contentDescription = null,
+                                 tint = MaterialTheme.colorScheme.primary,
+                                 modifier = Modifier.size(16.dp)
+                             )
+                             Spacer(Modifier.width(6.dp))
+                             Text(
+                                 text = emphasisTitle,
+                                 style = MaterialTheme.typography.titleSmall,
+                                 color = MaterialTheme.colorScheme.primary,
+                                 fontWeight = FontWeight.SemiBold,
+                                 maxLines = 1,
+                                 overflow = TextOverflow.Ellipsis
+                             )
+                         }
+                         IconButton(
+                             onClick = { showEmphasisCard = false },
+                             modifier = Modifier.size(24.dp)
+                         ) {
+                             Icon(
+                                 imageVector = Icons.Default.Close,
+                                 contentDescription = "Cerrar",
+                                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                 modifier = Modifier.size(16.dp)
+                             )
+                         }
+                     }
+                     if (emphasisBody.isNotEmpty()) {
+                         Spacer(Modifier.height(4.dp))
+                         Text(
+                             text = emphasisBody,
+                             style = MaterialTheme.typography.bodySmall,
+                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                         )
+                         Spacer(Modifier.height(4.dp))
+                         Text(
+                             text = "*El énfasis desplaza el estímulo relativo, pero no aísla por completo el músculo del resto de sus cabezas.",
+                             style = MaterialTheme.typography.labelSmall,
+                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                             fontStyle = FontStyle.Italic
+                         )
+                     }
+                 }
              }
          }
 
@@ -7271,11 +7510,13 @@ internal fun ExercisePickerSheet(
                              fontWeight = FontWeight.Bold,
                              color = Color.White
                          )
-                         if (selectedTrait != null || activeRegion != ExerciseCatalogRegion.ALL || normalizedQuery.isNotBlank()) {
+                         if (selectedTrait != null || activeRegion != ExerciseCatalogRegion.ALL || normalizedQuery.isNotBlank() || selectedMuscle != null || selectedHeadName != null) {
                              TextButton(
                                  onClick = {
                                      selectedRegion = null
                                      selectedTrait = null
+                                     selectedMuscle = null
+                                     selectedHeadName = null
                                      onSearch("")
                                      sortMode = ExerciseCatalogSort.RELEVANCE
                                  }
@@ -12787,6 +13028,113 @@ private fun calculateSubMuscleBreakdown(
             .map { it.key to it.value }
             .filter { it.second > 0.0 }
             .sortedByDescending { it.second }
+    }
+}
+
+private fun getMuscleEmphasisEducationalText(muscle: String, headName: String?): String {
+    val normalizedMuscle = muscle.trim().lowercase()
+    val normalizedHead = headName?.trim()?.lowercase() ?: ""
+
+    return when (normalizedMuscle) {
+        "pectorales" -> {
+            when {
+                normalizedHead.contains("clavicular") || normalizedHead.contains("superior") ->
+                    "La porción superior (clavicular) se enfatiza mediante la flexión del hombro (ej. press inclinado o cruces en polea baja), donde la trayectoria ascendente alinea la línea de tracción con la dirección de sus fibras musculares."
+                normalizedHead.contains("esternal") || normalizedHead.contains("inferior") ->
+                    "La porción inferior (esternal/costal) se enfatiza mediante la aducción horizontal declinada (ej. fondos en paralelas o cruces en polea alta), alineando el plano de empuje con las fibras inferiores."
+                normalizedHead.contains("plano") || normalizedHead.contains("medio") ->
+                    "La porción media se enfatiza con la aducción horizontal pura perpendicular al torso (ej. press de banca plano o aperturas planas)."
+                else ->
+                    "El pectoral se divide en porciones clavicular, esternal y costal. Modificar la inclinación del press o la trayectoria de los cruces de polea cambia la alineación de las fibras activadas por los brazos de momento de la carga."
+            }
+        }
+        "deltoides" -> {
+            when {
+                normalizedHead.contains("anterior") ->
+                    "El deltoides anterior se enfatiza mediante la flexión del hombro (ej. press militar, press de hombros con mancuernas o elevaciones frontales)."
+                normalizedHead.contains("lateral") || normalizedHead.contains("medio") ->
+                    "El deltoides lateral se enfatiza mediante la abducción pura del hombro (ej. elevaciones laterales), idealmente realizadas en el plano escapular (30° al frente) para mayor seguridad articular."
+                normalizedHead.contains("posterior") ->
+                    "El deltoides posterior se enfatiza mediante la abducción horizontal y extensión del hombro (ej. pájaros con mancuernas o cruces invertidos en polea)."
+                else ->
+                    "El deltoides consta de cabezas anterior, lateral y posterior. Se enfatizan modificando la dirección del plano del movimiento del hombro (flexión, abducción o abducción horizontal)."
+            }
+        }
+        "trapecio" -> {
+            when {
+                normalizedHead.contains("descendente") || normalizedHead.contains("superior") ->
+                    "El trapecio superior se enfatiza mediante la elevación escapular (ej. encogimientos de hombros), donde las fibras tiran hacia arriba, y también contribuye en la abducción del brazo por encima de la cabeza."
+                normalizedHead.contains("transversa") || normalizedHead.contains("media") ->
+                    "El trapecio medio se enfatiza mediante la retracción escapular (ej. jalones a la cara/face pulls, o remos abiertos juntando las escápulas)."
+                normalizedHead.contains("ascendente") || normalizedHead.contains("inferior") ->
+                    "El trapecio inferior se enfatiza mediante la depresión escapular (ej. jalones escapulares o elevaciones en Y), donde las fibras tiran de la escápula hacia abajo."
+                else ->
+                    "El trapecio se divide en superior, medio e inferior. Sus fibras cambian de orientación funcional, requiriendo elevación, retracción o depresión de las escápulas para enfatizar cada zona."
+            }
+        }
+        "cuádriceps" -> {
+            when {
+                normalizedHead.contains("recto femoral") ->
+                    "El recto femoral es biarticular (cruza cadera y rodilla). Se enfatiza cuando la cadera está extendida y la rodilla se flexiona (ej. sentadilla sissy o extensiones con el torso inclinado hacia atrás), aumentando su tensión de estiramiento."
+                else ->
+                    "Los vastos (lateral, medial, intermedio) son monoarticulares y se activan en conjunto en flexo-extensión de rodilla (ej. prensa o sentadillas). El recto femoral requiere cambios en la extensión de la cadera para modificar su participación relativa."
+            }
+        }
+        "glúteos" -> {
+            when {
+                normalizedHead.contains("mayor") ->
+                    "El glúteo mayor es el extensor primario de cadera. Se enfatiza con cargas donde la máxima tensión coincide con la cadera extendida (ej. hip thrust) o estirada (ej. peso muerto rumano o sentadilla profunda)."
+                normalizedHead.contains("medio") || normalizedHead.contains("menor") ->
+                    "Los glúteos medio y menor actúan como abductores y rotadores. Se enfatizan mediante la abducción pura de la cadera (ej. abducciones en polea, máquina de abductores o caminatas laterales con banda)."
+                else ->
+                    "El complejo glúteo incluye el mayor (extensor principal) y el medio/menor (estabilizadores y abductores). Alternar ejercicios de extensión pura con movimientos de abducción cambia el énfasis entre estas porciones."
+            }
+        }
+        "pantorrillas" -> {
+            when {
+                normalizedHead.contains("gastrocnemio") ->
+                    "El gastrocnemio es biarticular. Se enfatiza con la rodilla extendida (ej. elevaciones de talones de pie o en prensa), donde puede estirarse y contraerse en condiciones óptimas."
+                normalizedHead.contains("sóleo") ->
+                    "El sóleo es monoarticular. Se enfatiza con la rodilla flexionada a 90° (ej. elevaciones de talones sentado), posición que acorta e inactiva en gran parte al gastrocnemio."
+                else ->
+                    "La pantorrilla se compone de gastrocnemios y sóleo. Flexionar la rodilla altera drásticamente la contribución de los gastrocnemios debido a la insuficiencia activa, dejando la mayor parte del trabajo al sóleo."
+            }
+        }
+        "bíceps" -> {
+            when {
+                normalizedHead.contains("larga") ->
+                    "La cabeza larga (biarticular) se enfatiza al colocar el hombro en extensión (ej. curl en banco inclinado), lo que la sitúa en una posición de mayor preestiramiento."
+                normalizedHead.contains("corta") ->
+                    "La cabeza corta se enfatiza cuando el hombro está flexionado (ej. curl predicador o curl araña), lo que reduce el preestiramiento de la cabeza larga e incrementa el estímulo relativo en la porción interna."
+                normalizedHead.contains("braquial") ->
+                    "El braquial y braquiorradial se enfatizan usando agarres neutros o pronos (ej. curl martillo o curl invertido), donde disminuye la ventaja mecánica de las cabezas del bíceps."
+                else ->
+                    "El flexor del codo incluye la cabeza larga, corta y el músculo braquial. Modificar la posición del hombro respecto al torso o cambiar la orientación del agarre altera la ventaja mecánica de cada porción."
+            }
+        }
+        "tríceps" -> {
+            when {
+                normalizedHead.contains("larga") ->
+                    "La cabeza larga es la única biarticular del tríceps. Se enfatiza mediante la flexión del hombro (brazo elevado sobre la cabeza, ej. copas de tríceps o extensiones tras nuca), colocándola en una posición de estiramiento máximo."
+                normalizedHead.contains("lateral") ->
+                    "La cabeza lateral se enfatiza con el brazo al costado del cuerpo y agarre prono o neutro (ej. extensiones en polea alta con cuerda o barra V)."
+                normalizedHead.contains("medial") ->
+                    "La cabeza medial es el caballo de batalla del tríceps, activa en todos los movimientos de extensión, siendo especialmente demandada al final del rango en el bloqueo del codo."
+                else ->
+                    "El tríceps tiene cabezas lateral, medial y larga. Dado que solo la cabeza larga cruza la articulación del hombro, elevar el brazo por encima de la cabeza es indispensable para estirarla y enfatizarla."
+            }
+        }
+        "antebrazo" -> {
+            when {
+                normalizedHead.contains("flexores") ->
+                    "Los flexores se enfatizan mediante movimientos de flexión de muñeca (palma hacia el antebrazo) bajo resistencia."
+                normalizedHead.contains("extensores") ->
+                    "Los extensores se enfatizan mediante la extensión de muñeca (dorso de la mano hacia el antebrazo)."
+                else ->
+                    "El antebrazo se divide principalmente en extensores y flexores. Cambiar la orientación del agarre de la barra (prono o supino) redirige el estímulo y la tensión mecánica a cada grupo."
+            }
+        }
+        else -> ""
     }
 }
 

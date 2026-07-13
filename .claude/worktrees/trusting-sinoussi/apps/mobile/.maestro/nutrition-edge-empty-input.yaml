@@ -1,0 +1,15 @@
+appId: com.yourprime.app
+---
+# Flujo: Intentar analizar con input vacío muestra error
+- launchApp:
+    clearState: true
+- tapOn:
+    text: "Nutrición"
+# El botón debería estar deshabilitado con input vacío, pero intentemos tocar
+- tapOn:
+    id: "nutrition-analyze-button"
+# No debería aparecer "calorías aproximadas"
+- assertNotVisible: "calorías aproximadas"
+# Tampoco debería mostrar error porque el botón está disabled
+# Verificar que seguimos en el estado inicial
+- assertVisible: "Aquí aparecerá el total cuando analicemos la comida"

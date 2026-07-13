@@ -282,7 +282,7 @@ object TrainingEnergyEngine {
                 totalSetCount++
                 if (plannedRpe >= 5.0) {
                     val rpeMult = AugeFatigueEngine.calculateRpeMultiplier(plannedRpe)
-                    val fallbackExternalLoad = (userWeight ?: 70.0) * 0.35
+                    val fallbackExternalLoad = 0.0
                     val plannedWeight = plannedSet.weight ?: fallbackExternalLoad
                     val plannedReps = plannedSet.targetReps?.toDouble() ?: 0.0
                     if (plannedSet.weight == null) {

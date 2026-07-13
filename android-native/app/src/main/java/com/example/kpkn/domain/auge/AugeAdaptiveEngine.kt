@@ -79,22 +79,90 @@ object AugeAdaptiveEngine {
     fun updateSystemLearningDeltas(
         currentCnsDelta: Double,
         currentSpinalDelta: Double,
-        systemAdjustment: Int,
-        structureAdjustment: Int,
+        systemAdjustment: Int?,
+        structureAdjustment: Int?,
         totalObservations: Int,
     ): Pair<Double, Double> {
         val samples = (totalObservations + 1).coerceAtLeast(1).toDouble()
         val alpha = max(0.15, min(0.5, 1.0 / samples))
 
-        val cnsSignal = systemAdjustment.toDouble()
-        val spinalSignal = structureAdjustment.toDouble()
+        val newCns = if (systemAdjustment != null) {
+            currentCnsDelta * (1.0 - alpha) + systemAdjustment.toDouble() * alpha
+        } else {
+            currentCnsDelta
+        }
 
-        val newCns = currentCnsDelta * (1.0 - alpha) + cnsSignal * alpha
-        val newSpinal = currentSpinalDelta * (1.0 - alpha) + spinalSignal * alpha
+        val newSpinal = if (structureAdjustment != null) {
+            currentSpinalDelta * (1.0 - alpha) + structureAdjustment.toDouble() * alpha
+        } else {
+            currentSpinalDelta
+        }
 
         return Pair(
             clamp(newCns, -50.0, 50.0),
             clamp(newSpinal, -50.0, 50.0),
+        )
+    }
+
+    /**
+     * Updates drain resistance multipliers using the relationship between predicted drain and actual drain.
+     * Ratio = Actual Drain / Predicted Drain. Modulates muscle and system drain costs.
+     */
+    fun updateDrainMultipliers(
+        currentCnsMult: Double,
+        currentSpinalMult: Double,
+        currentMuscleMults: Map<String, Double>,
+        manualNeural: Int?,
+        manualSpinal: Int?,
+        manualMuscleBatteries: Map<String, Int>,
+        predictedNeural: Int?,
+        predictedSpinal: Int?,
+        predictedMuscleBatteries: Map<String, Int>,
+        preWorkoutNeural: Int,
+        preWorkoutSpinal: Int,
+        preWorkoutMuscleBatteries: Map<String, Int>,
+        totalObservations: Int,
+    ): Triple<Double, Double, Map<String, Double>> {
+        val samples = (totalObservations + 1).coerceAtLeast(1).toDouble()
+        val alpha = max(0.15, min(0.5, 1.0 / samples))
+
+        val newCnsMult = if (manualNeural != null && predictedNeural != null && preWorkoutNeural > predictedNeural) {
+            val predictedDrain = (preWorkoutNeural - predictedNeural).toDouble().coerceAtLeast(1.0)
+            val actualDrain = (preWorkoutNeural - manualNeural).toDouble().coerceAtLeast(1.0)
+            val ratio = (actualDrain / predictedDrain).coerceIn(0.2, 2.5)
+            currentCnsMult * (1.0 - alpha) + ratio * alpha
+        } else {
+            currentCnsMult
+        }
+
+        val newSpinalMult = if (manualSpinal != null && predictedSpinal != null && preWorkoutSpinal > predictedSpinal) {
+            val predictedDrain = (preWorkoutSpinal - predictedSpinal).toDouble().coerceAtLeast(1.0)
+            val actualDrain = (preWorkoutSpinal - manualSpinal).toDouble().coerceAtLeast(1.0)
+            val ratio = (actualDrain / predictedDrain).coerceIn(0.2, 2.5)
+            currentSpinalMult * (1.0 - alpha) + ratio * alpha
+        } else {
+            currentSpinalMult
+        }
+
+        val updatedMuscleMults = currentMuscleMults.toMutableMap()
+        for ((muscle, manualValue) in manualMuscleBatteries) {
+            val muscleKey = muscle.lowercase().trim()
+            val predicted = predictedMuscleBatteries[muscle] ?: predictedMuscleBatteries[muscleKey]
+            val preWorkout = preWorkoutMuscleBatteries[muscle] ?: preWorkoutMuscleBatteries[muscleKey] ?: 100
+            
+            if (predicted != null && preWorkout > predicted) {
+                val predictedDrain = (preWorkout - predicted).toDouble().coerceAtLeast(1.0)
+                val actualDrain = (preWorkout - manualValue).toDouble().coerceAtLeast(1.0)
+                val ratio = (actualDrain / predictedDrain).coerceIn(0.2, 2.5)
+                val currentMult = currentMuscleMults[muscleKey] ?: 1.0
+                updatedMuscleMults[muscleKey] = clamp(currentMult * (1.0 - alpha) + ratio * alpha, 0.2, 2.5)
+            }
+        }
+
+        return Triple(
+            clamp(newCnsMult, 0.2, 2.5),
+            clamp(newSpinalMult, 0.2, 2.5),
+            updatedMuscleMults
         )
     }
 

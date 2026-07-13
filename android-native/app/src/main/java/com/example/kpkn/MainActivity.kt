@@ -1151,7 +1151,6 @@ private fun KPKNNavGraph(
                 onNavigateToMovementPatterns = { navController.navigate(KpknRoute.WikiLabMovementPatterns.route) },
                 onNavigateToBiomechanics = { navController.navigate(KpknRoute.WikiLabBiomechanics.route) },
                 onNavigateToConcepts = { navController.navigate(KpknRoute.WikiLabConcepts.route) },
-                onNavigateToLearn = { navController.navigate(KpknRoute.Learn.route) },
                 onNavigateToExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
                 onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
                 onNavigateToChain = { navController.navigate(KpknRoute.WikiLabChainDetail.create(it)) },

@@ -1,24 +1,5 @@
 [
   {
-    "id": "id: string",
-    "name": "name: string",
-    "description": "desc: string",
-    "involvedMuscles": [],
-    "category": "category: ExerciseMuscleInfo['category']",
-    "type": "type: ExerciseMuscleInfo['type']",
-    "equipment": "equipment: ExerciseMuscleInfo['equipment']",
-    "force": "force: ExerciseMuscleInfo['force']",
-    "bodyPart": "bodyPart: 'upper' | 'lower' | 'full' = 'lower'",
-    "chain": "full",
-    "efc": 0,
-    "cnc": 0,
-    "ssc": 0,
-    "ttc": 0,
-    "movementPattern": "movementPattern?: string",
-    "executionOptions": null,
-    "subMuscleGroup": "subMuscleGroup?: string"
-  },
-  {
     "id": "tren_inferior_sentadilla_barra_alta",
     "name": "Sentadilla Trasera Barra Alta",
     "description": "Sentadilla con barra en posición alta sobre trapecios. Permite torso más erguido y menor inclinación que la barra baja. Énfasis en cuádriceps con participación de glúteos e isquios.",
@@ -20816,5 +20797,128 @@
     "movementPattern": "Core",
     "executionOptions": null,
     "subMuscleGroup": "Core"
+  },
+  {
+    "id": "tren_superior_press_inclinado_maquina_convergente",
+    "name": "Press Inclinado en Máquina Convergente",
+    "description": "Press de pecho inclinado en máquina con brazos convergentes.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pectorales",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "clavicular"
+      },
+      {
+        "muscle": "Deltoides",
+        "role": "secondary",
+        "activation": 0.5,
+        "emphasis": "anterior"
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Básico",
+    "equipment": "Máquina",
+    "force": "Empuje",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 2.2,
+    "cnc": 1.8,
+    "ssc": 0.1,
+    "ttc": 1.5,
+    "movementPattern": "Empuje Vertical"
+  },
+  {
+    "id": "tren_superior_press_inclinado_smith",
+    "name": "Press Inclinado en Smith",
+    "description": "Press de pecho inclinado en máquina smith.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pectorales",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "clavicular"
+      },
+      {
+        "muscle": "Deltoides",
+        "role": "secondary",
+        "activation": 0.5,
+        "emphasis": "anterior"
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Básico",
+    "equipment": "Máquina Smith",
+    "force": "Empuje",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 2.2,
+    "cnc": 1.8,
+    "ssc": 0.1,
+    "ttc": 1.5,
+    "movementPattern": "Empuje Vertical"
+  },
+  {
+    "id": "tren_inferior_sentadilla_sissy",
+    "name": "Sentadilla Sissy",
+    "description": "Aislamiento de cuádriceps con peso corporal.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "recto femoral"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Extensión",
+    "bodyPart": "lower",
+    "chain": "anterior",
+    "efc": 2.5,
+    "cnc": 2.0,
+    "ssc": 0.0,
+    "ttc": 1.0,
+    "movementPattern": "Sentadilla"
+  },
+  {
+    "id": "tren_inferior_hip_thrust_pie_elevado",
+    "name": "Hip Thrust con Pie Elevado",
+    "description": "Hip thrust con el pie de apoyo elevado sobre un banco o cajón para aumentar el rango de movimiento.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Extensión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 2.2,
+    "cnc": 1.8,
+    "ssc": 0.1,
+    "ttc": 1.5,
+    "movementPattern": "Extensión de Cadera"
   }
 ]

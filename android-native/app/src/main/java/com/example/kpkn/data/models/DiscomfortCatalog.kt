@@ -91,7 +91,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en zona baja de la espalda asociada a bisagra o compresión.",
         section = DiscomfortSection.SPINE_NECK,
         relatedMuscles = listOf("Erectores Espinales", "Core"),
-        relatedArticular = listOf(ArticularBattery.HIP, ArticularBattery.CERVICAL),
+        relatedArticular = listOf(ArticularBattery.HIP, ArticularBattery.LUMBAR),
     ),
     DiscomfortCatalogEntry(
         id = "hip_front",

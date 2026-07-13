@@ -49,6 +49,9 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -96,17 +99,23 @@ fun JointDetailScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        containerColor = Color.Black,
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
                 title = {
                     Column {
-                        Text(joint.name, fontWeight = FontWeight.Black)
+                        Text(
+                            joint.name,
+                            fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White,
+                        )
                         Surface(shape = RoundedCornerShape(8.dp), color = Color(0xFF1E88E5).copy(alpha = 0.12f)) {
                             Text(
                                 typeLabel,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF1E88E5),
                             )
@@ -115,9 +124,15 @@ fun JointDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver")
+                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = Color.Black,
+                    scrolledContainerColor = Color.Black,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                ),
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -125,6 +140,7 @@ fun JointDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Black)
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -132,9 +148,11 @@ fun JointDetailScreen(
             item {
                 Text(
                     joint.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 20.sp,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White.copy(alpha = 0.9f),
+                    ),
+                    lineHeight = 22.sp,
                 )
             }
 
@@ -224,8 +242,9 @@ private fun JointEntitiesCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -233,10 +252,10 @@ private fun JointEntitiesCard(
             Spacer(Modifier.width(6.dp))
             Text(
                 title,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = (0.1f).sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.5f),
             )
         }
         Spacer(Modifier.height(8.dp))
@@ -251,9 +270,9 @@ private fun JointEntitiesCard(
                 Surface(Modifier.size(8.dp), RoundedCornerShape(50), color) {}
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Text(name, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif, color = Color.White), fontWeight = FontWeight.SemiBold)
                     if (subtitle.isNotEmpty()) {
-                        Text(subtitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(subtitle, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.5f))
                     }
                 }
                 Icon(Icons.Default.ChevronRight, null, Modifier.size(16.dp), tint = color.copy(alpha = 0.4f))
@@ -265,15 +284,16 @@ private fun JointEntitiesCard(
 @Composable
 private fun JointSchematicVisual(type: String) {
     val accentColor = Color(0xFF1E88E5)
-    val secondaryColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-    val surfaceColor = MaterialTheme.colorScheme.surface
+    val secondaryColor = Color.White.copy(alpha = 0.2f)
+    val surfaceColor = Color.Transparent
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(160.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow),
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center,
     ) {
         Canvas(modifier = Modifier.size(120.dp)) {
@@ -363,8 +383,9 @@ private fun InjuriesCard(injuries: List<InjuryInfo>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -372,40 +393,40 @@ private fun InjuriesCard(injuries: List<InjuryInfo>) {
             Spacer(Modifier.width(6.dp))
             Text(
                 "LESIONES COMUNES",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = (0.1f).sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.5f),
             )
         }
         Spacer(Modifier.height(8.dp))
 
         injuries.forEachIndexed { i, injury ->
             Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                Text(injury.name, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color(0xFFE53935))
+                Text(injury.name, style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color(0xFFE53935))
                 injury.description?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 18.sp)
+                    Text(it, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.7f), lineHeight = 18.sp)
                 }
                 injury.contraindications?.let { contra ->
                     if (contra.isNotEmpty()) {
                         Spacer(Modifier.height(4.dp))
-                        Text("Contraindicaciones:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color(0xFFE53935))
+                        Text("Contraindicaciones:", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color(0xFFE53935))
                         contra.forEach { c ->
-                            Text("- $c", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("- $c", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.7f))
                         }
                     }
                 }
                 injury.returnProgressions?.let { progs ->
                     if (progs.isNotEmpty()) {
                         Spacer(Modifier.height(4.dp))
-                        Text("Progresion de retorno:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color(0xFF43A047))
+                        Text("Progresion de retorno:", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color(0xFF43A047))
                         progs.forEachIndexed { j, p ->
-                            Text("${j + 1}. $p", style = MaterialTheme.typography.labelSmall, color = Color(0xFF43A047))
+                            Text("${j + 1}. $p", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), color = Color(0xFF43A047))
                         }
                     }
                 }
             }
-            if (i < injuries.size - 1) HorizontalDivider(Modifier.padding(vertical = 6.dp))
+            if (i < injuries.size - 1) HorizontalDivider(Modifier.padding(vertical = 6.dp), color = Color(0xFF1E1E1E))
         }
     }
 }

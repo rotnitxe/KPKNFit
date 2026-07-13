@@ -1,0 +1,170 @@
+apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "com.facebook.react"
+
+/**
+ * This is the configuration block to customize your React Native Android app.
+ * By default you don't need to apply any configuration, just uncomment the lines you need.
+ */
+react {
+    /* Folders */
+    //   The root of your project, i.e. where "package.json" lives. Default is '../..'
+    root = file("../..")
+    reactNativeDir = file("../../../../node_modules/react-native")
+    codegenDir = file("../../../../node_modules/@react-native/codegen")
+    cliFile = file("../../../../node_modules/react-native/cli.js")
+
+    /* Variants */
+    //   The list of variants to that are debuggable. For those we're going to
+    //   skip the bundling of the JS bundle and the assets. Default is "debug", "debugOptimized".
+    //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
+    // debuggableVariants = ["liteDebug", "liteDebugOptimized", "prodDebug", "prodDebugOptimized"]
+    // Keep regular debug on Metro, but bundle JS for offline validation builds.
+    debuggableVariants = ["debug", "debugOptimized"]
+
+    /* Bundling */
+    //   A list containing the node command and its flags. Default is just 'node'.
+    // nodeExecutableAndArgs = ["node"]
+    //
+    //   The command to run when bundling. By default is 'bundle'
+    // bundleCommand = "ram-bundle"
+    //
+    //   The path to the CLI configuration file. Default is empty.
+    // bundleConfig = file(../rn-cli.config.js)
+    //
+    //   The name of the generated asset file containing your JS bundle
+    // bundleAssetName = "MyApplication.android.bundle"
+    //
+    //   The entry file for bundle generation. Default is 'index.android.js' or 'index.js'
+    // entryFile = file("../js/MyApplication.android.js")
+    //
+    //   A list of extra flags to pass to the 'bundle' commands.
+    //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
+    // extraPackagerArgs = []
+
+/* Hermes Commands */
+// The hermes compiler command to run. By default it is 'hermesc'
+// hermesFlags = ["-O", "-output-source-map"]
+
+    // Hermes compiler — resolve per-platform from hermes-compiler package
+    def hermescDir = file("../../../../node_modules/hermes-compiler/hermesc")
+    def osName = System.getProperty("os.name").toLowerCase()
+    if (osName.contains("win")) {
+        // Use Windows short-path (8.3) names to avoid issues with special characters
+        // (parentheses, spaces) in directory names when Gradle shells out via cmd.exe.
+        def longPath = new File(hermescDir, "win64-bin/hermesc.exe").absolutePath
+        def proc = ["cmd", "/c", "for %I in (\"${longPath}\") do @echo %~sI"].execute()
+        proc.waitFor()
+        def shortPath = proc.text.trim()
+        hermesCommand = shortPath ?: longPath
+    } else if (osName.contains("mac") || osName.contains("darwin")) {
+        hermesCommand = new File(hermescDir, "osx-bin/hermesc").absolutePath
+    } else {
+        hermesCommand = new File(hermescDir, "linux64-bin/hermesc").absolutePath
+    }
+
+    /* Autolinking */
+    autolinkLibrariesWithApp()
+}
+
+/**
+* Set this to true to Run Proguard on Release builds to minify the Java bytecode.
+*/
+def enableProguardInReleaseBuilds = true
+
+/**
+ * The preferred build flavor of JavaScriptCore (JSC)
+ *
+ * For example, to use the international variant, you can use:
+ * `def jscFlavor = io.github.react-native-community:jsc-android-intl:2026004.+`
+ *
+ * The international variant includes ICU i18n library and necessary data
+ * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
+ * give correct results when using with locales other than en-US. Note that
+ * this variant is about 6MiB larger per architecture than default.
+ */
+def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
+
+android {
+    ndkVersion rootProject.ext.ndkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdk rootProject.ext.compileSdkVersion
+    assetPacks = [':kpknLocalAiPack']
+
+    // Redirect CMake/.cxx intermediates to a short path to avoid Windows issues
+    // with parentheses and long paths in the project directory name.
+    externalNativeBuild {
+        cmake {
+            buildStagingDirectory = file("C:/tmp/rn-cxx")
+        }
+    }
+
+    namespace "com.yourprime.app"
+    defaultConfig {
+        applicationId "com.yourprime.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+	versionCode 100000 // 1.0.0 → major*100000 + minor*1000 + patch
+	versionName "1.0.0"
+    }
+    sourceSets {
+        main {
+            assets.srcDirs = ['src/main/assets', '../../../../android/app/src/main/assets']
+        }
+    }
+	signingConfigs {
+		debug {
+			storeFile file('debug.keystore')
+			storePassword 'android'
+			keyAlias 'androiddebugkey'
+			keyPassword 'android'
+		}
+		release {
+			if (project.hasProperty('KPKN_RELEASE_STORE_FILE')) {
+				storeFile file(KPKN_RELEASE_STORE_FILE)
+				storePassword KPKN_RELEASE_STORE_PASSWORD
+				keyAlias KPKN_RELEASE_KEY_ALIAS
+				keyPassword KPKN_RELEASE_KEY_PASSWORD
+			} else {
+				// Fall back to debug signing for local dev builds
+				storeFile file('debug.keystore')
+				storePassword 'android'
+				keyAlias 'androiddebugkey'
+				keyPassword 'android'
+			}
+		}
+	}
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            manifestPlaceholders = [usesCleartextTraffic: "true"]
+        }
+        offlineDebug {
+            initWith debug
+            matchingFallbacks = ['debug']
+            signingConfig signingConfigs.debug
+            manifestPlaceholders = [usesCleartextTraffic: "false"]
+        }
+		release {
+			signingConfig signingConfigs.release
+			manifestPlaceholders = [usesCleartextTraffic: "false"]
+			minifyEnabled false
+			proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+		}
+    }
+}
+
+dependencies {
+    // The version of react-native is set by the React Native Gradle Plugin
+    implementation("com.facebook.react:react-android")
+    implementation("androidx.work:work-runtime:2.10.1")
+    implementation("com.google.guava:guava:33.4.8-android")
+    implementation("com.google.android.play:asset-delivery:2.3.0")
+    implementation("com.google.mediapipe:tasks-genai:0.10.27")
+
+    if (hermesEnabled.toBoolean()) {
+        implementation("com.facebook.react:hermes-android")
+    } else {
+        implementation jscFlavor
+    }
+}

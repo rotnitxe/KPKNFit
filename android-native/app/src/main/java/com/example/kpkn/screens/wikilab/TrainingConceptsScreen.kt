@@ -2,6 +2,8 @@ package com.example.kpkn.screens.wikilab
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -52,18 +55,26 @@ fun TrainingConceptsScreen(
     }
 
     Scaffold(
+        containerColor = Color.Black,
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Conceptos Clave", fontWeight = FontWeight.Black)
+                    Text(
+                        "Conceptos Clave",
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White,
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver")
+                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = Color.Black,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
                 ),
             )
         },
@@ -71,6 +82,7 @@ fun TrainingConceptsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Black)
                 .padding(padding),
             contentPadding = PaddingValues(bottom = 164.dp),
         ) {
@@ -84,7 +96,7 @@ fun TrainingConceptsScreen(
                                 colors = listOf(
                                     Color(0xFF101317),
                                     Color(0xFF181C22),
-                                    MaterialTheme.colorScheme.surface,
+                                    Color.Black,
                                 )
                             )
                         )
@@ -93,13 +105,13 @@ fun TrainingConceptsScreen(
                     Column {
                         Text(
                             "Conceptos clave",
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif),
                             fontWeight = FontWeight.Black,
                             color = Color.White,
                         )
                         Text(
                             "${TRAINING_CONCEPTS_DATABASE.size} conceptos fundamentales del entrenamiento.",
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
                             color = Color.White.copy(alpha = 0.7f),
                         )
 
@@ -191,8 +203,8 @@ fun TrainingConceptsScreen(
             item {
                 Text(
                     "${filtered.size} conceptos",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                    color = Color.White.copy(alpha = 0.5f),
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
                 )
             }
@@ -212,7 +224,7 @@ fun TrainingConceptsScreen(
                         Spacer(Modifier.width(8.dp))
                         Text(
                             category.label.uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                             fontWeight = FontWeight.ExtraBold,
                             letterSpacing = 1.sp,
                             color = category.color,
@@ -243,9 +255,10 @@ private fun ConceptListCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = Color(0xFF121212),
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
+        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -260,7 +273,7 @@ private fun ConceptListCard(
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         concept.name.first().toString(),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
                         fontWeight = FontWeight.Black,
                         color = concept.category.color,
                     )
@@ -272,16 +285,17 @@ private fun ConceptListCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     concept.name,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
                     fontWeight = FontWeight.Bold,
+                    color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
                     concept.shortDescription,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+                    color = Color.White.copy(alpha = 0.7f),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 16.sp,
@@ -318,9 +332,9 @@ fun ConceptDetailScreen(
     if (concept == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.SearchOff, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(Icons.Default.SearchOff, null, Modifier.size(48.dp), tint = Color.White.copy(alpha = 0.5f))
                 Spacer(Modifier.height(8.dp))
-                Text("Concepto no encontrado", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Concepto no encontrado", style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.5f))
             }
         }
         return
@@ -334,6 +348,7 @@ fun ConceptDetailScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        containerColor = Color.Black,
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
@@ -342,6 +357,7 @@ fun ConceptDetailScreen(
                         Text(
                             concept.name,
                             fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.Serif,
                             color = concept.category.color,
                         )
                         Surface(
@@ -351,7 +367,7 @@ fun ConceptDetailScreen(
                             Text(
                                 concept.category.label,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                                 fontWeight = FontWeight.Bold,
                                 color = concept.category.color,
                             )
@@ -360,12 +376,14 @@ fun ConceptDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver")
+                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    containerColor = Color.Black,
+                    scrolledContainerColor = Color.Black,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
                 ),
                 scrollBehavior = scrollBehavior,
             )
@@ -374,6 +392,7 @@ fun ConceptDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Black)
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -383,8 +402,10 @@ fun ConceptDetailScreen(
                 Column {
                     Text(
                         concept.shortDescription,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White.copy(alpha = 0.9f)
+                        ),
                         lineHeight = 22.sp,
                     )
                 }
@@ -593,7 +614,8 @@ private fun WikiSection(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(16.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -606,10 +628,10 @@ private fun WikiSection(
             Spacer(Modifier.width(7.dp))
             Text(
                 title,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 0.8.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.5f),
             )
         }
         Spacer(Modifier.height(10.dp))

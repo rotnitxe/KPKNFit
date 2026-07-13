@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -18,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -73,17 +76,30 @@ fun MuscleCategoryScreen(
     }
 
     Scaffold(
+        containerColor = Color.Black,
         topBar = {
             TopAppBar(
-                title = { Text("Atlas Anatómico", fontWeight = FontWeight.Black) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Volver") }
+                title = {
+                    Text(
+                        "Atlas Anatómico",
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White,
+                    )
                 },
+                navigationIcon = {
+                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White) }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Black,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                ),
             )
         },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize().background(Color.Black).padding(padding),
             contentPadding = PaddingValues(bottom = 164.dp),
         ) {
             // ─── Hero ────────────────────────────────────────────────────
@@ -93,17 +109,22 @@ fun MuscleCategoryScreen(
                         .fillMaxWidth()
                         .background(
                             Brush.verticalGradient(
-                                listOf(Color(0xFF1B2027).copy(alpha = 0.10f), Color.Transparent)
+                                listOf(Color(0xFF1B2027), Color.Black)
                             )
                         )
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Atlas anatómico", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                        Text(
+                            "Atlas anatómico",
+                            style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif),
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                        )
                         Text(
                             "${canonicalMuscles.size} grupos musculares con funciones y referencias de volumen.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+                            color = Color.White.copy(alpha = 0.7f),
                         )
 
                         Spacer(Modifier.height(12.dp))
@@ -112,7 +133,7 @@ fun MuscleCategoryScreen(
                             value = query,
                             onValueChange = { query = it },
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("Buscar músculo...") },
+                            placeholder = { Text("Buscar músculo...", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif)) },
                             leadingIcon = { Icon(Icons.Default.Search, null) },
                             trailingIcon = {
                                 if (query.isNotEmpty()) {
@@ -121,6 +142,13 @@ fun MuscleCategoryScreen(
                             },
                             singleLine = true,
                             shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedBorderColor = Color.White.copy(alpha = 0.4f),
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                                cursorColor = Color.White,
+                            ),
                         )
                     }
                 }
@@ -139,7 +167,8 @@ fun MuscleCategoryScreen(
                             Card(
                                 modifier = Modifier.widthIn(min = 148.dp),
                                 shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = bp.color.copy(alpha = 0.08f)),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
+                                border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
                             ) {
                                 Column(
                                     modifier = Modifier.padding(10.dp),
@@ -147,14 +176,14 @@ fun MuscleCategoryScreen(
                                 ) {
                                     Text(
                                         "$count",
-                                        style = MaterialTheme.typography.titleMedium,
+                                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
                                         fontWeight = FontWeight.Black,
                                         color = bp.color,
                                     )
                                     Text(
                                         bp.label,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                                        color = Color.White.copy(alpha = 0.7f),
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
                                     )
@@ -178,7 +207,7 @@ fun MuscleCategoryScreen(
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 bp.label.uppercase(),
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                                 fontWeight = FontWeight.ExtraBold,
                                 letterSpacing = 1.sp,
                                 color = bp.color,
@@ -186,8 +215,8 @@ fun MuscleCategoryScreen(
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 "${musclesInPart.size} músculos",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                                color = Color.White.copy(alpha = 0.5f),
                             )
                         }
                     }
@@ -221,8 +250,9 @@ private fun MuscleAtlasCard(
             .padding(horizontal = 16.dp, vertical = 3.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
+        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -244,13 +274,14 @@ private fun MuscleAtlasCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     muscle.name,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif),
                     fontWeight = FontWeight.Bold,
+                    color = Color.White,
                 )
                 Text(
                     muscle.description.take(70) + if (muscle.description.length > 70) "..." else "",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+                    color = Color.White.copy(alpha = 0.7f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -268,14 +299,14 @@ private fun MuscleAtlasCard(
                     ) {
                         Text(
                             muscle.mev!!,
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Serif),
                             fontWeight = FontWeight.Black,
                             color = color,
                         )
                         Text(
                             "series",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                            color = Color.White.copy(alpha = 0.5f),
                         )
                     }
                 }

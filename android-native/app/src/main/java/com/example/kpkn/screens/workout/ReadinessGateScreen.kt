@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.workout
 
+import androidx.compose.runtime.mutableStateListOf
+import com.example.kpkn.screens.workout.components.PreWorkoutDiscomfortSelector
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -163,6 +166,7 @@ fun ReadinessGateScreen(
     var muscular by rememberSaveable(programId, sessionId) { mutableIntStateOf(muscularAuto.coerceIn(0, 100)) }
     var spinal by rememberSaveable(programId, sessionId) { mutableIntStateOf(spinalAuto.coerceIn(0, 100)) }
     val muscleAdjustments = remember(programId, sessionId) { mutableStateMapOf<String, Int>() }
+    val selectedDiscomforts = remember(programId, sessionId) { mutableStateListOf<String>() }
 
     LaunchedEffect(isLoading, todayWellbeing, neuralAuto, muscularAuto, spinalAuto, sessionMuscleBatteries, initialized) {
         if (!isLoading && !initialized) {
@@ -173,6 +177,8 @@ fun ReadinessGateScreen(
             sessionMuscleBatteries.forEach { (muscleId, autoValue) ->
                 muscleAdjustments[muscleId] = autoValue.coerceIn(0, 100)
             }
+            selectedDiscomforts.clear()
+            selectedDiscomforts.addAll(todayWellbeing?.preWorkoutDiscomforts ?: emptyList())
             initialized = true
         } else if (initialized) {
             if (!userEditedNeural) {
@@ -384,6 +390,14 @@ fun ReadinessGateScreen(
                     }
                 }
 
+                PreWorkoutDiscomfortSelector(
+                    selectedDiscomforts = selectedDiscomforts,
+                    onDiscomfortsChanged = { list ->
+                        selectedDiscomforts.clear()
+                        selectedDiscomforts.addAll(list)
+                    }
+                )
+
                 Button(
                     onClick = {
                         val base = todayWellbeing
@@ -403,6 +417,7 @@ fun ReadinessGateScreen(
                             manualSpinalBattery = spinal,
                             manualMuscleBatteries = muscleAdjustments.toMap(),
                             notes = base?.notes,
+                            preWorkoutDiscomforts = selectedDiscomforts.toList(),
                         )
 
                         augeViewModel.saveWellbeing(log)

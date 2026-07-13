@@ -18,7 +18,7 @@ class WorkoutV2ModelsTest {
             unitMode = UnitModeV2.REPS,
         )
 
-        assertEquals("bench-press|Matrix|inclinado|LOAD|REPS", key)
+        assertEquals("bench-press|Matrix|inclinado|na|LOAD|REPS", key)
     }
 
     @Test
@@ -31,6 +31,6 @@ class WorkoutV2ModelsTest {
             unitMode = UnitModeV2.TIME,
         )
 
-        assertEquals("unknown|na|na|ASSISTED|TIME", key)
+        assertEquals("unknown|na|na|na|ASSISTED|TIME", key)
     }
 }

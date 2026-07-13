@@ -327,6 +327,9 @@ object AugeFatigueEngine {
         accumulatedSets: Int = 0,
         restTime: Int = 90,
         densityMultiplier: Double = 1.0,
+        cnsMultiplier: Double = 1.0,
+        spinalMultiplier: Double = 1.0,
+        muscleMultiplier: Double = 1.0,
     ): SetDrain {
         if (set.skipped) return SetDrain(cnsDrainPct = 0.0, muscularDrainPct = 0.0, spinalDrainPct = 0.0)
         val rpe = getEffectiveRPE(set)
@@ -399,13 +402,13 @@ object AugeFatigueEngine {
 
         val rawMuscular =
             metrics.efc * repsFactor * rpeMult * setProgressiveMult * localRestMult * muscularBias *
-                techniqueFactor * muscularDensityMult * (1.0 + (nearRmMult - 1.0) * 0.35) * 1.85 * assistedMultiplier
+                techniqueFactor * muscularDensityMult * (1.0 + (nearRmMult - 1.0) * 0.35) * 1.85 * assistedMultiplier * muscleMultiplier
         val rawCns =
             metrics.cnc * repsFactor * rpeMult * setProgressiveMult * systemRestMult * systemBias *
-                techniqueFactor * systemDensityMult * nearRmMult * 1.15 * assistedMultiplier
+                techniqueFactor * systemDensityMult * nearRmMult * 1.15 * assistedMultiplier * cnsMultiplier
         val rawSpinal =
             metrics.ssc * repsFactor * rpeMult * setProgressiveMult * structureRestMult * structureBias * loadFactor *
-                techniqueFactor * structureDensityMult * (1.0 + (nearRmMult - 1.0) * 1.20) * 5.2 * assistedMultiplier
+                techniqueFactor * structureDensityMult * (1.0 + (nearRmMult - 1.0) * 1.20) * 5.2 * assistedMultiplier * spinalMultiplier
 
         return SetDrain(
             muscularDrainPct = (rawMuscular / tanks.muscular * 100).coerceIn(0.0, 100.0),
@@ -427,6 +430,7 @@ object AugeFatigueEngine {
         completedExercises: List<CompletedExercise>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         settings: Settings = Settings(),
+        adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
     ): PredictedDrain {
         val tanks = calculatePersonalizedBatteryTanks(settings)
         val floor = physiologicalFloor(settings)
@@ -465,6 +469,8 @@ object AugeFatigueEngine {
                 ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
                 ?: "Core"
             var accumulated = muscleVolumeMap[primaryMuscle] ?: 0
+            val muscleKey = primaryMuscle.lowercase().trim()
+            val muscleMult = adaptiveCache.muscleDrainMultipliers[muscleKey] ?: 1.0
 
             ex.sets.forEach { s ->
                 if (!isSetEffective(s)) return@forEach
@@ -476,6 +482,9 @@ object AugeFatigueEngine {
                     accumulatedSets = accumulated,
                     restTime = ex.restTime,
                     densityMultiplier = densityMult,
+                    cnsMultiplier = adaptiveCache.cnsDrainMultiplier,
+                    spinalMultiplier = adaptiveCache.spinalDrainMultiplier,
+                    muscleMultiplier = muscleMult,
                 )
                 val diminishingFactor = 1.0 / (1.0 + decayK * (accumulatedDrain / 100.0))
                 val adjustedMuscular = drain.muscularDrainPct * conservationFactor * diminishingFactor
@@ -509,11 +518,13 @@ object AugeFatigueEngine {
         completedExercises: List<CompletedExercise>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         settings: Settings = Settings(),
+        adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
     ): Double {
         val summary = calculateCompletedSessionDrain(
             completedExercises = completedExercises,
             exerciseDb = exerciseDb,
             settings = settings,
+            adaptiveCache = adaptiveCache,
         )
         return (summary.cns * 0.45) + (summary.muscular * 0.25) + (summary.spinal * 0.30)
     }
@@ -531,6 +542,7 @@ object AugeFatigueEngine {
         session: Session,
         exerciseDb: Map<String, ExerciseMuscleInfo>,
         settings: Settings,
+        adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
     ): PredictedDrain {
         val tanks = calculatePersonalizedBatteryTanks(settings)
         val conservationFactor = 0.85
@@ -566,6 +578,8 @@ object AugeFatigueEngine {
                 ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
                 ?: "Core"
             var accumulated = muscleVolumeMap[primaryMuscle] ?: 0
+            val muscleKey = primaryMuscle.lowercase().trim()
+            val muscleMult = adaptiveCache.muscleDrainMultipliers[muscleKey] ?: 1.0
 
             ex.sets.forEach { s ->
                 if (s.isIneffective) return@forEach
@@ -596,6 +610,9 @@ object AugeFatigueEngine {
                     accumulatedSets = accumulated,
                     restTime = ex.restTime ?: 90,
                     densityMultiplier = densityMult,
+                    cnsMultiplier = adaptiveCache.cnsDrainMultiplier,
+                    spinalMultiplier = adaptiveCache.spinalDrainMultiplier,
+                    muscleMultiplier = muscleMult,
                 )
                 val diminishingFactor = 1.0 / (1.0 + decayK * (accumulatedDrain / 100.0))
                 val adjustedMuscular = rawDrain.muscularDrainPct * conservationFactor * diminishingFactor

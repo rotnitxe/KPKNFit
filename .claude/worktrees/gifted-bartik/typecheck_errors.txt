@@ -1,0 +1,33 @@
+apps/mobile/src/components/exercise/ExerciseListItem.tsx(4,15): error TS2305: Module '"../../types/workout"' has no exported member 'ExerciseCatalogEntry'.
+apps/mobile/src/components/exercise/ExerciseListItem.tsx(18,14): error TS7006: Parameter 'm' implicitly has an 'any' type.
+apps/mobile/src/components/exercise/ExerciseListItem.tsx(19,10): error TS7006: Parameter 'm' implicitly has an 'any' type.
+apps/mobile/src/components/exercise/ExerciseSummaryCard.tsx(3,15): error TS2305: Module '"@/types/workout"' has no exported member 'ExerciseCatalogEntry'.
+apps/mobile/src/components/exercise/ExerciseSummaryCard.tsx(15,14): error TS7006: Parameter 'm' implicitly has an 'any' type.
+apps/mobile/src/components/exercise/ExerciseSummaryCard.tsx(16,10): error TS7006: Parameter 'm' implicitly has an 'any' type.
+apps/mobile/src/components/workout/ExerciseSetRow.tsx(42,50): error TS2339: Property 'performanceMode' does not exist on type 'OngoingSetData | { left: OngoingSetData | null; right: OngoingSetData | null; }'.
+  Property 'performanceMode' does not exist on type 'OngoingSetData'.
+apps/mobile/src/components/workout/ExerciseSetRow.tsx(62,13): error TS2353: Object literal may only specify known properties, and 'performanceMode' does not exist in type 'Partial<OngoingSetData>'.
+apps/mobile/src/components/workout/ModernSetEditor.tsx(39,59): error TS2339: Property 'performanceMode' does not exist on type 'OngoingSetData'.
+apps/mobile/src/components/workout/ModernSetEditor.tsx(39,92): error TS2339: Property 'performanceMode' does not exist on type 'OngoingSetData'.
+apps/mobile/src/components/workout/ModernSetEditor.tsx(50,32): error TS2339: Property 'performanceMode' does not exist on type 'OngoingSetData'.
+apps/mobile/src/components/workout/ModernSetEditor.tsx(68,7): error TS2353: Object literal may only specify known properties, and 'performanceMode' does not exist in type 'OngoingSetData'.
+apps/mobile/src/data/foodTaxonomy.ts(3,15): error TS2305: Module '"../types/workout"' has no exported member 'FoodItem'.
+apps/mobile/src/data/useExerciseSearch.ts(3,15): error TS2305: Module '"../types/workout"' has no exported member 'ExerciseCatalogEntry'.
+apps/mobile/src/screens/Exercise/ExerciseDatabaseScreen.tsx(10,15): error TS2305: Module '"@/types/workout"' has no exported member 'ExerciseCatalogEntry'.
+apps/mobile/src/screens/Exercise/ExerciseDatabaseScreen.tsx(81,30): error TS7006: Parameter 'm' implicitly has an 'any' type.
+apps/mobile/src/screens/HomeScreen.tsx(67,7): error TS2561: Object literal may only specify known properties, but 'sessionId' does not exist in type '{ programId: string; session: Session; }'. Did you mean to write 'session'?
+apps/mobile/src/screens/Workout/ActiveSessionScreen.tsx(28,54): error TS2339: Property 'settings' does not exist on type 'SettingsStoreState'.
+apps/mobile/src/screens/Workout/ActiveSessionScreen.tsx(200,16): error TS2304: Cannot find name 'TouchableOpacity'.
+apps/mobile/src/screens/Workout/ActiveSessionScreen.tsx(205,17): error TS2304: Cannot find name 'TouchableOpacity'.
+apps/mobile/src/screens/Workout/ActiveSessionScreen.tsx(216,11): error TS2353: Object literal may only specify known properties, and 'programName' does not exist in type '{ completedSets: number; totalSets: number; durationMinutes: number; exerciseCount: number; }'.
+apps/mobile/src/screens/Workout/SessionDetailScreen.tsx(5,33): error TS2305: Module '"../../types/workout"' has no exported member 'ProgramExercise'.
+apps/mobile/src/screens/Workout/WorkoutScreen.tsx(129,34): error TS2551: Property 'sessionId' does not exist on type 'OngoingWorkoutState'. Did you mean 'session'?
+apps/mobile/src/screens/Workout/WorkoutScreen.tsx(130,36): error TS2339: Property 'sessionName' does not exist on type 'OngoingWorkoutState'.
+apps/mobile/src/services/alchemyEngine.ts(5,10): error TS2724: '"../data/cookingMethodFactors"' has no exported member named 'getCookingFactor'. Did you mean 'CookingFactor'?
+apps/mobile/src/services/alchemyEngine.ts(5,28): error TS2305: Module '"../data/cookingMethodFactors"' has no exported member 'getEffectiveAmountForMacros'.
+apps/mobile/src/services/fatigueService.ts(11,15): error TS2305: Module '"../types/workout"' has no exported member 'ExerciseCatalogEntry'.
+apps/mobile/src/services/fatigueService.ts(11,59): error TS2305: Module '"../types/workout"' has no exported member 'ProgramExercise'.
+apps/mobile/src/services/recoveryService.ts(9,15): error TS2305: Module '"../types/workout"' has no exported member 'ExerciseCatalogEntry'.
+apps/mobile/src/services/volumeCalculator.ts(3,44): error TS2305: Module '"../types/workout"' has no exported member 'ExerciseCatalogEntry'.
+apps/mobile/src/stores/exerciseStore.ts(5,3): error TS2305: Module '"../types/workout"' has no exported member 'ExerciseCatalogEntry'.
+apps/mobile/src/utils/exerciseIndex.ts(3,15): error TS2305: Module '"../types/workout"' has no exported member 'ExerciseCatalogEntry'.

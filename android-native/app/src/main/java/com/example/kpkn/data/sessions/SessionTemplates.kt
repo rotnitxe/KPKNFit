@@ -135,9 +135,9 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Pull Day · PPL",
             parts = listOf(
                 part("p-pull-1", "Espalda vertical", "#0F3D5E", listOf(
-                    ex("pu1-ex1", "Dominadas Pronas", "tren_superior_dominadas_pronas",
+                    ex("pu1-ex1", "Dominadas", "tren_superior_dominadas_pronas",
                         nSets("pu1e1", 2, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("pu1-ex2", "Jalón al Pecho Prono en Polea", "tren_superior_jalon_pecho_prono",
+                    ex("pu1-ex2", "Jalón al Pecho", "tren_superior_jalon_pecho_prono",
                         nSets("pu1e2", 2, 10, 8.0), restTime = 90),
                 )),
                 part("p-pull-2", "Espalda horizontal", "#244B3C", listOf(
@@ -284,7 +284,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                         nSets("ua1e2", 2, 8, 8.0), restTime = 120),
                     ex("ua1-ex3", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
                         nSets("ua1e3", 2, 10, 7.5), restTime = 120),
-                    ex("ua1-ex4", "Jalón al Pecho Prono en Polea", "tren_superior_jalon_pecho_prono",
+                    ex("ua1-ex4", "Jalón al Pecho", "tren_superior_jalon_pecho_prono",
                         nSets("ua1e4", 2, 10, 7.5), restTime = 90),
                 )),
                 part("p-ua-2", "Hombros + Brazos", "#5B2A86", listOf(
@@ -429,7 +429,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                     nSets("mine2", 3, 5, 8.0), restTime = 150),
                 ex("min-ex3", "Peso Muerto Rumano", "tren_inferior_peso_muerto_rumano",
                     nSets("mine3", 3, 5, 8.0), restTime = 180),
-                ex("min-ex4", "Dominadas Pronas", "tren_superior_dominadas_pronas",
+                ex("min-ex4", "Dominadas", "tren_superior_dominadas_pronas",
                     nSets("mine4", 3, 6, 7.5), restTime = 120),
             ),
         ),
@@ -570,7 +570,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                 part("p-cba-2", "Tirón Espalda", "#244B3C", listOf(
                     ex("cba2-ex1", "Remo Inclinado Prono con Barra", "tren_superior_remo_inclinado_prono_barra",
                         nSets("cba2e1", 2, 8, 8.0), restTime = 120),
-                    ex("cba2-ex2", "Dominadas Pronas", "tren_superior_dominadas_pronas",
+                    ex("cba2-ex2", "Dominadas", "tren_superior_dominadas_pronas",
                         nSets("cba2e2", 2, 8, 8.0), restTime = 120),
                     ex("cba2-ex3", "Remo Sentado en Polea Baja", "tren_superior_remo_sentado_polea_baja",
                         nSets("cba2e3", 2, 12, 7.5), restTime = 90),
@@ -659,7 +659,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                         nSets("sag1e2", 3, 15, 8.0), restTime = 60),
                 )),
                 part("p-sag-2", "Core", "#1B4965", listOf(
-                    ex("sag2-ex1", "Dead Bug", "core_dead_bug",
+                    ex("sag2-ex1", "Bicho Muerto (Dead Bug)", "core_dead_bug",
                         nSets("sag2e1", 3, 12, 7.0), restTime = 45),
                     ex("sag2-ex2", "Hollow Body Hold", "core_hollow_body_hold",
                         nSets("sag2e2", 3, 30, 8.0), restTime = 45),
@@ -782,7 +782,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                 part("p-ulg-1", "Empuje y Tirón", "#1B4965", listOf(
                     ex("ulg1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("ulg1e1", 3, 10, 7.0), restTime = 90),
-                    ex("ulg1-ex2", "Jalón al Pecho Prono en Polea", "tren_superior_jalon_pecho_prono",
+                    ex("ulg1-ex2", "Jalón al Pecho", "tren_superior_jalon_pecho_prono",
                         nSets("ulg1e2", 3, 10, 7.5), restTime = 90),
                 )),
                 part("p-ulg-2", "Accesorios Estéticos", "#4A1942", listOf(
@@ -913,7 +913,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                 part("p-dlp-2", "Accesorios", "#1B4965", listOf(
                     ex("dlp2-ex1", "Press de Banca Inclinado con Barra", "tren_superior_press_banca_inclinado_barra",
                         nSets("dlp2e1", 3, 8, 7.5), restTime = 120),
-                    ex("dlp2-ex2", "Dominadas Pronas", "tren_superior_dominadas_pronas",
+                    ex("dlp2-ex2", "Dominadas", "tren_superior_dominadas_pronas",
                         nSets("dlp2e2", 3, 8, 8.0), restTime = 120),
                 )),
             ),
@@ -986,7 +986,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                     nSets("gzbe1", 3, 3, 8.5), restTime = 180),
                 ex("gzb-ex2", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
                     nSets("gzbe2", 3, 8, 7.5), restTime = 120),
-                ex("gzb-ex3", "Jalón al Pecho Prono en Polea", "tren_superior_jalon_pecho_prono",
+                ex("gzb-ex3", "Jalón al Pecho", "tren_superior_jalon_pecho_prono",
                     nSets("gzbe3", 4, 12, 7.0), restTime = 75),
             ),
         ),
@@ -1145,7 +1145,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                 part("p-pca-2", "Aislamiento y Tracción", "#0F3D5E", listOf(
                     ex("pca2-ex1", "Peso Muerto Rumano", "tren_inferior_peso_muerto_rumano",
                         nSets("pca2e1", 2, 10, 7.5), restTime = 120),
-                    ex("pca2-ex2", "Dominadas Pronas", "tren_superior_dominadas_pronas",
+                    ex("pca2-ex2", "Dominadas", "tren_superior_dominadas_pronas",
                         nSets("pca2e2", 2, 8, 8.0), restTime = 120),
                     ex("pca2-ex3", "Face Pull en Polea Alta", "tren_superior_face_pull_polea",
                         nSets("pca2e3", 2, 12, 8.0), restTime = 75),
@@ -1193,18 +1193,22 @@ private fun lowVolumeSplitTemplate(
     shortDescription: String,
 ): SessionTemplate {
     val source = SESSION_TEMPLATES_BASE.first { it.id == sourceId }
+    val isHighFrequency = splitIds.any { id ->
+        id.contains("x6") || id.contains("x5") || id.contains("x4") || id.contains("arnold") || id.contains("hybrid") || id.contains("ul") || id.contains("bro")
+    }
+    val setsToTake = if (isHighFrequency) 1 else 2
     val session = source.session.copy(
         id = "tpl-$id",
         name = name,
         parts = source.session.parts.map { sessionPart ->
             sessionPart.copy(
                 exercises = sessionPart.exercises.map { exercise ->
-                    exercise.copy(sets = exercise.sets.take(2))
+                    exercise.copy(sets = exercise.sets.take(setsToTake))
                 },
             )
         },
         exercises = source.session.exercises.map { exercise ->
-            exercise.copy(sets = exercise.sets.take(2))
+            exercise.copy(sets = exercise.sets.take(setsToTake))
         },
     )
     return source.copy(

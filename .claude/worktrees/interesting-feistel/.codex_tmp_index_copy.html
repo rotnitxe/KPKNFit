@@ -1,0 +1,555 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
+  <meta name="referrer" content="no-referrer-when-downgrade">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1a1a1a">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <title>KPKN</title>
+  <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.json">
+  <link href="./output.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700;900&family=Oswald:wght@400;700&family=Roboto+Condensed:wght@400;700&family=Roboto:wght@400;700;900&family=Great+Vibes&family=Tahoma:wght@400;700&family=Courier+Prime:wght@400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- CRITICAL: Polyfill for process/env before app loads to prevent White Screen on Android -->
+  <!-- Sentry: crea un proyecto en sentry.io â†’ Settings â†’ Client Keys (DSN) â†’ pega aquÃ­ -->
+  <script>
+    window.process = { env: { API_KEY: '' } };
+    window.__KPKN_SENTRY_DSN__ = 'https://66085ee6661f7b934968c583b4b009f0@o4510952852422656.ingest.us.sentry.io/4510952892727296';
+  </script>
+  <!-- E2E bypass: skip onboarding when ?e2e=1 or #e2e=1 -->
+  <script>
+    if ((window.location.search + window.location.hash).includes('e2e=1')) {
+      try { sessionStorage.setItem('kpkn-e2e-bypass', '1'); } catch (e) { }
+    }
+  </script>
+
+  <!-- Changed to relative path ./index.js -->
+  <script type="module" src="./index.js" defer></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Teko:wght@500&family=Space+Mono&display=swap');
+
+    /* --- Base System & Fallbacks --- */
+    /* Cyber Araucanian: KallfÃ¼ Tech (Cian) + Cobre Toqui + SemÃ¡foro Nerd */
+    :root {
+      --font-family-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --font-family-data: "Courier Prime", monospace;
+      --primary-hue: 187;
+      --danger-hue: 0;
+      /* Base - La Oscuridad */
+      --bg-canvas: #0A0B0E;
+      --bg-card: #15171E;
+      --border-subtle: #2A2D38;
+      /* TipografÃ­a */
+      --text-primary: #FFFFFF;
+      --text-secondary: #A0A7B8;
+      /* Identidad - Training (por defecto) */
+      --accent-primary: #00F0FF;
+      --accent-secondary: #FF7B00;
+      --primary-color-rgb: 0, 240, 255;
+      /* SemÃ¡foro Nerd */
+      --color-success: #00FF9D;
+      --color-warning: #FFD600;
+      --color-danger: #FF2E43;
+      --shadow-color-value: rgba(0, 0, 0, 0.7);
+      --header-font-size: 2.25rem;
+      --header-font-weight: 700;
+      --header-glow-intensity: 10px;
+      /* Material You Design Tokens - Fallback para WorkoutSession */
+      --md-sys-color-background: #0A0B0E;
+      --md-sys-color-on-background: #FFFFFF;
+      --md-sys-color-surface: #15171E;
+      --md-sys-color-on-surface: #FFFFFF;
+      --md-sys-color-surface-container: #1A1C24;
+      --md-sys-color-surface-container-low: #12141A;
+      --md-sys-color-surface-container-lowest: #0A0B0E;
+      --md-sys-color-surface-container-high: #1F212A;
+      --md-sys-color-surface-container-highest: #2A2D38;
+      --md-sys-color-primary: #00F0FF;
+      --md-sys-color-on-primary: #000000;
+      --md-sys-color-primary-container: rgba(0, 224, 238, 0.2);
+      --md-sys-color-on-primary-container: #00F0FF;
+      --md-sys-color-secondary: #FF7B00;
+      --md-sys-color-on-secondary: #000000;
+      --md-sys-color-secondary-container: rgba(255, 123, 0, 0.2);
+      --md-sys-color-on-secondary-container: #FF7B00;
+      --md-sys-color-tertiary: #A0A7B8;
+      --md-sys-color-on-tertiary: #000000;
+      --md-sys-color-tertiary-container: rgba(160, 167, 184, 0.2);
+      --md-sys-color-on-tertiary-container: #A0A7B8;
+      --md-sys-color-error: #FF2E43;
+      --md-sys-color-on-error: #FFFFFF;
+      --md-sys-color-error-container: rgba(255, 46, 67, 0.2);
+      --md-sys-color-on-error-container: #FF2E43;
+      --md-sys-color-outline: #4A4D58;
+      --md-sys-color-outline-variant: rgba(74, 77, 88, 0.5);
+      --md-sys-color-surface-variant: #1A1C24;
+      --md-sys-color-on-surface-variant: #A0A7B8;
+      /* Liquid Glass Panel */
+      --liquid-glass-bg: rgba(26, 28, 36, 0.95);
+      --liquid-glass-border: rgba(255, 255, 255, 0.1);
+      --liquid-glass-blur: 22px;
+    }
+
+    /* --- ANIMATIONS --- */
+    @keyframes modal-pop {
+      0% {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    @keyframes sheet-slide-up {
+      0% {
+        transform: translateY(100%);
+      }
+
+      100% {
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes emerge-up {
+      0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.9);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes fade-in-backdrop {
+      0% {
+        opacity: 0;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .animate-modal-enter {
+      animation: modal-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .animate-sheet-enter {
+      animation: sheet-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .animate-emerge-up {
+      animation: emerge-up 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    }
+
+    @keyframes wave {
+
+      0%,
+      100% {
+        transform: scaleY(1);
+      }
+
+      50% {
+        transform: scaleY(1.5);
+      }
+    }
+
+    .animate-fade-in-backdrop {
+      animation: fade-in-backdrop 0.3s ease-out forwards;
+    }
+
+    /* --- TEMA DEEP BLACK (OLED) - Cyber Araucanian --- */
+    :root[data-theme="deep-black"] {
+      --bg-gradient: none;
+      --bg-color: var(--bg-canvas);
+      --text-color: var(--text-primary);
+      --text-color-darker: var(--text-secondary);
+      --primary-color: var(--accent-primary);
+      --primary-gradient: var(--primary-color);
+      --card-bg-main: var(--bg-card);
+      --card-bg-light: #1a1c24;
+      --card-nested-bg: var(--bg-card);
+      --card-border: var(--border-subtle);
+      --card-hover-border: var(--accent-primary);
+      --card-glow: none;
+      --card-box-shadow: none;
+      --card-backdrop-filter: none;
+      --theme-card-border-radius: 0.75rem;
+      --header-bg-color: var(--bg-card);
+      --header-backdrop-filter: none;
+      --header-border-color: var(--card-border);
+      --tab-bar-safe-bottom: max(160px, calc(112px + env(safe-area-inset-bottom, 0px) + 32px));
+      --content-safe-top: env(safe-area-inset-top, 24px);
+      --md-m3-margin: 16px;
+      --tab-bar-bg-color: #121212;
+      --tab-bar-backdrop-filter: blur(12px);
+      --tab-bar-border-color: rgba(255, 255, 255, 0.06);
+      --tab-bar-box-shadow: none;
+      --modal-backdrop-bg-color: rgba(0, 0, 0, 0.8);
+      --modal-backdrop-filter: none;
+      --bottom-sheet-bg: var(--bg-card);
+      --success-color: var(--color-success);
+      --success-gradient: var(--color-success);
+      --danger-color: var(--color-danger);
+      --danger-gradient: var(--color-danger);
+    }
+
+    /* --- Default Theme - Cyber Araucanian --- */
+    :root:not([data-theme]),
+    :root[data-theme="default"] {
+      --bg-gradient: none;
+      --bg-color: var(--bg-canvas);
+      --text-color: var(--text-primary);
+      --text-color-darker: var(--text-secondary);
+      --primary-color: var(--accent-primary);
+      --primary-gradient: linear-gradient(135deg, var(--accent-primary), #00c4cc);
+      --card-bg-main: var(--bg-card);
+      --card-bg-light: #1a1c24;
+      --card-nested-bg: var(--bg-card);
+      --card-border: var(--border-subtle);
+      --card-hover-border: var(--accent-primary);
+      --card-glow: 0 0 45px rgba(0, 240, 255, 0.1);
+      --card-box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+      --card-backdrop-filter: blur(40px);
+      --theme-card-border-radius: 1.25rem;
+      --header-bg-color: var(--bg-card);
+      --header-backdrop-filter: blur(12px);
+      --header-border-color: var(--card-border);
+      --tab-bar-safe-bottom: max(160px, calc(112px + env(safe-area-inset-bottom, 0px) + 32px));
+      --content-safe-top: env(safe-area-inset-top, 24px);
+      --md-m3-margin: 16px;
+      --tab-bar-bg-color: #121212;
+      --tab-bar-backdrop-filter: blur(12px);
+      --tab-bar-border-color: rgba(255, 255, 255, 0.06);
+      --tab-bar-box-shadow: none;
+      --modal-backdrop-bg-color: rgba(0, 0, 0, 0.8);
+      --modal-backdrop-filter: blur(8px);
+      --bottom-sheet-bg: var(--bg-card);
+      --success-color: var(--color-success);
+      --success-gradient: var(--color-success);
+      --danger-color: var(--color-danger);
+      --danger-gradient: var(--color-danger);
+    }
+
+    [data-view="nutrition"] {
+      --accent-primary: var(--accent-secondary);
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body {
+      font-family: var(--font-family-system) !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: var(--bg-color);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      transition: background 0.5s ease, color 0.5s ease;
+      color: var(--text-color);
+      text-shadow: none;
+    }
+
+    details {
+      overflow: hidden;
+      transition: height 0.3s ease-out, margin 0.3s ease-out, opacity 0.3s ease-out;
+    }
+
+    details[open] summary~* {
+      animation: sweep .3s ease-in-out;
+    }
+
+    @keyframes sweep {
+      0% {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    details>summary {
+      list-style: none;
+      cursor: pointer;
+    }
+
+    details>summary::-webkit-details-marker {
+      display: none;
+    }
+
+    /* ... [Keep existing animations and utilities] ... */
+
+    /* UPDATED: Solid Anchored Tab Bar (Android Style) - extensiÃ³n continua en safe area */
+    .tab-bar-card-container {
+      background: var(--tab-bar-bg-color);
+      -webkit-backdrop-filter: var(--tab-bar-backdrop-filter);
+      backdrop-filter: var(--tab-bar-backdrop-filter);
+      border-top: 1px solid var(--tab-bar-border-color);
+      box-shadow: var(--tab-bar-box-shadow);
+
+      /* Structural Changes for Anchored Layout */
+      border-radius: 0;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+
+      /* Positioning */
+      position: fixed;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      transform: none !important;
+      z-index: 60;
+
+      will-change: transform, height;
+      transition: height 0.2s ease;
+      overflow: visible !important;
+      pointer-events: auto;
+
+      /* Extender fondo de tab bar en safe area inferior - color continuo, sin barra negra */
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      box-sizing: border-box;
+    }
+
+    .tab-bar-card-container>div {
+      pointer-events: auto;
+    }
+
+    /* Safe area for content above TabBar - use for sticky/fixed bottom elements */
+    .tab-bar-safe-area {
+      padding-bottom: var(--tab-bar-safe-bottom, max(140px, calc(96px + env(safe-area-inset-bottom, 0px) + 36px)));
+    }
+
+    /* Safe area superior para Status Bar de Capacitor - mÃ­nimo 28px en mÃ³vil si env es 0 */
+    .app-container {
+      /* Handled dynamically in App.tsx */
+    }
+
+    html.native-safe-area .app-container {
+      padding-top: max(var(--content-safe-top, env(safe-area-inset-top, 0px)), 28px);
+    }
+
+    .safe-area-toast-top {
+      top: max(4rem, calc(1rem + env(safe-area-inset-top, 0px)));
+    }
+
+    /* Footer seguro para wizards: evita que botones queden tapados por barra de Android */
+    .wizard-safe-footer {
+      padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Vistas fullscreen (fixed): respetan status bar */
+    .safe-area-root {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    html.native-safe-area .safe-area-root {
+      padding-top: max(28px, env(safe-area-inset-top, 0px));
+    }
+
+    /* ========================================================= */
+    /* ðŸ“± MOTOR DE EXPERIENCIA NATIVA (PWA a App Nativa)         */
+    /* ========================================================= */
+
+    /* 1. Eliminar comportamientos web globales */
+    * {
+      -webkit-tap-highlight-color: transparent !important;
+      /* AdiÃ³s al destello gris en Android al tocar botones */
+      -webkit-touch-callout: none;
+      /* AdiÃ³s al menÃº de "Guardar imagen" en iOS al mantener presionado */
+      -webkit-user-select: none;
+      /* Evita que los textos se pongan azules por selecciÃ³n accidental (iOS/Safari) */
+      -ms-user-select: none;
+      /* Evita selecciÃ³n en Windows */
+      user-select: none;
+      /* Estandar */
+    }
+
+    /* 2. EXCEPCIÃ“N CRÃTICA: Permitir escribir en los Inputs */
+    /* Si no hacemos esto, no podrÃ¡s escribir nada en la app */
+    input,
+    textarea,
+    [contenteditable="true"] {
+      -webkit-user-select: auto !important;
+      -ms-user-select: auto !important;
+      user-select: auto !important;
+    }
+
+    /* 2.5 ADN Nativo Adicional: PrevenciÃ³n de Arrastre (Drag & Drop Fantasma) */
+    img,
+    a,
+    svg {
+      -webkit-user-drag: none !important;
+      /* Evita que las imÃ¡genes sean arrastrables en Safari/Chrome */
+      -khtml-user-drag: none !important;
+      -moz-user-drag: none !important;
+      -o-user-drag: none !important;
+      /* La propiedad sin prefijo fue removida para evitar el warning del compilador */
+    }
+
+    /* 2.6 PrevenciÃ³n de reajuste automÃ¡tico de texto al rotar pantalla */
+    html {
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+
+    /* 3. Ocultar scrollbars y blindar gestos horizontales */
+    .hide-scrollbar::-webkit-scrollbar,
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hide-scrollbar,
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* ESTO PREVIENE QUE AL USAR EL CARRUSEL SE DISPARE EL "ATRÃS" DEL NAVEGADOR */
+    .no-scrollbar {
+      overscroll-behavior-x: contain;
+      touch-action: pan-x pan-y;
+      /* Ayuda a que el tÃ¡ctil diagonal no se trabe */
+    }
+
+    /* 4. VÃ¡lvula de escape para textos copiables */
+    /* Usa className="selectable-text" en textos que el usuario SÃ deba poder copiar */
+    .selectable-text {
+      -webkit-user-select: text !important;
+      -ms-user-select: text !important;
+      user-select: text !important;
+    }
+
+    /* 5. Scroll fluido y flexible - menos rÃ­gido, evita cortes de contenido */
+    html {
+      scroll-behavior: smooth;
+      overscroll-behavior-y: auto;
+      /* Permite overscroll natural en vez de bloqueo */
+    }
+
+    /* Scroll suave con momentum en mÃ³vil - menos rÃ­gido */
+    .app-main-content,
+    .scroll-flexible {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: auto;
+    }
+  </style>
+  <script>
+    (function () {
+      if (/Android|iPhone|iPad|iPod|webOS|Capacitor/i.test(navigator.userAgent || '') || window.Capacitor?.isNativePlatform?.()) {
+        document.documentElement.classList.add('native-safe-area');
+      }
+    })();
+    (function () {
+      try {
+        const storageKey = 'yourprime-settings';
+        const settingsJSON = localStorage.getItem(storageKey);
+
+        if (settingsJSON) {
+          const settings = JSON.parse(settingsJSON);
+          const theme = settings.appTheme || 'default';
+          const primaryColor = settings.themePrimaryColor;
+
+          document.documentElement.dataset.theme = theme;
+
+          if (primaryColor) {
+            const hexToHue = (H) => {
+              if (!H) return 217;
+              let r = 0, g = 0, b = 0;
+              let hStr = H.startsWith('#') ? H.substring(1) : H;
+              if (hStr.length === 3) { r = parseInt(hStr[0] + hStr[0], 16); g = parseInt(hStr[1] + hStr[1], 16); b = parseInt(hStr[2] + hStr[2], 16); }
+              else if (hStr.length === 6) { r = parseInt(hStr.substring(0, 2), 16); g = parseInt(hStr.substring(2, 4), 16); b = parseInt(hStr.substring(4, 6), 16); }
+              else { return 217; }
+              r /= 255; g /= 255; b /= 255;
+              const max = Math.max(r, g, b), min = Math.min(r, g, b);
+              let h = 0;
+              if (max !== min) { const d = max - min; switch (max) { case r: h = (g - b) / d + (g < b ? 6 : 0); break; case g: h = (b - r) / d + 2; break; case b: h = (r - g) / d + 4; break; } h /= 6; }
+              return Math.round(h * 360);
+            };
+            document.documentElement.style.setProperty('--primary-hue', String(hexToHue(primaryColor)));
+          }
+        }
+      } catch (e) {
+        console.error('Error applying initial theme:', e);
+      }
+    })();
+  </script>
+
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "recharts": "https://esm.sh/recharts@^3.7.0",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
+    "lucide-react": "https://esm.sh/lucide-react@^0.574.0",
+    "react-dom": "https://esm.sh/react-dom@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@capacitor/core": "https://esm.sh/@capacitor/core@^8.1.0",
+    "@capacitor/app": "https://esm.sh/@capacitor/app@^8.0.1",
+    "@capacitor/local-notifications": "https://esm.sh/@capacitor/local-notifications@^8.0.1",
+    "@capacitor/filesystem": "https://esm.sh/@capacitor/filesystem@^8.1.2",
+    "@capacitor/share": "https://esm.sh/@capacitor/share@^8.0.1",
+    "@capacitor-community/keep-awake": "https://esm.sh/@capacitor-community/keep-awake@^8.0.0",
+    "@capacitor/preferences": "https://esm.sh/@capacitor/preferences@^8.0.1",
+    "@capacitor-community/native-audio": "https://esm.sh/@capacitor-community/native-audio@^8.0.0",
+    "@capacitor/haptics": "https://esm.sh/@capacitor/haptics@^8.0.0",
+    "zod": "https://esm.sh/zod@^4.3.6",
+    "@capacitor/geolocation": "https://esm.sh/@capacitor/geolocation@^8.1.0",
+    "@capacitor/camera": "https://esm.sh/@capacitor/camera@^8.0.1",
+    "@capacitor-community/text-to-speech": "https://esm.sh/@capacitor-community/text-to-speech@^8.0.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0"
+  }
+}
+</script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script>
+    window.onerror = function (message, source, lineno, colno, error) {
+      console.error('Global Error:', message, source, lineno, colno, error);
+    };
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('Service Worker registrado con Ã©xito para modo Offline', reg.scope))
+          .catch(err => console.warn('Error al registrar Service Worker', err));
+      });
+    }
+  </script>
+</body>
+
+</html>

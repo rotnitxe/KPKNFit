@@ -1,0 +1,1880 @@
+================================================================================
+AUDITORÍA DE EJERCICIOS DUPLICADOS - KPKN FIT
+================================================================================
+Total de ejercicios: 1216
+
+--- 2. DUPLICADOS POR NOMBRE NORMALIZADO ---
+  Normalized: "press de banca" (5 entradas)
+    - db_bench_press_tng | Press de Banca (Táctil / Touch and Go)
+    - db_bench_press_paused | Press de Banca (Pausado)
+    - ext_press-de-banca | Press de Banca (Plano con Barra)
+    - ext_press-de-banca_2 | Press de Banca (Con Mancuernas)
+    - ext_press-de-banca_6 | Press de Banca (Agarre Cerrado)
+
+  Normalized: "fondos en paralelas" (2 entradas)
+    - db_dips | Fondos en Paralelas
+    - ex-weighted-dips | Fondos en Paralelas (Lastrados)
+
+  Normalized: "remo con barra" (4 entradas)
+    - db_barbell_row | Remo con Barra
+    - db_exp_barbell_row_underhand | Remo con Barra (Agarre Supino)
+    - ext_remo-con-barra-smith | Remo con Barra (Smith)
+    - ext_remo-con-barra-polea-baja | Remo con Barra (Polea Baja)
+
+  Normalized: "remo con mancuerna" (3 entradas)
+    - db_dumbbell_row | Remo con Mancuerna
+    - ext_remo-con-mancuerna-kettlebell | Remo con Mancuerna (Kettlebell)
+    - ext_remo-con-mancuerna-polea | Remo con Mancuerna (Polea)
+
+  Normalized: "jalon al pecho" (5 entradas)
+    - db_lat_pulldown | Jalón al Pecho
+    - ext_jalón-al-pecho_2 | Jalón al Pecho (Agarre Cerrado/V)
+    - ext_jalón-al-pecho_3 | Jalón al Pecho (Unilateral)
+    - ext_jalón-al-pecho-máquina-convergente | Jalón al Pecho (Máquina Convergente)
+    - ext_jalón-al-pecho-barra-recta | Jalón al Pecho (Barra Recta)
+
+  Normalized: "press militar" (5 entradas)
+    - db_overhead_press | Press Militar (Barra)
+    - ext_press-militar-smith | Press Militar (Smith)
+    - ext_press-militar-polea-baja | Press Militar (Polea Baja)
+    - ext_press-militar-máquina-convergente | Press Militar (Máquina Convergente)
+    - ext_press-militar-kettlebell | Press Militar (Kettlebell)
+
+  Normalized: "press de hombros" (3 entradas)
+    - db_dumbbell_shoulder_press | Press de Hombros (Mancuernas)
+    - ext_press-de-hombros-smith | Press de Hombros (Smith)
+    - ext_press-de-hombros-máquina-smith | Press de Hombros (Máquina Smith)
+
+  Normalized: "elevaciones laterales" (2 entradas)
+    - db_lateral_raise | Elevaciones Laterales (Mancuernas)
+    - ext_elevaciones-laterales-kettlebell | Elevaciones Laterales (Kettlebell)
+
+  Normalized: "press frances" (4 entradas)
+    - db_skull_crusher | Press Francés
+    - ext_press-francés-polea | Press Francés (Polea)
+    - ext_press-francés-mancuerna | Press Francés (Mancuerna)
+    - ext_press-francés-kettlebell | Press Francés (Kettlebell)
+
+  Normalized: "rueda abdominal" (2 entradas)
+    - db_ab_wheel | Rueda Abdominal
+    - ext_rueda-abdominal | Rueda Abdominal (Ab Wheel Rollout)
+
+  Normalized: "sentadilla frontal" (4 entradas)
+    - db_front_squat | Sentadilla Frontal
+    - ext_sentadilla-frontal | Sentadilla Frontal (Agarre Olímpico/Cruzado)
+    - ext_sentadilla-frontal-smith | Sentadilla Frontal (Smith)
+    - ext_sentadilla-frontal-polea | Sentadilla Frontal (Polea)
+
+  Normalized: "sentadilla zercher" (2 entradas)
+    - db_zercher_squat | Sentadilla Zercher
+    - ext_sentadilla-zercher | Sentadilla Zercher (Barra en codos)
+
+  Normalized: "sentadilla goblet" (4 entradas)
+    - db_goblet_squat | Sentadilla Goblet
+    - ext_sentadilla-goblet | Sentadilla Goblet (Mancuerna / Kettlebell)
+    - ext_sentadilla-goblet_2 | Sentadilla Goblet (Con Pausa / Tempo)
+    - ext_sentadilla-goblet-kettlebell | Sentadilla Goblet (Kettlebell)
+
+  Normalized: "peso muerto rumano" (5 entradas)
+    - db_romanian_deadlift | Peso Muerto Rumano
+    - ext_peso-muerto-rumano-polea | Peso Muerto Rumano (Polea)
+    - ext_peso-muerto-rumano-kettlebell | Peso Muerto Rumano (Kettlebell)
+    - ext_peso-muerto-rumano-mancuernas | Peso Muerto Rumano (Mancuernas)
+    - ext_peso-muerto-rumano-peso-corporal | Peso Muerto Rumano (Peso Corporal)
+
+  Normalized: "buenos dias" (4 entradas)
+    - db_good_mornings | Buenos Días
+    - ext_buenos-días_3 | Buenos Días (Barra Cambered/SSB)
+    - ext_buenos-días-smith | Buenos Días (Smith)
+    - ext_buenos-días-peso-corporal | Buenos Días (Peso Corporal)
+
+  Normalized: "hiperextensiones" (2 entradas)
+    - db_hyperextensions | Hiperextensiones (45º)
+    - ext_hiperextensiones | Hiperextensiones (Banco 45 grados)
+
+  Normalized: "prensa de piernas" (2 entradas)
+    - db_leg_press_45 | Prensa de Piernas
+    - ext_prensa-de-piernas-máquina-convergente | Prensa de Piernas (Máquina Convergente)
+
+  Normalized: "sentadilla hack" (2 entradas)
+    - db_hack_squat | Sentadilla Hack (Máquina)
+    - db_exp3_hack_squat | Sentadilla Hack
+
+  Normalized: "curl nordico" (3 entradas)
+    - db_nordic_curl | Curl Nórdico
+    - db_exp3_lg_nordic_curl | Curl Nordico
+    - ext_curl-nórdico | Curl Nórdico (Peso corporal)
+
+  Normalized: "sentadilla sissy" (2 entradas)
+    - db_sissy_squat | Sentadilla Sissy
+    - ext_sentadilla-sissy | Sentadilla Sissy (Peso corporal / Banco)
+
+  Normalized: "sentadilla bulgara" (4 entradas)
+    - db_bulgarian_split_squat | Sentadilla Búlgara
+    - ext_sentadilla-búlgara-barra | Sentadilla Búlgara (Barra)
+    - ext_sentadilla-búlgara-kettlebell | Sentadilla Búlgara (Kettlebell)
+    - ext_sentadilla-búlgara-peso-corporal | Sentadilla Búlgara (Peso Corporal)
+
+  Normalized: "empuje de trineo" (2 entradas)
+    - db_sled_push | Empuje de Trineo
+    - ext_empuje-de-trineo | Empuje de Trineo (Prowler Push)
+
+  Normalized: "salto al cajon" (2 entradas)
+    - db_box_jump | Salto al Cajón
+    - ext_salto-al-cajón | Salto al Cajón (Box Jump)
+
+  Normalized: "cruce de poleas" (2 entradas)
+    - ex-cable-fly-high-low | Cruce de Poleas (Alto a Bajo)
+    - ex-cable-fly-low-high | Cruce de Poleas (Bajo a Alto)
+
+  Normalized: "extension de triceps sobre la cabeza" (2 entradas)
+    - ex-cable-overhead-triceps | Extensión de Tríceps sobre la Cabeza (Polea)
+    - db_exp_overhead_tricep_extension | Extensión de Tríceps sobre la Cabeza (Mancuerna)
+
+  Normalized: "elevaciones en y" (2 entradas)
+    - ex-cable-y-raises | Elevaciones en Y (Polea/Cables)
+    - db_exp_prone_y_raise | Elevaciones en Y (Prono)
+
+  Normalized: "remo pendlay" (2 entradas)
+    - ex-pendlay-row | Remo Pendlay
+    - ext_remo-pendlay | Remo Pendlay (Estricto desde suelo)
+
+  Normalized: "remo kroc" (2 entradas)
+    - ex-kroc-rows | Remo Kroc (Mancuerna Pesada)
+    - ext_remo-kroc | Remo Kroc (Altas Reps / Trampa)
+
+  Normalized: "press pallof" (2 entradas)
+    - ex-pallof-press | Press Pallof (Banda/Polea)
+    - ext_press-pallof | Press Pallof (Cable / Banda)
+
+  Normalized: "flexiones pike" (2 entradas)
+    - db_exp_push_up_pike | Flexiones Pike (V invertida)
+    - db_exp3_bw_pike_push_up | Flexiones Pike
+
+  Normalized: "face pull" (4 entradas)
+    - db_exp_face_pull | Face Pull (Tirón a la Cara)
+    - ext_face-pull | Face Pull (Polea Alta)
+    - ext_face-pull-banda | Face Pull (Banda)
+    - ext_face-pull-mancuernas | Face Pull (Mancuernas)
+
+  Normalized: "superman" (2 entradas)
+    - db_exp_superman | Superman (Hiperextensión de Espalda)
+    - db_exp3_ab_superman | Superman
+
+  Normalized: "remo invertido" (2 entradas)
+    - db_exp_inverted_row | Remo Invertido (Peso Corporal)
+    - ext_remo-invertido | Remo Invertido (Peso Corporal / TRX)
+
+  Normalized: "press arnold" (2 entradas)
+    - db_exp_arnold_press | Press Arnold
+    - ext_press-arnold | Press Arnold (Mancuernas)
+
+  Normalized: "curl concentrado" (4 entradas)
+    - db_exp_concentration_curl | Curl Concentrado
+    - ext_curl-concentrado | Curl Concentrado (Sentado)
+    - ext_curl-concentrado-polea | Curl Concentrado (Polea)
+    - ext_curl-concentrado-kettlebell | Curl Concentrado (Kettlebell)
+
+  Normalized: "curl martillo" (5 entradas)
+    - db_exp_hammer_curl | Curl Martillo
+    - ext_curl-martillo | Curl Martillo (Hammer Curl)
+    - ext_curl-martillo-polea | Curl Martillo (Polea)
+    - ext_curl-martillo-kettlebell | Curl Martillo (Kettlebell)
+    - ext_curl-martillo-barra | Curl Martillo (Barra)
+
+  Normalized: "curl inverso" (4 entradas)
+    - db_exp_reverse_curl | Curl Inverso (Agarre Prono)
+    - db_exp3_reverse_curl | Curl Inverso
+    - ext_curl-inverso-barra | Curl Inverso (Barra)
+    - ext_curl-inverso-polea | Curl Inverso (Polea)
+
+  Normalized: "curl de arrastre" (2 entradas)
+    - db_exp_drag_curl | Curl de Arrastre
+    - ext_curl-de-arrastre | Curl de Arrastre (Drag Curl)
+
+  Normalized: "curl de muneca" (2 entradas)
+    - db_exp_wrist_curl | Curl de Muñeca (Supino)
+    - db_exp3_wrist_curl | Curl de Muñeca
+
+  Normalized: "puente de gluteos" (4 entradas)
+    - db_exp_glute_bridge | Puente de Glúteos (Peso Corporal)
+    - ext_puente-de-glúteos-barra | Puente de Glúteos (Barra)
+    - ext_puente-de-glúteos-mancuerna | Puente de Glúteos (Mancuerna)
+    - ext_puente-de-glúteos-kettlebell | Puente de Glúteos (Kettlebell)
+
+  Normalized: "curl femoral de pie" (2 entradas)
+    - db_exp_leg_curl_standing | Curl Femoral de Pie (Máquina)
+    - db_exp3_leg_curl_standing | Curl Femoral de Pie
+
+  Normalized: "dead bug" (4 entradas)
+    - db_exp_dead_bug | Dead Bug
+    - ext_dead-bug | Dead Bug (Bicho Muerto)
+    - ext_dead-bug-peso-corporal | Dead Bug (Peso Corporal)
+    - ext_dead-bug-con-disco | Dead Bug (Con Disco)
+
+  Normalized: "giros rusos" (5 entradas)
+    - db_exp_russian_twist | Giros Rusos
+    - ext_giros-rusos | Giros Rusos (Russian Twist)
+    - ext_giros-rusos-disco | Giros Rusos (Disco)
+    - ext_giros-rusos-kettlebell | Giros Rusos (Kettlebell)
+    - ext_giros-rusos-peso-corporal | Giros Rusos (Peso Corporal)
+
+  Normalized: "plancha lateral" (4 entradas)
+    - db_exp_side_plank | Plancha Lateral
+    - ext_plancha-lateral | Plancha Lateral (Estática)
+    - ext_plancha-lateral-peso-corporal | Plancha Lateral (Peso Corporal)
+    - ext_plancha-lateral-con-disco | Plancha Lateral (Con Disco)
+
+  Normalized: "kettlebell snatch" (2 entradas)
+    - db_exp_kb_snatch | Kettlebell Snatch
+    - ext_kettlebell-snatch | Kettlebell Snatch (Unilateral)
+
+  Normalized: "arrancada" (4 entradas)
+    - db_exp_snatch | Arrancada (Snatch)
+    - ext_arrancada | Arrancada (Power Snatch)
+    - ext_arrancada-barra | Arrancada (Barra)
+    - ext_arrancada-kettlebell | Arrancada (Kettlebell)
+
+  Normalized: "high pull" (4 entradas)
+    - db_exp_high_pull | High Pull
+    - ext_high-pull | High Pull (Desde Hang / Suelo)
+    - ext_high-pull-kettlebell | High Pull (Kettlebell)
+    - ext_high-pull-mancuernas | High Pull (Mancuernas)
+
+  Normalized: "push jerk" (3 entradas)
+    - db_exp_push_jerk | Push Jerk
+    - ext_push-jerk-barra | Push Jerk (Barra)
+    - ext_push-jerk-kettlebell | Push Jerk (Kettlebell)
+
+  Normalized: "paseo del granjero" (5 entradas)
+    - db_exp2_farmers_walk | Paseo del Granjero
+    - ext_paseo-del-granjero | Paseo del Granjero (Heavy Carries)
+    - ext_paseo-del-granjero-mancuernas | Paseo del Granjero (Mancuernas)
+    - ext_paseo-del-granjero-kettlebell | Paseo del Granjero (Kettlebell)
+    - ext_paseo-del-granjero-trap-bar | Paseo del Granjero (Trap Bar)
+
+  Normalized: "jm press" (3 entradas)
+    - db_exp3_JM_press | JM Press
+    - ext_jm-press-barra | JM Press (Barra)
+    - ext_jm-press-smith | JM Press (Smith)
+
+  Normalized: "plancha" (3 entradas)
+    - db_exp3_bw_plank | Plancha
+    - ext_plancha-peso-corporal | Plancha (Peso Corporal)
+    - ext_plancha-con-disco | Plancha (Con Disco)
+
+  Normalized: "remo yates" (2 entradas)
+    - db_exp3_bb2_yates_row | Remo Yates
+    - ext_remo-yates | Remo Yates (Supino / 45 grados)
+
+  Normalized: "curl 21" (2 entradas)
+    - db_exp3_bb2_21_curl | Curl 21
+    - ext_curl-21-barra | Curl 21 (Barra)
+
+  Normalized: "push press" (4 entradas)
+    - db_exp3_bb2_push_press | Push Press
+    - ext_push-press | Push Press (Barra)
+    - ext_push-press-mancuernas | Push Press (Mancuernas)
+    - ext_push-press-kettlebell | Push Press (Kettlebell)
+
+  Normalized: "sentadilla trasera )" (4 entradas)
+    - ext_sentadilla-trasera | Sentadilla Trasera (Barra Alta (High Bar))
+    - ext_sentadilla-trasera_2 | Sentadilla Trasera (Barra Baja (Low Bar))
+    - ext_sentadilla-trasera_3 | Sentadilla Trasera (Con Pausa (2-3 seg))
+    - ext_sentadilla-trasera-polea-belt-squat | Sentadilla Trasera (Polea (Belt Squat))
+
+  Normalized: "sentadilla trasera" (2 entradas)
+    - ext_sentadilla-trasera_4 | Sentadilla Trasera (Con Cadenas/Bandas)
+    - ext_sentadilla-trasera-smith | Sentadilla Trasera (Smith)
+
+  Normalized: "sentadilla hack )" (2 entradas)
+    - ext_sentadilla-hack | Sentadilla Hack (Barra (desde el suelo))
+    - ext_sentadilla-hack_2 | Sentadilla Hack (Máquina (guiada))
+
+  Normalized: "prensa de piernas )" (4 entradas)
+    - ext_prensa-de-piernas | Prensa de Piernas (45 Grados (Standard))
+    - ext_prensa-de-piernas_2 | Prensa de Piernas (Horizontal (Selectorizada))
+    - ext_prensa-de-piernas_3 | Prensa de Piernas (Unilateral (Una pierna))
+    - ext_prensa-de-piernas-smith-pies-altos | Prensa de Piernas (Smith (Pies Altos))
+
+  Normalized: "sentadilla bulgara )" (2 entradas)
+    - ext_sentadilla-búlgara | Sentadilla Búlgara (Mancuernas (Bulgarian Split))
+    - ext_sentadilla-búlgara_2 | Sentadilla Búlgara (Barra (Trasera))
+
+  Normalized: "zancada )" (6 entradas)
+    - ext_zancada-lunge | Zancada (Lunge) (Hacia atrás (Reverse))
+    - ext_zancada | Zancada (Hacia adelante (Walking))
+    - ext_zancada_2 | Zancada (Lateral (Side Lunge))
+    - ext_zancada_3 | Zancada (Cruzada (Curtsy))
+    - ext_zancada-barra-trasera | Zancada (Barra (Trasera))
+    - ext_zancada-barra-frontal | Zancada (Barra (Frontal))
+
+  Normalized: "subida al cajon" (4 entradas)
+    - ext_subida-al-cajón_2 | Subida al Cajón (Step-Up Explosivo)
+    - ext_subida-al-cajón-barra | Subida al Cajón (Barra)
+    - ext_subida-al-cajón-kettlebell | Subida al Cajón (Kettlebell)
+    - ext_subida-al-cajón-peso-corporal | Subida al Cajón (Peso Corporal)
+
+  Normalized: "extensiones cuadriceps )" (2 entradas)
+    - ext_extensiones-cuádriceps | Extensiones Cuádriceps (Máquina (Bilateral))
+    - ext_extensiones-cuádriceps-peso-corporal-sissy | Extensiones Cuádriceps (Peso Corporal (Sissy))
+
+  Normalized: "extensiones cuadriceps" (2 entradas)
+    - ext_extensiones-cuádriceps_2 | Extensiones Cuádriceps (Unilateral)
+    - ext_extensiones-cuádriceps-polea | Extensiones Cuádriceps (Polea)
+
+  Normalized: "peso muerto )" (5 entradas)
+    - ext_peso-muerto | Peso Muerto (Convencional (Barra))
+    - ext_peso-muerto_5 | Peso Muerto (Piernas Rígidas (Stiff Leg))
+    - ext_peso-muerto_6 | Peso Muerto (Déficit (Sobre disco))
+    - ext_peso-muerto_7 | Peso Muerto (Trap Bar (Hexagonal))
+    - ext_peso-muerto_8 | Peso Muerto (Agarre Snatch (Ancho))
+
+  Normalized: "peso muerto" (3 entradas)
+    - ext_peso-muerto_2 | Peso Muerto (Sumo)
+    - ext_peso-muerto_4 | Peso Muerto (Rumano con Mancuernas)
+    - ext_peso-muerto-smith | Peso Muerto (Smith)
+
+  Normalized: "buenos dias )" (2 entradas)
+    - ext_buenos-días | Buenos Días (Barra (De pie))
+    - ext_buenos-días_2 | Buenos Días (Sentado (Seated GM))
+
+  Normalized: "hip thrust" (5 entradas)
+    - ext_hip-thrust_2 | Hip Thrust (Máquina)
+    - ext_hip-thrust-mancuernas | Hip Thrust (Mancuernas)
+    - ext_hip-thrust-kettlebell | Hip Thrust (Kettlebell)
+    - ext_hip-thrust-polea | Hip Thrust (Polea)
+    - ext_hip-thrust-peso-corporal | Hip Thrust (Peso Corporal)
+
+  Normalized: "kettlebell swing )" (2 entradas)
+    - ext_kettlebell-swing | Kettlebell Swing (Ruso (Hombros))
+    - ext_kettlebell-swing_2 | Kettlebell Swing (Americano (Arriba))
+
+  Normalized: "curl femoral )" (4 entradas)
+    - ext_curl-femoral | Curl Femoral (Tumbado (Máquina))
+    - ext_curl-femoral_2 | Curl Femoral (Sentado (Máquina))
+    - ext_curl-femoral_3 | Curl Femoral (De pie (Unilateral))
+    - ext_curl-femoral-peso-corporal-nordic | Curl Femoral (Peso Corporal (Nordic))
+
+  Normalized: "press de banca )" (10 entradas)
+    - ext_press-de-banca_3 | Press de Banca (Inclinado (Barra))
+    - ext_press-de-banca_4 | Press de Banca (Inclinado (Mancuerna))
+    - ext_press-de-banca_5 | Press de Banca (Declinado (Barra/Manc))
+    - ext_press-de-banca_7 | Press de Banca (Máquina (Vertical))
+    - ext_press-de-banca-smith-plano | Press de Banca (Smith (Plano))
+    - ext_press-de-banca-smith-inclinado | Press de Banca (Smith (Inclinado))
+    - ext_press-de-banca-smith-declinado | Press de Banca (Smith (Declinado))
+    - ext_press-de-banca-polea-baja-unilatera | Press de Banca (Polea Baja (Unilateral))
+    - ext_press-de-banca-polea-baja-bilateral | Press de Banca (Polea Baja (Bilateral))
+    - ext_press-de-banca-kettlebell-floor-pre | Press de Banca (Kettlebell (Floor Press))
+
+  Normalized: "press militar )" (2 entradas)
+    - ext_press-militar | Press Militar (De pie con Barra (OHP))
+    - ext_press-militar_2 | Press Militar (Sentado (Barra))
+
+  Normalized: "fondos" (2 entradas)
+    - ext_fondos-dips | Fondos (Dips) (Lastrados)
+    - ext_fondos-dips_2 | Fondos (Dips) (Peso Corporal)
+
+  Normalized: "flexiones" (4 entradas)
+    - ext_flexiones-push-ups | Flexiones (Push-ups) (Clásicas)
+    - ext_flexiones | Flexiones (Pies elevados)
+    - ext_flexiones_2 | Flexiones (Lastradas/Banda)
+    - ext_flexiones-con-disco | Flexiones (Con Disco)
+
+  Normalized: "aperturas )" (2 entradas)
+    - ext_aperturas-flyes | Aperturas (Flyes) (Mancuernas (Plano/Inc))
+    - ext_aperturas | Aperturas (Máquina (Pec Deck))
+
+  Normalized: "elevaciones laterales )" (2 entradas)
+    - ext_elevaciones-laterales_2 | Elevaciones Laterales (Polea (Cable))
+    - ext_elevaciones-laterales-smith-unilateral | Elevaciones Laterales (Smith (Unilateral))
+
+  Normalized: "elevaciones frontales" (5 entradas)
+    - ext_elevaciones-frontales | Elevaciones Frontales (Disco / Mancuerna)
+    - ext_elevaciones-frontales-polea | Elevaciones Frontales (Polea)
+    - ext_elevaciones-frontales-barra | Elevaciones Frontales (Barra)
+    - ext_elevaciones-frontales-kettlebell | Elevaciones Frontales (Kettlebell)
+    - ext_elevaciones-frontales-disco | Elevaciones Frontales (Disco)
+
+  Normalized: "pajaros" (4 entradas)
+    - ext_pájaros-rear-delt | Pájaros (Rear Delt) (Mancuernas / Máquina)
+    - ext_pájaros-polea-cruzada | Pájaros (Polea Cruzada)
+    - ext_pájaros-polea-baja | Pájaros (Polea Baja)
+    - ext_pájaros-kettlebell | Pájaros (Kettlebell)
+
+  Normalized: "dominadas )" (3 entradas)
+    - ext_dominadas | Dominadas (Pronas (Pull-ups))
+    - ext_dominadas_2 | Dominadas (Supinas (Chin-ups))
+    - ext_dominadas-asistidas-máquina | Dominadas (Asistidas (Máquina))
+
+  Normalized: "dominadas" (4 entradas)
+    - ext_dominadas_3 | Dominadas (Neutras)
+    - ext_dominadas_4 | Dominadas (Lastradas)
+    - ext_dominadas-con-kettlebell | Dominadas (Con Kettlebell)
+    - ext_dominadas-con-disco | Dominadas (Con Disco)
+
+  Normalized: "remo en barra t )" (2 entradas)
+    - ext_remo-en-barra-t | Remo en Barra T (T-Bar Row (Pecho apoyado))
+    - ext_remo-en-barra-t_2 | Remo en Barra T (De pie (Landmine))
+
+  Normalized: "pull-over" (3 entradas)
+    - ext_pull-over | Pull-Over (Mancuerna / Polea)
+    - ext_pull-over-máquina | Pull-Over (Máquina)
+    - ext_pull-over-barra | Pull-Over (Barra)
+
+  Normalized: "encogimientos" (5 entradas)
+    - ext_encogimientos | Encogimientos (Barra / Mancuernas)
+    - ext_encogimientos-smith | Encogimientos (Smith)
+    - ext_encogimientos-polea | Encogimientos (Polea)
+    - ext_encogimientos-kettlebell | Encogimientos (Kettlebell)
+    - ext_encogimientos-peso-corporal | Encogimientos (Peso Corporal)
+
+  Normalized: "remo al menton" (4 entradas)
+    - ext_remo-al-mentón | Remo al Mentón (Barra / Polea)
+    - ext_remo-al-mentón-smith | Remo al Mentón (Smith)
+    - ext_remo-al-mentón-mancuernas | Remo al Mentón (Mancuernas)
+    - ext_remo-al-mentón-kettlebell | Remo al Mentón (Kettlebell)
+
+  Normalized: "curl predicador" (3 entradas)
+    - ext_curl-predicador | Curl Predicador (Banco Scott)
+    - ext_curl-predicador-polea | Curl Predicador (Polea)
+    - ext_curl-predicador-máquina | Curl Predicador (Máquina)
+
+  Normalized: "extension triceps )" (3 entradas)
+    - ext_extensión-tríceps_2 | Extensión Tríceps (Polea (Cuerda))
+    - ext_extensión-tríceps-smith-trasnuca | Extensión Tríceps (Smith (Trasnuca))
+    - ext_extensión-tríceps-mancuerna-unilateral | Extensión Tríceps (Mancuerna (Unilateral))
+
+  Normalized: "patada de triceps" (3 entradas)
+    - ext_patada-de-tríceps | Patada de Tríceps (Mancuerna / Cable)
+    - ext_patada-de-tríceps-polea | Patada de Tríceps (Polea)
+    - ext_patada-de-tríceps-kettlebell | Patada de Tríceps (Kettlebell)
+
+  Normalized: "fondos entre bancos" (3 entradas)
+    - ext_fondos-entre-bancos | Fondos entre Bancos (Bench Dips)
+    - ext_fondos-entre-bancos-peso-corporal | Fondos entre Bancos (Peso Corporal)
+    - ext_fondos-entre-bancos-lastrados | Fondos entre Bancos (Lastrados)
+
+  Normalized: "lenador" (3 entradas)
+    - ext_leñador | Leñador (Cable Woodchop)
+    - ext_leñador-polea-alta | Leñador (Polea Alta)
+    - ext_leñador-polea-baja | Leñador (Polea Baja)
+
+  Normalized: "sit-up" (3 entradas)
+    - ext_sit-up | Sit-Up (Banco Declinado)
+    - ext_sit-up-peso-corporal | Sit-Up (Peso Corporal)
+    - ext_sit-up-con-disco | Sit-Up (Con Disco)
+
+  Normalized: "cargada de potencia" (3 entradas)
+    - ext_cargada-de-potencia | Cargada de Potencia (Power Clean)
+    - ext_cargada-de-potencia-barra | Cargada de Potencia (Barra)
+    - ext_cargada-de-potencia-kettlebell | Cargada de Potencia (Kettlebell)
+
+  Normalized: "pantorrilla sentado" (3 entradas)
+    - ext_pantorrilla-sentado | Pantorrilla Sentado (Seated Calf Raise)
+    - ext_pantorrilla-sentado-mancuerna | Pantorrilla Sentado (Mancuerna)
+    - ext_pantorrilla-sentado-barra | Pantorrilla Sentado (Barra)
+
+  Normalized: "pantorrilla de pie" (5 entradas)
+    - ext_pantorrilla-de-pie | Pantorrilla de Pie (Standing Calf Raise)
+    - ext_pantorrilla-de-pie-smith | Pantorrilla de Pie (Smith)
+    - ext_pantorrilla-de-pie-barra | Pantorrilla de Pie (Barra)
+    - ext_pantorrilla-de-pie-mancuerna | Pantorrilla de Pie (Mancuerna)
+    - ext_pantorrilla-de-pie-peso-corporal | Pantorrilla de Pie (Peso Corporal)
+
+  Normalized: "press de pecho" (2 entradas)
+    - ext_press-de-pecho-máquina-smith | Press de Pecho (Máquina Smith)
+    - ext_press-de-pecho-máquina-convergente | Press de Pecho (Máquina Convergente)
+
+  Normalized: "aperturas" (3 entradas)
+    - ext_aperturas-polea-baja | Aperturas (Polea Baja)
+    - ext_aperturas-polea-alta | Aperturas (Polea Alta)
+    - ext_aperturas-kettlebell | Aperturas (Kettlebell)
+
+  Normalized: "flexiones )" (2 entradas)
+    - ext_flexiones-mancuernas-agarre | Flexiones (Mancuernas (Agarre))
+    - ext_flexiones-kettlebell-agarre | Flexiones (Kettlebell (Agarre))
+
+  Normalized: "fondos )" (2 entradas)
+    - ext_fondos-máquina-asistida | Fondos (Máquina (Asistida))
+    - ext_fondos-máquina-lastrada | Fondos (Máquina (Lastrada))
+
+  Normalized: "remo" (2 entradas)
+    - ext_remo-máquina-convergente | Remo (Máquina Convergente)
+    - ext_remo-máquina-smith | Remo (Máquina Smith)
+
+  Normalized: "zancada" (4 entradas)
+    - ext_zancada-mancuernas | Zancada (Mancuernas)
+    - ext_zancada-kettlebell | Zancada (Kettlebell)
+    - ext_zancada-polea | Zancada (Polea)
+    - ext_zancada-peso-corporal | Zancada (Peso Corporal)
+
+  Normalized: "curl con barra" (2 entradas)
+    - ext_curl-con-barra-smith | Curl con Barra (Smith)
+    - ext_curl-con-barra-polea-baja | Curl con Barra (Polea Baja)
+
+  Normalized: "crunch" (4 entradas)
+    - ext_crunch-peso-corporal | Crunch (Peso Corporal)
+    - ext_crunch-con-disco | Crunch (Con Disco)
+    - ext_crunch-polea-alta | Crunch (Polea Alta)
+    - ext_crunch-máquina | Crunch (Máquina)
+
+  Normalized: "pallof press" (2 entradas)
+    - ext_pallof-press-polea | Pallof Press (Polea)
+    - ext_pallof-press-banda | Pallof Press (Banda)
+
+  Normalized: "elevacion de piernas" (2 entradas)
+    - ext_elevación-de-piernas-peso-corporal | Elevación de Piernas (Peso Corporal)
+    - ext_elevación-de-piernas-con-disco | Elevación de Piernas (Con Disco)
+
+  Normalized: "paseo del camarero" (2 entradas)
+    - ext_paseo-del-camarero-kettlebell | Paseo del Camarero (Kettlebell)
+    - ext_paseo-del-camarero-disco | Paseo del Camarero (Disco)
+
+  Normalized: "suitcase carry" (2 entradas)
+    - ext_suitcase-carry-kettlebell | Suitcase Carry (Kettlebell)
+    - ext_suitcase-carry-mancuerna | Suitcase Carry (Mancuerna)
+
+  Normalized: "abduccion de cadera" (3 entradas)
+    - ext_abducción-de-cadera-polea | Abducción de Cadera (Polea)
+    - ext_abducción-de-cadera-banda | Abducción de Cadera (Banda)
+    - ext_abducción-de-cadera-peso-corporal | Abducción de Cadera (Peso Corporal)
+
+  Normalized: "patada de gluteo" (3 entradas)
+    - ext_patada-de-glúteo-polea | Patada de Glúteo (Polea)
+    - ext_patada-de-glúteo-máquina | Patada de Glúteo (Máquina)
+    - ext_patada-de-glúteo-peso-corporal | Patada de Glúteo (Peso Corporal)
+
+  Normalized: "hip adduction" (2 entradas)
+    - ext_hip-adduction-máquina | Hip Adduction (Máquina)
+    - ext_hip-adduction-polea | Hip Adduction (Polea)
+
+--- 3. POSIBLES DUPLICADOS SEMÁNTICOS (similitud >= 85%) ---
+  Score 100%: "Press de Banca (Táctil / Touch and Go)" <-> "Press de Banca (Pausado)"
+    IDs: db_bench_press_tng | db_bench_press_paused
+
+  Score 100%: "Press de Banca (Táctil / Touch and Go)" <-> "Press de Banca (Plano con Barra)"
+    IDs: db_bench_press_tng | ext_press-de-banca
+
+  Score 100%: "Press de Banca (Táctil / Touch and Go)" <-> "Press de Banca (Con Mancuernas)"
+    IDs: db_bench_press_tng | ext_press-de-banca_2
+
+  Score 100%: "Press de Banca (Táctil / Touch and Go)" <-> "Press de Banca (Agarre Cerrado)"
+    IDs: db_bench_press_tng | ext_press-de-banca_6
+
+  Score 100%: "Press de Banca (Pausado)" <-> "Press de Banca (Plano con Barra)"
+    IDs: db_bench_press_paused | ext_press-de-banca
+
+  Score 100%: "Press de Banca (Pausado)" <-> "Press de Banca (Con Mancuernas)"
+    IDs: db_bench_press_paused | ext_press-de-banca_2
+
+  Score 100%: "Press de Banca (Pausado)" <-> "Press de Banca (Agarre Cerrado)"
+    IDs: db_bench_press_paused | ext_press-de-banca_6
+
+  Score 100%: "Fondos en Paralelas" <-> "Fondos en Paralelas (Lastrados)"
+    IDs: db_dips | ex-weighted-dips
+
+  Score 100%: "Remo con Barra" <-> "Remo con Barra (Agarre Supino)"
+    IDs: db_barbell_row | db_exp_barbell_row_underhand
+
+  Score 100%: "Remo con Barra" <-> "Remo con Barra (Smith)"
+    IDs: db_barbell_row | ext_remo-con-barra-smith
+
+  Score 100%: "Remo con Barra" <-> "Remo con Barra (Polea Baja)"
+    IDs: db_barbell_row | ext_remo-con-barra-polea-baja
+
+  Score 100%: "Remo con Mancuerna" <-> "Remo con Mancuerna (Kettlebell)"
+    IDs: db_dumbbell_row | ext_remo-con-mancuerna-kettlebell
+
+  Score 100%: "Remo con Mancuerna" <-> "Remo con Mancuerna (Polea)"
+    IDs: db_dumbbell_row | ext_remo-con-mancuerna-polea
+
+  Score 100%: "Jalón al Pecho" <-> "Jalón al Pecho (Agarre Cerrado/V)"
+    IDs: db_lat_pulldown | ext_jalón-al-pecho_2
+
+  Score 100%: "Jalón al Pecho" <-> "Jalón al Pecho (Unilateral)"
+    IDs: db_lat_pulldown | ext_jalón-al-pecho_3
+
+  Score 100%: "Jalón al Pecho" <-> "Jalón al Pecho (Máquina Convergente)"
+    IDs: db_lat_pulldown | ext_jalón-al-pecho-máquina-convergente
+
+  Score 100%: "Jalón al Pecho" <-> "Jalón al Pecho (Barra Recta)"
+    IDs: db_lat_pulldown | ext_jalón-al-pecho-barra-recta
+
+  Score 100%: "Press Militar (Barra)" <-> "Press Militar (Smith)"
+    IDs: db_overhead_press | ext_press-militar-smith
+
+  Score 100%: "Press Militar (Barra)" <-> "Press Militar (Polea Baja)"
+    IDs: db_overhead_press | ext_press-militar-polea-baja
+
+  Score 100%: "Press Militar (Barra)" <-> "Press Militar (Máquina Convergente)"
+    IDs: db_overhead_press | ext_press-militar-máquina-convergente
+
+  Score 100%: "Press Militar (Barra)" <-> "Press Militar (Kettlebell)"
+    IDs: db_overhead_press | ext_press-militar-kettlebell
+
+  Score 100%: "Press de Hombros (Mancuernas)" <-> "Press de Hombros (Smith)"
+    IDs: db_dumbbell_shoulder_press | ext_press-de-hombros-smith
+
+  Score 100%: "Press de Hombros (Mancuernas)" <-> "Press de Hombros (Máquina Smith)"
+    IDs: db_dumbbell_shoulder_press | ext_press-de-hombros-máquina-smith
+
+  Score 100%: "Elevaciones Laterales (Mancuernas)" <-> "Elevaciones Laterales (Kettlebell)"
+    IDs: db_lateral_raise | ext_elevaciones-laterales-kettlebell
+
+  Score 100%: "Press Francés" <-> "Press Francés (Polea)"
+    IDs: db_skull_crusher | ext_press-francés-polea
+
+  Score 100%: "Press Francés" <-> "Press Francés (Mancuerna)"
+    IDs: db_skull_crusher | ext_press-francés-mancuerna
+
+  Score 100%: "Press Francés" <-> "Press Francés (Kettlebell)"
+    IDs: db_skull_crusher | ext_press-francés-kettlebell
+
+  Score 100%: "Rueda Abdominal" <-> "Rueda Abdominal (Ab Wheel Rollout)"
+    IDs: db_ab_wheel | ext_rueda-abdominal
+
+  Score 100%: "Sentadilla Frontal" <-> "Sentadilla Frontal (Agarre Olímpico/Cruzado)"
+    IDs: db_front_squat | ext_sentadilla-frontal
+
+  Score 100%: "Sentadilla Frontal" <-> "Sentadilla Frontal (Smith)"
+    IDs: db_front_squat | ext_sentadilla-frontal-smith
+
+  Score 100%: "Sentadilla Frontal" <-> "Sentadilla Frontal (Polea)"
+    IDs: db_front_squat | ext_sentadilla-frontal-polea
+
+  Score 100%: "Sentadilla Zercher" <-> "Sentadilla Zercher (Barra en codos)"
+    IDs: db_zercher_squat | ext_sentadilla-zercher
+
+  Score 100%: "Sentadilla Goblet" <-> "Sentadilla Goblet (Mancuerna / Kettlebell)"
+    IDs: db_goblet_squat | ext_sentadilla-goblet
+
+  Score 100%: "Sentadilla Goblet" <-> "Sentadilla Goblet (Con Pausa / Tempo)"
+    IDs: db_goblet_squat | ext_sentadilla-goblet_2
+
+  Score 100%: "Sentadilla Goblet" <-> "Sentadilla Goblet (Kettlebell)"
+    IDs: db_goblet_squat | ext_sentadilla-goblet-kettlebell
+
+  Score 100%: "Peso Muerto Rumano" <-> "Peso Muerto Rumano (Polea)"
+    IDs: db_romanian_deadlift | ext_peso-muerto-rumano-polea
+
+  Score 100%: "Peso Muerto Rumano" <-> "Peso Muerto Rumano (Kettlebell)"
+    IDs: db_romanian_deadlift | ext_peso-muerto-rumano-kettlebell
+
+  Score 100%: "Peso Muerto Rumano" <-> "Peso Muerto Rumano (Mancuernas)"
+    IDs: db_romanian_deadlift | ext_peso-muerto-rumano-mancuernas
+
+  Score 100%: "Peso Muerto Rumano" <-> "Peso Muerto Rumano (Peso Corporal)"
+    IDs: db_romanian_deadlift | ext_peso-muerto-rumano-peso-corporal
+
+  Score 100%: "Buenos Días" <-> "Buenos Días (Barra Cambered/SSB)"
+    IDs: db_good_mornings | ext_buenos-días_3
+
+  Score 100%: "Buenos Días" <-> "Buenos Días (Smith)"
+    IDs: db_good_mornings | ext_buenos-días-smith
+
+  Score 100%: "Buenos Días" <-> "Buenos Días (Peso Corporal)"
+    IDs: db_good_mornings | ext_buenos-días-peso-corporal
+
+  Score 100%: "Hiperextensiones (45º)" <-> "Hiperextensiones (Banco 45 grados)"
+    IDs: db_hyperextensions | ext_hiperextensiones
+
+  Score 100%: "Prensa de Piernas" <-> "Prensa de Piernas (Máquina Convergente)"
+    IDs: db_leg_press_45 | ext_prensa-de-piernas-máquina-convergente
+
+  Score 100%: "Sentadilla Hack (Máquina)" <-> "Sentadilla Hack"
+    IDs: db_hack_squat | db_exp3_hack_squat
+
+  Score 85%: "Curl Femoral Sentado" <-> "Curl Femoral Sentado Maquina"
+    IDs: db_leg_curl_seated | db_exp3_mq_leg_curl_sitting
+
+  Score 100%: "Curl Nórdico" <-> "Curl Nordico"
+    IDs: db_nordic_curl | db_exp3_lg_nordic_curl
+
+  Score 100%: "Curl Nórdico" <-> "Curl Nórdico (Peso corporal)"
+    IDs: db_nordic_curl | ext_curl-nórdico
+
+  Score 100%: "Sentadilla Sissy" <-> "Sentadilla Sissy (Peso corporal / Banco)"
+    IDs: db_sissy_squat | ext_sentadilla-sissy
+
+  Score 100%: "Sentadilla Búlgara" <-> "Sentadilla Búlgara (Barra)"
+    IDs: db_bulgarian_split_squat | ext_sentadilla-búlgara-barra
+
+  Score 100%: "Sentadilla Búlgara" <-> "Sentadilla Búlgara (Kettlebell)"
+    IDs: db_bulgarian_split_squat | ext_sentadilla-búlgara-kettlebell
+
+  Score 100%: "Sentadilla Búlgara" <-> "Sentadilla Búlgara (Peso Corporal)"
+    IDs: db_bulgarian_split_squat | ext_sentadilla-búlgara-peso-corporal
+
+  Score 100%: "Empuje de Trineo" <-> "Empuje de Trineo (Prowler Push)"
+    IDs: db_sled_push | ext_empuje-de-trineo
+
+  Score 100%: "Salto al Cajón" <-> "Salto al Cajón (Box Jump)"
+    IDs: db_box_jump | ext_salto-al-cajón
+
+  Score 100%: "Cruce de Poleas (Alto a Bajo)" <-> "Cruce de Poleas (Bajo a Alto)"
+    IDs: ex-cable-fly-high-low | ex-cable-fly-low-high
+
+  Score 100%: "Extensión de Tríceps sobre la Cabeza (Polea)" <-> "Extensión de Tríceps sobre la Cabeza (Mancuerna)"
+    IDs: ex-cable-overhead-triceps | db_exp_overhead_tricep_extension
+
+  Score 100%: "Elevaciones en Y (Polea/Cables)" <-> "Elevaciones en Y (Prono)"
+    IDs: ex-cable-y-raises | db_exp_prone_y_raise
+
+  Score 100%: "Remo Pendlay" <-> "Remo Pendlay (Estricto desde suelo)"
+    IDs: ex-pendlay-row | ext_remo-pendlay
+
+  Score 100%: "Remo Kroc (Mancuerna Pesada)" <-> "Remo Kroc (Altas Reps / Trampa)"
+    IDs: ex-kroc-rows | ext_remo-kroc
+
+  Score 100%: "Press Pallof (Banda/Polea)" <-> "Press Pallof (Cable / Banda)"
+    IDs: ex-pallof-press | ext_press-pallof
+
+  Score 100%: "Flexiones Pike (V invertida)" <-> "Flexiones Pike"
+    IDs: db_exp_push_up_pike | db_exp3_bw_pike_push_up
+
+  Score 100%: "Face Pull (Tirón a la Cara)" <-> "Face Pull (Polea Alta)"
+    IDs: db_exp_face_pull | ext_face-pull
+
+  Score 100%: "Face Pull (Tirón a la Cara)" <-> "Face Pull (Banda)"
+    IDs: db_exp_face_pull | ext_face-pull-banda
+
+  Score 100%: "Face Pull (Tirón a la Cara)" <-> "Face Pull (Mancuernas)"
+    IDs: db_exp_face_pull | ext_face-pull-mancuernas
+
+  Score 100%: "Superman (Hiperextensión de Espalda)" <-> "Superman"
+    IDs: db_exp_superman | db_exp3_ab_superman
+
+  Score 100%: "Remo Invertido (Peso Corporal)" <-> "Remo Invertido (Peso Corporal / TRX)"
+    IDs: db_exp_inverted_row | ext_remo-invertido
+
+  Score 100%: "Remo con Barra (Agarre Supino)" <-> "Remo con Barra (Smith)"
+    IDs: db_exp_barbell_row_underhand | ext_remo-con-barra-smith
+
+  Score 100%: "Remo con Barra (Agarre Supino)" <-> "Remo con Barra (Polea Baja)"
+    IDs: db_exp_barbell_row_underhand | ext_remo-con-barra-polea-baja
+
+  Score 100%: "Press Arnold" <-> "Press Arnold (Mancuernas)"
+    IDs: db_exp_arnold_press | ext_press-arnold
+
+  Score 100%: "Curl Concentrado" <-> "Curl Concentrado (Sentado)"
+    IDs: db_exp_concentration_curl | ext_curl-concentrado
+
+  Score 100%: "Curl Concentrado" <-> "Curl Concentrado (Polea)"
+    IDs: db_exp_concentration_curl | ext_curl-concentrado-polea
+
+  Score 100%: "Curl Concentrado" <-> "Curl Concentrado (Kettlebell)"
+    IDs: db_exp_concentration_curl | ext_curl-concentrado-kettlebell
+
+  Score 100%: "Curl Martillo" <-> "Curl Martillo (Hammer Curl)"
+    IDs: db_exp_hammer_curl | ext_curl-martillo
+
+  Score 100%: "Curl Martillo" <-> "Curl Martillo (Polea)"
+    IDs: db_exp_hammer_curl | ext_curl-martillo-polea
+
+  Score 100%: "Curl Martillo" <-> "Curl Martillo (Kettlebell)"
+    IDs: db_exp_hammer_curl | ext_curl-martillo-kettlebell
+
+  Score 100%: "Curl Martillo" <-> "Curl Martillo (Barra)"
+    IDs: db_exp_hammer_curl | ext_curl-martillo-barra
+
+  Score 100%: "Curl Inverso (Agarre Prono)" <-> "Curl Inverso"
+    IDs: db_exp_reverse_curl | db_exp3_reverse_curl
+
+  Score 100%: "Curl Inverso (Agarre Prono)" <-> "Curl Inverso (Barra)"
+    IDs: db_exp_reverse_curl | ext_curl-inverso-barra
+
+  Score 100%: "Curl Inverso (Agarre Prono)" <-> "Curl Inverso (Polea)"
+    IDs: db_exp_reverse_curl | ext_curl-inverso-polea
+
+  Score 100%: "Curl de Arrastre" <-> "Curl de Arrastre (Drag Curl)"
+    IDs: db_exp_drag_curl | ext_curl-de-arrastre
+
+  Score 100%: "Curl de Muñeca (Supino)" <-> "Curl de Muñeca"
+    IDs: db_exp_wrist_curl | db_exp3_wrist_curl
+
+  Score 100%: "Puente de Glúteos (Peso Corporal)" <-> "Puente de Glúteos (Barra)"
+    IDs: db_exp_glute_bridge | ext_puente-de-glúteos-barra
+
+  Score 100%: "Puente de Glúteos (Peso Corporal)" <-> "Puente de Glúteos (Mancuerna)"
+    IDs: db_exp_glute_bridge | ext_puente-de-glúteos-mancuerna
+
+  Score 100%: "Puente de Glúteos (Peso Corporal)" <-> "Puente de Glúteos (Kettlebell)"
+    IDs: db_exp_glute_bridge | ext_puente-de-glúteos-kettlebell
+
+  Score 100%: "Curl Femoral de Pie (Máquina)" <-> "Curl Femoral de Pie"
+    IDs: db_exp_leg_curl_standing | db_exp3_leg_curl_standing
+
+  Score 100%: "Dead Bug" <-> "Dead Bug (Bicho Muerto)"
+    IDs: db_exp_dead_bug | ext_dead-bug
+
+  Score 100%: "Dead Bug" <-> "Dead Bug (Peso Corporal)"
+    IDs: db_exp_dead_bug | ext_dead-bug-peso-corporal
+
+  Score 100%: "Dead Bug" <-> "Dead Bug (Con Disco)"
+    IDs: db_exp_dead_bug | ext_dead-bug-con-disco
+
+  Score 100%: "Giros Rusos" <-> "Giros Rusos (Russian Twist)"
+    IDs: db_exp_russian_twist | ext_giros-rusos
+
+  Score 100%: "Giros Rusos" <-> "Giros Rusos (Disco)"
+    IDs: db_exp_russian_twist | ext_giros-rusos-disco
+
+  Score 100%: "Giros Rusos" <-> "Giros Rusos (Kettlebell)"
+    IDs: db_exp_russian_twist | ext_giros-rusos-kettlebell
+
+  Score 100%: "Giros Rusos" <-> "Giros Rusos (Peso Corporal)"
+    IDs: db_exp_russian_twist | ext_giros-rusos-peso-corporal
+
+  Score 100%: "Plancha Lateral" <-> "Plancha Lateral (Estática)"
+    IDs: db_exp_side_plank | ext_plancha-lateral
+
+  Score 100%: "Plancha Lateral" <-> "Plancha Lateral (Peso Corporal)"
+    IDs: db_exp_side_plank | ext_plancha-lateral-peso-corporal
+
+  Score 100%: "Plancha Lateral" <-> "Plancha Lateral (Con Disco)"
+    IDs: db_exp_side_plank | ext_plancha-lateral-con-disco
+
+  Score 100%: "Kettlebell Snatch" <-> "Kettlebell Snatch (Unilateral)"
+    IDs: db_exp_kb_snatch | ext_kettlebell-snatch
+
+  Score 100%: "Arrancada (Snatch)" <-> "Arrancada (Power Snatch)"
+    IDs: db_exp_snatch | ext_arrancada
+
+  Score 100%: "Arrancada (Snatch)" <-> "Arrancada (Barra)"
+    IDs: db_exp_snatch | ext_arrancada-barra
+
+  Score 100%: "Arrancada (Snatch)" <-> "Arrancada (Kettlebell)"
+    IDs: db_exp_snatch | ext_arrancada-kettlebell
+
+  Score 100%: "High Pull" <-> "High Pull (Desde Hang / Suelo)"
+    IDs: db_exp_high_pull | ext_high-pull
+
+  Score 100%: "High Pull" <-> "High Pull (Kettlebell)"
+    IDs: db_exp_high_pull | ext_high-pull-kettlebell
+
+  Score 100%: "High Pull" <-> "High Pull (Mancuernas)"
+    IDs: db_exp_high_pull | ext_high-pull-mancuernas
+
+  Score 100%: "Push Jerk" <-> "Push Jerk (Barra)"
+    IDs: db_exp_push_jerk | ext_push-jerk-barra
+
+  Score 100%: "Push Jerk" <-> "Push Jerk (Kettlebell)"
+    IDs: db_exp_push_jerk | ext_push-jerk-kettlebell
+
+  Score 100%: "Paseo del Granjero" <-> "Paseo del Granjero (Heavy Carries)"
+    IDs: db_exp2_farmers_walk | ext_paseo-del-granjero
+
+  Score 100%: "Paseo del Granjero" <-> "Paseo del Granjero (Mancuernas)"
+    IDs: db_exp2_farmers_walk | ext_paseo-del-granjero-mancuernas
+
+  Score 100%: "Paseo del Granjero" <-> "Paseo del Granjero (Kettlebell)"
+    IDs: db_exp2_farmers_walk | ext_paseo-del-granjero-kettlebell
+
+  Score 100%: "Paseo del Granjero" <-> "Paseo del Granjero (Trap Bar)"
+    IDs: db_exp2_farmers_walk | ext_paseo-del-granjero-trap-bar
+
+  Score 100%: "Curl Inverso" <-> "Curl Inverso (Barra)"
+    IDs: db_exp3_reverse_curl | ext_curl-inverso-barra
+
+  Score 100%: "Curl Inverso" <-> "Curl Inverso (Polea)"
+    IDs: db_exp3_reverse_curl | ext_curl-inverso-polea
+
+  Score 100%: "JM Press" <-> "JM Press (Barra)"
+    IDs: db_exp3_JM_press | ext_jm-press-barra
+
+  Score 100%: "JM Press" <-> "JM Press (Smith)"
+    IDs: db_exp3_JM_press | ext_jm-press-smith
+
+  Score 86%: "Gemelos Maquina Sentado" <-> "Gemelos Sentado Maquina"
+    IDs: db_exp3_mq_calf_seated | db_exp3_mq2_seated_calf_raise
+
+  Score 100%: "Plancha" <-> "Plancha (Peso Corporal)"
+    IDs: db_exp3_bw_plank | ext_plancha-peso-corporal
+
+  Score 100%: "Plancha" <-> "Plancha (Con Disco)"
+    IDs: db_exp3_bw_plank | ext_plancha-con-disco
+
+  Score 100%: "Curl Nordico" <-> "Curl Nórdico (Peso corporal)"
+    IDs: db_exp3_lg_nordic_curl | ext_curl-nórdico
+
+  Score 100%: "Remo Yates" <-> "Remo Yates (Supino / 45 grados)"
+    IDs: db_exp3_bb2_yates_row | ext_remo-yates
+
+  Score 100%: "Curl 21" <-> "Curl 21 (Barra)"
+    IDs: db_exp3_bb2_21_curl | ext_curl-21-barra
+
+  Score 100%: "Push Press" <-> "Push Press (Barra)"
+    IDs: db_exp3_bb2_push_press | ext_push-press
+
+  Score 100%: "Push Press" <-> "Push Press (Mancuernas)"
+    IDs: db_exp3_bb2_push_press | ext_push-press-mancuernas
+
+  Score 100%: "Push Press" <-> "Push Press (Kettlebell)"
+    IDs: db_exp3_bb2_push_press | ext_push-press-kettlebell
+
+  Score 100%: "Sentadilla Trasera (Barra Alta (High Bar))" <-> "Sentadilla Trasera (Barra Baja (Low Bar))"
+    IDs: ext_sentadilla-trasera | ext_sentadilla-trasera_2
+
+  Score 100%: "Sentadilla Trasera (Barra Alta (High Bar))" <-> "Sentadilla Trasera (Con Pausa (2-3 seg))"
+    IDs: ext_sentadilla-trasera | ext_sentadilla-trasera_3
+
+  Score 100%: "Sentadilla Trasera (Barra Alta (High Bar))" <-> "Sentadilla Trasera (Polea (Belt Squat))"
+    IDs: ext_sentadilla-trasera | ext_sentadilla-trasera-polea-belt-squat
+
+  Score 100%: "Sentadilla Trasera (Barra Baja (Low Bar))" <-> "Sentadilla Trasera (Con Pausa (2-3 seg))"
+    IDs: ext_sentadilla-trasera_2 | ext_sentadilla-trasera_3
+
+  Score 100%: "Sentadilla Trasera (Barra Baja (Low Bar))" <-> "Sentadilla Trasera (Polea (Belt Squat))"
+    IDs: ext_sentadilla-trasera_2 | ext_sentadilla-trasera-polea-belt-squat
+
+  Score 100%: "Sentadilla Trasera (Con Pausa (2-3 seg))" <-> "Sentadilla Trasera (Polea (Belt Squat))"
+    IDs: ext_sentadilla-trasera_3 | ext_sentadilla-trasera-polea-belt-squat
+
+  Score 100%: "Sentadilla Trasera (Con Cadenas/Bandas)" <-> "Sentadilla Trasera (Smith)"
+    IDs: ext_sentadilla-trasera_4 | ext_sentadilla-trasera-smith
+
+  Score 100%: "Sentadilla Frontal (Agarre Olímpico/Cruzado)" <-> "Sentadilla Frontal (Smith)"
+    IDs: ext_sentadilla-frontal | ext_sentadilla-frontal-smith
+
+  Score 100%: "Sentadilla Frontal (Agarre Olímpico/Cruzado)" <-> "Sentadilla Frontal (Polea)"
+    IDs: ext_sentadilla-frontal | ext_sentadilla-frontal-polea
+
+  Score 100%: "Sentadilla Hack (Barra (desde el suelo))" <-> "Sentadilla Hack (Máquina (guiada))"
+    IDs: ext_sentadilla-hack | ext_sentadilla-hack_2
+
+  Score 100%: "Prensa de Piernas (45 Grados (Standard))" <-> "Prensa de Piernas (Horizontal (Selectorizada))"
+    IDs: ext_prensa-de-piernas | ext_prensa-de-piernas_2
+
+  Score 100%: "Prensa de Piernas (45 Grados (Standard))" <-> "Prensa de Piernas (Unilateral (Una pierna))"
+    IDs: ext_prensa-de-piernas | ext_prensa-de-piernas_3
+
+  Score 100%: "Prensa de Piernas (45 Grados (Standard))" <-> "Prensa de Piernas (Smith (Pies Altos))"
+    IDs: ext_prensa-de-piernas | ext_prensa-de-piernas-smith-pies-altos
+
+  Score 100%: "Prensa de Piernas (Horizontal (Selectorizada))" <-> "Prensa de Piernas (Unilateral (Una pierna))"
+    IDs: ext_prensa-de-piernas_2 | ext_prensa-de-piernas_3
+
+  Score 100%: "Prensa de Piernas (Horizontal (Selectorizada))" <-> "Prensa de Piernas (Smith (Pies Altos))"
+    IDs: ext_prensa-de-piernas_2 | ext_prensa-de-piernas-smith-pies-altos
+
+  Score 100%: "Prensa de Piernas (Unilateral (Una pierna))" <-> "Prensa de Piernas (Smith (Pies Altos))"
+    IDs: ext_prensa-de-piernas_3 | ext_prensa-de-piernas-smith-pies-altos
+
+  Score 100%: "Sentadilla Goblet (Mancuerna / Kettlebell)" <-> "Sentadilla Goblet (Con Pausa / Tempo)"
+    IDs: ext_sentadilla-goblet | ext_sentadilla-goblet_2
+
+  Score 100%: "Sentadilla Goblet (Mancuerna / Kettlebell)" <-> "Sentadilla Goblet (Kettlebell)"
+    IDs: ext_sentadilla-goblet | ext_sentadilla-goblet-kettlebell
+
+  Score 100%: "Sentadilla Goblet (Con Pausa / Tempo)" <-> "Sentadilla Goblet (Kettlebell)"
+    IDs: ext_sentadilla-goblet_2 | ext_sentadilla-goblet-kettlebell
+
+  Score 100%: "Sentadilla Búlgara (Mancuernas (Bulgarian Split))" <-> "Sentadilla Búlgara (Barra (Trasera))"
+    IDs: ext_sentadilla-búlgara | ext_sentadilla-búlgara_2
+
+  Score 100%: "Zancada (Lunge) (Hacia atrás (Reverse))" <-> "Zancada (Hacia adelante (Walking))"
+    IDs: ext_zancada-lunge | ext_zancada
+
+  Score 100%: "Zancada (Lunge) (Hacia atrás (Reverse))" <-> "Zancada (Lateral (Side Lunge))"
+    IDs: ext_zancada-lunge | ext_zancada_2
+
+  Score 100%: "Zancada (Lunge) (Hacia atrás (Reverse))" <-> "Zancada (Cruzada (Curtsy))"
+    IDs: ext_zancada-lunge | ext_zancada_3
+
+  Score 100%: "Zancada (Lunge) (Hacia atrás (Reverse))" <-> "Zancada (Barra (Trasera))"
+    IDs: ext_zancada-lunge | ext_zancada-barra-trasera
+
+  Score 100%: "Zancada (Lunge) (Hacia atrás (Reverse))" <-> "Zancada (Barra (Frontal))"
+    IDs: ext_zancada-lunge | ext_zancada-barra-frontal
+
+  Score 100%: "Zancada (Hacia adelante (Walking))" <-> "Zancada (Lateral (Side Lunge))"
+    IDs: ext_zancada | ext_zancada_2
+
+  Score 100%: "Zancada (Hacia adelante (Walking))" <-> "Zancada (Cruzada (Curtsy))"
+    IDs: ext_zancada | ext_zancada_3
+
+  Score 100%: "Zancada (Hacia adelante (Walking))" <-> "Zancada (Barra (Trasera))"
+    IDs: ext_zancada | ext_zancada-barra-trasera
+
+  Score 100%: "Zancada (Hacia adelante (Walking))" <-> "Zancada (Barra (Frontal))"
+    IDs: ext_zancada | ext_zancada-barra-frontal
+
+  Score 100%: "Zancada (Lateral (Side Lunge))" <-> "Zancada (Cruzada (Curtsy))"
+    IDs: ext_zancada_2 | ext_zancada_3
+
+  Score 100%: "Zancada (Lateral (Side Lunge))" <-> "Zancada (Barra (Trasera))"
+    IDs: ext_zancada_2 | ext_zancada-barra-trasera
+
+  Score 100%: "Zancada (Lateral (Side Lunge))" <-> "Zancada (Barra (Frontal))"
+    IDs: ext_zancada_2 | ext_zancada-barra-frontal
+
+  Score 100%: "Zancada (Cruzada (Curtsy))" <-> "Zancada (Barra (Trasera))"
+    IDs: ext_zancada_3 | ext_zancada-barra-trasera
+
+  Score 100%: "Zancada (Cruzada (Curtsy))" <-> "Zancada (Barra (Frontal))"
+    IDs: ext_zancada_3 | ext_zancada-barra-frontal
+
+  Score 100%: "Subida al Cajón (Step-Up Explosivo)" <-> "Subida al Cajón (Barra)"
+    IDs: ext_subida-al-cajón_2 | ext_subida-al-cajón-barra
+
+  Score 100%: "Subida al Cajón (Step-Up Explosivo)" <-> "Subida al Cajón (Kettlebell)"
+    IDs: ext_subida-al-cajón_2 | ext_subida-al-cajón-kettlebell
+
+  Score 100%: "Subida al Cajón (Step-Up Explosivo)" <-> "Subida al Cajón (Peso Corporal)"
+    IDs: ext_subida-al-cajón_2 | ext_subida-al-cajón-peso-corporal
+
+  Score 100%: "Extensiones Cuádriceps (Máquina (Bilateral))" <-> "Extensiones Cuádriceps (Peso Corporal (Sissy))"
+    IDs: ext_extensiones-cuádriceps | ext_extensiones-cuádriceps-peso-corporal-sissy
+
+  Score 100%: "Extensiones Cuádriceps (Unilateral)" <-> "Extensiones Cuádriceps (Polea)"
+    IDs: ext_extensiones-cuádriceps_2 | ext_extensiones-cuádriceps-polea
+
+  Score 100%: "Peso Muerto (Convencional (Barra))" <-> "Peso Muerto (Piernas Rígidas (Stiff Leg))"
+    IDs: ext_peso-muerto | ext_peso-muerto_5
+
+  Score 100%: "Peso Muerto (Convencional (Barra))" <-> "Peso Muerto (Déficit (Sobre disco))"
+    IDs: ext_peso-muerto | ext_peso-muerto_6
+
+  Score 100%: "Peso Muerto (Convencional (Barra))" <-> "Peso Muerto (Trap Bar (Hexagonal))"
+    IDs: ext_peso-muerto | ext_peso-muerto_7
+
+  Score 100%: "Peso Muerto (Convencional (Barra))" <-> "Peso Muerto (Agarre Snatch (Ancho))"
+    IDs: ext_peso-muerto | ext_peso-muerto_8
+
+  Score 100%: "Peso Muerto (Sumo)" <-> "Peso Muerto (Rumano con Mancuernas)"
+    IDs: ext_peso-muerto_2 | ext_peso-muerto_4
+
+  Score 100%: "Peso Muerto (Sumo)" <-> "Peso Muerto (Smith)"
+    IDs: ext_peso-muerto_2 | ext_peso-muerto-smith
+
+  Score 100%: "Peso Muerto (Rumano con Mancuernas)" <-> "Peso Muerto (Smith)"
+    IDs: ext_peso-muerto_4 | ext_peso-muerto-smith
+
+  Score 100%: "Peso Muerto (Piernas Rígidas (Stiff Leg))" <-> "Peso Muerto (Déficit (Sobre disco))"
+    IDs: ext_peso-muerto_5 | ext_peso-muerto_6
+
+  Score 100%: "Peso Muerto (Piernas Rígidas (Stiff Leg))" <-> "Peso Muerto (Trap Bar (Hexagonal))"
+    IDs: ext_peso-muerto_5 | ext_peso-muerto_7
+
+  Score 100%: "Peso Muerto (Piernas Rígidas (Stiff Leg))" <-> "Peso Muerto (Agarre Snatch (Ancho))"
+    IDs: ext_peso-muerto_5 | ext_peso-muerto_8
+
+  Score 100%: "Peso Muerto (Déficit (Sobre disco))" <-> "Peso Muerto (Trap Bar (Hexagonal))"
+    IDs: ext_peso-muerto_6 | ext_peso-muerto_7
+
+  Score 100%: "Peso Muerto (Déficit (Sobre disco))" <-> "Peso Muerto (Agarre Snatch (Ancho))"
+    IDs: ext_peso-muerto_6 | ext_peso-muerto_8
+
+  Score 100%: "Peso Muerto (Trap Bar (Hexagonal))" <-> "Peso Muerto (Agarre Snatch (Ancho))"
+    IDs: ext_peso-muerto_7 | ext_peso-muerto_8
+
+  Score 100%: "Buenos Días (Barra (De pie))" <-> "Buenos Días (Sentado (Seated GM))"
+    IDs: ext_buenos-días | ext_buenos-días_2
+
+  Score 100%: "Buenos Días (Barra Cambered/SSB)" <-> "Buenos Días (Smith)"
+    IDs: ext_buenos-días_3 | ext_buenos-días-smith
+
+  Score 100%: "Buenos Días (Barra Cambered/SSB)" <-> "Buenos Días (Peso Corporal)"
+    IDs: ext_buenos-días_3 | ext_buenos-días-peso-corporal
+
+  Score 100%: "Hip Thrust (Máquina)" <-> "Hip Thrust (Mancuernas)"
+    IDs: ext_hip-thrust_2 | ext_hip-thrust-mancuernas
+
+  Score 100%: "Hip Thrust (Máquina)" <-> "Hip Thrust (Kettlebell)"
+    IDs: ext_hip-thrust_2 | ext_hip-thrust-kettlebell
+
+  Score 100%: "Hip Thrust (Máquina)" <-> "Hip Thrust (Polea)"
+    IDs: ext_hip-thrust_2 | ext_hip-thrust-polea
+
+  Score 100%: "Hip Thrust (Máquina)" <-> "Hip Thrust (Peso Corporal)"
+    IDs: ext_hip-thrust_2 | ext_hip-thrust-peso-corporal
+
+  Score 100%: "Kettlebell Swing (Ruso (Hombros))" <-> "Kettlebell Swing (Americano (Arriba))"
+    IDs: ext_kettlebell-swing | ext_kettlebell-swing_2
+
+  Score 100%: "Curl Femoral (Tumbado (Máquina))" <-> "Curl Femoral (Sentado (Máquina))"
+    IDs: ext_curl-femoral | ext_curl-femoral_2
+
+  Score 100%: "Curl Femoral (Tumbado (Máquina))" <-> "Curl Femoral (De pie (Unilateral))"
+    IDs: ext_curl-femoral | ext_curl-femoral_3
+
+  Score 100%: "Curl Femoral (Tumbado (Máquina))" <-> "Curl Femoral (Peso Corporal (Nordic))"
+    IDs: ext_curl-femoral | ext_curl-femoral-peso-corporal-nordic
+
+  Score 100%: "Curl Femoral (Sentado (Máquina))" <-> "Curl Femoral (De pie (Unilateral))"
+    IDs: ext_curl-femoral_2 | ext_curl-femoral_3
+
+  Score 100%: "Curl Femoral (Sentado (Máquina))" <-> "Curl Femoral (Peso Corporal (Nordic))"
+    IDs: ext_curl-femoral_2 | ext_curl-femoral-peso-corporal-nordic
+
+  Score 100%: "Curl Femoral (De pie (Unilateral))" <-> "Curl Femoral (Peso Corporal (Nordic))"
+    IDs: ext_curl-femoral_3 | ext_curl-femoral-peso-corporal-nordic
+
+  Score 100%: "Press de Banca (Plano con Barra)" <-> "Press de Banca (Con Mancuernas)"
+    IDs: ext_press-de-banca | ext_press-de-banca_2
+
+  Score 100%: "Press de Banca (Plano con Barra)" <-> "Press de Banca (Agarre Cerrado)"
+    IDs: ext_press-de-banca | ext_press-de-banca_6
+
+  Score 100%: "Press de Banca (Con Mancuernas)" <-> "Press de Banca (Agarre Cerrado)"
+    IDs: ext_press-de-banca_2 | ext_press-de-banca_6
+
+  Score 100%: "Press de Banca (Inclinado (Barra))" <-> "Press de Banca (Inclinado (Mancuerna))"
+    IDs: ext_press-de-banca_3 | ext_press-de-banca_4
+
+  Score 100%: "Press de Banca (Inclinado (Barra))" <-> "Press de Banca (Declinado (Barra/Manc))"
+    IDs: ext_press-de-banca_3 | ext_press-de-banca_5
+
+  Score 100%: "Press de Banca (Inclinado (Barra))" <-> "Press de Banca (Máquina (Vertical))"
+    IDs: ext_press-de-banca_3 | ext_press-de-banca_7
+
+  Score 100%: "Press de Banca (Inclinado (Barra))" <-> "Press de Banca (Smith (Plano))"
+    IDs: ext_press-de-banca_3 | ext_press-de-banca-smith-plano
+
+  Score 100%: "Press de Banca (Inclinado (Barra))" <-> "Press de Banca (Smith (Inclinado))"
+    IDs: ext_press-de-banca_3 | ext_press-de-banca-smith-inclinado
+
+  Score 100%: "Press de Banca (Inclinado (Barra))" <-> "Press de Banca (Smith (Declinado))"
+    IDs: ext_press-de-banca_3 | ext_press-de-banca-smith-declinado
+
+  Score 100%: "Press de Banca (Inclinado (Barra))" <-> "Press de Banca (Polea Baja (Unilateral))"
+    IDs: ext_press-de-banca_3 | ext_press-de-banca-polea-baja-unilatera
+
+  Score 100%: "Press de Banca (Inclinado (Barra))" <-> "Press de Banca (Polea Baja (Bilateral))"
+    IDs: ext_press-de-banca_3 | ext_press-de-banca-polea-baja-bilateral
+
+  Score 100%: "Press de Banca (Inclinado (Barra))" <-> "Press de Banca (Kettlebell (Floor Press))"
+    IDs: ext_press-de-banca_3 | ext_press-de-banca-kettlebell-floor-pre
+
+  Score 100%: "Press de Banca (Inclinado (Mancuerna))" <-> "Press de Banca (Declinado (Barra/Manc))"
+    IDs: ext_press-de-banca_4 | ext_press-de-banca_5
+
+  Score 100%: "Press de Banca (Inclinado (Mancuerna))" <-> "Press de Banca (Máquina (Vertical))"
+    IDs: ext_press-de-banca_4 | ext_press-de-banca_7
+
+  Score 100%: "Press de Banca (Inclinado (Mancuerna))" <-> "Press de Banca (Smith (Plano))"
+    IDs: ext_press-de-banca_4 | ext_press-de-banca-smith-plano
+
+  Score 100%: "Press de Banca (Inclinado (Mancuerna))" <-> "Press de Banca (Smith (Inclinado))"
+    IDs: ext_press-de-banca_4 | ext_press-de-banca-smith-inclinado
+
+  Score 100%: "Press de Banca (Inclinado (Mancuerna))" <-> "Press de Banca (Smith (Declinado))"
+    IDs: ext_press-de-banca_4 | ext_press-de-banca-smith-declinado
+
+  Score 100%: "Press de Banca (Inclinado (Mancuerna))" <-> "Press de Banca (Polea Baja (Unilateral))"
+    IDs: ext_press-de-banca_4 | ext_press-de-banca-polea-baja-unilatera
+
+  Score 100%: "Press de Banca (Inclinado (Mancuerna))" <-> "Press de Banca (Polea Baja (Bilateral))"
+    IDs: ext_press-de-banca_4 | ext_press-de-banca-polea-baja-bilateral
+
+  Score 100%: "Press de Banca (Inclinado (Mancuerna))" <-> "Press de Banca (Kettlebell (Floor Press))"
+    IDs: ext_press-de-banca_4 | ext_press-de-banca-kettlebell-floor-pre
+
+  Score 100%: "Press de Banca (Declinado (Barra/Manc))" <-> "Press de Banca (Máquina (Vertical))"
+    IDs: ext_press-de-banca_5 | ext_press-de-banca_7
+
+  Score 100%: "Press de Banca (Declinado (Barra/Manc))" <-> "Press de Banca (Smith (Plano))"
+    IDs: ext_press-de-banca_5 | ext_press-de-banca-smith-plano
+
+  Score 100%: "Press de Banca (Declinado (Barra/Manc))" <-> "Press de Banca (Smith (Inclinado))"
+    IDs: ext_press-de-banca_5 | ext_press-de-banca-smith-inclinado
+
+  Score 100%: "Press de Banca (Declinado (Barra/Manc))" <-> "Press de Banca (Smith (Declinado))"
+    IDs: ext_press-de-banca_5 | ext_press-de-banca-smith-declinado
+
+  Score 100%: "Press de Banca (Declinado (Barra/Manc))" <-> "Press de Banca (Polea Baja (Unilateral))"
+    IDs: ext_press-de-banca_5 | ext_press-de-banca-polea-baja-unilatera
+
+  Score 100%: "Press de Banca (Declinado (Barra/Manc))" <-> "Press de Banca (Polea Baja (Bilateral))"
+    IDs: ext_press-de-banca_5 | ext_press-de-banca-polea-baja-bilateral
+
+  Score 100%: "Press de Banca (Declinado (Barra/Manc))" <-> "Press de Banca (Kettlebell (Floor Press))"
+    IDs: ext_press-de-banca_5 | ext_press-de-banca-kettlebell-floor-pre
+
+  Score 100%: "Press de Banca (Máquina (Vertical))" <-> "Press de Banca (Smith (Plano))"
+    IDs: ext_press-de-banca_7 | ext_press-de-banca-smith-plano
+
+  Score 100%: "Press de Banca (Máquina (Vertical))" <-> "Press de Banca (Smith (Inclinado))"
+    IDs: ext_press-de-banca_7 | ext_press-de-banca-smith-inclinado
+
+  Score 100%: "Press de Banca (Máquina (Vertical))" <-> "Press de Banca (Smith (Declinado))"
+    IDs: ext_press-de-banca_7 | ext_press-de-banca-smith-declinado
+
+  Score 100%: "Press de Banca (Máquina (Vertical))" <-> "Press de Banca (Polea Baja (Unilateral))"
+    IDs: ext_press-de-banca_7 | ext_press-de-banca-polea-baja-unilatera
+
+  Score 100%: "Press de Banca (Máquina (Vertical))" <-> "Press de Banca (Polea Baja (Bilateral))"
+    IDs: ext_press-de-banca_7 | ext_press-de-banca-polea-baja-bilateral
+
+  Score 100%: "Press de Banca (Máquina (Vertical))" <-> "Press de Banca (Kettlebell (Floor Press))"
+    IDs: ext_press-de-banca_7 | ext_press-de-banca-kettlebell-floor-pre
+
+  Score 100%: "Press Militar (De pie con Barra (OHP))" <-> "Press Militar (Sentado (Barra))"
+    IDs: ext_press-militar | ext_press-militar_2
+
+  Score 100%: "Fondos (Dips) (Lastrados)" <-> "Fondos (Dips) (Peso Corporal)"
+    IDs: ext_fondos-dips | ext_fondos-dips_2
+
+  Score 100%: "Flexiones (Push-ups) (Clásicas)" <-> "Flexiones (Pies elevados)"
+    IDs: ext_flexiones-push-ups | ext_flexiones
+
+  Score 100%: "Flexiones (Push-ups) (Clásicas)" <-> "Flexiones (Lastradas/Banda)"
+    IDs: ext_flexiones-push-ups | ext_flexiones_2
+
+  Score 100%: "Flexiones (Push-ups) (Clásicas)" <-> "Flexiones (Con Disco)"
+    IDs: ext_flexiones-push-ups | ext_flexiones-con-disco
+
+  Score 100%: "Flexiones (Pies elevados)" <-> "Flexiones (Lastradas/Banda)"
+    IDs: ext_flexiones | ext_flexiones_2
+
+  Score 100%: "Flexiones (Pies elevados)" <-> "Flexiones (Con Disco)"
+    IDs: ext_flexiones | ext_flexiones-con-disco
+
+  Score 100%: "Flexiones (Lastradas/Banda)" <-> "Flexiones (Con Disco)"
+    IDs: ext_flexiones_2 | ext_flexiones-con-disco
+
+  Score 100%: "Aperturas (Flyes) (Mancuernas (Plano/Inc))" <-> "Aperturas (Máquina (Pec Deck))"
+    IDs: ext_aperturas-flyes | ext_aperturas
+
+  Score 100%: "Elevaciones Laterales (Polea (Cable))" <-> "Elevaciones Laterales (Smith (Unilateral))"
+    IDs: ext_elevaciones-laterales_2 | ext_elevaciones-laterales-smith-unilateral
+
+  Score 100%: "Elevaciones Frontales (Disco / Mancuerna)" <-> "Elevaciones Frontales (Polea)"
+    IDs: ext_elevaciones-frontales | ext_elevaciones-frontales-polea
+
+  Score 100%: "Elevaciones Frontales (Disco / Mancuerna)" <-> "Elevaciones Frontales (Barra)"
+    IDs: ext_elevaciones-frontales | ext_elevaciones-frontales-barra
+
+  Score 100%: "Elevaciones Frontales (Disco / Mancuerna)" <-> "Elevaciones Frontales (Kettlebell)"
+    IDs: ext_elevaciones-frontales | ext_elevaciones-frontales-kettlebell
+
+  Score 100%: "Elevaciones Frontales (Disco / Mancuerna)" <-> "Elevaciones Frontales (Disco)"
+    IDs: ext_elevaciones-frontales | ext_elevaciones-frontales-disco
+
+  Score 100%: "Face Pull (Polea Alta)" <-> "Face Pull (Banda)"
+    IDs: ext_face-pull | ext_face-pull-banda
+
+  Score 100%: "Face Pull (Polea Alta)" <-> "Face Pull (Mancuernas)"
+    IDs: ext_face-pull | ext_face-pull-mancuernas
+
+  Score 100%: "Pájaros (Rear Delt) (Mancuernas / Máquina)" <-> "Pájaros (Polea Cruzada)"
+    IDs: ext_pájaros-rear-delt | ext_pájaros-polea-cruzada
+
+  Score 100%: "Pájaros (Rear Delt) (Mancuernas / Máquina)" <-> "Pájaros (Polea Baja)"
+    IDs: ext_pájaros-rear-delt | ext_pájaros-polea-baja
+
+  Score 100%: "Pájaros (Rear Delt) (Mancuernas / Máquina)" <-> "Pájaros (Kettlebell)"
+    IDs: ext_pájaros-rear-delt | ext_pájaros-kettlebell
+
+  Score 100%: "Dominadas (Pronas (Pull-ups))" <-> "Dominadas (Supinas (Chin-ups))"
+    IDs: ext_dominadas | ext_dominadas_2
+
+  Score 100%: "Dominadas (Pronas (Pull-ups))" <-> "Dominadas (Asistidas (Máquina))"
+    IDs: ext_dominadas | ext_dominadas-asistidas-máquina
+
+  Score 100%: "Dominadas (Supinas (Chin-ups))" <-> "Dominadas (Asistidas (Máquina))"
+    IDs: ext_dominadas_2 | ext_dominadas-asistidas-máquina
+
+  Score 100%: "Dominadas (Neutras)" <-> "Dominadas (Lastradas)"
+    IDs: ext_dominadas_3 | ext_dominadas_4
+
+  Score 100%: "Dominadas (Neutras)" <-> "Dominadas (Con Kettlebell)"
+    IDs: ext_dominadas_3 | ext_dominadas-con-kettlebell
+
+  Score 100%: "Dominadas (Neutras)" <-> "Dominadas (Con Disco)"
+    IDs: ext_dominadas_3 | ext_dominadas-con-disco
+
+  Score 100%: "Dominadas (Lastradas)" <-> "Dominadas (Con Kettlebell)"
+    IDs: ext_dominadas_4 | ext_dominadas-con-kettlebell
+
+  Score 100%: "Dominadas (Lastradas)" <-> "Dominadas (Con Disco)"
+    IDs: ext_dominadas_4 | ext_dominadas-con-disco
+
+  Score 100%: "Jalón al Pecho (Agarre Cerrado/V)" <-> "Jalón al Pecho (Unilateral)"
+    IDs: ext_jalón-al-pecho_2 | ext_jalón-al-pecho_3
+
+  Score 100%: "Jalón al Pecho (Agarre Cerrado/V)" <-> "Jalón al Pecho (Máquina Convergente)"
+    IDs: ext_jalón-al-pecho_2 | ext_jalón-al-pecho-máquina-convergente
+
+  Score 100%: "Jalón al Pecho (Agarre Cerrado/V)" <-> "Jalón al Pecho (Barra Recta)"
+    IDs: ext_jalón-al-pecho_2 | ext_jalón-al-pecho-barra-recta
+
+  Score 100%: "Jalón al Pecho (Unilateral)" <-> "Jalón al Pecho (Máquina Convergente)"
+    IDs: ext_jalón-al-pecho_3 | ext_jalón-al-pecho-máquina-convergente
+
+  Score 100%: "Jalón al Pecho (Unilateral)" <-> "Jalón al Pecho (Barra Recta)"
+    IDs: ext_jalón-al-pecho_3 | ext_jalón-al-pecho-barra-recta
+
+  Score 100%: "Remo en Barra T (T-Bar Row (Pecho apoyado))" <-> "Remo en Barra T (De pie (Landmine))"
+    IDs: ext_remo-en-barra-t | ext_remo-en-barra-t_2
+
+  Score 100%: "Pull-Over (Mancuerna / Polea)" <-> "Pull-Over (Máquina)"
+    IDs: ext_pull-over | ext_pull-over-máquina
+
+  Score 100%: "Pull-Over (Mancuerna / Polea)" <-> "Pull-Over (Barra)"
+    IDs: ext_pull-over | ext_pull-over-barra
+
+  Score 100%: "Encogimientos (Barra / Mancuernas)" <-> "Encogimientos (Smith)"
+    IDs: ext_encogimientos | ext_encogimientos-smith
+
+  Score 100%: "Encogimientos (Barra / Mancuernas)" <-> "Encogimientos (Polea)"
+    IDs: ext_encogimientos | ext_encogimientos-polea
+
+  Score 100%: "Encogimientos (Barra / Mancuernas)" <-> "Encogimientos (Kettlebell)"
+    IDs: ext_encogimientos | ext_encogimientos-kettlebell
+
+  Score 100%: "Encogimientos (Barra / Mancuernas)" <-> "Encogimientos (Peso Corporal)"
+    IDs: ext_encogimientos | ext_encogimientos-peso-corporal
+
+  Score 100%: "Remo al Mentón (Barra / Polea)" <-> "Remo al Mentón (Smith)"
+    IDs: ext_remo-al-mentón | ext_remo-al-mentón-smith
+
+  Score 100%: "Remo al Mentón (Barra / Polea)" <-> "Remo al Mentón (Mancuernas)"
+    IDs: ext_remo-al-mentón | ext_remo-al-mentón-mancuernas
+
+  Score 100%: "Remo al Mentón (Barra / Polea)" <-> "Remo al Mentón (Kettlebell)"
+    IDs: ext_remo-al-mentón | ext_remo-al-mentón-kettlebell
+
+  Score 100%: "Curl Martillo (Hammer Curl)" <-> "Curl Martillo (Polea)"
+    IDs: ext_curl-martillo | ext_curl-martillo-polea
+
+  Score 100%: "Curl Martillo (Hammer Curl)" <-> "Curl Martillo (Kettlebell)"
+    IDs: ext_curl-martillo | ext_curl-martillo-kettlebell
+
+  Score 100%: "Curl Martillo (Hammer Curl)" <-> "Curl Martillo (Barra)"
+    IDs: ext_curl-martillo | ext_curl-martillo-barra
+
+  Score 100%: "Curl Predicador (Banco Scott)" <-> "Curl Predicador (Polea)"
+    IDs: ext_curl-predicador | ext_curl-predicador-polea
+
+  Score 100%: "Curl Predicador (Banco Scott)" <-> "Curl Predicador (Máquina)"
+    IDs: ext_curl-predicador | ext_curl-predicador-máquina
+
+  Score 100%: "Curl Concentrado (Sentado)" <-> "Curl Concentrado (Polea)"
+    IDs: ext_curl-concentrado | ext_curl-concentrado-polea
+
+  Score 100%: "Curl Concentrado (Sentado)" <-> "Curl Concentrado (Kettlebell)"
+    IDs: ext_curl-concentrado | ext_curl-concentrado-kettlebell
+
+  Score 100%: "Extensión Tríceps (Polea (Cuerda))" <-> "Extensión Tríceps (Smith (Trasnuca))"
+    IDs: ext_extensión-tríceps_2 | ext_extensión-tríceps-smith-trasnuca
+
+  Score 100%: "Extensión Tríceps (Polea (Cuerda))" <-> "Extensión Tríceps (Mancuerna (Unilateral))"
+    IDs: ext_extensión-tríceps_2 | ext_extensión-tríceps-mancuerna-unilateral
+
+  Score 100%: "Patada de Tríceps (Mancuerna / Cable)" <-> "Patada de Tríceps (Polea)"
+    IDs: ext_patada-de-tríceps | ext_patada-de-tríceps-polea
+
+  Score 100%: "Patada de Tríceps (Mancuerna / Cable)" <-> "Patada de Tríceps (Kettlebell)"
+    IDs: ext_patada-de-tríceps | ext_patada-de-tríceps-kettlebell
+
+  Score 100%: "Fondos entre Bancos (Bench Dips)" <-> "Fondos entre Bancos (Peso Corporal)"
+    IDs: ext_fondos-entre-bancos | ext_fondos-entre-bancos-peso-corporal
+
+  Score 100%: "Fondos entre Bancos (Bench Dips)" <-> "Fondos entre Bancos (Lastrados)"
+    IDs: ext_fondos-entre-bancos | ext_fondos-entre-bancos-lastrados
+
+  Score 100%: "Paseo del Granjero (Heavy Carries)" <-> "Paseo del Granjero (Mancuernas)"
+    IDs: ext_paseo-del-granjero | ext_paseo-del-granjero-mancuernas
+
+  Score 100%: "Paseo del Granjero (Heavy Carries)" <-> "Paseo del Granjero (Kettlebell)"
+    IDs: ext_paseo-del-granjero | ext_paseo-del-granjero-kettlebell
+
+  Score 100%: "Paseo del Granjero (Heavy Carries)" <-> "Paseo del Granjero (Trap Bar)"
+    IDs: ext_paseo-del-granjero | ext_paseo-del-granjero-trap-bar
+
+  Score 100%: "Plancha Lateral (Estática)" <-> "Plancha Lateral (Peso Corporal)"
+    IDs: ext_plancha-lateral | ext_plancha-lateral-peso-corporal
+
+  Score 100%: "Plancha Lateral (Estática)" <-> "Plancha Lateral (Con Disco)"
+    IDs: ext_plancha-lateral | ext_plancha-lateral-con-disco
+
+  Score 100%: "Leñador (Cable Woodchop)" <-> "Leñador (Polea Alta)"
+    IDs: ext_leñador | ext_leñador-polea-alta
+
+  Score 100%: "Leñador (Cable Woodchop)" <-> "Leñador (Polea Baja)"
+    IDs: ext_leñador | ext_leñador-polea-baja
+
+  Score 100%: "Giros Rusos (Russian Twist)" <-> "Giros Rusos (Disco)"
+    IDs: ext_giros-rusos | ext_giros-rusos-disco
+
+  Score 100%: "Giros Rusos (Russian Twist)" <-> "Giros Rusos (Kettlebell)"
+    IDs: ext_giros-rusos | ext_giros-rusos-kettlebell
+
+  Score 100%: "Giros Rusos (Russian Twist)" <-> "Giros Rusos (Peso Corporal)"
+    IDs: ext_giros-rusos | ext_giros-rusos-peso-corporal
+
+  Score 100%: "Dead Bug (Bicho Muerto)" <-> "Dead Bug (Peso Corporal)"
+    IDs: ext_dead-bug | ext_dead-bug-peso-corporal
+
+  Score 100%: "Dead Bug (Bicho Muerto)" <-> "Dead Bug (Con Disco)"
+    IDs: ext_dead-bug | ext_dead-bug-con-disco
+
+  Score 100%: "Sit-Up (Banco Declinado)" <-> "Sit-Up (Peso Corporal)"
+    IDs: ext_sit-up | ext_sit-up-peso-corporal
+
+  Score 100%: "Sit-Up (Banco Declinado)" <-> "Sit-Up (Con Disco)"
+    IDs: ext_sit-up | ext_sit-up-con-disco
+
+  Score 100%: "Cargada de Potencia (Power Clean)" <-> "Cargada de Potencia (Barra)"
+    IDs: ext_cargada-de-potencia | ext_cargada-de-potencia-barra
+
+  Score 100%: "Cargada de Potencia (Power Clean)" <-> "Cargada de Potencia (Kettlebell)"
+    IDs: ext_cargada-de-potencia | ext_cargada-de-potencia-kettlebell
+
+  Score 100%: "Arrancada (Power Snatch)" <-> "Arrancada (Barra)"
+    IDs: ext_arrancada | ext_arrancada-barra
+
+  Score 100%: "Arrancada (Power Snatch)" <-> "Arrancada (Kettlebell)"
+    IDs: ext_arrancada | ext_arrancada-kettlebell
+
+  Score 100%: "Push Press (Barra)" <-> "Push Press (Mancuernas)"
+    IDs: ext_push-press | ext_push-press-mancuernas
+
+  Score 100%: "Push Press (Barra)" <-> "Push Press (Kettlebell)"
+    IDs: ext_push-press | ext_push-press-kettlebell
+
+  Score 100%: "High Pull (Desde Hang / Suelo)" <-> "High Pull (Kettlebell)"
+    IDs: ext_high-pull | ext_high-pull-kettlebell
+
+  Score 100%: "High Pull (Desde Hang / Suelo)" <-> "High Pull (Mancuernas)"
+    IDs: ext_high-pull | ext_high-pull-mancuernas
+
+  Score 100%: "Pantorrilla Sentado (Seated Calf Raise)" <-> "Pantorrilla Sentado (Mancuerna)"
+    IDs: ext_pantorrilla-sentado | ext_pantorrilla-sentado-mancuerna
+
+  Score 100%: "Pantorrilla Sentado (Seated Calf Raise)" <-> "Pantorrilla Sentado (Barra)"
+    IDs: ext_pantorrilla-sentado | ext_pantorrilla-sentado-barra
+
+  Score 100%: "Pantorrilla de Pie (Standing Calf Raise)" <-> "Pantorrilla de Pie (Smith)"
+    IDs: ext_pantorrilla-de-pie | ext_pantorrilla-de-pie-smith
+
+  Score 100%: "Pantorrilla de Pie (Standing Calf Raise)" <-> "Pantorrilla de Pie (Barra)"
+    IDs: ext_pantorrilla-de-pie | ext_pantorrilla-de-pie-barra
+
+  Score 100%: "Pantorrilla de Pie (Standing Calf Raise)" <-> "Pantorrilla de Pie (Mancuerna)"
+    IDs: ext_pantorrilla-de-pie | ext_pantorrilla-de-pie-mancuerna
+
+  Score 100%: "Pantorrilla de Pie (Standing Calf Raise)" <-> "Pantorrilla de Pie (Peso Corporal)"
+    IDs: ext_pantorrilla-de-pie | ext_pantorrilla-de-pie-peso-corporal
+
+  Score 100%: "Press de Banca (Smith (Plano))" <-> "Press de Banca (Smith (Inclinado))"
+    IDs: ext_press-de-banca-smith-plano | ext_press-de-banca-smith-inclinado
+
+  Score 100%: "Press de Banca (Smith (Plano))" <-> "Press de Banca (Smith (Declinado))"
+    IDs: ext_press-de-banca-smith-plano | ext_press-de-banca-smith-declinado
+
+  Score 100%: "Press de Banca (Smith (Plano))" <-> "Press de Banca (Polea Baja (Unilateral))"
+    IDs: ext_press-de-banca-smith-plano | ext_press-de-banca-polea-baja-unilatera
+
+  Score 100%: "Press de Banca (Smith (Plano))" <-> "Press de Banca (Polea Baja (Bilateral))"
+    IDs: ext_press-de-banca-smith-plano | ext_press-de-banca-polea-baja-bilateral
+
+  Score 100%: "Press de Banca (Smith (Plano))" <-> "Press de Banca (Kettlebell (Floor Press))"
+    IDs: ext_press-de-banca-smith-plano | ext_press-de-banca-kettlebell-floor-pre
+
+  Score 100%: "Press de Banca (Smith (Inclinado))" <-> "Press de Banca (Smith (Declinado))"
+    IDs: ext_press-de-banca-smith-inclinado | ext_press-de-banca-smith-declinado
+
+  Score 100%: "Press de Banca (Smith (Inclinado))" <-> "Press de Banca (Polea Baja (Unilateral))"
+    IDs: ext_press-de-banca-smith-inclinado | ext_press-de-banca-polea-baja-unilatera
+
+  Score 100%: "Press de Banca (Smith (Inclinado))" <-> "Press de Banca (Polea Baja (Bilateral))"
+    IDs: ext_press-de-banca-smith-inclinado | ext_press-de-banca-polea-baja-bilateral
+
+  Score 100%: "Press de Banca (Smith (Inclinado))" <-> "Press de Banca (Kettlebell (Floor Press))"
+    IDs: ext_press-de-banca-smith-inclinado | ext_press-de-banca-kettlebell-floor-pre
+
+  Score 100%: "Press de Banca (Smith (Declinado))" <-> "Press de Banca (Polea Baja (Unilateral))"
+    IDs: ext_press-de-banca-smith-declinado | ext_press-de-banca-polea-baja-unilatera
+
+  Score 100%: "Press de Banca (Smith (Declinado))" <-> "Press de Banca (Polea Baja (Bilateral))"
+    IDs: ext_press-de-banca-smith-declinado | ext_press-de-banca-polea-baja-bilateral
+
+  Score 100%: "Press de Banca (Smith (Declinado))" <-> "Press de Banca (Kettlebell (Floor Press))"
+    IDs: ext_press-de-banca-smith-declinado | ext_press-de-banca-kettlebell-floor-pre
+
+  Score 100%: "Press de Banca (Polea Baja (Unilateral))" <-> "Press de Banca (Polea Baja (Bilateral))"
+    IDs: ext_press-de-banca-polea-baja-unilatera | ext_press-de-banca-polea-baja-bilateral
+
+  Score 100%: "Press de Banca (Polea Baja (Unilateral))" <-> "Press de Banca (Kettlebell (Floor Press))"
+    IDs: ext_press-de-banca-polea-baja-unilatera | ext_press-de-banca-kettlebell-floor-pre
+
+  Score 100%: "Press de Banca (Polea Baja (Bilateral))" <-> "Press de Banca (Kettlebell (Floor Press))"
+    IDs: ext_press-de-banca-polea-baja-bilateral | ext_press-de-banca-kettlebell-floor-pre
+
+  Score 100%: "Press de Pecho (Máquina Smith)" <-> "Press de Pecho (Máquina Convergente)"
+    IDs: ext_press-de-pecho-máquina-smith | ext_press-de-pecho-máquina-convergente
+
+  Score 100%: "Aperturas (Polea Baja)" <-> "Aperturas (Polea Alta)"
+    IDs: ext_aperturas-polea-baja | ext_aperturas-polea-alta
+
+  Score 100%: "Aperturas (Polea Baja)" <-> "Aperturas (Kettlebell)"
+    IDs: ext_aperturas-polea-baja | ext_aperturas-kettlebell
+
+  Score 100%: "Aperturas (Polea Alta)" <-> "Aperturas (Kettlebell)"
+    IDs: ext_aperturas-polea-alta | ext_aperturas-kettlebell
+
+  Score 100%: "Flexiones (Mancuernas (Agarre))" <-> "Flexiones (Kettlebell (Agarre))"
+    IDs: ext_flexiones-mancuernas-agarre | ext_flexiones-kettlebell-agarre
+
+  Score 100%: "Fondos (Máquina (Asistida))" <-> "Fondos (Máquina (Lastrada))"
+    IDs: ext_fondos-máquina-asistida | ext_fondos-máquina-lastrada
+
+  Score 100%: "Press Militar (Smith)" <-> "Press Militar (Polea Baja)"
+    IDs: ext_press-militar-smith | ext_press-militar-polea-baja
+
+  Score 100%: "Press Militar (Smith)" <-> "Press Militar (Máquina Convergente)"
+    IDs: ext_press-militar-smith | ext_press-militar-máquina-convergente
+
+  Score 100%: "Press Militar (Smith)" <-> "Press Militar (Kettlebell)"
+    IDs: ext_press-militar-smith | ext_press-militar-kettlebell
+
+  Score 100%: "Press Militar (Polea Baja)" <-> "Press Militar (Máquina Convergente)"
+    IDs: ext_press-militar-polea-baja | ext_press-militar-máquina-convergente
+
+  Score 100%: "Press Militar (Polea Baja)" <-> "Press Militar (Kettlebell)"
+    IDs: ext_press-militar-polea-baja | ext_press-militar-kettlebell
+
+  Score 100%: "Press Militar (Máquina Convergente)" <-> "Press Militar (Kettlebell)"
+    IDs: ext_press-militar-máquina-convergente | ext_press-militar-kettlebell
+
+  Score 100%: "Press de Hombros (Smith)" <-> "Press de Hombros (Máquina Smith)"
+    IDs: ext_press-de-hombros-smith | ext_press-de-hombros-máquina-smith
+
+  Score 100%: "Elevaciones Frontales (Polea)" <-> "Elevaciones Frontales (Barra)"
+    IDs: ext_elevaciones-frontales-polea | ext_elevaciones-frontales-barra
+
+  Score 100%: "Elevaciones Frontales (Polea)" <-> "Elevaciones Frontales (Kettlebell)"
+    IDs: ext_elevaciones-frontales-polea | ext_elevaciones-frontales-kettlebell
+
+  Score 100%: "Elevaciones Frontales (Polea)" <-> "Elevaciones Frontales (Disco)"
+    IDs: ext_elevaciones-frontales-polea | ext_elevaciones-frontales-disco
+
+  Score 100%: "Elevaciones Frontales (Barra)" <-> "Elevaciones Frontales (Kettlebell)"
+    IDs: ext_elevaciones-frontales-barra | ext_elevaciones-frontales-kettlebell
+
+  Score 100%: "Elevaciones Frontales (Barra)" <-> "Elevaciones Frontales (Disco)"
+    IDs: ext_elevaciones-frontales-barra | ext_elevaciones-frontales-disco
+
+  Score 100%: "Elevaciones Frontales (Kettlebell)" <-> "Elevaciones Frontales (Disco)"
+    IDs: ext_elevaciones-frontales-kettlebell | ext_elevaciones-frontales-disco
+
+  Score 100%: "Face Pull (Banda)" <-> "Face Pull (Mancuernas)"
+    IDs: ext_face-pull-banda | ext_face-pull-mancuernas
+
+  Score 100%: "Pájaros (Polea Cruzada)" <-> "Pájaros (Polea Baja)"
+    IDs: ext_pájaros-polea-cruzada | ext_pájaros-polea-baja
+
+  Score 100%: "Pájaros (Polea Cruzada)" <-> "Pájaros (Kettlebell)"
+    IDs: ext_pájaros-polea-cruzada | ext_pájaros-kettlebell
+
+  Score 100%: "Pájaros (Polea Baja)" <-> "Pájaros (Kettlebell)"
+    IDs: ext_pájaros-polea-baja | ext_pájaros-kettlebell
+
+  Score 100%: "Remo al Mentón (Smith)" <-> "Remo al Mentón (Mancuernas)"
+    IDs: ext_remo-al-mentón-smith | ext_remo-al-mentón-mancuernas
+
+  Score 100%: "Remo al Mentón (Smith)" <-> "Remo al Mentón (Kettlebell)"
+    IDs: ext_remo-al-mentón-smith | ext_remo-al-mentón-kettlebell
+
+  Score 100%: "Remo al Mentón (Mancuernas)" <-> "Remo al Mentón (Kettlebell)"
+    IDs: ext_remo-al-mentón-mancuernas | ext_remo-al-mentón-kettlebell
+
+  Score 100%: "Remo con Barra (Smith)" <-> "Remo con Barra (Polea Baja)"
+    IDs: ext_remo-con-barra-smith | ext_remo-con-barra-polea-baja
+
+  Score 100%: "Remo con Mancuerna (Kettlebell)" <-> "Remo con Mancuerna (Polea)"
+    IDs: ext_remo-con-mancuerna-kettlebell | ext_remo-con-mancuerna-polea
+
+  Score 100%: "Remo (Máquina Convergente)" <-> "Remo (Máquina Smith)"
+    IDs: ext_remo-máquina-convergente | ext_remo-máquina-smith
+
+  Score 100%: "Jalón al Pecho (Máquina Convergente)" <-> "Jalón al Pecho (Barra Recta)"
+    IDs: ext_jalón-al-pecho-máquina-convergente | ext_jalón-al-pecho-barra-recta
+
+  Score 100%: "Dominadas (Con Kettlebell)" <-> "Dominadas (Con Disco)"
+    IDs: ext_dominadas-con-kettlebell | ext_dominadas-con-disco
+
+  Score 100%: "Pull-Over (Máquina)" <-> "Pull-Over (Barra)"
+    IDs: ext_pull-over-máquina | ext_pull-over-barra
+
+  Score 100%: "Encogimientos (Smith)" <-> "Encogimientos (Polea)"
+    IDs: ext_encogimientos-smith | ext_encogimientos-polea
+
+  Score 100%: "Encogimientos (Smith)" <-> "Encogimientos (Kettlebell)"
+    IDs: ext_encogimientos-smith | ext_encogimientos-kettlebell
+
+  Score 100%: "Encogimientos (Smith)" <-> "Encogimientos (Peso Corporal)"
+    IDs: ext_encogimientos-smith | ext_encogimientos-peso-corporal
+
+  Score 100%: "Encogimientos (Polea)" <-> "Encogimientos (Kettlebell)"
+    IDs: ext_encogimientos-polea | ext_encogimientos-kettlebell
+
+  Score 100%: "Encogimientos (Polea)" <-> "Encogimientos (Peso Corporal)"
+    IDs: ext_encogimientos-polea | ext_encogimientos-peso-corporal
+
+  Score 100%: "Encogimientos (Kettlebell)" <-> "Encogimientos (Peso Corporal)"
+    IDs: ext_encogimientos-kettlebell | ext_encogimientos-peso-corporal
+
+  Score 100%: "Sentadilla Frontal (Smith)" <-> "Sentadilla Frontal (Polea)"
+    IDs: ext_sentadilla-frontal-smith | ext_sentadilla-frontal-polea
+
+  Score 100%: "Sentadilla Búlgara (Barra)" <-> "Sentadilla Búlgara (Kettlebell)"
+    IDs: ext_sentadilla-búlgara-barra | ext_sentadilla-búlgara-kettlebell
+
+  Score 100%: "Sentadilla Búlgara (Barra)" <-> "Sentadilla Búlgara (Peso Corporal)"
+    IDs: ext_sentadilla-búlgara-barra | ext_sentadilla-búlgara-peso-corporal
+
+  Score 100%: "Sentadilla Búlgara (Kettlebell)" <-> "Sentadilla Búlgara (Peso Corporal)"
+    IDs: ext_sentadilla-búlgara-kettlebell | ext_sentadilla-búlgara-peso-corporal
+
+  Score 100%: "Zancada (Barra (Trasera))" <-> "Zancada (Barra (Frontal))"
+    IDs: ext_zancada-barra-trasera | ext_zancada-barra-frontal
+
+  Score 100%: "Zancada (Mancuernas)" <-> "Zancada (Kettlebell)"
+    IDs: ext_zancada-mancuernas | ext_zancada-kettlebell
+
+  Score 100%: "Zancada (Mancuernas)" <-> "Zancada (Polea)"
+    IDs: ext_zancada-mancuernas | ext_zancada-polea
+
+  Score 100%: "Zancada (Mancuernas)" <-> "Zancada (Peso Corporal)"
+    IDs: ext_zancada-mancuernas | ext_zancada-peso-corporal
+
+  Score 100%: "Zancada (Kettlebell)" <-> "Zancada (Polea)"
+    IDs: ext_zancada-kettlebell | ext_zancada-polea
+
+  Score 100%: "Zancada (Kettlebell)" <-> "Zancada (Peso Corporal)"
+    IDs: ext_zancada-kettlebell | ext_zancada-peso-corporal
+
+  Score 100%: "Zancada (Polea)" <-> "Zancada (Peso Corporal)"
+    IDs: ext_zancada-polea | ext_zancada-peso-corporal
+
+  Score 100%: "Subida al Cajón (Barra)" <-> "Subida al Cajón (Kettlebell)"
+    IDs: ext_subida-al-cajón-barra | ext_subida-al-cajón-kettlebell
+
+  Score 100%: "Subida al Cajón (Barra)" <-> "Subida al Cajón (Peso Corporal)"
+    IDs: ext_subida-al-cajón-barra | ext_subida-al-cajón-peso-corporal
+
+  Score 100%: "Subida al Cajón (Kettlebell)" <-> "Subida al Cajón (Peso Corporal)"
+    IDs: ext_subida-al-cajón-kettlebell | ext_subida-al-cajón-peso-corporal
+
+  Score 100%: "Peso Muerto Rumano (Polea)" <-> "Peso Muerto Rumano (Kettlebell)"
+    IDs: ext_peso-muerto-rumano-polea | ext_peso-muerto-rumano-kettlebell
+
+  Score 100%: "Peso Muerto Rumano (Polea)" <-> "Peso Muerto Rumano (Mancuernas)"
+    IDs: ext_peso-muerto-rumano-polea | ext_peso-muerto-rumano-mancuernas
+
+  Score 100%: "Peso Muerto Rumano (Polea)" <-> "Peso Muerto Rumano (Peso Corporal)"
+    IDs: ext_peso-muerto-rumano-polea | ext_peso-muerto-rumano-peso-corporal
+
+  Score 100%: "Peso Muerto Rumano (Kettlebell)" <-> "Peso Muerto Rumano (Mancuernas)"
+    IDs: ext_peso-muerto-rumano-kettlebell | ext_peso-muerto-rumano-mancuernas
+
+  Score 100%: "Peso Muerto Rumano (Kettlebell)" <-> "Peso Muerto Rumano (Peso Corporal)"
+    IDs: ext_peso-muerto-rumano-kettlebell | ext_peso-muerto-rumano-peso-corporal
+
+  Score 100%: "Peso Muerto Rumano (Mancuernas)" <-> "Peso Muerto Rumano (Peso Corporal)"
+    IDs: ext_peso-muerto-rumano-mancuernas | ext_peso-muerto-rumano-peso-corporal
+
+  Score 100%: "Buenos Días (Smith)" <-> "Buenos Días (Peso Corporal)"
+    IDs: ext_buenos-días-smith | ext_buenos-días-peso-corporal
+
+  Score 100%: "Hip Thrust (Mancuernas)" <-> "Hip Thrust (Kettlebell)"
+    IDs: ext_hip-thrust-mancuernas | ext_hip-thrust-kettlebell
+
+  Score 100%: "Hip Thrust (Mancuernas)" <-> "Hip Thrust (Polea)"
+    IDs: ext_hip-thrust-mancuernas | ext_hip-thrust-polea
+
+  Score 100%: "Hip Thrust (Mancuernas)" <-> "Hip Thrust (Peso Corporal)"
+    IDs: ext_hip-thrust-mancuernas | ext_hip-thrust-peso-corporal
+
+  Score 100%: "Hip Thrust (Kettlebell)" <-> "Hip Thrust (Polea)"
+    IDs: ext_hip-thrust-kettlebell | ext_hip-thrust-polea
+
+  Score 100%: "Hip Thrust (Kettlebell)" <-> "Hip Thrust (Peso Corporal)"
+    IDs: ext_hip-thrust-kettlebell | ext_hip-thrust-peso-corporal
+
+  Score 100%: "Hip Thrust (Polea)" <-> "Hip Thrust (Peso Corporal)"
+    IDs: ext_hip-thrust-polea | ext_hip-thrust-peso-corporal
+
+  Score 100%: "Puente de Glúteos (Barra)" <-> "Puente de Glúteos (Mancuerna)"
+    IDs: ext_puente-de-glúteos-barra | ext_puente-de-glúteos-mancuerna
+
+  Score 100%: "Puente de Glúteos (Barra)" <-> "Puente de Glúteos (Kettlebell)"
+    IDs: ext_puente-de-glúteos-barra | ext_puente-de-glúteos-kettlebell
+
+  Score 100%: "Puente de Glúteos (Mancuerna)" <-> "Puente de Glúteos (Kettlebell)"
+    IDs: ext_puente-de-glúteos-mancuerna | ext_puente-de-glúteos-kettlebell
+
+  Score 100%: "Pantorrilla de Pie (Smith)" <-> "Pantorrilla de Pie (Barra)"
+    IDs: ext_pantorrilla-de-pie-smith | ext_pantorrilla-de-pie-barra
+
+  Score 100%: "Pantorrilla de Pie (Smith)" <-> "Pantorrilla de Pie (Mancuerna)"
+    IDs: ext_pantorrilla-de-pie-smith | ext_pantorrilla-de-pie-mancuerna
+
+  Score 100%: "Pantorrilla de Pie (Smith)" <-> "Pantorrilla de Pie (Peso Corporal)"
+    IDs: ext_pantorrilla-de-pie-smith | ext_pantorrilla-de-pie-peso-corporal
+
+  Score 100%: "Pantorrilla de Pie (Barra)" <-> "Pantorrilla de Pie (Mancuerna)"
+    IDs: ext_pantorrilla-de-pie-barra | ext_pantorrilla-de-pie-mancuerna
+
+  Score 100%: "Pantorrilla de Pie (Barra)" <-> "Pantorrilla de Pie (Peso Corporal)"
+    IDs: ext_pantorrilla-de-pie-barra | ext_pantorrilla-de-pie-peso-corporal
+
+  Score 100%: "Pantorrilla de Pie (Mancuerna)" <-> "Pantorrilla de Pie (Peso Corporal)"
+    IDs: ext_pantorrilla-de-pie-mancuerna | ext_pantorrilla-de-pie-peso-corporal
+
+  Score 100%: "Pantorrilla Sentado (Mancuerna)" <-> "Pantorrilla Sentado (Barra)"
+    IDs: ext_pantorrilla-sentado-mancuerna | ext_pantorrilla-sentado-barra
+
+  Score 100%: "Curl con Barra (Smith)" <-> "Curl con Barra (Polea Baja)"
+    IDs: ext_curl-con-barra-smith | ext_curl-con-barra-polea-baja
+
+  Score 100%: "Curl Martillo (Polea)" <-> "Curl Martillo (Kettlebell)"
+    IDs: ext_curl-martillo-polea | ext_curl-martillo-kettlebell
+
+  Score 100%: "Curl Martillo (Polea)" <-> "Curl Martillo (Barra)"
+    IDs: ext_curl-martillo-polea | ext_curl-martillo-barra
+
+  Score 100%: "Curl Martillo (Kettlebell)" <-> "Curl Martillo (Barra)"
+    IDs: ext_curl-martillo-kettlebell | ext_curl-martillo-barra
+
+  Score 100%: "Curl Predicador (Polea)" <-> "Curl Predicador (Máquina)"
+    IDs: ext_curl-predicador-polea | ext_curl-predicador-máquina
+
+  Score 100%: "Curl Concentrado (Polea)" <-> "Curl Concentrado (Kettlebell)"
+    IDs: ext_curl-concentrado-polea | ext_curl-concentrado-kettlebell
+
+  Score 100%: "Curl Inverso (Barra)" <-> "Curl Inverso (Polea)"
+    IDs: ext_curl-inverso-barra | ext_curl-inverso-polea
+
+  Score 100%: "Press Francés (Polea)" <-> "Press Francés (Mancuerna)"
+    IDs: ext_press-francés-polea | ext_press-francés-mancuerna
+
+  Score 100%: "Press Francés (Polea)" <-> "Press Francés (Kettlebell)"
+    IDs: ext_press-francés-polea | ext_press-francés-kettlebell
+
+  Score 100%: "Press Francés (Mancuerna)" <-> "Press Francés (Kettlebell)"
+    IDs: ext_press-francés-mancuerna | ext_press-francés-kettlebell
+
+  Score 100%: "Extensión Tríceps (Smith (Trasnuca))" <-> "Extensión Tríceps (Mancuerna (Unilateral))"
+    IDs: ext_extensión-tríceps-smith-trasnuca | ext_extensión-tríceps-mancuerna-unilateral
+
+  Score 100%: "Patada de Tríceps (Polea)" <-> "Patada de Tríceps (Kettlebell)"
+    IDs: ext_patada-de-tríceps-polea | ext_patada-de-tríceps-kettlebell
+
+  Score 100%: "Fondos entre Bancos (Peso Corporal)" <-> "Fondos entre Bancos (Lastrados)"
+    IDs: ext_fondos-entre-bancos-peso-corporal | ext_fondos-entre-bancos-lastrados
+
+  Score 100%: "JM Press (Barra)" <-> "JM Press (Smith)"
+    IDs: ext_jm-press-barra | ext_jm-press-smith
+
+  Score 100%: "Crunch (Peso Corporal)" <-> "Crunch (Con Disco)"
+    IDs: ext_crunch-peso-corporal | ext_crunch-con-disco
+
+  Score 100%: "Crunch (Peso Corporal)" <-> "Crunch (Polea Alta)"
+    IDs: ext_crunch-peso-corporal | ext_crunch-polea-alta
+
+  Score 100%: "Crunch (Peso Corporal)" <-> "Crunch (Máquina)"
+    IDs: ext_crunch-peso-corporal | ext_crunch-máquina
+
+  Score 100%: "Crunch (Con Disco)" <-> "Crunch (Polea Alta)"
+    IDs: ext_crunch-con-disco | ext_crunch-polea-alta
+
+  Score 100%: "Crunch (Con Disco)" <-> "Crunch (Máquina)"
+    IDs: ext_crunch-con-disco | ext_crunch-máquina
+
+  Score 100%: "Crunch (Polea Alta)" <-> "Crunch (Máquina)"
+    IDs: ext_crunch-polea-alta | ext_crunch-máquina
+
+  Score 100%: "Giros Rusos (Disco)" <-> "Giros Rusos (Kettlebell)"
+    IDs: ext_giros-rusos-disco | ext_giros-rusos-kettlebell
+
+  Score 100%: "Giros Rusos (Disco)" <-> "Giros Rusos (Peso Corporal)"
+    IDs: ext_giros-rusos-disco | ext_giros-rusos-peso-corporal
+
+  Score 100%: "Giros Rusos (Kettlebell)" <-> "Giros Rusos (Peso Corporal)"
+    IDs: ext_giros-rusos-kettlebell | ext_giros-rusos-peso-corporal
+
+  Score 100%: "Plancha (Peso Corporal)" <-> "Plancha (Con Disco)"
+    IDs: ext_plancha-peso-corporal | ext_plancha-con-disco
+
+  Score 100%: "Plancha Lateral (Peso Corporal)" <-> "Plancha Lateral (Con Disco)"
+    IDs: ext_plancha-lateral-peso-corporal | ext_plancha-lateral-con-disco
+
+  Score 100%: "Dead Bug (Peso Corporal)" <-> "Dead Bug (Con Disco)"
+    IDs: ext_dead-bug-peso-corporal | ext_dead-bug-con-disco
+
+  Score 100%: "Pallof Press (Polea)" <-> "Pallof Press (Banda)"
+    IDs: ext_pallof-press-polea | ext_pallof-press-banda
+
+  Score 100%: "Elevación de Piernas (Peso Corporal)" <-> "Elevación de Piernas (Con Disco)"
+    IDs: ext_elevación-de-piernas-peso-corporal | ext_elevación-de-piernas-con-disco
+
+  Score 100%: "Sit-Up (Peso Corporal)" <-> "Sit-Up (Con Disco)"
+    IDs: ext_sit-up-peso-corporal | ext_sit-up-con-disco
+
+  Score 100%: "Leñador (Polea Alta)" <-> "Leñador (Polea Baja)"
+    IDs: ext_leñador-polea-alta | ext_leñador-polea-baja
+
+  Score 100%: "Paseo del Granjero (Mancuernas)" <-> "Paseo del Granjero (Kettlebell)"
+    IDs: ext_paseo-del-granjero-mancuernas | ext_paseo-del-granjero-kettlebell
+
+  Score 100%: "Paseo del Granjero (Mancuernas)" <-> "Paseo del Granjero (Trap Bar)"
+    IDs: ext_paseo-del-granjero-mancuernas | ext_paseo-del-granjero-trap-bar
+
+  Score 100%: "Paseo del Granjero (Kettlebell)" <-> "Paseo del Granjero (Trap Bar)"
+    IDs: ext_paseo-del-granjero-kettlebell | ext_paseo-del-granjero-trap-bar
+
+  Score 100%: "Paseo del Camarero (Kettlebell)" <-> "Paseo del Camarero (Disco)"
+    IDs: ext_paseo-del-camarero-kettlebell | ext_paseo-del-camarero-disco
+
+  Score 100%: "Suitcase Carry (Kettlebell)" <-> "Suitcase Carry (Mancuerna)"
+    IDs: ext_suitcase-carry-kettlebell | ext_suitcase-carry-mancuerna
+
+  Score 100%: "Abducción de Cadera (Polea)" <-> "Abducción de Cadera (Banda)"
+    IDs: ext_abducción-de-cadera-polea | ext_abducción-de-cadera-banda
+
+  Score 100%: "Abducción de Cadera (Polea)" <-> "Abducción de Cadera (Peso Corporal)"
+    IDs: ext_abducción-de-cadera-polea | ext_abducción-de-cadera-peso-corporal
+
+  Score 100%: "Abducción de Cadera (Banda)" <-> "Abducción de Cadera (Peso Corporal)"
+    IDs: ext_abducción-de-cadera-banda | ext_abducción-de-cadera-peso-corporal
+
+  Score 100%: "Patada de Glúteo (Polea)" <-> "Patada de Glúteo (Máquina)"
+    IDs: ext_patada-de-glúteo-polea | ext_patada-de-glúteo-máquina
+
+  Score 100%: "Patada de Glúteo (Polea)" <-> "Patada de Glúteo (Peso Corporal)"
+    IDs: ext_patada-de-glúteo-polea | ext_patada-de-glúteo-peso-corporal
+
+  Score 100%: "Patada de Glúteo (Máquina)" <-> "Patada de Glúteo (Peso Corporal)"
+    IDs: ext_patada-de-glúteo-máquina | ext_patada-de-glúteo-peso-corporal
+
+  Score 100%: "Hip Adduction (Máquina)" <-> "Hip Adduction (Polea)"
+    IDs: ext_hip-adduction-máquina | ext_hip-adduction-polea
+
+  Score 100%: "Cargada de Potencia (Barra)" <-> "Cargada de Potencia (Kettlebell)"
+    IDs: ext_cargada-de-potencia-barra | ext_cargada-de-potencia-kettlebell
+
+  Score 100%: "Arrancada (Barra)" <-> "Arrancada (Kettlebell)"
+    IDs: ext_arrancada-barra | ext_arrancada-kettlebell
+
+  Score 100%: "Push Press (Mancuernas)" <-> "Push Press (Kettlebell)"
+    IDs: ext_push-press-mancuernas | ext_push-press-kettlebell
+
+  Score 100%: "Push Jerk (Barra)" <-> "Push Jerk (Kettlebell)"
+    IDs: ext_push-jerk-barra | ext_push-jerk-kettlebell
+
+  Score 100%: "High Pull (Kettlebell)" <-> "High Pull (Mancuernas)"
+    IDs: ext_high-pull-kettlebell | ext_high-pull-mancuernas
+
+================================================================================
+RESUMEN
+================================================================================
+Duplicados exactos: 0 grupos
+Duplicados por normalización: 107 grupos
+Posibles duplicados semánticos: 440 pares
+Ejercicios afectados (IDs únicos): 336

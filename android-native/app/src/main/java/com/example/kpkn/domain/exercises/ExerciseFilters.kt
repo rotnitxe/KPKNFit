@@ -1,12 +1,19 @@
 package com.example.kpkn.domain.exercises
 
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.domain.training.VolumeCalculator
 
 fun matchesMuscle(exercise: ExerciseMuscleInfo, anatomy: MuscleAnatomy): Boolean {
-    return exercise.involvedMuscles.any { involvement ->
-        VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis) == anatomy.canonicalName
+    val involvements = exercise.involvedMuscles.filter {
+        VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) == anatomy.canonicalName
     }
+    if (involvements.isEmpty()) return false
+
+    if (anatomy.canonicalName.equals("Trapecio", ignoreCase = true)) {
+        return involvements.any { it.role == MuscleRole.PRIMARY || it.role == MuscleRole.SECONDARY }
+    }
+    return true
 }
 
 fun matchesMuscleHead(

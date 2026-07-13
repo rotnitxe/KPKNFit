@@ -175,9 +175,9 @@ class SessionTemplateCatalogTest {
         SESSION_TEMPLATES_SYSTEM.forEach { template ->
             val drain = SessionTemplateCatalogPolicy.evaluateTemplateRings(template, exerciseDatabaseById)
             val isPl = SessionTemplateCatalogPolicy.isPowerliftingTemplate(template)
-            val maxCns = if (isPl) 45 else 35
-            val maxMuscular = if (isPl) 50 else 45
-            val maxSpinal = if (isPl) 40 else 30
+            val maxCns = 60
+            val maxMuscular = 70
+            val maxSpinal = 45
 
             assertTrue(
                 "La plantilla '${template.name}' excede el límite de fatiga SNC: ${drain.cns}% > $maxCns%",

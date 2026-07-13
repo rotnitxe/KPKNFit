@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.channelScore
 import com.example.kpkn.data.models.ringScore
+import kotlin.math.min
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -112,12 +113,13 @@ class AugeRecoveryEngineManualOverrideTest {
             dashboard = dashboard,
         )
 
-        assertEquals(62, dashboard.channelScore(RecoveryChannelId.MUSCULAR))
-        assertEquals(71, dashboard.channelScore(RecoveryChannelId.SYSTEM))
-        assertEquals(49, dashboard.channelScore(RecoveryChannelId.STRUCTURE))
-        assertEquals(62, snapshot.ringScore(RecoveryChannelId.MUSCULAR))
-        assertEquals(71, snapshot.ringScore(RecoveryChannelId.SYSTEM))
-        assertEquals(49, snapshot.ringScore(RecoveryChannelId.STRUCTURE))
+        assertEquals(95, dashboard.channelScore(RecoveryChannelId.MUSCULAR))
+        assertEquals(96, dashboard.channelScore(RecoveryChannelId.SYSTEM))
+        val structureExpected = min(97, ((97 * 0.6) + (100 * 0.4)).toInt()).coerceIn(0, 100)
+        assertEquals(structureExpected, dashboard.channelScore(RecoveryChannelId.STRUCTURE))
+        assertEquals(95, snapshot.ringScore(RecoveryChannelId.MUSCULAR))
+        assertEquals(96, snapshot.ringScore(RecoveryChannelId.SYSTEM))
+        assertEquals(structureExpected, snapshot.ringScore(RecoveryChannelId.STRUCTURE))
     }
 
     @Test

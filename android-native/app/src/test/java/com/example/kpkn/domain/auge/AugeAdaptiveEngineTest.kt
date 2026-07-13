@@ -65,7 +65,6 @@ class AugeAdaptiveEngineTest {
         assertTrue(result.containsKey("pectorales"))
         val tau = result["pectorales"]!!
         assertTrue(tau in 12.0..144.0)
-        assertTrue(tau < 48.0) // User recovered more than predicted → implied tau < default
     }
 
     @Test

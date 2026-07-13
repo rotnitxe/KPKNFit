@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bolt
@@ -300,8 +303,9 @@ internal fun WikiLabInsightCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -310,18 +314,22 @@ internal fun WikiLabInsightCard(
             Spacer(Modifier.width(6.dp))
             Text(
                 title,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 0.8.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 0.8.sp,
+                    color = Color.White.copy(alpha = 0.8f),
+                ),
             )
         }
 
         Text(
             summary,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            lineHeight = 18.sp,
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontFamily = FontFamily.Serif,
+                color = Color.White.copy(alpha = 0.7f),
+                lineHeight = 18.sp,
+            ),
         )
 
         bullets.forEach { bullet ->
@@ -337,9 +345,11 @@ internal fun WikiLabInsightCard(
                 Text(
                     bullet,
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    lineHeight = 18.sp,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White.copy(alpha = 0.8f),
+                        lineHeight = 18.sp,
+                    ),
                 )
             }
         }
@@ -347,8 +357,10 @@ internal fun WikiLabInsightCard(
         footer?.takeIf { it.isNotBlank() }?.let {
             Text(
                 it,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.5f),
+                ),
             )
         }
     }

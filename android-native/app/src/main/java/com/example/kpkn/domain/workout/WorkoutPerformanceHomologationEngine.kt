@@ -369,10 +369,10 @@ object WorkoutPerformanceHomologationEngine {
                 // Can do 4+ reps with +5kg? Derivation: r >= 37 - 33 * bw / (bw + 5)
                 val minRepsFor5kg = 37.0 - 33.0 * bodyW / (bodyW + 5.0)
                 val ready = safeReps.toDouble() >= minRepsFor5kg && score >= 55.0
-                if (ready || prior.consecutiveGreenSessions >= 2 || historyColor == HistoryColorV2.YELLOW) {
+                if (ready || prior.consecutiveGreenSessions >= 2 || (historyColor == HistoryColorV2.YELLOW && prior.sampleCount > 0)) {
                     return Suggestion(
                         suggestedLoad = 2.5,
-                        reason = "Iniciar con lastre (+2.5kg)",
+                        reason = "Iniciar con lastre",
                         suggestedLoadMode = LoadModeV2.LASTRE,
                         isFailure = entry.reachedFailure,
                     )

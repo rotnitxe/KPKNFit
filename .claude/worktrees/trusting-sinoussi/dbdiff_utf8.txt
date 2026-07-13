@@ -1,0 +1,973 @@
+﻿diff --git a/data/exerciseDatabase.ts b/data/exerciseDatabase.ts
+index b7ce5d3..24fe4b1 100644
+--- a/data/exerciseDatabase.ts
++++ b/data/exerciseDatabase.ts
+@@ -11,114 +11,79 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   
+   // --- PECHO ---
+   {
+-    id: 'db_bench_press_tng', name: 'Press de Banca (T├íctil / Touch and Go)', alias: 'Bench Press', description: 'Ejercicio fundamental para el desarrollo del pectoral, hombros y tr├¡ceps, realizado de forma continua sin pausa en el pecho.',
+-    involvedMuscles: [ 
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Pectoral', role: 'secondary', activation: 0.6 }, 
+-      { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.6 },
+-      { muscle: 'Trapecio', role: 'stabilizer', activation: 0.3 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.2 }
+-    ],
+-    subMuscleGroup: 'Pectoral', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
++    id: 'db_bench_press_tng', name: 'Press de Banca (T├íctil / Touch And Go)', alias: 'Bench Press', description: 'Ejercicio fundamental para el desarrollo del pectoral, hombros y tr├¡ceps, realizado de forma continua sin pausa en el pecho.',
++    involvedMuscles: [{ muscle: 'Pectorales', role: 'primary', activation: 1.0 }, role: 'secondary', activation: 0.6 }, { muscle: 'Deltoides Anterior', { muscle: 'Tr├¡ceps', { muscle: 'Trapecio', role: 'stabilizer', activation: 0.3 }, { muscle: 'Espalda Baja', activation: 0.2 }],
++    subMuscleGroup: 'Pectorales', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+     setupTime: 4, technicalDifficulty: 6, transferability: 8, injuryRisk: { level: 7, details: 'Hombros (impingement), codos.' }, isHallOfFame: true,
+     efc: 3.8, cnc: 3.8, ssc: 0.3, resistanceProfile: { curve: 'campana', peakTensionPoint: 'medio', description: 'Mayor tensi├│n en el punto medio.' }
+   },
+   {
+     id: 'db_bench_press_paused', name: 'Press de Banca (Pausado)', description: 'Variante con pausa en el pecho. Elimina el reflejo de estiramiento.',
+-    involvedMuscles: [ 
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, 
+-      { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.6 }, { muscle: 'Trapecio', role: 'stabilizer', activation: 0.4 } 
+-    ],
+-    subMuscleGroup: 'Pectoral', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior', variantOf: 'db_bench_press_tng',
++    involvedMuscles: [{ muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, { muscle: 'Tr├¡ceps', { muscle: 'Trapecio', role: 'stabilizer', activation: 0.4 }],
++    subMuscleGroup: 'Pectorales', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior', variantOf: 'db_bench_press_tng',
+     setupTime: 4, technicalDifficulty: 7, transferability: 8, efc: 4.0, cnc: 4.2, ssc: 0.3
+   },
+   {
+     id: 'db_incline_bench_press', name: 'Press de Banca Inclinado', description: 'Enfatiza la porci├│n clavicular (superior) del pectoral.',
+-    involvedMuscles: [ 
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 }, 
+-      { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.5 }, { muscle: 'Trapecio', role: 'stabilizer', activation: 0.3 } 
+-    ],
+-    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'B├ísico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
++    involvedMuscles: [{ muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 }, { muscle: 'Tr├¡ceps', activation: 0.5 }, { muscle: 'Trapecio', role: 'stabilizer', activation: 0.3 }],
++    subMuscleGroup: 'Pectorales', category: 'Hipertrofia', type: 'B├ísico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+     setupTime: 5, technicalDifficulty: 7, efc: 3.8, cnc: 3.8, ssc: 0.2
+   },
+   {
+     id: 'db_dumbbell_bench_press', name: 'Press de Banca con Mancuernas', description: 'Mayor rango de movimiento y estabilizaci├│n que la barra.',
+-    involvedMuscles: [ 
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, 
+-      { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.6 }, { muscle: 'Core', role: 'stabilizer', activation: 0.3 } 
+-    ],
+-    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
++    involvedMuscles: [{ muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, { muscle: 'Tr├¡ceps', { muscle: 'Core', role: 'stabilizer', activation: 0.3 }],
++    subMuscleGroup: 'Pectorales', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+     setupTime: 3, technicalDifficulty: 7, efc: 3.5, cnc: 3.5, ssc: 0.1
+   },
+   {
+     id: 'db_incline_dumbbell_press', name: 'Press Inclinado con Mancuernas', description: 'Enfatiza el pectoral superior con mayor libertad de movimiento.',
+-    involvedMuscles: [ 
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 }, 
+-      { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.5 }, { muscle: 'Core', role: 'stabilizer', activation: 0.3 } 
+-    ],
+-    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
++    involvedMuscles: [{ muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.7 }, { muscle: 'Tr├¡ceps', activation: 0.5 }, { muscle: 'Core', role: 'stabilizer', activation: 0.3 }],
++    subMuscleGroup: 'Pectorales', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+     setupTime: 4, technicalDifficulty: 8, efc: 3.5, cnc: 3.5, ssc: 0.1
+   },
+   {
+     id: 'db_dips', name: 'Fondos en Paralelas', description: 'Ejercicio compuesto para pectoral inferior y tr├¡ceps.',
+-    involvedMuscles: [ 
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.8 }, 
+-      { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, { muscle: 'Core', role: 'stabilizer', activation: 0.4 } 
+-    ],
+-    subMuscleGroup: 'Pectoral', category: 'Fuerza', type: 'B├ísico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
++    involvedMuscles: [{ muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.8 }, { muscle: 'Deltoides Anterior', activation: 0.6 }, { muscle: 'Core', role: 'stabilizer', activation: 0.4 }],
++    subMuscleGroup: 'Pectorales', category: 'Fuerza', type: 'B├ísico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+     setupTime: 1, technicalDifficulty: 8, isHallOfFame: true, efc: 3.5, cnc: 3.5, ssc: 0.2
+   },
+   {
+     id: 'db_push_up', name: 'Flexiones de Brazos', description: 'Ejercicio de peso corporal fundamental.',
+-    involvedMuscles: [ 
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.6 }, 
+-      { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.5 } 
+-    ],
+-    subMuscleGroup: 'Pectoral', category: 'Resistencia', type: 'B├ísico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
++    involvedMuscles: [{ muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.6 }, { muscle: 'Deltoides Anterior', activation: 0.5 }, { muscle: 'Abdomen', role: 'stabilizer'],
++    subMuscleGroup: 'Pectorales', category: 'Resistencia', type: 'B├ísico', equipment: 'Peso Corporal', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+     setupTime: 1, technicalDifficulty: 4, efc: 2.5, cnc: 2.0, ssc: 0.1
+   },
+   {
+     id: 'db_cable_crossover', name: 'Cruces de Poleas', description: 'Tensi├│n constante en el pectoral, ideal para bombeo.',
+     involvedMuscles: [ 
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 } 
++      { muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.4 } 
+     ],
+-    subMuscleGroup: 'Pectoral', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Polea', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
++    subMuscleGroup: 'Pectorales', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Polea', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+     setupTime: 3, technicalDifficulty: 4, efc: 1.8, cnc: 1.5, ssc: 0.0
+   },
+ 
+   // --- ESPALDA ---
+   {
+     id: 'db_pull_up', name: 'Dominadas Pronas', description: 'Ejercicio rey para la amplitud de espalda.',
+-    involvedMuscles: [ 
+-      { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'B├¡ceps', role: 'secondary', activation: 0.6 }, 
+-      { muscle: 'Braquiorradial', role: 'secondary', activation: 0.5 }, { muscle: 'Core', role: 'stabilizer', activation: 0.4 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'B├¡ceps', role: 'secondary', activation: 0.6 }, { muscle: 'Antebrazo', activation: 0.5 }, { muscle: 'Core', role: 'stabilizer', activation: 0.4 }],
+     subMuscleGroup: 'Dorsales', category: 'Fuerza', type: 'B├ísico', equipment: 'Peso Corporal', force: 'Tir├│n', bodyPart: 'upper', chain: 'posterior',
+     setupTime: 1, technicalDifficulty: 8, isHallOfFame: true, efc: 4.0, cnc: 4.0, ssc: 0.2
+   },
+   {
+     id: 'db_chin_up', name: 'Dominadas Supinas', description: 'Variante con agarre supino, mayor ├®nfasis en b├¡ceps.',
+-    involvedMuscles: [ 
+-      { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'B├¡ceps', role: 'primary', activation: 1.0 },
+-      { muscle: 'Core', role: 'stabilizer', activation: 0.4 }
+-    ],
++    involvedMuscles: [{ muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'B├¡ceps', { muscle: 'Core', role: 'stabilizer', activation: 0.4 }],
+     subMuscleGroup: 'Dorsales', category: 'Fuerza', type: 'B├ísico', equipment: 'Peso Corporal', force: 'Tir├│n', bodyPart: 'upper', chain: 'posterior',
+     setupTime: 1, technicalDifficulty: 7, efc: 3.8, cnc: 3.8, ssc: 0.2
+   },
+   {
+     id: 'db_barbell_row', name: 'Remo con Barra', description: 'Constructor de densidad de espalda.',
+-    involvedMuscles: [ 
+-      { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Dorsales', role: 'secondary', activation: 0.8 }, 
+-      { muscle: 'Trapecio', role: 'secondary', activation: 0.7 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.8 },
+-      { muscle: 'Isquiosurales', role: 'stabilizer', activation: 0.5 }
+-    ],
++    involvedMuscles: [{ muscle: 'Dorsales', role: 'primary', activation: 1.0 }, role: 'secondary', activation: 0.8 }, { muscle: 'Trapecio', activation: 0.7 }, { muscle: 'Espalda Baja', role: 'stabilizer', { muscle: 'Isquiosurales', activation: 0.5 }],
+     subMuscleGroup: 'Dorsales', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Tir├│n', bodyPart: 'upper', chain: 'posterior',
+     setupTime: 3, technicalDifficulty: 9, isHallOfFame: true, efc: 4.2, cnc: 4.0, ssc: 1.6
+   },
+   {
+     id: 'db_dumbbell_row', name: 'Remo con Mancuerna', description: 'Remo unilateral para corregir desbalances y mayor rango.',
+-    involvedMuscles: [ 
+-      { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Dorsales', role: 'secondary', activation: 0.6 }, 
+-      { muscle: 'B├¡ceps', role: 'secondary', activation: 0.5 }, { muscle: 'Core', role: 'stabilizer', activation: 0.4 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Dorsales', role: 'primary', activation: 1.0 }, role: 'secondary', activation: 0.6 }, { muscle: 'B├¡ceps', activation: 0.5 }, { muscle: 'Core', role: 'stabilizer', activation: 0.4 }],
+     subMuscleGroup: 'Dorsales', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Tir├│n', bodyPart: 'upper', chain: 'posterior',
+     setupTime: 2, technicalDifficulty: 6, efc: 3.2, cnc: 2.5, ssc: 0.6
+   },
+@@ -132,10 +97,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'db_seated_cable_row', name: 'Remo Sentado en Polea', description: 'Tir├│n horizontal para densidad de espalda media.',
+-    involvedMuscles: [ 
+-      { muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Dorsales', role: 'secondary', activation: 0.8 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.4 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Dorsales', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio', role: 'secondary', activation: 0.8 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.4 }],
+     subMuscleGroup: 'Dorsales', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Polea', force: 'Tir├│n', bodyPart: 'upper', chain: 'posterior',
+     setupTime: 2, technicalDifficulty: 4, efc: 3.0, cnc: 2.5, ssc: 0.5
+   },
+@@ -143,20 +105,13 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   // --- HOMBROS ---
+   {
+     id: 'db_overhead_press', name: 'Press Militar (Barra)', alias: 'OHP', description: 'Press vertical estricto.',
+-    involvedMuscles: [ 
+-      { muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Lateral', role: 'secondary', activation: 0.5 }, 
+-      { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.8 }, { muscle: 'Core', role: 'stabilizer', activation: 0.6 },
+-      { muscle: 'Gl├║teos', role: 'stabilizer', activation: 0.4 }
+-    ],
++    involvedMuscles: [{ muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Lateral', role: 'secondary', activation: 0.5 }, { muscle: 'Tr├¡ceps', activation: 0.8 }, { muscle: 'Core', role: 'stabilizer', activation: 0.6 }, { muscle: 'Gl├║teos', activation: 0.4 }],
+     subMuscleGroup: 'Deltoides Anterior', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+     setupTime: 4, technicalDifficulty: 9, isHallOfFame: true, efc: 4.0, cnc: 4.2, ssc: 1.5
+   },
+   {
+     id: 'db_dumbbell_shoulder_press', name: 'Press de Hombros (Mancuernas)', description: 'Press vertical con mayor libertad de movimiento.',
+-    involvedMuscles: [ 
+-      { muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Lateral', role: 'secondary', activation: 0.6 },
+-      { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.7 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.3 }
+-    ],
++    involvedMuscles: [{ muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Lateral', role: 'secondary', activation: 0.6 }, { muscle: 'Tr├¡ceps', activation: 0.7 }, { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.3 }],
+     subMuscleGroup: 'Deltoides Anterior', category: 'Hipertrofia', type: 'B├ísico', equipment: 'Mancuerna', force: 'Empuje', bodyPart: 'upper', chain: 'anterior',
+     setupTime: 2, technicalDifficulty: 6, efc: 3.2, cnc: 3.0, ssc: 1.2
+   },
+@@ -171,10 +126,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   // --- BRAZOS (B├¡ceps/Tr├¡ceps) ---
+   {
+     id: 'db_barbell_curl', name: 'Curl con Barra Recta', description: 'Constructor de masa para b├¡ceps.',
+-    involvedMuscles: [ 
+-      { muscle: 'B├¡ceps', role: 'primary', activation: 1.0 }, { muscle: 'Antebrazo', role: 'stabilizer', activation: 0.4 },
+-      { muscle: 'Core', role: 'stabilizer', activation: 0.3 }
+-    ],
++    involvedMuscles: [{ muscle: 'B├¡ceps', role: 'primary', activation: 1.0 }, { muscle: 'Antebrazo', role: 'stabilizer', activation: 0.4 }, { muscle: 'Core', activation: 0.3 }],
+     subMuscleGroup: 'B├¡ceps', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Barra', force: 'Tir├│n', bodyPart: 'upper', chain: 'anterior', efc: 2.0, cnc: 2.0, ssc: 0.3
+   },
+   {
+@@ -194,7 +146,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   {
+     id: 'db_plank', name: 'Plancha Abdominal', description: 'Isom├®trico de estabilidad.',
+     involvedMuscles: [ 
+-      { muscle: 'Transverso Abdominal', role: 'primary', activation: 1.0 }, { muscle: 'Recto Abdominal', role: 'secondary', activation: 0.8 },
++      { muscle: 'Transverso Abdominal', role: 'primary', activation: 1.0 }, { muscle: 'Abdomen', role: 'secondary', activation: 0.8 },
+       { muscle: 'Hombros', role: 'stabilizer', activation: 0.3 }
+     ],
+     subMuscleGroup: 'Abdomen', category: 'Resistencia', type: 'Aislamiento', equipment: 'Peso Corporal', force: 'Anti-Rotaci├│n', bodyPart: 'full', chain: 'anterior', efc: 1.5, cnc: 2.0, ssc: 0.1
+@@ -202,17 +154,14 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   {
+     id: 'db_hanging_leg_raises', name: 'Elevaciones de Piernas', description: 'Flexi├│n de cadera y columna.',
+     involvedMuscles: [ 
+-      { muscle: 'Recto Abdominal', role: 'primary', activation: 1.0 }, { muscle: 'Flexores de Cadera', role: 'secondary', activation: 0.8 },
++      { muscle: 'Abdomen', role: 'primary', activation: 1.0 }, { muscle: 'Flexores de Cadera', role: 'secondary', activation: 0.8 },
+       { muscle: 'Antebrazo', role: 'stabilizer', activation: 0.5 }
+     ],
+     subMuscleGroup: 'Abdomen', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'Peso Corporal', force: 'Otro', bodyPart: 'full', chain: 'anterior', efc: 2.2, cnc: 2.0, ssc: 0.2
+   },
+   {
+     id: 'db_ab_wheel', name: 'Rueda Abdominal', description: 'Anti-extensi├│n avanzada.',
+-    involvedMuscles: [ 
+-      { muscle: 'Recto Abdominal', role: 'primary', activation: 1.0 }, { muscle: 'Transverso Abdominal', role: 'primary', activation: 1.0 },
+-      { muscle: 'Dorsales', role: 'stabilizer', activation: 0.6 }, { muscle: 'Tr├¡ceps', role: 'stabilizer', activation: 0.4 }
+-    ],
++    involvedMuscles: [{ muscle: 'Abdomen', role: 'primary', activation: 1.0 }, { muscle: 'Transverso Abdominal', { muscle: 'Dorsales', role: 'stabilizer', activation: 0.6 }, { muscle: 'Tr├¡ceps', activation: 0.4 }],
+     subMuscleGroup: 'Abdomen', category: 'Fuerza', type: 'Accesorio', equipment: 'Otro', force: 'Anti-Rotaci├│n', bodyPart: 'full', chain: 'anterior', efc: 2.5, cnc: 2.5, ssc: 0.5
+   },
+ 
+@@ -224,74 +173,49 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   // --- 1. SQUAT SPECIALTY & VARIATIONS ---
+   {
+     id: 'db_squat_high_bar', name: 'Sentadilla Trasera Barra Alta', alias: 'High Bar Squat', description: 'La barra descansa sobre los trapecios. Permite un torso m├ís vertical y enfatiza los cu├ídriceps.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teo Mayor', role: 'secondary', activation: 0.6 }, 
+-      { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.4 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.3 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teo Mayor', role: 'secondary', activation: 0.6 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.4 }, { muscle: 'Abdomen', activation: 0.3 }],
+     subMuscleGroup: 'Cu├ídriceps', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'anterior',
+     setupTime: 4, technicalDifficulty: 8, isHallOfFame: true, efc: 4.5, cnc: 4.5, ssc: 1.5
+   },
+   {
+     id: 'db_squat_low_bar', name: 'Sentadilla Trasera Barra Baja', alias: 'Low Bar Squat', description: 'La barra descansa sobre los deltoides posteriores. Mayor inclinaci├│n del torso, recluta m├ís la cadena posterior.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teo Mayor', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Isquiosurales', role: 'secondary', activation: 0.5 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teo Mayor', { muscle: 'Isquiosurales', role: 'secondary', activation: 0.5 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 }],
+     subMuscleGroup: 'Gl├║teos', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'posterior',
+     setupTime: 4, technicalDifficulty: 9, isHallOfFame: true, efc: 4.8, cnc: 5.0, ssc: 1.8
+   },
+   {
+     id: 'db_ssb_squat', name: 'Sentadilla con Barra de Seguridad', alias: 'Safety Squat', description: 'La barra empuja el torso hacia adelante, obligando a los erectores espinales y la espalda alta a luchar para no colapsar.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio', role: 'secondary', activation: 0.7 }, 
+-      { muscle: 'Erectores Espinales', role: 'secondary', activation: 0.8 }, { muscle: 'Gl├║teos', role: 'secondary', activation: 0.5 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio', role: 'secondary', activation: 0.7 }, { muscle: 'Erectores Espinales', activation: 0.8 }, { muscle: 'Gl├║teos', activation: 0.5 }],
+     subMuscleGroup: 'Cu├ídriceps', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'anterior',
+     setupTime: 4, technicalDifficulty: 7, efc: 4.3, cnc: 4.0, ssc: 1.4
+   },
+   {
+     id: 'db_buffalo_squat', name: 'Sentadilla Buffalo', description: 'Barra curva que reduce el estr├®s en los hombros y b├¡ceps, permitiendo mantener altas cargas.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teo Mayor', role: 'primary', activation: 1.0 },
+-      { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.5 }
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teo Mayor', { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.5 }],
+     subMuscleGroup: 'Piernas', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'full',
+     setupTime: 4, technicalDifficulty: 7, efc: 4.4, cnc: 4.4, ssc: 1.4
+   },
+   {
+     id: 'db_spider_bar_squat', name: 'Sentadilla con Barra Spider', description: 'Variante inestable que enfatiza la fuerza del torso y cu├ídriceps para mantenerse erguido.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Core', role: 'primary', activation: 0.8 },
+-      { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 }
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Core', activation: 0.8 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 }],
+     subMuscleGroup: 'Cu├ídriceps', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'anterior',
+     setupTime: 4, technicalDifficulty: 8, efc: 4.5, cnc: 4.5, ssc: 1.5
+   },
+   {
+     id: 'db_front_squat', name: 'Sentadilla Frontal', description: 'La barra descansa en los deltoides anteriores. Torso muy vertical, gran ├®nfasis en cu├ídriceps y core tor├ícico.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 }, 
+-      { muscle: 'Abdomen', role: 'stabilizer', activation: 0.8 }, { muscle: 'Gl├║teos', role: 'secondary', activation: 0.5 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 }, { muscle: 'Abdomen', activation: 0.8 }, { muscle: 'Gl├║teos', role: 'secondary', activation: 0.5 }],
+     subMuscleGroup: 'Cu├ídriceps', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'anterior',
+     setupTime: 4, technicalDifficulty: 9, efc: 4.2, cnc: 4.5, ssc: 1.2
+   },
+   {
+     id: 'db_zercher_squat', name: 'Sentadilla Zercher', description: 'La barra se sostiene en el pliegue de los codos. Brutal para el core, la espalda alta y los cu├ídriceps.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Trapecio', role: 'secondary', activation: 0.8 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.8 },
+-      { muscle: 'B├¡ceps', role: 'stabilizer', activation: 0.5 }
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Erectores Espinales', { muscle: 'Trapecio', role: 'secondary', activation: 0.8 }, { muscle: 'Abdomen', role: 'stabilizer', { muscle: 'B├¡ceps', activation: 0.5 }],
+     subMuscleGroup: 'Cu├ídriceps', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'anterior',
+     setupTime: 4, technicalDifficulty: 8, efc: 4.6, cnc: 4.8, ssc: 1.9
+   },
+   {
+     id: 'db_jefferson_squat', name: 'Sentadilla Jefferson', description: 'Sentadilla asim├®trica con la barra entre las piernas. Desarrolla fuerza en planos raros y estabilidad.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Aductores', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Gl├║teos', role: 'secondary', activation: 0.6 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Aductores', { muscle: 'Gl├║teos', role: 'secondary', activation: 0.6 }],
+     subMuscleGroup: 'Piernas', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'full',
+     setupTime: 4, technicalDifficulty: 7, efc: 3.8, cnc: 3.5, ssc: 0.8
+   },
+@@ -303,46 +227,31 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'db_anderson_squat', name: 'Sentadilla Anderson', description: 'Se inicia el movimiento desde los soportes (pines) en la parte baja. Elimina el ciclo de estiramiento-acortamiento.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 },
+-      { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 }
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 }],
+     subMuscleGroup: 'Cu├ídriceps', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'full',
+     setupTime: 5, technicalDifficulty: 6, efc: 4.8, cnc: 4.8, ssc: 1.6
+   },
+   {
+     id: 'db_pause_squat', name: 'Sentadilla con Pausa', description: 'Pausa en la parte m├ís profunda. Elimina el rebote y construye confianza y rigidez.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 },
+-      { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 }, { muscle: 'Core', role: 'stabilizer', activation: 0.5 }
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 }, { muscle: 'Core', activation: 0.5 }],
+     subMuscleGroup: 'Cu├ídriceps', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Sentadilla', variantOf: 'db_squat_high_bar', bodyPart: 'lower', chain: 'full',
+     setupTime: 4, technicalDifficulty: 8, efc: 4.8, cnc: 4.8, ssc: 1.6
+   },
+   {
+     id: 'db_box_squat', name: 'Sentadilla al Caj├│n', description: 'Sentarse en un caj├│n para romper la cadena cin├®tica conc├®ntrica/exc├®ntrica. Enfasis en cadera.',
+-    involvedMuscles: [ 
+-      { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', role: 'secondary', activation: 0.6 }, 
+-      { muscle: 'Cu├ídriceps', role: 'secondary', activation: 0.5 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.5 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', role: 'secondary', activation: 0.6 }, { muscle: 'Cu├ídriceps', activation: 0.5 }, { muscle: 'Erectores Espinales', role: 'stabilizer'],
+     subMuscleGroup: 'Gl├║teos', category: 'Potencia', type: 'Accesorio', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'posterior',
+     setupTime: 5, technicalDifficulty: 7, efc: 4.0, cnc: 4.0, ssc: 1.6
+   },
+   {
+     id: 'db_cambered_squat', name: 'Sentadilla con Barra Cambered', description: 'Barra curvada que baja el centro de gravedad y aumenta la inestabilidad.',
+-    involvedMuscles: [ 
+-      { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', role: 'secondary', activation: 0.6 }, 
+-      { muscle: 'Core', role: 'stabilizer', activation: 0.7 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.5 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', role: 'secondary', activation: 0.6 }, { muscle: 'Core', role: 'stabilizer', activation: 0.7 }, { muscle: 'Erectores Espinales', activation: 0.5 }],
+     subMuscleGroup: 'Piernas', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'posterior',
+     setupTime: 4, technicalDifficulty: 8, efc: 4.6, cnc: 4.5, ssc: 1.6
+   },
+   {
+     id: 'db_overhead_squat', name: 'Sentadilla Overhead', description: 'Sentadilla con la barra sostenida por encima de la cabeza. Requiere movilidad extrema.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides', role: 'stabilizer', activation: 0.8 }, 
+-      { muscle: 'Trapecio', role: 'stabilizer', activation: 0.8 }, { muscle: 'Core', role: 'stabilizer', activation: 0.8 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides', role: 'stabilizer', activation: 0.8 }, { muscle: 'Trapecio', { muscle: 'Core'],
+     subMuscleGroup: 'Cuerpo Completo', category: 'Movilidad', type: 'B├ísico', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'full', chain: 'full',
+     setupTime: 4, technicalDifficulty: 10, efc: 4.5, cnc: 5.0, ssc: 1.4
+   },
+@@ -357,10 +266,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'db_chain_squat', name: 'Sentadilla con Cadenas', description: 'Las cadenas a├▒aden peso a medida que subes (resistencia acomodada).',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 },
+-      { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 }
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.6 }],
+     subMuscleGroup: 'Cu├ídriceps', category: 'Potencia', type: 'Accesorio', equipment: 'Barra', force: 'Sentadilla', bodyPart: 'lower', chain: 'full',
+     setupTime: 5, technicalDifficulty: 7, efc: 4.8, cnc: 5.0, ssc: 1.7
+   },
+@@ -378,10 +284,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'db_bosu_squat', name: 'Sentadilla BOSU', description: 'Sentadilla sobre la superficie inestable de un BOSU.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Core', role: 'primary', activation: 0.8 }, 
+-      { muscle: 'Pantorrillas', role: 'stabilizer', activation: 0.6 }, { muscle: 'Gl├║teos', role: 'stabilizer', activation: 0.4 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Core', activation: 0.8 }, { muscle: 'Pantorrillas', role: 'stabilizer', activation: 0.6 }, { muscle: 'Gl├║teos', activation: 0.4 }],
+     subMuscleGroup: 'Piernas', category: 'Resistencia', type: 'Accesorio', equipment: 'Otro', force: 'Sentadilla', bodyPart: 'lower', chain: 'full',
+     setupTime: 2, technicalDifficulty: 6, efc: 3.0, cnc: 4.0, ssc: 0.5
+   },
+@@ -389,75 +292,49 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   // --- 2. DEADLIFT SPECIALTY & VARIATIONS ---
+   {
+     id: 'db_deadlift', name: 'Peso Muerto Convencional', description: 'El rey de la cadena posterior. Levantar peso muerto del suelo.',
+-    involvedMuscles: [ 
+-      { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio', role: 'stabilizer', activation: 0.8 },
+-      { muscle: 'Dorsales', role: 'stabilizer', activation: 0.6 }, { muscle: 'Antebrazo', role: 'stabilizer', activation: 0.6 }
+-    ],
++    involvedMuscles: [{ muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Erectores Espinales', { muscle: 'Trapecio', role: 'stabilizer', activation: 0.8 }, { muscle: 'Dorsales', activation: 0.6 }, { muscle: 'Antebrazo'],
+     subMuscleGroup: 'Erectores Espinales', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Bisagra', bodyPart: 'full', chain: 'posterior',
+     setupTime: 4, technicalDifficulty: 8, isHallOfFame: true, efc: 5.0, cnc: 5.0, ssc: 2.0
+   },
+   {
+     id: 'db_sumo_deadlift', name: 'Peso Muerto Sumo', description: 'Pies anchos, manos dentro. M├ís ├®nfasis en caderas y cu├ídriceps, menos en espalda baja.',
+-    involvedMuscles: [ 
+-      { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Aductores', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Cu├ídriceps', role: 'secondary', activation: 0.6 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.5 },
+-      { muscle: 'Trapecio', role: 'stabilizer', activation: 0.6 }
+-    ],
++    involvedMuscles: [{ muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Aductores', { muscle: 'Cu├ídriceps', role: 'secondary', activation: 0.6 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.5 }, { muscle: 'Trapecio'],
+     subMuscleGroup: 'Gl├║teos', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Bisagra', bodyPart: 'full', chain: 'posterior',
+     setupTime: 4, technicalDifficulty: 9, efc: 4.8, cnc: 4.8, ssc: 1.6
+   },
+   {
+     id: 'db_semi_sumo_deadlift', name: 'Peso Muerto Semi-Sumo', description: 'H├¡brido entre convencional y sumo. Pies ligeramente m├ís anchos que hombros.',
+-    involvedMuscles: [ 
+-      { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Erectores Espinales', role: 'primary', activation: 0.8 }, { muscle: 'Cu├ídriceps', role: 'secondary', activation: 0.4 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', { muscle: 'Erectores Espinales', activation: 0.8 }, { muscle: 'Cu├ídriceps', role: 'secondary', activation: 0.4 }],
+     subMuscleGroup: 'Gl├║teos', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Bisagra', bodyPart: 'full', chain: 'posterior',
+     setupTime: 4, technicalDifficulty: 8, efc: 4.9, cnc: 4.9, ssc: 1.8
+   },
+   {
+     id: 'db_romanian_deadlift', name: 'Peso Muerto Rumano', alias: 'RDL', description: 'Inicio desde arriba, bajar hasta estirar isquios. ├ënfasis en hipertrofia.',
+-    involvedMuscles: [ 
+-      { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 },
+-      { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.7 }, { muscle: 'Antebrazo', role: 'stabilizer', activation: 0.5 }
+-    ],
++    involvedMuscles: [{ muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.7 }, { muscle: 'Antebrazo', activation: 0.5 }],
+     subMuscleGroup: 'Isquiosurales', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Barra', force: 'Bisagra', bodyPart: 'lower', chain: 'posterior',
+     setupTime: 3, technicalDifficulty: 6, efc: 4.2, cnc: 4.0, ssc: 1.8
+   },
+   {
+     id: 'db_stiff_leg_deadlift', name: 'Peso Muerto Piernas R├¡gidas', description: 'Desde el suelo con piernas casi rectas. M├íximo estiramiento de isquios.',
+-    involvedMuscles: [ 
+-      { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, { muscle: 'Erectores Espinales', role: 'secondary', activation: 0.8 },
+-      { muscle: 'Gl├║teos', role: 'secondary', activation: 0.6 }
+-    ],
++    involvedMuscles: [{ muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, { muscle: 'Erectores Espinales', role: 'secondary', activation: 0.8 }, { muscle: 'Gl├║teos', activation: 0.6 }],
+     subMuscleGroup: 'Isquiosurales', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Bisagra', bodyPart: 'lower', chain: 'posterior',
+     setupTime: 3, technicalDifficulty: 7, efc: 4.3, cnc: 4.0, ssc: 1.9
+   },
+   {
+     id: 'db_deficit_deadlift', name: 'Peso Muerto con D├®ficit', description: 'Parado sobre una plataforma. Aumenta el rango de movimiento y dificultad inicial.',
+-    involvedMuscles: [ 
+-      { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Cu├ídriceps', role: 'secondary', activation: 0.6 }, { muscle: 'Isquiosurales', role: 'secondary', activation: 0.8 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Cu├ídriceps', role: 'secondary', activation: 0.6 }, { muscle: 'Isquiosurales', activation: 0.8 }],
+     subMuscleGroup: 'Erectores Espinales', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Bisagra', bodyPart: 'full', chain: 'posterior',
+     setupTime: 5, technicalDifficulty: 9, efc: 5.0, cnc: 5.0, ssc: 2.0
+   },
+   {
+     id: 'db_rack_pull', name: 'Rack Pull / Jal├│n de Bloques', description: 'Peso muerto parcial desde altura de rodillas. Sobrecarga espalda alta y bloqueo.',
+-    involvedMuscles: [ 
+-      { muscle: 'Trapecio', role: 'primary', activation: 1.0 }, { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Gl├║teos', role: 'secondary', activation: 0.8 }, { muscle: 'Antebrazo', role: 'stabilizer', activation: 0.8 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Trapecio', role: 'primary', activation: 1.0 }, { muscle: 'Erectores Espinales', { muscle: 'Gl├║teos', role: 'secondary', activation: 0.8 }, { muscle: 'Antebrazo', role: 'stabilizer'],
+     subMuscleGroup: 'Espalda', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Bisagra', bodyPart: 'full', chain: 'posterior',
+     setupTime: 5, technicalDifficulty: 6, efc: 4.5, cnc: 4.5, ssc: 2.0
+   },
+   {
+     id: 'db_paused_deadlift', name: 'Peso Muerto con Pausa', description: 'Pausa de 1-2 segundos al despegar. Ense├▒a a mantener la tensi├│n.',
+-    involvedMuscles: [ 
+-      { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Core', role: 'stabilizer', activation: 0.8 }, { muscle: 'Gl├║teos', role: 'secondary', activation: 0.8 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', { muscle: 'Core', role: 'stabilizer', activation: 0.8 }, { muscle: 'Gl├║teos', role: 'secondary'],
+     subMuscleGroup: 'Erectores Espinales', category: 'Fuerza', type: 'B├ísico', equipment: 'Barra', force: 'Bisagra', bodyPart: 'full', chain: 'posterior',
+     setupTime: 4, technicalDifficulty: 8, efc: 5.0, cnc: 5.0, ssc: 2.0
+   },
+@@ -472,73 +349,49 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'db_trap_bar_deadlift', name: 'Peso Muerto con Barra Hexagonal', description: 'Barra Hexagonal. H├¡brido entre sentadilla y peso muerto.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Trapecio', role: 'secondary', activation: 0.6 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.5 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Trapecio', role: 'secondary', activation: 0.6 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.5 }],
+     subMuscleGroup: 'Piernas', category: 'Fuerza', type: 'B├ísico', equipment: 'Otro', force: 'Bisagra', bodyPart: 'full', chain: 'full',
+     setupTime: 4, technicalDifficulty: 4, efc: 4.5, cnc: 4.0, ssc: 1.4
+   },
+   {
+     id: 'db_snatch_grip_deadlift', name: 'Peso Muerto Agarre Arrancada', description: 'Agarre muy ancho. Aumenta el rango de movimiento y demanda de espalda alta.',
+-    involvedMuscles: [ 
+-      { muscle: 'Trapecio', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Dorsales', role: 'secondary', activation: 0.6 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.8 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Trapecio', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', { muscle: 'Dorsales', role: 'secondary', activation: 0.6 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.8 }],
+     subMuscleGroup: 'Espalda', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Bisagra', bodyPart: 'full', chain: 'posterior',
+     setupTime: 4, technicalDifficulty: 8, efc: 4.8, cnc: 4.5, ssc: 1.8
+   },
+   {
+     id: 'db_reeves_deadlift', name: 'Peso Muerto Reeves', description: 'Agarrando los discos en lugar de la barra. Extremo para agarre y trapecios.',
+-    involvedMuscles: [ 
+-      { muscle: 'Trapecio', role: 'primary', activation: 1.0 }, { muscle: 'Antebrazo', role: 'primary', activation: 1.0 },
+-      { muscle: 'Gl├║teos', role: 'secondary', activation: 0.5 }
+-    ],
++    involvedMuscles: [{ muscle: 'Trapecio', role: 'primary', activation: 1.0 }, { muscle: 'Antebrazo', { muscle: 'Gl├║teos', role: 'secondary', activation: 0.5 }],
+     subMuscleGroup: 'Espalda', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Bisagra', bodyPart: 'full', chain: 'posterior',
+     setupTime: 4, technicalDifficulty: 7, efc: 4.0, cnc: 3.8, ssc: 1.5
+   },
+   {
+     id: 'db_good_mornings', name: 'Buenos D├¡as', description: 'Barra en la espalda, flexi├│n de cadera. Excelente para isquios y espalda baja.',
+-    involvedMuscles: [ 
+-      { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 },
+-      { muscle: 'Core', role: 'stabilizer', activation: 0.6 }
+-    ],
++    involvedMuscles: [{ muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', { muscle: 'Core', role: 'stabilizer', activation: 0.6 }],
+     subMuscleGroup: 'Isquiosurales', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Barra', force: 'Bisagra', bodyPart: 'lower', chain: 'posterior',
+     setupTime: 3, technicalDifficulty: 7, efc: 4.0, cnc: 3.5, ssc: 2.0
+   },
+   {
+     id: 'db_cambered_good_morning', name: 'Buenos D├¡as con Barra Cambered', description: 'La curvatura de la barra baja el centro de gravedad y crea inestabilidad.',
+-    involvedMuscles: [ 
+-      { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.8 }, { muscle: 'Core', role: 'stabilizer', activation: 0.7 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.8 }, { muscle: 'Core', activation: 0.7 }],
+     subMuscleGroup: 'Isquiosurales', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Bisagra', bodyPart: 'lower', chain: 'posterior',
+     setupTime: 4, technicalDifficulty: 8, efc: 4.2, cnc: 3.8, ssc: 2.0
+   },
+   {
+     id: 'db_suspended_good_morning', name: 'Buenos D├¡as Suspendidos', description: 'Se inicia desde cadenas o cintas a una altura espec├¡fica.',
+-    involvedMuscles: [ 
+-      { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', role: 'secondary', activation: 0.8 },
+-      { muscle: 'Gl├║teos', role: 'secondary', activation: 0.6 }
+-    ],
++    involvedMuscles: [{ muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', role: 'secondary', activation: 0.8 }, { muscle: 'Gl├║teos', activation: 0.6 }],
+     subMuscleGroup: 'Espalda Baja', category: 'Fuerza', type: 'Accesorio', equipment: 'Barra', force: 'Bisagra', bodyPart: 'lower', chain: 'posterior',
+     setupTime: 5, technicalDifficulty: 8, efc: 4.5, cnc: 4.0, ssc: 2.0
+   },
+   {
+     id: 'db_hyperextensions', name: 'Hiperextensiones (45┬║)', description: 'En banco inclinado. Enfocado en gl├║teo y espalda baja.',
+-    involvedMuscles: [ 
+-      { muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 },
+-      { muscle: 'Isquiosurales', role: 'secondary', activation: 0.5 }
+-    ],
++    involvedMuscles: [{ muscle: 'Erectores Espinales', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Isquiosurales', role: 'secondary', activation: 0.5 }],
+     subMuscleGroup: 'Espalda Baja', category: 'Resistencia', type: 'Accesorio', equipment: 'M├íquina', force: 'Bisagra', bodyPart: 'lower', chain: 'posterior',
+     setupTime: 2, technicalDifficulty: 3, efc: 2.5, cnc: 2.0, ssc: 0.6
+   },
+   {
+     id: 'db_reverse_hyper', name: 'Hiperextensiones Inversas', description: '"Santo grial" de la cadena posterior. Descomprime la columna lumbar.',
+-    involvedMuscles: [ 
+-      { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Erectores Espinales', role: 'secondary', activation: 0.8 },
+-      { muscle: 'Isquiosurales', role: 'secondary', activation: 0.5 }
+-    ],
++    involvedMuscles: [{ muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Erectores Espinales', role: 'secondary', activation: 0.8 }, { muscle: 'Isquiosurales', activation: 0.5 }],
+     subMuscleGroup: 'Gl├║teos', category: 'Fuerza', type: 'Accesorio', equipment: 'M├íquina', force: 'Bisagra', bodyPart: 'lower', chain: 'posterior',
+     setupTime: 3, technicalDifficulty: 4, efc: 2.5, cnc: 1.5, ssc: 0.0 // Valor 0.0 porque es descompresi├│n real
+   },
+@@ -552,10 +405,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'db_kettlebell_swing', name: 'Balanceo con Pesa Rusa', description: 'Movimiento bal├¡stico de cadera. Potencia y acondicionamiento.',
+-    involvedMuscles: [ 
+-      { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Cardiovascular', role: 'primary', activation: 1.0 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.5 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Isquiosurales', { muscle: 'Cardiovascular', { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.5 }],
+     subMuscleGroup: 'Gl├║teos', category: 'Potencia', type: 'Accesorio', equipment: 'Kettlebell', force: 'Bisagra', bodyPart: 'full', chain: 'posterior',
+     setupTime: 1, technicalDifficulty: 6, efc: 3.5, cnc: 3.0, ssc: 0.8
+   },
+@@ -587,7 +437,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     setupTime: 3, technicalDifficulty: 2, efc: 3.2, cnc: 2.5, ssc: 0.3
+   },
+   {
+-    id: 'db_single_leg_press', name: 'Prensa Inclinada a Una Pierna', description: 'Corrige asimetr├¡as de fuerza entre piernas de forma segura.',
++    id: 'db_single_leg_press', name: 'Prensa Inclinada a una Pierna', description: 'Corrige asimetr├¡as de fuerza entre piernas de forma segura.',
+     involvedMuscles: [ 
+       { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'secondary', activation: 0.5 } 
+     ],
+@@ -619,9 +469,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'db_belt_squat', name: 'Sentadilla con Cintur├│n', description: 'Carga la cadera y piernas sin comprimir la columna.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos'],
+     subMuscleGroup: 'Piernas', category: 'Hipertrofia', type: 'Accesorio', equipment: 'M├íquina', force: 'Sentadilla', bodyPart: 'lower', chain: 'full',
+     setupTime: 3, technicalDifficulty: 4, efc: 3.8, cnc: 2.5, ssc: 0.0
+   },
+@@ -678,28 +526,19 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'db_bulgarian_split_squat', name: 'Sentadilla B├║lgara', description: 'Unilateral. Odiada por todos, efectiva como ninguna para gl├║teo y cu├ídriceps.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 },
+-      { muscle: 'Core', role: 'stabilizer', activation: 0.5 }
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Core', role: 'stabilizer', activation: 0.5 }],
+     subMuscleGroup: 'Piernas', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Sentadilla', bodyPart: 'lower', chain: 'anterior',
+     setupTime: 3, technicalDifficulty: 7, efc: 3.8, cnc: 3.5, ssc: 0.8
+   },
+   {
+     id: 'db_lunges_walking', name: 'Zancadas Caminando', description: 'Din├ímico unilateral.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 },
+-      { muscle: 'Core', role: 'stabilizer', activation: 0.4 }
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Core', role: 'stabilizer', activation: 0.4 }],
+     subMuscleGroup: 'Piernas', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Sentadilla', bodyPart: 'lower', chain: 'anterior',
+     setupTime: 2, technicalDifficulty: 5, efc: 3.5, cnc: 3.5, ssc: 0.6
+   },
+   {
+     id: 'db_reverse_lunge', name: 'Zancada Inversa', description: 'M├ís amable con las rodillas que la zancada frontal. Enfasis en gl├║teo.',
+-    involvedMuscles: [ 
+-      { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 },
+-      { muscle: 'Core', role: 'stabilizer', activation: 0.3 }
+-    ],
++    involvedMuscles: [{ muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, { muscle: 'Cu├ídriceps', { muscle: 'Core', role: 'stabilizer', activation: 0.3 }],
+     subMuscleGroup: 'Gl├║teos', category: 'Hipertrofia', type: 'Accesorio', equipment: 'Mancuerna', force: 'Sentadilla', bodyPart: 'lower', chain: 'posterior',
+     setupTime: 2, technicalDifficulty: 4, efc: 3.2, cnc: 3.0, ssc: 0.5
+   },
+@@ -740,7 +579,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     setupTime: 2, technicalDifficulty: 3, efc: 1.5, cnc: 1.0, ssc: 0.0
+   },
+   {
+-    id: 'db_standing_calf_raise', name: 'Elevaci├│n de Talones De Pie', description: 'Enfasis en gastrocnemio.',
++    id: 'db_standing_calf_raise', name: 'Elevaci├│n de Talones de Pie', description: 'Enfasis en gastrocnemio.',
+     involvedMuscles: [ 
+       { muscle: 'Gastrocnemio', role: 'primary', activation: 1.0 }, { muscle: 'Erectores Espinales', role: 'stabilizer', activation: 0.3 } 
+     ],
+@@ -749,7 +588,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'db_seated_calf_raise', name: 'Elevaci├│n de Talones Sentado', description: 'Enfasis en s├│leo.',
+-    involvedMuscles: [ { muscle: 'S├│leo', role: 'primary', activation: 1.0 } ],
++    involvedMuscles: [ { muscle: 'Pantorrillas:s├│leo', role: 'primary', activation: 1.0 } ],
+     subMuscleGroup: 'Pantorrillas', category: 'Hipertrofia', type: 'Aislamiento', equipment: 'M├íquina', force: 'Extensi├│n', bodyPart: 'lower', chain: 'posterior',
+     setupTime: 1, technicalDifficulty: 2, efc: 1.8, cnc: 1.0, ssc: 0.0
+   },
+@@ -767,15 +606,12 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'db_sled_push', name: 'Empuje de Trineo', description: 'Acondicionamiento y fuerza conc├®ntrica pura de piernas.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Cardiovascular', role: 'primary', activation: 1.0 }, { muscle: 'Core', role: 'stabilizer', activation: 0.6 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Cardiovascular', { muscle: 'Core', role: 'stabilizer', activation: 0.6 }],
+     subMuscleGroup: 'Piernas', category: 'Potencia', type: 'Accesorio', equipment: 'Otro', force: 'Empuje', bodyPart: 'lower', chain: 'anterior',
+     setupTime: 3, technicalDifficulty: 4, efc: 4.0, cnc: 3.5, ssc: 0.2
+   },
+   {
+-    id: 'db_sled_pull', name: 'Arrastre de Trineo (Hacia atr├ís)', description: 'Salud de rodillas y bombeo de cu├ídriceps (Vasto Medial).',
++    id: 'db_sled_pull', name: 'Arrastre de Trineo (Hacia Atr├ís)', description: 'Salud de rodillas y bombeo de cu├ídriceps (Vasto Medial).',
+     involvedMuscles: [ 
+       { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Core', role: 'stabilizer', activation: 0.4 } 
+     ],
+@@ -784,9 +620,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'db_box_jump', name: 'Salto al Caj├│n', description: 'Potencia explosiva de tren inferior.',
+-    involvedMuscles: [ 
+-      { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 } 
+-    ],
++    involvedMuscles: [{ muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos'],
+     subMuscleGroup: 'Piernas', category: 'Pliometr├¡a', type: 'Accesorio', equipment: 'Otro', force: 'Salto', bodyPart: 'lower', chain: 'full',
+     setupTime: 2, technicalDifficulty: 5, efc: 3.0, cnc: 3.5, ssc: 0.1
+   },
+@@ -811,13 +645,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Levantamiento desde el suelo o bloques con la barra en el pliegue de los codos. Demanda extrema de erectores espinales, core y trapecios.',
+     type: 'B├ísico', category: 'Fuerza', equipment: 'Barra', force: 'Bisagra',
+     efc: 4.8, cnc: 5.0, ssc: 2.0, 
+-    involvedMuscles: [
+-      { muscle: 'Espalda Baja', role: 'primary', activation: 1.0 },
+-      { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 },
+-      { muscle: 'Isquiosurales', role: 'secondary', activation: 0.6 },
+-      { muscle: 'B├¡ceps', role: 'stabilizer', activation: 0.3 },
+-      { muscle: 'Abdominales', role: 'stabilizer', activation: 0.3 }
+-    ]
++    involvedMuscles: [{ muscle: 'Espalda Baja', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Isquiosurales', role: 'secondary', activation: 0.6 }, { muscle: 'B├¡ceps', role: 'stabilizer', activation: 0.3 }, { muscle: 'Abdomen']
+   },
+   {
+     id: 'ex-zercher-lunge',
+@@ -828,7 +656,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     involvedMuscles: [
+       { muscle: 'Cu├ídriceps', role: 'primary', activation: 1.0 },
+       { muscle: 'Gl├║teos', role: 'secondary', activation: 0.6 },
+-      { muscle: 'Abdominales', role: 'stabilizer', activation: 0.3 }
++      { muscle: 'Abdomen', role: 'stabilizer', activation: 0.3 }
+     ]
+   },
+   {
+@@ -837,12 +665,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Caminata pesada sosteniendo la barra en los codos. Ejercicio de anti-flexi├│n y acondicionamiento metab├│lico.',
+     type: 'Accesorio', category: 'Resistencia', equipment: 'Barra', force: 'Anti-Flexi├│n',
+     efc: 3.8, cnc: 4.0, ssc: 1.8,
+-    involvedMuscles: [
+-      { muscle: 'Abdominales', role: 'primary', activation: 1.0 },
+-      { muscle: 'Espalda Baja', role: 'primary', activation: 1.0 },
+-      { muscle: 'Trapecio', role: 'secondary', activation: 0.6 },
+-      { muscle: 'B├¡ceps', role: 'stabilizer', activation: 0.3 }
+-    ]
++    involvedMuscles: [{ muscle: 'Abdomen', role: 'primary', activation: 1.0 }, { muscle: 'Espalda Baja', { muscle: 'Trapecio', role: 'secondary', activation: 0.6 }, { muscle: 'B├¡ceps', role: 'stabilizer', activation: 0.3 }]
+   },
+ 
+   // =======================================================================
+@@ -855,9 +678,9 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     type: 'Aislamiento', category: 'Hipertrofia', equipment: 'Polea', force: 'Empuje',
+     efc: 2.0, cnc: 1.5, ssc: 0.0,
+     involvedMuscles: [
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
++      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
+       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.5 },
+-      { muscle: 'Abdominales', role: 'stabilizer', activation: 0.3 }
++      { muscle: 'Abdomen', role: 'stabilizer', activation: 0.3 }
+     ]
+   },
+   {
+@@ -867,7 +690,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     type: 'Aislamiento', category: 'Hipertrofia', equipment: 'Polea', force: 'Empuje',
+     efc: 2.0, cnc: 1.5, ssc: 0.0,
+     involvedMuscles: [
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
++      { muscle: 'Pectorales', role: 'primary', activation: 1.0 },
+       { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }
+     ]
+   },
+@@ -883,18 +706,18 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'ex-cable-overhead-triceps',
+-    name: 'Extensi├│n de Tr├¡ceps sobre la Cabeza (Polea)',
++    name: 'Extensi├│n de Tr├¡ceps Sobre la Cabeza (Polea)',
+     description: 'Extensi├│n con cuerda o barra V. M├íximo estiramiento de la cabeza larga del tr├¡ceps.',
+     type: 'Aislamiento', category: 'Hipertrofia', equipment: 'Polea', force: 'Empuje',
+     efc: 2.0, cnc: 1.5, ssc: 0.1,
+     involvedMuscles: [
+       { muscle: 'Tr├¡ceps', role: 'primary', activation: 1.0 },
+-      { muscle: 'Abdominales', role: 'stabilizer', activation: 0.3 }
++      { muscle: 'Abdomen', role: 'stabilizer', activation: 0.3 }
+     ]
+   },
+   {
+     id: 'ex-cable-lateral-raise-behind',
+-    name: 'Elevaci├│n Lateral en Polea (Por detr├ís)',
++    name: 'Elevaci├│n Lateral en Polea (Por Detr├ís)',
+     description: 'Tensi├│n constante en el deltoides lateral con un perfil de resistencia superior a la mancuerna.',
+     type: 'Aislamiento', category: 'Hipertrofia', equipment: 'Polea', force: 'Tir├│n',
+     efc: 1.8, cnc: 1.5, ssc: 0.0,
+@@ -913,11 +736,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Permite empujar al fallo total sin estabilizadores y con alta convergencia.',
+     type: 'B├ísico', category: 'Hipertrofia', equipment: 'M├íquina', force: 'Empuje',
+     efc: 3.2, cnc: 2.2, ssc: 0.1, 
+-    involvedMuscles: [
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
+-      { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.6 },
+-      { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }
+-    ]
++    involvedMuscles: [{ muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.6 }, { muscle: 'Deltoides Anterior']
+   },
+   {
+     id: 'ex-machine-row-chest-supported',
+@@ -925,11 +744,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Elimina la espalda baja de la ecuaci├│n. Puro trabajo de dorsal y trapecio.',
+     type: 'B├ísico', category: 'Hipertrofia', equipment: 'M├íquina', force: 'Tir├│n',
+     efc: 3.2, cnc: 2.0, ssc: 0.0, 
+-    involvedMuscles: [
+-      { muscle: 'Dorsal', role: 'primary', activation: 1.0 },
+-      { muscle: 'Trapecio', role: 'secondary', activation: 0.6 },
+-      { muscle: 'B├¡ceps', role: 'secondary', activation: 0.5 }
+-    ]
++    involvedMuscles: [{ muscle: 'Dorsal', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio', role: 'secondary', activation: 0.6 }, { muscle: 'B├¡ceps', activation: 0.5 }]
+   },
+   {
+     id: 'ex-reverse-pec-deck',
+@@ -952,12 +767,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'El "Press de Banca del tren superior". Empuje vertical-descendente brutal.',
+     type: 'B├ísico', category: 'Fuerza', equipment: 'Peso Corporal', force: 'Empuje',
+     efc: 4.2, cnc: 4.0, ssc: 0.5,
+-    involvedMuscles: [
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
+-      { muscle: 'Tr├¡ceps', role: 'primary', activation: 1.0 },
+-      { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 },
+-      { muscle: 'Abdominales', role: 'stabilizer', activation: 0.3 }
+-    ]
++    involvedMuscles: [{ muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Tr├¡ceps', { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }, { muscle: 'Abdomen', role: 'stabilizer', activation: 0.3 }]
+   },
+   {
+     id: 'ex-ring-pushups',
+@@ -965,12 +775,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Flexiones con inestabilidad tridimensional. Exige co-contracci├│n de todo el tren superior.',
+     type: 'Accesorio', category: 'Hipertrofia', equipment: 'Otro', force: 'Empuje',
+     efc: 3.8, cnc: 4.0, ssc: 0.2, 
+-    involvedMuscles: [
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
+-      { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.6 },
+-      { muscle: 'Deltoides Anterior', role: 'stabilizer', activation: 0.5 },
+-      { muscle: 'Abdominales', role: 'stabilizer', activation: 0.4 }
+-    ]
++    involvedMuscles: [{ muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.6 }, { muscle: 'Deltoides Anterior', role: 'stabilizer', activation: 0.5 }, { muscle: 'Abdomen', activation: 0.4 }]
+   },
+ 
+   // =======================================================================
+@@ -994,7 +799,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     efc: 2.5, cnc: 2.5, ssc: 0.1,
+     involvedMuscles: [
+       { muscle: 'Tr├¡ceps', role: 'primary', activation: 1.0 },
+-      { muscle: 'Pectoral', role: 'secondary', activation: 0.4 }
++      { muscle: 'Pectorales', role: 'secondary', activation: 0.4 }
+     ]
+   },
+   {
+@@ -1003,11 +808,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Tracci├│n horizontal bilateral que elimina la necesidad de estabilizaci├│n lumbar.',
+     type: 'B├ísico', category: 'Hipertrofia', equipment: 'Mancuerna', force: 'Tir├│n',
+     efc: 3.2, cnc: 2.2, ssc: 0.1,
+-    involvedMuscles: [
+-      { muscle: 'Dorsal', role: 'primary', activation: 1.0 },
+-      { muscle: 'Trapecio', role: 'secondary', activation: 0.6 },
+-      { muscle: 'B├¡ceps', role: 'secondary', activation: 0.5 }
+-    ]
++    involvedMuscles: [{ muscle: 'Dorsal', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio', role: 'secondary', activation: 0.6 }, { muscle: 'B├¡ceps', activation: 0.5 }]
+   },
+ 
+   // =======================================================================
+@@ -1019,10 +820,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Separaci├│n de banda el├ística. Salud escapular, postura y activaci├│n del deltoides posterior.',
+     type: 'Aislamiento', category: 'Movilidad', equipment: 'Banda', force: 'Tir├│n',
+     efc: 1.2, cnc: 1.0, ssc: 0.0,
+-    involvedMuscles: [
+-      { muscle: 'Deltoides Posterior', role: 'primary', activation: 1.0 },
+-      { muscle: 'Trapecio', role: 'primary', activation: 1.0 }
+-    ]
++    involvedMuscles: [{ muscle: 'Deltoides Posterior', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio']
+   },
+   {
+     id: 'ex-spanish-squat',
+@@ -1044,11 +842,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Empuje vertical estabilizado. Permite llegar al fallo seguro sin drenar el SNC equilibrando el cuerpo.',
+     type: 'B├ísico', category: 'Hipertrofia', equipment: 'M├íquina', force: 'Empuje',
+     efc: 3.5, cnc: 2.2, ssc: 0.2,
+-    involvedMuscles: [
+-      { muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 },
+-      { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.6 },
+-      { muscle: 'Deltoides Lateral', role: 'secondary', activation: 0.4 }
+-    ]
++    involvedMuscles: [{ muscle: 'Deltoides Anterior', role: 'primary', activation: 1.0 }, { muscle: 'Tr├¡ceps', role: 'secondary', activation: 0.6 }, { muscle: 'Deltoides Lateral', activation: 0.4 }]
+   },
+   {
+     id: 'ex-machine-pullover',
+@@ -1058,7 +852,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     efc: 2.8, cnc: 1.5, ssc: 0.0,
+     involvedMuscles: [
+       { muscle: 'Dorsal', role: 'primary', activation: 1.0 },
+-      { muscle: 'Pectoral', role: 'secondary', activation: 0.4 },
++      { muscle: 'Pectorales', role: 'secondary', activation: 0.4 },
+       { muscle: 'Tr├¡ceps', role: 'stabilizer', activation: 0.3 } 
+     ]
+   },
+@@ -1071,7 +865,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     involvedMuscles: [
+       { muscle: 'Dorsal', role: 'primary', activation: 1.0 },
+       { muscle: 'B├¡ceps', role: 'secondary', activation: 0.4 },
+-      { muscle: 'Oblicuos', role: 'stabilizer', activation: 0.5 } 
++      { muscle: 'Core', role: 'stabilizer', activation: 0.5 } 
+     ]
+   },
+   {
+@@ -1086,15 +880,11 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+   },
+   {
+     id: 'ex-cable-y-raises',
+-    name: 'Elevaciones en Y (Polea/Cables)',
++    name: 'Elevaciones en y (Polea/Cables)',
+     description: 'Elevaciones diagonales cruzadas desde polea baja. Trabajo supremo para el trapecio inferior y deltoides lateral/posterior.',
+     type: 'Aislamiento', category: 'Movilidad', equipment: 'Polea', force: 'Tir├│n',
+     efc: 1.5, cnc: 1.5, ssc: 0.1,
+-    involvedMuscles: [
+-      { muscle: 'Trapecio', role: 'primary', activation: 1.0 }, 
+-      { muscle: 'Deltoides Lateral', role: 'secondary', activation: 0.6 },
+-      { muscle: 'Deltoides Posterior', role: 'secondary', activation: 0.6 }
+-    ]
++    involvedMuscles: [{ muscle: 'Trapecio', role: 'primary', activation: 1.0 }, { muscle: 'Deltoides Lateral', role: 'secondary', activation: 0.6 }, { muscle: 'Deltoides Posterior']
+   },
+   {
+     id: 'ex-cable-crunch',
+@@ -1103,7 +893,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     type: 'Accesorio', category: 'Hipertrofia', equipment: 'Polea', force: 'Flexi├│n',
+     efc: 2.2, cnc: 1.5, ssc: 0.3, 
+     involvedMuscles: [
+-      { muscle: 'Abdominales', role: 'primary', activation: 1.0 }
++      { muscle: 'Abdomen', role: 'primary', activation: 1.0 }
+     ]
+   },
+   {
+@@ -1112,11 +902,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Press de banca con las piernas suspendidas rectas en el aire. Elimina el "leg drive", aislando completamente pecho y tr├¡ceps.',
+     type: 'B├ísico', category: 'Hipertrofia', equipment: 'Barra', force: 'Empuje',
+     efc: 3.8, cnc: 3.5, ssc: 0.0,
+-    involvedMuscles: [
+-      { muscle: 'Pectoral', role: 'primary', activation: 1.0 },
+-      { muscle: 'Tr├¡ceps', role: 'primary', activation: 1.0 },
+-      { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }
+-    ]
++    involvedMuscles: [{ muscle: 'Pectorales', role: 'primary', activation: 1.0 }, { muscle: 'Tr├¡ceps', { muscle: 'Deltoides Anterior', role: 'secondary', activation: 0.6 }]
+   },
+   {
+     id: 'ex-pendlay-row',
+@@ -1124,12 +910,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Remo estricto con barra que parte desde el suelo en cada repetici├│n. Torso paralelo al piso, desarrollando potencia pura de espalda.',
+     type: 'B├ísico', category: 'Fuerza', equipment: 'Barra', force: 'Tir├│n',
+     efc: 4.2, cnc: 4.5, ssc: 1.6,
+-    involvedMuscles: [
+-      { muscle: 'Dorsal', role: 'primary', activation: 1.0 },
+-      { muscle: 'Trapecio', role: 'primary', activation: 1.0 },
+-      { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.7 },
+-      { muscle: 'B├¡ceps', role: 'secondary', activation: 0.4 }
+-    ]
++    involvedMuscles: [{ muscle: 'Dorsal', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio', { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.7 }, { muscle: 'B├¡ceps', role: 'secondary', activation: 0.4 }]
+   },
+   {
+     id: 'ex-b-stance-rdl',
+@@ -1137,11 +918,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Peso muerto rumano sesgado, donde una pierna hace el 80% del trabajo y la otra solo da equilibrio. Ideal con mancuernas.',
+     type: 'Accesorio', category: 'Hipertrofia', equipment: 'Mancuerna', force: 'Bisagra',
+     efc: 3.8, cnc: 3.2, ssc: 1.0, 
+-    involvedMuscles: [
+-      { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 },
+-      { muscle: 'Gl├║teos', role: 'primary', activation: 1.0 },
+-      { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.4 }
+-    ]
++    involvedMuscles: [{ muscle: 'Isquiosurales', role: 'primary', activation: 1.0 }, { muscle: 'Gl├║teos', { muscle: 'Espalda Baja', role: 'stabilizer', activation: 0.4 }]
+   },
+   {
+     id: 'ex-kroc-rows',
+@@ -1149,12 +926,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Remo a una mano con mancuerna, usando pesos masivos a altas repeticiones, permitiendo un ligero impulso corporal ("body english").',
+     type: 'B├ísico', category: 'Fuerza', equipment: 'Mancuerna', force: 'Tir├│n',
+     efc: 4.5, cnc: 3.8, ssc: 0.8,
+-    involvedMuscles: [
+-      { muscle: 'Dorsal', role: 'primary', activation: 1.0 },
+-      { muscle: 'Trapecio', role: 'secondary', activation: 0.6 },
+-      { muscle: 'Antebrazo', role: 'secondary', activation: 0.8 }, 
+-      { muscle: 'B├¡ceps', role: 'secondary', activation: 0.5 }
+-    ]
++    involvedMuscles: [{ muscle: 'Dorsal', role: 'primary', activation: 1.0 }, { muscle: 'Trapecio', role: 'secondary', activation: 0.6 }, { muscle: 'Antebrazo', activation: 0.8 }, { muscle: 'B├¡ceps', activation: 0.5 }]
+   },
+   {
+     id: 'ex-chest-supported-rear-delt',
+@@ -1173,11 +945,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     description: 'Tracci├│n vertical con agarre invertido. Mayor reclutamiento de b├¡ceps y estiramiento del dorsal que las dominadas pronas.',
+     type: 'B├ísico', category: 'Fuerza', equipment: 'Peso Corporal', force: 'Tir├│n', 
+     efc: 4.2, cnc: 4.0, ssc: 0.2,
+-    involvedMuscles: [
+-      { muscle: 'Dorsal', role: 'primary', activation: 1.0 },
+-      { muscle: 'B├¡ceps', role: 'primary', activation: 1.0 },
+-      { muscle: 'Abdominales', role: 'stabilizer', activation: 0.4 }
+-    ]
++    involvedMuscles: [{ muscle: 'Dorsal', role: 'primary', activation: 1.0 }, { muscle: 'B├¡ceps', { muscle: 'Abdomen', role: 'stabilizer', activation: 0.4 }]
+   },
+   {
+     id: 'ex-ghr',
+@@ -1187,7 +955,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     efc: 4.0, cnc: 3.2, ssc: 0.2, 
+     involvedMuscles: [
+       { muscle: 'Isquiosurales', role: 'primary', activation: 1.0 },
+-      { muscle: 'Gemelos', role: 'secondary', activation: 0.6 },
++      { muscle: 'Pantorrillas:gastrocnemio', role: 'secondary', activation: 0.6 },
+       { muscle: 'Gl├║teos', role: 'stabilizer', activation: 0.5 }
+     ]
+   },
+@@ -1198,7 +966,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     type: 'Aislamiento', category: 'Movilidad', equipment: 'Banda', force: 'Anti-Rotaci├│n',
+     efc: 1.5, cnc: 1.5, ssc: 0.1,
+     involvedMuscles: [
+-      { muscle: 'Abdominales', role: 'primary', activation: 1.0 }, 
++      { muscle: 'Abdomen', role: 'primary', activation: 1.0 }, 
+       { muscle: 'Gl├║teos', role: 'stabilizer', activation: 0.5 }
+     ]
+   },
+@@ -1210,7 +978,7 @@ const BASE_EXERCISE_LIST: ExerciseMuscleInfo[] = [
+     efc: 2.0, cnc: 2.0, ssc: 0.1,
+     involvedMuscles: [
+       { muscle: 'Aductores', role: 'primary', activation: 1.0 },
+-      { muscle: 'Abdominales', role: 'secondary', activation: 0.8 } 
++      { muscle: 'Abdomen', role: 'secondary', activation: 0.8 } 
+     ]
+   },
+   // ========== EJERCICIOS DE EXPANSI├ôN (~788 nuevos) ==========

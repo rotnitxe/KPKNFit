@@ -1,0 +1,2448 @@
+
+// components/ProgramEditor.tsx
+import ProgramAdherenceWidget from './ProgramAdherenceWidget';
+import ExerciseHistoryWidget from './ExerciseHistoryWidget';
+import { calculateWeeklyVolume, normalizeMuscleGroup, calculateUnifiedMuscleVolume } from '../services/volumeCalculator';
+import { DISPLAY_ROLE_WEIGHTS, HYPERTROPHY_ROLE_MULTIPLIERS } from '../services/auge';
+import FeedbackInsights from './FeedbackInsights';
+import SessionAuditAlerts from './SessionAuditAlerts';
+import VolumeBudgetBar from './VolumeBudgetBar';
+import AthleteProfilingWizard from './AthleteProfilingWizard';
+import { VolumeCalibrationStep } from './VolumeCalibrationStep';
+import { AthleteProfileScore } from '../types'; // Asegúrate de que esto ya esté exportado en types.ts
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Program, Macrocycle, Mesocycle, ProgramWeek, Session, SessionBackground, Block, Exercise, ExerciseMuscleInfo } from '../types';
+import Button from './ui/Button';
+import { generateImage } from '../services/aiService';
+import { SparklesIcon, UploadIcon, ImageIcon, PlusIcon, TrashIcon, ChevronRightIcon, Wand2Icon, PencilIcon, TargetIcon, CheckCircleIcon, RefreshCwIcon, GridIcon, LayersIcon, ClockIcon, TrophyIcon, ArrowUpIcon, ArrowDownIcon, XIcon, ChevronDownIcon, EditIcon, DumbbellIcon, BellIcon, SearchIcon, } from './icons';
+import { storageService } from '../services/storageService';
+import { PROGRAM_DRAFT_KEY, isProgramComplex } from '../utils/programEditorUtils';
+import BackgroundEditorModal from './SessionBackgroundModal';
+import { useAppContext } from '../contexts/AppContext';
+import PeriodizationTemplateModal from './PeriodizationTemplateModal';
+import Card from './ui/Card';
+import ToggleSwitch from './ui/ToggleSwitch';
+import { CaupolicanIcon } from './CaupolicanIcon';
+import ReactDOM from 'react-dom';
+import InteractiveWeekOverlay from './InteractiveWeekOverlay';
+import { ProgramEditorAdvanced } from './program-editor';
+import CustomExerciseEditorModal from './CustomExerciseEditorModal';
+import {
+    ArrowLeftIcon,
+    SaveIcon,
+    MoreVerticalIcon,
+    CalendarIcon,
+    PlayIcon,
+    SettingsIcon,
+    AlertTriangleIcon,
+    BarChart2Icon,
+    TrendingUpIcon,
+} from './icons';
+
+
+// --- SHARED UTILS ---
+// --- WIZARD SPECIFIC DATA ---
+import { SPLIT_TEMPLATES, SplitTemplate, SplitTag } from '../data/splitTemplates';
+interface TemplateOption { id: string; name: string; description: string; extendedInfo: string; type: 'simple' | 'complex'; weeks: number; icon: React.ReactNode; }
+
+const TEMPLATES = [
+    { id: 'simple-1', name: 'Lineal Simple', type: 'simple', weeks: 1, icon: <TrendingUpIcon />, description: 'Progresión cíclica estándar.' },
+    { id: 'simple-2', name: 'Ondulante (A/B)', type: 'simple', weeks: 2, icon: <TrendingUpIcon />, description: 'Ciclo de 2 semanas (A/B).' },
+    { id: 'power-complex', name: 'Bloques: Powerlifting', type: 'complex', weeks: 16, icon: <BarChart2Icon />, description: 'Estructura profesional de Fuerza.' },
+    { id: 'bodybuilding-complex', name: 'Bloques: Culturismo', type: 'complex', weeks: 12, icon: <StarIcon />, description: 'Estructura PRO Hipertrofia.' },
+];
+
+const goalOptions: (Mesocycle['goal'])[] = ['Acumulación', 'Intensificación', 'Realización', 'Descarga', 'Custom'];
+
+// ------------------------------------------------------------------
+const InlineExerciseRow: React.FC<{
+    exercise: Exercise;
+    index: number;
+    updateExercise: (index: number, field: any, value: any) => void;
+    removeExercise: (index: number) => void;
+    exerciseList: ExerciseMuscleInfo[]; // <--- AGREGADO: Definición del tipo
+}> = ({ exercise, index, updateExercise, removeExercise, exerciseList }) => { // <--- AGREGADO: Destructuring (aunque no se use por ahora)
+
+    // Formatting Helpers
+    const formatRest = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
+
+    const parseRest = (val: string) => {
+        if (val.includes(':')) {
+            const [m, s] = val.split(':').map(Number);
+            return (m * 60) + (s || 0);
+        }
+        return parseInt(val) || 0;
+    };
+
+    return (
+        <div className="grid grid-cols-[1.5fr_0.5fr_0.5fr_0.5fr_0.6fr_24px] gap-2 items-center border-b border-gray-100 py-2.5 last:border-0 relative hover:bg-gray-50/50 transition-colors px-1 rounded-lg">
+            {/* Name - AHORA ES TEXTO ESTÁTICO (Más limpio y estable) */}
+            <div className="truncate pr-2">
+                <span className="text-xs font-black text-black truncate block" title={exercise.name}>
+                    {exercise.name || 'Sin nombre'}
+                </span>
+            </div>
+
+            {/* Sets */}
+            <input
+                type="number"
+                placeholder="3"
+                value={exercise.sets.length}
+                onChange={(e) => updateExercise(index, 'sets', e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-md px-1 py-1 text-center text-xs font-bold text-black focus:ring-1 focus:ring-black focus:border-black"
+            />
+
+            {/* Reps */}
+            <input
+                type="number"
+                placeholder="10"
+                value={exercise.sets[0]?.targetReps || ''}
+                onChange={(e) => updateExercise(index, 'reps', e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-md px-1 py-1 text-center text-xs font-bold text-black focus:ring-1 focus:ring-black focus:border-black"
+            />
+
+            {/* RPE */}
+            <input
+                type="number"
+                placeholder="8"
+                max="10"
+                step="0.5"
+                value={exercise.sets[0]?.targetRPE || ''}
+                onChange={(e) => updateExercise(index, 'rpe', e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-md px-1 py-1 text-center text-xs font-bold text-black focus:ring-1 focus:ring-black focus:border-black"
+            />
+
+            {/* Rest (MM:SS) */}
+            <input
+                type="text"
+                placeholder="1:30"
+                value={formatRest(exercise.restTime || 90)}
+                onChange={(e) => updateExercise(index, 'rest', parseRest(e.target.value))}
+                className="w-full bg-white border border-gray-200 rounded-md px-1 py-1 text-center text-xs font-bold text-black focus:ring-1 focus:ring-black focus:border-black"
+            />
+
+            {/* Remove */}
+            <button onClick={() => removeExercise(index)} className="text-gray-300 hover:text-red-500 transition-colors flex justify-center h-full items-center">
+                <TrashIcon size={14} />
+            </button>
+        </div>
+    );
+}
+// ------------------------------------------------------------------
+// 2. MODAL EDITOR (Lógica de Inmutabilidad)
+// ------------------------------------------------------------------
+const SessionEditorModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    dayLabel: string;
+    sessionName: string;
+    onRename: (val: string) => void;
+    sessionData: Session | undefined;
+    onUpdateSession: (session: Session) => void;
+    exerciseList: ExerciseMuscleInfo[];
+}> = ({ isOpen, onClose, dayLabel, sessionName, onRename, sessionData, onUpdateSession, exerciseList }) => {
+
+    if (!isOpen) return null;
+    const { settings } = useAppContext();
+
+    // Recuperar o Inicializar Sesión
+    const currentSession = sessionData || {
+        id: crypto.randomUUID(),
+        name: sessionName,
+        description: '',
+        exercises: [],
+        parts: []
+    };
+
+    const handleAddExercise = () => {
+        const newEx: Exercise = {
+            id: crypto.randomUUID(),
+            name: '',
+            sets: [{ id: crypto.randomUUID(), targetReps: 10, intensityMode: 'rpe', targetRPE: 8 }],
+            restTime: 90,
+            trainingMode: 'reps'
+        };
+        onUpdateSession({
+            ...currentSession,
+            exercises: [...(currentSession.exercises || []), newEx]
+        });
+    };
+
+    const handleUpdateExercise = (index: number, field: string, value: any) => {
+        const newExercises = [...(currentSession.exercises || [])];
+        const targetEx = { ...newExercises[index] };
+
+        if (field === 'sets') {
+            const count = parseInt(value) || 1;
+            const tpl = targetEx.sets[0] || { id: crypto.randomUUID(), targetReps: 10, intensityMode: 'rpe', targetRPE: 8 };
+            targetEx.sets = Array.from({ length: count }).map((_, i) => targetEx.sets[i] || { ...tpl, id: crypto.randomUUID() });
+        } else if (field === 'reps') {
+            targetEx.sets = targetEx.sets.map(s => ({ ...s, targetReps: parseInt(value) || 0 }));
+        } else if (field === 'rpe') {
+            targetEx.sets = targetEx.sets.map(s => ({ ...s, targetRPE: parseFloat(value) || 0 }));
+        } else if (field === 'rest') {
+            if (typeof value === 'string' && value.includes(':')) {
+                const [m, s] = value.split(':').map(Number);
+                targetEx.restTime = (m * 60) + (s || 0);
+            } else {
+                targetEx.restTime = parseInt(value) || 90;
+            }
+        } else {
+            (targetEx as any)[field] = value;
+        }
+
+        newExercises[index] = targetEx;
+        onUpdateSession({ ...currentSession, exercises: newExercises });
+    };
+
+    const handleRemoveExercise = (index: number) => {
+        const newExercises = (currentSession.exercises || []).filter((_, i) => i !== index);
+        onUpdateSession({ ...currentSession, exercises: newExercises });
+    };
+
+    return ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 font-sans">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}></div>
+            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 overflow-hidden transform-none">
+                <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-white z-20 shrink-0">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-black text-white flex items-center justify-center font-black text-sm uppercase shadow-lg shadow-black/20">
+                            {dayLabel.substring(0, 3)}
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Editando Sesión</p>
+                            <input
+                                type="text"
+                                value={sessionName}
+                                onChange={(e) => onRename(e.target.value)}
+                                className="text-2xl font-black uppercase tracking-tight text-black border-none p-0 focus:ring-0 w-full bg-transparent placeholder-gray-300"
+                                placeholder="NOMBRE SESIÓN"
+                            />
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-black transition-colors"><XIcon size={24} /></button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar bg-gray-50/50 p-5 pb-24">
+                    {currentSession.exercises?.map((ex, i) => (
+                        <InlineExerciseRow
+                            key={ex.id || `temp-${i}`}
+                            exercise={ex}
+                            index={i}
+                            updateExercise={handleUpdateExercise}
+                            removeExercise={handleRemoveExercise}
+                            exerciseList={exerciseList}
+                        />
+                    ))}
+                    <button onClick={handleAddExercise} className="w-full py-4 mt-2 bg-white border-2 border-dashed border-gray-300 rounded-xl text-xs font-bold text-gray-400 hover:text-primary-color hover:border-primary-color hover:bg-blue-50 transition-all flex items-center justify-center gap-2 group">
+                        <PlusIcon size={16} className="group-hover:scale-110 transition-transform" /> Añadir Ejercicio
+                    </button>
+                    {(!currentSession.exercises || currentSession.exercises.length === 0) && (
+                        <div className="text-center py-12 opacity-50"><DumbbellIcon size={40} className="mx-auto text-gray-300 mb-2" /><p className="text-sm text-gray-400 font-bold">Sesión vacía</p></div>
+                    )}
+                </div>
+
+                <div className="p-4 border-t border-gray-100 bg-white z-20 flex justify-between items-center shrink-0">
+                    <span className="text-xs font-bold text-gray-400">{currentSession.exercises?.length || 0} ejercicios</span>
+                    <button onClick={onClose} className="px-8 py-3 bg-black text-white rounded-xl text-xs font-bold hover:bg-gray-800 transition-colors shadow-lg shadow-black/20 uppercase tracking-widest">
+                        Guardar
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+// --- ADVANCED EXERCISE PICKER MODAL UNIFICADO (DARK PREMIUM + FATIGA 1-10 + LIST/GRID) ---
+import { ScaleIcon, ChevronLeftIcon, MaximizeIcon, StarIcon, FlameIcon, InfoIcon, ActivityIcon } from './icons';
+
+export const AdvancedExercisePickerModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onSelect: (exercise: ExerciseMuscleInfo) => void;
+    onCreateNew: () => void;
+    exerciseList: ExerciseMuscleInfo[];
+}> = ({ isOpen, onClose, onSelect, onCreateNew, exerciseList }) => {
+    const [search, setSearch] = useState('');
+    const [activeCategory, setActiveCategory] = useState<string | null>(null);
+    const [tooltipExId, setTooltipExId] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+    // Multi-sorting state para modo lista
+    const [sortKey, setSortKey] = useState<'name' | 'muscle' | 'fatigue'>('name');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const categoryMap: Record<string, string[]> = {
+        'Pecho': ['pectoral', 'pecho'],
+        'Espalda': ['dorsal', 'trapecio', 'espalda', 'romboide'],
+        'Hombros': ['deltoide', 'hombro'],
+        'Piernas': ['cuádriceps', 'cuadriceps', 'isquio', 'glúteo', 'gluteo', 'pantorrilla', 'pierna', 'femoral'],
+        'Brazos': ['bíceps', 'biceps', 'tríceps', 'triceps', 'antebrazo', 'brazo'],
+        'Core': ['abdomen', 'core', 'lumbar', 'espalda baja']
+    };
+
+    const topTierNames = [
+        'sentadilla trasera', 'peso muerto convencional', 'peso muerto rumano',
+        'sentadilla hack', 'sentadilla pendulum', 'extensión de cuádriceps', 'sissy squat',
+        'curl femoral sentado', 'curl nórdico', 'hip-thrust', 'press banca',
+        'press inclinado', 'cruce de poleas', 'elevaciones laterales en polea',
+        'press de hombro en máquina', 'jalón al pecho', 'dominada libre', 'remo en t', 'remo pendlay'
+    ];
+
+    const isTopTier = (exName: string) => topTierNames.some(name => exName.toLowerCase().includes(name.toLowerCase()));
+
+    const getParentMuscle = (muscleName: string) => {
+        const lower = muscleName.toLowerCase();
+        if (lower.includes('deltoide')) return muscleName;
+        if (lower.includes('pectoral') || lower.includes('pecho')) return 'Pectoral';
+        if (lower.includes('cuádriceps') || lower.includes('cuadriceps') || lower.includes('vasto') || lower.includes('recto femoral')) return 'Cuádriceps';
+        if (lower.includes('bíceps') || lower.includes('biceps')) return 'Bíceps';
+        if (lower.includes('tríceps') || lower.includes('triceps')) return 'Tríceps';
+        if (lower.includes('isquio') || lower.includes('femoral')) return 'Isquiosurales';
+        if (lower.includes('glúteo') || lower.includes('gluteo')) return 'Glúteos';
+        if (lower.includes('trapecio')) return 'Trapecio';
+        if (lower.includes('dorsal')) return 'Dorsal';
+        if (lower.includes('gemelo') || lower.includes('pantorrilla') || lower.includes('sóleo')) return 'Pantorrillas';
+        if (lower.includes('abdomen') || lower.includes('core')) return 'Abdomen';
+        return muscleName;
+    };
+
+    const getPrimaryMuscleName = (ex: ExerciseMuscleInfo) => {
+        const primary = ex.involvedMuscles.find(m => m.role === 'primary');
+        return primary ? getParentMuscle(primary.muscle) : 'Varios';
+    };
+
+    // ALGORITMO FATIGA INTRÍNSECA (SNC + LOCAL) POR SERIE EFECTIVA (1-10)
+    const calculateIntrinsicFatigue = (ex: ExerciseMuscleInfo) => {
+        let score = 5; // Base moderada
+        const isMultiJoint = ex.involvedMuscles.filter(m => m.role === 'primary').length > 1 || ex.involvedMuscles.length > 2;
+        const equip = ex.equipment?.toLowerCase() || '';
+        const isMachine = equip.includes('máquina') || equip.includes('maquina') || equip.includes('polea');
+        const isFreeWeight = equip.includes('barra') || equip.includes('mancuerna');
+
+        if (isMultiJoint) score += 3;
+        else score -= 1;
+
+        if (isMachine) score += 2; // Regla del usuario: Máquinas fatigan más
+        if (isFreeWeight) score -= 1;
+
+        return Math.max(1, Math.min(10, score));
+    };
+
+    const getFatigueUI = (score: number) => {
+        if (score <= 3) return { color: 'bg-green-500', text: 'text-green-500', label: 'Baja' };
+        if (score <= 7) return { color: 'bg-yellow-500', text: 'text-yellow-500', label: 'Moderada' };
+        return { color: 'bg-red-500', text: 'text-red-500', label: 'Alta' };
+    };
+
+    useEffect(() => {
+        if (isOpen) setTimeout(() => inputRef.current?.focus(), 50);
+        else { setSearch(''); setActiveCategory(null); setTooltipExId(null); }
+    }, [isOpen]);
+
+    const handleSort = (key: 'name' | 'muscle' | 'fatigue') => {
+        if (sortKey === key) setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+        else { setSortKey(key); setSortDir('asc'); }
+    };
+
+    const filteredAndSorted = useMemo(() => {
+        let result = exerciseList;
+
+        if (search) {
+            result = result.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
+        } else if (activeCategory) {
+            if (activeCategory === 'KPKN Top Tier') result = result.filter(e => isTopTier(e.name));
+            else if (activeCategory === 'Baja Fatiga') result = result.filter(e => calculateIntrinsicFatigue(e) <= 4);
+            else {
+                const terms = categoryMap[activeCategory] || [];
+                result = result.filter(e => e.involvedMuscles.some(m => m.role === 'primary' && terms.some(term => m.muscle.toLowerCase().includes(term))));
+            }
+        } else if (viewMode === 'grid') {
+            return []; // No mostrar lista si está en grid y sin buscar
+        }
+
+        result = [...result].sort((a, b) => {
+            if (sortKey === 'name') return sortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+            if (sortKey === 'fatigue') {
+                const fA = calculateIntrinsicFatigue(a);
+                const fB = calculateIntrinsicFatigue(b);
+                return sortDir === 'asc' ? fA - fB : fB - fA;
+            }
+            if (sortKey === 'muscle') {
+                const mA = getPrimaryMuscleName(a);
+                const mB = getPrimaryMuscleName(b);
+                const comp = sortDir === 'asc' ? mA.localeCompare(mB) : mB.localeCompare(mA);
+                // Secondary sort: Si son del mismo músculo, ordenar por fatiga (asc)
+                if (comp !== 0) return comp;
+                return calculateIntrinsicFatigue(a) - calculateIntrinsicFatigue(b);
+            }
+            return 0;
+        });
+
+        return result.slice(0, 50); // Límite por rendimiento
+    }, [search, activeCategory, exerciseList, viewMode, sortKey, sortDir]);
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 font-sans overflow-hidden animate-in fade-in duration-200">
+            <div className="absolute inset-0" onClick={onClose} />
+            <div className="bg-[#FEF7FF] border border-[var(--md-sys-color-outline-variant)] shadow-2xl relative z-10 flex flex-col w-full max-w-lg max-h-[85vh] rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200">
+
+                {/* Cabecera Material Design 3 */}
+                <div className="p-4 border-b border-[var(--md-sys-color-outline-variant)] bg-white shrink-0 flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')} className="p-2 bg-[var(--md-sys-color-surface-container-high)] rounded-lg text-[var(--md-sys-color-on-surface-variant)] hover:text-black hover:bg-[var(--md-sys-color-surface-container-highest)] transition-colors">
+                                {viewMode === 'grid' ? <ActivityIcon size={16} /> : <GridIcon size={16} />}
+                            </button>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-black/60">
+                                {viewMode === 'grid' ? 'Categorías' : 'Lista Detallada'}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button onClick={onCreateNew} className="px-3 py-1.5 bg-[var(--md-sys-color-primary-container)] hover:bg-[var(--md-sys-color-primary)] hover:text-white border border-[var(--md-sys-color-primary)]/10 rounded-lg text-[10px] font-black uppercase text-[var(--md-sys-color-on-primary-container)] transition-all flex items-center gap-1">
+                                <PlusIcon size={12} /> Crear
+                            </button>
+                            <button onClick={onClose} className="p-2 bg-[var(--md-sys-color-surface-container-high)] rounded-full text-black/40 hover:text-red-500 transition-colors">
+                                <XIcon size={16} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 bg-[var(--md-sys-color-surface-container-low)] border border-[var(--md-sys-color-outline-variant)] rounded-xl px-3 focus-within:border-[var(--md-sys-color-primary)] transition-colors">
+                        {activeCategory && !search ? (
+                            <button onClick={() => setActiveCategory(null)} className="p-1 text-black/60 hover:text-black transition-colors"><ChevronLeftIcon size={18} /></button>
+                        ) : (
+                            <SearchIcon size={18} className="text-black/40" />
+                        )}
+                        <input
+                            ref={inputRef}
+                            className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-black placeholder-black/30 h-10 p-0 focus:ring-0"
+                            placeholder={activeCategory ? `Buscar en ${activeCategory}...` : "Nombre del ejercicio..."}
+                            value={search}
+                            onChange={e => { setSearch(e.target.value); if (viewMode === 'grid') setViewMode('list'); }}
+                        />
+                    </div>
+                </div>
+
+                <div className="overflow-y-auto flex-1 custom-scrollbar relative bg-zinc-950 p-2">
+                    {/* VISTA GRID (MASONRY) */}
+                    {viewMode === 'grid' && !search && !activeCategory ? (
+                        <div className="grid grid-cols-2 gap-2 p-2 auto-rows-[80px]">
+                            {[
+                                { id: 'KPKN Top Tier', cols: 'col-span-2 row-span-1', border: 'border-[var(--md-sys-color-primary)]', text: 'text-[var(--md-sys-color-primary)]', label: '★ KPKN Top Tier' },
+                                { id: 'Baja Fatiga', cols: 'col-span-1 row-span-1', border: 'border-emerald-500/30', text: 'text-emerald-600', label: 'Baja Fatiga' },
+                                { id: 'Piernas', cols: 'col-span-1 row-span-1', border: 'border-black/5', text: 'text-black', label: 'Piernas' },
+                                { id: 'Pecho', cols: 'col-span-1 row-span-1', border: 'border-black/5', text: 'text-black', label: 'Pecho' },
+                                { id: 'Espalda', cols: 'col-span-1 row-span-1', border: 'border-black/5', text: 'text-black', label: 'Espalda' },
+                                { id: 'Hombros', cols: 'col-span-2 row-span-1', border: 'border-black/5', text: 'text-black', label: 'Hombros' },
+                                { id: 'Brazos', cols: 'col-span-1 row-span-1', border: 'border-black/5', text: 'text-black', label: 'Brazos' },
+                                { id: 'Core', cols: 'col-span-1 row-span-1', border: 'border-black/5', text: 'text-black', label: 'Core' },
+                            ].map(cat => (
+                                <button key={cat.id} onClick={() => { setActiveCategory(cat.id); setViewMode('list'); }} className={`${cat.cols} bg-white border ${cat.border} hover:border-[var(--md-sys-color-primary)] rounded-2xl p-4 text-left flex flex-col justify-center items-start transition-all group relative overflow-hidden shadow-sm hover:shadow-md`}>
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors"></div>
+                                    <span className={`font-black text-sm uppercase tracking-tight relative z-10 ${cat.text}`}>{cat.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    ) : (
+                        /* VISTA LISTA DETALLADA */
+                        <div className="flex flex-col h-full">
+                            {/* Cabecera de Ordenamiento */}
+                            {filteredAndSorted.length > 0 && (
+                                <div className="grid grid-cols-[2fr_1fr_1fr] gap-2 px-4 py-2 border-b border-white/5 sticky top-0 bg-zinc-950 z-20">
+                                    <button onClick={() => handleSort('name')} className="text-left flex items-center gap-1 text-[9px] font-black uppercase text-zinc-500 hover:text-white">Ejercicio {sortKey === 'name' && (sortDir === 'asc' ? '↑' : '↓')}</button>
+                                    <button onClick={() => handleSort('muscle')} className="text-left flex items-center gap-1 text-[9px] font-black uppercase text-zinc-500 hover:text-white">Músculo {sortKey === 'muscle' && (sortDir === 'asc' ? '↑' : '↓')}</button>
+                                    <button onClick={() => handleSort('fatigue')} className="text-right flex items-center justify-end gap-1 text-[9px] font-black uppercase text-zinc-500 hover:text-white">Fatiga {sortKey === 'fatigue' && (sortDir === 'asc' ? '↑' : '↓')}</button>
+                                </div>
+                            )}
+
+                            <div className="space-y-1 p-2">
+                                {filteredAndSorted.map(ex => {
+                                    const topTier = isTopTier(ex.name);
+                                    const fatigueScore = calculateIntrinsicFatigue(ex);
+                                    const fatigueUI = getFatigueUI(fatigueScore);
+                                    const primaryMuscle = getPrimaryMuscleName(ex);
+
+                                    // Agrupación matemática correcta (Tomando el MÁXIMO por padre, no la suma)
+                                    const groupedMuscles = ex.involvedMuscles.reduce((acc, m) => {
+                                        const parent = getParentMuscle(m.muscle);
+                                        const value = DISPLAY_ROLE_WEIGHTS[m.role] ?? 0.2;
+                                        if (!acc[parent] || value > acc[parent]) acc[parent] = value;
+                                        return acc;
+                                    }, {} as Record<string, number>);
+
+                                    return (
+                                        <div key={ex.id} className="w-full bg-black rounded-xl border border-white/5 hover:border-white/20 transition-all flex flex-col">
+                                            <div className="flex items-center justify-between px-2 py-1">
+                                                <button onClick={() => onSelect(ex)} className="flex-1 text-left py-2 px-2 grid grid-cols-[2fr_1fr_1fr] gap-2 items-center group">
+                                                    <div className="flex flex-col truncate pr-2">
+                                                        <span className={`font-bold text-xs truncate ${topTier ? 'text-yellow-400' : 'text-white'}`}>
+                                                            {topTier && '★ '}{ex.name}
+                                                        </span>
+                                                        <span className="text-[9px] text-zinc-500 uppercase font-bold mt-0.5 truncate">{ex.equipment}</span>
+                                                    </div>
+                                                    <div className="text-[10px] text-zinc-400 font-bold truncate">
+                                                        {primaryMuscle}
+                                                    </div>
+                                                    <div className="flex items-center justify-end gap-1.5">
+                                                        <div className={`w-2 h-2 rounded-full ${fatigueUI.color} shadow-[0_0_8px_currentColor]`}></div>
+                                                        <span className="text-[10px] font-black text-white">{fatigueScore}<span className="text-zinc-600">/10</span></span>
+                                                    </div>
+                                                </button>
+                                                <button onClick={(e) => { e.stopPropagation(); setTooltipExId(tooltipExId === ex.id ? null : ex.id); }} className={`p-2 transition-colors ${tooltipExId === ex.id ? 'text-blue-400' : 'text-zinc-600 hover:text-white'}`}>
+                                                    <InfoIcon size={16} />
+                                                </button>
+                                            </div>
+
+                                            {/* Panel de Detalles */}
+                                            {tooltipExId === ex.id && (
+                                                <div className="bg-zinc-900 border-t border-white/5 p-4 animate-in slide-in-from-top-2 duration-200">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Aporte (1 Serie Efectiva)</span>
+                                                            <div className="space-y-1">
+                                                                {Object.entries(groupedMuscles).map(([muscle, maxVal], idx) => (
+                                                                    <div key={idx} className="flex justify-between items-center text-[10px]">
+                                                                        <span className="font-bold text-zinc-300">{muscle}</span>
+                                                                        <span className="text-zinc-400 font-mono">+{(maxVal as number).toFixed(1)}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-2 border-l border-white/10 pl-4">
+                                                            <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest block">Análisis de Fatiga</span>
+                                                            <div className="bg-black border border-white/5 p-2 rounded-lg">
+                                                                <div className="flex items-center justify-between mb-1">
+                                                                    <span className="text-[10px] font-bold text-white">Impacto en Batería</span>
+                                                                    <div className={`w-2 h-2 rounded-full ${fatigueUI.color}`}></div>
+                                                                </div>
+                                                                <p className="text-[9px] text-zinc-400">Castigo inherente estimado (RIR 2) hacia SNC y articulaciones: <strong className={fatigueUI.text}>{fatigueScore}/10</strong>.</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                                {filteredAndSorted.length === 0 && (
+                                    <div className="text-center py-12">
+                                        <DumbbellIcon size={32} className="mx-auto text-zinc-800 mb-2" />
+                                        <p className="text-xs text-zinc-500 font-bold mb-4">No se encontraron ejercicios</p>
+                                        <button onClick={onCreateNew} className="px-6 py-2 bg-white text-black rounded-full font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-transform">Crear Ejercicio Personalizado</button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const InlineSessionCreator: React.FC<{
+    dayLabel: string;
+    sessionName: string;
+    isRest: boolean;
+    sessionData: Session | undefined;
+    onRename: (name: string) => void;
+    onUpdateSession: (session: Session) => void;
+    onMoveUp: () => void;
+    onMoveDown: () => void;
+    isFirst: boolean;
+    isLast: boolean;
+    exerciseList: ExerciseMuscleInfo[];
+}> = ({ dayLabel, sessionName, isRest, sessionData, onRename, onUpdateSession, onMoveUp, onMoveDown, isFirst, isLast, exerciseList }) => {
+    // --- DENTRO DE InlineSessionCreator (aprox línea 470) ---
+
+    // 1. Necesitamos acceder a la jerarquía muscular y settings
+    const { muscleHierarchy, settings } = useAppContext();
+
+    // 2. Calculamos el volumen en tiempo real (NUEVO ALGORITMO UNIFICADO AVANZADO)
+    const volumeStats = useMemo(() => {
+        if (!sessionData?.exercises?.length) return [];
+
+        const tempSession = {
+            ...sessionData,
+            id: sessionData.id || 'temp',
+            parts: []
+        };
+
+        return calculateUnifiedMuscleVolume([tempSession], exerciseList)
+            .filter(s => s.displayVolume > 0);
+    }, [sessionData, exerciseList]);
+
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isPickerOpen, setIsPickerOpen] = useState(false); // Estado para el modal
+    const [isCustomExerciseModalOpen, setIsCustomExerciseModalOpen] = useState(false);
+
+    const ensureSessionExists = () => {
+        if (!sessionData) {
+            const newSession: Session = {
+                id: crypto.randomUUID(),
+                name: sessionName,
+                description: '',
+                exercises: [],
+                parts: []
+            };
+            onUpdateSession(newSession);
+            return newSession;
+        }
+        return sessionData;
+    };
+
+    const handleExpand = () => {
+        if (!isRest) {
+            ensureSessionExists();
+            setIsExpanded(!isExpanded);
+        }
+    };
+
+    // Nueva función para añadir desde el Picker
+    const addExerciseFromPicker = (selected: ExerciseMuscleInfo) => {
+        const session = ensureSessionExists();
+        const newEx: Exercise = {
+            id: crypto.randomUUID(),
+            name: selected.name,
+            exerciseDbId: selected.id, // Guardamos referencia real
+            sets: [{ id: crypto.randomUUID(), targetReps: 10, intensityMode: 'rpe', targetRPE: 8 }],
+            restTime: 90,
+            trainingMode: 'reps'
+        };
+        const updatedSession = { ...session, exercises: [...(session.exercises || []), newEx] };
+        onUpdateSession(updatedSession);
+        setIsPickerOpen(false); // Cerrar picker
+    };
+
+    const updateExercise = (index: number, field: keyof Exercise | 'sets' | 'reps' | 'rest' | 'rpe' | 'exerciseDbId', value: any) => {
+        const session = ensureSessionExists();
+        const exercises = [...(session.exercises || [])];
+        const ex = { ...exercises[index] };
+
+        if (field === 'sets') {
+            const count = parseInt(value) || 1;
+            // Mantener lógica de sets existente
+            const currentSets = ex.sets || [];
+            if (count > currentSets.length) {
+                const toAdd = count - currentSets.length;
+                const newSets = Array.from({ length: toAdd }).map(() => ({
+                    id: crypto.randomUUID(),
+                    targetReps: currentSets[0]?.targetReps || 10,
+                    intensityMode: 'rpe' as const,
+                    targetRPE: currentSets[0]?.targetRPE || 8
+                }));
+                ex.sets = [...currentSets, ...newSets];
+            } else if (count < currentSets.length) {
+                ex.sets = currentSets.slice(0, count);
+            }
+        } else if (field === 'reps') {
+            const reps = parseInt(value) || 0;
+            ex.sets = ex.sets.map(s => ({ ...s, targetReps: reps }));
+        } else if (field === 'rpe') {
+            const rpe = parseFloat(value) || 0;
+            ex.sets = ex.sets.map(s => ({ ...s, targetRPE: rpe }));
+        } else if (field === 'rest') {
+            ex.restTime = value;
+        } else {
+            (ex as any)[field] = value;
+        }
+
+        exercises[index] = ex;
+        onUpdateSession({ ...session, exercises });
+    };
+
+    const removeExercise = (index: number) => {
+        const session = ensureSessionExists();
+        const exercises = session.exercises.filter((_, i) => i !== index);
+        onUpdateSession({ ...session, exercises });
+    };
+
+    return (
+        <>
+            {/* Modal de Selección se renderiza fuera del flujo del layout para evitar z-index issues */}
+
+            <AdvancedExercisePickerModal
+                isOpen={isPickerOpen}
+                onClose={() => setIsPickerOpen(false)}
+                onSelect={addExerciseFromPicker}
+                exerciseList={exerciseList}
+                onCreateNew={() => {
+                    setIsPickerOpen(false);
+                    setIsCustomExerciseModalOpen(true);
+                }}
+            />
+
+            {/* AQUÍ ENCHUFAMOS EL MODAL DE CREACIÓN QUE FALTABA */}
+            {isCustomExerciseModalOpen && (
+                <CustomExerciseEditorModal
+                    isOpen={isCustomExerciseModalOpen}
+                    onClose={() => setIsCustomExerciseModalOpen(false)}
+                    isOnline={true}
+                    onSave={(newEx) => {
+                        addExerciseFromPicker(newEx as any);
+                        setIsCustomExerciseModalOpen(false);
+                    }}
+                />
+            )}
+
+            <div className={`transition-all duration-300 rounded-2xl overflow-hidden shadow-sm border ${isRest ? 'bg-[var(--md-sys-color-surface-container-low)] border-[var(--md-sys-color-outline-variant)]' : 'bg-white border-[var(--md-sys-color-outline-variant)] shadow-lg hover:shadow-xl'}`}>
+                {/* Header Row */}
+                <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center font-black text-[10px] uppercase border ${isRest ? 'bg-transparent border-black/10 text-black/30' : 'bg-black text-white border-black'}`}>
+                            {dayLabel.substring(0, 3)}
+                        </div>
+                        <input
+                            type="text"
+                            value={sessionName}
+                            onChange={(e) => onRename(e.target.value)}
+                            className={`bg-transparent border-none p-0 text-lg font-black uppercase tracking-tight focus:ring-0 w-full truncate ${isRest ? 'text-black/30' : 'text-black placeholder-gray-400'}`}
+                            placeholder="NOMBRE SESIÓN"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                        <button onClick={onMoveUp} disabled={isFirst} className={`p-1.5 rounded-full transition-colors ${isRest ? 'hover:bg-black/5 text-black/20' : 'hover:bg-gray-100 text-black/40 hover:text-black'} disabled:opacity-0`}>
+                            <ArrowUpIcon size={14} />
+                        </button>
+                        <button onClick={onMoveDown} disabled={isLast} className={`p-1.5 rounded-full transition-colors ${isRest ? 'hover:bg-black/5 text-black/20' : 'hover:bg-gray-100 text-black/40 hover:text-black'} disabled:opacity-0`}>
+                            <ArrowDownIcon size={14} />
+                        </button>
+                        {!isRest && (
+                            <button onClick={handleExpand} className={`p-2 rounded-full transition-colors ml-2 ${isExpanded ? 'bg-black text-white' : 'bg-zinc-100 text-black hover:bg-zinc-200'}`}>
+                                {isExpanded ? <ChevronDownIcon size={16} className="rotate-180" /> : <PencilIcon size={14} />}
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Expanded Editor */}
+                {isExpanded && !isRest && (
+                    <div className="px-4 pb-4 animate-fade-in space-y-3 border-t border-gray-100 pt-3">
+
+                        {/* --- PEGAR ESTO AQUÍ: WIDGET DE VOLUMEN --- */}
+                        {volumeStats.length > 0 && (
+                            <div className="flex gap-2 overflow-x-auto pb-3 mb-1 custom-scrollbar px-1 snap-x">
+                                {volumeStats.map(stat => (
+                                    <div key={stat.muscleGroup} className="snap-start flex-shrink-0 flex flex-col items-center bg-gray-50 border border-gray-200 p-2 rounded-lg min-w-[60px]">
+                                        <span className="text-[8px] font-black text-gray-400 uppercase truncate max-w-full tracking-wider">{stat.muscleGroup}</span>
+                                        <div className="flex items-baseline gap-0.5">
+                                            <span className="text-lg font-black text-black leading-none">{stat.displayVolume}</span>
+                                            <span className="text-[8px] text-gray-400 font-bold">sets</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {/* ------------------------------------------- */}
+
+                        <SessionAuditAlerts
+                            sessionExercises={sessionData?.exercises || []}
+                            allExercisesDB={exerciseList as any}
+                            settings={settings}
+                        />
+                        <div className="overflow-x-auto custom-scrollbar pb-2">
+                            <div className="min-w-[350px]">
+
+                                {/* Headers */}
+                                <div className="grid grid-cols-[1.5fr_0.5fr_0.5fr_0.5fr_0.6fr_24px] gap-2 mb-2 px-1">
+                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Ejercicio</span>
+                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Sets</span>
+                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Reps</span>
+                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">RPE</span>
+                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Desc.</span>
+                                    <span></span>
+                                </div>
+
+                                <div className="space-y-1 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                                    {sessionData?.exercises?.map((ex, i) => (
+                                        <InlineExerciseRow
+                                            key={i}
+                                            index={i}
+                                            exercise={ex}
+                                            updateExercise={updateExercise}
+                                            removeExercise={removeExercise}
+                                            exerciseList={exerciseList} // <--- AGREGAR ESTA LÍNEA
+                                        />
+                                    ))}
+                                    {(!sessionData?.exercises || sessionData.exercises.length === 0) && (
+                                        <p className="text-center text-xs text-gray-400 py-4 italic">No hay ejercicios. ¡Añade uno!</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* EL BOTÓN AHORA ABRE EL MODAL */}
+                        <button
+                            onClick={() => setIsPickerOpen(true)}
+                            className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-xs font-bold text-gray-400 hover:text-black hover:border-black/20 hover:bg-gray-50 transition-all flex items-center justify-center gap-2 mt-2"
+                        >
+                            <PlusIcon size={14} /> Añadir Ejercicio
+                        </button>
+
+                        {sessionData?.exercises && sessionData.exercises.length > 0 && (
+                            <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                                <span className="text-[10px] text-gray-400 font-medium">
+                                    {sessionData.exercises.reduce((acc, ex) => acc + ex.sets.length, 0)} series totales
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </>
+    );
+};
+
+const TimelineEventCircle: React.FC<{
+    ev: any;
+    displayMaxWeeks: number;
+    totalProgramWeeks: number;
+    maxEventWeek: number;
+    onEdit: (ev: any) => void;
+    onUpdateWeek: (ev: any, newWeek: number) => void;
+}> = ({ ev, displayMaxWeeks, totalProgramWeeks, maxEventWeek, onEdit, onUpdateWeek }) => {
+    const [dragPct, setDragPct] = useState<number | null>(null);
+    const [hoverWeek, setHoverWeek] = useState<number | null>(null);
+
+    const pos = dragPct !== null ? dragPct * 100 : ((ev.calculatedWeek + 1) / displayMaxWeeks) * 100;
+    const currentCalculatedWeek = hoverWeek !== null ? hoverWeek : ev.calculatedWeek;
+
+    // Calcular si es un período (tiene fecha de fin)
+    let isPeriod = false;
+    let periodWidthPct = 0;
+    if (ev.date && ev.endDate) {
+        const start = new Date(ev.date).getTime();
+        const end = new Date(ev.endDate).getTime();
+        if (end > start) {
+            isPeriod = true;
+            const diffWeeks = Math.ceil((end - start) / (1000 * 60 * 60 * 24 * 7));
+            periodWidthPct = (diffWeeks / displayMaxWeeks) * 100;
+        }
+    }
+
+    const isLastEvent = (currentCalculatedWeek + 1) === maxEventWeek;
+    const diff = totalProgramWeeks - (currentCalculatedWeek + 1);
+    const isPerfect = isLastEvent && diff === 0;
+    const isOver = isLastEvent && diff > 0;
+
+    let borderColor = 'border-black';
+    let glow = 'shadow-lg';
+    if (isPerfect) { borderColor = 'border-emerald-400'; glow = 'shadow-[0_0_20px_rgba(52,211,153,0.8)] animate-pulse'; }
+    else if (isOver) { borderColor = 'border-red-500'; glow = 'shadow-[0_0_15px_rgba(239,68,68,0.6)]'; }
+
+    const handlePointerDown = (e: React.PointerEvent) => {
+        // Evitamos arrastrar eventos autogenerados por las sesiones (solo en el editor avanzado)
+        if (ev.isExplicit === false) { e.stopPropagation(); return; }
+
+        const el = e.currentTarget.parentElement;
+        if (!el) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const rect = el.getBoundingClientRect();
+
+        const handlePointerMove = (moveEvent: PointerEvent) => {
+            let pct = (moveEvent.clientX - rect.left) / rect.width;
+            pct = Math.max(0, Math.min(1, pct));
+            setDragPct(pct);
+            const week = Math.max(0, Math.round(pct * displayMaxWeeks) - 1);
+            setHoverWeek(week);
+        };
+
+        const handlePointerUp = (upEvent: PointerEvent) => {
+            document.removeEventListener('pointermove', handlePointerMove);
+            document.removeEventListener('pointerup', handlePointerUp);
+            let pct = (upEvent.clientX - rect.left) / rect.width;
+            pct = Math.max(0, Math.min(1, pct));
+            const week = Math.max(0, Math.round(pct * displayMaxWeeks) - 1);
+            setDragPct(null);
+            setHoverWeek(null);
+            onUpdateWeek(ev, week);
+        };
+
+        document.addEventListener('pointermove', handlePointerMove);
+        document.addEventListener('pointerup', handlePointerUp);
+    };
+
+    return (
+        <div className={`absolute flex flex-col items-center group z-20 ${ev.isExplicit !== false ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
+            style={{
+                left: isPeriod ? `calc(${pos}% + ${periodWidthPct / 2}%)` : `${pos}%`,
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
+                touchAction: 'none',
+                width: isPeriod ? `${Math.max(28, periodWidthPct * 5)}px` : 'auto' // Asegura un ancho mínimo para el rectángulo
+            }}
+            onPointerDown={handlePointerDown}
+            onClick={(e) => { e.stopPropagation(); onEdit(ev); }}
+        >
+            <div className={`h-7 ${isPeriod ? 'w-full rounded-md px-2' : 'w-7 rounded-full'} border-2 ${borderColor} flex items-center justify-center ${glow} transition-all duration-300 overflow-hidden ${ev.type?.includes('body') ? 'bg-pink-500' : ev.type?.includes('power') ? 'bg-yellow-400' : ev.type?.includes('vacation') ? 'bg-cyber-copper' : 'bg-blue-500'}`}>
+                <div className="flex items-center gap-1.5 shrink-0">
+                    {ev.type?.includes('power') ? <TrophyIcon size={14} className="text-black" /> : ev.type?.includes('vacation') ? <span className="text-[10px]">🌴</span> : <TargetIcon size={14} className="text-white" />}
+                    {isPeriod && <span className="text-[8px] font-black uppercase text-white truncate max-w-[60px]">{ev.title}</span>}
+                </div>
+            </div>
+
+            <div className={`absolute top-10 flex flex-col items-center transition-opacity pointer-events-none ${dragPct !== null ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} z-50`}>
+                <div className="bg-black/90 backdrop-blur-md border border-white/20 text-[9px] font-black uppercase px-3 py-1.5 rounded whitespace-nowrap text-white text-center shadow-xl">
+                    <span className="block text-gray-400 mb-0.5">
+                        {isPeriod ? `Semana ${currentCalculatedWeek + 1} a ${currentCalculatedWeek + 1 + Math.ceil(periodWidthPct / (100 / displayMaxWeeks))}` : `Semana ${currentCalculatedWeek + 1}`}
+                    </span>
+                    {ev.title}
+                </div>
+                {isPerfect && <span className="text-[8px] text-emerald-400 font-bold mt-1 bg-emerald-950/50 px-1 rounded border border-emerald-500/30">CALCE PERFECTO</span>}
+                {isOver && <span className="text-[8px] text-red-400 font-bold mt-1 bg-red-950/50 px-1 rounded border border-red-500/30">PROGRAMA MUY LARGO</span>}
+            </div>
+        </div>
+    );
+};
+
+// --- MAIN COMPONENT ---
+
+interface ProgramEditorProps {
+    onSave: (program: Program) => void;
+    onCancel: () => void;
+    existingProgram: Program | null;
+    isOnline: boolean;
+    saveTrigger: number;
+    onStartProgram?: (programId: string) => void;
+}
+
+const ProgramEditor: React.FC<ProgramEditorProps> = ({ onSave, onCancel, existingProgram, isOnline, saveTrigger, onStartProgram }) => {
+    const { settings, setIsDirty, isDirty: isAppContextDirty, addToast, navigateTo, exerciseList, handleStartProgram, postSessionFeedback } = useAppContext();
+
+    // =================================================================
+    // 1. DECLARACIÓN DE ESTADOS (Mover esto AL PRINCIPIO)
+    // =================================================================
+
+    // Referencias
+    const nameInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const prevSaveTriggerRef = useRef(saveTrigger);
+    const blockListRef = useRef<HTMLDivElement>(null);
+
+    // Estados Básicos del Wizard
+    const [programName, setProgramName] = useState('');
+    const [autoActivate, setAutoActivate] = useState(false);
+    const [selectedTemplateId, setSelectedTemplateId] = useState<string>('simple-1');
+    const [competitionDate, setCompetitionDate] = useState('');
+    const [wizardStep, setWizardStep] = useState(0);
+    const [activeInfo, setActiveInfo] = useState<'structure' | 'split' | null>(null);
+
+    // Estados para el Profiling (KPKN Algorithm)
+    const [showProfilingWizard, setShowProfilingWizard] = useState(false);
+    const [athleteScore, setAthleteScore] = useState<AthleteProfileScore | null>(null);
+
+    // Configuración de volumen del wizard (paso obligatorio)
+    const [wizardVolumeConfig, setWizardVolumeConfig] = useState<{
+        volumeSystem: 'israetel' | 'manual' | 'kpnk';
+        volumeRecommendations: import('../types').VolumeRecommendation[];
+        volumeAlertsEnabled: boolean;
+        athleteProfileScore?: AthleteProfileScore;
+    } | null>(null);
+
+    // Estados de Configuración de Tiempo y Días
+    const [startDay, setStartDay] = useState(1);
+    const daysOfWeek = [{ label: 'Domingo', value: 0 }, { label: 'Lunes', value: 1 }, { label: 'Martes', value: 2 }, { label: 'Miércoles', value: 3 }, { label: 'Jueves', value: 4 }, { label: 'Viernes', value: 5 }, { label: 'Sábado', value: 6 }];
+    const [cycleDuration, setCycleDuration] = useState(7);
+    const [selectedSplit, setSelectedSplit] = useState<SplitTemplate | null>(null);
+    const [splitPattern, setSplitPattern] = useState<string[]>(Array(7).fill('Descanso'));
+
+    // Lógica de Roadmap Dinámico (Fechas Clave y Semanas)
+    const [wizardSimpleWeeks, setWizardSimpleWeeks] = useState(1);
+
+    const [blockDurations, setBlockDurations] = useState<number[]>([4, 4, 4, 3, 1]);
+
+    // Nombres de bloques dinámicos según plantilla
+    const wizardComplexBlocks = selectedTemplateId === 'bodybuilding-complex'
+        ? ['Volumen Base', 'Intensificación', 'Peaking Estético']
+        : ['Hipertrofia', 'Fuerza Base', 'Volumen', 'Peaking', 'Tapering'];
+
+    // Lógica de Splits por Bloque
+    const [splitMode, setSplitMode] = useState<'global' | 'per_block'>('global');
+    const [activeSplitBlockStep0, setActiveSplitBlockStep0] = useState(0);
+    const [blockSplits, setBlockSplits] = useState<Record<number, SplitTemplate>>({});
+    const [assignmentSuccess, setAssignmentSuccess] = useState<string | null>(null);
+
+    // Lógica de Diseño y Edición
+    const [activeBlockEdit, setActiveBlockEdit] = useState(0);
+    const [programDesigns, setProgramDesigns] = useState<Record<number, Record<number, Session>>>({});
+    const [applyToAllBlocks, setApplyToAllBlocks] = useState(false);
+    const [detailedSessions, setDetailedSessions] = useState<Record<number, Session>>({});
+
+    // UI Auxiliar Wizard
+    const [showAllSplitsModal, setShowAllSplitsModal] = useState(false);
+    const [modalFilter, setModalFilter] = useState<SplitTag | 'Todos'>('Todos');
+    const [expandedInfoId, setExpandedInfoId] = useState<string | null>(null);
+
+    // Estados del Editor Dashboard (Edición/Legacy)
+    const [program, setProgram] = useState<Program | null>(null);
+    const [isComplex, setIsComplex] = useState(false);
+    const [activeTab, setActiveTab] = useState<'details' | 'structure' | 'goals'>('details');
+
+    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+    const [wizardCurrentStep, setWizardCurrentStep] = useState(1);
+    const [wizardEvents, setWizardEvents] = useState<{ id?: string, title: string, type: string, date: string, endDate?: string, calculatedWeek: number, createMacrocycle?: boolean, repeatEveryXCycles?: number }[]>([]);
+
+    // Estado para el overlay de edición de semanas
+    const [editingWeekInfo, setEditingWeekInfo] = useState<{
+        macroIndex: number;
+        blockIndex: number;
+        mesoIndex: number;
+        weekIndex: number;
+        week: ProgramWeek;
+        isSimple: boolean;
+    } | null>(null);
+
+
+
+    const [newGoalExercise, setNewGoalExercise] = useState('');
+    const [newGoalWeight, setNewGoalWeight] = useState('');
+    const [splitSearchQuery, setSplitSearchQuery] = useState('');
+    const [compareList, setCompareList] = useState<string[]>([]);
+    const [showCompareView, setShowCompareView] = useState(false);
+    const [showCoverEditor, setShowCoverEditor] = useState(false);
+    const [coverFilters, setCoverFilters] = useState({ blur: 0, brightness: 60, contrast: 100, saturation: 100, grayscale: 0 });
+
+    // Estados para Roadmap y Eventos (Editor Dashboard)
+    const [newEventDate, setNewEventDate] = useState('');
+    const [newEventEndDate, setNewEventEndDate] = useState(''); // Rango Hasta
+    const [newEventTitle, setNewEventTitle] = useState('');
+    const [newEventType, setNewEventType] = useState('powerlifting_comp');
+
+    const POWER_BLOCK_NAMES = ['Hipertrofia', 'Fuerza Base', 'Volumen', 'Peaking', 'Tapering'];
+
+    // Datos derivados
+    const availableExercises = useMemo(() => exerciseList.map(e => e.name).sort(), [exerciseList]);
+
+    // --- CÁLCULO DE VOLUMEN (VERSIÓN AGRESIVA + DEBUG) ---
+    const currentWeeklyVolume = useMemo(() => {
+        const volumeMap: Record<string, { total: number; breakdown: Record<string, number> }> = {};
+
+        // Helper para limpiar strings y comparar mejor
+        const cleanStr = (s: string) => s?.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
+
+        Object.values(detailedSessions).forEach((session: any) => {
+            if (!session.exercises) return;
+
+            session.exercises.forEach((ex: any) => {
+                // 1. INTENTO DE BÚSQUEDA 1: Por ID exacto
+                let exInfo = exerciseList.find(e => e.id === ex.exerciseDbId);
+
+                // 2. INTENTO DE BÚSQUEDA 2: Por Nombre (Limpiando acentos y mayúsculas)
+                if (!exInfo) {
+                    const searchName = cleanStr(ex.name);
+                    exInfo = exerciseList.find(e => cleanStr(e.name) === searchName);
+                }
+
+                // 3. INTENTO DE BÚSQUEDA 3: Contiene el nombre (Parcial)
+                if (!exInfo) {
+                    const searchName = cleanStr(ex.name);
+                    exInfo = exerciseList.find(e => cleanStr(e.name).includes(searchName) || searchName.includes(cleanStr(e.name)));
+                }
+
+                // Determinar series (Tú confirmaste que viene con 1, así que esto debería funcionar)
+                let setsCount = 0;
+                if (Array.isArray(ex.sets)) {
+                    setsCount = ex.sets.length > 0 ? ex.sets.length : 0;
+                } else if (typeof ex.sets === 'number') {
+                    setsCount = ex.sets;
+                }
+
+                // DEBUG: Descomenta esto si necesitas ver qué pasa en la consola
+                // console.log(`Analizando: ${ex.name}`, { encontrado: !!exInfo, sets: setsCount, musculos: exInfo?.involvedMuscles });
+
+                if (exInfo && exInfo.involvedMuscles && setsCount > 0) {
+
+                    const exerciseImpactOnParent: Record<string, number> = {};
+
+                    exInfo.involvedMuscles.forEach(muscleData => {
+                        let parentMuscle = muscleData.muscle;
+                        try {
+                            parentMuscle = normalizeMuscleGroup(muscleData.muscle, muscleData.emphasis);
+                        } catch (e) {
+                            // Si falla la normalización, usamos el nombre original capitalizado
+                            parentMuscle = muscleData.muscle.charAt(0).toUpperCase() + muscleData.muscle.slice(1);
+                        }
+
+                        const factor = HYPERTROPHY_ROLE_MULTIPLIERS[muscleData.role] ?? 0.5;
+                        const addedVolume = setsCount * factor;
+
+                        // Deduplicación
+                        if (!exerciseImpactOnParent[parentMuscle] || addedVolume > exerciseImpactOnParent[parentMuscle]) {
+                            exerciseImpactOnParent[parentMuscle] = addedVolume;
+                        }
+
+                        // Desglose
+                        const specificMuscle = muscleData.muscle.charAt(0).toUpperCase() + muscleData.muscle.slice(1);
+
+                        if (!volumeMap[parentMuscle]) volumeMap[parentMuscle] = { total: 0, breakdown: {} };
+                        if (!volumeMap[parentMuscle].breakdown[specificMuscle]) volumeMap[parentMuscle].breakdown[specificMuscle] = 0;
+
+                        volumeMap[parentMuscle].breakdown[specificMuscle] += addedVolume;
+                    });
+
+                    // Sumar totales
+                    Object.entries(exerciseImpactOnParent).forEach(([parent, impact]) => {
+                        if (!volumeMap[parent]) volumeMap[parent] = { total: 0, breakdown: {} };
+                        volumeMap[parent].total += impact;
+                    });
+                }
+            });
+        });
+
+        return volumeMap;
+    }, [JSON.stringify(detailedSessions), exerciseList]);
+
+    // Calcular límites personalizados basados en el perfil del atleta o wizard
+    const volumeLimits = useMemo(() => {
+        if (wizardVolumeConfig?.volumeRecommendations?.length) {
+            const recs = wizardVolumeConfig.volumeRecommendations;
+            const avgMin = Math.round(recs.reduce((a, r) => a + r.minEffectiveVolume, 0) / recs.length);
+            const avgMax = Math.round(recs.reduce((a, r) => a + r.maxRecoverableVolume, 0) / recs.length);
+            const avgOpt = Math.round(recs.reduce((a, r) => a + (r.minEffectiveVolume + r.maxAdaptiveVolume) / 2, 0) / recs.length);
+            return { minSets: avgMin, maxSets: avgMax, optimalSets: avgOpt, type: 'sets' as const, reasoning: 'Wizard' };
+        }
+        return calculateWeeklyVolume(athleteScore, settings, 'Acumulación');
+    }, [athleteScore, settings, wizardVolumeConfig]);
+
+
+    // =================================================================
+    // 2. FUNCIONES DE LÓGICA (Ahora sí pueden acceder a los estados)
+    // =================================================================
+
+    const handleSwitchBlockEdit = (newIndex: number) => {
+        // Guardar trabajo actual
+        setProgramDesigns(prev => ({ ...prev, [activeBlockEdit]: detailedSessions }));
+
+        const currentSplitId = blockSplits[activeBlockEdit]?.id;
+        const nextSplitId = blockSplits[newIndex]?.id;
+
+        if (currentSplitId !== nextSplitId) {
+            setApplyToAllBlocks(false);
+        }
+
+        setActiveBlockEdit(newIndex);
+        setDetailedSessions(programDesigns[newIndex] || {});
+
+        // Actualizar Split Visual
+        if (selectedTemplateId === 'power-complex' && splitMode === 'per_block') {
+            const splitForBlock = blockSplits[newIndex];
+            if (splitForBlock) {
+                const newPattern = Array(cycleDuration).fill('Descanso').map((_, i) => splitForBlock.pattern[i] || 'Descanso');
+                setSplitPattern(newPattern);
+                setSelectedSplit(splitForBlock);
+            }
+        }
+    };
+
+    const handleUpdateSessionSmart = (dayIndex: number, session: Session) => {
+        const newSessions = { ...detailedSessions, [dayIndex]: session };
+        setDetailedSessions(newSessions);
+
+        setProgramDesigns(prev => {
+            const updated = { ...prev };
+            updated[activeBlockEdit] = newSessions;
+
+            if (applyToAllBlocks) {
+                if (splitMode === 'global') {
+                    POWER_BLOCK_NAMES.forEach((_, idx) => { updated[idx] = newSessions; });
+                } else if (splitMode === 'per_block') {
+                    const currentSplitId = blockSplits[activeBlockEdit]?.id;
+                    if (currentSplitId) {
+                        POWER_BLOCK_NAMES.forEach((_, idx) => {
+                            if (blockSplits[idx]?.id === currentSplitId) { updated[idx] = newSessions; }
+                        });
+                    }
+                }
+            }
+            return updated;
+        });
+    };
+
+    // --- Funciones Faltantes/Reconstruidas para evitar errores ---
+
+    // Comparación de Splits
+    const toggleCompareSplit = (id: string) => {
+        setCompareList(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    };
+    const getComparisonData = () => SPLIT_TEMPLATES.filter(s => compareList.includes(s.id));
+
+    // Edición de Programa (Dashboard)
+    const handleProgramFieldChange = (field: keyof Program, value: any) => {
+        if (program) setProgram({ ...program, [field]: value });
+        setIsDirty(true);
+    };
+    const handleProgramInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        handleProgramFieldChange(e.target.name as keyof Program, e.target.value);
+    };
+    const handleFilterChange = (filter: string, value: number) => {
+        setCoverFilters(prev => ({ ...prev, [filter]: value }));
+        // Aquí deberías actualizar también el program.coverStyle si deseas persistirlo
+        setIsDirty(true);
+    };
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && program) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProgram({ ...program, coverImage: reader.result as string });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    // Handlers de Estructura Compleja
+    const handleSelectTemplate = (templateData: any) => {
+        updateProgramStructure(p => {
+            p.macrocycles = templateData.macros;
+            p.structure = 'complex';
+            if (templateData.mode) p.mode = templateData.mode;
+        });
+        setIsTemplateModalOpen(false);
+        setIsComplex(true);
+        addToast("Plantilla aplicada con éxito", "success");
+    };
+
+    const handleAddSpecialSession = (mIdx: number, bIdx: number, meIdx: number, wIdx: number, type: 'powerlifting' | 'bodybuilding' | '1rm' | 'admission' | 'vacation' | 'exams') => {
+        updateProgramStructure(p => {
+            const meso = isComplex ? p.macrocycles[mIdx].blocks![bIdx].mesocycles[meIdx] : p.macrocycles[0].blocks![0].mesocycles[0];
+            const week = meso.weeks[wIdx];
+
+            let name = ''; let desc = ''; let day = 6;
+            if (type === 'powerlifting') { name = '🏆 COMP: POWERLIFTING'; desc = '{"type":"powerlifting_comp"}'; day = 6; }
+            if (type === 'bodybuilding') { name = '✨ COMP: CULTURISMO'; desc = '{"type":"bodybuilding_comp"}'; day = 6; }
+            if (type === '1rm') { name = '🎯 TEST DE 1RM'; desc = '{"type":"1rm_test"}'; day = 5; }
+            if (type === 'admission') { name = '🏅 PRUEBA DE ADMISIÓN'; desc = '{"type":"admission_test"}'; day = 5; }
+            if (type === 'vacation') { name = '🌴 VACACIONES / VIAJE'; desc = '{"type":"vacation"}'; day = 0; }
+            if (type === 'exams') { name = '📚 SEMANA EXÁMENES'; desc = '{"type":"exams"}'; day = 0; }
+
+            const specialSession: Session = { id: crypto.randomUUID(), name, description: desc, exercises: [], dayOfWeek: day };
+            week.sessions.push(specialSession);
+        });
+        addToast("Evento Especial añadido al Roadmap", "success");
+    };
+
+    // Manejadores genéricos para arrays anidados (Macros/Bloques/Mesos/Weeks)
+    const updateProgramStructure = (updater: (p: Program) => void) => {
+        if (!program) return;
+        const clone = JSON.parse(JSON.stringify(program));
+        updater(clone);
+        setProgram(clone);
+        setIsDirty(true);
+    };
+
+    const handleAddMacro = () => updateProgramStructure(p => {
+        if (!p.macrocycles) p.macrocycles = [];
+        p.macrocycles.push({ id: crypto.randomUUID(), name: 'Nuevo Macro', blocks: [] });
+    });
+    const handleRemoveMacro = (idx: number) => updateProgramStructure(p => {
+        if (p.macrocycles) p.macrocycles.splice(idx, 1);
+    });
+    const handleMacroChange = (idx: number, val: string) => updateProgramStructure(p => {
+        if (p.macrocycles && p.macrocycles[idx]) p.macrocycles[idx].name = val;
+    });
+
+    const handleAddBlock = (mIdx: number) => updateProgramStructure(p => {
+        if (p.macrocycles && p.macrocycles[mIdx]) {
+            if (!p.macrocycles[mIdx].blocks) p.macrocycles[mIdx].blocks = [];
+            p.macrocycles[mIdx].blocks!.push({ id: crypto.randomUUID(), name: 'Nuevo Bloque', mesocycles: [] });
+        }
+    });
+    const handleRemoveBlock = (mIdx: number, bIdx: number) => updateProgramStructure(p => {
+        if (p.macrocycles && p.macrocycles[mIdx] && p.macrocycles[mIdx].blocks) {
+            p.macrocycles[mIdx].blocks!.splice(bIdx, 1);
+        }
+    });
+    const handleBlockChange = (mIdx: number, bIdx: number, val: string) => updateProgramStructure(p => {
+        if (p.macrocycles && p.macrocycles[mIdx] && p.macrocycles[mIdx].blocks && p.macrocycles[mIdx].blocks![bIdx]) {
+            p.macrocycles[mIdx].blocks![bIdx].name = val;
+        }
+    });
+
+    const handleAddMeso = (mIdx: number, bIdx: number) => updateProgramStructure(p => {
+        if (p.macrocycles && p.macrocycles[mIdx] && p.macrocycles[mIdx].blocks && p.macrocycles[mIdx].blocks![bIdx]) {
+            if (!p.macrocycles[mIdx].blocks![bIdx].mesocycles) p.macrocycles[mIdx].blocks![bIdx].mesocycles = [];
+            p.macrocycles[mIdx].blocks![bIdx].mesocycles.push({ id: crypto.randomUUID(), name: 'Nuevo Ciclo', goal: 'Acumulación', weeks: [] });
+        }
+    });
+    const handleRemoveMeso = (mIdx: number, bIdx: number, meIdx: number) => updateProgramStructure(p => {
+        if (p.macrocycles && p.macrocycles[mIdx] && p.macrocycles[mIdx].blocks && p.macrocycles[mIdx].blocks![bIdx] && p.macrocycles[mIdx].blocks![bIdx].mesocycles) {
+            p.macrocycles[mIdx].blocks![bIdx].mesocycles.splice(meIdx, 1);
+        }
+    });
+    const handleMesoChange = (mIdx: number, bIdx: number, meIdx: number, field: string, val: any) => updateProgramStructure(p => {
+        if (p.macrocycles && p.macrocycles[mIdx] && p.macrocycles[mIdx].blocks && p.macrocycles[mIdx].blocks![bIdx] && p.macrocycles[mIdx].blocks![bIdx].mesocycles && p.macrocycles[mIdx].blocks![bIdx].mesocycles[meIdx]) {
+            (p.macrocycles[mIdx].blocks![bIdx].mesocycles[meIdx] as any)[field] = val;
+        }
+    });
+
+    const handleAddWeek = (mIdx: number, bIdx: number, meIdx: number) => updateProgramStructure(p => {
+        if (!p.macrocycles || !p.macrocycles.length) return;
+        const macro = isComplex && p.macrocycles[mIdx] ? p.macrocycles[mIdx] : p.macrocycles[0];
+        if (!macro || !macro.blocks || !macro.blocks.length) return;
+        const block = isComplex && macro.blocks[bIdx] ? macro.blocks[bIdx] : macro.blocks[0];
+        if (!block || !block.mesocycles || !block.mesocycles.length) return;
+        const meso = isComplex && block.mesocycles[meIdx] ? block.mesocycles[meIdx] : block.mesocycles[0];
+
+        if (!meso.weeks) meso.weeks = [];
+        meso.weeks.push({ id: crypto.randomUUID(), name: `Semana ${meso.weeks.length + 1}`, sessions: [] });
+    });
+    const handleRemoveWeek = (mIdx: number, bIdx: number, meIdx: number, wIdx: number) => updateProgramStructure(p => {
+        if (!p.macrocycles || !p.macrocycles.length) return;
+        const macro = isComplex && p.macrocycles[mIdx] ? p.macrocycles[mIdx] : p.macrocycles[0];
+        if (!macro || !macro.blocks || !macro.blocks.length) return;
+        const block = isComplex && macro.blocks[bIdx] ? macro.blocks[bIdx] : macro.blocks[0];
+        if (!block || !block.mesocycles || !block.mesocycles.length) return;
+        const meso = isComplex && block.mesocycles[meIdx] ? block.mesocycles[meIdx] : block.mesocycles[0];
+
+        if (meso.weeks) meso.weeks.splice(wIdx, 1);
+    });
+    const handleWeekChange = (mIdx: number, bIdx: number, meIdx: number, wIdx: number, val: string) => updateProgramStructure(p => {
+        if (!p.macrocycles || !p.macrocycles.length) return;
+        const macro = isComplex && p.macrocycles[mIdx] ? p.macrocycles[mIdx] : p.macrocycles[0];
+        if (!macro || !macro.blocks || !macro.blocks.length) return;
+        const block = isComplex && macro.blocks[bIdx] ? macro.blocks[bIdx] : macro.blocks[0];
+        if (!block || !block.mesocycles || !block.mesocycles.length) return;
+        const meso = isComplex && block.mesocycles[meIdx] ? block.mesocycles[meIdx] : block.mesocycles[0];
+
+        if (meso.weeks && meso.weeks[wIdx]) meso.weeks[wIdx].name = val;
+    });
+
+    // Manejadores de Metas (Goals)
+    const handleAddGoal = () => {
+        if (newGoalExercise && newGoalWeight && program) {
+            setProgram({
+                ...program,
+                exerciseGoals: { ...program.exerciseGoals, [newGoalExercise]: parseFloat(newGoalWeight) }
+            });
+            setNewGoalExercise('');
+            setNewGoalWeight('');
+            setIsDirty(true);
+        }
+    };
+    const handleRemoveGoal = (exName: string) => {
+        if (program && program.exerciseGoals) {
+            const newGoals = { ...program.exerciseGoals };
+            delete newGoals[exName];
+            setProgram({ ...program, exerciseGoals: newGoals });
+            setIsDirty(true);
+        }
+    };
+
+    const INFO_TEXTS = {
+        structure: "Una estructura temporal es clave para crear tu programa, porque es la planificación, simple o avanzada, de lo que será tu progreso. Puede ser de una sola semana o contener múltiples semanas ordenadas como bloques. Acá eres libre de hacer la estructura que desees. Pero como punto de partida, selecciona una de las opciones.",
+        split: "Un split semanal es la distribución de tus sesiones de entrenamientos dentro de los 7 días de una semana normal (o podría ser de más días si eres avanzado/a). Aquí podrás definir como punto de partida, cuándo entrenarás pierna u otro grupo muscular, esto es clave para asegurar un buen balance entre estímulo y recuperación. Aquí puedes escoger entre varias plantillas de splits conocidos, sin embargo, podrás crear uno personalizado a tú gusto cuando quieras."
+    };
+
+    // =================================================================
+    // 4. EFECTOS (Inicialización y Guardado)
+    // =================================================================
+
+    // Initialize for Editing
+    useEffect(() => {
+        const initializeEditor = async () => {
+            if (existingProgram) {
+                let initialData = JSON.parse(JSON.stringify(existingProgram));
+                let complexMode = isProgramComplex(existingProgram);
+
+                setIsDirty(false);
+                const draft = await storageService.get<{ programData: Program; associatedId: string | null }>(PROGRAM_DRAFT_KEY);
+                if (draft) {
+                    const draftAssociatedId = draft.associatedId;
+                    const currentId = existingProgram?.id || null;
+                    if (draftAssociatedId === currentId) {
+                        if (window.confirm('Se encontró un borrador no guardado. ¿Restaurar?')) {
+                            initialData = draft.programData;
+                            complexMode = isProgramComplex(initialData);
+                            setIsDirty(true);
+                        } else {
+                            await storageService.remove(PROGRAM_DRAFT_KEY);
+                        }
+                    }
+                }
+                setProgram(initialData);
+                setIsComplex(complexMode);
+
+                // Restaurar volumen si el programa ya lo tiene
+                if (initialData.volumeRecommendations?.length && initialData.volumeSystem) {
+                    setWizardVolumeConfig({
+                        volumeSystem: initialData.volumeSystem,
+                        volumeRecommendations: initialData.volumeRecommendations,
+                        volumeAlertsEnabled: initialData.volumeAlertsEnabled ?? true,
+                        athleteProfileScore: initialData.athleteProfileScore,
+                    });
+                }
+
+                // Si es un borrador, restaurar el paso del wizard y los datos
+                if (initialData.isDraft && initialData.lastSavedStep !== undefined && initialData.draftData) {
+                    setWizardStep(initialData.lastSavedStep);
+                    const draft = initialData.draftData;
+
+                    if (draft.selectedSplitId) {
+                        const split = SPLIT_TEMPLATES.find(s => s.id === draft.selectedSplitId);
+                        if (split) setSelectedSplit(split);
+                    }
+                    if (draft.detailedSessions) setDetailedSessions(draft.detailedSessions);
+                    if (draft.wizardEvents) setWizardEvents(draft.wizardEvents);
+                    if (draft.blockSplits) {
+                        const restoredBlockSplits: Record<number, SplitTemplate> = {};
+                        Object.entries(draft.blockSplits).forEach(([key, id]) => {
+                            const split = SPLIT_TEMPLATES.find(s => s.id === id);
+                            if (split) restoredBlockSplits[Number(key)] = split;
+                        });
+                        setBlockSplits(restoredBlockSplits);
+                    }
+                    if (draft.splitMode) setSplitMode(draft.splitMode);
+                    if (draft.startDay !== undefined) setStartDay(draft.startDay);
+                    if (draft.cycleDuration !== undefined) setCycleDuration(draft.cycleDuration);
+                    if (draft.volumeSystem && draft.volumeRecommendations) {
+                        setWizardVolumeConfig({
+                            volumeSystem: draft.volumeSystem,
+                            volumeRecommendations: draft.volumeRecommendations,
+                            volumeAlertsEnabled: draft.volumeAlertsEnabled ?? true,
+                            athleteProfileScore: draft.athleteProfileScore,
+                        });
+                    }
+                }
+
+                if (initialData.background?.style) {
+                    setCoverFilters(prev => ({
+                        ...prev,
+                        blur: initialData.background.style.blur || 0,
+                        brightness: Math.round((1 - (initialData.background.style.brightness || 0.6)) * 100),
+                    }));
+                }
+                if (initialData.coverStyle?.filters) {
+                    setCoverFilters(prev => ({
+                        ...prev,
+                        contrast: initialData.coverStyle.filters.contrast,
+                        saturation: initialData.coverStyle.filters.saturation,
+                        grayscale: initialData.coverStyle.filters.grayscale
+                    }));
+                }
+            }
+        };
+        initializeEditor();
+    }, [existingProgram, setIsDirty]);
+
+
+    // EFECTO: Auto-scroll al bloque activo en el Paso 0
+    useEffect(() => {
+        if (wizardStep === 0 && splitMode === 'per_block' && blockListRef.current) {
+            const container = blockListRef.current;
+            // Buscamos el botón activo dentro del contenedor
+            // La estructura es: Container > div (flex) > buttons
+            const buttonsContainer = container.firstElementChild;
+            if (buttonsContainer && buttonsContainer.children[activeSplitBlockStep0]) {
+                const activeButton = buttonsContainer.children[activeSplitBlockStep0] as HTMLElement;
+
+                // Hacemos scroll suave hacia el botón
+                activeButton.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'center' // Esto lo centra horizontalmente
+                });
+            }
+        }
+    }, [activeSplitBlockStep0, wizardStep, splitMode]);
+
+    // Draft saving
+    useEffect(() => {
+        if (isAppContextDirty && program && existingProgram) {
+            storageService.set(PROGRAM_DRAFT_KEY, {
+                programData: program,
+                associatedId: existingProgram?.id || null,
+            });
+        }
+    }, [program, isAppContextDirty, existingProgram]);
+
+    // External Save Trigger
+    const handleSave = useCallback(async () => {
+        if (program && program.name && program.name.trim()) {
+            onSave(program);
+            await storageService.remove(PROGRAM_DRAFT_KEY);
+            setIsDirty(false);
+        }
+    }, [onSave, program, setIsDirty]);
+
+    useEffect(() => {
+        if (saveTrigger > prevSaveTriggerRef.current) {
+            handleSave();
+        }
+        prevSaveTriggerRef.current = saveTrigger;
+    }, [saveTrigger, handleSave]);
+
+    // --- MANEJADORES DE LÓGICA DE SPLITS (CON TRANSICIÓN) ---
+
+    const handleSelectSplit = (split: SplitTemplate) => {
+        // 1. Actualización Visual Inmediata
+        setSelectedSplit(split);
+        const newPattern = Array(cycleDuration).fill('Descanso').map((_, i) => split.pattern[i] || 'Descanso');
+        setSplitPattern(newPattern);
+        setShowAllSplitsModal(false);
+
+        // 2. Lógica de Guardado y Transición
+        if (selectedTemplateId === 'power-complex' && splitMode === 'per_block') {
+            // Guardar selección
+            setBlockSplits(prev => ({ ...prev, [activeSplitBlockStep0]: split }));
+
+            // ACTIVAR TRANSICIÓN DE ÉXITO
+            setAssignmentSuccess(POWER_BLOCK_NAMES[activeSplitBlockStep0]);
+
+            // Esperar 1.5 segundos y avanzar
+            setTimeout(() => {
+                setAssignmentSuccess(null); // Quitar mensaje de éxito
+                setSelectedSplit(null);     // Volver a la lista (reset visual)
+                setSplitPattern([]);        // Limpiar patrón visual
+
+                // Avanzar al siguiente bloque automáticamente si no es el último
+                if (activeSplitBlockStep0 < POWER_BLOCK_NAMES.length - 1) {
+                    setActiveSplitBlockStep0(prev => prev + 1);
+                }
+            }, 1500);
+
+        } else {
+            // Modo Global (Comportamiento estándar)
+            const newBlockSplits: Record<number, SplitTemplate> = {};
+            POWER_BLOCK_NAMES.forEach((_, i) => newBlockSplits[i] = split);
+            setBlockSplits(newBlockSplits);
+            // Aquí no auto-avanzamos ni cerramos porque el usuario podría querer editar días del global
+        }
+
+        setDetailedSessions({});
+    };
+
+    const handleMoveSession = (index: number, direction: 'up' | 'down') => {
+        const newPattern = [...splitPattern];
+        const swapIndex = direction === 'up' ? index - 1 : index + 1;
+
+        if (swapIndex < 0 || swapIndex >= newPattern.length) return;
+
+        [newPattern[index], newPattern[swapIndex]] = [newPattern[swapIndex], newPattern[index]];
+        setSplitPattern(newPattern);
+
+        setDetailedSessions(prev => {
+            const newSessions = { ...prev };
+            const sessionA = newSessions[index];
+            const sessionB = newSessions[swapIndex];
+
+            if (sessionA) newSessions[swapIndex] = sessionA; else delete newSessions[swapIndex];
+            if (sessionB) newSessions[index] = sessionB; else delete newSessions[index];
+
+            return newSessions;
+        });
+    };
+
+    const handleUpdateInlineSession = (index: number, updatedSession: Session) => {
+        setDetailedSessions(prev => ({ ...prev, [index]: updatedSession }));
+        if (updatedSession.name !== splitPattern[index]) {
+            const newPattern = [...splitPattern];
+            newPattern[index] = updatedSession.name;
+            setSplitPattern(newPattern);
+        }
+    };
+
+    const handleRenameSession = (index: number, newName: string) => {
+        const newPattern = [...splitPattern];
+        newPattern[index] = newName;
+        setSplitPattern(newPattern);
+        if (detailedSessions[index]) {
+            setDetailedSessions(prev => ({ ...prev, [index]: { ...prev[index], name: newName } }));
+        }
+    };
+
+    const handleDurationChange = (val: number) => {
+        setCycleDuration(val);
+        if (val !== splitPattern.length) {
+            setSplitPattern(Array(val).fill('Descanso'));
+            setDetailedSessions({});
+        }
+    }
+
+    // Nueva función de navegación segura
+    const handleNextStep = () => {
+        if (!programName.trim()) {
+            addToast("Por favor, dale un nombre a tu programa primero.", "danger");
+            nameInputRef.current?.focus();
+            return;
+        }
+        if (!selectedSplit) {
+            addToast("Selecciona una distribución (Split) para continuar.", "danger");
+            return;
+        }
+        setWizardStep(1);
+    };
+    const handleCreate = (isDraft: boolean = false) => {
+        if (!programName.trim()) {
+            addToast("Nombre requerido. Introduce un nombre para tu programa.", "danger");
+            nameInputRef.current?.focus();
+            return;
+        }
+        const template = TEMPLATES.find(t => t.id === selectedTemplateId)!;
+        const totalWeeks = template.weeks; // Para modos simples
+
+        const newProgram: Program = {
+            id: crypto.randomUUID(),
+            name: programName,
+            description: `Estructura: ${template.name} - Split: ${selectedSplit?.name || 'Custom'}`,
+            structure: template.type as 'simple' | 'complex',
+            mode: template.id === 'power-complex' ? 'powerlifting' : 'hypertrophy',
+            startDay: startDay,
+            selectedSplitId: selectedSplit?.id,
+            macrocycles: [],
+            ...(wizardVolumeConfig && {
+                volumeSystem: wizardVolumeConfig.volumeSystem,
+                volumeRecommendations: wizardVolumeConfig.volumeRecommendations,
+                volumeAlertsEnabled: wizardVolumeConfig.volumeAlertsEnabled,
+                athleteProfileScore: wizardVolumeConfig.athleteProfileScore,
+            }),
+        };
+
+        const generateSessionsForWeek = (weekId: string, globalWeekIndex: number, patternOverride?: string[], sessionsOverride?: Record<number, Session>): Session[] => {
+            const sessions: Session[] = [];
+            const pattern = patternOverride || splitPattern;
+            const details = sessionsOverride || detailedSessions;
+            pattern.forEach((label, dayIndex) => {
+                if (label && label.toLowerCase() !== 'descanso' && label.trim() !== '') {
+                    const assignedDay = (startDay + dayIndex) % 7;
+                    const existingDetail = details[dayIndex];
+                    if (existingDetail) {
+                        sessions.push({ ...existingDetail, id: crypto.randomUUID(), dayOfWeek: assignedDay });
+                    } else {
+                        sessions.push({ id: crypto.randomUUID(), name: label, description: '', exercises: [], dayOfWeek: assignedDay });
+                    }
+                }
+            });
+            return sessions;
+        };
+
+        if (template.id === 'power-complex' || template.id === 'bodybuilding-complex') {
+            newProgram.description = `Preparación Avanzada de ${template.id === 'power-complex' ? 'Fuerza' : 'Hipertrofia'}.`;
+            newProgram.mode = template.id === 'power-complex' ? 'powerlifting' : 'hypertrophy';
+
+            const allDesigns = { ...programDesigns, [activeBlockEdit]: detailedSessions };
+
+            const blocks: Block[] = wizardComplexBlocks.map((name, index) => {
+                const duration = blockDurations[index] || 4;
+                const previousWeeks = blockDurations.slice(0, index).reduce((a, b) => a + b, 0);
+
+                let blockPattern: string[] | undefined;
+                let blockSessions: Record<number, Session> | undefined;
+
+                if (splitMode === 'per_block' && blockSplits[index]) {
+                    blockPattern = Array(cycleDuration).fill('Descanso').map((_, i) => blockSplits[index].pattern[i] || 'Descanso');
+                    blockSessions = allDesigns[index] || {};
+                }
+
+                return {
+                    id: crypto.randomUUID(), name: `Bloque ${name}`,
+                    mesocycles: [{
+                        id: crypto.randomUUID(), name: name, goal: index === wizardComplexBlocks.length - 1 ? 'Realización' : (index === 0 ? 'Acumulación' : 'Intensificación'),
+                        weeks: Array.from({ length: duration }, (_, i) => ({
+                            id: crypto.randomUUID(), name: `Semana ${previousWeeks + i + 1}`, sessions: generateSessionsForWeek(`w${previousWeeks + i}`, previousWeeks + i, blockPattern, blockSessions)
+                        }))
+                    }]
+                };
+            });
+
+            newProgram.macrocycles.push({ id: crypto.randomUUID(), name: 'Macrociclo Principal', blocks: blocks });
+
+        } else {
+            // LÓGICA REFINADA: PROGRAMA SIMPLE (CÍCLICO)
+            const newMacro: Macrocycle = { id: crypto.randomUUID(), name: 'Macrociclo Cíclico', blocks: [] };
+            const newBlock: Block = { id: crypto.randomUUID(), name: 'BLOQUE CÍCLICO', mesocycles: [] };
+            const newMeso: Mesocycle = { id: crypto.randomUUID(), name: 'Ciclo Base', goal: 'Custom', weeks: [] };
+
+            // Si es un programa simple, el ciclo es estrictamente de las semanas definidas por el usuario en el template (1 o 2)
+            const isAB = template.id === 'simple-2';
+            const finalWeeksCount = template.weeks;
+
+            for (let i = 0; i < finalWeeksCount; i++) {
+                newMeso.weeks.push({
+                    id: crypto.randomUUID(),
+                    name: isAB ? `Semana ${i === 0 ? 'A' : 'B'}` : `Semana ${i + 1}`,
+                    sessions: generateSessionsForWeek(`w${i}`, i),
+                    variant: isAB ? (i === 0 ? 'A' : 'B') : 'A'
+                });
+            }
+            newBlock.mesocycles.push(newMeso);
+            newMacro.blocks = [newBlock];
+            newProgram.macrocycles.push(newMacro);
+            newProgram.structure = 'simple';
+        }
+
+        newProgram.events = wizardEvents.map(e => ({ id: crypto.randomUUID(), title: e.title, type: e.type, date: e.date, endDate: e.endDate, calculatedWeek: e.calculatedWeek, createMacrocycle: e.createMacrocycle, repeatEveryXCycles: e.repeatEveryXCycles }));
+
+        if (isDraft) {
+            newProgram.isDraft = true;
+            newProgram.lastSavedStep = wizardStep;
+            newProgram.draftData = {
+                selectedSplitId: selectedSplit?.id,
+                detailedSessions: detailedSessions,
+                wizardEvents: wizardEvents,
+                blockSplits: Object.fromEntries(Object.entries(blockSplits).map(([k, v]) => [k, v.id])), // <-- guarda solo IDs
+                splitMode: splitMode,
+                startDay: startDay,
+                cycleDuration: cycleDuration,
+                ...(wizardVolumeConfig && {
+                    volumeSystem: wizardVolumeConfig.volumeSystem,
+                    volumeRecommendations: wizardVolumeConfig.volumeRecommendations,
+                    volumeAlertsEnabled: wizardVolumeConfig.volumeAlertsEnabled,
+                    athleteProfileScore: wizardVolumeConfig.athleteProfileScore,
+                }),
+            };
+        }
+
+        onSave(newProgram);
+
+        if (isDraft) {
+            addToast("Borrador guardado con éxito.", "success");
+            onCancel(); // Salir al guardar borrador para volver a la vista de programas
+        } else if (autoActivate && handleStartProgram) {
+            handleStartProgram(newProgram.id);
+        } else {
+            addToast("Programa creado con éxito.", "success");
+        }
+    };
+
+
+    const getDayLabel = (offset: number) => { const dayIndex = (startDay + offset) % 7; return daysOfWeek.find(d => d.value === dayIndex)?.label || `Día ${offset + 1}`; };
+
+    const filteredSplits = SPLIT_TEMPLATES.filter(split => {
+        const matchesTag = modalFilter === 'Todos' ? split.id !== 'custom' : split.tags.includes(modalFilter);
+        const query = splitSearchQuery.toLowerCase();
+        const matchesSearch = split.name.toLowerCase().includes(query) || split.description.toLowerCase().includes(query);
+        return matchesTag && matchesSearch;
+    });
+    const tagFilters: (SplitTag | 'Todos')[] = ['Todos', 'Recomendado por KPKN', 'Powerlifting', 'Alta Frecuencia', 'Baja Frecuencia', 'Balanceado', 'Alto Volumen', 'Alta Tolerancia'];
+
+    const getDynamicFontSize = (text: string) => {
+        if (!text) return 'text-4xl';
+        const len = text.length;
+        if (len > 35) return 'text-xl';
+        if (len > 25) return 'text-2xl';
+        if (len > 15) return 'text-3xl';
+        return 'text-4xl';
+    };
+
+    // =================================================================
+    // RENDER: DASHBOARD (EDIT MODE)
+    // =================================================================
+    if (existingProgram && !program) {
+        return (
+            <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            </div>
+        );
+    }
+    if (existingProgram && program) {
+        return (
+            <ProgramEditorAdvanced
+                program={program}
+                onSave={(updated) => { onSave(updated); }}
+                onCancel={onCancel}
+            />
+        );
+    }
+
+
+    // RENDER: WIZARD (CREATION MODE) - PAGINATED STEPS
+    // =================================================================
+    return (
+        <div className="fixed inset-0 bg-black z-[200] flex flex-col animate-fade-in text-white font-sans safe-area-root">
+
+            {/* --- KPKN PASO CERO: PROFILING WIZARD --- */}
+            {showProfilingWizard && (
+                <AthleteProfilingWizard
+                    onCancel={() => setShowProfilingWizard(false)}
+                    onComplete={(score) => {
+                        setAthleteScore(score);
+                        setShowProfilingWizard(false);
+                        // Opcional: Auto-seleccionar template según perfil
+                        addToast(`Perfil detectado: ${score.profileLevel === 'Advanced' ? 'Avanzado (High Responder)' : 'Principiante (Low Responder)'}`, 'success');
+                    }}
+                />
+            )}
+
+            {/* Header / Title - Common for both steps */}
+            <div className="pt-8 pb-4 px-6 bg-black flex-shrink-0 z-20 border-b border-white/5">
+                <div className="relative max-w-md mx-auto text-center">
+                    <div className="flex justify-between items-center mb-2">
+                        <button data-testid="wizard-cancel-header" aria-label="Salir del wizard" onClick={() => { if (window.confirm('¿Salir? Puedes perder los cambios no guardados.')) onCancel(); }} className="text-zinc-500 hover:text-red-400 transition-colors" title="Salir del Wizard">
+                            <XIcon size={20} />
+                        </button>
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex-1 text-center">
+                            Creación de Programa
+                        </h2>
+                    </div>
+                    <input
+                        ref={nameInputRef}
+                        type="text"
+                        value={programName}
+                        onChange={(e) => setProgramName(e.target.value)}
+                        placeholder="NOMBRE DEL PROGRAMA"
+                        className="w-full bg-transparent border-none py-2 text-2xl font-black text-center text-white placeholder-white/20 focus:ring-0 transition-all uppercase tracking-tighter"
+                        autoFocus={true}
+                    />
+                </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-4 scroll-smooth bg-[#050505] pb-24">
+                <div className="max-w-md mx-auto py-8 relative">
+
+                    {/* === PASO 0: SELECCIÓN DE ESTRUCTURA Y SPLIT === */}
+                    {wizardStep === 0 && (
+                        <div className="space-y-8 animate-fade-in px-2 transition-all duration-500 ease-out relative">
+
+                            {/* 1.1 Time Structure */}
+                            <div className="space-y-4">
+                                <div className="text-center px-4 flex items-center justify-center gap-2">
+                                    <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">Estructura Temporal</h3>
+                                    <button onClick={() => setActiveInfo('structure')} className="text-gray-500 hover:text-white transition-colors"><InfoIcon size={14} /></button>
+                                </div>
+
+                                <p className="text-[10px] text-slate-400 text-center -mt-2">Duración y enfoque macro.</p>
+
+                                {/* Carrusel de Plantillas */}
+                                <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 hide-scrollbar items-start">
+                                    {TEMPLATES.map((template) => {
+                                        const isSelected = selectedTemplateId === template.id;
+                                        const isPowerlifting = template.id === 'power-complex';
+                                        return (
+                                            <button
+                                                key={template.id}
+                                                onClick={() => setSelectedTemplateId(template.id)}
+                                                className={`snap-center shrink-0 w-64 p-5 rounded-2xl flex flex-col items-center text-center transition-all duration-300 ease-out border relative overflow-hidden group
+                                                    ${isSelected
+                                                        ? (isPowerlifting ? 'bg-amber-500/20 text-amber-400 border-amber-500/50 scale-[1.02] shadow-lg' : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 scale-[1.02] shadow-lg')
+                                                        : 'bg-zinc-950 text-zinc-400 border-white/10 opacity-80 hover:opacity-100 hover:scale-[1.01] hover:border-white/30 hover:text-white'
+                                                    }
+                                                `}
+                                            >
+                                                <div className={`p-3 rounded-full mb-3 transition-colors duration-300 ${isSelected ? 'bg-white/10' : 'bg-white/5'}`}>
+                                                    {React.cloneElement(template.icon as React.ReactElement<any>, { className: isSelected ? (isPowerlifting ? 'text-amber-400' : 'text-cyan-400') : 'text-zinc-500', size: 20 })}
+                                                </div>
+                                                <h3 className="text-lg font-black uppercase tracking-tight leading-none mb-2">{template.name}</h3>
+                                                <p className={`text-[10px] font-bold leading-relaxed mb-0 transition-colors duration-300 ${isSelected ? 'text-white/80' : 'text-zinc-500'}`}>{template.description}</p>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* 1.2 Split Selection Area */}
+                            <div className="space-y-6 relative min-h-[400px] w-full">
+
+                                {/* Título de Sección */}
+                                <div className="text-center px-4 flex flex-col items-center justify-center gap-2 mb-8">
+                                    <div className="flex items-center gap-2 border-b border-white/20 pb-2 px-8">
+                                        <h3 className="text-sm font-black text-white uppercase tracking-[0.3em]">Distribución Semanal</h3>
+                                        <button onClick={() => setActiveInfo('split')} className="text-white/50 hover:text-white transition-colors"><InfoIcon size={14} /></button>
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-2">
+                                        {splitMode === 'per_block'
+                                            ? `Configurando: ${POWER_BLOCK_NAMES[activeSplitBlockStep0]}`
+                                            : "Base única para todo el ciclo"}
+                                    </p>
+                                </div>
+
+                                {/* A. SELECTOR DE MODO (Global vs Por Bloque) - DISEÑO B&W PURO */}
+                                {selectedTemplateId === 'power-complex' && (
+                                    <div className="px-4 mb-8">
+                                        <div className="w-full max-w-md mx-auto bg-black border border-white/30 rounded-full p-1.5 flex relative">
+                                            {/* Fondo animado (opcional, o cambio directo de color) */}
+                                            <button
+                                                onClick={() => {
+                                                    setSplitMode('global');
+                                                    if (selectedSplit) {
+                                                        const newSplits: Record<number, SplitTemplate> = {};
+                                                        POWER_BLOCK_NAMES.forEach((_, i) => newSplits[i] = selectedSplit);
+                                                        setBlockSplits(newSplits);
+                                                    }
+                                                }}
+                                                className={`flex-1 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2
+                                                    ${splitMode === 'global' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 shadow-lg' : 'text-zinc-500 hover:text-white'}
+                                                `}
+                                            >
+                                                <span>Global</span>
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setSplitMode('per_block');
+                                                    if (selectedSplit) {
+                                                        setBlockSplits(prev => ({ ...prev, [activeSplitBlockStep0]: selectedSplit }));
+                                                    }
+                                                }}
+                                                className={`flex-1 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2
+                                                    ${splitMode === 'per_block' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 shadow-lg' : 'text-zinc-500 hover:text-white'}
+                                                `}
+                                            >
+                                                <span>Por Bloques</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* B. SELECTOR DE BLOQUES (Scroll Full-Width con Auto-Scroll) */}
+                                {selectedTemplateId === 'power-complex' && splitMode === 'per_block' && (
+                                    <div className="mb-8 w-full">
+                                        {/* AGREGAMOS ref={blockListRef} AQUÍ */}
+                                        <div ref={blockListRef} className="overflow-x-auto hide-scrollbar -mx-4 px-4 md:-mx-8 md:px-8 scroll-smooth">
+                                            <div className="flex gap-3 min-w-max pb-4">
+                                                {POWER_BLOCK_NAMES.map((name, idx) => {
+                                                    // ... (el resto del código de los botones se mantiene igual)
+                                                    const isActive = activeSplitBlockStep0 === idx;
+                                                    const assignedSplit = blockSplits[idx];
+                                                    const isJustAssigned = assignmentSuccess === name;
+
+                                                    return (
+                                                        <button
+                                                            key={idx}
+                                                            onClick={() => {
+                                                                if (!assignmentSuccess) {
+                                                                    setActiveSplitBlockStep0(idx);
+                                                                    if (assignedSplit) {
+                                                                        setSelectedSplit(assignedSplit);
+                                                                        const pat = Array(cycleDuration).fill('Descanso').map((_, i) => assignedSplit.pattern[i] || 'Descanso');
+                                                                        setSplitPattern(pat);
+                                                                    } else {
+                                                                        setSelectedSplit(null);
+                                                                        setSplitPattern(Array(cycleDuration).fill('Descanso'));
+                                                                    }
+                                                                }
+                                                            }}
+                                                            className={`
+                                                                relative flex flex-col items-start justify-center p-5 min-w-[140px] rounded-2xl border-2 transition-all duration-300 group
+                                                                ${isActive
+                                                                    ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 scale-[1.02] shadow-lg'
+                                                                    : 'bg-zinc-950 border-white/10 text-zinc-500 hover:border-white/30 hover:text-white'
+                                                                }
+                                                            `}
+                                                        >
+                                                            <span className={`absolute top-3 right-4 text-[40px] font-black leading-none opacity-5 pointer-events-none ${isActive ? 'text-cyan-400' : 'text-white'}`}>
+                                                                {idx + 1}
+                                                            </span>
+                                                            <span className="text-[9px] font-black uppercase tracking-widest mb-1 z-10">{name}</span>
+                                                            <div className="flex items-center gap-1.5 z-10">
+                                                                <div className={`w-1.5 h-1.5 rounded-full ${assignedSplit ? (isActive ? 'bg-cyan-400' : 'bg-white') : 'bg-zinc-600'}`}></div>
+                                                                <span className={`text-[8px] font-bold uppercase truncate max-w-[90px] ${isActive ? 'text-cyan-300' : 'text-zinc-500'}`}>
+                                                                    {isJustAssigned ? 'Guardado' : (assignedSplit ? assignedSplit.name : 'Pendiente')}
+                                                                </span>
+                                                            </div>
+                                                            {assignedSplit && !isActive && (
+                                                                <div className="absolute bottom-3 right-3 text-white opacity-20"><CheckCircleIcon size={14} /></div>
+                                                            )}
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* C. LISTA DE SPLITS (Carrusel Full-Width) */}
+                                {!selectedSplit && !assignmentSuccess && (
+                                    <div className="animate-fade-in w-full">
+                                        <div className="overflow-x-auto snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:-mx-8 md:px-8 pb-8">
+                                            <div className="flex gap-4 items-stretch">
+                                                {/* Card: Crear Nuevo */}
+                                                <button onClick={() => handleSelectSplit(SPLIT_TEMPLATES[0])} className="snap-center shrink-0 w-56 p-6 rounded-2xl border-2 border-dashed border-cyan-500/30 flex flex-col items-center justify-center gap-4 transition-all hover:bg-cyan-500/10 hover:border-cyan-500/50 group">
+                                                    <div className="w-12 h-12 rounded-full bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 text-cyan-400 transition-colors">
+                                                        <PlusIcon size={24} />
+                                                    </div>
+                                                    <span className="font-black text-xs uppercase tracking-widest text-white">Crear desde Cero</span>
+                                                </button>
+
+                                                {/* Cards: Templates */}
+                                                {SPLIT_TEMPLATES.slice(1, 5).map(split => (
+                                                    <button key={split.id} onClick={() => handleSelectSplit(split)} className="snap-center shrink-0 w-64 p-6 rounded-2xl border border-white/10 bg-zinc-950 flex flex-col justify-between text-left transition-all duration-300 hover:border-cyan-500/30 hover:scale-[1.02] group">
+                                                        <div>
+                                                            <div className="flex justify-between items-start mb-4">
+                                                                <div className="bg-cyan-500/10 px-2 py-1 rounded text-[8px] font-black uppercase text-cyan-400 border border-cyan-500/20">
+                                                                    {split.tags[0] === 'Recomendado por KPKN' ? 'KPKN Select' : split.tags[0]}
+                                                                </div>
+                                                                {split.difficulty === 'Principiante' && <div className="w-2 h-2 rounded-full bg-cyan-400"></div>}
+                                                            </div>
+                                                            <h4 className="font-black text-2xl leading-none mb-2 uppercase text-white">{split.name}</h4>
+                                                            <div className="w-8 h-1 bg-cyan-500/30 mb-4 group-hover:w-16 transition-all duration-500"></div>
+                                                        </div>
+                                                        <div className="space-y-3">
+                                                            <p className="text-[10px] font-medium leading-relaxed text-zinc-500 group-hover:text-zinc-300">{split.description}</p>
+                                                            {/* Mini Preview de los días */}
+                                                            <div className="flex gap-0.5 opacity-30 group-hover:opacity-100 transition-opacity">
+                                                                {split.pattern.map((d, i) => (
+                                                                    <div key={i} className={`h-1 flex-1 rounded-full ${d === 'Descanso' ? 'bg-zinc-800' : 'bg-cyan-500/50'}`}></div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                ))}
+
+                                                <button onClick={() => setShowAllSplitsModal(true)} className="snap-center shrink-0 w-48 p-6 rounded-2xl border border-white/10 bg-zinc-950 flex flex-col items-center justify-center gap-3 hover:border-cyan-500/30 transition-all text-cyan-400/80 hover:text-cyan-400">
+                                                    <GridIcon size={32} strokeWidth={1.5} />
+                                                    <span className="font-black text-xs uppercase tracking-widest text-center">Ver<br />Catálogo<br />Completo</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* D. TARJETA SELECCIONADA / ÉXITO (Overlay) */}
+                                {selectedSplit && (
+                                    <div className="w-full bg-zinc-950 rounded-2xl border-2 border-cyan-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden animate-fade-in-up mx-auto max-w-sm transition-all duration-500 min-h-[350px] flex flex-col z-20">
+
+                                        {assignmentSuccess ? (
+                                            <div className="absolute inset-0 z-30 bg-cyan-950/95 flex flex-col items-center justify-center text-cyan-400 p-6 animate-fade-in text-center overflow-hidden border-2 border-cyan-500/30">
+
+                                                {/* --- MARCA DE AGUA: CAUPOLICÁN --- */}
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.05]">
+                                                    <div className="transform -rotate-12 scale-[2] grayscale">
+                                                        <CaupolicanIcon size={150} />
+                                                    </div>
+                                                </div>
+
+                                                {/* Contenido (z-10 para estar encima del fondo) */}
+                                                <div className="relative z-10 flex flex-col items-center w-full">
+                                                    <div className="w-20 h-20 rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 flex items-center justify-center mb-6 animate-bounce-short shadow-xl">
+                                                        <CheckCircleIcon size={32} strokeWidth={3} />
+                                                    </div>
+                                                    <h3 className="text-3xl font-black uppercase tracking-tighter mb-2 text-white">Asignado</h3>
+                                                    <p className="text-xs font-bold uppercase tracking-widest text-cyan-300/80 mb-8 px-8 border-t border-b border-cyan-500/20 py-2">
+                                                        Bloque: {assignmentSuccess}
+                                                    </p>
+
+                                                    {activeSplitBlockStep0 < POWER_BLOCK_NAMES.length - 1 ? (
+                                                        <div className="flex flex-col items-center gap-2 animate-pulse">
+                                                            <span className="text-[9px] font-black uppercase text-cyan-400/70">Siguiente Bloque</span>
+                                                            <ArrowDownIcon size={20} className="text-cyan-400" />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-[10px] font-black uppercase bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded border border-cyan-500/30">Listo</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            // VISTA DE DETALLES (NORMAL)
+                                            <>
+                                                <div className="bg-zinc-900/50 p-6 border-b border-white/10 relative z-10 transition-colors">
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <h3 className="font-black text-2xl uppercase tracking-tighter w-3/4 leading-none text-white">{selectedSplit.name}</h3>
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedSplit(null);
+                                                                setSplitPattern([]);
+                                                                if (splitMode === 'per_block') {
+                                                                    const newSplits = { ...blockSplits };
+                                                                    delete newSplits[activeSplitBlockStep0];
+                                                                    setBlockSplits(newSplits);
+                                                                }
+                                                            }}
+                                                            className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/20 transition-colors"
+                                                        >
+                                                            <XIcon size={16} strokeWidth={3} />
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-xs font-bold text-zinc-400 leading-relaxed mb-6 border-l-2 border-cyan-500/30 pl-3">{selectedSplit.description}</p>
+
+                                                    {/* Selector de Día de Inicio Compacto */}
+                                                    <div className="flex items-center justify-between border-t border-white/10 pt-3">
+                                                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Inicio de Semana</span>
+                                                        <div className="relative group">
+                                                            <select value={startDay} onChange={(e) => setStartDay(parseInt(e.target.value))} className="appearance-none bg-zinc-950 text-[10px] font-black text-white uppercase outline-none border border-white/20 rounded px-2 py-1 pr-6 cursor-pointer hover:border-cyan-500/50">
+                                                                {daysOfWeek.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                                                            </select>
+                                                            <ChevronDownIcon size={10} className="absolute right-2 top-1.5 pointer-events-none text-zinc-500" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Lista de Días */}
+                                                <div className="p-4 space-y-2 flex-1 overflow-hidden flex flex-col bg-black">
+                                                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-1">
+                                                        {splitPattern.map((label, index) => {
+                                                            const dayLabel = getDayLabel(index);
+                                                            const isRest = label.toLowerCase() === 'descanso';
+                                                            return (
+                                                                <div key={index} className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-300 ${isRest ? 'bg-[#111] border-white/5 opacity-50' : 'bg-[#1a1a1a] border-white/20'}`}>
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className="w-6 text-[9px] font-black uppercase text-gray-500">{dayLabel.substring(0, 3)}</div>
+                                                                        <span className={`text-xs font-bold uppercase tracking-wide ${isRest ? 'text-gray-600' : 'text-white'}`}>{label}</span>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedSplit(null);
+                                                            setSplitPattern([]);
+                                                            if (splitMode === 'per_block') {
+                                                                const newSplits = { ...blockSplits };
+                                                                delete newSplits[activeSplitBlockStep0];
+                                                                setBlockSplits(newSplits);
+                                                            }
+                                                        }}
+                                                        className="w-full mt-3 py-4 border-2 border-cyan-500/50 text-cyan-400 rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-cyan-500/20 transition-all"
+                                                    >
+                                                        Cambiar Selección
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Botón Flotante Siguiente */}
+                            <div className="fixed bottom-6 left-0 right-0 px-6 flex justify-center z-50 pointer-events-none">
+                                <button
+                                    onClick={() => setWizardStep(1)}
+                                    disabled={!selectedSplit}
+                                    className={`pointer-events-auto bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 px-8 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:bg-cyan-500/30 hover:scale-105 active:scale-95 transition-all duration-500 flex items-center gap-3 ${!selectedSplit ? 'opacity-0 translate-y-10' : 'opacity-100 translate-y-0'}`}
+                                >
+                                    Siguiente: Volumen de entrenamiento <ArrowDownIcon size={16} className="-rotate-90" />
+                                </button>
+
+                                {/* === BOTÓN DE CONTINUAR PERMANENTE === */}
+                                <div className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/90 to-transparent pt-32 z-40 flex flex-col items-center justify-end pointer-events-none">
+                                    <button
+                                        onClick={() => setWizardStep(1)}
+                                        // Deshabilitado si: 
+                                        // 1. Modo Simple/Global y NO hay split seleccionado.
+                                        // 2. Modo Por Bloques y NO están asignados los 5 bloques.
+                                        disabled={(() => {
+                                            if (selectedTemplateId !== 'power-complex' || splitMode === 'global') return !selectedSplit;
+                                            return Object.keys(blockSplits).length < POWER_BLOCK_NAMES.length;
+                                        })()}
+                                        className={`pointer-events-auto px-12 py-5 rounded-full font-black text-xs uppercase tracking-[0.2em] flex items-center gap-3 transition-all duration-300 shadow-2xl
+                                        ${(() => {
+                                                const isGlobalReady = (selectedTemplateId !== 'power-complex' || splitMode === 'global') && selectedSplit;
+                                                const isPerBlockReady = selectedTemplateId === 'power-complex' && splitMode === 'per_block' && Object.keys(blockSplits).length === POWER_BLOCK_NAMES.length;
+
+                                                return (isGlobalReady || isPerBlockReady)
+                                                    ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 hover:bg-cyan-500/30 hover:scale-105 active:scale-95 opacity-100 translate-y-0 cursor-pointer'
+                                                    : 'bg-zinc-900 text-zinc-500 border border-white/5 cursor-not-allowed'
+                                            })()}
+                                    `}
+                                    >
+                                        <span>
+                                            {(() => {
+                                                if (selectedTemplateId === 'power-complex' && splitMode === 'per_block') {
+                                                    const missing = POWER_BLOCK_NAMES.length - Object.keys(blockSplits).length;
+                                                    if (missing > 0) return `Faltan ${missing} Bloques`;
+                                                }
+                                                if ((selectedTemplateId !== 'power-complex' || splitMode === 'global') && !selectedSplit) {
+                                                    return "Selecciona un Split";
+                                                }
+                                                return "Siguiente: Volumen";
+                                            })()}
+                                        </span>
+                                        {/* Flecha condicional */}
+                                        <SaveIcon size={16} className={`transition-all duration-300 ${((selectedTemplateId === 'power-complex' && splitMode === 'per_block' && Object.keys(blockSplits).length < POWER_BLOCK_NAMES.length) ||
+                                            ((selectedTemplateId !== 'power-complex' || splitMode === 'global') && !selectedSplit))
+                                            ? 'opacity-0 w-0' : 'opacity-100 -rotate-90'
+                                            }`} />
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    )}
+
+                    {/* === PASO 1: VOLUMEN DE ENTRENAMIENTO (OBLIGATORIO) === */}
+                    {wizardStep === 1 && (
+                        <VolumeCalibrationStep
+                            onComplete={(config) => {
+                                setWizardVolumeConfig(config);
+                                setAthleteScore(config.athleteProfileScore || null);
+                                setWizardStep(2);
+                            }}
+                            onBack={() => setWizardStep(0)}
+                            settings={settings}
+                        />
+                    )}
+
+                    {/* === PASO 2: VISTA GENERAL - CREAR PROGRAMA (sin paso de sesiones) === */}
+                    {wizardStep === 2 && (
+                        <div className="fixed inset-0 z-[210] bg-[#050505] flex flex-col animate-fade-in safe-area-root">
+
+                            {/* --- BOTONES DE NAVEGACIÓN FLOTANTES --- */}
+                            <button
+                                onClick={() => setWizardStep(1)}
+                                className="fixed top-4 left-4 z-[220] p-2.5 rounded-full bg-black/40 text-white border border-white/10 backdrop-blur-md hover:bg-cyber-cyan/20 transition-all shadow-lg"
+                                title="Volver a Volumen"
+                            >
+                                <ArrowLeftIcon size={18} />
+                            </button>
+
+                            <button
+                                data-testid="wizard-cancel"
+                                aria-label="Salir sin guardar"
+                                onClick={() => {
+                                    if (window.confirm('¿Seguro que quieres salir? Perderás los cambios no guardados.')) {
+                                        onCancel();
+                                    }
+                                }}
+                                className="fixed top-4 right-4 z-[220] p-2.5 rounded-full bg-black/40 text-gray-400 border border-white/10 backdrop-blur-md hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 transition-all shadow-lg"
+                                title="Salir del editor"
+                            >
+                                <XIcon size={18} />
+                            </button>
+
+                            {/* --- HEADER COMPACTO Y FUNCIONAL --- */}
+                            <div className="px-6 pt-20 pb-4 bg-[#050505] border-b border-white/5 z-20 shrink-0">
+                                <div className="flex flex-col gap-1 max-w-4xl mx-auto w-full">
+                                    <div className="flex items-center gap-2">
+                                        <EditIcon size={20} className="text-white" />
+                                        <h3 className="text-xl font-black text-white uppercase tracking-tight">Vista general</h3>
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 font-medium leading-relaxed">
+                                        Las sesiones se crean en el detalle del programa tras guardar.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-[#050505]">
+                                <div className="space-y-4 max-w-2xl">
+                                    <div className="bg-zinc-900/50 rounded-xl p-4 border border-white/10">
+                                        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Split y estructura</h4>
+                                        <p className="text-sm text-white font-bold">{selectedSplit?.name}</p>
+                                        <p className="text-xs text-slate-400 mt-1">
+                                            {splitPattern.filter(l => l?.toLowerCase() !== 'descanso').length} días de entrenamiento • {splitPattern.filter(l => l?.toLowerCase() === 'descanso').length} días descanso
+                                        </p>
+                                    </div>
+                                    {wizardVolumeConfig && (
+                                        <div className="bg-zinc-900/50 rounded-xl p-4 border border-white/10">
+                                            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Volumen</h4>
+                                            <p className="text-xs text-slate-400">
+                                                Sistema: {wizardVolumeConfig.volumeSystem === 'israetel' ? 'Israetel' : wizardVolumeConfig.volumeSystem === 'kpnk' ? 'KPKN' : 'Manual'}
+                                                {wizardVolumeConfig.athleteProfileScore && (
+                                                    <span> • Perfil: {wizardVolumeConfig.athleteProfileScore.profileLevel}</span>
+                                                )}
+                                            </p>
+                                            {wizardVolumeConfig.volumeRecommendations.length > 0 && (
+                                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                                    {wizardVolumeConfig.volumeRecommendations.slice(0, 6).map(r => (
+                                                        <span key={r.muscleGroup} className="px-2 py-0.5 rounded bg-white/5 text-[10px] text-slate-300">
+                                                            {r.muscleGroup}: {r.minEffectiveVolume}-{r.maxRecoverableVolume} series/sem
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    <div className="bg-zinc-900/50 rounded-xl p-4 border border-white/10">
+                                        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Semana</h4>
+                                        <div className="grid grid-cols-7 gap-1">
+                                            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day, i) => (
+                                                <div key={day} className="text-center">
+                                                    <p className="text-[9px] text-slate-500 uppercase">{day}</p>
+                                                    <p className="text-[10px] font-mono text-white truncate" title={splitPattern[i]}>
+                                                        {splitPattern[i]?.toLowerCase() === 'descanso' ? '—' : splitPattern[i]?.slice(0, 4) || '—'}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* --- FOOTER FLOTANTE (wizard-safe-footer) --- */}
+                            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-[#050505] to-transparent pt-20 z-40 flex flex-col items-center gap-4 pointer-events-none wizard-safe-footer">
+                                {/* Toggle Activación */}
+                                <div className="pointer-events-auto flex items-center gap-3 bg-black/80 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/10 shadow-xl">
+                                    <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">Activar al guardar</span>
+                                    <ToggleSwitch checked={autoActivate} onChange={setAutoActivate} size="sm" />
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-center gap-3 pointer-events-auto w-full max-w-md justify-center">
+                                    <button
+                                        data-testid="wizard-cancel-footer"
+                                        aria-label="Cancelar y volver"
+                                        onClick={() => { if (window.confirm('¿Salir? Puedes perder los cambios no guardados.')) onCancel(); }}
+                                        className="order-2 sm:order-1 text-zinc-500 hover:text-red-400 text-[10px] font-black uppercase tracking-widest transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <div className="flex gap-3 order-1 sm:order-2">
+                                        <button
+                                            data-testid="wizard-save-draft"
+                                            aria-label="Guardar borrador"
+                                            onClick={() => handleCreate(true)}
+                                            className="bg-zinc-900 text-zinc-400 px-6 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:text-white hover:bg-zinc-800 transition-colors border border-white/10"
+                                        >
+                                            Guardar Borrador
+                                        </button>
+                                        {/* Botón Principal */}
+                                        <button
+                                            data-testid="wizard-create-program"
+                                            aria-label="Crear programa"
+                                            onClick={() => handleCreate(false)}
+                                            className="bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/50 px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] hover:bg-cyber-cyan/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                                        >
+                                            <SaveIcon size={16} />
+                                            <span>Crear Programa</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            </div>
+
+            {showAllSplitsModal && (
+                <div className="fixed inset-0 z-[250] bg-black flex flex-col animate-fade-in safe-area-root">
+                    <div className="p-4 border-b border-white/10 bg-black/50 backdrop-blur-xl flex flex-col gap-4">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-black text-white uppercase tracking-tight">Catálogo de Splits</h2>
+                            <div className="flex gap-2">
+                                {compareList.length > 0 && (
+                                    <button onClick={() => setShowCompareView(true)} className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500/30 transition-colors">Comparar ({compareList.length})</button>
+                                )}
+                                <button onClick={() => setShowAllSplitsModal(false)} className="p-2 bg-slate-900 rounded-full text-white"><XIcon size={20} /></button>
+                            </div>
+                        </div>
+                        <div className="relative">
+                            <input type="text" placeholder="Buscar split..." value={splitSearchQuery} onChange={(e) => setSplitSearchQuery(e.target.value)} className="w-full bg-black border border-white/30 rounded-xl py-3 px-4 pl-10 text-xs text-white placeholder-gray-500 focus:border-white outline-none transition-colors" />
+                            <div className="absolute left-3 top-3 text-gray-500"><RefreshCwIcon size={14} /></div>
+                        </div>
+                        <div className="flex overflow-x-auto gap-2 hide-scrollbar pb-2">
+                            {tagFilters.map(tag => (
+                                <button key={tag} onClick={() => setModalFilter(tag)} className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap border transition-all ${modalFilter === tag ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-transparent border-white/30 text-zinc-500 hover:text-white'}`}>{tag}</button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {!showCompareView ? (
+                        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-black">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-24">
+                                {filteredSplits.map(split => {
+                                    const isSelected = compareList.includes(split.id);
+                                    return (
+                                        <div key={split.id} className={`relative group bg-zinc-950 rounded-2xl border border-white/10 p-5 flex flex-col h-full justify-between transition-all duration-300 ${isSelected ? 'ring-2 ring-cyan-500/50 scale-[0.98] border-cyan-500/30' : 'hover:scale-[1.01] hover:border-cyan-500/20'}`}>
+                                            <button onClick={(e) => { e.stopPropagation(); toggleCompareSplit(split.id); }} className={`absolute top-4 right-4 z-20 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' : 'border-zinc-600 text-transparent hover:border-cyan-500/50'}`}>
+                                                <CheckCircleIcon size={14} />
+                                            </button>
+                                            <button onClick={() => handleSelectSplit(split)} className="text-left flex-1 relative z-10">
+                                                <h4 className="font-black text-white text-xl tracking-tight leading-none mb-2 pr-8">{split.name}</h4>
+                                                <div className="flex flex-wrap gap-1 mb-3">
+                                                    {split.tags.slice(0, 3).map(t => (<span key={t} className="text-[8px] font-black uppercase px-2 py-0.5 rounded border border-cyan-500/20 text-cyan-400/80">{t}</span>))}
+                                                </div>
+                                                <p className="text-xs font-bold text-zinc-500 leading-relaxed mb-4">{split.description}</p>
+                                            </button>
+                                            <div className="w-full pt-3 border-t border-white/5 relative z-10 pointer-events-none flex flex-wrap gap-1">
+                                                {split.pattern.slice(0, 5).map((s, i) => (<span key={i} className="text-[9px] font-bold text-zinc-500 bg-zinc-900 px-1.5 py-0.5 rounded border border-white/5">{typeof s === 'string' ? s.substring(0, 3) : s}</span>))}
+                                                {split.pattern.length > 5 && <span className="text-[9px] text-zinc-500 self-center">...</span>}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex-1 overflow-y-auto bg-[#0a0a0a] p-4 animate-fade-in-up">
+                            <div className="max-w-6xl mx-auto">
+                                <button onClick={() => setShowCompareView(false)} className="mb-6 text-xs font-bold text-gray-400 hover:text-white flex items-center gap-2">
+                                    <ArrowUpIcon size={14} className="rotate-[-90deg]" /> Volver al catálogo
+                                </button>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {getComparisonData().map(split => (
+                                        <div key={split.id} className="bg-[#111] border border-white/10 rounded-2xl p-6 flex flex-col">
+                                            <h3 className="text-xl font-black text-white uppercase tracking-tight mb-4">{split.name}</h3>
+                                            <div className="space-y-4 flex-1">
+                                                <div><span className="text-[9px] font-black text-gray-500 uppercase">Dificultad</span><br /><span className="text-xs text-white">{split.difficulty}</span></div>
+                                                <div><span className="text-[9px] font-black text-gray-500 uppercase">Descripción</span><br /><p className="text-xs text-gray-400">{split.description}</p></div>
+                                                <div>
+                                                    <span className="text-[9px] font-black text-gray-500 uppercase">Estructura</span>
+                                                    <div className="mt-1 space-y-1">
+                                                        {split.pattern.map((day, i) => (
+                                                            <div key={i} className="flex justify-between text-[10px] border-b border-white/5 py-1">
+                                                                <span className="text-gray-500">Día {i + 1}</span>
+                                                                <span className={String(day).toLowerCase() === 'descanso' ? 'text-gray-600' : 'text-white font-bold'}>{day}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => handleSelectSplit(split)} className="w-full mt-6 py-3 bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-cyan-500/30 transition-colors">Usar este Split</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* === MODAL DE INFORMACIÓN (GLOBAL Y FIJO) === */}
+            {activeInfo && (
+                <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={() => setActiveInfo(null)}>
+                    <div className="bg-[#151515] border border-white/10 p-6 rounded-3xl max-w-sm w-full shadow-2xl relative transform transition-all scale-100" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-start mb-4">
+                            <h4 className="text-lg font-black text-white uppercase tracking-tight">
+                                {activeInfo === 'structure' ? 'Estructura Temporal' : 'Split Semanal'}
+                            </h4>
+                            <button onClick={() => setActiveInfo(null)} className="text-gray-500 hover:text-white bg-white/5 p-2 rounded-full transition-colors">
+                                <XIcon size={20} />
+                            </button>
+                        </div>
+                        <div className="bg-black/20 rounded-xl p-4 border border-white/5 mb-4">
+                            <p className="text-xs text-gray-300 leading-relaxed font-medium text-justify">
+                                {activeInfo === 'structure' ? INFO_TEXTS.structure : INFO_TEXTS.split}
+                            </p>
+                        </div>
+                        <button onClick={() => setActiveInfo(null)} className="w-full py-3 bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-cyan-500/30 transition-all">
+                            Entendido
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* === OVERLAY DE EDICIÓN DE SEMANA === */}
+            {editingWeekInfo && (
+                <InteractiveWeekOverlay
+                    week={editingWeekInfo.week}
+                    weekTitle={`Semana ${editingWeekInfo.weekIndex + 1}`}
+                    onClose={() => setEditingWeekInfo(null)}
+                    onSave={(updatedWeek) => {
+                        if (editingWeekInfo.isSimple) {
+                            updateProgramStructure(p => {
+                                if (p.macrocycles && p.macrocycles[0] && p.macrocycles[0].blocks && p.macrocycles[0].blocks[0] && p.macrocycles[0].blocks[0].mesocycles && p.macrocycles[0].blocks[0].mesocycles[0]) {
+                                    p.macrocycles[0].blocks[0].mesocycles[0].weeks[editingWeekInfo.weekIndex] = updatedWeek;
+                                }
+                            });
+                        } else {
+                            updateProgramStructure(p => {
+                                if (p.macrocycles && p.macrocycles[editingWeekInfo.macroIndex] && p.macrocycles[editingWeekInfo.macroIndex].blocks) {
+                                    p.macrocycles[editingWeekInfo.macroIndex]
+                                        .blocks![editingWeekInfo.blockIndex]
+                                        .mesocycles[editingWeekInfo.mesoIndex]
+                                        .weeks[editingWeekInfo.weekIndex] = updatedWeek;
+                                }
+                            });
+                        }
+                        setEditingWeekInfo(null);
+                        addToast('Split semanal guardado correctamente', 'success');
+                    }}
+                />
+            )}
+        </div>
+    );
+};
+
+export default ProgramEditor;

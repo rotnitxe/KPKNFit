@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema principal de la app (referenciado en AndroidManifest) -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/capacitor_splash_background</item>
+        <item name="android:navigationBarColor">@color/capacitor_splash_background</item>
+        <item name="android:windowBackground">@color/capacitor_splash_background</item>
+    </style>
+    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme">
+        <item name="android:windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <!-- Estilo para ProgressBar usado en widgets Battery y Volume -->
+    <style name="Widget.Kpkn.ProgressBar" parent="Widget.AppCompat.ProgressBar.Horizontal">
+        <item name="android:indeterminateOnly">false</item>
+        <item name="android:minHeight">8dp</item>
+        <item name="android:maxHeight">12dp</item>
+    </style>
+</resources>

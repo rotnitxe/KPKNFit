@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_battery_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:background="@drawable/widget_card_bg"
+        android:padding="14dp">
+
+        <TextView
+            android:id="@+id/widget_battery_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="BATTERY AUGE"
+            android:textColor="#71717a"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.15"
+            android:layout_marginBottom="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="6dp">
+                <TextView
+                    android:layout_width="52dp"
+                    android:layout_height="wrap_content"
+                    android:text="SNC"
+                    android:textColor="#52525b"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:fontFamily="monospace" />
+                <ProgressBar
+                    android:id="@+id/widget_cns_bar"
+                    style="@style/Widget.Kpkn.ProgressBar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:progress="0"
+                    android:max="100"
+                    android:layout_marginStart="8dp" />
+                <TextView
+                    android:id="@+id/widget_cns_value"
+                    android:layout_width="28dp"
+                    android:layout_height="wrap_content"
+                    android:text="--%"
+                    android:textColor="#18181b"
+                    android:textSize="11sp"
+                    android:fontFamily="monospace"
+                    android:gravity="end"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="6dp">
+                <TextView
+                    android:layout_width="52dp"
+                    android:layout_height="wrap_content"
+                    android:text="MUSC"
+                    android:textColor="#52525b"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:fontFamily="monospace" />
+                <ProgressBar
+                    android:id="@+id/widget_muscular_bar"
+                    style="@style/Widget.Kpkn.ProgressBar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:progress="0"
+                    android:max="100"
+                    android:layout_marginStart="8dp" />
+                <TextView
+                    android:id="@+id/widget_muscular_value"
+                    android:layout_width="28dp"
+                    android:layout_height="wrap_content"
+                    android:text="--%"
+                    android:textColor="#18181b"
+                    android:textSize="11sp"
+                    android:fontFamily="monospace"
+                    android:gravity="end"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <TextView
+                    android:layout_width="52dp"
+                    android:layout_height="wrap_content"
+                    android:text="SPIN"
+                    android:textColor="#52525b"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:fontFamily="monospace" />
+                <ProgressBar
+                    android:id="@+id/widget_spinal_bar"
+                    style="@style/Widget.Kpkn.ProgressBar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:progress="0"
+                    android:max="100"
+                    android:layout_marginStart="8dp" />
+                <TextView
+                    android:id="@+id/widget_spinal_value"
+                    android:layout_width="28dp"
+                    android:layout_height="wrap_content"
+                    android:text="--%"
+                    android:textColor="#18181b"
+                    android:textSize="11sp"
+                    android:fontFamily="monospace"
+                    android:gravity="end"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

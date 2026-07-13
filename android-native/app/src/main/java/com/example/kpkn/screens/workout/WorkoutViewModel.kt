@@ -5639,6 +5639,7 @@ class WorkoutViewModel(
     fun computeExerciseReadiness(
         batteries: GlobalBatteries,
         perMuscle: Map<String, MuscleRecoveryStatus>,
+        articularBatteries: Map<ArticularBattery, ArticularBatteryState> = emptyMap(),
         unresolvedDiscomfortIds: List<String> = emptyList(),
     ) {
         val state = _uiState.value
@@ -5661,6 +5662,7 @@ class WorkoutViewModel(
                 perMuscle = perMuscle,
                 averageErm = avgErm,
                 unresolvedDiscomfortIds = unresolvedDiscomfortIds,
+                articularBatteries = articularBatteries,
             )
 
             if (readiness != null) {

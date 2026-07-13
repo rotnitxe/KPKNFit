@@ -1,0 +1,189 @@
+     Objetivo Confirmado
+
+      1  ELIMINAR:
+      2    - Buscador de alimentos
+      3    - Registro manual por campos
+      4    - Búsqueda por nombre
+      5    - Selección de base de datos
+      6 
+      7  REEMPLAZAR CON:
+      8    - ÚNICO input: "Describí lo que comiste"
+      9    - IA + BD local + Heurísticas en paralelo
+     10    - Todo automático, sin selección manual
+
+    ---
+
+     Flujo Actual vs. Nuevo Flujo
+
+     Flujo Actual (MULTI-PASOS)
+
+     1 1. Usuario abre registro
+     2 2. ¿Busca por nombre? → Buscador
+     3 3. ¿No encuentra? → Campos manuales
+     4 4. ¿Quiere rápido? → Recientes
+     5 5. Llena calorías, proteína, carbs, grasas manualmente
+     6 6. Guarda
+
+     Nuevo Flujo (UN PASO)
+
+     1 1. Usuario escribe: "2 huevos revueltos con pan integral"
+     2 2. IA/BD/heurística analiza automáticamente
+     3 3. Rellena TODO automático (nombre, categoría, macros)
+     4 4. Usuario confirma (o edita si quiere)
+     5 5. Guarda
+
+    ---
+
+     Implementación que Voy a Crear
+
+    1. Reemplazo del Componente Actual
+
+    El archivo FoodLoggerWithAI.tsx reemplazará al componente de registro actual. No será adicional.
+
+    Ubicación: components/nutrition/FoodLoggerWithAI.tsx → renombrado a components/nutrition/FoodLogger.tsx (sobrescribe el actual)
+
+    ---
+
+    2. Eliminación de Componentes Obsoletos
+
+     1 // Estos archivos los marcaré para eliminación:
+     2  components/nutrition/FoodSearch.tsx        // Buscador
+     3  components/nutrition/ManualFoodEntry.tsx   // Campos manuales
+     4  components/nutrition/FoodDatabasePicker.tsx // Selector BD
+
+    ---
+
+    3. El Nuevo Sistema Será el ÚNICO
+
+      1 // services/FoodAI.ts (núcleo del sistema)
+      2 
+      3 async analyzeFood(input: string): Promise<FoodAnalysisResult> {
+      4     // ESTRATEGIA EN CASCADA (transparente para el usuario)
+      5     
+      6     // 1. Caché (instantáneo)
+      7     const cached = await this.cache.get(input);
+      8     if (cached) return cached;
+      9 
+     10     // 2. Match exacto BD local (rápido)
+     11     const dbMatch = await this.searchDatabase(input);
+     12     if (dbMatch && dbMatch.confidence > 0.9) {
+     13         return dbMatch; // Sin IA, rápido
+     14     }
+     15 
+     16     // 3. Reglas heurísticas (muy rápido)
+     17     const heuristic = this.heuristicMatch(input);
+     18     if (heuristic && heuristic.confidence > 0.75) {
+     19         return heuristic; // Sin IA
+     20     }
+     21 
+     22     // 4. IA solo si es necesario (lento, último recurso)
+     23     const deviceTier = await this.detectDeviceTier();
+     24     if (deviceTier === 'low') {
+     25         return this.fallbackEstimate(input); // Sin IA en gama baja
+     26     }
+     27 
+     28     return await this.queryAI(input); // IA Qwen2.5
+     29 }
+
+    El usuario NO sabe qué capa se usó. Solo ve el resultado.
+
+    ---
+
+    4. UI Simplificada (ÚNICO INPUT)
+
+      1 // FoodLogger.tsx (reemplaza al actual)
+      2 
+      3 return (
+      4     <div className="nutrition-logger">
+      5         {/* ÚNICO CAMPO DE TEXTO */}
+      6         <textarea
+      7             placeholder="Describí tu comida: '2 huevos revueltos con pan integral y café con leche'"
+      8             value={description}
+      9             onChange={handleDescriptionChange}
+     10             rows={3}
+     11         />
+     12 
+     13         {/* Resultados (se llenan solos) */}
+     14         <NutritionPreview result={analysisResult} />
+     15 
+     16         {/* Botón confirmar */}
+     17         <button onClick={handleConfirm}>Confirmar</button>
+     18
+     19         {/* Botón editar (solo si quiere ajustar) */}
+     20         <button onClick={handleEdit}>Editar manualmente</button>
+     21     </div>
+     22 );
+
+    ---
+
+    5. Integración con el Sistema Existente
+
+    El FoodAI.ts se integrará exactamente donde está el sistema actual, no como módulo separado.
+
+    Puntos de integración:
+
+     1 // components/nutrition/NutritionView.tsx
+     2 
+     3 // ANTES:
+     4 <FoodSearch onFoodSelected={handleFoodSelected} />
+     5 <ManualFoodEntry onSave={handleSave} />
+     6 
+     7 // DESPUÉS:
+     8 <FoodLogger onFoodAnalyzed={handleFoodAnalyzed} />
+     9 // (el mismo handleFoodSelected, misma interfaz)
+
+    ---
+
+     Garantías
+
+
+    ┌──────────────────────────┬────────────────────────────────────────────┐
+    │ Requisito                │ Cumplimiento                               │
+    ├──────────────────────────┼────────────────────────────────────────────┤
+    │ Único método de registro │  Solo input descriptivo                  │
+    │ Eliminar buscador        │  Se borra FoodSearch.tsx                 │
+    │ Eliminar campos manuales │  Opcionales, solo para edición           │
+    │ IA transparente          │  Usuario no sabe si usa IA/BD/heurística │
+    │ Fallback sin IA          │  Funciona en gama baja sin IA            
+    │ Mismo resultado final    │  Mismo objeto FoodLog                    │
+    └──────────────────────────┴────────────────────────────────────────────┘
+
+    ---
+
+     Archivos que Voy a Crear/Modificar
+
+    Crear:
+
+     1  services/FoodAI.ts              (núcleo del sistema)
+     2  services/FoodDatabase.ts        (búsqueda optimizada BD local)
+     3  components/nutrition/FoodLogger.tsx  (reemplaza al actual)
+     4  components/nutrition/NutritionPreview.tsx  (preview resultados)
+     5  public/models/.gitkeep          (para modelos)
+     6  MODELOS.md                      (instrucciones descarga)
+
+    Modificar:
+
+     1  package.json                    (copiar modelos en build)
+     2  components/nutrition/index.ts   (exportar nuevo FoodLogger)
+
+    Marcar para Eliminación:
+
+     1  components/nutrition/FoodSearch.tsx
+     2  components/nutrition/ManualFoodEntry.tsx
+     3  components/nutrition/FoodDatabasePicker.tsx
+
+    ---
+
+     Confirmación Final
+
+    ¿Esto es lo que querés?
+
+     -  UN SOLO input descriptivo
+     -  CERO búsqueda manual
+     -  CERO campos que llenar (se autocompletan)
+     -  IA como mejora transparente, no como feature adicional
+     -  Sistema más rápido (caché + heurísticas) y más inteligente (IA cuando es necesario)
+
+    Si es así, procedo inmediatamente con la implementación completa.
+
+    ¿Dás el visto bueno? 

@@ -334,8 +334,18 @@ fun buildNutritionRiskFlags(input: RiskInput): List<NutritionRiskFlag> {
         )
     }
 
-    // Umbrales diferenciados según evidencia: déficit y superávit tienen ritmos seguros distintos.
-    when (input.calorieGoal) {
+    val resolvedGoal = if (input.calorieGoal == CalorieGoal.MAINTAIN && input.goalMetric == GoalMetric.WEIGHT) {
+        val currentWeight = input.settings.weightKg
+        when {
+            input.goalValue < currentWeight - 0.1 -> CalorieGoal.LOSE
+            input.goalValue > currentWeight + 0.1 -> CalorieGoal.GAIN
+            else -> CalorieGoal.MAINTAIN
+        }
+    } else {
+        input.calorieGoal
+    }
+
+    when (resolvedGoal) {
         CalorieGoal.LOSE -> {
             // Pérdida: umbral conservador para preservar músculo (Helms et al., 2014)
             when {

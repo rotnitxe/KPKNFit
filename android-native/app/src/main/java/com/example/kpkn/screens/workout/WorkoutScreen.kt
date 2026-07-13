@@ -268,13 +268,14 @@ fun WorkoutScreen(
                 .distinct()
         }
     }
-    LaunchedEffect(augeSnapshot.batteries, perMuscle, unresolvedDiscomfortIds) {
+    LaunchedEffect(augeSnapshot.batteries, perMuscle, augeSnapshot.articular, unresolvedDiscomfortIds) {
         if (augeSnapshot.isLoading) return@LaunchedEffect
         val state = uiState
         if (state.session != null && (state.exerciseReadinessMap.isEmpty() || augeSnapshot.batteries.muscular > 0)) {
             viewModel.computeExerciseReadiness(
                 batteries = augeSnapshot.batteries,
                 perMuscle = perMuscle,
+                articularBatteries = augeSnapshot.articular,
                 unresolvedDiscomfortIds = unresolvedDiscomfortIds,
             )
         }
@@ -1190,7 +1191,7 @@ fun WorkoutScreen(
         readinessMuscularStart = readinessMuscularStart,
         readinessSpinalStart = readinessSpinalStart,
         hazeState = readinessHaze,
-        onSave = { neural, muscular, spinal, perMuscle ->
+        onSave = { neural, muscular, spinal, perMuscle, discomforts ->
             val log = DailyWellbeingLog(
                 id = todayWellbeing?.id ?: UUID.randomUUID().toString(),
                 date = LocalDate.now().toString(),
@@ -1207,6 +1208,7 @@ fun WorkoutScreen(
                 manualSpinalBattery = spinal,
                 manualMuscleBatteries = perMuscle,
                 notes = todayWellbeing?.notes,
+                preWorkoutDiscomforts = discomforts,
             )
             augeViewModel.saveWellbeing(log)
             viewModel.saveReadinessAdjustments(
@@ -1223,7 +1225,8 @@ fun WorkoutScreen(
         sessionExercises = session.exercises,
         onDismissWithoutVerify = {
             readinessSheetDismissed = true
-        }
+        },
+        initialDiscomforts = todayWellbeing?.preWorkoutDiscomforts ?: emptyList(),
     )
 
     // ─── Mobility banner (post-readiness) ─────────────────────────────────
@@ -7559,5 +7562,4 @@ private fun InfoPill(label: String, value: String, color: Color) {
         }
     }
 }
-
 

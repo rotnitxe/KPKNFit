@@ -1,0 +1,335 @@
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build.gradle b/node_modules/@capacitor-community/text-to-speech/android/build.gradle
+index 35a5e25..f441d26 100644
+--- a/node_modules/@capacitor-community/text-to-speech/android/build.gradle
++++ b/node_modules/@capacitor-community/text-to-speech/android/build.gradle
+@@ -30,7 +30,7 @@ android {
+     buildTypes {
+         release {
+             minifyEnabled false
+-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
++            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+         }
+     }
+     lintOptions {
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/0a3bd9183f12f1df3261c058eec88187/results.bin b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/0a3bd9183f12f1df3261c058eec88187/results.bin
+new file mode 100644
+index 0000000..0d259dd
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/0a3bd9183f12f1df3261c058eec88187/results.bin
+@@ -0,0 +1 @@
++o/classes
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/0a3bd9183f12f1df3261c058eec88187/transformed/classes/classes_dex/classes.dex b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/0a3bd9183f12f1df3261c058eec88187/transformed/classes/classes_dex/classes.dex
+new file mode 100644
+index 0000000..2530254
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/0a3bd9183f12f1df3261c058eec88187/transformed/classes/classes_dex/classes.dex differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/0a3bd9183f12f1df3261c058eec88187/transformed/classes/classes_global-synthetics/global.globals b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/0a3bd9183f12f1df3261c058eec88187/transformed/classes/classes_global-synthetics/global.globals
+new file mode 100644
+index 0000000..5ef09a0
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/0a3bd9183f12f1df3261c058eec88187/transformed/classes/classes_global-synthetics/global.globals differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/4b43762541f2b5fbe4ff89de42b4db1f/results.bin b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/4b43762541f2b5fbe4ff89de42b4db1f/results.bin
+new file mode 100644
+index 0000000..0d259dd
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/4b43762541f2b5fbe4ff89de42b4db1f/results.bin
+@@ -0,0 +1 @@
++o/classes
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/4b43762541f2b5fbe4ff89de42b4db1f/transformed/classes/classes_dex/classes.dex b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/4b43762541f2b5fbe4ff89de42b4db1f/transformed/classes/classes_dex/classes.dex
+new file mode 100644
+index 0000000..2483557
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/4b43762541f2b5fbe4ff89de42b4db1f/transformed/classes/classes_dex/classes.dex differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/4b43762541f2b5fbe4ff89de42b4db1f/transformed/classes/classes_global-synthetics/global.globals b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/4b43762541f2b5fbe4ff89de42b4db1f/transformed/classes/classes_global-synthetics/global.globals
+new file mode 100644
+index 0000000..602d655
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/4b43762541f2b5fbe4ff89de42b4db1f/transformed/classes/classes_global-synthetics/global.globals differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/702c1804f60307855f0492e3dc31015b/results.bin b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/702c1804f60307855f0492e3dc31015b/results.bin
+new file mode 100644
+index 0000000..7ed749e
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/702c1804f60307855f0492e3dc31015b/results.bin
+@@ -0,0 +1 @@
++o/bundleLibRuntimeToDirDebug
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/702c1804f60307855f0492e3dc31015b/transformed/bundleLibRuntimeToDirDebug/desugar_graph.bin b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/702c1804f60307855f0492e3dc31015b/transformed/bundleLibRuntimeToDirDebug/desugar_graph.bin
+new file mode 100644
+index 0000000..0b638c6
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/.transforms/702c1804f60307855f0492e3dc31015b/transformed/bundleLibRuntimeToDirDebug/desugar_graph.bin differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml
+new file mode 100644
+index 0000000..d0801d2
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml
+@@ -0,0 +1,13 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.getcapacitor.community.tts" >
++
++    <uses-sdk android:minSdkVersion="23" />
++
++    <queries>
++        <intent>
++            <action android:name="android.intent.action.TTS_SERVICE" />
++        </intent>
++    </queries>
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json
+new file mode 100644
+index 0000000..cee60c4
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json
+@@ -0,0 +1,18 @@
++{
++  "version": 3,
++  "artifactType": {
++    "type": "AAPT_FRIENDLY_MERGED_MANIFESTS",
++    "kind": "Directory"
++  },
++  "applicationId": "com.getcapacitor.community.tts",
++  "variantName": "debug",
++  "elements": [
++    {
++      "type": "SINGLE",
++      "filters": [],
++      "attributes": [],
++      "outputFile": "AndroidManifest.xml"
++    }
++  ],
++  "elementType": "File"
++}
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/aar_main_jar/debug/syncDebugLibJars/classes.jar b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/aar_main_jar/debug/syncDebugLibJars/classes.jar
+new file mode 100644
+index 0000000..870a60c
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/aar_main_jar/debug/syncDebugLibJars/classes.jar differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties
+new file mode 100644
+index 0000000..5c6f284
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties
+@@ -0,0 +1,6 @@
++aarFormatVersion=1.0
++aarMetadataVersion=1.0
++minCompileSdk=35
++minCompileSdkExtension=0
++minAndroidGradlePluginVersion=1.0.0
++coreLibraryDesugaringEnabled=false
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json
+new file mode 100644
+index 0000000..9e26dfe
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json
+@@ -0,0 +1 @@
++{}
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/annotations_typedef_file/debug/extractDebugAnnotations/typedefs.txt b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/annotations_typedef_file/debug/extractDebugAnnotations/typedefs.txt
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar
+new file mode 100644
+index 0000000..2820373
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar
+new file mode 100644
+index 0000000..ecb5c59
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/debug-mergeJavaRes/merge-state b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/debug-mergeJavaRes/merge-state
+new file mode 100644
+index 0000000..1c983fc
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/debug-mergeJavaRes/merge-state differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties
+new file mode 100644
+index 0000000..7b1b250
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties
+@@ -0,0 +1 @@
++#Mon Mar 02 16:06:59 CLST 2026
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml
+new file mode 100644
+index 0000000..ab25db2
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main" generated-set="main$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:!&lt;dir>navigation"><source path="C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="debug$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\debug\res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="debug" generated-set="debug$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:!&lt;dir>navigation"><source path="C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\debug\res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\build\generated\res\resValues\debug"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated" generated-set="generated$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:!&lt;dir>navigation"><source path="C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\build\generated\res\resValues\debug"/></dataSet><mergedItems/></merger>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/mergeDebugAssets/merger.xml b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/mergeDebugAssets/merger.xml
+new file mode 100644
+index 0000000..62febbc
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/mergeDebugAssets/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\assets"/></dataSet><dataSet config="debug" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\debug\assets"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/mergeDebugJniLibFolders/merger.xml b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/mergeDebugJniLibFolders/merger.xml
+new file mode 100644
+index 0000000..e2ee698
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/incremental/mergeDebugJniLibFolders/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\jniLibs"/></dataSet><dataSet config="debug" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\debug\jniLibs"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/SpeakResultCallback.class b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/SpeakResultCallback.class
+new file mode 100644
+index 0000000..44f3402
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/SpeakResultCallback.class differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/TextToSpeech$1.class b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/TextToSpeech$1.class
+new file mode 100644
+index 0000000..db8f7cb
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/TextToSpeech$1.class differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/TextToSpeech.class b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/TextToSpeech.class
+new file mode 100644
+index 0000000..1a7c73a
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/TextToSpeech.class differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/TextToSpeechPlugin$1.class b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/TextToSpeechPlugin$1.class
+new file mode 100644
+index 0000000..b491043
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/TextToSpeechPlugin$1.class differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/TextToSpeechPlugin.class b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/TextToSpeechPlugin.class
+new file mode 100644
+index 0000000..3ab1c35
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/getcapacitor/community/tts/TextToSpeechPlugin.class differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt
+new file mode 100644
+index 0000000..78ac5b8
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt
+@@ -0,0 +1,2 @@
++R_DEF: Internal format may change without notice
++local
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt
+new file mode 100644
+index 0000000..bcd5c4e
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt
+@@ -0,0 +1,17 @@
++1<?xml version="1.0" encoding="utf-8"?>
++2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++3    package="com.getcapacitor.community.tts" >
++4
++5    <uses-sdk android:minSdkVersion="23" />
++6
++7    <queries>
++7-->C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml:2:5-6:15
++8        <intent>
++8-->C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml:3:9-5:18
++9            <action android:name="android.intent.action.TTS_SERVICE" />
++9-->C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml:4:13-72
++9-->C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml:4:21-69
++10        </intent>
++11    </queries>
++12
++13</manifest>
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/merged_java_res/debug/mergeDebugJavaResource/feature-capacitor-community-text-to-speech.jar b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/merged_java_res/debug/mergeDebugJavaResource/feature-capacitor-community-text-to-speech.jar
+new file mode 100644
+index 0000000..15cb0ec
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/merged_java_res/debug/mergeDebugJavaResource/feature-capacitor-community-text-to-speech.jar differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml
+new file mode 100644
+index 0000000..d0801d2
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml
+@@ -0,0 +1,13 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.getcapacitor.community.tts" >
++
++    <uses-sdk android:minSdkVersion="23" />
++
++    <queries>
++        <intent>
++            <action android:name="android.intent.action.TTS_SERVICE" />
++        </intent>
++    </queries>
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json
+new file mode 100644
+index 0000000..0637a08
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json
+@@ -0,0 +1 @@
++[]
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt
+new file mode 100644
+index 0000000..08f4ebe
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt
+@@ -0,0 +1 @@
++0 Warning/Error
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/SpeakResultCallback.class b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/SpeakResultCallback.class
+new file mode 100644
+index 0000000..44f3402
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/SpeakResultCallback.class differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/TextToSpeech$1.class b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/TextToSpeech$1.class
+new file mode 100644
+index 0000000..db8f7cb
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/TextToSpeech$1.class differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/TextToSpeech.class b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/TextToSpeech.class
+new file mode 100644
+index 0000000..1a7c73a
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/TextToSpeech.class differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/TextToSpeechPlugin$1.class b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/TextToSpeechPlugin$1.class
+new file mode 100644
+index 0000000..b491043
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/TextToSpeechPlugin$1.class differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/TextToSpeechPlugin.class b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/TextToSpeechPlugin.class
+new file mode 100644
+index 0000000..3ab1c35
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/getcapacitor/community/tts/TextToSpeechPlugin.class differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar
+new file mode 100644
+index 0000000..81d6ef2
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt
+new file mode 100644
+index 0000000..225295a
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt
+@@ -0,0 +1 @@
++com.getcapacitor.community.tts
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/outputs/aar/capacitor-community-text-to-speech-debug.aar b/node_modules/@capacitor-community/text-to-speech/android/build/outputs/aar/capacitor-community-text-to-speech-debug.aar
+new file mode 100644
+index 0000000..1485dff
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/outputs/aar/capacitor-community-text-to-speech-debug.aar differ
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/outputs/logs/manifest-merger-debug-report.txt b/node_modules/@capacitor-community/text-to-speech/android/build/outputs/logs/manifest-merger-debug-report.txt
+new file mode 100644
+index 0000000..2c3d0c4
+--- /dev/null
++++ b/node_modules/@capacitor-community/text-to-speech/android/build/outputs/logs/manifest-merger-debug-report.txt
+@@ -0,0 +1,24 @@
++-- Merging decision tree log ---
++manifest
++ADDED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml:1:1-7:12
++INJECTED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml:1:1-7:12
++	package
++		INJECTED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml
++	xmlns:android
++		ADDED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml:1:11-69
++queries
++ADDED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml:2:5-6:15
++intent#action:name:android.intent.action.TTS_SERVICE
++ADDED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml:3:9-5:18
++action#android.intent.action.TTS_SERVICE
++ADDED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml:4:13-72
++	android:name
++		ADDED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml:4:21-69
++uses-sdk
++INJECTED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml reason: use-sdk injection requested
++INJECTED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml
++INJECTED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml
++	android:targetSdkVersion
++		INJECTED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml
++	android:minSdkVersion
++		INJECTED from C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@capacitor-community\text-to-speech\android\src\main\AndroidManifest.xml
+diff --git a/node_modules/@capacitor-community/text-to-speech/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin b/node_modules/@capacitor-community/text-to-speech/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin
+new file mode 100644
+index 0000000..7e8c77c
+Binary files /dev/null and b/node_modules/@capacitor-community/text-to-speech/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin differ

@@ -2,6 +2,8 @@
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.*
@@ -22,6 +24,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -96,25 +99,32 @@ fun BiomechanicsScreen(
     }
 
     Scaffold(
+        containerColor = Color.Black,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         "Biomecánica",
                         fontWeight = FontWeight.Black,
-                        style = MaterialTheme.typography.titleMedium,
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver")
+                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Black,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                ),
             )
         },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize().background(Color.Black).padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -213,16 +223,17 @@ private fun LiftSelector(selected: LiftType, onSelect: (LiftType) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Text(
             "LEVANTAMIENTO",
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = 0.8.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = Color.White.copy(alpha = 0.5f),
         )
         Spacer(Modifier.height(8.dp))
 
@@ -1266,7 +1277,8 @@ private fun QuickSummaryRow(solve: BiomechanicalSolve) {
             Card(
                 modifier = Modifier.widthIn(min = 100.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.08f)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
+                border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
             ) {
                 Column(
                     modifier = Modifier.padding(10.dp),
@@ -1274,20 +1286,19 @@ private fun QuickSummaryRow(solve: BiomechanicalSolve) {
                 ) {
                     Text(
                         "${ja.angleDegrees.toInt()}°",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
                         fontWeight = FontWeight.Black,
                         color = color,
                     )
                     Text(
                         ja.joint.replaceFirstChar { it.uppercase() },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                        color = Color.White.copy(alpha = 0.5f),
                         maxLines = 1,
                     )
                     Text(
                         demandLabel(ja.torqueRatio),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = color,
+                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif, color = color),
                         maxLines = 1,
                     )
                 }
@@ -1345,19 +1356,20 @@ private fun BiomechanicsControls(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Tune, null, Modifier.size(15.dp), tint = MaterialTheme.colorScheme.primary)
+            Icon(Icons.Default.Tune, null, Modifier.size(15.dp), tint = Color.White.copy(alpha = 0.5f))
             Spacer(Modifier.width(7.dp))
             Text(
                 "CONTROLES",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 0.8.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.5f),
             )
         }
         Spacer(Modifier.height(12.dp))
@@ -1376,8 +1388,8 @@ private fun BiomechanicsControls(
             } else {
                 Text(
                     "La sentadilla frontal fija la barra en rack alto, así que aquí solo ajustamos base y profundidad.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                    color = Color.White.copy(alpha = 0.7f),
                     lineHeight = 16.sp,
                 )
             }
@@ -1388,8 +1400,8 @@ private fun BiomechanicsControls(
                     LiftType.SQUAT_HIGH_BAR -> "En high-bar, bajar un poco la barra suele repartir más trabajo a cadera y tronco."
                     else -> "La base y la profundidad son las dos variables que más cambian esta variante."
                 },
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                color = Color.White.copy(alpha = 0.7f),
                 lineHeight = 16.sp,
             )
         }
@@ -1416,26 +1428,27 @@ private fun AnthropometryControlsCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Person, null, Modifier.size(15.dp), tint = MaterialTheme.colorScheme.primary)
+            Icon(Icons.Default.Person, null, Modifier.size(15.dp), tint = Color.White.copy(alpha = 0.5f))
             Spacer(Modifier.width(7.dp))
             Text(
                 "ANTROPOMETRÍA AJUSTABLE",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 0.8.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.5f),
             )
         }
         Spacer(Modifier.height(8.dp))
         Text(
             "Estos controles cambian la geometría estimada del stickman. Úsalos para comparar proporciones, no para representar medidas clínicas exactas.",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+            color = Color.White.copy(alpha = 0.7f),
             lineHeight = 16.sp,
         )
         Spacer(Modifier.height(12.dp))
@@ -1459,10 +1472,10 @@ private fun ControlSlider(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.width(108.dp))
+        Text(label, style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Serif, color = Color.White), fontWeight = FontWeight.SemiBold, modifier = Modifier.width(108.dp))
         Slider(value = current, onValueChange = onChange, valueRange = range, steps = steps, modifier = Modifier.weight(1f))
         if (value.isNotEmpty()) {
-            Text(value, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.width(74.dp))
+            Text(value, style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Serif, color = Color.White), fontWeight = FontWeight.Bold, modifier = Modifier.width(74.dp))
         }
     }
 }
@@ -1476,23 +1489,24 @@ private fun JointAnglesCard(solve: BiomechanicalSolve) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Straighten, null, Modifier.size(15.dp), tint = Color(0xFFFFD600))
             Spacer(Modifier.width(7.dp))
-            Text("ÁNGULOS ARTICULARES", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("ÁNGULOS ARTICULARES", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.8.sp, color = Color.White.copy(alpha = 0.5f))
         }
         Spacer(Modifier.height(12.dp))
         solve.jointAngles.forEach { ja ->
             val angleColor = demandColor(ja.torqueRatio)
             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(ja.joint.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Text(ja.joint.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif, color = Color.White), fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("${ja.angleDegrees.toInt()}°", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = angleColor)
-                    Text("${ja.leverType.label} · ${demandLabel(ja.torqueRatio)}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${ja.angleDegrees.toInt()}°", style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Black, color = angleColor)
+                    Text("${ja.leverType.label} · ${demandLabel(ja.torqueRatio)}", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.5f))
                 }
             }
             LinearProgressIndicator(
@@ -1515,14 +1529,15 @@ private fun LeverMechanicsCard(solve: BiomechanicalSolve) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Architecture, null, Modifier.size(15.dp), tint = Color(0xFF1E88E5))
             Spacer(Modifier.width(7.dp))
-            Text("MECÁNICA DE PALANCAS", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("MECÁNICA DE PALANCAS", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.8.sp, color = Color.White.copy(alpha = 0.5f))
         }
         Spacer(Modifier.height(12.dp))
         solve.leverClassification.forEach { (joint, lever) ->
@@ -1535,15 +1550,15 @@ private fun LeverMechanicsCard(solve: BiomechanicalSolve) {
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(shape = RoundedCornerShape(6.dp), color = leverColor.copy(alpha = 0.12f)) {
-                        Text(lever.label, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = leverColor)
+                        Text(lever.label, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp), style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = leverColor)
                     }
                     Spacer(Modifier.width(8.dp))
-                    Text(joint.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Text(joint.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif, color = Color.White), fontWeight = FontWeight.SemiBold)
                 }
                 Spacer(Modifier.height(4.dp))
-                Text(lever.description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 16.sp)
+                Text(lever.description, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.7f), lineHeight = 16.sp)
             }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp), color = Color(0xFF1E1E1E))
         }
     }
 }
@@ -1557,20 +1572,21 @@ private fun TorqueAnalysisCard(solve: BiomechanicalSolve) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Speed, null, Modifier.size(15.dp), tint = Color(0xFFFF7043))
             Spacer(Modifier.width(7.dp))
-            Text("COMPARACIÓN INTERNA DE TORQUE", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("COMPARACIÓN INTERNA DE TORQUE", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.8.sp, color = Color.White.copy(alpha = 0.5f))
         }
         Spacer(Modifier.height(6.dp))
         Text(
             "Estos valores comparan la postura actual consigo misma. Sirven para ver dónde cae la mayor demanda relativa, no para etiquetar riesgo absoluto.",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+            color = Color.White.copy(alpha = 0.7f),
             lineHeight = 16.sp,
         )
         Spacer(Modifier.height(12.dp))
@@ -1580,8 +1596,8 @@ private fun TorqueAnalysisCard(solve: BiomechanicalSolve) {
             val torqueColor = demandColor(ratio)
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(joint.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                    Text("${"%.0f".format(torqueNm)} Nm · ${demandLabel(ratio)}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black, color = torqueColor)
+                    Text(joint.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif, color = Color.White), fontWeight = FontWeight.SemiBold)
+                    Text("${"%.0f".format(torqueNm)} Nm · ${demandLabel(ratio)}", style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Black, color = torqueColor)
                 }
                 Spacer(Modifier.height(4.dp))
                 LinearProgressIndicator(
@@ -1592,15 +1608,15 @@ private fun TorqueAnalysisCard(solve: BiomechanicalSolve) {
             }
         }
         Spacer(Modifier.height(12.dp))
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        HorizontalDivider(color = Color(0xFF1E1E1E))
         Spacer(Modifier.height(12.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column {
-                Text("Demanda Relativa", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                Text("Comparación combinada de torque y ángulos dentro de esta postura", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Demanda Relativa", style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Serif, color = Color.White), fontWeight = FontWeight.Bold)
+                Text("Comparación combinada de torque y ángulos dentro de esta postura", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.5f))
             }
             val diffColor = demandColor(solve.overallDifficulty)
-            Text("${"%.0f".format(solve.overallDifficulty * 100)}%", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, color = diffColor)
+            Text("${"%.0f".format(solve.overallDifficulty * 100)}%", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Black, color = diffColor)
         }
     }
 }
@@ -1614,18 +1630,19 @@ private fun AnthropometryCard(anthro: Anthropometry) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Person, null, Modifier.size(15.dp), tint = MaterialTheme.colorScheme.primary)
+            Icon(Icons.Default.Person, null, Modifier.size(15.dp), tint = Color.White.copy(alpha = 0.5f))
             Spacer(Modifier.width(7.dp))
-            Text("RESUMEN ANTROPOMÉTRICO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("RESUMEN ANTROPOMÉTRICO", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.ExtraBold, letterSpacing = 0.8.sp, color = Color.White.copy(alpha = 0.5f))
         }
         Spacer(Modifier.height(8.dp))
-        Surface(shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)) {
-            Text(anthro.anthropometricProfile, modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+        Surface(shape = RoundedCornerShape(10.dp), color = Color(0xFF1E88E5).copy(alpha = 0.08f)) {
+            Text(anthro.anthropometricProfile, modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.SemiBold, color = Color(0xFF1E88E5))
         }
         Spacer(Modifier.height(12.dp))
         val measurements = listOf(
@@ -1642,15 +1659,15 @@ private fun AnthropometryCard(anthro: Anthropometry) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     row.forEach { (label, value) ->
                         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                            Text("$label: ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(value, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                            Text("$label: ", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.5f))
+                            Text(value, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif, color = Color.White), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
         }
         Spacer(Modifier.height(8.dp))
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        HorizontalDivider(color = Color(0xFF1E1E1E))
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             AnthroPropItem("Fémur/Torso", "%.2f".format(anthro.femurRatio))
@@ -1665,32 +1682,33 @@ private fun BiomechanicsDisclaimerCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Info, null, Modifier.size(15.dp), tint = MaterialTheme.colorScheme.primary)
+            Icon(Icons.Default.Info, null, Modifier.size(15.dp), tint = Color.White.copy(alpha = 0.5f))
             Spacer(Modifier.width(7.dp))
             Text(
                 "CÓMO LEER ESTA PANTALLA",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 0.8.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.5f),
             )
         }
         Text(
             "Palitos Biomecánicos es una herramienta educativa. Te ayuda a comparar variantes, posiciones y proporciones dentro del mismo escenario.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+            color = Color.White.copy(alpha = 0.7f),
             lineHeight = 18.sp,
         )
         Text(
             "No sustituye evaluación clínica, videoanálisis completo ni prescripción individual. Si ves una zona \"alta\", léela como mayor demanda relativa de la postura actual.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+            color = Color.White.copy(alpha = 0.7f),
             lineHeight = 18.sp,
         )
     }
@@ -1699,8 +1717,8 @@ private fun BiomechanicsDisclaimerCard() {
 @Composable
 private fun AnthroPropItem(label: String, value: String) {
     Column {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.5f))
+        Text(value, style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Serif, color = Color.White), fontWeight = FontWeight.Bold)
     }
 }
 

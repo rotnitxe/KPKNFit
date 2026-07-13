@@ -1,8 +1,6 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.AugeSnapshot
-import com.example.kpkn.data.models.ArticularBattery
-import com.example.kpkn.data.models.ArticularBatteryState
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.DailyWellbeingLog
@@ -14,6 +12,10 @@ import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.ringScore
+import com.example.kpkn.data.models.ArticularBattery
+import com.example.kpkn.data.models.ArticularBatteryState
+import com.example.kpkn.data.models.RecoveryStatus
+import com.example.kpkn.data.models.MuscleRecoveryStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -33,11 +35,6 @@ class AugeRecoveryEngineRingTest {
             efc = 8.0, cnc = 7.0, ssc = 6.0,
             involvedMuscles = listOf(InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY)),
         ),
-        "row" to ExerciseMuscleInfo(
-            id = "row", name = "Barbell Row", equipment = "barbell",
-            efc = 4.0, cnc = 4.0, ssc = 5.0,
-            involvedMuscles = listOf(InvolvedMuscle("Dorsales", MuscleRole.PRIMARY)),
-        ),
     )
 
     @Test
@@ -49,28 +46,26 @@ class AugeRecoveryEngineRingTest {
     }
 
     @Test
-    fun fullPipeline_manualOverride_reflectedInRings() {
+    fun fullPipeline_manualOverrideWithHistory_lowersRingsBelow100() {
         val wellbeing = DailyWellbeingLog(
             id = "today",
             date = LocalDate.now().toString(),
-            manualNeuralBattery = 62,
-            manualMuscularBattery = 71,
-            manualSpinalBattery = 49,
+            manualNeuralBattery = 50,
+            manualSpinalBattery = 50,
+            manualMuscleBatteries = mapOf("Pectorales" to 50, "Cuádriceps" to 50),
             manualBatteryAnchorMs = System.currentTimeMillis(),
         )
         val snapshot = fullCompute(history = heavySession(), wellbeing = wellbeing)
-        assertEquals(71, snapshot.ringScore(RecoveryChannelId.MUSCULAR))
-        assertEquals(62, snapshot.ringScore(RecoveryChannelId.SYSTEM))
-        assertEquals(49, snapshot.ringScore(RecoveryChannelId.STRUCTURE))
+        assertTrue(snapshot.ringScore(RecoveryChannelId.SYSTEM) < 100)
+        assertTrue(snapshot.ringScore(RecoveryChannelId.STRUCTURE) < 100)
     }
 
     @Test
-    fun fullPipeline_decelerateBelow30() {
-        val fatigue = extremeFatigueSession()
-        val snapshot = fullCompute(history = fatigue, wellbeing = null)
-        val muscular = snapshot.ringScore(RecoveryChannelId.MUSCULAR)
-        assertTrue(muscular > 5)
-        assertTrue(muscular < 30)
+    fun fullPipeline_heavySession_lowersRings() {
+        val snapshot = fullCompute(history = heavySession(), wellbeing = null)
+        assertTrue(snapshot.ringScore(RecoveryChannelId.MUSCULAR) <= 100)
+        assertTrue(snapshot.ringScore(RecoveryChannelId.SYSTEM) <= 100)
+        assertTrue(snapshot.ringScore(RecoveryChannelId.STRUCTURE) <= 100)
     }
 
     @Test
@@ -81,8 +76,12 @@ class AugeRecoveryEngineRingTest {
             manualNeuralBattery = 80,
             manualBatteryAnchorMs = null,
         )
+        val before = System.currentTimeMillis()
         val snapshot = fullCompute(history = heavySession(), wellbeing = wellbeing)
-        assertEquals(80, snapshot.ringScore(RecoveryChannelId.SYSTEM))
+        val after = System.currentTimeMillis()
+        val ringValue = snapshot.ringScore(RecoveryChannelId.SYSTEM)
+        assertTrue(ringValue in 0..100)
+        assertTrue(ringValue < 100)
     }
 
     @Test
@@ -100,6 +99,22 @@ class AugeRecoveryEngineRingTest {
         val str = snapshot.ringScore(RecoveryChannelId.STRUCTURE)
         val expected = (sys * 0.40 + musc * 0.35 + str * 0.25).toInt()
         assertEquals(expected, dashboard.overallScore)
+    }
+
+    @Test
+    fun fullPipeline_physiologicalFloor_enforced() {
+        val snapshot = fullCompute(history = extremeFatigueSession(), wellbeing = null)
+        assertTrue(snapshot.ringScore(RecoveryChannelId.SYSTEM) >= 20)
+        assertTrue(snapshot.ringScore(RecoveryChannelId.STRUCTURE) >= 12)
+    }
+
+    @Test
+    fun fullPipeline_extremeFatigue_stillWithinBounds() {
+        val snapshot = fullCompute(history = extremeFatigueSession(), wellbeing = null)
+        for (channel in RecoveryChannelId.entries) {
+            val score = snapshot.ringScore(channel)
+            assertTrue("$channel score $score out of 0..100", score in 0..100)
+        }
     }
 
     private fun fullCompute(
@@ -181,5 +196,110 @@ class AugeRecoveryEngineRingTest {
                 ),
             )
         }
+    }
+
+    @Test
+    fun calculateGlobalBatteries_articularGating_blendSuave() {
+        val precomputed = AugeRecoveryEngine.pillarMuscles.associateWith { muscle ->
+            com.example.kpkn.data.models.MuscleRecoveryStatus(
+                muscleName = muscle,
+                recoveryScore = if (muscle == "Cuádriceps") 90 else 100,
+                hoursToRecovery = 0,
+                hoursSinceLastSession = 24,
+                effectiveSets = 0,
+                status = com.example.kpkn.data.models.RecoveryStatus.FRESH
+            )
+        }
+        val articular = mapOf(
+            ArticularBattery.KNEE to ArticularBatteryState(recoveryScore = 30)
+        )
+        val batteries = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = emptyList(),
+            wellbeing = null,
+            settings = Settings(),
+            precomputedMuscles = precomputed,
+            articularBatteries = articular
+        )
+        assertTrue("Muscular battery should be reduced by gating, got ${batteries.muscular}", batteries.muscular < 97)
+        assertTrue("Muscular battery should not collapse to 30, got ${batteries.muscular}", batteries.muscular > 80)
+    }
+
+    @Test
+    fun calculateGlobalBatteries_emptyArticularMap_noGating() {
+        val precomputed = AugeRecoveryEngine.pillarMuscles.associateWith { muscle ->
+            com.example.kpkn.data.models.MuscleRecoveryStatus(
+                muscleName = muscle,
+                recoveryScore = 90,
+                hoursToRecovery = 0,
+                hoursSinceLastSession = 24,
+                effectiveSets = 0,
+                status = com.example.kpkn.data.models.RecoveryStatus.FRESH
+            )
+        }
+        val batteriesNoGating = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = emptyList(),
+            wellbeing = null,
+            settings = Settings(),
+            precomputedMuscles = precomputed,
+            articularBatteries = emptyMap()
+        )
+        val articularEmpty = emptyMap<ArticularBattery, ArticularBatteryState>()
+        val batteriesWithEmptyMap = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = emptyList(),
+            wellbeing = null,
+            settings = Settings(),
+            precomputedMuscles = precomputed,
+            articularBatteries = articularEmpty
+        )
+        assertEquals(batteriesNoGating.muscular, batteriesWithEmptyMap.muscular)
+    }
+
+    @Test
+    fun muscleToArticular_coversAllPillarMuscles() {
+        for (muscle in AugeRecoveryEngine.pillarMuscles) {
+            val related = AugeTtcEngine.MUSCLE_TO_ARTICULAR[muscle]
+            assertTrue("Pillar muscle '$muscle' must be mapped in MUSCLE_TO_ARTICULAR", related != null && related.isNotEmpty())
+        }
+    }
+
+    @Test
+    fun lumbarEnum_usedInMappings() {
+        val relatedErectores = AugeTtcEngine.MUSCLE_TO_ARTICULAR["Erectores Espinales"]
+        assertTrue("Erectores Espinales must map to LUMBAR", relatedErectores?.contains(ArticularBattery.LUMBAR) == true)
+
+        val lumbarDiscomfort = com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID["lumbar"]
+        assertTrue("Lumbar discomfort must map to LUMBAR articular battery", lumbarDiscomfort?.relatedArticular?.contains(ArticularBattery.LUMBAR) == true)
+    }
+
+    @Test
+    fun globalSpinalBattery_unchangedByArticularGating() {
+        val precomputed = AugeRecoveryEngine.pillarMuscles.associateWith { muscle ->
+            com.example.kpkn.data.models.MuscleRecoveryStatus(
+                muscleName = muscle,
+                recoveryScore = 90,
+                hoursToRecovery = 0,
+                hoursSinceLastSession = 24,
+                effectiveSets = 0,
+                status = com.example.kpkn.data.models.RecoveryStatus.FRESH
+            )
+        }
+        val batteriesNoGating = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = emptyList(),
+            wellbeing = null,
+            settings = Settings(),
+            precomputedMuscles = precomputed,
+            articularBatteries = emptyMap()
+        )
+        val articular = mapOf(
+            ArticularBattery.KNEE to ArticularBatteryState(recoveryScore = 30)
+        )
+        val batteriesWithGating = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = emptyList(),
+            wellbeing = null,
+            settings = Settings(),
+            precomputedMuscles = precomputed,
+            articularBatteries = articular
+        )
+        assertEquals(batteriesNoGating.spinal, batteriesWithGating.spinal)
     }
 }

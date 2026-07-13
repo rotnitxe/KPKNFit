@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,6 +60,7 @@ fun MovementPatternDetailScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        containerColor = Color.Black,
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
@@ -65,6 +69,8 @@ fun MovementPatternDetailScreen(
                         Text(
                             text = pattern.name,
                             fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White,
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             forceTypes.forEach { ft ->
@@ -75,7 +81,7 @@ fun MovementPatternDetailScreen(
                                     Text(
                                         ft,
                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                        style = MaterialTheme.typography.labelSmall,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF43A047),
                                     )
@@ -86,15 +92,21 @@ fun MovementPatternDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver")
+                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = Color.Black,
+                    scrolledContainerColor = Color.Black,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                ),
                 scrollBehavior = scrollBehavior
             )
         },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize().background(Color.Black).padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -102,9 +114,11 @@ fun MovementPatternDetailScreen(
             item {
                 Text(
                     pattern.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 20.sp,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White.copy(alpha = 0.9f),
+                    ),
+                    lineHeight = 22.sp,
                 )
                 Spacer(Modifier.height(8.dp))
             }
@@ -138,16 +152,17 @@ fun MovementPatternDetailScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFF121212))
+                            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
                             .padding(16.dp),
                     ) {
                         Text(
                             "CADENAS",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                             fontWeight = FontWeight.ExtraBold,
                             letterSpacing = (0.1f).sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color.White.copy(alpha = 0.5f),
                         )
                         Spacer(Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -238,14 +253,15 @@ private fun PatternEntitiesCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, null, Modifier.size(14.dp), tint = color)
             Spacer(Modifier.width(6.dp))
-            Text(title, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = (0.1f).sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(title, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.ExtraBold, letterSpacing = (0.1f).sp, color = Color.White.copy(alpha = 0.5f))
         }
         Spacer(Modifier.height(8.dp))
         entities.forEach { (id, name) ->
@@ -255,7 +271,7 @@ private fun PatternEntitiesCard(
             ) {
                 Surface(Modifier.size(8.dp), RoundedCornerShape(50), color) {}
                 Spacer(Modifier.width(10.dp))
-                Text(name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Text(name, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif, color = Color.White), fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                 Icon(Icons.Default.ChevronRight, null, Modifier.size(16.dp), tint = color.copy(alpha = 0.4f))
             }
         }
@@ -285,6 +301,7 @@ fun KineticChainDetailScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        containerColor = Color.Black,
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
@@ -293,6 +310,8 @@ fun KineticChainDetailScreen(
                         Text(
                             text = chain.name,
                             fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White,
                         )
                         Surface(
                             shape = RoundedCornerShape(8.dp),
@@ -301,7 +320,7 @@ fun KineticChainDetailScreen(
                             Text(
                                 "Cadena Cinética",
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF1E88E5),
                             )
@@ -310,24 +329,32 @@ fun KineticChainDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver")
+                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = Color.Black,
+                    scrolledContainerColor = Color.Black,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                ),
                 scrollBehavior = scrollBehavior
             )
         },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize().background(Color.Black).padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
                 Text(
                     chain.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 20.sp,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White.copy(alpha = 0.9f),
+                    ),
+                    lineHeight = 22.sp,
                 )
                 Spacer(Modifier.height(8.dp))
             }
@@ -337,23 +364,26 @@ fun KineticChainDetailScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color(0xFFE8F5E9))
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFF121212))
+                        .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
                         .padding(16.dp),
                 ) {
                     Text(
                         "IMPORTANCIA",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = (0.1f).sp,
-                        color = Color(0xFF2E7D32),
+                        color = Color.White.copy(alpha = 0.5f),
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
                         chain.importance,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF2E7D32),
-                        lineHeight = 20.sp,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White.copy(alpha = 0.7f),
+                        ),
+                        lineHeight = 22.sp,
                     )
                 }
             }
@@ -364,8 +394,9 @@ fun KineticChainDetailScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFF121212))
+                            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
                             .padding(16.dp),
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -373,10 +404,10 @@ fun KineticChainDetailScreen(
                             Spacer(Modifier.width(6.dp))
                             Text(
                                 "MÚSCULOS DE LA CADENA",
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
                                 fontWeight = FontWeight.ExtraBold,
                                 letterSpacing = (0.1f).sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = Color.White.copy(alpha = 0.5f),
                             )
                         }
                         Spacer(Modifier.height(8.dp))
@@ -410,14 +441,14 @@ fun KineticChainDetailScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         displayName,
-                                        style = MaterialTheme.typography.bodyMedium,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif, color = Color.White),
                                         fontWeight = FontWeight.SemiBold,
                                     )
                                     if (matchingMuscle != null) {
                                         Text(
                                             matchingMuscle.description.take(80) + if (matchingMuscle.description.length > 80) "..." else "",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                                            color = Color.White.copy(alpha = 0.5f),
                                             maxLines = 2,
                                         )
                                     }

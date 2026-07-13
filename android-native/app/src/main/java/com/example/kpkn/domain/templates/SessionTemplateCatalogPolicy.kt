@@ -137,9 +137,15 @@ object SessionTemplateCatalogPolicy {
             template.splitIds.isEmpty() && template.focusCategory != null && template.focusCategory in focusCategoriesFor(dayLabel)
         }
 
-        return (exact + sameSplitArchetype + sharedArchetype + independentArchetype)
-            .distinctBy { it.id }
-            .sortedBy { it.sortOrder }
+        val exactMapped = exact.map { it to 1 }
+        val sameSplitMapped = sameSplitArchetype.map { it to 2 }
+        val sharedMapped = sharedArchetype.map { it to 3 }
+        val independentMapped = independentArchetype.map { it to 4 }
+
+        return (exactMapped + sameSplitMapped + sharedMapped + independentMapped)
+            .distinctBy { it.first.id }
+            .sortedWith(compareBy<Pair<SessionTemplate, Int>> { it.second }.thenBy { it.first.sortOrder })
+            .map { it.first }
     }
 
     fun calculateSessionMuscleVolume(

@@ -1,0 +1,427 @@
+npm warn Unknown project config "sharp_binary_host". This will stop working in the next major version of npm.
+npm warn Unknown project config "sharp_libvips_binary_host". This will stop working in the next major version of npm.
+
+> yourprime-v2@1.4.0 mobile:test
+> npm --workspace @kpkn/mobile run test
+
+npm warn Unknown env config "sharp-binary-host". This will stop working in the next major version of npm.
+npm warn Unknown env config "sharp-libvips-binary-host". This will stop working in the next major version of npm.
+npm warn Unknown project config "sharp_binary_host". This will stop working in the next major version of npm.
+npm warn Unknown project config "sharp_libvips_binary_host". This will stop working in the next major version of npm.
+
+> @kpkn/mobile@0.0.1 test
+> jest
+
+PASS src/__tests__/services/recoveryFatigueParity.test.ts
+PASS src/__tests__/stores/bootstrapStore.test.ts
+PASS src/__tests__/stores/cutoverStore.test.ts
+PASS src/services/__tests__/mobileDomainStateService.test.ts
+PASS src/__tests__/migration/hydrationService.test.ts
+  ÔùÅ Console
+
+    console.error
+      [MigrationHydration] Error rehidratando nutrici├│n: Database connection failed
+
+      241 |   } catch (error) {
+      242 |     const msg = `Error rehidratando nutrici├│n: ${error instanceof Error ? error.message : 'desconocido'}`;
+    > 243 |     console.error('[MigrationHydration]', msg);
+          |             ^
+      244 |     errors.push(msg);
+      245 |   }
+      246 |
+
+      at error (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:243:13)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:204:51)
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/__tests__/migration/hydrationService.test.ts:182:54)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+    console.error
+      [MigrationHydration] Error rehidratando nutrici├│n: desconocido
+
+      241 |   } catch (error) {
+      242 |     const msg = `Error rehidratando nutrici├│n: ${error instanceof Error ? error.message : 'desconocido'}`;
+    > 243 |     console.error('[MigrationHydration]', msg);
+          |             ^
+      244 |     errors.push(msg);
+      245 |   }
+      246 |
+
+      at error (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:243:13)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:204:51)
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/__tests__/migration/hydrationService.test.ts:192:54)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+    console.error
+      [MigrationHydration] Error rehidratando settings: desconocido
+
+      254 |   } catch (error) {
+      255 |     const msg = `Error rehidratando settings: ${error instanceof Error ? error.message : 'desconocido'}`;
+    > 256 |     console.error('[MigrationHydration]', msg);
+          |             ^
+      257 |     errors.push(msg);
+      258 |   }
+      259 |
+
+      at error (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:256:13)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:204:51)
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/__tests__/migration/hydrationService.test.ts:192:54)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+    console.error
+      [MigrationHydration] Error rehidratando wellbeing: desconocido
+
+      274 |   } catch (error) {
+      275 |     const msg = `Error rehidratando wellbeing: ${error instanceof Error ? error.message : 'desconocido'}`;
+    > 276 |     console.error('[MigrationHydration]', msg);
+          |             ^
+      277 |     errors.push(msg);
+      278 |   }
+      279 |
+
+      at error (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:276:13)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:204:51)
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/__tests__/migration/hydrationService.test.ts:192:54)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+    console.error
+      [MigrationHydration] Error rehidratando body: desconocido
+
+      286 |   } catch (error) {
+      287 |     const msg = `Error rehidratando body: ${error instanceof Error ? error.message : 'desconocido'}`;
+    > 288 |     console.error('[MigrationHydration]', msg);
+          |             ^
+      289 |     errors.push(msg);
+      290 |   }
+      291 |
+
+      at error (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:288:13)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:204:51)
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/__tests__/migration/hydrationService.test.ts:192:54)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+    console.error
+      [MigrationHydration] Error rehidratando exercise: desconocido
+
+      429 |       } catch (error) {
+      430 |         const msg = `Error rehidratando exercise: ${error instanceof Error ? error.message : 'desconocido'}`;
+    > 431 |         console.error('[MigrationHydration]', msg);
+          |                 ^
+      432 |         errors.push(msg);
+      433 |       }
+      434 |
+
+      at error (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:431:17)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:204:51)
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/__tests__/migration/hydrationService.test.ts:192:54)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+    console.error
+      [MigrationHydration] Error rehidratando programs: desconocido
+
+      441 |   } catch (error) {
+      442 |     const msg = `Error rehidratando programs: ${error instanceof Error ? error.message : 'desconocido'}`;
+    > 443 |     console.error('[MigrationHydration]', msg);
+          |             ^
+      444 |     errors.push(msg);
+      445 |   }
+      446 |
+
+      at error (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:443:13)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationHydrationService.ts:204:51)
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/__tests__/migration/hydrationService.test.ts:192:54)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+PASS src/__tests__/nutrition/nutritionCrud.test.ts
+PASS src/__tests__/theme/themeContext.test.tsx
+PASS src/__tests__/migration/validateSnapshot.test.ts
+PASS src/__tests__/services/foodIndexService.test.ts
+PASS src/__tests__/stores/programStore.test.ts
+PASS src/__tests__/navigation/navigationRef.test.ts
+PASS src/__tests__/services/nutritionEntryBuilders.test.ts
+PASS src/__tests__/migration/importService.test.ts
+  ÔùÅ Console
+
+    console.error
+      [MigrationImport] Snapshot no parseable: El snapshot no es JSON v├ílido: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+
+      45 |   } catch (parseError) {
+      46 |     const reason = `El snapshot no es JSON v├ílido: ${parseError instanceof Error ? parseError.message : 'error de parseo'}`;
+    > 47 |     console.error('[MigrationImport] Snapshot no parseable:', reason);
+         |             ^
+      48 |     return {
+      49 |       source: 'empty',
+      50 |       recordCounts: null,
+
+      at error (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationImportService.ts:47:13)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+    console.error
+      [MigrationImport] Snapshot inv├ílido, importaci├│n abortada: Versi├│n de schema incompatible: esperada 1, recibida 99.
+
+      55 |   const validation = validateMigrationSnapshot(parsed);
+      56 |   if (validation.valid === false) {
+    > 57 |     console.error('[MigrationImport] Snapshot inv├ílido, importaci├│n abortada:', validation.reason);
+         |             ^
+      58 |     return {
+      59 |       source: 'empty',
+      60 |       recordCounts: null,
+
+      at error (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationImportService.ts:57:13)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+    console.error
+      [MigrationImport] Snapshot inv├ílido, importaci├│n abortada: El campo integrity es inv├ílido o est├í incompleto. El snapshot puede estar corrupto.
+
+      55 |   const validation = validateMigrationSnapshot(parsed);
+      56 |   if (validation.valid === false) {
+    > 57 |     console.error('[MigrationImport] Snapshot inv├ílido, importaci├│n abortada:', validation.reason);
+         |             ^
+      58 |     return {
+      59 |       source: 'empty',
+      60 |       recordCounts: null,
+
+      at error (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/migrationImportService.ts:57:13)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+PASS src/__tests__/screens/activeSessionMetrics.test.ts
+PASS src/__tests__/services/nutritionAnalyzer.test.ts
+  ÔùÅ Console
+
+    console.warn
+      Fallo el runtime local de nutricion, se usa fallback. Error: Native failure
+          at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\apps\mobile\src\__tests__\services\nutritionAnalyzer.test.ts:70:19)
+          at Generator.next (<anonymous>)
+          at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+          at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+          at C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@babel\runtime\helpers\asyncToGenerator.js:22:7
+          at new Promise (<anonymous>)
+          at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@babel\runtime\helpers\asyncToGenerator.js:14:12)
+          at Promise.then.completed (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at _runTest (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\run.js:121:9)
+          at run (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-runner\build\testWorker.js:106:12)
+
+      13 |     return result;
+      14 |   } catch (error) {
+    > 15 |     console.warn('Fallo el runtime local de nutricion, se usa fallback.', error);
+         |             ^
+      16 |     const fallback = analyzeNutritionDescriptionLocally(request);
+      17 |     useLocalAiDiagnosticsStore.getState().recordRun(
+      18 |       {
+
+      at warn (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/nutritionAnalyzer.ts:15:13)
+          at Generator.throw (<anonymous>)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _throw (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:20:9)
+
+    console.warn
+      Fallo el runtime local de nutricion, se usa fallback. String error
+
+      13 |     return result;
+      14 |   } catch (error) {
+    > 15 |     console.warn('Fallo el runtime local de nutricion, se usa fallback.', error);
+         |             ^
+      16 |     const fallback = analyzeNutritionDescriptionLocally(request);
+      17 |     useLocalAiDiagnosticsStore.getState().recordRun(
+      18 |       {
+
+      at warn (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/nutritionAnalyzer.ts:15:13)
+          at Generator.throw (<anonymous>)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _throw (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:20:9)
+
+PASS src/__tests__/stores/workoutStore.test.ts
+  ÔùÅ Console
+
+    console.log
+      Setting state after finishActiveSession
+
+      at Object.log (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/stores/workoutStore.ts:292:9)
+
+    console.log
+      Updating state with {
+        status: 'ready',
+        overview: {
+          activeProgramId: 'prog-1',
+          activeProgramName: 'Test Program',
+          activeProgramStatus: 'active',
+          currentWeekId: 'week-1',
+          todaySession: {
+            id: 'session-1',
+            name: 'Push Day',
+            dayOfWeek: 1,
+            exerciseCount: 5,
+            setCount: 20,
+            focus: 'chest'
+          },
+          nextSession: null,
+          nextSessionOffsetDays: null,
+          upcomingEvent: null,
+          recentLogs: [],
+          plannedSetsThisWeek: 60,
+          completedSetsThisWeek: 20,
+          weeklySessionCount: 3,
+          hasWorkoutLoggedToday: true,
+          battery: null
+        },
+        reminderSettings: {
+          remindersEnabled: false,
+          reminderTime: null,
+          mealRemindersEnabled: false,
+          breakfastReminderTime: '08:00',
+          lunchReminderTime: '13:00',
+          dinnerReminderTime: '20:00',
+          missedWorkoutReminderEnabled: false,
+          missedWorkoutReminderTime: '21:00',
+          augeBatteryReminderEnabled: false,
+          augeBatteryReminderThreshold: 30,
+          augeBatteryReminderTime: '09:00',
+          eventRemindersEnabled: false,
+          startWeekOn: 1
+        },
+        loggingState: 'idle',
+        errorMessage: null
+      }
+
+      at Object.log (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/stores/workoutStore.ts:293:9)
+
+PASS src/services/__tests__/backgroundSyncTask.test.ts
+PASS src/__tests__/modules/localAi.test.ts
+PASS src/__tests__/stores/localAiDiagnosticsStore.test.ts
+PASS src/__tests__/stores/nutritionStore.test.ts
+PASS src/__tests__/stores/exerciseStore.test.ts
+PASS src/__tests__/services/wikiMobilityService.test.ts
+PASS src/services/__tests__/computeWorkerService.test.ts
+PASS src/__tests__/stores/cutoverReadiness.test.ts
+PASS src/__tests__/services/coachChatService.test.ts
+PASS src/services/__tests__/aiService.test.ts
+PASS src/services/__tests__/widgetSyncService.test.ts
+  ÔùÅ Console
+
+    console.warn
+      [widgets] No se pudo sincronizar el widget. Error: Sync failed
+          at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\apps\mobile\src\services\__tests__\widgetSyncService.test.ts:83:74)
+          at Generator.next (<anonymous>)
+          at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+          at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+          at C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@babel\runtime\helpers\asyncToGenerator.js:22:7
+          at new Promise (<anonymous>)
+          at Object.<anonymous> (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\@babel\runtime\helpers\asyncToGenerator.js:14:12)
+          at Promise.then.completed (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at _runTest (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\run.js:121:9)
+          at run (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (C:\Users\valen\Downloads\kpkn-fit-(beta-test)\node_modules\jest-runner\build\testWorker.js:106:12)
+
+       99 |     const reason = error instanceof Error ? error.message : 'widget-sync-failed';
+      100 |     await markWidgetStateStale(reason, source);
+    > 101 |     console.warn('[widgets] No se pudo sincronizar el widget.', error);
+          |             ^
+      102 |   }
+      103 | }
+      104 |
+
+      at warn (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../apps/mobile/src/services/widgetSyncService.ts:101:13)
+      at asyncGeneratorStep (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (C:\Users\valen\Downloads\kpkn-fit-(beta-test)../../../../../../node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+PASS src/__tests__/stores/bodyStore.test.ts
+PASS src/__tests__/services/activeSessionPersistenceService.test.ts
+PASS src/services/__tests__/hapticsService.test.ts
+PASS src/services/__tests__/mobileNotificationService.test.ts
+PASS src/__tests__/utils/homeHelpers.test.ts
+PASS src/__tests__/stores/mealTemplateStore.test.ts
+PASS src/__tests__/stores/nutritionStore.plan.test.ts
+PASS src/__tests__/utils/workoutSession.test.ts
+PASS src/__tests__/services/ringsMetrics.test.ts
+PASS src/__tests__/screens/sessionEditorMutations.test.ts
+PASS src/__tests__/stores/settingsStore.test.ts
+PASS src/__tests__/services/localAiSmokeTest.test.ts
+PASS src/__tests__/navigation/kpknBottomBar.test.tsx
+PASS src/__tests__/components/nutritionCards.test.tsx
+PASS src/__tests__/components/goalProjection.test.tsx
+PASS src/__tests__/components/coachSecondary.test.tsx
+PASS src/__tests__/components/toggleSwitch.test.tsx
+PASS __tests__/App.test.tsx
+PASS src/__tests__/screens/wikiSecondaryViews.test.tsx
+PASS src/__tests__/screens/profileSurface.test.tsx
+PASS src/__tests__/screens/ringsSurface.test.tsx
+PASS src/__tests__/screens/settingsScreen.test.tsx
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
+
+Test Suites: 49 passed, 49 total
+Tests:       257 passed, 257 total
+Snapshots:   0 total
+Time:        7.068 s
+Ran all test suites.

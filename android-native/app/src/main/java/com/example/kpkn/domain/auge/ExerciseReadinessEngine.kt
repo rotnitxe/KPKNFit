@@ -39,6 +39,7 @@ object ExerciseReadinessEngine {
         perMuscle: Map<String, MuscleRecoveryStatus>,
         averageErm: Double? = null,
         unresolvedDiscomfortIds: List<String> = emptyList(),
+        articularBatteries: Map<ArticularBattery, ArticularBatteryState> = emptyMap(),
     ): ExerciseReadiness? {
         val dbInfo = EXERCISE_DATABASE_BY_ID[exercise.exerciseDbId?.lowercase()]
             ?: EXERCISE_DATABASE_BY_ID[exercise.exerciseId?.lowercase()]
@@ -67,8 +68,36 @@ object ExerciseReadinessEngine {
             100
         }
 
+        // NUEVO Step C' — Articular component (limiting por ejercicio)
+        val (artScoreSum, artWeightSum) = involvedMuscles.fold(0.0 to 0.0) { (s, w), involved ->
+            val id = getAugeMuscleDisplayId(involved.muscle, involved.emphasis) ?: return@fold s to w
+            val relatedArtic = AugeTtcEngine.MUSCLE_TO_ARTICULAR[id].orEmpty()
+            if (relatedArtic.isEmpty()) return@fold s to w
+            val roleWeight = FATIGUE_ROLE_MULTIPLIERS[involved.role] ?: return@fold s to w
+            val avgScore = relatedArtic
+                .mapNotNull { articularBatteries[it]?.recoveryScore }
+                .takeIf { it.isNotEmpty() }
+                ?.average()
+                ?: return@fold s to w
+            (s + avgScore * roleWeight) to (w + roleWeight)
+        }
+        val articularComponent = if (artWeightSum > 0.0) {
+            (artScoreSum / artWeightSum).roundToInt().coerceIn(0, 100)
+        } else 100
+
+        // LIMITING principle: structural = min(muscular, articular)
+        val structuralComponent = minOf(muscularComponent, articularComponent)
+        val relatedArticular = involvedMuscles
+            .mapNotNull { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
+            .flatMap { AugeTtcEngine.MUSCLE_TO_ARTICULAR[it].orEmpty() }
+            .distinct()
+
         val cnsComponent = augeBatteries.cnc.coerceIn(0, 100)
         val spinalComponent = augeBatteries.spinal.coerceIn(0, 100)
+
+        // Step E — Dynamic weights: ahora incluyen articularDemand
+        val exerciseTtc = AugeTtcEngine.calculateTTC(dbInfo.name, dbInfo.equipment)
+        val articularDemand = (exerciseTtc / 5.0).coerceIn(0.0, 1.0)
 
         val cnc = dbInfo.cnc ?: 2.5
         val axialLoad = dbInfo.axialLoadFactor ?: 0.0
@@ -77,16 +106,18 @@ object ExerciseReadinessEngine {
         val spinalDemand = axialLoad.coerceIn(0.0, 1.0)
         val muscularDemand = 1.0
 
-        val totalDemand = muscularDemand + neuralDemand + spinalDemand
+        val totalDemand = muscularDemand + neuralDemand + spinalDemand + articularDemand
 
         val wMusc = muscularDemand / totalDemand
         val wCns = neuralDemand / totalDemand
         val wSpine = spinalDemand / totalDemand
+        val wArtic = articularDemand / totalDemand
 
         val baseReadiness = (
-            muscularComponent.toDouble() * wMusc +
+            structuralComponent.toDouble() * wMusc +
             cnsComponent.toDouble() * wCns +
-            spinalComponent.toDouble() * wSpine
+            spinalComponent.toDouble() * wSpine +
+            articularComponent.toDouble() * wArtic
         ).coerceIn(0.0, 100.0)
 
         val setsCount = exercise.sets.size
@@ -117,8 +148,12 @@ object ExerciseReadinessEngine {
 
         val discomfortPenaltyFactor = computeDiscomfortPenaltyFactor(involvedMuscles, unresolvedDiscomfortIds)
 
+        // Hardcap por TTC + articular baja (protección balística)
+        val ttcHardCap = if (exerciseTtc >= 3.0 && articularComponent < 40) 50 else 100
+
         val finalScore = (baseReadiness * setsPenaltyFactor * intensityPenaltyFactor * ermPenaltyFactor * discomfortPenaltyFactor)
             .roundToInt()
+            .coerceIn(0, ttcHardCap)
             .coerceIn(0, 100)
 
         return ExerciseReadiness(
@@ -128,9 +163,13 @@ object ExerciseReadinessEngine {
             muscularComponent = muscularComponent,
             cnsComponent = cnsComponent,
             spinalComponent = spinalComponent,
+            articularComponent = articularComponent,
+            structuralComponent = structuralComponent,
+            relatedArticular = relatedArticular,
             muscularWeight = wMusc,
             cnsWeight = wCns,
             spinalWeight = wSpine,
+            articularWeight = wArtic,
             setsPenaltyFactor = setsPenaltyFactor,
             intensityPenaltyFactor = intensityPenaltyFactor,
             ermProximityFactor = ermPenaltyFactor,

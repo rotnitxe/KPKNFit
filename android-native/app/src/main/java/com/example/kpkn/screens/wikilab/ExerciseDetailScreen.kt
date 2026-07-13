@@ -22,6 +22,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.CustomExerciseRepository
@@ -54,24 +57,30 @@ fun ExerciseDetailScreen(
     }
 
     Scaffold(
+        containerColor = Color.Black,
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
                 title = {
                     Text(
                         exercise.name,
+                        fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.Black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                        color = Color.White,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver")
+                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = Color.Black,
+                    scrolledContainerColor = Color.Black,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
                 ),
                 scrollBehavior = scrollBehavior,
             )
@@ -80,6 +89,7 @@ fun ExerciseDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Black)
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -118,9 +128,11 @@ fun ExerciseDetailScreen(
                     ) {
                         Text(
                             "Músculos involucrados",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontFamily = FontFamily.Serif,
+                                color = Color.White,
+                            ),
                             fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         canonicalInvolved.forEach { m ->
                             val color = muscleColor(m.muscle)
@@ -152,7 +164,10 @@ fun ExerciseDetailScreen(
                                     Column {
                                         Text(
                                             m.muscle,
-                                            style = MaterialTheme.typography.bodyMedium,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontFamily = FontFamily.Serif,
+                                                color = Color.White,
+                                            ),
                                             fontWeight = FontWeight.Bold,
                                         )
                                         val roleText = when (m.role) {
@@ -166,8 +181,10 @@ fun ExerciseDetailScreen(
                                         ).joinToString(" · ")
                                         Text(
                                             subText,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontFamily = FontFamily.Serif,
+                                                color = Color.White.copy(alpha = 0.5f),
+                                            ),
                                         )
                                     }
                                 }
@@ -229,42 +246,51 @@ private fun HeaderSection(exercise: ExerciseMuscleInfo) {
             exercise.category?.let { cat ->
                 Surface(
                     shape = RoundedCornerShape(999.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    color = Color(0xFF121212),
+                    border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
                 ) {
                     Text(
                         cat,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = FontFamily.Serif,
+                        ),
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = Color.White.copy(alpha = 0.8f),
                     )
                 }
             }
             exercise.type?.let { t ->
                 Surface(
                     shape = RoundedCornerShape(999.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    color = Color(0xFF121212),
+                    border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
                 ) {
                     Text(
                         t,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = FontFamily.Serif,
+                        ),
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = Color.White.copy(alpha = 0.8f),
                     )
                 }
             }
             exercise.tier?.let { tier ->
                 Surface(
                     shape = RoundedCornerShape(999.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    color = Color(0xFF1E1E1E),
+                    border = BorderStroke(1.dp, Color(0xFF2E2E2E)),
                 ) {
                     Text(
                         tier,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = FontFamily.Serif,
+                        ),
                         fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = Color.White,
                     )
                 }
             }
@@ -275,8 +301,10 @@ private fun HeaderSection(exercise: ExerciseMuscleInfo) {
             Spacer(Modifier.height(10.dp))
             Text(
                 alias,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.5f),
+                ),
             )
         }
 
@@ -289,28 +317,34 @@ private fun HeaderSection(exercise: ExerciseMuscleInfo) {
             exercise.equipment?.let { eq ->
                 Surface(
                     shape = RoundedCornerShape(999.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    color = Color(0xFF121212),
+                    border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
                 ) {
                     Text(
                         eq,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                        ),
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = Color.White.copy(alpha = 0.8f),
                     )
                 }
             }
             exercise.force?.let { f ->
                 Surface(
                     shape = RoundedCornerShape(999.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    color = Color(0xFF121212),
+                    border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
                 ) {
                     Text(
                         f,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = FontFamily.Serif,
+                        ),
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = Color.White.copy(alpha = 0.8f),
                     )
                 }
             }
@@ -321,9 +355,11 @@ private fun HeaderSection(exercise: ExerciseMuscleInfo) {
             Spacer(Modifier.height(8.dp))
             Text(
                 desc,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 20.sp,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.9f),
+                    lineHeight = 22.sp,
+                ),
             )
         }
     }
@@ -437,16 +473,19 @@ private fun AnatomicalSection(considerations: List<AnatomicalConsideration>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Text(
             "CONSIDERACIONES ANATÓMICAS",
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontFamily = FontFamily.Serif,
+                color = Color.White.copy(alpha = 0.5f)
+            ),
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = (0.1f).sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(Modifier.height(8.dp))
@@ -459,18 +498,23 @@ private fun AnatomicalSection(considerations: List<AnatomicalConsideration>) {
             ) {
                 Text(
                     c.trait,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White
+                    ),
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
                     c.advice,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White.copy(alpha = 0.7f)
+                    ),
                     lineHeight = 18.sp,
                 )
             }
             if (c != considerations.last()) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = Color(0xFF1E1E1E))
             }
         }
     }
@@ -483,16 +527,19 @@ private fun MistakesSection(mistakes: List<CommonMistake>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Text(
             "ERRORES COMUNES",
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontFamily = FontFamily.Serif,
+                color = Color.White.copy(alpha = 0.5f)
+            ),
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = (0.1f).sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(Modifier.height(8.dp))
@@ -513,9 +560,11 @@ private fun MistakesSection(mistakes: List<CommonMistake>) {
                     Spacer(Modifier.width(6.dp))
                     Text(
                         m.mistake,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color(0xFFE53935)
+                        ),
                         fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFFE53935),
                     )
                 }
                 Row(
@@ -531,13 +580,15 @@ private fun MistakesSection(mistakes: List<CommonMistake>) {
                     Spacer(Modifier.width(6.dp))
                     Text(
                         m.correction,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF43A047),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color(0xFF43A047)
+                        ),
                     )
                 }
             }
             if (i < mistakes.size - 1) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = Color(0xFF1E1E1E))
             }
         }
     }

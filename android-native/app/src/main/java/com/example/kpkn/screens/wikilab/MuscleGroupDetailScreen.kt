@@ -53,6 +53,9 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.db.MuscleGroupEntity
@@ -109,6 +112,7 @@ fun MuscleGroupDetailScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        containerColor = Color.Black,
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
@@ -116,6 +120,7 @@ fun MuscleGroupDetailScreen(
                     Column {
                         Text(
                             text = muscle.name,
+                            fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Black,
                             color = color,
                         )
@@ -124,7 +129,9 @@ fun MuscleGroupDetailScreen(
                             Spacer(Modifier.width(6.dp))
                             Text(
                                 text = bodyPart,
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = FontFamily.Serif,
+                                ),
                                 fontWeight = FontWeight.Bold,
                                 color = color,
                             )
@@ -133,12 +140,14 @@ fun MuscleGroupDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver")
+                        Icon(Icons.Default.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    containerColor = Color.Black,
+                    scrolledContainerColor = Color.Black,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
                 ),
                 scrollBehavior = scrollBehavior,
             )
@@ -147,6 +156,7 @@ fun MuscleGroupDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Black)
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -154,8 +164,10 @@ fun MuscleGroupDetailScreen(
             item {
                 Text(
                     muscle.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = FontFamily.Serif,
+                        color = Color.White.copy(alpha = 0.9f)
+                    ),
                     lineHeight = 22.sp,
                 )
             }
@@ -231,8 +243,9 @@ fun MuscleGroupDetailScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFF121212))
+                            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
                             .padding(16.dp),
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -244,18 +257,22 @@ fun MuscleGroupDetailScreen(
                             )
                             Spacer(Modifier.width(6.dp))
                             Text(
-                                "IMPORTANCIA ESTETICA",
-                                style = MaterialTheme.typography.labelSmall,
+                                "IMPORTANCIA ESTÉTICA",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = FontFamily.Serif,
+                                    color = Color.White.copy(alpha = 0.5f),
+                                ),
                                 fontWeight = FontWeight.ExtraBold,
                                 letterSpacing = (0.1f).sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         Spacer(Modifier.height(8.dp))
                         Text(
                             aesthetic,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontFamily = FontFamily.Serif,
+                                color = Color.White.copy(alpha = 0.7f),
+                            ),
                             lineHeight = 20.sp,
                         )
                     }
@@ -345,37 +362,73 @@ private fun AnatomicalDetailsCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Biotech, null, Modifier.size(15.dp), tint = Color(0xFF9C27B0))
             Spacer(Modifier.width(7.dp))
             Text(
-                "ANATOMIA",
-                style = MaterialTheme.typography.labelSmall,
+                "ANATOMÍA",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.5f)
+                ),
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 0.8.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         muscle.origin?.let {
             Spacer(Modifier.height(8.dp))
-            Text("Origen", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "Origen",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White
+                ),
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                it,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+            )
         }
 
         muscle.insertion?.let {
             Spacer(Modifier.height(8.dp))
-            Text("Insercion", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "Inserción",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White
+                ),
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                it,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+            )
         }
 
         if (mechFunctions.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
-            Text("Funciones Mecanicas", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            Text(
+                "Funciones Mecánicas",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White
+                ),
+                fontWeight = FontWeight.Bold
+            )
             mechFunctions.forEach { fn ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -388,7 +441,13 @@ private fun AnatomicalDetailsCard(
                         tint = MaterialTheme.colorScheme.primary,
                     )
                     Spacer(Modifier.width(6.dp))
-                    Text(fn, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        fn,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                    )
                 }
             }
         }
@@ -400,8 +459,9 @@ private fun ImportanceCard(muscle: MuscleGroupEntity) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -409,31 +469,51 @@ private fun ImportanceCard(muscle: MuscleGroupEntity) {
             Spacer(Modifier.width(7.dp))
             Text(
                 "IMPORTANCIA",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.5f)
+                ),
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 0.8.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         muscle.importanceMovement?.let {
             Spacer(Modifier.height(8.dp))
-            Text("En el Movimiento", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            Text(
+                "En el Movimiento",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White
+                ),
+                fontWeight = FontWeight.Bold
+            )
             Text(
                 it,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.7f)
+                ),
                 lineHeight = 18.sp,
             )
         }
 
         muscle.importanceHealth?.let {
             Spacer(Modifier.height(8.dp))
-            Text("En la Salud", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            Text(
+                "En la Salud",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White
+                ),
+                fontWeight = FontWeight.Bold
+            )
             Text(
                 it,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.7f)
+                ),
                 lineHeight = 18.sp,
             )
         }
@@ -445,8 +525,9 @@ private fun VolumeCard(muscle: MuscleGroupEntity) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -454,18 +535,22 @@ private fun VolumeCard(muscle: MuscleGroupEntity) {
             Spacer(Modifier.width(7.dp))
             Text(
                 "VOLUMEN DE ENTRENAMIENTO (series/semana)",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.5f)
+                ),
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 0.8.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         Spacer(Modifier.height(4.dp))
         Text(
             "Rangos de referencia orientativos - tu volumen real se personaliza con KPKN",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontFamily = FontFamily.Serif,
+                color = Color.White.copy(alpha = 0.4f)
+            ),
         )
 
         Spacer(Modifier.height(12.dp))
@@ -474,8 +559,8 @@ private fun VolumeCard(muscle: MuscleGroupEntity) {
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             muscle.mev?.let { VolumeBadge("Inicio", it, "Series de arranque", Color(0xFF43A047)) }
-            muscle.mav?.let { VolumeBadge("Optimo", it, "Rango productivo", Color(0xFFFF8F00)) }
-            muscle.mrv?.let { VolumeBadge("Techo", it, "Limite de recuperacion", Color(0xFFE53935)) }
+            muscle.mav?.let { VolumeBadge("Óptimo", it, "Rango productivo", Color(0xFFFF8F00)) }
+            muscle.mrv?.let { VolumeBadge("Techo", it, "Límite de recuperación", Color(0xFFE53935)) }
         }
     }
 }
@@ -492,21 +577,35 @@ private fun VolumeBadge(label: String, value: String, description: String, color
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = color)
-                Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = color)
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Serif
+                    ),
+                    fontWeight = FontWeight.Black,
+                    color = color
+                )
+                Text(
+                    value,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontFamily = FontFamily.Serif
+                    ),
+                    fontWeight = FontWeight.Black,
+                    color = color
+                )
             }
         }
         Text(
             description,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontFamily = FontFamily.Serif,
+                color = Color.White.copy(alpha = 0.4f)
+            ),
             modifier = Modifier.padding(top = 4.dp),
             maxLines = 1,
         )
     }
 }
-
-private data class EntityItem(val id: String, val name: String, val subtitle: String)
 
 @Composable
 private fun RelatedEntitiesCard(
@@ -519,8 +618,9 @@ private fun RelatedEntitiesCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF121212))
+            .border(BorderStroke(1.dp, Color(0xFF1E1E1E)), RoundedCornerShape(12.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -528,10 +628,12 @@ private fun RelatedEntitiesCard(
             Spacer(Modifier.width(6.dp))
             Text(
                 title,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = FontFamily.Serif,
+                    color = Color.White.copy(alpha = 0.5f)
+                ),
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = (0.1f).sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -547,12 +649,21 @@ private fun RelatedEntitiesCard(
                 Surface(modifier = Modifier.size(8.dp), shape = RoundedCornerShape(50), color = color) {}
                 Spacer(Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(entity.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        entity.name,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color.White
+                        ),
+                        fontWeight = FontWeight.SemiBold
+                    )
                     if (entity.subtitle.isNotEmpty()) {
                         Text(
                             entity.subtitle,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontFamily = FontFamily.Serif,
+                                color = Color.White.copy(alpha = 0.5f)
+                            ),
                         )
                     }
                 }
@@ -569,3 +680,9 @@ private fun bodyPartColor(bodyPart: String?): Color = when (bodyPart) {
     "spine" -> Color(0xFF9C27B0)
     else -> Color(0xFF757575)
 }
+
+internal data class EntityItem(
+    val id: String,
+    val name: String,
+    val subtitle: String,
+)

@@ -91,9 +91,17 @@ fun ReadinessSheet(
         )
     }
 
-    val muscleAdjustments = remember(muscleBatteries) {
+    val muscleAdjustments = remember {
         mutableStateMapOf<String, Int>().also { map ->
             muscleBatteries.forEach { (k, v) -> map[k] = v }
+        }
+    }
+
+    LaunchedEffect(muscleBatteries) {
+        if (muscleAdjustments.isEmpty()) {
+            muscleBatteries.forEach { (k, v) ->
+                muscleAdjustments[k] = v
+            }
         }
     }
 

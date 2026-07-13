@@ -71,5 +71,7 @@
   "db_skull_crusher": "tren_superior_press_frances_barra_ez",
   "db_plank": "ultimo_plancha_frontal",
   "db_ab_wheel": "ultimo_plancha_rodillo",
-  "db_hanging_leg_raises": "ultimo_elevacion_piernas_paralelas"
+  "db_hanging_leg_raises": "ultimo_elevacion_piernas_paralelas",
+  "core_dead_bug": "ultimo_bicho_muerto",
+  "core_hollow_body_hold": "nuevo_core_hollow_body"
 }

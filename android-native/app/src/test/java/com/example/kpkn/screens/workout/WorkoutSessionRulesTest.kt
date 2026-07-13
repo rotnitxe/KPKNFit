@@ -178,15 +178,15 @@ class WorkoutSessionRulesTest {
             WorkoutEditingRules.replacementPersistenceOptions(simpleCyclic),
         )
         assertEquals(
-            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING),
             WorkoutEditingRules.replacementPersistenceOptions(simpleCalendarized),
         )
         assertEquals(
-            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING),
             WorkoutEditingRules.replacementPersistenceOptions(advanced),
         )
         assertEquals(
-            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING),
             WorkoutEditingRules.replacementPersistenceOptions(advancedCalendarized),
         )
     }

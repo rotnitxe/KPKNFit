@@ -96,7 +96,6 @@ fun WikiLabHomeScreen(
     onNavigateToMovementPatterns: () -> Unit,
     onNavigateToBiomechanics: () -> Unit,
     onNavigateToConcepts: () -> Unit,
-    onNavigateToLearn: () -> Unit = {},
     onNavigateToExercise: (String) -> Unit,
     onNavigateToMuscle: (String) -> Unit,
     onNavigateToChain: (String) -> Unit,
@@ -428,95 +427,7 @@ fun WikiLabHomeScreen(
                         )
                     }
 
-                    Spacer(Modifier.height(4.dp))
 
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(onClick = onNavigateToLearn),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF161616)),
-                        border = BorderStroke(1.dp, Color(0xFF262626)),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(18.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    text = "FORMACIÓN CIENTÍFICA",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = FontFamily.Serif,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White.copy(alpha = 0.4f),
-                                        letterSpacing = 1.5.sp,
-                                    ),
-                                )
-                                Surface(
-                                    shape = RoundedCornerShape(4.dp),
-                                    color = Color(0xFF242424),
-                                ) {
-                                    Text(
-                                        text = "6 Especialidades",
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontSize = 9.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White.copy(alpha = 0.7f),
-                                        ),
-                                    )
-                                }
-                            }
-                            Text(
-                                text = "Cursos",
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = FontFamily.Serif,
-                                    fontSize = 24.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White,
-                                ),
-                            )
-                            Text(
-                                text = "Estudia y domina las bases científicas del entrenamiento. Mejora tu programación, biomecánica y nutrición con lecciones guiadas por pasos.",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = Color.White.copy(alpha = 0.6f),
-                                    lineHeight = 16.sp,
-                                ),
-                            )
-                            Spacer(Modifier.height(2.dp))
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                listOf(
-                                    "Programación Científica de Rutinas",
-                                    "Biomecánica y Selección de Ejercicios",
-                                    "Nutrición Deportiva y Composición Corporal",
-                                ).forEach { item ->
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(4.dp)
-                                                .background(Color.White.copy(alpha = 0.4f), CircleShape),
-                                        )
-                                        Text(
-                                            text = item,
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                fontFamily = FontFamily.Serif,
-                                                fontSize = 11.sp,
-                                                color = Color.White.copy(alpha = 0.5f),
-                                            ),
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
             }
 

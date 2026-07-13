@@ -747,7 +747,7 @@ object SessionAssistantEngine {
     ): List<AssistantSuggestion> {
         val ajustes = mutableListOf<AssistantSuggestion>()
         val heavyExercises = volume.exerciseInsights
-            .filter { it.muscular >= 40.0 || it.cns >= 40.0 || it.spinal >= 40.0 }
+            .filter { (it.muscular >= 40.0 && drain.muscular >= 40) || (it.cns >= 40.0 && drain.cns >= 40) || (it.spinal >= 40.0 && drain.spinal >= 40) }
             .sortedWith(compareByDescending<ExerciseInsightData> { maxOf(it.muscular, it.cns, it.spinal) }.thenBy { it.name })
             .take(2)
         val targetNames = heavyExercises.joinToString(", ") { it.name }.ifBlank { "los ejercicios más demandantes" }

@@ -1,0 +1,319 @@
+Examples/Home-Mobile
+  App bar
+    Leading & Trailing icons
+      Leading icon
+        Content
+          State-layer
+            Icon
+              icon
+      Trailing elements
+        Trailing action 3
+          Content
+            State-layer
+              Icon
+                icon
+        Trailing action 2
+          Content
+            State-layer
+              Icon
+                icon
+        Trailing action 1
+          Content
+            State-layer
+              Icon
+                icon
+    Text content
+      Headline: '¡Buenos días, Matías!'
+      Supporting-text: 'Supporting text'
+  Section 1
+    Title header
+      Title: 'Tus RINGS   '
+    Carousel
+      Item 06
+        Ellipse 1
+        Label: 'Label'
+      Item 7
+        Ellipse 1
+        Label: 'Label'
+      Item 8
+        Ellipse 1
+        Label: 'Label'
+  Section 2
+    Title header
+      Title: 'Sesión de hoy'
+      Content
+        State-layer
+          Icon
+            icon
+    Carousel
+      Item-1
+        Carousel text
+          Content
+            Label: 'Label'
+            Supporting-text: 'Supporting Text'
+      Item-2
+        Carousel text
+          Content
+            Label: 'Label'
+            Supporting-text: 'Supporting Text'
+    Carousel text
+      Item text 1
+        Text content
+          Label: 'Tren inferior completo'
+          Supporting-text: 'Powebuilding 2026'
+        Icon button - tonal
+          Content
+            State-layer
+              Icon
+                icon
+      Item text 2
+        play_arrow_filled
+          icon
+    Shape Set
+      shape
+  Section 3
+    Title header
+      Title: 'Progreso físico y alimentación'
+      Icon button - standard
+        Content
+          State-layer
+            Icon
+              icon
+    Cards
+      Card 06
+        Frame 1
+          Item text 1
+            Text content
+              Label: 'Calorías de hoy                           1667/2000 kcal'
+              Supporting-text: 'Powebuilding 2026'
+            Icon button - tonal
+              Content
+                State-layer
+                  Icon
+                    icon
+        Label: 'Label'
+      Card 07
+        Label: 'Label'
+      Card 08
+        Label: 'Label'
+      Card 9
+        Frame 1
+          Item text 1
+            Text content
+              Label: 'Carbohidratos                                                                   100g/133g'
+              Supporting-text: 'Powebuilding 2026'
+            Icon button - tonal
+              Content
+                State-layer
+                  Icon
+                    icon
+        Label: 'Label'
+      Card 10
+        Frame 1
+          Item text 1
+            Text content
+              Label: 'Proteínas                                            90g/100g'
+            Icon button - tonal
+              Content
+                State-layer
+                  Icon
+                    icon
+        Frame 2
+          Item text 1
+            Text content
+              Label: 'Grasas                                                  40g/55g'
+              Supporting-text: 'Powebuilding 2026'
+            Icon button - tonal
+              Content
+                State-layer
+                  Icon
+                    icon
+        Label: 'Label'
+    Cards
+      Card 01
+        Item
+          Image
+        Label: 'FFMI'
+      Card 02
+        Item
+          Image
+        Label: '% Grasa'
+      Card 03
+        Item
+          Image
+        Label: 'Peso (kg)'
+      Card 9
+        Item
+          Image
+        Label: 'Medidas'
+      Card 06
+        Label: 'Label'
+      Card 07
+        Item
+          Image
+        Label: 'Label'
+      Card 08
+        Item
+          Image
+        Label: 'Label'
+  Section 4
+    Title header
+      Title: 'Progreso en ejercicios'
+      Icon button - standard
+        Content
+          State-layer
+            Icon
+              icon
+    Content
+      Carousel
+        Card 01
+          Card 01
+            Item
+              Image
+            Label: 'Metas 1RM'
+        Card 8
+          Card 01
+            Item
+              Image
+            Label: 'Historial por ejercicio'
+        Card 9
+          Card 01
+            Item
+              Image
+            Label: 'Fuerza relativa'
+        Card 10
+          Card 01
+            Item
+              Image
+            Label: 'Metas 1RM'
+        Card 03
+        Card 04
+        Card 05
+          Background
+            State-layer
+          Image
+          Text content
+            Title: 'Artist'
+            Description: 'Song'
+        Card 06
+          Background
+            State-layer
+          Image
+          Text content
+            Title: 'Artist'
+            Description: 'Song'
+        Card 07
+          Background
+            State-layer
+          Image
+          Text content
+            Title: 'Artist'
+            Description: 'Song'
+  Section 5
+    Header
+      Title: 'Rincones'
+      Icon button - standard
+        Content
+          State-layer
+            Icon
+              icon
+    Swipeable area
+      column
+        List item
+          Text and image
+            Image
+            Content
+              Title+description
+                Text: 'Rincón Powerlifter'
+                Secondary Text: 'Conoce tus puntos en la federación que compites, historial y calendarios de competición y más.'
+        List item
+          Text and image
+            Image
+            Content
+              Title+description
+                Text: 'WikiLab'
+                Secondary Text: 'Conoce a fondo ejercicios, músculos, articulaciones para mejorar tus programas.'
+  Section 6
+    Header
+      Artist
+        Image
+        Meta
+          Title: 'Tus programas'
+      Icon button - standard
+        Content
+          State-layer
+            Icon
+              icon
+    Content
+      Small carousel
+        Item 01
+          Item
+          Label: 'Powerbuilding 26'
+        Item 04
+          Label: 'Label'
+        Item 05
+          Label: 'Label'
+        Item 06
+          Label: 'Label'
+        Item 07
+          Item
+            Image
+          Label: 'Label'
+        Item 08
+          Item
+            Image
+          Label: 'Label'
+      Small carousel
+        Item 01
+          Item
+          Label: 'Powerbuilding 26'
+        Item 04
+          Label: 'Label'
+        Item 05
+          Label: 'Label'
+        Item 06
+          Label: 'Label'
+        Item 07
+          Item
+            Image
+          Label: 'Label'
+        Item 08
+          Item
+            Image
+          Label: 'Label'
+      Small carousel
+        Item 01
+          Item
+          Label: 'Powerbuilding 26'
+        Item 04
+          Label: 'Label'
+        Item 05
+          Label: 'Label'
+        Item 06
+          Label: 'Label'
+        Item 07
+          Item
+            Image
+          Label: 'Label'
+        Item 08
+          Item
+            Image
+          Label: 'Label'
+      Small carousel
+        Item 01
+          Item
+          Label: 'Powerbuilding 26'
+        Item 04
+          Label: 'Label'
+        Item 05
+          Label: 'Label'
+        Item 06
+          Label: 'Label'
+        Item 07
+          Item
+            Image
+          Label: 'Label'
+        Item 08
+          Item
+            Image
+          Label: 'Label'
