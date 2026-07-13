@@ -1223,6 +1223,8 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({ session, program
                         id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `exercise-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                         name: sugg.name,
                         exerciseDbId: sugg.id,
+                        selectedMovementPattern: sugg.movementPattern || undefined,
+                        selectedExecutionOption: sugg.executionOptions?.[0] || undefined,
                     };
                     const updatedSession: Session = { ...currentSession };
                     if (updatedSession.parts) {

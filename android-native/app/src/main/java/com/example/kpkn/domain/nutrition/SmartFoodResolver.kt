@@ -270,6 +270,13 @@ class SmartFoodResolver(
         }
         score -= uncovered * 0.14
 
+        // 5b. Penalty for excess food tokens (unmatched by query): -0.15 each
+        // Evita que buscar "arroz" sugiera "arroz con huevo" por tener palabras extras
+        val excess = foodTokens.count { ft ->
+            queryTokens.none { qt -> ft == qt || ft.contains(qt) || qt.contains(ft) }
+        }
+        score -= excess * 0.15
+
         // 6. Brand bonus: +0.18
         if (!brandHint.isNullOrBlank() && food.brand != null) {
             val normalizedBrand = FoodIndex.normalizeSearch(brandHint)
@@ -284,7 +291,13 @@ class SmartFoodResolver(
 
         // 8. Learned resolution boost: +0.32 + min(count,3)×0.02
         if (learned != null && learned.foodId == food.foodId) {
-            score += 0.32 + minOf(learned.count, 3) * 0.02
+            val queryIsCombo = normalizedQuery.contains(" con ") || normalizedQuery.contains(" y ") || normalizedQuery.contains(" e ")
+            val foodIsCombo = food.normalizedName.contains(" con ") || food.normalizedName.contains(" y ") || food.normalizedName.contains(" e ")
+
+            // No permitir boost de historial si la consulta es simple pero el alimento es combinado (ej: "arroz" -> "arroz con huevo")
+            if (queryIsCombo || !foodIsCombo) {
+                score += 0.32 + minOf(learned.count, 3) * 0.02
+            }
         }
 
         // 9. Data completeness bonus: +0.01

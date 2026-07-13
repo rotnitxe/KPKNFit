@@ -135,6 +135,7 @@ import com.example.kpkn.domain.auge.SessionIntensityEngine
 import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
 import com.example.kpkn.screens.auge.AugeViewModel
+import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
@@ -199,8 +200,8 @@ fun WorkoutScreen(
     onBack: () -> Unit,
     onComplete: () -> Unit = onBack,
     onNavigateToWikiLab: (String) -> Unit = {},
-    augeViewModel: AugeViewModel = viewModel(),
 ) {
+    val augeViewModel = rememberAugeViewModel()
     val context = LocalContext.current
     val restAlertManager = remember(context) { WorkoutRestAlertManager(context) }
     val viewModel: WorkoutViewModel = viewModel(
@@ -1205,7 +1206,6 @@ fun WorkoutScreen(
                 manualNeuralBattery = neural,
                 manualSpinalBattery = spinal,
                 manualMuscleBatteries = perMuscle,
-                manualBatteryAnchorMs = System.currentTimeMillis(),
                 notes = todayWellbeing?.notes,
             )
             augeViewModel.saveWellbeing(log)

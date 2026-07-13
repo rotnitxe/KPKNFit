@@ -72,8 +72,32 @@ fun scaleFoodByPortion(
     val multiplier = PORTION_MULTIPLIERS[portion] ?: 1.0
     val baseServing = if (amountGrams != null) food.servingSize else getContextualDefaultServingSize(food)
     val baseGrams = amountGrams ?: (baseServing * quantity * multiplier)
-    val grams = baseGrams * portionAdjustment
-    val ratio = if (food.servingSize > 0) grams / food.servingSize else 1.0
+    val grams = if (amountGrams != null) baseGrams else baseGrams * portionAdjustment
+
+    // --- AJUSTE DE COCCIÓN / HIDRATACIÓN CULINARIA ---
+    val dbFoodIsRaw = food.name.lowercase().contains("(crudo)") || food.name.lowercase().contains("cruda") || food.searchAliases.any { it.lowercase().contains("crudo") || it.lowercase().contains("cruda") }
+    val dbFoodIsCooked = food.name.lowercase().contains("(cocido)") || food.name.lowercase().contains("cocida") || food.name.lowercase().contains("hidratada/cocida") || food.searchAliases.any { it.lowercase().contains("cocido") || it.lowercase().contains("cocida") }
+    val userRequestIsCooked = cookingMethod != null && cookingMethod != CookingMethod.CRUDO
+    val userRequestIsRaw = cookingMethod == CookingMethod.CRUDO
+
+    val rawToCookedFactor = when {
+        food.cookingWeightFactor != null && food.cookingWeightFactor > 0.0 -> food.cookingWeightFactor
+        food.name.lowercase().contains("arroz") || food.name.lowercase().contains("pasta") || food.name.lowercase().contains("fideo") || food.name.lowercase().contains("lenteja") || food.name.lowercase().contains("garbanzo") || food.name.lowercase().contains("poroto") || food.name.lowercase().contains("avena") || food.name.lowercase().contains("quinoa") -> 2.2
+        food.name.lowercase().contains("pollo") || food.name.lowercase().contains("carne") || food.name.lowercase().contains("pavo") || food.name.lowercase().contains("cerdo") || food.name.lowercase().contains("pescado") || food.name.lowercase().contains("salmón") || food.name.lowercase().contains("vacuno") || food.name.lowercase().contains("bife") || food.name.lowercase().contains("espinaca") || food.name.lowercase().contains("acelga") || food.name.lowercase().contains("champiñón") -> 0.75
+        else -> 1.0
+    }
+
+    val finalGrams = when {
+        dbFoodIsRaw && userRequestIsCooked -> {
+            grams / rawToCookedFactor
+        }
+        dbFoodIsCooked && userRequestIsRaw -> {
+            grams * rawToCookedFactor
+        }
+        else -> grams
+    }
+
+    val ratio = if (food.servingSize > 0) finalGrams / food.servingSize else 1.0
 
     fun extractMicronutrientAmount(vararg names: String): Double {
         val lowered = names.map { it.lowercase() }

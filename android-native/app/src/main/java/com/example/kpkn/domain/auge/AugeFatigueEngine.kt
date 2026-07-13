@@ -14,7 +14,6 @@ import kotlin.math.pow
  */
 object AugeFatigueEngine {
 
-    const val WEEKLY_CNS_FATIGUE_REFERENCE = 4000.0
     private const val MAX_TECHNIQUE_FATIGUE_MULTIPLIER = 4.0
 
     // ─── Capacidades base por tipo de atleta ─────────────────────────────────
@@ -736,14 +735,5 @@ object AugeFatigueEngine {
         val lowReadiness = readinessScore < 40
         
         return highFatigue && lowReadiness
-    }
-
-    private fun getBiomechanicalMultipliers(tag: String?): Triple<Double, Double, Double> {
-        val lower = tag?.lowercase()?.trim().orEmpty()
-        return when {
-            lower.contains("estiramiento") || lower.contains("stretch") -> Triple(1.2, 1.1, 1.0)
-            lower.contains("acortamiento") || lower.contains("shorten") -> Triple(0.8, 0.9, 1.0)
-            else -> Triple(1.0, 1.0, 1.0)
-        }
     }
 }

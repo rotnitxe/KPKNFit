@@ -490,5 +490,12 @@ abstract class KpknDatabase : RoomDatabase() {
                 .build()
                 .also { INSTANCE = it }
             }
+
+        fun closeInstance() {
+            synchronized(this) {
+                INSTANCE?.close()
+                INSTANCE = null
+            }
+        }
     }
 }

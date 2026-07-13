@@ -8,6 +8,13 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.db.dbJson
+import com.example.kpkn.data.db.KpknDatabase
+import com.example.kpkn.data.db.DatabaseBackupHelper
+import com.example.kpkn.data.db.toEntity
+import com.example.kpkn.data.db.NutritionActiveStateEntity
+import androidx.room.withTransaction
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.example.kpkn.data.models.ApiKeys
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.repository.AugeRepository
@@ -176,6 +183,122 @@ class SettingsViewModel : ViewModel() {
             Intent.createChooser(intent, context.getString(com.example.kpkn.R.string.title_export_chooser)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
         Toast.makeText(context, context.getString(com.example.kpkn.R.string.msg_export_ready), Toast.LENGTH_SHORT).show()
+    }
+
+    fun importBackupJson(context: Context, uri: Uri, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val jsonString = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    inputStream.bufferedReader().use { it.readText() }
+                } ?: throw Exception("No se pudo leer el archivo")
+
+                val payload = dbJson.decodeFromString<SettingsExportPayload>(jsonString)
+                val db = KpknDatabase.getInstance(context)
+
+                db.withTransaction {
+                    db.clearAllTables()
+                    db.settingsDao().upsert(payload.settings.toEntity())
+                    payload.programs.forEach { db.programDao().upsert(it.toEntity()) }
+                    payload.workoutLogs.forEach { db.workoutLogDao().insert(it.toEntity()) }
+                    payload.activeProgramState?.let { db.stateDao().upsertActiveProgram(it.toEntity()) }
+                    payload.ongoingWorkout?.let { db.stateDao().upsertOngoingWorkout(it.toEntity()) }
+                    payload.nutritionLogs.forEach { db.nutritionDao().upsertLog(it.toEntity()) }
+                    payload.nutritionPlans.forEach { db.nutritionDao().upsertPlan(it.toEntity()) }
+                    payload.activeNutritionPlanId?.let {
+                        db.nutritionDao().upsertActiveState(NutritionActiveStateEntity(activePlanId = it))
+                    }
+                    payload.pantryItems.forEach { db.nutritionDao().upsertPantryItem(it.toEntity()) }
+                    payload.mealTemplates.forEach { db.nutritionDao().upsertTemplate(it.toEntity()) }
+                    payload.wellbeingLogs.forEach { db.augeDao().upsertWellbeing(it.toEntity()) }
+                    payload.sleepLogs.forEach { db.augeDao().upsertSleepLog(it.toEntity()) }
+                    payload.postSessionFeedback.forEach { db.augeDao().upsertFeedback(it.toEntity()) }
+                    payload.pendingQuestionnaire?.let { db.augeDao().upsertPendingQuestionnaire(it.toEntity()) }
+                }
+
+                programRepository.refreshData()
+                nutritionRepository.refreshData(context)
+            }.onSuccess {
+                withContext(Dispatchers.Main) {
+                    onSuccess()
+                }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) {
+                    onError(error.message ?: "Error al importar el JSON de respaldo")
+                }
+            }
+        }
+    }
+
+    fun clearAllAppData(context: Context, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val db = KpknDatabase.getInstance(context)
+                db.clearAllTables()
+
+                context.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE).edit().clear().commit()
+                context.getSharedPreferences("measurements_prefs", Context.MODE_PRIVATE).edit().clear().commit()
+
+                programRepository.updateSettings { Settings() }
+                programRepository.refreshData()
+                nutritionRepository.refreshData(context)
+
+                val workoutReminder = WorkoutReminderManager(context)
+                val nutritionReminder = NutritionNotificationManager(context)
+                workoutReminder.cancelWorkoutReminder()
+                workoutReminder.cancelSleepReminder()
+                nutritionReminder.cancelMealReminders()
+            }.onSuccess {
+                withContext(Dispatchers.Main) {
+                    onSuccess()
+                }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) {
+                    onError(error.message ?: "Error al borrar datos")
+                }
+            }
+        }
+    }
+
+    fun createSnapshot(context: Context, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                DatabaseBackupHelper.createSnapshot(context)
+            }.onSuccess { filename ->
+                withContext(Dispatchers.Main) {
+                    onSuccess(filename)
+                }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) {
+                    onError(error.message ?: "Error al crear snapshot")
+                }
+            }
+        }
+    }
+
+    fun restoreSnapshot(context: Context, file: File, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                DatabaseBackupHelper.restoreSnapshot(context, file)
+                programRepository.refreshData()
+                nutritionRepository.refreshData(context)
+            }.onSuccess {
+                withContext(Dispatchers.Main) {
+                    onSuccess()
+                }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) {
+                    onError(error.message ?: "Error al restaurar el snapshot")
+                }
+            }
+        }
+    }
+
+    fun getSnapshots(context: Context): List<File> {
+        return DatabaseBackupHelper.listSnapshots(context)
+    }
+
+    fun deleteSnapshot(file: File): Boolean {
+        return DatabaseBackupHelper.deleteSnapshot(file)
     }
 }
 

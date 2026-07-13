@@ -2327,6 +2327,8 @@ const SessionEditorComponent: React.FC<SessionEditorProps> = ({ onSave, onCancel
                         handleExerciseUpdate(exercisePickerTarget.partIndex, exercisePickerTarget.exerciseIndex, d => {
                             d.name = sugg.name;
                             d.exerciseDbId = sugg.id;
+                            d.selectedMovementPattern = sugg.movementPattern || undefined;
+                            d.selectedExecutionOption = sugg.executionOptions?.[0] || undefined;
                         });
                         setExercisePickerTarget(null);
                     }}

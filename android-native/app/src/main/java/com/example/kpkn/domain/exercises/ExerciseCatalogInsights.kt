@@ -24,12 +24,14 @@ enum class ExerciseCatalogTrait(val label: String) {
     UNILATERAL("Unilaterales"),
 }
 
-enum class ExerciseCatalogSort(val label: String) {
+enum class ExerciseCatalogSort(val label: String, val isGrouped: Boolean = false) {
+    GROUP_BY_PATTERN("Patrón de movimiento", isGrouped = true),
+    GROUP_BY_MUSCLE("Agrupar por músculo", isGrouped = true),
+    GROUP_BY_REGION("Agrupar por región", isGrouped = true),
     RELEVANCE("Relevancia"),
+    NAME("Nombre A-Z"),
     FATIGUE_HIGH("Fatiga alta"),
     FATIGUE_LOW("Fatiga baja"),
-    NAME("Nombre"),
-    MUSCLE("Músculo"),
 }
 
 data class FriendlyFatigueBreakdown(

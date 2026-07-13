@@ -615,6 +615,8 @@ const InlineSessionCreator: React.FC<{
             id: crypto.randomUUID(),
             name: selected.name,
             exerciseDbId: selected.id, // Guardamos referencia real
+            selectedMovementPattern: selected.movementPattern || undefined,
+            selectedExecutionOption: selected.executionOptions?.[0] || undefined,
             sets: [{ id: crypto.randomUUID(), targetReps: 10, intensityMode: 'rpe', targetRPE: 8 }],
             restTime: 90,
             trainingMode: 'reps'

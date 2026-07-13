@@ -594,6 +594,10 @@ class ProgramRepository private constructor(context: Context) {
         )
     }
 
+    fun refreshData() {
+        loadFromDb()
+    }
+
     // ─── Singleton ────────────────────────────────────────────────────────────
 
     companion object {

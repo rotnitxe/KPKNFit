@@ -77,13 +77,6 @@ fun SettingsTrainingScreen(
                         onSelect = { value -> viewModel.update { it.copy(intensityMetric = value) } },
                         optionLabel = { it.name },
                     )
-                    SettingsDropdownItem(
-                        title = "Formula 1RM",
-                        options = OneRMFormula.entries,
-                        selected = settings.oneRMFormula,
-                        onSelect = { value -> viewModel.update { it.copy(oneRMFormula = value) } },
-                        optionLabel = { it.name },
-                    )
                     SettingsTextFieldItem(
                         label = "Peso barra por defecto ($weightUnitLabel)",
                         value = settings.barbellWeight.toString(),
@@ -167,7 +160,6 @@ fun SettingsTrainingScreen(
                 SettingsSectionCard {
                     SettingsDropdownItem(
                         title = "Sistema de volumen por defecto",
-                        description = "El typo interno KPNK se mantiene por compatibilidad",
                         options = VolumeSystem.entries,
                         selected = settings.defaultVolumeSystem,
                         onSelect = { value -> viewModel.update { it.copy(defaultVolumeSystem = value) } },

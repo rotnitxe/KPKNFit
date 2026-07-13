@@ -2,6 +2,7 @@ package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.GoalMetric
+import com.example.kpkn.data.models.MetabolicProfile
 
 /**
  * NutritionCalculations — Pure Kotlin business logic for BMR, TDEE, calorie goals.
@@ -17,6 +18,9 @@ data class NutritionInput(
     val heightCm: Double,
     val age: Int,
     val gender: Gender,
+    // metabolicProfile: si está presente, overridea a gender para el cálculo de TMB.
+    // Permite desacoplar identidad (gender) de fisiología hormonal actual (metabolicProfile).
+    val metabolicProfile: MetabolicProfile? = null,
     val bodyFatPercentage: Double? = null,
 )
 
@@ -64,33 +68,56 @@ data class CalculationSnapshot(
 
 /**
  * Mifflin-St Jeor: TMB = (10 * weight) + (6.25 * height) - (5 * age) + s
- * s = +5 male, -161 female
+ * s = +5 male, -161 female, -78 other (promedio de ambas constantes).
+ * Para géneros no binarios no existe consenso científico — se usa el promedio
+ * de ambas constantes como estimación conservadora y no sesgada.
+ * Si se provee metabolicProfile, éste tiene prioridad sobre gender.
  */
 fun mifflinStJeor(
     weightKg: Double,
     heightCm: Double,
     age: Int,
     gender: Gender,
+    metabolicProfile: MetabolicProfile? = null,
 ): Double {
-    val s = if (gender == Gender.FEMALE) -161.0 else 5.0
+    val s = when (metabolicProfile) {
+        MetabolicProfile.TESTOSTERONE -> 5.0
+        MetabolicProfile.ESTROGEN     -> -161.0
+        MetabolicProfile.MIXED        -> -78.0
+        null -> when (gender) {
+            Gender.FEMALE -> -161.0
+            Gender.MALE   -> 5.0
+            else          -> -78.0
+        }
+    }
     return 10.0 * weightKg + 6.25 * heightCm - 5.0 * age + s
 }
 
 /**
- * Harris-Benedict (classic):
+ * Harris-Benedict (Roza & Shizgal, 1984):
  * Male:   88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
  * Female: 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age)
+ * Other:  promedio de ambas ecuaciones (sin sesgo de género).
+ * Si se provee metabolicProfile, éste tiene prioridad sobre gender.
  */
 fun harrisBenedict(
     weightKg: Double,
     heightCm: Double,
     age: Int,
     gender: Gender,
+    metabolicProfile: MetabolicProfile? = null,
 ): Double {
-    return if (gender == Gender.FEMALE) {
-        447.593 + 9.247 * weightKg + 3.098 * heightCm - 4.33 * age
-    } else {
-        88.362 + 13.397 * weightKg + 4.799 * heightCm - 5.677 * age
+    val male   = 88.362  + 13.397 * weightKg + 4.799 * heightCm - 5.677 * age
+    val female = 447.593 +  9.247 * weightKg + 3.098 * heightCm - 4.330 * age
+    return when (metabolicProfile) {
+        MetabolicProfile.TESTOSTERONE -> male
+        MetabolicProfile.ESTROGEN     -> female
+        MetabolicProfile.MIXED        -> (male + female) / 2.0
+        null -> when (gender) {
+            Gender.MALE   -> male
+            Gender.FEMALE -> female
+            else          -> (male + female) / 2.0
+        }
     }
 }
 
@@ -136,12 +163,16 @@ fun calculateBMR(input: NutritionInput, config: CalorieGoalConfig = CalorieGoalC
     if (input.weightKg <= 0 || input.heightCm <= 0 || input.age <= 0) return null
 
     return when (config.formula) {
-        FormulaType.HARRIS -> harrisBenedict(input.weightKg, input.heightCm, input.age, input.gender)
-        FormulaType.KATCH -> {
+        FormulaType.HARRIS -> harrisBenedict(
+            input.weightKg, input.heightCm, input.age, input.gender, input.metabolicProfile
+        )
+        FormulaType.KATCH  -> {
             val bf = input.bodyFatPercentage ?: return null
             katchMcArdle(input.weightKg, bf)
         }
-        FormulaType.MIFFLIN -> mifflinStJeor(input.weightKg, input.heightCm, input.age, input.gender)
+        FormulaType.MIFFLIN -> mifflinStJeor(
+            input.weightKg, input.heightCm, input.age, input.gender, input.metabolicProfile
+        )
     }
 }
 
@@ -277,6 +308,7 @@ data class RiskInput(
     val goalMetric: GoalMetric,
     val goalValue: Double,
     val weeklyChangeKg: Double,
+    val calorieGoal: CalorieGoal = CalorieGoal.MAINTAIN,
 )
 
 fun buildNutritionRiskFlags(input: RiskInput): List<NutritionRiskFlag> {
@@ -302,21 +334,45 @@ fun buildNutritionRiskFlags(input: RiskInput): List<NutritionRiskFlag> {
         )
     }
 
-    if (input.weeklyChangeKg > 1.8) {
-        flags += NutritionRiskFlag(
-            id = java.util.UUID.randomUUID().toString(),
-            code = "pace_extreme",
-            severity = RiskSeverity.DANGER,
-            hardStop = true,
-            message = "Ritmo de cambio semanal extremo (> 1.8 kg/sem). No es seguro.",
-        )
-    } else if (input.weeklyChangeKg > 1.2) {
-        flags += NutritionRiskFlag(
-            id = java.util.UUID.randomUUID().toString(),
-            code = "pace_aggressive",
-            severity = RiskSeverity.WARNING,
-            message = "Ritmo agresivo (> 1.2 kg/sem). Riesgo de pérdida muscular.",
-        )
+    // Umbrales diferenciados según evidencia: déficit y superávit tienen ritmos seguros distintos.
+    when (input.calorieGoal) {
+        CalorieGoal.LOSE -> {
+            // Pérdida: umbral conservador para preservar músculo (Helms et al., 2014)
+            when {
+                input.weeklyChangeKg > 1.5 -> flags += NutritionRiskFlag(
+                    id = java.util.UUID.randomUUID().toString(),
+                    code = "pace_extreme",
+                    severity = RiskSeverity.DANGER,
+                    hardStop = true,
+                    message = "Ritmo de pérdida extremo (> 1.5 kg/sem). Alto riesgo de pérdida muscular y metabólica.",
+                )
+                input.weeklyChangeKg > 1.0 -> flags += NutritionRiskFlag(
+                    id = java.util.UUID.randomUUID().toString(),
+                    code = "pace_aggressive",
+                    severity = RiskSeverity.WARNING,
+                    message = "Ritmo de pérdida agresivo (> 1 kg/sem). Puede comprometer masa muscular.",
+                )
+            }
+        }
+        CalorieGoal.GAIN -> {
+            // Ganancia: umbrales mucho más bajos — ganar rápido acumula grasa en exceso (Barakat et al., 2020)
+            when {
+                input.weeklyChangeKg > 0.75 -> flags += NutritionRiskFlag(
+                    id = java.util.UUID.randomUUID().toString(),
+                    code = "pace_gain_extreme",
+                    severity = RiskSeverity.DANGER,
+                    hardStop = false,
+                    message = "Ritmo de ganancia muy agresivo (> 0.75 kg/sem). Acumularás grasa en exceso.",
+                )
+                input.weeklyChangeKg > 0.5 -> flags += NutritionRiskFlag(
+                    id = java.util.UUID.randomUUID().toString(),
+                    code = "pace_gain_aggressive",
+                    severity = RiskSeverity.WARNING,
+                    message = "Ritmo de ganancia elevado (> 0.5 kg/sem). Considera un superávit más moderado.",
+                )
+            }
+        }
+        CalorieGoal.MAINTAIN -> Unit  // En mantenimiento no aplica control de ritmo
     }
 
     if (input.goalMetric == GoalMetric.BODY_FAT && (input.goalValue < 5 || input.goalValue > 45)) {

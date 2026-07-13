@@ -340,7 +340,6 @@ fun ReadinessSheet(
                         manualNeuralBattery = if (hasManualSystem) neural.coerceIn(0, 100) else null,
                         manualSpinalBattery = if (hasManualSystem) spinal.coerceIn(0, 100) else null,
                         manualMuscleBatteries = muscleMap.mapValues { (_, v) -> v.coerceIn(0, 100) },
-                        manualBatteryAnchorMs = if (hasManualSystem || muscleMap.isNotEmpty()) System.currentTimeMillis() else null,
                     )
                     onSave(
                         log,

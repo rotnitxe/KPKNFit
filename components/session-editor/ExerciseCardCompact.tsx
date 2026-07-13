@@ -83,6 +83,11 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
         onUpdate(partIndex, exerciseIndex, (draft) => {
             draft.name = ex.name;
             draft.exerciseDbId = ex.id;
+            if (ex.executionOptions?.length) {
+                draft.selectedExecutionOption = ex.executionOptions[0];
+            } else {
+                draft.selectedExecutionOption = undefined;
+            }
         });
         setIsSearching(false);
         setSearchQuery('');
@@ -185,6 +190,9 @@ const ExerciseCardCompact: React.FC<ExerciseCardCompactProps> = ({
                         className="text-xs font-black text-slate-800 uppercase tracking-tight truncate block text-left w-full hover:text-cyan-600 transition-colors"
                     >
                         {exercise.name || 'Seleccionar ejercicio'}
+                        {exercise.selectedExecutionOption && (
+                            <span className="text-[9px] font-normal text-cyan-600 ml-1">({exercise.selectedExecutionOption})</span>
+                        )}
                     </button>
                     <span className="text-[10px] text-slate-500 font-bold">{setsSummary}</span>
                 </div>

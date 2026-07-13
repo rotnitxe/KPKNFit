@@ -38,6 +38,12 @@ import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.WeekAdherence
 import com.example.kpkn.domain.training.WeekWithMeta
+import android.content.Context
+import kotlin.math.roundToInt
+import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.models.PostSessionFeedback
+import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.models.VolumeRecommendation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -77,9 +83,19 @@ data class WeekCopyConflict(
     val dayLabels: List<String>,
 )
 
+data class MuscleOvertrainingStatus(
+    val muscleName: String,
+    val isOvertrained: Boolean,
+    val isOverreaching: Boolean,
+    val activeFactorsCount: Int,
+    val explanation: String,
+)
+
 class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     private val repository = ProgramRepository.getInstance()
+
+    val feedbacks = MutableStateFlow<List<PostSessionFeedback>>(emptyList())
 
     // ─── UI State ─────────────────────────────────────────────────────────
 
@@ -89,8 +105,24 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     // ─── Raw Data from Repository ─────────────────────────────────────────
 
-    val program: StateFlow<Program?> = repository.programs
-        .map { programs -> programs.find { it.id == programId } }
+    val program: StateFlow<Program?> = combine(
+        repository.programs.map { programs -> programs.find { it.id == programId } },
+        feedbacks
+    ) { p, fbs ->
+        if (p == null) return@combine null
+        if (fbs.isEmpty()) return@combine p
+
+        val scaledRecommendations = p.volumeRecommendations.map { rec ->
+            val adj = VolumeCalculator.calculateVolumeAdjustment(rec.muscleGroup, fbs)
+            if (adj == 1.0) rec
+            else rec.copy(
+                minEffectiveVolume = (rec.minEffectiveVolume * adj).roundToInt(),
+                maxAdaptiveVolume = (rec.maxAdaptiveVolume * adj).roundToInt(),
+                maxRecoverableVolume = (rec.maxRecoverableVolume * adj).roundToInt()
+            )
+        }
+        p.copy(volumeRecommendations = scaledRecommendations)
+    }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, repository.getProgramById(programId))
 
@@ -144,6 +176,142 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         .map { h -> ProgramDetailHelpers.computeProgramLogs(h, programId) }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    fun loadFeedbacks(context: Context) {
+        viewModelScope.launch {
+            try {
+                val list = AugeRepository.getInstance(context).getPostSessionFeedbacks()
+                feedbacks.value = list
+            } catch (_: Exception) {}
+        }
+    }
+
+    val muscleCdbsStatus: StateFlow<Map<String, MuscleOvertrainingStatus>> = combine(
+        program,
+        programLogs,
+        feedbacks
+    ) { p, logs, fbs ->
+        if (p == null) return@combine emptyMap()
+
+        val statusMap = mutableMapOf<String, MuscleOvertrainingStatus>()
+        val exerciseList = EXERCISE_DATABASE_BY_ID.values.toList()
+
+        val completedVolumes = VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
+            logs = logs,
+            exerciseList = exerciseList,
+            weeksCount = p.volumeRecommendations.firstOrNull()?.let {
+                (logs.size / 3).coerceAtLeast(1)
+            } ?: 1
+        )
+
+        p.volumeRecommendations.forEach { rec ->
+            val muscle = rec.muscleGroup
+            val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle)
+            val mrv = rec.maxRecoverableVolume
+
+            // 1. Factor 1: Volumen Real > MRV
+            val completedSets = completedVolumes.find { it.muscleName == canonical }?.weeklySets ?: 0.0
+            val factorVol = completedSets > mrv
+
+            // 2. Factor 2: Rendimiento Estancado (progression stagnationRisk)
+            var factorProg = false
+
+            // 3. Factor 3: Molestias / Dolor
+            val normalizedMuscleLower = canonical.lowercase()
+            val factorPain = logs.take(5).any { log ->
+                log.discomforts.any { d ->
+                    val dl = d.lowercase()
+                    dl.contains(normalizedMuscleLower) ||
+                    (normalizedMuscleLower.contains("hombro") && dl.contains("deltoid")) ||
+                    (normalizedMuscleLower.contains("cuádriceps") && dl.contains("rodilla")) ||
+                    (normalizedMuscleLower.contains("espalda baja") && dl.contains("lumbar"))
+                }
+            }
+
+            // 4. Factor 4: Baterías AUGE sistémicas bajas (< 40%)
+            val factorSystemic = logs.firstOrNull()?.fatigueLevel?.let { it >= 8 } ?: false
+
+            // 5. Factor 5: Percepción local post-sesión baja (DOMS >= 3.5 y Fuerza <= 5)
+            val muscleLogs = fbs.filter { fb ->
+                fb.muscleFeedback.keys.any { key ->
+                    VolumeCalculator.normalizeCanonicalMuscleGroup(key).lowercase() == normalizedMuscleLower
+                }
+            }.take(3)
+
+            var totalDoms = 0.0
+            var totalStr = 0.0
+            var fbCount = 0
+            muscleLogs.forEach { fb ->
+                val entryKey = fb.muscleFeedback.keys.find { key ->
+                    VolumeCalculator.normalizeCanonicalMuscleGroup(key).lowercase() == normalizedMuscleLower
+                } ?: return@forEach
+                val entry = fb.muscleFeedback[entryKey] ?: return@forEach
+                totalDoms += entry.doms.toDouble()
+                totalStr += entry.strengthCapacity.toDouble()
+                fbCount++
+            }
+            val factorLocal = if (fbCount > 0) {
+                (totalDoms / fbCount) >= 3.5 || (totalStr / fbCount) <= 5.0
+            } else {
+                false
+            }
+
+            val primaryExercises = exerciseList.filter { db ->
+                db.involvedMuscles.any {
+                    it.role == MuscleRole.PRIMARY &&
+                    VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle).lowercase() == normalizedMuscleLower
+                }
+            }.map { it.id.lowercase() }
+
+            // Check if weight is falling for the SAME exercise
+            var hasWeightDrop = false
+            val exercisesWithLogs = logs.flatMap { it.completedExercises }
+                .filter { it.exerciseDbId?.lowercase() in primaryExercises }
+                .groupBy { it.exerciseDbId?.lowercase() }
+
+            for ((exId, exLogs) in exercisesWithLogs) {
+                if (exLogs.size >= 2) {
+                    val recentWeight = exLogs.first().sets.firstOrNull { !it.skipped }?.weight ?: 0.0
+                    val olderWeight = exLogs.last().sets.firstOrNull { !it.skipped }?.weight ?: 0.0
+                    if (recentWeight < olderWeight && recentWeight > 0.0) {
+                        hasWeightDrop = true
+                        break
+                    }
+                }
+            }
+            if (hasWeightDrop) {
+                factorProg = true
+            }
+
+            var activeCount = 0
+            val factorsList = mutableListOf<String>()
+            if (factorVol) { activeCount++; factorsList.add("Volumen real excede MRV") }
+            if (factorPain) { activeCount++; factorsList.add("Dolores o molestias") }
+            if (factorSystemic) { activeCount++; factorsList.add("Alta fatiga sistémica") }
+            if (factorLocal) { activeCount++; factorsList.add("Baja recuperación local") }
+            if (factorProg) { activeCount++; factorsList.add("Pérdida de fuerza") }
+
+            val isOvertrained = activeCount >= 3
+            val isOverreaching = factorVol && activeCount < 3
+
+            val explanation = when {
+                isOvertrained -> "Sobreentrenamiento Crónico: Detectado por ${factorsList.joinToString(", ")}."
+                isOverreaching -> "Sobreachance Funcional: Volumen alto pero buena tolerancia sistémica."
+                else -> "Óptimo o acumulando volumen."
+            }
+
+            statusMap[canonical] = MuscleOvertrainingStatus(
+                muscleName = canonical,
+                isOvertrained = isOvertrained,
+                isOverreaching = isOverreaching,
+                activeFactorsCount = activeCount,
+                explanation = explanation
+            )
+        }
+
+        statusMap
+    }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
 
     val totalAdherence: StateFlow<Int> = combine(programLogs, program) { logs, p ->
         if (p == null) 0 else ProgramDetailHelpers.computeTotalAdherence(logs, p)

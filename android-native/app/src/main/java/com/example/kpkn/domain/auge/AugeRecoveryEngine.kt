@@ -536,8 +536,8 @@ object AugeRecoveryEngine {
 
         val recentLogs = if (manualNeural != null && anchorMs > 0) {
             val manualBattery = manualNeural.coerceIn(0, 100).toDouble()
-            val todoManetica = (100.0 - manualBattery).coerceIn(0.0, 100.0)
-            val rawGymPct = todoManetica / 100.0
+            val fatiguePortion = (100.0 - manualBattery).coerceIn(0.0, 100.0)
+            val rawGymPct = fatiguePortion / 100.0
             val capacity = max(80.0, tanks.cns * 1.15)
             val manualLoad = rawGymPct * capacity
             accumulatedGymLoad = manualLoad * exp(-hoursSinceAnchor / tauHours)

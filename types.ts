@@ -689,6 +689,8 @@ export interface Exercise {
     };
     supersetId?: string;
     variantName?: string;
+    selectedExecutionOption?: string;
+    selectedMovementPattern?: string;
     prFor1RM?: { weight: number, reps: number };
     /** Peso consolidado (kg + reps) para autosugerir cargas en modo REPS */
     consolidatedWeight?: { weightKg: number; reps: number };
@@ -808,6 +810,8 @@ export interface ExerciseMuscleInfo {
     last1RMTestDate?: string;
     setupCues?: string[];
     executionCues?: string[];
+    executionOptions?: string[];
+    movementPattern?: string;
 }
 
 export interface BrandEquivalency {

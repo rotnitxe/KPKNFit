@@ -55,6 +55,13 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
     const [isSearching, setIsSearching] = useState(!exercise.name);
     const [searchQuery, setSearchQuery] = useState('');
 
+    const exerciseDbEntry = useMemo(() => {
+        if (!exercise.exerciseDbId) return null;
+        return exerciseList.find(e => e.id === exercise.exerciseDbId) || null;
+    }, [exercise.exerciseDbId, exerciseList]);
+
+    const executionOptions = exerciseDbEntry?.executionOptions;
+
     const setsSummary = useMemo(() => {
         const sets = exercise.sets || [];
         if (sets.length === 0) return 'Sin series';
@@ -105,6 +112,11 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
         onUpdate(partIndex, exerciseIndex, (draft) => {
             draft.name = ex.name;
             draft.exerciseDbId = ex.id;
+            if (ex.executionOptions?.length) {
+                draft.selectedExecutionOption = ex.executionOptions[0];
+            } else {
+                draft.selectedExecutionOption = undefined;
+            }
         });
         setIsSearching(false);
         setSearchQuery('');
@@ -237,6 +249,9 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                     className="text-sm font-medium text-white truncate hover:text-[#00F0FF] transition-colors text-left min-w-0 flex-1"
                 >
                     {exercise.name || 'Seleccionar ejercicio'}
+                    {exercise.selectedExecutionOption && (
+                        <span className="text-[10px] font-normal text-[#00F0FF]/70 ml-1.5">({exercise.selectedExecutionOption})</span>
+                    )}
                 </button>
 
                 {/* Sets summary */}
@@ -263,6 +278,27 @@ const ExerciseRow: React.FC<ExerciseRowProps> = ({
                     {augeSuggestion && (
                         <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-[#00F0FF]/5 border border-[#00F0FF]/10">
                             <span className="text-[10px] text-[#00F0FF] leading-relaxed">{augeSuggestion}</span>
+                        </div>
+                    )}
+
+                    {/* Execution options selector */}
+                    {executionOptions && executionOptions.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] text-[#555] mr-0.5">Variante:</span>
+                            {executionOptions.map(opt => (
+                                <button
+                                    key={opt}
+                                    type="button"
+                                    onClick={() => onUpdate(partIndex, exerciseIndex, d => { d.selectedExecutionOption = opt; })}
+                                    className={`px-2.5 py-1 rounded-full text-[10px] font-medium transition-colors ${
+                                        (exercise.selectedExecutionOption || executionOptions[0]) === opt
+                                            ? 'bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF]/30'
+                                            : 'bg-white/[0.04] text-[#999] border border-[#E6E0E9]/20 hover:text-white hover:border-[#E6E0E9]/40'
+                                    }`}
+                                >
+                                    {opt}
+                                </button>
+                            ))}
                         </div>
                     )}
 

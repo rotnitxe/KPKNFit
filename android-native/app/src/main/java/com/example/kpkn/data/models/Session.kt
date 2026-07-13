@@ -235,6 +235,8 @@ data class Exercise(
     val supersetRestAfter: Int? = null,
     val supersetGroupRef: String? = null,
     val variantName: String? = null,
+    val selectedExecutionOption: String? = null,
+    val selectedMovementPattern: String? = null,
     val prFor1RM: PrReference? = null,
     val consolidatedWeight: ConsolidatedWeight? = null,
     val brandEquivalencies: List<BrandEquivalency> = emptyList(),

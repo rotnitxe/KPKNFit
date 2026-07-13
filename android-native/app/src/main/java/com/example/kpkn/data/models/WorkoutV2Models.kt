@@ -112,6 +112,7 @@ data class WorkoutContextProfile(
     val setupProfileId: String? = null,
     val setupLabel: String? = null,
     val machineBrand: String? = null,
+    val loadMode: LoadModeV2? = null,
     val linkStrategy: WorkoutContextLinkStrategyV3 = WorkoutContextLinkStrategyV3.LINKED_EDITABLE,
     val setupDetails: ExerciseSetupDetails? = null,
     val barWeightKg: Double? = null,

@@ -1220,25 +1220,45 @@ private fun WorkoutRmCalcContent(
     var rmWeightText by remember { mutableStateOf("") }
     var rmRepsText by remember { mutableStateOf("") }
     val isAssisted = currentLoadMode == LoadModeV2.ASSISTED
-    val rmResult = remember(rmWeightText, rmRepsText, isAssisted, bodyWeight) {
-        val w = rmWeightText.toDoubleOrNull() ?: 0.0
-        val r = rmRepsText.toIntOrNull() ?: 0
-        if (w > 0 && r > 0) calculateHybrid1RM(w, r) else null
+    val isLastre = currentLoadMode == LoadModeV2.LASTRE
+    val weightLabel = when (currentLoadMode) {
+        LoadModeV2.LASTRE -> "Lastre (kg)"
+        LoadModeV2.ASSISTED -> "Asistencia (kg)"
+        else -> "Peso (kg)"
     }
-    val rmTable = remember(rmResult, isAssisted, bodyWeight) {
+    val effectiveLoad = remember(rmWeightText, isLastre, isAssisted, bodyWeight) {
+        val w = rmWeightText.toDoubleOrNull() ?: 0.0
+        when {
+            isLastre && bodyWeight != null && bodyWeight > 0 -> bodyWeight + w
+            isAssisted && bodyWeight != null && bodyWeight > 0 -> (bodyWeight - w).coerceAtLeast(0.0)
+            else -> w
+        }
+    }
+    val rmResult = remember(effectiveLoad, rmRepsText) {
+        val r = rmRepsText.toIntOrNull() ?: 0
+        if (effectiveLoad > 0 && r > 0) calculateHybrid1RM(effectiveLoad, r) else null
+    }
+    val rmTable = remember(rmResult, isAssisted, isLastre, bodyWeight) {
         if (rmResult == null) emptyList()
         else {
             val estRms = (1..10).map { reps ->
                 val estLoad = rmResult / (1.0 + reps / 30.0) // Epley inverse
                 reps to estLoad
             }
-            if (isAssisted && bodyWeight != null && bodyWeight > 0) {
-                estRms.map { (reps, load) ->
-                    val assistance = (bodyWeight - load).coerceAtLeast(0.0)
-                    reps to Pair(load, assistance)
+            when {
+                isAssisted && bodyWeight != null && bodyWeight > 0 -> {
+                    estRms.map { (reps, load) ->
+                        val assistance = (bodyWeight - load).coerceAtLeast(0.0)
+                        reps to Triple(load, assistance, null)
+                    }
                 }
-            } else {
-                estRms.map { (reps, load) -> reps to Pair(load, null) }
+                isLastre && bodyWeight != null && bodyWeight > 0 -> {
+                    estRms.map { (reps, load) ->
+                        val lastre = (load - bodyWeight).coerceAtLeast(0.0)
+                        reps to Triple(load, null, lastre)
+                    }
+                }
+                else -> estRms.map { (reps, load) -> reps to Triple(load, null, null) }
             }
         }
     }
@@ -1247,7 +1267,7 @@ private fun WorkoutRmCalcContent(
             OutlinedTextField(
                 value = rmWeightText,
                 onValueChange = { rmWeightText = it },
-                label = { Text("Peso (kg)") },
+                label = { Text(weightLabel) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true,
                 modifier = Modifier.weight(1f),
@@ -1273,7 +1293,7 @@ private fun WorkoutRmCalcContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("e1RM: ${"%.1f".format(rmResult)} kg", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color(0xFF4CAF50))
-                    if (isAssisted && bodyWeight != null) {
+                    if ((isAssisted || isLastre) && bodyWeight != null) {
                         Text("Peso corporal: ${bodyWeight.toTrimmedNumberString()} kg", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
                     }
                 }
@@ -1281,10 +1301,18 @@ private fun WorkoutRmCalcContent(
             Spacer(Modifier.height(4.dp))
             Text("Tabla RM", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                rmTable.forEach { (reps, pair) ->
-                    val (estLoad, assistance) = pair
-                    val displayWeight = if (assistance != null) assistance else estLoad
-                    val suffix = if (assistance != null) "kg asistencia" else "kg"
+                rmTable.forEach { (reps, triple) ->
+                    val (estLoad, assistance, lastre) = triple
+                    val displayWeight = when {
+                        assistance != null -> assistance
+                        lastre != null -> lastre
+                        else -> estLoad
+                    }
+                    val suffix = when {
+                        assistance != null -> "kg asistencia"
+                        lastre != null -> "kg lastre"
+                        else -> "kg"
+                    }
                     Surface(
                         onClick = { onWeightSelected?.invoke(displayWeight, currentLoadMode) },
                         shape = RoundedCornerShape(10.dp),

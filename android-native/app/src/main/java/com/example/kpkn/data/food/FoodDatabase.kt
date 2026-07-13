@@ -470,10 +470,25 @@ fun findFoodByNormalized(text: String): FoodItem? {
     foodByExactName[alias]?.let { return it }
     foodByExactName[normalized]?.let { return it }
 
-    // Fallback: contains search (O(n), sólo cuando no hay match exacto)
+    // Fallback con coincidencia de palabras completas (evita que "pan" coincida con "empanada" o "pollo" con "repollo")
     val allFoods = ALL_FOODS
-    allFoods.find { it.name.lowercase().contains(alias) }?.let { return it }
-    allFoods.find { alias.contains(it.name.lowercase()) && it.name.length > 3 }?.let { return it }
+    val aliasWords = alias.split("[\\s(),/]+".toRegex()).filter { it.length > 1 }
+    if (aliasWords.isNotEmpty()) {
+        allFoods.find { food ->
+            val foodWords = food.name.lowercase().split("[\\s(),/]+".toRegex())
+            aliasWords.all { aw -> foodWords.any { fw -> fw == aw } }
+        }?.let { return it }
+    }
+
+    // Segundo fallback inverso: que todas las palabras de la comida estén en el alias
+    allFoods.find { food ->
+        val foodNameLower = food.name.lowercase()
+        if (foodNameLower.length <= 3) return@find false
+        val foodWords = foodNameLower.split("[\\s(),/]+".toRegex()).filter { it.length > 2 }
+        if (foodWords.isEmpty()) return@find false
+        val aliasWordsAll = alias.split("[\\s(),/]+".toRegex())
+        foodWords.all { fw -> aliasWordsAll.any { aw -> aw == fw || aw.startsWith(fw) } }
+    }?.let { return it }
 
     return null
 }

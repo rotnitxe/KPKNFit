@@ -213,7 +213,10 @@ function inferResolution(rawMuscle: string, rawEmphasis?: string): CanonicalReso
   }
 
   if (source.includes('trapecio') || source.includes('upper back')) {
-    return { muscle: 'Trapecio' };
+    return {
+      muscle: 'Trapecio',
+      emphasis: emphasis === 'superior' || emphasis === 'medio' || emphasis === 'inferior' ? emphasis : undefined,
+    };
   }
 
   if (
@@ -284,6 +287,18 @@ export function getMuscleDisplayId(rawMuscle: string, rawEmphasis?: string): str
     if (resolved.emphasis === 'anterior') return 'Deltoides Anterior';
     if (resolved.emphasis === 'medio') return 'Deltoides Lateral';
     if (resolved.emphasis === 'posterior') return 'Deltoides Posterior';
+  }
+  if (resolved.muscle === 'Pectorales') {
+    if (resolved.emphasis === 'superior') return 'Pectoral Superior';
+    if (resolved.emphasis === 'inferior') return 'Pectoral Inferior';
+  }
+  if (resolved.muscle === 'Trapecio') {
+    if (resolved.emphasis === 'superior') return 'Trapecio Superior';
+    if (resolved.emphasis === 'inferior') return 'Trapecio Inferior';
+  }
+  if (resolved.muscle === 'Pantorrillas') {
+    if (resolved.emphasis === 'gastrocnemio') return 'Gastrocnemio';
+    if (resolved.emphasis === 'sóleo') return 'Sóleo';
   }
   return resolved.muscle;
 }

@@ -128,8 +128,8 @@ private val NUMBER_QUANTITY_PATTERN = Regex("""^(\d+(?:\.\d+)?)\s*(?:x\s*)?(.+)$
 private val LITERAL_QUANTITY_PATTERN = Regex("""^(un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciséis|dieciseis|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintidós|veintidos|veintitrés|veintitres|veinticuatro|veinticinco|treinta|media|medio|mitad|cuarto|tercio|doble|triple)\s+(.+)$""", RegexOption.IGNORE_CASE)
 private val SPACES_PATTERN = Regex("\\s+")
 private val LEADING_DE_PATTERN = Regex("^de\\s+")
-private val PORTION_PREFIX_PATTERN = Regex("^(?:plato|porcion|porción|taza|vaso|bol|bowl|fuente)\\s+de\\s+")
-private val ARTICLE_PORTION_PREFIX_PATTERN = Regex("^(?:un|una)\\s+(?:plato|porcion|porción|taza|vaso|bol|bowl|fuente)\\s+de\\s+")
+private val PORTION_PREFIX_PATTERN = Regex("^(?:platos?|porciones?|porción|tazas?|vasos?|boles?|bowls?|fuentes?)\\s+de\\s+")
+private val ARTICLE_PORTION_PREFIX_PATTERN = Regex("^(?:un|una|unos|unas)\\s+(?:platos?|porciones?|porción|tazas?|vasos?|boles?|bowls?|fuentes?)\\s+de\\s+")
 private val TRAILING_DE_PATTERN = Regex("\\s+de\\s+$")
 private val DIMINUTIVE_PATTERN = Regex("""(\w+?)(cito|cita|ito|ita|illo|illa|ecito|ecita)$""")
 
@@ -555,9 +555,13 @@ private fun extractModifiers(text: String, currentGrams: Double?): Triple<MacroS
         // Check if it's a portion modifier (grande/colmada or rasa/pequeña)
         val matchText = match.value.lowercase()
         if (matchText.contains("colmad") || matchText.contains("generos")) {
-            gramsOverride = (gramsOverride ?: 100.0) * 1.25
+            if (currentGrams == null) {
+                gramsOverride = (gramsOverride ?: 100.0) * 1.25
+            }
         } else if (matchText.contains("rasa") || matchText.contains("fina") || matchText.contains("pequeñ")) {
-            gramsOverride = (gramsOverride ?: 100.0) * 0.75
+            if (currentGrams == null) {
+                gramsOverride = (gramsOverride ?: 100.0) * 0.75
+            }
         } else {
             // It's a macro modifier - combine scales
             resultScale = if (resultScale != null) {

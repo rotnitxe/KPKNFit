@@ -78,16 +78,21 @@ object SemanticPortionRetriever {
             return RetrievalResult(query, emptyList<DatasetMatch>(), emptyList(), emptyMap(), null, 0.0, 0L)
         }
 
-        // Phase 1: Token-based matching against known patterns
-        // Since TF-IDF index is loaded at runtime from assets, use fallback matching
+        // Phase 1: Token-based matching against the compiled TF-IDF index
         val docScores = mutableMapOf<Int, Double>()
 
-        // Use portion triplets for direct food matching
-        for (triplet in DatasetKnowledge.PORTION_TRIPLETS) {
-            val tripletTokens = tokenize(normalize(triplet.food))
-            val hits = tokens.count { t -> tripletTokens.any { tt -> tt.contains(t) || t.contains(tt) } }
-            if (hits > 0) {
-                docScores[triplet.frequency] = (docScores[triplet.frequency] ?: 0.0) + hits * 0.5
+        for (token in tokens) {
+            val entry = DatasetKnowledge.TFIDF_TOKEN_INDEX[token]
+            if (entry != null) {
+                val matchesList = entry.split(',')
+                for (matchStr in matchesList) {
+                    val parts = matchStr.split(':')
+                    if (parts.size == 2) {
+                        val docId = parts[0].toIntOrNull() ?: continue
+                        val score = parts[1].toDoubleOrNull() ?: 0.0
+                        docScores[docId] = (docScores[docId] ?: 0.0) + score
+                    }
+                }
             }
         }
 

@@ -69,6 +69,8 @@ data class ExerciseMuscleInfo(
     val setupDetails: SetupDetails? = null,
     val setupTime: Int? = null, // seconds
     val averageRestSeconds: Int? = null,
+    val executionOptions: List<String>? = null,
+    val movementPattern: String? = null,
 )
 
 @Serializable

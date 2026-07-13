@@ -1,8 +1,12 @@
 package com.example.kpkn.screens.auge
 
 import android.app.Application
+import androidx.activity.ComponentActivity
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.AugeRepository
@@ -279,22 +283,26 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     /** Call when user submits the daily wellbeing log (from ReadinessSheet). */
     fun saveWellbeing(log: DailyWellbeingLog) {
         viewModelScope.launch {
-            augeRepo.saveWellbeingLog(log)
+            // Centralize manualBatteryAnchorMs: always stamp now when manual batteries are present
+            val anchoredLog = if (log.manualNeuralBattery != null || log.manualSpinalBattery != null || log.manualMuscleBatteries.isNotEmpty()) {
+                log.copy(manualBatteryAnchorMs = System.currentTimeMillis())
+            } else log
+            augeRepo.saveWellbeingLog(anchoredLog)
 
             // Learn from manual adjustments if any (pre-workout signal)
-            if (log.manualNeuralBattery != null || log.manualSpinalBattery != null || log.manualMuscleBatteries.isNotEmpty()) {
+            if (anchoredLog.manualNeuralBattery != null || anchoredLog.manualSpinalBattery != null || anchoredLog.manualMuscleBatteries.isNotEmpty()) {
                 val snapshot = _snapshot.value
                 learnFromManualAdjustment(
-                    manualNeural = log.manualNeuralBattery,
-                    manualSpinal = log.manualSpinalBattery,
-                    manualMuscleBatteries = log.manualMuscleBatteries,
+                    manualNeural = anchoredLog.manualNeuralBattery,
+                    manualSpinal = anchoredLog.manualSpinalBattery,
+                    manualMuscleBatteries = anchoredLog.manualMuscleBatteries,
                     sessionCnsDrain = 0.0,
                     sessionSpinalDrain = 0.0,
                     sessionMuscleDrain = 0.0,
                     predictedNeuralBattery = snapshot.ringScore(RecoveryChannelId.SYSTEM),
                     predictedSpinalBattery = snapshot.ringScore(RecoveryChannelId.STRUCTURE),
                     predictedMuscleBatteries = snapshot.perMuscle.mapValues { (_, v) -> v.recoveryScore },
-                    wellbeing = log,
+                    wellbeing = anchoredLog,
                 )
             }
 
@@ -430,7 +438,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 currentSpinalDelta = updatedCache.spinalLearningDelta,
                 systemAdjustment = systemAdj,
                 structureAdjustment = 0,
-                totalObservations = cache.totalObservations + obsCount,
+                totalObservations = cache.totalObservations,
             )
             updatedCache = updatedCache.copy(cnsLearningDelta = newCns)
             obsCount += 1
@@ -444,7 +452,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 currentSpinalDelta = updatedCache.spinalLearningDelta,
                 systemAdjustment = 0,
                 structureAdjustment = structAdj,
-                totalObservations = cache.totalObservations + obsCount,
+                totalObservations = cache.totalObservations,
             )
             updatedCache = updatedCache.copy(spinalLearningDelta = newSpinal)
             obsCount += 1
@@ -481,7 +489,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                     personalizedRecoveryHours = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
                         current = updatedCache.personalizedRecoveryHours,
                         observation = obs,
-                        totalObservations = cache.totalObservations + obsCount,
+                        totalObservations = cache.totalObservations,
                     ),
                 )
                 obsCount += 1
@@ -494,7 +502,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                     current = updatedCache.muscleDeltas,
                     manualMuscleBatteries = manualMuscleBatteries,
                     predictedMuscleBatteries = predictedMuscleBatteries,
-                    totalObservations = cache.totalObservations + obsCount,
+                    totalObservations = cache.totalObservations,
                 ),
             )
             if (manualMuscleBatteries.any { (k, v) -> (predictedMuscleBatteries[k] ?: 100) != v }) {
@@ -515,3 +523,9 @@ private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third:
 private data class Quintuple<A, B, C, D, E>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E)
 private data class Sextuple<A, B, C, D, E, F>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F)
 private data class Septuple<A, B, C, D, E, F, G>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F, val seventh: G)
+
+@Composable
+fun rememberAugeViewModel(): AugeViewModel {
+    val activity = LocalContext.current as ComponentActivity
+    return viewModel(activity)
+}

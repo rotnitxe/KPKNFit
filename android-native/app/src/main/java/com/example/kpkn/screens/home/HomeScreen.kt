@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -47,6 +48,7 @@ import com.example.kpkn.domain.calculations.getCurrentDayOfWeek
 import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.screens.auge.AugeViewModel
+import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -73,9 +75,9 @@ fun HomeScreen(
     onNavigateToCard: (String) -> Unit = {},
     onNavigate: (String) -> Unit = {},
     viewModel: HomeViewModel = viewModel(),
-    augeViewModel: AugeViewModel = viewModel(),
     nutritionViewModel: NutritionViewModel? = null,
 ) {
+    val augeViewModel = rememberAugeViewModel()
     val augePerMuscle by augeViewModel.perMuscle.collectAsState()
     val augeSnapshot by augeViewModel.snapshot.collectAsState()
 
@@ -94,6 +96,12 @@ fun HomeScreen(
     val foodDatabase by nutritionRepo.foodDatabase.collectAsState()
     var showFoodLogger by remember { mutableStateOf(false) }
     var selectedMealForLogger by remember { mutableStateOf(MealType.LUNCH) }
+    val overtrainedMuscles by viewModel.overtrainedMuscles.collectAsState()
+    val context = LocalContext.current
+    LaunchedEffect(activeProgramId) {
+        viewModel.loadFeedbacks(context)
+    }
+
     val listState = rememberLazyListState()
     val density = LocalDensity.current
 
@@ -204,6 +212,7 @@ fun HomeScreen(
                 onNavigateToCard = onNavigateToCard,
                 onNavigate = onNavigate,
                 autoDeloadMessage = augeSnapshot.autoDeloadMessage,
+                overtrainedMuscles = overtrainedMuscles,
                 onAddMeal = { showFoodLogger = true },
                 modifier = Modifier
                     .fillMaxSize()
@@ -280,6 +289,7 @@ private fun HomeWithProgram(
     modifier: Modifier = Modifier,
     listModifier: Modifier = Modifier,
     autoDeloadMessage: String? = null,
+    overtrainedMuscles: List<String> = emptyList(),
     onAddMeal: () -> Unit = {},
 ) {
     val programs by viewModel.programs.collectAsState()
@@ -315,6 +325,27 @@ private fun HomeWithProgram(
                     ) {
                         Text("Auto-deload sugerido", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                         Text(autoDeloadMessage, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
+                    }
+                }
+            }
+        }
+        if (overtrainedMuscles.isNotEmpty()) {
+            item {
+                Surface(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.65f),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text("⚠️ Sobreentrenamiento Crónico Detectado", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer)
+                        Text(
+                            text = "El coach detecta fatiga crítica acumulada en: ${overtrainedMuscles.joinToString(", ")}. Considera reducir las series semanales o tomar un descanso activo.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.85f)
+                        )
                     }
                 }
             }
@@ -420,7 +451,7 @@ private fun HomeTopBar(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(80.dp)
+            .wrapContentHeight()
             .hazeEffect(state = hazeState, style = glassStyle),
         shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
         color = Color.Black.copy(alpha = 0.85f),
@@ -432,7 +463,7 @@ private fun HomeTopBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .fillMaxHeight()
+                    .height(64.dp)
                     .padding(horizontal = 16.dp)
                     .padding(top = 4.dp, bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,

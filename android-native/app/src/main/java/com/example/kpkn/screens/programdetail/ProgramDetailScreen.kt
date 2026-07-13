@@ -48,6 +48,7 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.ProgramAnalyticsEngine
 import com.example.kpkn.screens.auge.AugeViewModel
+import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.programdetail.components.*
 import com.example.kpkn.services.workout.LoopNotificationManager
 import com.example.kpkn.ui.components.KpknSnackbar
@@ -69,7 +70,7 @@ fun ProgramDetailScreen(
     onContextTabStateChange: (MainTab, (MainTab) -> Unit) -> Unit = { _, _ -> },
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
 ) {
-    val augeViewModel: AugeViewModel = viewModel()
+    val augeViewModel = rememberAugeViewModel()
     val program by viewModel.program.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
     val isActive by viewModel.isActiveProgram.collectAsState()
@@ -92,6 +93,11 @@ fun ProgramDetailScreen(
     val augeSnapshot by augeViewModel.snapshot.collectAsState()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val context = LocalContext.current
+    val muscleCdbsStatus by viewModel.muscleCdbsStatus.collectAsState()
+
+    LaunchedEffect(programId) {
+        viewModel.loadFeedbacks(context)
+    }
 
     LaunchedEffect(uiState.activeTab) {
         onContextTabStateChange(uiState.activeTab) { viewModel.setActiveTab(it) }
@@ -1188,6 +1194,7 @@ private fun AnalyticsPanel(
             exerciseCatalog = EXERCISE_DATABASE,
         )
     }
+    val muscleCdbsStatus by viewModel.muscleCdbsStatus.collectAsState()
 
     Column {
         Spacer(Modifier.height(8.dp))
@@ -1233,6 +1240,8 @@ private fun AnalyticsPanel(
                     programDiscomforts = programDiscomforts,
                     exerciseDiscomfortAssociations = exerciseDiscomfortAssociations,
                     analyticsReport = analyticsReport,
+                    muscleCdbsStatus = muscleCdbsStatus,
+                    programLogs = programLogs,
                 )
             }
             AnalyticsSubTab.PROGRESO -> {

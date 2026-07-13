@@ -33,6 +33,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import com.example.kpkn.screens.programdetail.MuscleOvertrainingStatus
+import com.example.kpkn.data.models.WorkoutLog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.clickable
@@ -123,6 +125,8 @@ fun VolumeView(
     programDiscomforts: List<DiscomfortEntry>,
     exerciseDiscomfortAssociations: List<ExerciseDiscomfortAssociationEntry>,
     analyticsReport: ProgramAnalyticsReport? = null,
+    muscleCdbsStatus: Map<String, MuscleOvertrainingStatus> = emptyMap(),
+    programLogs: List<WorkoutLog> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val volumeScopeOptions = remember(program) { buildVolumeScopeOptions(program) }
@@ -152,6 +156,15 @@ fun VolumeView(
     }
     val isVolumeCalibrated = remember(program.volumeRecommendations, program.athleteProfileScore) {
         program.volumeRecommendations.isNotEmpty() && program.athleteProfileScore != null
+    }
+    val completedVolumes = remember(programLogs) {
+        VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
+            logs = programLogs,
+            exerciseList = EXERCISE_DATABASE,
+            weeksCount = program.volumeRecommendations.firstOrNull()?.let {
+                (programLogs.size / 3).coerceAtLeast(1)
+            } ?: 1
+        )
     }
     val totalWeeklySets = remember(canonicalVolumes) { canonicalVolumes.sumOf { it.weeklySets } }
     val activeMuscles = remember(canonicalVolumes) { canonicalVolumes.count { it.weeklySets > 0.0 } }
@@ -242,7 +255,7 @@ fun VolumeView(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Ajustar por RPE",
+                    text = "Ajustar por fatiga",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
@@ -262,6 +275,8 @@ fun VolumeView(
             selectedVolumeScope = selectedVolumeScope,
             showIndirectVolume = showIndirectVolume,
             adjustByIntensity = adjustVolumeByIntensity,
+            completedVolumes = completedVolumes,
+            muscleCdbsStatus = muscleCdbsStatus,
         )
 
         analyticsReport?.let { report ->
@@ -517,6 +532,8 @@ private fun CanonicalVolumeBarsCard(
     selectedVolumeScope: VolumeScopeOption?,
     showIndirectVolume: Boolean,
     adjustByIntensity: Boolean,
+    completedVolumes: List<CanonicalMuscleVolumeEntry> = emptyList(),
+    muscleCdbsStatus: Map<String, MuscleOvertrainingStatus> = emptyMap(),
 ) {
     val maxWeeklySets = remember(canonicalVolumes) {
         max(canonicalVolumes.maxOfOrNull { it.weeklySets } ?: 0.0, 1.0)
@@ -633,6 +650,9 @@ private fun CanonicalVolumeBarsCard(
                                 .sortedByDescending { it.weeklySets }
                                 .forEach { entry ->
                                     val isMuscleExpanded = expandedMuscleName == entry.muscleName
+                                    val canonicalName = VolumeCalculator.normalizeCanonicalMuscleGroup(entry.muscleName)
+                                    val completedSets = completedVolumes.find { it.muscleName == canonicalName }?.weeklySets ?: 0.0
+                                    val overtrainingStatus: MuscleOvertrainingStatus? = muscleCdbsStatus[canonicalName]
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -647,6 +667,8 @@ private fun CanonicalVolumeBarsCard(
                                             target = personalizedTargets[entry.muscleName],
                                             fallbackMaxWeeklySets = maxWeeklySets,
                                             isVolumeCalibrated = isVolumeCalibrated,
+                                            completedSets = completedSets,
+                                            overtrainingStatus = overtrainingStatus,
                                         )
 
                                         if (isMuscleExpanded) {
@@ -673,22 +695,37 @@ private fun CanonicalMuscleBarRow(
     target: PersonalizedVolumeTarget?,
     fallbackMaxWeeklySets: Double,
     isVolumeCalibrated: Boolean,
+    completedSets: Double = 0.0,
+    overtrainingStatus: MuscleOvertrainingStatus? = null,
 ) {
     val scaleMax = when {
         isVolumeCalibrated && target != null -> max(entry.weeklySets, target.maxRecoverable.toDouble()).coerceAtLeast(1.0)
         else -> fallbackMaxWeeklySets.coerceAtLeast(1.0)
     }
     val currentFraction = (entry.weeklySets / scaleMax).toFloat().coerceIn(0f, 1f)
+    val completedFraction = (completedSets / scaleMax).toFloat().coerceIn(0f, 1f)
     val minFraction = if (target != null) (target.minEffective / scaleMax).toFloat().coerceIn(0f, 1f) else 0f
     val idealFraction = if (target != null) (target.maxAdaptive / scaleMax).toFloat().coerceIn(0f, 1f) else 0f
 
     val progressColor = when {
         !isVolumeCalibrated || target == null -> MaterialTheme.colorScheme.primary
         entry.weeklySets <= 0.0 -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-        entry.weeklySets < target.minEffective -> Color(0xFFEAB308) // Amber / Subentrenado
-        entry.weeklySets <= target.maxAdaptive -> Color(0xFF10B981) // Green / Rango ideal
-        entry.weeklySets <= target.maxRecoverable -> Color(0xFFF97316) // Orange / Alto tolerable
-        else -> Color(0xFFEF4444) // Red / Sobreentreno
+        overtrainingStatus != null && overtrainingStatus.isOvertrained -> Color(0xFFEF4444) // Rojo / Sobreentrenamiento Crónico
+        overtrainingStatus != null && overtrainingStatus.isOverreaching -> Color(0xFFF97316) // Naranja / Sobreachance Funcional
+        entry.weeklySets < target.minEffective -> Color(0xFFEAB308) // Amarillo / Subentrenado
+        entry.weeklySets <= target.maxAdaptive -> Color(0xFF10B981) // Verde / Óptimo
+        entry.weeklySets <= target.maxRecoverable -> Color(0xFFF97316) // Naranja / Alto tolerable
+        else -> Color(0xFFEF4444) // Rojo fallback
+    }
+
+    val statusText = when {
+        overtrainingStatus != null && overtrainingStatus.isOvertrained -> "Sobreentreno Crónico"
+        overtrainingStatus != null && overtrainingStatus.isOverreaching -> "Sobreachance"
+        else -> buildMuscleStatusText(
+            weeklySets = entry.weeklySets,
+            target = target,
+            isVolumeCalibrated = isVolumeCalibrated,
+        )
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -703,15 +740,13 @@ private fun CanonicalMuscleBarRow(
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                text = buildMuscleStatusText(
-                    weeklySets = entry.weeklySets,
-                    target = target,
-                    isVolumeCalibrated = isVolumeCalibrated,
-                ),
+                text = statusText,
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+
+        // Planificado (Teórico)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -738,6 +773,42 @@ private fun CanonicalMuscleBarRow(
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(999.dp))
                         .background(progressColor)
+                )
+            }
+        }
+
+        // Real completado (Doble Barra)
+        if (completedSets > 0.0) {
+            Spacer(modifier = Modifier.height(2.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f)),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(completedFraction)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(progressColor.copy(alpha = 0.7f))
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Plan: ${formatOneDecimal(entry.weeklySets)}",
+                    fontSize = 9.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+                Text(
+                    text = "Real: ${formatOneDecimal(completedSets)}",
+                    fontSize = 9.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -1259,17 +1330,42 @@ private data class SubMuscleContribution(
 
 private fun resolveSpecificSubMuscle(muscle: String, emphasis: String?): String {
     val lower = muscle.lowercase().replace("-", " ").replace("_", " ").trim()
+    val emph = emphasis?.lowercase()?.trim().orEmpty()
+
     if (lower.contains("deltoides") || lower.contains("hombro")) {
         return when {
-            lower.contains("posterior") || lower.contains("trasero") -> "Deltoides Posterior"
-            lower.contains("lateral") || lower.contains("medio") -> "Deltoides Lateral"
+            emph == "posterior" || lower.contains("posterior") || lower.contains("trasero") -> "Deltoides Posterior"
+            emph == "medio" || emph == "lateral" || lower.contains("lateral") || lower.contains("medio") -> "Deltoides Lateral"
+            emph == "anterior" -> "Deltoides Anterior"
             else -> "Deltoides Anterior"
         }
     }
     if (lower.contains("glúteo") || lower.contains("gluteo") || lower.contains("tensor de la fascia lata") || lower.contains("tensor fascia")) {
         return when {
-            lower.contains("medio") || lower.contains("medius") || lower.contains("mínimo") || lower.contains("minimus") || lower.contains("tensor") -> "Glúteo Medio"
+            emph == "medio" || lower.contains("medius") || lower.contains("tensor") -> "Glúteo Medio"
+            emph == "menor" || lower.contains("minimus") || lower.contains("mínimo") -> "Glúteo Menor"
+            emph == "mayor" -> "Glúteo Mayor"
             else -> "Glúteo Mayor"
+        }
+    }
+    if (lower.contains("pectoral") || lower.contains("pecho")) {
+        return when {
+            emph == "superior" -> "Pectoral Superior"
+            emph == "inferior" -> "Pectoral Inferior"
+            else -> "Pectoral Medio"
+        }
+    }
+    if (lower.contains("trapecio")) {
+        return when {
+            emph == "superior" -> "Trapecio Superior"
+            emph == "inferior" -> "Trapecio Inferior"
+            else -> "Trapecio Medio"
+        }
+    }
+    if (lower.contains("pantorrilla") || lower.contains("gemelo") || lower.contains("gastrocnemio") || lower.contains("soleo") || lower.contains("sóleo")) {
+        return when {
+            emph == "gastrocnemio" -> "Gastrocnemio"
+            else -> "Sóleo"
         }
     }
     return muscle
@@ -1370,6 +1466,9 @@ private fun calculateSubMuscleBreakdown(
     val targetSubMuscles = when (canonicalMuscle) {
         "Deltoides" -> listOf("Deltoides Anterior", "Deltoides Lateral", "Deltoides Posterior")
         "Glúteos" -> listOf("Glúteo Mayor", "Glúteo Medio")
+        "Pectorales" -> listOf("Pectoral Superior", "Pectoral Medio", "Pectoral Inferior")
+        "Trapecio" -> listOf("Trapecio Superior", "Trapecio Medio", "Trapecio Inferior")
+        "Pantorrillas" -> listOf("Gastrocnemio", "Sóleo")
         else -> return emptyList()
     }
     

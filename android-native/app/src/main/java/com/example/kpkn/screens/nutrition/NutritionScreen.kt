@@ -265,6 +265,10 @@ fun NutritionScreen(
         },
         currentSettings = currentSettings,
         activePlan = activePlan,
+        onDeletePlan = { planId ->
+            viewModel.deletePlan(planId)
+            viewModel.closePlanOverlay()
+        }
     )
 
     if (showPlanRequiredDialog) {

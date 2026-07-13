@@ -113,6 +113,17 @@ data class UserVitals(
 
 enum class Gender { MALE, FEMALE, OTHER }
 
+/**
+ * MetabolicProfile — perfil hormonal interno usado exclusivamente para el cálculo de TMB.
+ * Desacoplado de la identidad de género (Gender). El usuario lo elige respondiendo
+ * "¿Qué hormonas predominan más en tu cuerpo hoy?" sin jerga médica.
+ *
+ * TESTOSTERONE → constante masculina en Mifflin/Harris (+5)
+ * ESTROGEN     → constante femenina en Mifflin/Harris (-161)
+ * MIXED        → promedio de ambas (-78), para perfiles en transición o no binarios
+ */
+enum class MetabolicProfile { TESTOSTERONE, ESTROGEN, MIXED }
+
 @Serializable
 data class PredictionBiasProfile(
     val cnsBias: Double = 0.0,

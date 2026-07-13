@@ -2,6 +2,7 @@ package com.example.kpkn.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlin.math.roundToInt
 import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.KeyDateType
@@ -32,6 +33,13 @@ import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Locale
+import android.content.Context
+import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.models.PostSessionFeedback
+import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import kotlinx.coroutines.launch
 
 /**
  * HomeViewModel — State management for Home Screen.
@@ -40,6 +48,8 @@ class HomeViewModel : ViewModel() {
 
     private val repository = ProgramRepository.getInstance()
     private val nutritionRepository = NutritionRepository.getInstance()
+
+    val feedbacks = MutableStateFlow<List<PostSessionFeedback>>(emptyList())
 
     val programs = repository.programs
     val ongoingWorkout = repository.ongoingWorkout
@@ -51,8 +61,24 @@ class HomeViewModel : ViewModel() {
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val activeProgram: StateFlow<Program?> = combine(repository.programs, activeProgramId) { programs, activeId ->
-        activeId?.let { id -> programs.find { it.id == id } }
+    val activeProgram: StateFlow<Program?> = combine(
+        repository.programs,
+        activeProgramId,
+        feedbacks
+    ) { programs, activeId, fbs ->
+        val p = activeId?.let { id -> programs.find { it.id == id } } ?: return@combine null
+        if (fbs.isEmpty()) return@combine p
+
+        val scaledRecommendations = p.volumeRecommendations.map { rec ->
+            val adj = VolumeCalculator.calculateVolumeAdjustment(rec.muscleGroup, fbs)
+            if (adj == 1.0) rec
+            else rec.copy(
+                minEffectiveVolume = (rec.minEffectiveVolume * adj).roundToInt(),
+                maxAdaptiveVolume = (rec.maxAdaptiveVolume * adj).roundToInt(),
+                maxRecoverableVolume = (rec.maxRecoverableVolume * adj).roundToInt()
+            )
+        }
+        p.copy(volumeRecommendations = scaledRecommendations)
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
@@ -66,6 +92,128 @@ class HomeViewModel : ViewModel() {
         .map { program -> program?.let(::buildCompetitionCountdown) }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    fun loadFeedbacks(context: Context) {
+        viewModelScope.launch {
+            try {
+                feedbacks.value = AugeRepository.getInstance(context).getPostSessionFeedbacks()
+            } catch (_: Exception) {}
+        }
+    }
+
+    val overtrainedMuscles: StateFlow<List<String>> = combine(
+        activeProgram,
+        repository.history,
+        feedbacks
+    ) { p, historyLogs, fbs ->
+        if (p == null) return@combine emptyList()
+        val logs = historyLogs.filter { it.programId == p.id }
+
+        val overtrainedList = mutableListOf<String>()
+        val exerciseList = EXERCISE_DATABASE_BY_ID.values.toList()
+
+        val completedVolumes = VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
+            logs = logs,
+            exerciseList = exerciseList,
+            weeksCount = p.volumeRecommendations.firstOrNull()?.let {
+                (logs.size / 3).coerceAtLeast(1)
+            } ?: 1
+        )
+
+        p.volumeRecommendations.forEach { rec ->
+            val muscle = rec.muscleGroup
+            val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle)
+            val mrv = rec.maxRecoverableVolume
+
+            // 1. Factor 1: Volumen Real > MRV
+            val completedSets = completedVolumes.find { it.muscleName == canonical }?.weeklySets ?: 0.0
+            val factorVol = completedSets > mrv
+
+            // 2. Factor 2: Pérdida de fuerza
+            var factorProg = false
+
+            // 3. Factor 3: Molestias / Dolor
+            val normalizedMuscleLower = canonical.lowercase()
+            val factorPain = logs.take(5).any { log ->
+                log.discomforts.any { d ->
+                    val dl = d.lowercase()
+                    dl.contains(normalizedMuscleLower) ||
+                    (normalizedMuscleLower.contains("hombro") && dl.contains("deltoid")) ||
+                    (normalizedMuscleLower.contains("cuádriceps") && dl.contains("rodilla")) ||
+                    (normalizedMuscleLower.contains("espalda baja") && dl.contains("lumbar"))
+                }
+            }
+
+            // 4. Factor 4: Batería baja
+            val factorSystemic = logs.firstOrNull()?.fatigueLevel?.let { it >= 8 } ?: false
+
+            // 5. Factor 5: DOMS >= 3.5 y Fuerza <= 5
+            val muscleLogs = fbs.filter { fb ->
+                fb.muscleFeedback.keys.any { key ->
+                    VolumeCalculator.normalizeCanonicalMuscleGroup(key).lowercase() == normalizedMuscleLower
+                }
+            }.take(3)
+
+            var totalDoms = 0.0
+            var totalStr = 0.0
+            var fbCount = 0
+            muscleLogs.forEach { fb ->
+                val entryKey = fb.muscleFeedback.keys.find { key ->
+                    VolumeCalculator.normalizeCanonicalMuscleGroup(key).lowercase() == normalizedMuscleLower
+                } ?: return@forEach
+                val entry = fb.muscleFeedback[entryKey] ?: return@forEach
+                totalDoms += entry.doms.toDouble()
+                totalStr += entry.strengthCapacity.toDouble()
+                fbCount++
+            }
+            val factorLocal = if (fbCount > 0) {
+                (totalDoms / fbCount) >= 3.5 || (totalStr / fbCount) <= 5.0
+            } else {
+                false
+            }
+
+            val primaryExercises = exerciseList.filter { db ->
+                db.involvedMuscles.any {
+                    it.role == MuscleRole.PRIMARY &&
+                    VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle).lowercase() == normalizedMuscleLower
+                }
+            }.map { it.id.lowercase() }
+
+            // Check if weight is falling for the SAME exercise
+            var hasWeightDrop = false
+            val exercisesWithLogs = logs.flatMap { it.completedExercises }
+                .filter { it.exerciseDbId?.lowercase() in primaryExercises }
+                .groupBy { it.exerciseDbId?.lowercase() }
+
+            for ((exId, exLogs) in exercisesWithLogs) {
+                if (exLogs.size >= 2) {
+                    val recentWeight = exLogs.first().sets.firstOrNull { !it.skipped }?.weight ?: 0.0
+                    val olderWeight = exLogs.last().sets.firstOrNull { !it.skipped }?.weight ?: 0.0
+                    if (recentWeight < olderWeight && recentWeight > 0.0) {
+                        hasWeightDrop = true
+                        break
+                    }
+                }
+            }
+            if (hasWeightDrop) {
+                factorProg = true
+            }
+
+            var activeCount = 0
+            if (factorVol) activeCount++
+            if (factorPain) activeCount++
+            if (factorSystemic) activeCount++
+            if (factorLocal) activeCount++
+            if (factorProg) activeCount++
+
+            if (activeCount >= 3) {
+                overtrainedList.add(canonical)
+            }
+        }
+
+        overtrainedList
+    }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // ─── AUGE batteries (wired from AugeViewModel at composition) ─────────
 

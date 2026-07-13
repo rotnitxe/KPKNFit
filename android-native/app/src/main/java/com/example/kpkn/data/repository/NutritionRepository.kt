@@ -814,6 +814,10 @@ class NutritionRepository private constructor(context: Context) {
         }
     }
 
+    fun refreshData(context: Context) {
+        loadFromDb(context)
+    }
+
     companion object {
         @Volatile private var INSTANCE: NutritionRepository? = null
         fun init(context: Context): NutritionRepository = INSTANCE ?: synchronized(this) {

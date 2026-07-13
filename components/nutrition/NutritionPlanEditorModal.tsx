@@ -77,7 +77,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode; defaultOpen?
 
 export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> = ({ isOpen, onClose }) => {
     const { settings } = useAppState();
-    const { setSettings, addToast } = useAppDispatch();
+    const { setSettings, setNutritionPlans, setActiveNutritionPlanId, addToast } = useAppDispatch();
 
     const config = settings.calorieGoalConfig || ({} as Partial<CalorieGoalConfig>);
     const activityMap: Record<string, number> = { sedentary: 1, light: 2, moderate: 3, active: 4, very_active: 5 };
@@ -190,6 +190,30 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
             metabolicConditions: metabolicConditions.filter(c => c !== 'none').concat(otherConds),
         });
         addToast('Plan de alimentación actualizado.', 'success');
+        onClose();
+    };
+
+    const handleDeletePlan = () => {
+        if (!window.confirm('¿Estás seguro de que deseas eliminar tu plan de alimentación actual y comenzar de cero? Esta acción no se puede deshacer.')) {
+            return;
+        }
+
+        // Limpiar en settings
+        setSettings({
+            ...settings,
+            calorieGoalConfig: undefined,
+            dailyCalorieGoal: undefined,
+            dailyProteinGoal: undefined,
+            dailyCarbGoal: undefined,
+            dailyFatGoal: undefined,
+            calorieGoalObjective: 'maintenance',
+        });
+
+        // Limpiar en nutrition store
+        setNutritionPlans([]);
+        setActiveNutritionPlanId(null);
+
+        addToast('Plan de alimentación eliminado. Comenzando de cero.', 'success');
         onClose();
     };
 
@@ -377,6 +401,15 @@ export const NutritionPlanEditorModal: React.FC<NutritionPlanEditorModalProps> =
                             <p className="text-slate-400">Tendencia: {weeklyTrendKg != null ? `${weeklyTrendKg >= 0 ? '+' : ''}${weeklyTrendKg.toFixed(2)} kg/sem` : '—'}</p>
                         </div>
                     </Section>
+
+                    <div className="pt-6 pb-2">
+                        <button
+                            onClick={handleDeletePlan}
+                            className="w-full py-3.5 px-4 bg-red-950/40 text-red-400 border border-red-500/30 hover:bg-red-900/40 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-[0.98]"
+                        >
+                            Eliminar plan y comenzar de cero
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex gap-3 px-6 py-4 border-t border-[#E6E0E9] flex-shrink-0">

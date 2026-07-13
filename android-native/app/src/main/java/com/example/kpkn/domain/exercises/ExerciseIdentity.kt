@@ -225,6 +225,8 @@ fun Exercise.replacedWithCatalogExercise(info: ExerciseMuscleInfo): Exercise {
         brandEquivalencies = emptyList(),
         goal1RM = null,
         calculated1RM = null,
+        selectedMovementPattern = info.movementPattern,
+        selectedExecutionOption = info.executionOptions?.firstOrNull(),
         setupCues = info.setupCues.orEmpty(),
         executionCues = info.executionCues.orEmpty(),
         contextProfilesV3 = emptyList(),

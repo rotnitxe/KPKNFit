@@ -581,8 +581,13 @@ fun VolumeCalibrationSheet(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text("Resumen KPKN", fontWeight = FontWeight.Black)
+                    val modeLabel = when (preview.mode) {
+                        ProgramMode.POWERLIFTING -> "Powerlifting"
+                        ProgramMode.POWERBUILDING -> "Powerbuilding"
+                        ProgramMode.HYPERTROPHY -> "Hipertrofia"
+                    }
                     Text(
-                        "Enfoque: ${preview.mode.label()}",
+                        "Enfoque: $modeLabel",
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                     )

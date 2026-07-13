@@ -294,6 +294,7 @@ private fun IntegratedLoadInput(
     onOpenLoadMode: () -> Unit,
     accentColor: Color,
     modifier: Modifier = Modifier,
+    loadMode: LoadModeV2 = LoadModeV2.LOAD,
 ) {
     Surface(
         modifier = modifier
@@ -326,22 +327,38 @@ private fun IntegratedLoadInput(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                val isBodyweightMode = loadMode == LoadModeV2.BODYWEIGHT
                 BasicTextField(
-                    value = value,
-                    onValueChange = onValueChange,
+                    value = if (isBodyweightMode) "" else value,
+                    onValueChange = { if (!isBodyweightMode) onValueChange(it) },
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = !isBodyweightMode,
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     textStyle = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = if (isBodyweightMode)
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.36f)
+                        else
+                            MaterialTheme.colorScheme.onSurface,
                     ),
                     decorationBox = { innerTextField ->
                         Box(
                             modifier = Modifier.fillMaxWidth(),
                             contentAlignment = Alignment.CenterStart,
                         ) {
-                            if (value.isBlank() && !placeholder.isNullOrBlank()) {
+                            if (isBodyweightMode) {
+                                Text(
+                                    text = "Peso corporal",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontStyle = FontStyle.Italic,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.36f),
+                                    ),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            } else if (value.isBlank() && !placeholder.isNullOrBlank()) {
                                 Text(
                                     text = placeholder,
                                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -388,8 +405,13 @@ private fun IntegratedLoadInput(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
+                            val chipUnit = when (loadMode) {
+                                LoadModeV2.LASTRE -> " lastre"
+                                LoadModeV2.ASSISTED -> " asist."
+                                else -> ""
+                            }
                             Text(
-                                text = option.weight.toTrimmedNumberString(),
+                                text = "${option.weight.toTrimmedNumberString()}$chipUnit",
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 10.sp),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.82f),
                                 maxLines = 1,
@@ -1382,7 +1404,13 @@ internal fun SetInputCardV2(
                             value = reportWeightText,
                             onValueChange = { updateActiveWeightText(it) },
                             label = loadFieldLabel,
-                            placeholder = ghostSuggestedWeightText?.takeIf { reportWeightText.isBlank() }?.let { "$it sugerido" },
+                            placeholder = when {
+                                reportWeightText.isNotBlank() -> null
+                                loadMode == LoadModeV2.BODYWEIGHT -> "Sin carga externa"
+                                loadMode == LoadModeV2.LASTRE -> ghostSuggestedWeightText?.let { "$it sugerido" } ?: "Ej: 10"
+                                loadMode == LoadModeV2.ASSISTED -> ghostSuggestedWeightText?.let { "$it sugerido" } ?: "Ej: 20"
+                                else -> ghostSuggestedWeightText?.let { "$it sugerido" }
+                            },
                             options = quickLoadOptionsFor(
                                 currentWeightText = reportWeightText,
                                 suggestedWeight = weightSuggestion?.suggestedWeight,
@@ -1391,6 +1419,7 @@ internal fun SetInputCardV2(
                             onWeightSelected = { updateActiveWeightText(it) },
                             onOpenLoadMode = { loadModeMenuExpanded = true },
                             accentColor = sessionAccentColor,
+                            loadMode = loadMode,
                         )
                         DropdownMenu(
                             expanded = loadModeMenuExpanded,
@@ -1407,6 +1436,7 @@ internal fun SetInputCardV2(
                                 text = { Text("Peso corporal") },
                                 onClick = {
                                     loadMode = LoadModeV2.BODYWEIGHT
+                                    updateActiveWeightText("")
                                     if (bodyWeightText.isBlank()) showBodyWeightPrompt = true
                                     loadModeMenuExpanded = false
                                 },
@@ -1428,6 +1458,25 @@ internal fun SetInputCardV2(
                                 },
                             )
                         }
+                    }
+
+                    if (loadMode == LoadModeV2.LASTRE && (reportWeightText.isBlank() || reportWeightText.toDoubleOrNull() == 0.0)) {
+                        Text(
+                            text = "Lastre = 0 → se registra como peso corporal",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFFFFB74D),
+                            modifier = Modifier.padding(start = 4.dp, top = 2.dp),
+                        )
+                    }
+                    if (loadMode == LoadModeV2.ASSISTED && bodyWeightText.isBlank()) {
+                        Text(
+                            text = "Ingresa tu peso corporal para calcular la asistencia",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(start = 4.dp, top = 2.dp),
+                        )
                     }
 
                     val roomyStepper = supportsIndependentSides || exercise.isInSuperset()
@@ -2081,11 +2130,19 @@ internal fun SetInputCardV2(
 
             SideEffect {
                 if (isActivePage) {
-                    recordActionHolder.action = {
+                    recordActionHolder.action = label@{
+                        if (loadMode == LoadModeV2.ASSISTED && bodyWeightText.isBlank()) {
+                            android.widget.Toast.makeText(
+                                context,
+                                "Ingresa tu peso corporal antes de registrar",
+                                android.widget.Toast.LENGTH_SHORT,
+                            ).show()
+                            return@label
+                        }
                         val reportingSide = if (supportsIndependentSides) selectedSide else null
                         val reportedWeightText = reportingSide?.let { weightTextForSide(it) } ?: weightText
                         val reportedValueText = reportingSide?.let { valueTextForSide(it) } ?: valueText
-                        val weight = reportedWeightText.toDoubleOrNull() ?: 0.0
+                        val weight = if (loadMode == LoadModeV2.BODYWEIGHT) 0.0 else (reportedWeightText.toDoubleOrNull() ?: 0.0)
                         val typedValue = if (isFailedSet) 0.0 else (reportedValueText.toDoubleOrNull() ?: 0.0)
                         val intensity = when {
                             isFailedSet -> null

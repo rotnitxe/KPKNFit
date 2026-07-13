@@ -47,6 +47,8 @@ import com.example.kpkn.domain.nutrition.round1
 import com.example.kpkn.domain.nutrition.ContextDetector
 import com.example.kpkn.domain.nutrition.getContextualDefaultServingSize
 import com.example.kpkn.domain.nutrition.COOKING_FACTORS
+import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
+import com.example.kpkn.domain.nutrition.MacroValidator
 import java.util.UUID
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -301,17 +303,18 @@ fun FoodLoggerDrawer(
                 val staticFood = findFoodByNormalized(item.tag)
                     ?: nutritionRepo.searchFoodCandidates(item.tag, limit = 1).firstOrNull()?.food
 
-                // Prefer SmartFoodResolver result if it has good confidence
+                // Prefer static food (exact/alias) unless SmartFoodResolver has absolute AUTO_SELECT confidence
                 val food = when {
                     smartResult.decision == SmartFoodResolver.Decision.AUTO_SELECT && smartCandidate != null -> {
-                        // Auto-selected: use the smart match
                         nutritionRepo.getFoodById(smartCandidate.foodId) ?: staticFood
+                    }
+                    staticFood != null -> {
+                        staticFood
                     }
                     smartResult.decision == SmartFoodResolver.Decision.NEEDS_REVIEW && smartCandidate != null -> {
-                        // Needs review: use best candidate but mark as fuzzy
-                        nutritionRepo.getFoodById(smartCandidate.foodId) ?: staticFood
+                        nutritionRepo.getFoodById(smartCandidate.foodId)
                     }
-                    else -> staticFood
+                    else -> null
                 }
 
                 // Si hay método de cocción detectado y el alimento resuelto NO es crudo,
@@ -334,15 +337,41 @@ fun FoodLoggerDrawer(
                 val preferAiLoggedFood = shouldUseAiLoggedFood(item)
                 
                 val resolved = if (effectiveFood != null && !preferAiLoggedFood) {
+                    // --- VALIDACIÓN SEMÁNTICA CON DATASET Y RECUPERACIÓN DE PRIORS ---
+                    val retrievalResult = SemanticPortionRetriever.retrieve(item.tag)
+                    val effectiveGrams = item.amountGrams ?: SemanticPortionRetriever.getGramsForFood(item.tag, retrievalResult)
+
                     val logged = scaleFoodByPortion(
                         food = effectiveFood,
                         quantity = item.quantity,
                         portion = item.portion,
-                        amountGrams = item.amountGrams,
+                        amountGrams = effectiveGrams,
                         cookingMethod = item.cookingMethod,
                         portionAdjustment = portionAdj,
                         proteinBoost = proteinB
                     )
+                    val validated = MacroValidator.validate(
+                        input = MacroValidator.MacroInput(
+                            calories = logged.calories,
+                            protein = logged.protein,
+                            carbs = logged.carbs,
+                            fats = logged.fats
+                        ),
+                        retrievalResult = retrievalResult,
+                        portionGrams = logged.amount
+                    )
+
+                    val finalLogged = if (validated.wasAdjusted) {
+                        logged.copy(
+                            calories = validated.adjustedCalories,
+                            protein = validated.adjustedProtein,
+                            carbs = validated.adjustedCarbs,
+                            fats = validated.adjustedFats
+                        )
+                    } else logged
+
+                    val warningText = validated.warnings.firstOrNull() ?: ""
+
                     // Record learned resolution
                     nutritionRepo.recordLearnedResolution(item.tag, item.brandHint, effectiveFood.id, item.amountGrams, item.cookingMethod?.name)
                     ResolvedTag(
@@ -352,23 +381,34 @@ fun FoodLoggerDrawer(
                         amountGrams = item.amountGrams,
                         cookingMethod = item.cookingMethod,
                         foodItem = effectiveFood,
-                        loggedFood = adjustLoggedFoodForOil(logged.copy(analysisSource = AnalysisSource.DATABASE), item.cookingMethod, effectiveOilLevel),
+                        loggedFood = adjustLoggedFoodForOil(finalLogged.copy(analysisSource = AnalysisSource.DATABASE), item.cookingMethod, effectiveOilLevel),
                         isResolved = true,
                         isFuzzyMatch = isSmartMatch && smartCandidate?.confidence != SmartFoodResolver.Confidence.HIGH,
                         analysisSource = AnalysisSource.DATABASE,
-                        statusText = "",
+                        statusText = warningText,
                         oilLevel = effectiveOilLevel,
                         isExcluded = item.isExcluded,
                     )
                 } else if (item.amountGrams != null && item.amountGrams > 0) {
                     val mac = item.macroOverrides
+
+                    // --- CONSULTAR DATASET OFFLINE PARA MACROS DE ALIMENTOS NO REGISTRADOS ---
+                    val retrievalResult = SemanticPortionRetriever.retrieve(item.tag)
+                    val bestMatch = retrievalResult.macroRange
+                    val ratio = item.amountGrams / 100.0
+
+                    val finalCal = mac?.calories ?: (bestMatch?.kcalMedian?.let { it * ratio } ?: 0.0)
+                    val finalProt = mac?.protein ?: (bestMatch?.proteinMedian?.let { it * ratio } ?: 0.0)
+                    val finalCarbs = mac?.carbs ?: (bestMatch?.carbsMedian?.let { it * ratio } ?: 0.0)
+                    val finalFats = mac?.fats ?: (bestMatch?.fatsMedian?.let { it * ratio } ?: 0.0)
+
                     val logged = createLoggedFood(
                         foodName = item.tag,
                         amount = item.amountGrams,
-                        calories = mac?.calories ?: 0.0,
-                        protein = mac?.protein ?: 0.0,
-                        carbs = mac?.carbs ?: 0.0,
-                        fats = mac?.fats ?: 0.0,
+                        calories = finalCal,
+                        protein = finalProt,
+                        carbs = finalCarbs,
+                        fats = finalFats,
                         fiber = 0.0,
                         sugar = 0.0,
                         sodiumMg = 0.0,
@@ -440,7 +480,7 @@ fun FoodLoggerDrawer(
                             FoodCombinationParser.Role.GARNISH -> null
                         }
 
-                        if (maxAllowedGrams != null && existingLogged.amount > maxAllowedGrams && maxAllowedGrams > 1.0) {
+                        if (maxAllowedGrams != null && match.amountGrams == null && existingLogged.amount > maxAllowedGrams && maxAllowedGrams > 1.0) {
                             val capped = scaleFoodByPortion(
                                 food = existingFood,
                                 quantity = match.quantity,
@@ -769,7 +809,7 @@ fun FoodLoggerDrawer(
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val food = tag.foodItem
-                val logged = if (food != null && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE && tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE) {
+                val logged = if (food != null && !tag.hasManualEdits && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE && tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE) {
                     val baseLogged = scaleFoodByPortion(
                         food = food,
                         quantity = tag.quantity,
@@ -786,10 +826,10 @@ fun FoodLoggerDrawer(
                     val scale = if (baseGrams > 0.0) grams / baseGrams else 1.0
                     old?.copy(
                         amount = grams,
-                        calories = old.calories * scale,
-                        protein = old.protein * scale,
-                        carbs = old.carbs * scale,
-                        fats = old.fats * scale,
+                        calories = kotlin.math.round(old.calories * scale),
+                        protein = kotlin.math.round(old.protein * scale * 10) / 10.0,
+                        carbs = kotlin.math.round(old.carbs * scale * 10) / 10.0,
+                        fats = kotlin.math.round(old.fats * scale * 10) / 10.0,
                     )
                 }
                 tag.copy(amountGrams = grams, loggedFood = logged, hasManualEdits = true)
@@ -803,7 +843,7 @@ fun FoodLoggerDrawer(
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val food = tag.foodItem
-                if (food != null && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE && tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE) {
+                if (food != null && !tag.hasManualEdits && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE && tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE) {
                     val logged = scaleFoodByPortion(
                         food = food,
                         quantity = tag.quantity,
@@ -870,9 +910,11 @@ fun FoodLoggerDrawer(
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val old = tag.loggedFood ?: return@map tag
+                val roundedP = kotlin.math.round(protein * 10) / 10.0
+                val newCalories = kotlin.math.round(roundedP * 4.0 + old.carbs * 4.0 + old.fats * 9.0)
                 tag.copy(loggedFood = old.copy(
-                    protein = protein,
-                    calories = protein * 4 + old.carbs * 4 + old.fats * 9,
+                    protein = roundedP,
+                    calories = newCalories,
                 ), hasManualEdits = true)
             } else tag
         }
@@ -882,9 +924,11 @@ fun FoodLoggerDrawer(
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val old = tag.loggedFood ?: return@map tag
+                val roundedC = kotlin.math.round(carbs * 10) / 10.0
+                val newCalories = kotlin.math.round(old.protein * 4.0 + roundedC * 4.0 + old.fats * 9.0)
                 tag.copy(loggedFood = old.copy(
-                    carbs = carbs,
-                    calories = old.protein * 4 + carbs * 4 + old.fats * 9,
+                    carbs = roundedC,
+                    calories = newCalories,
                 ), hasManualEdits = true)
             } else tag
         }
@@ -894,9 +938,11 @@ fun FoodLoggerDrawer(
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val old = tag.loggedFood ?: return@map tag
+                val roundedF = kotlin.math.round(fats * 10) / 10.0
+                val newCalories = kotlin.math.round(old.protein * 4.0 + old.carbs * 4.0 + roundedF * 9.0)
                 tag.copy(loggedFood = old.copy(
-                    fats = fats,
-                    calories = old.protein * 4 + old.carbs * 4 + fats * 9,
+                    fats = roundedF,
+                    calories = newCalories,
                 ), hasManualEdits = true)
             } else tag
         }
@@ -1879,18 +1925,18 @@ private fun TagCard(
                     Text("Ajustar macros", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Box(modifier = Modifier.weight(1f)) {
-                            MacroOverrideCol("Calorías", logged?.calories ?: 0.0, onCaloriesChange)
+                            MacroOverrideCol("Calorías", logged?.calories ?: 0.0, step = 5.0, onChange = onCaloriesChange)
                         }
                         Box(modifier = Modifier.weight(1f)) {
-                            MacroOverrideCol("Proteína", logged?.protein ?: 0.0, onProteinChange)
+                            MacroOverrideCol("Proteína", logged?.protein ?: 0.0, step = 1.0, onChange = onProteinChange)
                         }
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Box(modifier = Modifier.weight(1f)) {
-                            MacroOverrideCol("Carbos", logged?.carbs ?: 0.0, onCarbsChange)
+                            MacroOverrideCol("Carbos", logged?.carbs ?: 0.0, step = 1.0, onChange = onCarbsChange)
                         }
                         Box(modifier = Modifier.weight(1f)) {
-                            MacroOverrideCol("Grasas", logged?.fats ?: 0.0, onFatsChange)
+                            MacroOverrideCol("Grasas", logged?.fats ?: 0.0, step = 1.0, onChange = onFatsChange)
                         }
                     }
 
@@ -2005,9 +2051,8 @@ private fun TagCard(
         }
     }
 }
-
 @Composable
-private fun MacroOverrideCol(label: String, value: Double, onChange: (Double) -> Unit) {
+private fun MacroOverrideCol(label: String, value: Double, step: Double = 1.0, onChange: (Double) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -2015,7 +2060,7 @@ private fun MacroOverrideCol(label: String, value: Double, onChange: (Double) ->
     ) {
         Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { onChange((value - 5).coerceAtLeast(0.0)) }, modifier = Modifier.size(24.dp)) {
+            IconButton(onClick = { onChange((value - step).coerceAtLeast(0.0)) }, modifier = Modifier.size(24.dp)) {
                 Icon(Icons.Default.Remove, null, modifier = Modifier.size(12.dp))
             }
             Text(
@@ -2025,11 +2070,9 @@ private fun MacroOverrideCol(label: String, value: Double, onChange: (Double) ->
                 modifier = Modifier.width(36.dp),
                 textAlign = TextAlign.Center,
             )
-            IconButton(onClick = { onChange((value + 5).coerceAtMost(9999.0)) }, modifier = Modifier.size(24.dp)) {
+            IconButton(onClick = { onChange((value + step).coerceAtMost(9999.0)) }, modifier = Modifier.size(24.dp)) {
                 Icon(Icons.Default.Add, null, modifier = Modifier.size(12.dp))
             }
         }
     }
 }
-
-

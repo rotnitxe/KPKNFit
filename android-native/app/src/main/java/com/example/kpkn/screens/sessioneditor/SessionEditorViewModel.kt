@@ -2950,6 +2950,8 @@ class SessionEditorViewModel(
             id = UUID.randomUUID().toString(),
             name = card.name,
             exerciseDbId = card.exerciseDbId,
+            selectedMovementPattern = info.movementPattern,
+            selectedExecutionOption = info.executionOptions?.firstOrNull(),
             sets = (1..card.sets).map {
                 ExerciseSet(
                     id = UUID.randomUUID().toString(),
@@ -4052,6 +4054,8 @@ private fun buildCloneSourceOptions(
             ),
             setupCues = info.setupCues.orEmpty(),
             executionCues = info.executionCues.orEmpty(),
+            selectedExecutionOption = info.executionOptions?.firstOrNull(),
+            selectedMovementPattern = info.movementPattern,
         ).withSharedPerformanceFromHistory(history)
     }
 

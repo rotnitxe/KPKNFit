@@ -612,7 +612,14 @@ class WorkoutViewModel(
                 restModalState = restoredRestState,
                 editingState = restoredEditingState,
                 persistedLoadModeBySet = resumedState?.persistedLoadModeBySet ?: emptyMap(),
-                persistedLoadModeByExercise = resumedState?.persistedLoadModeByExercise ?: emptyMap(),
+                persistedLoadModeByExercise = resumedState?.persistedLoadModeByExercise?.takeIf { it.isNotEmpty() }
+                    ?: buildMap {
+                        for ((id, profile) in hydratedProfiles.first) {
+                            val lm = profile.loadMode ?: continue
+                            val exKey = workoutExerciseContextKey(profile.exerciseKey, profile.tagId)
+                            put(exKey, lm)
+                        }
+                    },
                 customTargetDurationMinutes = resumedState?.customTargetDurationMinutes,
                 targetDurationMinutes = resumedState?.customTargetDurationMinutes ?: restoredSession.targetDurationMinutes,
             )
@@ -1535,6 +1542,7 @@ class WorkoutViewModel(
                 persistedLoadModeByExercise = current.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
             )
         }
+        persistLoadModeToProfile(exercise.id, resolvedLoadMode)
         if (weight > 0.0) {
             registerManualLoadOverride(exercise.id, targetSetIdx, resolvedSide, weight)
         }
@@ -1861,6 +1869,7 @@ class WorkoutViewModel(
     ) {
         val key = workoutSetKey(exerciseId, setIdx, side)
         val fallbackKey = if (side != null) workoutSetKey(exerciseId, setIdx) else null
+        val previousDraft = _uiState.value.setDrafts[key] ?: _uiState.value.setDrafts[fallbackKey]
         _uiState.update { state ->
             state.copy(
                 setDrafts = if (draft.isDirty) {
@@ -1872,7 +1881,25 @@ class WorkoutViewModel(
                 },
             )
         }
+        if (draft.loadMode != null && draft.loadMode != previousDraft?.loadMode) {
+            persistLoadModeToProfile(exerciseId, draft.loadMode)
+        }
         persistOngoingState()
+    }
+
+    private fun persistLoadModeToProfile(exerciseId: String, loadMode: LoadModeV2) {
+        val state = _uiState.value
+        val profileId = state.activeContextProfileByExerciseId[exerciseId] ?: return
+        val profile = state.contextProfilesV3[profileId] ?: return
+        if (profile.loadMode == loadMode) return
+        val updated = profile.copy(
+            loadMode = loadMode,
+            lastUsedAtIso = java.time.Instant.now().toString(),
+        )
+        repository.upsertContextProfile(updated)
+        _uiState.update {
+            it.copy(contextProfilesV3 = it.contextProfilesV3 + (updated.id to updated))
+        }
     }
 
     fun getSetDraft(
@@ -6719,6 +6746,11 @@ class WorkoutViewModel(
             if (readinessReason.isNotBlank()) append(" · $readinessReason")
             if (sleepReason.isNotBlank()) append(sleepReason)
             append(rangeIndicator)
+            when (currentLoadMode) {
+                LoadModeV2.ASSISTED -> append(" · Sugerido en kg de asistencia")
+                LoadModeV2.LASTRE -> append(" · Sugerido en kg de lastre")
+                else -> {}
+            }
         }
 
         return WeightSuggestion(
@@ -6812,7 +6844,9 @@ class WorkoutViewModel(
             weightedDrainPct = weightedDrain,
             effectiveRpe = effectiveRpe,
             reachedFailure = advanced.reachedFailure,
-        )
+        ) + if (nextLoadMode == LoadModeV2.ASSISTED && adjustmentFactor != 1.0) {
+            " · Asistencia ajustada (modo asistido: más fatiga = más ayuda)"
+        } else ""
 
         val regulation = SetAutoRegulation(
             exerciseId = nextExercise.id,

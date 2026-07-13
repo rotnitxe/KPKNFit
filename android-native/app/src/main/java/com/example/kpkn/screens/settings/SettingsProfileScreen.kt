@@ -81,12 +81,12 @@ fun SettingsProfileScreen(
                 }
             }
 
-            item { SettingsSectionHeader("Medidas corporales") }
+            item { SettingsSectionHeader("Datos biológicos") }
             item {
                 SettingsSectionCard {
                     SettingsDropdownItem(
-                        title = "Genero",
-                        description = "Se usa en algunos calculos y sugerencias",
+                        title = "Género",
+                        description = "Se usa en algunos cálculos y sugerencias",
                         options = Gender.entries,
                         selected = settings.userVitals.gender ?: Gender.OTHER,
                         onSelect = { value ->
@@ -109,66 +109,6 @@ fun SettingsProfileScreen(
                             }
                         },
                         keyboardType = KeyboardType.Number,
-                    )
-                    SettingsTextFieldItem(
-                        label = "Peso ($weightUnitLabel)",
-                        value = settings.userVitals.weight?.toString().orEmpty(),
-                        onValueChange = { value ->
-                            viewModel.update { current ->
-                                current.copy(userVitals = current.userVitals.copy(weight = value.toDoubleOrNull()))
-                            }
-                        },
-                        keyboardType = KeyboardType.Decimal,
-                    )
-                    SettingsTextFieldItem(
-                        label = "Altura (cm)",
-                        value = settings.userVitals.height?.toString().orEmpty(),
-                        onValueChange = { value ->
-                            viewModel.update { current ->
-                                current.copy(userVitals = current.userVitals.copy(height = value.toDoubleOrNull()))
-                            }
-                        },
-                        keyboardType = KeyboardType.Decimal,
-                    )
-                }
-            }
-
-            item { SettingsSectionHeader("Composicion corporal") }
-            item {
-                SettingsSectionCard {
-                    SettingsTextFieldItem(
-                        label = "Grasa corporal (%)",
-                        value = settings.userVitals.bodyFatPercentage?.toString().orEmpty(),
-                        onValueChange = { value ->
-                            viewModel.update { current ->
-                                current.copy(
-                                    userVitals = current.userVitals.copy(bodyFatPercentage = value.toDoubleOrNull()),
-                                )
-                            }
-                        },
-                        keyboardType = KeyboardType.Decimal,
-                    )
-                    SettingsTextFieldItem(
-                        label = "Masa muscular (%)",
-                        value = settings.userVitals.muscleMassPercentage?.toString().orEmpty(),
-                        onValueChange = { value ->
-                            viewModel.update { current ->
-                                current.copy(
-                                    userVitals = current.userVitals.copy(muscleMassPercentage = value.toDoubleOrNull()),
-                                )
-                            }
-                        },
-                        keyboardType = KeyboardType.Decimal,
-                    )
-                    SettingsTextFieldItem(
-                        label = "Peso objetivo ($weightUnitLabel)",
-                        value = settings.userVitals.targetWeight?.toString().orEmpty(),
-                        onValueChange = { value ->
-                            viewModel.update { current ->
-                                current.copy(userVitals = current.userVitals.copy(targetWeight = value.toDoubleOrNull()))
-                            }
-                        },
-                        keyboardType = KeyboardType.Decimal,
                     )
                 }
             }

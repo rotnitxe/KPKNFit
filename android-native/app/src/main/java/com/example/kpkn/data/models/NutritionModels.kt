@@ -147,6 +147,8 @@ data class NutritionPlan(
     val estimatedEndDate: String? = null,
     val weeklyChangeKg: Double = 0.5,
     val startValue: Double? = null,
+    val targetBodyFat: Double? = null,
+    val targetMuscle: Double? = null,
 )
 
 enum class GoalMetric { WEIGHT, BODY_FAT, MUSCLE_MASS }

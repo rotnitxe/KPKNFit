@@ -150,7 +150,7 @@ interface AugeDao {
     @Query("SELECT * FROM auge_wellbeing ORDER BY date DESC")
     suspend fun getAllWellbeing(): List<WellbeingEntity>
 
-    @Query("SELECT * FROM auge_wellbeing WHERE date = :date LIMIT 1")
+    @Query("SELECT * FROM auge_wellbeing WHERE date = :date ORDER BY rowid DESC LIMIT 1")
     suspend fun getWellbeingForDate(date: String): WellbeingEntity?
 
     @Query("SELECT * FROM auge_wellbeing WHERE date >= :from AND date <= :to ORDER BY date DESC")
