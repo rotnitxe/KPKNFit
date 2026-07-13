@@ -420,32 +420,34 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
         val cache = augeRepo.getAdaptiveCache()
         var updatedCache = cache
-        val newTotalObs = cache.totalObservations + 1
+        var obsCount = 0
 
         // Learn system-level deltas from CNS adjustments independently
         if (manualNeural != null && predictedNeuralBattery != null) {
-            val systemAdj = (manualNeural - predictedNeuralBattery).coerceIn(-35, 35)
+            val systemAdj = (manualNeural - predictedNeuralBattery).coerceIn(-50, 50)
             val (newCns, _) = AugeAdaptiveEngine.updateSystemLearningDeltas(
-                currentCnsDelta = cache.cnsLearningDelta,
-                currentSpinalDelta = cache.spinalLearningDelta,
+                currentCnsDelta = updatedCache.cnsLearningDelta,
+                currentSpinalDelta = updatedCache.spinalLearningDelta,
                 systemAdjustment = systemAdj,
                 structureAdjustment = 0,
-                totalObservations = cache.totalObservations,
+                totalObservations = cache.totalObservations + obsCount,
             )
             updatedCache = updatedCache.copy(cnsLearningDelta = newCns)
+            obsCount += 1
         }
 
         // Learn system-level deltas from spinal adjustments independently
         if (manualSpinal != null && predictedSpinalBattery != null) {
-            val structAdj = (manualSpinal - predictedSpinalBattery).coerceIn(-35, 35)
+            val structAdj = (manualSpinal - predictedSpinalBattery).coerceIn(-50, 50)
             val (_, newSpinal) = AugeAdaptiveEngine.updateSystemLearningDeltas(
-                currentCnsDelta = cache.cnsLearningDelta,
-                currentSpinalDelta = cache.spinalLearningDelta,
+                currentCnsDelta = updatedCache.cnsLearningDelta,
+                currentSpinalDelta = updatedCache.spinalLearningDelta,
                 systemAdjustment = 0,
                 structureAdjustment = structAdj,
-                totalObservations = cache.totalObservations,
+                totalObservations = cache.totalObservations + obsCount,
             )
             updatedCache = updatedCache.copy(spinalLearningDelta = newSpinal)
+            obsCount += 1
         }
 
         // Calculate hours elapsed since the last completed workout to scale pre-workout calibrations
@@ -479,9 +481,10 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                     personalizedRecoveryHours = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
                         current = updatedCache.personalizedRecoveryHours,
                         observation = obs,
-                        totalObservations = cache.totalObservations,
+                        totalObservations = cache.totalObservations + obsCount,
                     ),
                 )
+                obsCount += 1
             }
         }
 
@@ -491,13 +494,17 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                     current = updatedCache.muscleDeltas,
                     manualMuscleBatteries = manualMuscleBatteries,
                     predictedMuscleBatteries = predictedMuscleBatteries,
-                    totalObservations = cache.totalObservations,
+                    totalObservations = cache.totalObservations + obsCount,
                 ),
             )
+            if (manualMuscleBatteries.any { (k, v) -> (predictedMuscleBatteries[k] ?: 100) != v }) {
+                obsCount += 1
+            }
         }
 
+        if (obsCount == 0) obsCount = 1
         updatedCache = updatedCache.copy(
-            totalObservations = newTotalObs,
+            totalObservations = cache.totalObservations + obsCount,
             lastUpdatedMs = System.currentTimeMillis(),
         )
         augeRepo.saveAdaptiveCache(updatedCache)

@@ -323,6 +323,11 @@ fun ReadinessSheet(
 
             Button(
                 onClick = {
+                    val muscleMap = muscleAdjustments.toMap()
+                    val hasManualSystem = userEditedNeural || userEditedSpinal
+                    val derivedMuscular = muscleMap.values
+                        .takeIf { it.isNotEmpty() }
+                        ?.average()?.toInt()?.coerceIn(0, 100)
                     val log = DailyWellbeingLog(
                         id = todayWellbeing?.id ?: UUID.randomUUID().toString(),
                         date = LocalDate.now().toString(),
@@ -331,7 +336,11 @@ fun ReadinessSheet(
                         doms = doms,
                         motivation = motivation,
                         sleepHours = todayWellbeing?.sleepHours ?: 7.5,
-                        manualMuscularBattery = null,
+                        manualMuscularBattery = if (hasManualSystem || muscleMap.isNotEmpty()) derivedMuscular else null,
+                        manualNeuralBattery = if (hasManualSystem) neural.coerceIn(0, 100) else null,
+                        manualSpinalBattery = if (hasManualSystem) spinal.coerceIn(0, 100) else null,
+                        manualMuscleBatteries = muscleMap.mapValues { (_, v) -> v.coerceIn(0, 100) },
+                        manualBatteryAnchorMs = if (hasManualSystem || muscleMap.isNotEmpty()) System.currentTimeMillis() else null,
                     )
                     onSave(
                         log,
