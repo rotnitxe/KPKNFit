@@ -350,6 +350,21 @@ object AugeRecoveryEngine {
         return clamp(max(calculatedCapacity, baseFloor), 500.0, 3500.0)
     }
 
+    private fun getSigmoidalHours(hoursSince: Double): Double {
+        return if (hoursSince < 24.0) {
+            hoursSince * 0.15
+        } else {
+            3.6 + (hoursSince - 24.0) * 1.35
+        }
+    }
+
+    private fun getSpinalRecoveryHours(hoursSince: Double): Double {
+        if (hoursSince < 12.0) {
+            return hoursSince
+        }
+        return hoursSince + 18.0
+    }
+
     // ─── 1. BATERÍA MUSCULAR INDIVIDUAL ──────────────────────────────────────
 
     fun calculateMuscleBattery(
@@ -409,7 +424,7 @@ object AugeRecoveryEngine {
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
             val impliedRawFatiguePct = -90.0 * ln(1.0 - penalty / 100.0)
             val manualLoad = (impliedRawFatiguePct / 100.0) * capacity
-            accumulatedFatigue = manualLoad * exp(-k * hoursSinceAnchor)
+            accumulatedFatigue = manualLoad * exp(-k * getSigmoidalHours(hoursSinceAnchor))
             history.filter { logDateMs(it) > anchorMs && logDateMs(it) > tenDaysAgo }
         } else {
             history.filter { logDateMs(it) > tenDaysAgo }
@@ -481,7 +496,7 @@ object AugeRecoveryEngine {
             }
 
             if (sessionMuscleStress > 0) {
-                accumulatedFatigue += sessionMuscleStress * safeExp(-k * hoursSince)
+                accumulatedFatigue += sessionMuscleStress * safeExp(-k * getSigmoidalHours(hoursSince))
                 if (logTime > lastSessionDate) lastSessionDate = logTime
             }
         }
@@ -756,7 +771,7 @@ object AugeRecoveryEngine {
             val impliedRawPct = -70.0 * ln(1.0 - penalty / 100.0)
             val capacity = max(70.0, tanks.spinal * 0.02)
             val manualLoad = (impliedRawPct / 100.0) * capacity
-            accumulatedSpinalLoad = manualLoad * exp(-hoursSinceAnchor / tauHours)
+            accumulatedSpinalLoad = manualLoad * exp(-getSpinalRecoveryHours(hoursSinceAnchor) / tauHours)
             history.filter { logDateMs(it) > anchorMs && logDateMs(it) > last10Days }
         } else {
             history.filter { logDateMs(it) > last10Days }
@@ -842,7 +857,7 @@ object AugeRecoveryEngine {
             }
 
             if (log.durationMinutes > 90) sessionSpinalLoad *= 1.08
-            accumulatedSpinalLoad += sessionSpinalLoad * safeExp(-(hoursSince / tauHours))
+            accumulatedSpinalLoad += sessionSpinalLoad * safeExp(-(getSpinalRecoveryHours(hoursSince) / tauHours))
         }
 
         val capacity = max(70.0, tanks.spinal * 0.02)

@@ -156,6 +156,33 @@ object ExerciseReadinessEngine {
             .coerceIn(0, ttcHardCap)
             .coerceIn(0, 100)
 
+        val componentScores = mapOf(
+            "MUSCULAR" to muscularComponent,
+            "CNS" to cnsComponent,
+            "SPINAL" to spinalComponent,
+            "ARTICULAR" to articularComponent
+        )
+        val minEntry = componentScores.minByOrNull { it.value }
+        val limitingFactor = minEntry?.key
+        val limitingDetail = when (limitingFactor) {
+            "MUSCULAR" -> {
+                involvedMuscles.mapNotNull { involved ->
+                    val id = getAugeMuscleDisplayId(involved.muscle, involved.emphasis) ?: return@mapNotNull null
+                    val recovery = perMuscle[id]?.recoveryScore ?: 100
+                    id to recovery
+                }.minByOrNull { it.second }?.first
+            }
+            "ARTICULAR" -> {
+                relatedArticular.mapNotNull { ab ->
+                    val score = articularBatteries[ab]?.recoveryScore ?: 100
+                    AugeTtcEngine.articularLabel(ab) to score
+                }.minByOrNull { it.second }?.first
+            }
+            "SPINAL" -> "Columna (Espinal)"
+            "CNS" -> "Sistema Nervioso Central (Energía)"
+            else -> null
+        }
+
         return ExerciseReadiness(
             exerciseId = exercise.id,
             exerciseName = exercise.name,
@@ -175,6 +202,8 @@ object ExerciseReadinessEngine {
             ermProximityFactor = ermPenaltyFactor,
             patternId = dbInfo.force,
             involvedMuscleIds = muscleIds,
+            limitingFactor = limitingFactor,
+            limitingDetail = limitingDetail,
         )
     }
 

@@ -163,7 +163,9 @@ object AugeTtcEngine {
         }
 
         val repsFactor = min(1.5, 0.1 + set.reps / 15.0)
-        val baseDrain = ttc * repsFactor * intensityMult * 2.5  // escalado para batería 0-100
+        // Multiplicador de técnica para tendones (penaliza el Tiempo Bajo Tensión prolongado de Dropsets/Rest-Pauses)
+        val techniqueMult = (1.0 + 0.5 * set.dropSets.size + 0.3 * set.restPauses.size).coerceAtMost(2.5)
+        val baseDrain = ttc * repsFactor * intensityMult * techniqueMult * 2.5  // escalado para batería 0-100
 
         val totalWeight = articularWeights.values.sum().takeIf { it > 0.0 } ?: 1.0
         for ((ab, w) in articularWeights) {
@@ -284,7 +286,13 @@ object AugeTtcEngine {
             for (ab in ArticularBattery.entries) {
                 val stress = sessionDrain[ab] ?: 0.0
                 if (stress <= 0.0) continue
-                val remaining = stress * safeExp(-k * hoursSince)
+                // Plateau avascular: recuperación extremadamente lenta en las primeras 24h (colágeno)
+                val effectiveHours = if (hoursSince < 24.0) {
+                    hoursSince * 0.05
+                } else {
+                    1.2 + (hoursSince - 24.0)
+                }
+                val remaining = stress * safeExp(-k * effectiveHours)
                 accumulatedStress[ab] = (accumulatedStress[ab] ?: 0.0) + remaining
             }
         }

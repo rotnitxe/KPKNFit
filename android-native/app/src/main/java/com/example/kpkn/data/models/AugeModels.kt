@@ -372,6 +372,8 @@ data class ExerciseReadiness(
     val ermProximityFactor: Double,
     val patternId: String?,
     val involvedMuscleIds: List<String>,
+    val limitingFactor: String? = null,   // EXPLICATIVO
+    val limitingDetail: String? = null,   // EXPLICATIVO
 )
 /**
  * Sugerencia de ajuste de carga para una serie,

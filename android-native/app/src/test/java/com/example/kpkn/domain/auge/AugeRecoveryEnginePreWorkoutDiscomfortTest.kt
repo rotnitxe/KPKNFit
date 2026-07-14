@@ -50,7 +50,7 @@ class AugeRecoveryEnginePreWorkoutDiscomfortTest {
     fun testPreWorkoutDiscomfortAppliesPenaltyToMuscles() {
         val now = System.currentTimeMillis()
         val settings = Settings()
-        val history = listOf(heavyWorkoutLog(now - 12L * 3600 * 1000)) // 12 hours ago
+        val history = listOf(heavyWorkoutLog(now - 30L * 3600 * 1000)) // 30 hours ago
 
         // 1. Calculate base muscle score without discomfort
         val wellbeingNoDiscomfort = DailyWellbeingLog(

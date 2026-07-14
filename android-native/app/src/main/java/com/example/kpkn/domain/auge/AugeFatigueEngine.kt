@@ -181,7 +181,7 @@ object AugeFatigueEngine {
         if (set.isPartial && (set.partialReps ?: 0) > 0) techniqueBonus += 0.5
         if (techniqueBonus > 0 && baseRpe < 10.0) baseRpe = 10.0
 
-        return (baseRpe + techniqueBonus).coerceIn(1.0, 12.0)
+        return baseRpe.coerceIn(1.0, 12.0)
     }
 
     // ─── ¿El set cuenta para fatiga? ─────────────────────────────────────────
@@ -201,8 +201,8 @@ object AugeFatigueEngine {
         if (bounded <= 10.0) return base
 
         val overshoot = bounded - 10.0
-        val failureBonus = (exp(overshoot * 0.9) - 1.0) * 0.58
-        return (base + failureBonus).coerceAtMost(3.4)
+        val failureBonus = (exp(overshoot * 0.5) - 1.0) * 0.3
+        return (base + failureBonus).coerceAtMost(2.3)
     }
 
     fun getDensityMultiplierForExercise(
@@ -234,12 +234,35 @@ object AugeFatigueEngine {
             .coerceIn(1.10, 1.45)
     }
 
-    private fun calculateSetProgressiveFatigueMultiplier(accumulatedSets: Int): Double {
+    fun calculateMuscularProgressiveMultiplier(accumulatedSets: Int): Double {
+        val sets = accumulatedSets.coerceAtLeast(1)
+        return when {
+            sets <= 3 -> 1.0 + (sets - 1) * 0.05
+            sets <= 6 -> 1.10 - (sets - 3) * 0.10
+            else -> max(0.3, 0.80 * exp(-(sets - 6) * 0.25))
+        }
+    }
+
+    fun calculateSystemicProgressiveMultiplier(accumulatedSets: Int): Double {
         val progression = (accumulatedSets.coerceAtLeast(1) - 1).toDouble()
         return (1.0 + 0.055 * progression.pow(1.55)).coerceIn(1.0, 2.6)
     }
 
-    private fun calculateTechniqueIntensityMultiplier(set: CompletedSet): Double {
+    fun calculateMuscularTechniqueMultiplier(set: CompletedSet): Double {
+        val debtPenalty = if (set.debt > 0.0) 1.0 + min(0.15, set.debt * 0.03) else 1.0
+        val failurePenalty = when {
+            set.isFailure && set.isFailedSet -> 1.15
+            set.isFailure -> 1.10
+            set.isFailedSet -> 1.05
+            else -> 1.0
+        }
+        val dropPenalty = if (set.dropSets.isEmpty()) 1.0 else (1.0 + 0.10 * set.dropSets.size).coerceAtMost(1.20)
+        val restPausePenalty = if (set.restPauses.isEmpty()) 1.0 else (1.0 + 0.08 * set.restPauses.size).coerceAtMost(1.15)
+        val partialPenalty = if ((set.partialReps ?: 0) > 0) 1.03 else 1.0
+        return debtPenalty * failurePenalty * dropPenalty * restPausePenalty * partialPenalty
+    }
+
+    fun calculateSystemicTechniqueMultiplier(set: CompletedSet): Double {
         val debtPenalty = if (set.debt > 0.0) 1.0 + min(0.35, set.debt * 0.06) else 1.0
         val failurePenalty = when {
             set.isFailure && set.isFailedSet -> 1.28
@@ -247,40 +270,18 @@ object AugeFatigueEngine {
             set.isFailedSet -> 1.12
             else -> 1.0
         }
-
         val dropPenalty = if (set.dropSets.isEmpty()) {
             1.0
         } else {
-            val countPenalty = 1.0 + 0.16 * (2.0.pow(set.dropSets.size.toDouble()) - 1.0)
-            val depthPenalty = if (set.weight > 0.0) {
-                val avgDepth = set.dropSets
-                    .map { ds -> ((set.weight - ds.weight) / set.weight).coerceIn(0.0, 0.7) }
-                    .average()
-                1.0 + avgDepth * 0.20
-            } else {
-                1.0
-            }
-            countPenalty * depthPenalty
+            1.0 + 0.20 * (2.0.pow(set.dropSets.size.toDouble()) - 1.0)
         }
-
         val restPausePenalty = if (set.restPauses.isEmpty()) {
             1.0
         } else {
-            val countPenalty = 1.0 + 0.18 * (2.0.pow(set.restPauses.size.toDouble()) - 1.0)
-            val restValues = set.restPauses.map { it.restTime.toDouble() }.filter { it > 0.0 }
-            val avgRest = if (restValues.isEmpty()) 20.0 else restValues.average()
-            val densityPenalty = when {
-                avgRest <= 15.0 -> 1.18
-                avgRest <= 25.0 -> 1.11
-                avgRest <= 35.0 -> 1.05
-                else -> 1.0
-            }
-            countPenalty * densityPenalty
+            1.0 + 0.22 * (2.0.pow(set.restPauses.size.toDouble()) - 1.0)
         }
-
         val partialPenalty = if ((set.partialReps ?: 0) > 0) 1.05 else 1.0
-        return (debtPenalty * failurePenalty * dropPenalty * restPausePenalty * partialPenalty)
-            .coerceIn(1.0, MAX_TECHNIQUE_FATIGUE_MULTIPLIER)
+        return debtPenalty * failurePenalty * dropPenalty * restPausePenalty * partialPenalty
     }
 
     private fun estimateRelativeLoadRatio(
@@ -339,31 +340,36 @@ object AugeFatigueEngine {
         }
         val repsFactor = reps.pow(0.65)
         val rpeMult = calculateRpeMultiplier(rpe)
-        val setProgressiveMult = calculateSetProgressiveFatigueMultiplier(accumulatedSets)
+        
+        // Bifurcación de Volumen Progresivo (Junk Volume vs. Estimulante)
+        val muscularProgressiveMult = calculateMuscularProgressiveMultiplier(accumulatedSets)
+        val systemicProgressiveMult = calculateSystemicProgressiveMultiplier(accumulatedSets)
+        
+        // Cruce de Descansos (Descansos cortos reducen daño muscular mecánico pero disparan SNC)
         val localRestMult = when {
-            restTime <= 30 -> 1.30
-            restTime <= 45 -> 1.22
-            restTime <= 75 -> 1.12
-            restTime <= 120 -> 1.05
-            restTime >= 240 -> 0.88
-            restTime >= 180 -> 0.92
+            restTime <= 30 -> 0.85
+            restTime <= 45 -> 0.90
+            restTime <= 75 -> 0.95
+            restTime <= 120 -> 1.00
+            restTime >= 240 -> 1.10
+            restTime >= 180 -> 1.05
             else -> 1.0
         }
         val systemRestMult = when {
-            restTime <= 30 -> 1.26
-            restTime <= 45 -> 1.18
-            restTime <= 75 -> 1.10
-            restTime <= 120 -> 1.04
-            restTime >= 240 -> 0.90
-            restTime >= 180 -> 0.94
+            restTime <= 30 -> 1.35
+            restTime <= 45 -> 1.25
+            restTime <= 75 -> 1.15
+            restTime <= 120 -> 1.05
+            restTime >= 240 -> 0.85
+            restTime >= 180 -> 0.90
             else -> 1.0
         }
         val structureRestMult = when {
-            restTime <= 30 -> 1.20
-            restTime <= 60 -> 1.12
-            restTime <= 90 -> 1.06
-            restTime >= 240 -> 0.91
-            restTime >= 180 -> 0.95
+            restTime <= 30 -> 1.25
+            restTime <= 60 -> 1.15
+            restTime <= 90 -> 1.08
+            restTime >= 240 -> 0.88
+            restTime >= 180 -> 0.92
             else -> 1.0
         }
         val muscularBias = when {
@@ -389,26 +395,31 @@ object AugeFatigueEngine {
             1.0
         }
 
-        val techniqueFactor = calculateTechniqueIntensityMultiplier(set)
+        // Bifurcación de Técnicas de Intensidad (Dropsets y Rest-pauses)
+        val muscularTechniqueFactor = calculateMuscularTechniqueMultiplier(set)
+        val systemicTechniqueFactor = calculateSystemicTechniqueMultiplier(set)
+        
         val nearRmRatio = estimateRelativeLoadRatio(set, reps, rpe)
         val nearRmMult = calculateNearRmFatigueMultiplier(nearRmRatio)
         val density = densityMultiplier.coerceIn(0.85, 1.45)
-        val muscularDensityMult = 1.0 + (density - 1.0) * 0.90
-        val systemDensityMult = 1.0 + (density - 1.0) * 1.05
+        
+        // Bifurcación de densidad (Supersets: reducen tensión mecánica muscular pero disparan SNC)
+        val muscularDensityMult = if (density > 1.0) 1.0 - (density - 1.0) * 0.40 else 1.0
+        val systemDensityMult = 1.0 + (density - 1.0) * 1.25
         val structureDensityMult = 1.0 + (density - 1.0) * 1.15
 
         val assistedCount = set.assistedReps ?: 0
         val assistedMultiplier = 1.0 + (assistedCount * 0.20)
 
         val rawMuscular =
-            metrics.efc * repsFactor * rpeMult * setProgressiveMult * localRestMult * muscularBias *
-                techniqueFactor * muscularDensityMult * (1.0 + (nearRmMult - 1.0) * 0.35) * 1.85 * assistedMultiplier * muscleMultiplier
+            metrics.efc * repsFactor * rpeMult * muscularProgressiveMult * localRestMult * muscularBias *
+                muscularTechniqueFactor * muscularDensityMult * (1.0 + (nearRmMult - 1.0) * 0.35) * 1.85 * assistedMultiplier * muscleMultiplier
         val rawCns =
-            metrics.cnc * repsFactor * rpeMult * setProgressiveMult * systemRestMult * systemBias *
-                techniqueFactor * systemDensityMult * nearRmMult * 1.15 * assistedMultiplier * cnsMultiplier
+            metrics.cnc * repsFactor * rpeMult * systemicProgressiveMult * systemRestMult * systemBias *
+                systemicTechniqueFactor * systemDensityMult * nearRmMult * 1.15 * assistedMultiplier * cnsMultiplier
         val rawSpinal =
-            metrics.ssc * repsFactor * rpeMult * setProgressiveMult * structureRestMult * structureBias * loadFactor *
-                techniqueFactor * structureDensityMult * (1.0 + (nearRmMult - 1.0) * 1.20) * 5.2 * assistedMultiplier * spinalMultiplier
+            metrics.ssc * repsFactor * rpeMult * systemicProgressiveMult * structureRestMult * structureBias * loadFactor *
+                systemicTechniqueFactor * structureDensityMult * (1.0 + (nearRmMult - 1.0) * 1.20) * 5.2 * assistedMultiplier * spinalMultiplier
 
         return SetDrain(
             muscularDrainPct = (rawMuscular / tanks.muscular * 100).coerceIn(0.0, 100.0),
