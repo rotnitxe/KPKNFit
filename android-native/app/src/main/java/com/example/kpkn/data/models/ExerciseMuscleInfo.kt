@@ -164,9 +164,9 @@ val VOLUME_CONTRIBUTION_FALLBACKS = mapOf(
 
 val FATIGUE_ROLE_MULTIPLIERS = mapOf(
     MuscleRole.PRIMARY to 1.0,
-    MuscleRole.SECONDARY to 0.5,
-    MuscleRole.STABILIZER to 0.25,
-    MuscleRole.NEUTRALIZER to 0.1
+    MuscleRole.SECONDARY to 0.2,
+    MuscleRole.STABILIZER to 0.05,
+    MuscleRole.NEUTRALIZER to 0.0
 )
 
 fun resolveMuscleVolumeContribution(

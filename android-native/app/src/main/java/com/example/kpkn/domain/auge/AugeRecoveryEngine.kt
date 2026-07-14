@@ -407,7 +407,7 @@ object AugeRecoveryEngine {
         val relevantHistory = if (manualScore != null && anchorMs > 0) {
             val manualBattery = manualScore.coerceIn(0, 100).toDouble()
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
-            val impliedRawFatiguePct = -30.0 * ln(1.0 - penalty / 100.0)
+            val impliedRawFatiguePct = -90.0 * ln(1.0 - penalty / 100.0)
             val manualLoad = (impliedRawFatiguePct / 100.0) * capacity
             accumulatedFatigue = manualLoad * exp(-k * hoursSinceAnchor)
             history.filter { logDateMs(it) > anchorMs && logDateMs(it) > tenDaysAgo }
@@ -487,7 +487,7 @@ object AugeRecoveryEngine {
         }
 
         val rawFatiguePct = (accumulatedFatigue / capacity) * 100.0
-        val fatiguePenalty = clamp(100.0 * (1.0 - safeExp(-rawFatiguePct / 30.0)), 0.0, 100.0)
+        val fatiguePenalty = clamp(100.0 * (1.0 - safeExp(-rawFatiguePct / 90.0)), 0.0, 100.0)
         var battery = clamp(100.0 - fatiguePenalty, 0.0, 100.0)
 
         if (accumulatedFatigue <= 0.1 && (wellbeing?.doms ?: 1) <= 2) battery = 100.0
@@ -509,7 +509,7 @@ object AugeRecoveryEngine {
 
         var hoursToRecovery = 0
         if (battery < 90 && accumulatedFatigue > 0) {
-            val targetFatigue = -30.0 * ln(0.9) * capacity / 100.0
+            val targetFatigue = -90.0 * ln(0.9) * capacity / 100.0
             if (accumulatedFatigue > targetFatigue) {
                 hoursToRecovery = max(0.0, -ln(targetFatigue / accumulatedFatigue) / k).toInt()
             }
@@ -624,7 +624,7 @@ object AugeRecoveryEngine {
         val recentLogs = if (manualNeural != null && anchorMs > 0) {
             val manualBattery = manualNeural.coerceIn(0, 100).toDouble()
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
-            val impliedRawGymPct = -28.0 * ln(1.0 - penalty / 100.0)
+            val impliedRawGymPct = -75.0 * ln(1.0 - penalty / 100.0)
             val capacity = max(80.0, tanks.cns * 1.15)
             val manualLoad = (impliedRawGymPct / 100.0) * capacity
             accumulatedGymLoad = manualLoad * exp(-hoursSinceAnchor / tauHours)
@@ -690,7 +690,7 @@ object AugeRecoveryEngine {
 
         val capacity = max(80.0, tanks.cns * 1.15)
         val rawGymPct = (accumulatedGymLoad / capacity) * 100.0
-        val normalizedGymFatigue = clamp(100.0 * (1.0 - safeExp(-rawGymPct / 28.0)), 0.0, 100.0)
+        val normalizedGymFatigue = clamp(100.0 * (1.0 - safeExp(-rawGymPct / 75.0)), 0.0, 100.0)
 
         val total = normalizedGymFatigue
         val cnsBattery = clamp(100.0 - total, 0.0, 100.0).toInt()
@@ -753,7 +753,7 @@ object AugeRecoveryEngine {
         val recentLogs = if (manualSpinal != null && anchorMs > 0) {
             val manualBattery = manualSpinal.coerceIn(0, 100).toDouble()
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
-            val impliedRawPct = -24.0 * ln(1.0 - penalty / 100.0)
+            val impliedRawPct = -70.0 * ln(1.0 - penalty / 100.0)
             val capacity = max(70.0, tanks.spinal * 0.02)
             val manualLoad = (impliedRawPct / 100.0) * capacity
             accumulatedSpinalLoad = manualLoad * exp(-hoursSinceAnchor / tauHours)
@@ -847,7 +847,7 @@ object AugeRecoveryEngine {
 
         val capacity = max(70.0, tanks.spinal * 0.02)
         val rawPct = (accumulatedSpinalLoad / capacity) * 100.0
-        val normalizedLoad = clamp(100.0 * (1.0 - safeExp(-rawPct / 24.0)), 0.0, 100.0)
+        val normalizedLoad = clamp(100.0 * (1.0 - safeExp(-rawPct / 70.0)), 0.0, 100.0)
         return clamp(100.0 - normalizedLoad, 0.0, 100.0).toInt()
     }
 
@@ -908,7 +908,7 @@ object AugeRecoveryEngine {
             val sortedAsc = gatedPillarBatteries.sorted()
             val bottomCount = maxOf(1, (sortedAsc.size * 0.25).toInt())
             val bottomQuartileAvg = sortedAsc.take(bottomCount).average()
-            (overallAvg * 0.5 + bottomQuartileAvg * 0.5).toInt()
+            (overallAvg * 0.85 + bottomQuartileAvg * 0.15).toInt()
         }
 
         val (cncBattery, _, _) = calculateSystemicFatigue(
