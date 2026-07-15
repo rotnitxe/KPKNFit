@@ -2897,22 +2897,22 @@
   },
   {
     "id": "tren_inferior_hiperextension_45",
-    "name": "Hiperextensión Banco 45 Grados",
-    "description": "En banco inclinado 45°. Extensión de espalda enfocada en erectores, glúteos e isquios. Excelente accesorio.",
+    "name": "Hiperextensión en Banco de 45 Grados para Espalda Baja",
+    "description": "Extensión en banco inclinado a 45 grados con la columna neutra para enfatizar el trabajo dinámico e isométrico de los erectores espinales.",
     "involvedMuscles": [
       {
-        "muscle": "Isquiosurales",
+        "muscle": "Erectores Espinales",
         "role": "primary",
         "activation": 1
       },
       {
         "muscle": "Glúteos",
-        "role": "primary",
-        "activation": 1,
+        "role": "secondary",
+        "activation": 0.5,
         "emphasis": "mayor"
       },
       {
-        "muscle": "Erectores Espinales",
+        "muscle": "Isquiosurales",
         "role": "secondary",
         "activation": 0.5
       }
@@ -2925,8 +2925,8 @@
     "chain": "posterior",
     "efc": 2.5,
     "cnc": 2,
-    "ssc": 0.6,
-    "ttc": 1.8,
+    "ssc": 0.85,
+    "ttc": 1.2,
     "movementPattern": "Bisagra",
     "executionOptions": null,
     "subMuscleGroup": "Isquiosurales"
@@ -20920,5 +20920,1698 @@
     "ssc": 0.1,
     "ttc": 1.5,
     "movementPattern": "Extensión de Cadera"
+  },
+  {
+    "id": "tren_inferior_patada_gluteo_polea_mayor",
+    "name": "Patada de Glúteo en Polea",
+    "description": "Patada de glúteo unilateral en polea baja. Máxima contracción del glúteo mayor al final de la extensión.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.3
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.2
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Polea",
+    "force": "Extensión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.8,
+    "cnc": 2.5,
+    "ssc": 0.1,
+    "ttc": 1.0,
+    "movementPattern": "Extensión de Cadera"
+  },
+  {
+    "id": "tren_inferior_patada_gluteo_maquina",
+    "name": "Patada de Glúteo en Máquina",
+    "description": "Patada de glúteo en máquina guiada. Estabilidad añadida que permite máxima sobrecarga del glúteo mayor.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.3
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Máquina",
+    "force": "Extensión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.6,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.8,
+    "movementPattern": "Extensión de Cadera"
+  },
+  {
+    "id": "tren_inferior_patada_gluteo_peso_corporal",
+    "name": "Patada de Glúteo con Peso Corporal",
+    "description": "Patada de glúteo en posición de cuadrupedia. Ejercicio sin peso ideal para activación y control neuromuscular.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.2
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Extensión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.5,
+    "movementPattern": "Extensión de Cadera"
+  },
+  {
+    "id": "tren_inferior_patada_gluteo_polea_medio",
+    "name": "Patada de Glúteo Diagonal en Polea",
+    "description": "Patada unilateral en polea baja con trayectoria diagonal (30 grados). Excelente para el glúteo medio y mínimo.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "medio"
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.2
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Polea",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.4,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 1.0,
+    "movementPattern": "Extensión de Cadera"
+  },
+  {
+    "id": "tren_inferior_abduccion_cadera_polea",
+    "name": "Abducción de Cadera en Polea",
+    "description": "Abducción lateral de cadera en polea baja. Tensión constante en el glúteo medio en todo el rango.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "medio"
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Polea",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "lateral",
+    "efc": 1.4,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 1.0,
+    "movementPattern": "Abducción de Cadera"
+  },
+  {
+    "id": "tren_inferior_abduccion_cadera_banda",
+    "name": "Abducción de Cadera con Banda",
+    "description": "Abducción de cadera de pie o acostado utilizando banda de resistencia. Excelente activación del glúteo medio.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "medio"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Banda",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "lateral",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.8,
+    "movementPattern": "Abducción de Cadera"
+  },
+  {
+    "id": "tren_inferior_abduccion_cadera_maquina",
+    "name": "Abducción de Cadera en Máquina",
+    "description": "Aperturas de piernas sentada en máquina abductora. Estabilidad perfecta para aislar el glúteo medio y mínimo.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "medio"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Máquina",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "lateral",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.8,
+    "movementPattern": "Abducción de Cadera"
+  },
+  {
+    "id": "tren_inferior_clamshells_banda",
+    "name": "Clamshells con Banda",
+    "description": "Rotación externa de cadera acostada de lado con banda sobre rodillas. Trabajo directo para glúteo medio y rotadores.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "medio"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Banda",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "lateral",
+    "efc": 1.0,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.5,
+    "movementPattern": "Rotación Externa de Cadera"
+  },
+  {
+    "id": "tren_inferior_pull_through_polea",
+    "name": "Pull-Through en Polea",
+    "description": "Movimiento de bisagra de cadera en polea baja dando la espalda a la torre de poleas. Enfatiza el estiramiento excéntrico de glúteos e isquiosurales.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Polea",
+    "force": "Bisagra",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 2.5,
+    "cnc": 2.5,
+    "ssc": 0.2,
+    "ttc": 1.5,
+    "movementPattern": "Bisagra"
+  },
+  {
+    "id": "tren_inferior_reverse_hyper_maquina",
+    "name": "Reverse Hyper en Máquina",
+    "description": "Extensión de cadera inversa en máquina pendular. Permite entrenar los glúteos e isquios de forma descompresiva para la columna lumbar.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Máquina",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 2.5,
+    "cnc": 2.5,
+    "ssc": 0.1,
+    "ttc": 1.2,
+    "movementPattern": "Extensión de Cadera"
+  },
+  {
+    "id": "tren_inferior_hip_thrust_mancuerna",
+    "name": "Hip Thrust con Mancuerna",
+    "description": "Empuje de cadera apoyando la espalda alta en un banco y sosteniendo una mancuerna sobre la pelvis.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuerna",
+    "force": "Bisagra",
+    "bodyPart": "lower",
+    "chain": "anterior",
+    "efc": 2.2,
+    "cnc": 2.5,
+    "ssc": 0.2,
+    "ttc": 1.0,
+    "movementPattern": "Bisagra"
+  },
+  {
+    "id": "tren_inferior_puente_gluteos_peso_corporal",
+    "name": "Puente de Glúteos en Suelo",
+    "description": "Puente de cadera acostado boca arriba con peso corporal. Básico para activación del glúteo mayor y calentamiento.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Bisagra",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.5,
+    "movementPattern": "Bisagra"
+  },
+  {
+    "id": "tren_inferior_puente_gluteos_mancuerna",
+    "name": "Puente de Glúteos con Mancuerna",
+    "description": "Puente de cadera en el suelo sosteniendo una mancuerna sobre la pelvis para añadir sobrecarga.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuerna",
+    "force": "Bisagra",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.8,
+    "cnc": 2.5,
+    "ssc": 0.1,
+    "ttc": 0.8,
+    "movementPattern": "Bisagra"
+  },
+  {
+    "id": "tren_inferior_patada_gluteo_cruzada_polea",
+    "name": "Patada de Glúteo Cruzada en Polea",
+    "description": "Patada unilateral cruzando la pierna activa por detrás de la línea media en polea baja, aumentando el estiramiento inicial del glúteo.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.2
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Polea",
+    "force": "Extensión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.8,
+    "cnc": 2.5,
+    "ssc": 0.1,
+    "ttc": 1.0,
+    "movementPattern": "Extensión de Cadera"
+  },
+  {
+    "id": "tren_inferior_hiperextension_gluteo_45",
+    "name": "Hiperextensión Enfocada en Glúteos a 45 Grados",
+    "description": "Extensión de cadera en banco de 45 grados con la espalda alta encorvada voluntariamente y pies rotados externamente, aislando los glúteos y anulando el esfuerzo de los erectores.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Banco Romano",
+    "force": "Bisagra",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 2.5,
+    "cnc": 2.5,
+    "ssc": 0.1,
+    "ttc": 1.0,
+    "movementPattern": "Bisagra"
+  },
+  {
+    "id": "tren_inferior_zancada_cruzada_peso_corporal",
+    "name": "Zancada Cruzada con Peso Corporal",
+    "description": "Zancada cruzando una pierna por detrás de la otra. Trabajo dinámico unilateral con énfasis en glúteo medio y estabilidad lateral.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "medio"
+      },
+      {
+        "muscle": "Cuádriceps",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "lateral",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.1,
+    "ttc": 0.8,
+    "movementPattern": "Zancada"
+  },
+  {
+    "id": "tren_inferior_caminata_monstruo_banda",
+    "name": "Caminata del Monstruo con Banda",
+    "description": "Desplazamientos lineales adelante y atrás con rodillas flexionadas y banda sobre los tobillos. Enfatiza el glúteo medio.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "medio"
+      },
+      {
+        "muscle": "Cuádriceps",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Banda",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "lateral",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.8,
+    "movementPattern": "Abducción de Cadera"
+  },
+  {
+    "id": "tren_inferior_frog_pumps_banda",
+    "name": "Frog Pumps con Banda",
+    "description": "Frog pumps acostado en suelo con banda elástica sobre las rodillas para añadir tensión excéntrica constante al glúteo.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Banda",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "lateral",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.5,
+    "movementPattern": "Rotación Externa de Cadera"
+  },
+  {
+    "id": "tren_inferior_curl_femoral_mancuerna",
+    "name": "Curl Femoral con Mancuerna",
+    "description": "Curl prono tumbado en suelo o banco sosteniendo una mancuerna con los pies. Excelente ejercicio de aislamiento para isquiosurales.",
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Gemelos",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuerna",
+    "force": "Flexión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.8,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.8,
+    "movementPattern": "Flexión de Rodilla"
+  },
+  {
+    "id": "tren_inferior_curl_femoral_trx",
+    "name": "Curl Femoral en Suspensión TRX",
+    "description": "Curl de piernas boca arriba con talones en los estribos del TRX, levantando la pelvis para activar la cadena posterior.",
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.4,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "TRX",
+    "force": "Flexión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 2.2,
+    "cnc": 2.5,
+    "ssc": 0.1,
+    "ttc": 0.8,
+    "movementPattern": "Flexión de Rodilla"
+  },
+  {
+    "id": "tren_inferior_deslizamientos_isquios_sliders",
+    "name": "Deslizamientos de Isquiosurales con Sliders",
+    "description": "Boca arriba deslizando talones sobre sliders o toalla. Enfatiza la flexión y extensión isométrica/excéntrica de los isquios.",
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.5,
+        "emphasis": "mayor"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Sliders",
+    "force": "Flexión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.6,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.6,
+    "movementPattern": "Flexión de Rodilla"
+  },
+  {
+    "id": "tren_inferior_curl_femoral_sentado_banda",
+    "name": "Curl Femoral Sentado con Banda",
+    "description": "Sentado en silla con una banda elástica anclada al frente y atada a los tobillos, flexionando las rodillas hacia atrás.",
+    "involvedMuscles": [
+      {
+        "muscle": "Isquiosurales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Gemelos",
+        "role": "secondary",
+        "activation": 0.3
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Banda",
+    "force": "Flexión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.6,
+    "movementPattern": "Flexión de Rodilla"
+  },
+  {
+    "id": "tren_inferior_reverse_hyper_banco_peso_corporal",
+    "name": "Reverse Hyper en Banco con Peso Corporal",
+    "description": "Extensión de cadera inversa boca abajo en banco plano, elevando ambas piernas rectas para aislar glúteos e isquios.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.8
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.8,
+    "cnc": 2.5,
+    "ssc": 0.1,
+    "ttc": 0.8,
+    "movementPattern": "Extensión de Cadera"
+  },
+  {
+    "id": "tren_inferior_elevacion_tibial_pared",
+    "name": "Elevación Tibial en Pared con Peso Corporal",
+    "description": "De espaldas a la pared con los talones alejados, elevando la punta de los pies hacia las espinillas. Excelente para activar el tibial anterior.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pantorrillas",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "tibial"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Flexión",
+    "bodyPart": "lower",
+    "chain": "anterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.5,
+    "movementPattern": "Flexión Tobillo"
+  },
+  {
+    "id": "tren_inferior_elevacion_tibial_mancuerna",
+    "name": "Elevación Tibial con Mancuerna",
+    "description": "Sentado en banco elevado con las piernas colgando y sujetando una mancuerna entre los pies para sobrecargar la flexión dorsal.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pantorrillas",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "tibial"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuerna",
+    "force": "Flexión",
+    "bodyPart": "lower",
+    "chain": "anterior",
+    "efc": 1.6,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.8,
+    "movementPattern": "Flexión Tobillo"
+  },
+  {
+    "id": "tren_inferior_elevacion_tibial_tib_bar",
+    "name": "Elevación Tibial con Tib Bar",
+    "description": "Flexión dorsal de tobillo cargando discos en una barra tibial (Tib Bar) dedicada. Permite máxima sobrecarga progresiva.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pantorrillas",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "tibial"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Barra Tibial",
+    "force": "Flexión",
+    "bodyPart": "lower",
+    "chain": "anterior",
+    "efc": 1.8,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 1.0,
+    "movementPattern": "Flexión Tobillo"
+  },
+  {
+    "id": "tren_inferior_elevacion_talones_sentado_barra",
+    "name": "Elevación de Talones Sentado con Barra",
+    "description": "Sentado en un banco con barra cargada sobre los muslos y elevando los talones sobre un soporte. Aísla el sóleo al flexionar la rodilla.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pantorrillas",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "sóleo"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Barra",
+    "force": "Flexión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.8,
+    "cnc": 2.5,
+    "ssc": 0.1,
+    "ttc": 1.0,
+    "movementPattern": "Extensión Tobillo"
+  },
+  {
+    "id": "tren_inferior_elevacion_talones_pie_smith",
+    "name": "Elevación de Talones en Máquina Smith de Pie",
+    "description": "Gemelos de pie en máquina Smith apoyando el metatarso en una plataforma para un rango de estiramiento profundo. Énfasis en gastrocnemio.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pantorrillas",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "gastrocnemio"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Smith",
+    "force": "Flexión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 2.2,
+    "cnc": 2.5,
+    "ssc": 0.2,
+    "ttc": 1.2,
+    "movementPattern": "Extensión Tobillo"
+  },
+  {
+    "id": "tren_inferior_elevacion_talones_pie_banda",
+    "name": "Elevación de Talones con Banda de Pie",
+    "description": "Gemelos de pie pisando una banda de resistencia elástica y sosteniendo los extremos, elevando talones contra la resistencia.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pantorrillas",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "gastrocnemio"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Banda",
+    "force": "Flexión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.6,
+    "movementPattern": "Extensión Tobillo"
+  },
+  {
+    "id": "tren_inferior_elevacion_talones_unilateral_peso_corporal",
+    "name": "Elevación de Talones Unilateral con Peso Corporal",
+    "description": "Gemelos a una sola pierna de pie sobre el borde de un escalón o plataforma con peso corporal. Corrige asimetrías de fuerza plantar.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pantorrillas",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "gastrocnemio"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Flexión",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.6,
+    "movementPattern": "Extensión Tobillo"
+  },
+  {
+    "id": "tren_superior_pinza_discos",
+    "name": "Pinza de Discos",
+    "description": "Sostener dos o más discos juntos con las caras lisas hacia afuera utilizando únicamente la fuerza de pinza de los dedos y el pulgar.",
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Discos",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.8,
+    "movementPattern": "Agarre/Muñeca"
+  },
+  {
+    "id": "tren_superior_pinzas_mano_gripper",
+    "name": "Cierre de Pinzas de Mano Gripper",
+    "description": "Cerrar un ejercitador de mano metálico de torsión pesada para desarrollar fuerza de aplastamiento y flexores de dedos.",
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Pinza de Mano",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.8,
+    "movementPattern": "Agarre/Muñeca"
+  },
+  {
+    "id": "tren_superior_colgado_pasivo_barra",
+    "name": "Colgado Pasivo en Barra",
+    "description": "Colgarse de una barra de dominadas con brazos estirados para desarrollar resistencia estática de agarre y descompresión lumbar.",
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Barra de Dominadas",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "posterior",
+    "efc": 1.0,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.5,
+    "movementPattern": "Agarre/Muñeca"
+  },
+  {
+    "id": "tren_superior_flexiones_dedos",
+    "name": "Flexiones sobre Dedos",
+    "description": "Flexiones de brazos apoyando el peso corporal únicamente sobre las yemas de los dedos, desarrollando fuerza en manos y dedos.",
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Pectorales",
+        "role": "secondary",
+        "activation": 0.6
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Empuje",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 2.2,
+    "cnc": 2.5,
+    "ssc": 0.1,
+    "ttc": 1.0,
+    "movementPattern": "Empuje Horizontal"
+  },
+  {
+    "id": "tren_superior_extension_dedos_banda",
+    "name": "Extensión de Dedos con Banda Elástica",
+    "description": "Abrir la mano extendiendo los dedos hacia afuera contra una banda elástica para fortalecer los extensores de los dedos.",
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Banda",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "posterior",
+    "efc": 1.0,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.4,
+    "movementPattern": "Agarre/Muñeca"
+  },
+  {
+    "id": "tren_superior_pronacion_muneca_mancuerna",
+    "name": "Pronación de Muñeca con Mancuerna Asimétrica",
+    "description": "Sostener una mancuerna por un extremo y rotar la muñeca de la posición neutra hacia adentro para fortalecer el braquiorradial y los pronadores.",
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuerna",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 1.4,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.6,
+    "movementPattern": "Agarre/Muñeca"
+  },
+  {
+    "id": "tren_superior_desviacion_radial_mancuerna",
+    "name": "Desviación Radial con Mancuerna",
+    "description": "Sostener una mancuerna por un extremo y levantar la palanca verticalmente hacia el pulgar para fortalecer los tendones de la muñeca.",
+    "involvedMuscles": [
+      {
+        "muscle": "Antebrazo",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuerna",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "lateral",
+    "efc": 1.4,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.6,
+    "movementPattern": "Agarre/Muñeca"
+  },
+  {
+    "id": "tren_superior_flexion_cuello_disco_banco",
+    "name": "Flexión de Cuello Acostado con Disco",
+    "description": "Acostado boca arriba con la cabeza fuera del banco, colocando un disco sobre la frente para realizar flexión cervical dinámica.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Discos",
+    "force": "Flexión",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.8,
+    "ttc": 1.0,
+    "movementPattern": "Cuello"
+  },
+  {
+    "id": "tren_superior_extension_cuello_disco_banco",
+    "name": "Extensión de Cuello Acostado con Disco",
+    "description": "Acostado boca abajo con la cabeza fuera del banco, colocando un disco en la nuca para realizar extensión cervical.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Discos",
+    "force": "Extensión",
+    "bodyPart": "upper",
+    "chain": "posterior",
+    "efc": 1.5,
+    "cnc": 2.5,
+    "ssc": 1.0,
+    "ttc": 1.0,
+    "movementPattern": "Cuello"
+  },
+  {
+    "id": "tren_superior_flexion_lateral_cuello_disco",
+    "name": "Flexión Lateral de Cuello Acostado con Disco",
+    "description": "Acostado de lado con la cabeza colgando, sosteniendo un disco contra la sien para realizar flexión lateral unilateral del cuello.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Discos",
+    "force": "Flexión",
+    "bodyPart": "upper",
+    "chain": "lateral",
+    "efc": 1.3,
+    "cnc": 2.5,
+    "ssc": 0.8,
+    "ttc": 1.0,
+    "movementPattern": "Cuello"
+  },
+  {
+    "id": "tren_superior_puente_cuello_frontal_isometrico",
+    "name": "Puente de Cuello Frontal Isométrico",
+    "description": "Apoyando la frente en una pared, fitball o colchoneta, sosteniendo el cuerpo en posición inclinada para estabilidad cervical anterior.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Estabilidad",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 1.0,
+    "cnc": 2.5,
+    "ssc": 0.4,
+    "ttc": 0.8,
+    "movementPattern": "Cuello"
+  },
+  {
+    "id": "tren_superior_encogimiento_hombros_rotacion_cuello",
+    "name": "Encogimiento de Hombros con Rotación de Cuello",
+    "description": "Encogimiento estático con mancuernas en el tope mientras se rota lentamente la cabeza de lado a lado. Combina trapecio y cuello.",
+    "involvedMuscles": [
+      {
+        "muscle": "Trapecio",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Cuello",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuernas",
+    "force": "Tirón",
+    "bodyPart": "upper",
+    "chain": "posterior",
+    "efc": 1.8,
+    "cnc": 2.5,
+    "ssc": 0.5,
+    "ttc": 1.0,
+    "movementPattern": "Tirón Vertical"
+  },
+  {
+    "id": "tren_superior_extension_cuello_polea",
+    "name": "Extensión de Cuello en Polea con Arnés",
+    "description": "Inclinado frente a polea baja con arnés cervical en la nuca, realizando extensión de cuello contra la resistencia constante del cable.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Polea",
+    "force": "Extensión",
+    "bodyPart": "upper",
+    "chain": "posterior",
+    "efc": 1.5,
+    "cnc": 2.5,
+    "ssc": 0.9,
+    "ttc": 1.0,
+    "movementPattern": "Cuello"
+  },
+  {
+    "id": "tren_superior_flexion_cuello_polea",
+    "name": "Flexión de Cuello en Polea con Arnés",
+    "description": "Con arnés en la frente conectado a polea baja/media, realizando flexión de cuello de espaldas a la polea.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Polea",
+    "force": "Flexión",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.7,
+    "ttc": 1.0,
+    "movementPattern": "Cuello"
+  },
+  {
+    "id": "tren_superior_flexion_lateral_cuello_polea",
+    "name": "Flexión Lateral de Cuello en Polea con Arnés",
+    "description": "De pie de lado a la polea con arnés cervical en la sien, realizando inclinación lateral del cuello alejándose del cable.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Polea",
+    "force": "Flexión",
+    "bodyPart": "upper",
+    "chain": "lateral",
+    "efc": 1.3,
+    "cnc": 2.5,
+    "ssc": 0.7,
+    "ttc": 1.0,
+    "movementPattern": "Cuello"
+  },
+  {
+    "id": "tren_superior_extension_cuello_maquina",
+    "name": "Extensión de Cuello en Máquina",
+    "description": "Sentado en máquina cervical 4-way apoyando la nuca en la almohadilla, extendiendo la cabeza hacia atrás.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Máquina",
+    "force": "Extensión",
+    "bodyPart": "upper",
+    "chain": "posterior",
+    "efc": 1.5,
+    "cnc": 2.5,
+    "ssc": 0.8,
+    "ttc": 1.0,
+    "movementPattern": "Cuello"
+  },
+  {
+    "id": "tren_superior_flexion_cuello_maquina",
+    "name": "Flexión de Cuello en Máquina",
+    "description": "Sentado en máquina cervical 4-way apoyando la frente en la almohadilla, flexionando la cabeza hacia adelante.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Máquina",
+    "force": "Flexión",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.6,
+    "ttc": 1.0,
+    "movementPattern": "Cuello"
+  },
+  {
+    "id": "tren_superior_flexion_lateral_cuello_maquina",
+    "name": "Flexión Lateral de Cuello en Máquina",
+    "description": "Sentado lateralmente en la máquina cervical, inclinando la cabeza hacia el rodillo almohadillado unilateralmente.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Máquina",
+    "force": "Flexión",
+    "bodyPart": "upper",
+    "chain": "lateral",
+    "efc": 1.3,
+    "cnc": 2.5,
+    "ssc": 0.6,
+    "ttc": 1.0,
+    "movementPattern": "Cuello"
+  },
+  {
+    "id": "tren_inferior_isometrico_prensa_tendon_rotuliano",
+    "name": "Sostén Isométrico de Prensa para Tendón Rotuliano",
+    "description": "Sostener una carga pesada en prensa de piernas a 60 grados de flexión de rodilla de forma estática por 30-45 segundos para rehabilitación y fortalecimiento del tendón rotuliano.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Prensa de Piernas",
+    "force": "Empuje",
+    "bodyPart": "lower",
+    "chain": "anterior",
+    "efc": 1.5,
+    "cnc": 2.5,
+    "ssc": 0.2,
+    "ttc": 1.5,
+    "movementPattern": "Prensa de Piernas"
+  },
+  {
+    "id": "tren_inferior_saltos_pogo_tendon_aquiles",
+    "name": "Saltos Pogo Continuos para Tendón de Aquiles",
+    "description": "Saltos verticales cortos y continuos usando solo la articulación del tobillo con mínima flexión de rodilla, aumentando la rigidez elástica del tendón de Aquiles.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pantorrillas",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "gastrocnemio"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 1.2,
+    "movementPattern": "Flexión Tobillo"
+  },
+  {
+    "id": "tren_inferior_caida_absorcion_cajon",
+    "name": "Caída y Absorción de Impacto desde Cajón",
+    "description": "Dejarse caer desde un cajón de 30-40 cm y clavar la caída de forma estática, aplicando una desaceleración excéntrica controlada que estimula la osteogénesis.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.5,
+        "emphasis": "mayor"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Cajón",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 1.8,
+    "cnc": 2.5,
+    "ssc": 0.2,
+    "ttc": 1.8,
+    "movementPattern": "Absorción Impacto"
+  },
+  {
+    "id": "tren_inferior_sentadilla_espanola_isometrica",
+    "name": "Sentadilla Española Isométrica",
+    "description": "Sentadilla isométrica a 90 grados sosteniéndose de espaldas contra una banda gruesa anclada tras las rodillas. Enfatiza los cuádriceps reduciendo el dolor rotuliano.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Banda",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "anterior",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.8,
+    "movementPattern": "Sentadilla"
+  },
+  {
+    "id": "tren_superior_sosten_barra_sobrecarga_axial",
+    "name": "Sostén de Barra con Sobrecarga Axial",
+    "description": "Descolgar y sostener erguida una barra con peso supra-máximo en la espalda por 10-15 segundos. Compresión axial pesada estimuladora de densidad ósea.",
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "secondary",
+        "activation": 0.8
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Barra",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "posterior",
+    "efc": 2.0,
+    "cnc": 2.5,
+    "ssc": 2.0,
+    "ttc": 2.0,
+    "movementPattern": "Carga Estática"
+  },
+  {
+    "id": "tren_inferior_plancha_copenhague_dinamica",
+    "name": "Plancha Copenhague Dinámica con Elevación",
+    "description": "Apoyando el pie interno en un banco de lado, elevando y descendiendo la cadera de forma dinámica para fortalecer los aductores de la cadera.",
+    "involvedMuscles": [
+      {
+        "muscle": "Aductores",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Banco",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "lateral",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.1,
+    "ttc": 1.2,
+    "movementPattern": "Aducción Cadera"
+  },
+  {
+    "id": "tren_inferior_aduccion_cadera_polea",
+    "name": "Aducción de Cadera en Polea Baja",
+    "description": "De pie cruzando la pierna activa por el frente de la pierna de apoyo usando una polea baja para aislar el muslo interno.",
+    "involvedMuscles": [
+      {
+        "muscle": "Aductores",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Polea",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "lateral",
+    "efc": 1.2,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.8,
+    "movementPattern": "Aducción Cadera"
+  },
+  {
+    "id": "tren_superior_peso_muerto_jefferson",
+    "name": "Peso Muerto Jefferson",
+    "description": "Levantamiento de peso muerto parado a horcajadas sobre la barra. Excelente ejercicio asimétrico para erectores y estabilidad lumbar.",
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Cuádriceps",
+        "role": "secondary",
+        "activation": 0.8
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.6
+      }
+    ],
+    "category": "Fuerza",
+    "type": "Básico",
+    "equipment": "Barra",
+    "force": "Bisagra",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 3.5,
+    "cnc": 2.5,
+    "ssc": 1.5,
+    "ttc": 2.0,
+    "movementPattern": "Bisagra"
+  },
+  {
+    "id": "tren_superior_sosten_superman_isometrico",
+    "name": "Sostén en Súper-Man Isométrico",
+    "description": "Acostado boca abajo en el suelo elevando pecho y piernas rectas simultáneamente, sosteniendo la posición para fortalecer erectores espinales.",
+    "involvedMuscles": [
+      {
+        "muscle": "Erectores Espinales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6,
+        "emphasis": "mayor"
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "posterior",
+    "efc": 1.0,
+    "cnc": 2.5,
+    "ssc": 0.3,
+    "ttc": 0.6,
+    "movementPattern": "Core"
+  },
+  {
+    "id": "tren_superior_press_cubano_mancuernas",
+    "name": "Press Cubano con Mancuernas",
+    "description": "Remo al mentón seguido de rotación externa y press de hombros con mancuernas. Diseñado para blindar el manguito rotador y deltoides.",
+    "involvedMuscles": [
+      {
+        "muscle": "Deltoides",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuernas",
+    "force": "Empuje",
+    "bodyPart": "upper",
+    "chain": "lateral",
+    "efc": 1.8,
+    "cnc": 2.5,
+    "ssc": 0.2,
+    "ttc": 1.2,
+    "movementPattern": "Empuje Vertical"
+  },
+  {
+    "id": "tren_superior_curl_zottman_mancuernas",
+    "name": "Curl Zottman con Mancuernas",
+    "description": "Subida concéntrica de curl de bíceps supinado y bajada excéntrica pronada lenta para un trabajo completo de bíceps y antebrazo.",
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "secondary",
+        "activation": 0.7
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuernas",
+    "force": "Flexión",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 1.8,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.8,
+    "movementPattern": "Flexión Codo"
+  },
+  {
+    "id": "tren_superior_curl_waiter_mancuerna",
+    "name": "Curl Waiter con Mancuerna",
+    "description": "Flexión sosteniendo una mancuerna con ambas palmas planas apuntando arriba debajo del disco superior, aislando el pico del bíceps.",
+    "involvedMuscles": [
+      {
+        "muscle": "Bíceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuerna",
+    "force": "Flexión",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 1.4,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.6,
+    "movementPattern": "Flexión Codo"
+  },
+  {
+    "id": "tren_superior_extension_tate_mancuernas",
+    "name": "Extensión de Tríceps Tate con Mancuernas",
+    "description": "Extensión de tríceps en banco plano apuntando codos hacia afuera y flexionando de forma horizontal para aislar la cabeza lateral.",
+    "involvedMuscles": [
+      {
+        "muscle": "Tríceps",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuernas",
+    "force": "Extensión",
+    "bodyPart": "upper",
+    "chain": "posterior",
+    "efc": 1.8,
+    "cnc": 2.5,
+    "ssc": 0.1,
+    "ttc": 1.0,
+    "movementPattern": "Extensión Codo"
+  },
+  {
+    "id": "tren_superior_vacio_abdominal_isometrico",
+    "name": "Vacío Abdominal Isométrico",
+    "description": "Succión abdominal isométrica contrayendo el transverso del abdomen para mejorar el control del core y estrechar la cintura.",
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Estabilidad",
+    "type": "Aislamiento",
+    "equipment": "Peso Corporal",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 1.0,
+    "cnc": 2.5,
+    "ssc": 0.0,
+    "ttc": 0.4,
+    "movementPattern": "Core"
+  },
+  {
+    "id": "tren_superior_caminata_maleta_unilateral",
+    "name": "Paseo de la Maleta Pesado",
+    "description": "Caminata con mancuerna pesada a un solo costado del cuerpo, obligando al core a estabilizarse contra la flexión lateral.",
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Antebrazo",
+        "role": "secondary",
+        "activation": 0.6
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuerna",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "lateral",
+    "efc": 1.6,
+    "cnc": 2.5,
+    "ssc": 0.5,
+    "ttc": 1.2,
+    "movementPattern": "Core"
+  },
+  {
+    "id": "tren_superior_rotacion_core_landmine",
+    "name": "Rotaciones de Core en Landmine",
+    "description": "Sujetando la barra pivotante con ambas manos de pie, rotándola de lado a lado con el core para potenciar la fuerza rotacional.",
+    "involvedMuscles": [
+      {
+        "muscle": "Core",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Barra",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "lateral",
+    "efc": 1.6,
+    "cnc": 2.5,
+    "ssc": 0.5,
+    "ttc": 1.2,
+    "movementPattern": "Core"
   }
 ]

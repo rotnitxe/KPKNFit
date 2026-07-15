@@ -350,20 +350,6 @@ object AugeRecoveryEngine {
         return clamp(max(calculatedCapacity, baseFloor), 500.0, 3500.0)
     }
 
-    private fun getSigmoidalHours(hoursSince: Double): Double {
-        return if (hoursSince < 24.0) {
-            hoursSince * 0.15
-        } else {
-            3.6 + (hoursSince - 24.0) * 1.35
-        }
-    }
-
-    private fun getSpinalRecoveryHours(hoursSince: Double): Double {
-        if (hoursSince < 12.0) {
-            return hoursSince
-        }
-        return hoursSince + 18.0
-    }
 
     // ─── 1. BATERÍA MUSCULAR INDIVIDUAL ──────────────────────────────────────
 
@@ -378,8 +364,9 @@ object AugeRecoveryEngine {
         feedbacks: List<PostSessionFeedback> = emptyList(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
         precomputedCapacity: Double? = null,
+        nowOverride: Long? = null,
     ): MuscleRecoveryStatus {
-        val now = nowMs()
+        val now = nowOverride ?: nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
         val capacity = precomputedCapacity ?: calculateUserWorkCapacity(muscleName, history, settings, exerciseDb)
 
@@ -424,7 +411,7 @@ object AugeRecoveryEngine {
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
             val impliedRawFatiguePct = -90.0 * ln(1.0 - penalty / 100.0)
             val manualLoad = (impliedRawFatiguePct / 100.0) * capacity
-            accumulatedFatigue = manualLoad * exp(-k * getSigmoidalHours(hoursSinceAnchor))
+            accumulatedFatigue = manualLoad * exp(-k * com.example.kpkn.domain.auge.AugeUtils.getSigmoidalHours(hoursSinceAnchor))
             history.filter { logDateMs(it) > anchorMs && logDateMs(it) > tenDaysAgo }
         } else {
             history.filter { logDateMs(it) > tenDaysAgo }
@@ -496,7 +483,7 @@ object AugeRecoveryEngine {
             }
 
             if (sessionMuscleStress > 0) {
-                accumulatedFatigue += sessionMuscleStress * safeExp(-k * getSigmoidalHours(hoursSince))
+                accumulatedFatigue += sessionMuscleStress * safeExp(-k * com.example.kpkn.domain.auge.AugeUtils.getSigmoidalHours(hoursSince))
                 if (logTime > lastSessionDate) lastSessionDate = logTime
             }
         }
@@ -625,8 +612,7 @@ object AugeRecoveryEngine {
     ): Triple<Int, Int, Int> { // Triple(cnsBattery, gymLoad, lifeLoad)
         val now = nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
-        val adaptiveMultiplier = (1.0 - (adaptiveCache.cnsLearningDelta / 50.0)).coerceIn(0.5, 1.5)
-        val baseTau = 36.0 * systemicRecoveryMultiplier(wellbeing, sleepLogs) * adaptiveMultiplier
+        val baseTau = adaptiveCache.cnsRecoveryHours ?: 36.0
         val feedbackPenalty = calculateSystemFeedbackPenaltyPct(feedbacks)
         val tauHours = baseTau * (1.0 + feedbackPenalty.coerceAtLeast(0.0) / 48.0)
         val last10Days = now - 10L * 24 * 3600 * 1000
@@ -728,11 +714,12 @@ object AugeRecoveryEngine {
         coreCapacity: Double? = null,
         glutesCapacity: Double? = null,
         latsCapacity: Double? = null,
+        nowOverride: Long? = null,
     ): Double {
-        val erectors = calculateMuscleBattery("Erectores Espinales", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, erectorsCapacity).recoveryScore.toDouble()
-        val core = calculateMuscleBattery("Core", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, coreCapacity).recoveryScore.toDouble()
-        val glutes = calculateMuscleBattery("Glúteos", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, glutesCapacity).recoveryScore.toDouble()
-        val lats = calculateMuscleBattery("Dorsales", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, latsCapacity).recoveryScore.toDouble()
+        val erectors = calculateMuscleBattery("Erectores Espinales", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, erectorsCapacity, nowOverride).recoveryScore.toDouble()
+        val core = calculateMuscleBattery("Core", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, coreCapacity, nowOverride).recoveryScore.toDouble()
+        val glutes = calculateMuscleBattery("Glúteos", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, glutesCapacity, nowOverride).recoveryScore.toDouble()
+        val lats = calculateMuscleBattery("Dorsales", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, latsCapacity, nowOverride).recoveryScore.toDouble()
 
         // Spine Protection Factor (SPF) - Promedio ponderado de rigidez y bracing activo
         val spf = (erectors * 0.50) + (core * 0.25) + (glutes * 0.15) + (lats * 0.10)
@@ -756,8 +743,7 @@ object AugeRecoveryEngine {
     ): Int {
         val now = nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
-        val adaptiveMultiplier = (1.0 - (adaptiveCache.spinalLearningDelta / 50.0)).coerceIn(0.5, 1.5)
-        val tauHours = 52.0 * systemicRecoveryMultiplier(wellbeing, sleepLogs) * adaptiveMultiplier
+        val tauHours = adaptiveCache.spinalRecoveryHours ?: 52.0
         val last10Days = now - 10L * 24 * 3600 * 1000
 
         val manualSpinal = wellbeing?.manualSpinalBattery
@@ -771,7 +757,7 @@ object AugeRecoveryEngine {
             val impliedRawPct = -70.0 * ln(1.0 - penalty / 100.0)
             val capacity = max(70.0, tanks.spinal * 0.02)
             val manualLoad = (impliedRawPct / 100.0) * capacity
-            accumulatedSpinalLoad = manualLoad * exp(-getSpinalRecoveryHours(hoursSinceAnchor) / tauHours)
+            accumulatedSpinalLoad = manualLoad * exp(-com.example.kpkn.domain.auge.AugeUtils.getSpinalRecoveryHours(hoursSinceAnchor) / tauHours)
             history.filter { logDateMs(it) > anchorMs && logDateMs(it) > last10Days }
         } else {
             history.filter { logDateMs(it) > last10Days }
@@ -812,6 +798,7 @@ object AugeRecoveryEngine {
                 coreCapacity = coreCapacity,
                 glutesCapacity = glutesCapacity,
                 latsCapacity = latsCapacity,
+                nowOverride = logTime,
             )
 
             val conservationFactor = 0.85
@@ -857,7 +844,7 @@ object AugeRecoveryEngine {
             }
 
             if (log.durationMinutes > 90) sessionSpinalLoad *= 1.08
-            accumulatedSpinalLoad += sessionSpinalLoad * safeExp(-(getSpinalRecoveryHours(hoursSince) / tauHours))
+            accumulatedSpinalLoad += sessionSpinalLoad * safeExp(-(com.example.kpkn.domain.auge.AugeUtils.getSpinalRecoveryHours(hoursSince) / tauHours))
         }
 
         val capacity = max(70.0, tanks.spinal * 0.02)

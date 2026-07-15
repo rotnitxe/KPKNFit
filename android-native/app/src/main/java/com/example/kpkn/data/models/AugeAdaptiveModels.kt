@@ -8,6 +8,8 @@ data class AugeAdaptiveCache(
     val muscleDeltas: Map<String, Double> = emptyMap(),
     val cnsLearningDelta: Double = 0.0,
     val spinalLearningDelta: Double = 0.0,
+    val cnsRecoveryHours: Double? = null,
+    val spinalRecoveryHours: Double? = null,
     val cnsDrainMultiplier: Double = 1.0,
     val spinalDrainMultiplier: Double = 1.0,
     val muscleDrainMultipliers: Map<String, Double> = emptyMap(),

@@ -73,4 +73,19 @@ internal object AugeUtils {
         val b = battery.coerceIn(0.0, 100.0)
         return if (b < 30.0) 30.0 * kotlin.math.sqrt(b / 30.0) else b
     }
+
+    fun getSigmoidalHours(hoursSince: Double): Double {
+        return if (hoursSince < 24.0) {
+            hoursSince * 0.15
+        } else {
+            3.6 + (hoursSince - 24.0) * 1.35
+        }
+    }
+
+    fun getSpinalRecoveryHours(hoursSince: Double): Double {
+        if (hoursSince < 12.0) {
+            return hoursSince
+        }
+        return hoursSince + 18.0
+    }
 }

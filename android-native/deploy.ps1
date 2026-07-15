@@ -1,7 +1,12 @@
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $adb = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
 $apk = Join-Path $scriptDir "app\build\outputs\apk\base\debug\app-base-debug.apk"
-$device = "emulator-5554"
+$devices = & $adb devices | Select-String -Pattern "emulator-\d+\s+device"
+if ($devices) {
+    $device = ($devices[0].Line -split '\s+')[0]
+} else {
+    $device = "emulator-5554"
+}
 
 Write-Host ">> Building..." -ForegroundColor Cyan
 Push-Location $scriptDir

@@ -516,6 +516,46 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             24.0
         }
 
+        val cnsObs = if (manualNeural != null && predictedNeuralBattery != null && predictedNeuralBattery != manualNeural) {
+            RecoveryLearningObservation(
+                muscle = "cns",
+                predictedBattery = predictedNeuralBattery,
+                actualBattery = manualNeural,
+                sessionStress = if (sessionCnsDrain > 0.0) sessionCnsDrain else 20.0,
+                hoursSinceSession = if (sessionCnsDrain > 0.0) 0.25 else derivedHoursSince,
+                sleepQuality = wellbeing.sleepQuality,
+                stressLevel = wellbeing.stressLevel
+            )
+        } else null
+
+        val spinalObs = if (manualSpinal != null && predictedSpinalBattery != null && predictedSpinalBattery != manualSpinal) {
+            RecoveryLearningObservation(
+                muscle = "spinal",
+                predictedBattery = predictedSpinalBattery,
+                actualBattery = manualSpinal,
+                sessionStress = if (sessionSpinalDrain > 0.0) sessionSpinalDrain else 20.0,
+                hoursSinceSession = if (sessionSpinalDrain > 0.0) 0.25 else derivedHoursSince,
+                sleepQuality = wellbeing.sleepQuality,
+                stressLevel = wellbeing.stressLevel
+            )
+        } else null
+
+        if (cnsObs != null || spinalObs != null) {
+            val (newCnsTau, newSpinalTau) = AugeAdaptiveEngine.updateSystemRecoveryHours(
+                currentCnsTau = updatedCache.cnsRecoveryHours,
+                currentSpinalTau = updatedCache.spinalRecoveryHours,
+                cnsObservation = cnsObs,
+                spinalObservation = spinalObs,
+                totalObservations = cache.totalObservations
+            )
+            updatedCache = updatedCache.copy(
+                cnsRecoveryHours = newCnsTau,
+                spinalRecoveryHours = newSpinalTau
+            )
+            if (cnsObs != null) obsCount += 1
+            if (spinalObs != null) obsCount += 1
+        }
+
         for ((muscle, manualBattery) in manualMuscleBatteries) {
             val predicted = predictedMuscleBatteries[muscle]
                 ?: predictedMuscleBatteries.entries.firstOrNull {

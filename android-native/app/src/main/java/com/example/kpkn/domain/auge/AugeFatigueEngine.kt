@@ -334,11 +334,23 @@ object AugeFatigueEngine {
     ): SetDrain {
         if (set.skipped) return SetDrain(cnsDrainPct = 0.0, muscularDrainPct = 0.0, spinalDrainPct = 0.0)
         val rpe = getEffectiveRPE(set)
-        val reps = when {
+        val baseReps = when {
             (set.timeSeconds ?: 0) > 0 -> ((set.timeSeconds ?: 0).coerceAtLeast(5) / 5.0)
             else -> set.reps.coerceAtLeast(1).toDouble()
         }
-        val repsFactor = reps.pow(0.65)
+        
+        val dropReps = set.dropSets.sumOf { it.reps }.toDouble()
+        val rpReps = set.restPauses.sumOf { it.reps }.toDouble()
+
+        // Repeticiones efectivas diferenciadas por tipo de tejido/fatiga
+        val repsMuscular = baseReps + 0.40 * dropReps + 0.60 * rpReps
+        val repsCns = baseReps + 0.85 * dropReps + 0.90 * rpReps
+        val repsSpinal = baseReps + 0.30 * dropReps + 0.80 * rpReps
+
+        val repsFactorMuscular = repsMuscular.pow(0.65)
+        val repsFactorCns = repsCns.pow(0.65)
+        val repsFactorSpinal = repsSpinal.pow(0.65)
+
         val rpeMult = calculateRpeMultiplier(rpe)
         
         // Bifurcación de Volumen Progresivo (Junk Volume vs. Estimulante)
@@ -372,6 +384,8 @@ object AugeFatigueEngine {
             restTime >= 180 -> 0.92
             else -> 1.0
         }
+        
+        val reps = baseReps // para compatibilidad con biases
         val muscularBias = when {
             reps >= 15.0 -> 1.15
             reps <= 4.0 -> 0.78
@@ -403,22 +417,22 @@ object AugeFatigueEngine {
         val nearRmMult = calculateNearRmFatigueMultiplier(nearRmRatio)
         val density = densityMultiplier.coerceIn(0.85, 1.45)
         
-        // Bifurcación de densidad (Supersets: reducen tensión mecánica muscular pero disparan SNC)
-        val muscularDensityMult = if (density > 1.0) 1.0 - (density - 1.0) * 0.40 else 1.0
-        val systemDensityMult = 1.0 + (density - 1.0) * 1.25
+        // Bifurcación de densidad (Supersets: incrementan fatiga metabólica muscular y disparan el SNC)
+        val muscularDensityMult = if (density > 1.0) 1.0 + (density - 1.0) * 0.35 else 1.0
+        val systemDensityMult = 1.0 + (density - 1.0) * 1.50
         val structureDensityMult = 1.0 + (density - 1.0) * 1.15
 
         val assistedCount = set.assistedReps ?: 0
         val assistedMultiplier = 1.0 + (assistedCount * 0.20)
 
         val rawMuscular =
-            metrics.efc * repsFactor * rpeMult * muscularProgressiveMult * localRestMult * muscularBias *
+            metrics.efc * repsFactorMuscular * rpeMult * muscularProgressiveMult * localRestMult * muscularBias *
                 muscularTechniqueFactor * muscularDensityMult * (1.0 + (nearRmMult - 1.0) * 0.35) * 1.85 * assistedMultiplier * muscleMultiplier
         val rawCns =
-            metrics.cnc * repsFactor * rpeMult * systemicProgressiveMult * systemRestMult * systemBias *
+            metrics.cnc * repsFactorCns * rpeMult * systemicProgressiveMult * systemRestMult * systemBias *
                 systemicTechniqueFactor * systemDensityMult * nearRmMult * 1.15 * assistedMultiplier * cnsMultiplier
         val rawSpinal =
-            metrics.ssc * repsFactor * rpeMult * systemicProgressiveMult * structureRestMult * structureBias * loadFactor *
+            metrics.ssc * repsFactorSpinal * rpeMult * systemicProgressiveMult * structureRestMult * structureBias * loadFactor *
                 systemicTechniqueFactor * structureDensityMult * (1.0 + (nearRmMult - 1.0) * 1.20) * 5.2 * assistedMultiplier * spinalMultiplier
 
         return SetDrain(

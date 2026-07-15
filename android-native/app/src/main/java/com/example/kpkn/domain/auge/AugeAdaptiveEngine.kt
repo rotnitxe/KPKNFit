@@ -22,7 +22,8 @@ object AugeAdaptiveEngine {
      * tau = 2.9957 / k
      */
     private fun deriveImpliedRecoveryTime(obs: RecoveryLearningObservation): Double? {
-        if (obs.hoursSinceSession <= 0) return null
+        // No intentamos deducir tendencia si han pasado menos de 6 horas, el error sería muy inestable.
+        if (obs.hoursSinceSession < 6.0) return null
 
         if (obs.sessionStress <= 0) {
             return if (obs.actualBattery >= 95) 12.0 else null
@@ -33,7 +34,13 @@ object AugeAdaptiveEngine {
 
         val remainingFraction = clamp(actualDepletion / initialDepletion, 0.01, 0.99)
 
-        val k = -ln(remainingFraction) / obs.hoursSinceSession
+        val effectiveHours = when (obs.muscle.lowercase().trim()) {
+            "cns" -> obs.hoursSinceSession
+            "spinal" -> com.example.kpkn.domain.auge.AugeUtils.getSpinalRecoveryHours(obs.hoursSinceSession)
+            else -> com.example.kpkn.domain.auge.AugeUtils.getSigmoidalHours(obs.hoursSinceSession)
+        }
+
+        val k = -ln(remainingFraction) / effectiveHours
         if (k <= 0) return null
 
         val impliedTau = 2.9957 / k
@@ -62,7 +69,7 @@ object AugeAdaptiveEngine {
         val currentTau = current[muscleKey] ?: defaultRecoveryHours(muscleKey)
 
         val samples = (totalObservations + 1).coerceAtLeast(1).toDouble()
-        val alpha = max(0.15, min(0.5, 1.0 / samples))
+        val alpha = max(0.05, min(0.5, 1.5 / samples))
         val newTau = currentTau * (1.0 - alpha) + impliedTau * alpha
 
         return current + (muscleKey to clamp(newTau, 12.0, 144.0))
@@ -84,7 +91,7 @@ object AugeAdaptiveEngine {
         totalObservations: Int,
     ): Pair<Double, Double> {
         val samples = (totalObservations + 1).coerceAtLeast(1).toDouble()
-        val alpha = max(0.15, min(0.5, 1.0 / samples))
+        val alpha = max(0.05, min(0.5, 1.5 / samples))
 
         val newCns = if (systemAdjustment != null) {
             currentCnsDelta * (1.0 - alpha) + systemAdjustment.toDouble() * alpha
@@ -101,6 +108,42 @@ object AugeAdaptiveEngine {
         return Pair(
             clamp(newCns, -50.0, 50.0),
             clamp(newSpinal, -50.0, 50.0),
+        )
+    }
+
+    /**
+     * Learns the exact recovery Tau (hours) for systemic batteries based on the implied 
+     * recovery time from a user's calibration, exactly how it's done for muscles.
+     */
+    fun updateSystemRecoveryHours(
+        currentCnsTau: Double?,
+        currentSpinalTau: Double?,
+        cnsObservation: RecoveryLearningObservation?,
+        spinalObservation: RecoveryLearningObservation?,
+        totalObservations: Int,
+    ): Pair<Double?, Double?> {
+        val samples = (totalObservations + 1).coerceAtLeast(1).toDouble()
+        val alpha = max(0.05, min(0.5, 1.5 / samples))
+
+        val newCnsTau = if (cnsObservation != null) {
+            val impliedCns = deriveImpliedRecoveryTime(cnsObservation)
+            if (impliedCns != null) {
+                val base = currentCnsTau ?: 36.0
+                base * (1.0 - alpha) + impliedCns * alpha
+            } else currentCnsTau
+        } else currentCnsTau
+
+        val newSpinalTau = if (spinalObservation != null) {
+            val impliedSpinal = deriveImpliedRecoveryTime(spinalObservation)
+            if (impliedSpinal != null) {
+                val base = currentSpinalTau ?: 52.0
+                base * (1.0 - alpha) + impliedSpinal * alpha
+            } else currentSpinalTau
+        } else currentSpinalTau
+
+        return Pair(
+            newCnsTau?.let { clamp(it, 12.0, 144.0) },
+            newSpinalTau?.let { clamp(it, 18.0, 144.0) },
         )
     }
 
@@ -124,7 +167,7 @@ object AugeAdaptiveEngine {
         totalObservations: Int,
     ): Triple<Double, Double, Map<String, Double>> {
         val samples = (totalObservations + 1).coerceAtLeast(1).toDouble()
-        val alpha = max(0.15, min(0.5, 1.0 / samples))
+        val alpha = max(0.05, min(0.5, 1.5 / samples))
 
         val newCnsMult = if (manualNeural != null && predictedNeural != null && preWorkoutNeural > predictedNeural) {
             val predictedDrain = (preWorkoutNeural - predictedNeural).toDouble().coerceAtLeast(1.0)
@@ -177,7 +220,7 @@ object AugeAdaptiveEngine {
         totalObservations: Int,
     ): Map<String, Double> {
         val samples = (totalObservations + 1).coerceAtLeast(1).toDouble()
-        val alpha = max(0.15, min(0.5, 1.0 / samples))
+        val alpha = max(0.05, min(0.5, 1.5 / samples))
         val result = current.toMutableMap()
 
         for ((muscle, manualValue) in manualMuscleBatteries) {
