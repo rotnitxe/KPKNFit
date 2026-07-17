@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0A139C070D5E258AE2740EDC /* NeonOrbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F060092D8D7826A3C7440A /* NeonOrbView.swift */; };
-		7D92949C4FE26F012E6136E4 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE79C76564D5FA06BF0E831C /* AppColors.swift */; };
+		3725D3C4EFB23F8A36CE64F3 /* LiquidGlassModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BD9A9EB0D3ED83850D7A66 /* LiquidGlassModifier.swift */; };
+		4B978B66B4ADD992C01B00DF /* MyRingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4AA5A1382806BEC3F984CA9 /* MyRingsView.swift */; };
 		828FDC813009B31E00857720 /* KPKNFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC803009B31E00857720 /* KPKNFitApp.swift */; };
 		828FDC833009B31E00857720 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC823009B31E00857720 /* ContentView.swift */; };
 		828FDC853009B32000857720 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 828FDC843009B32000857720 /* Assets.xcassets */; };
@@ -20,8 +20,8 @@
 		828FDCAF3009B3E800857720 /* Data in Resources */ = {isa = PBXBuildFile; fileRef = 828FDCAB3009B3E700857720 /* Data */; };
 		828FDCB03009B3E800857720 /* Services in Resources */ = {isa = PBXBuildFile; fileRef = 828FDCAC3009B3E700857720 /* Services */; };
 		828FDCB13009B3E800857720 /* Domain in Resources */ = {isa = PBXBuildFile; fileRef = 828FDCAD3009B3E800857720 /* Domain */; };
-		CF0305DD67AD87B15FD196C1 /* MyRingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8EC578102691BD679E425F0 /* MyRingsView.swift */; };
-		DA58E48C7DD07520FD03E108 /* LiquidGlassModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8C34531173C8E4CD55EE6C /* LiquidGlassModifier.swift */; };
+		86962A581C849EBBF1135BA5 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0D547043280054A4459326 /* AppColors.swift */; };
+		C99297441F973306E090B24C /* NeonOrbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C5EDC9442F6249E4DD4425A /* NeonOrbView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,6 +42,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7C5EDC9442F6249E4DD4425A /* NeonOrbView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/NeonOrbView.swift; sourceTree = SOURCE_ROOT; };
 		828FDC7D3009B31E00857720 /* KPKNFit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KPKNFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		828FDC803009B31E00857720 /* KPKNFitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KPKNFitApp.swift; sourceTree = "<group>"; };
 		828FDC823009B31E00857720 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -56,10 +57,9 @@
 		828FDCAB3009B3E700857720 /* Data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Data; sourceTree = "<group>"; };
 		828FDCAC3009B3E700857720 /* Services */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Services; sourceTree = "<group>"; };
 		828FDCAD3009B3E800857720 /* Domain */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Domain; sourceTree = "<group>"; };
-		96F060092D8D7826A3C7440A /* NeonOrbView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NeonOrbView.swift; sourceTree = "<group>"; };
-		DE79C76564D5FA06BF0E831C /* AppColors.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
-		EC8C34531173C8E4CD55EE6C /* LiquidGlassModifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiquidGlassModifier.swift; sourceTree = "<group>"; };
-		F8EC578102691BD679E425F0 /* MyRingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MyRingsView.swift; sourceTree = "<group>"; };
+		A4AA5A1382806BEC3F984CA9 /* MyRingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/MyRingsView.swift; sourceTree = SOURCE_ROOT; };
+		B6BD9A9EB0D3ED83850D7A66 /* LiquidGlassModifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/LiquidGlassModifier.swift; sourceTree = SOURCE_ROOT; };
+		EF0D547043280054A4459326 /* AppColors.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/AppColors.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -160,7 +160,7 @@
 		E5143CA327FBF3F9244C2351 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				F8EC578102691BD679E425F0 /* MyRingsView.swift */,
+				A4AA5A1382806BEC3F984CA9 /* MyRingsView.swift */,
 			);
 			name = Components;
 			sourceTree = "<group>";
@@ -168,9 +168,9 @@
 		E95F67D475FBDDD2D9C4014E /* Theme */ = {
 			isa = PBXGroup;
 			children = (
-				DE79C76564D5FA06BF0E831C /* AppColors.swift */,
-				EC8C34531173C8E4CD55EE6C /* LiquidGlassModifier.swift */,
-				96F060092D8D7826A3C7440A /* NeonOrbView.swift */,
+				EF0D547043280054A4459326 /* AppColors.swift */,
+				B6BD9A9EB0D3ED83850D7A66 /* LiquidGlassModifier.swift */,
+				7C5EDC9442F6249E4DD4425A /* NeonOrbView.swift */,
 			);
 			name = Theme;
 			sourceTree = "<group>";
@@ -311,10 +311,10 @@
 			files = (
 				828FDC833009B31E00857720 /* ContentView.swift in Sources */,
 				828FDC813009B31E00857720 /* KPKNFitApp.swift in Sources */,
-				7D92949C4FE26F012E6136E4 /* AppColors.swift in Sources */,
-				DA58E48C7DD07520FD03E108 /* LiquidGlassModifier.swift in Sources */,
-				0A139C070D5E258AE2740EDC /* NeonOrbView.swift in Sources */,
-				CF0305DD67AD87B15FD196C1 /* MyRingsView.swift in Sources */,
+				86962A581C849EBBF1135BA5 /* AppColors.swift in Sources */,
+				3725D3C4EFB23F8A36CE64F3 /* LiquidGlassModifier.swift in Sources */,
+				C99297441F973306E090B24C /* NeonOrbView.swift in Sources */,
+				4B978B66B4ADD992C01B00DF /* MyRingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
