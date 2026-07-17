@@ -19,8 +19,8 @@ def add_file_to_project(project, target, file_name, group_path)
   
   old_ref = current_group.files.find { |f| f.display_name == file_name || f.path == file_name || f.name == file_name }
   if old_ref
-    target.source_build_phase.remove_file_reference(old_ref)
-    old_ref.remove_from_project
+    # Already exists
+    return
   end
   
   file_ref = current_group.new_file(file_name)
@@ -28,14 +28,18 @@ def add_file_to_project(project, target, file_name, group_path)
   file_ref.source_tree = 'SOURCE_ROOT'
   
   target.source_build_phase.add_file_reference(file_ref)
-  puts "Added #{file_name} correctly with absolute project path"
+  puts "Added #{file_name} to #{group_path} successfully"
 end
 
-add_file_to_project(project, target, 'AppColors.swift', 'KPKNFit/Presentation/Theme')
-add_file_to_project(project, target, 'LiquidGlassModifier.swift', 'KPKNFit/Presentation/Theme')
-add_file_to_project(project, target, 'NeonOrbView.swift', 'KPKNFit/Presentation/Theme')
-add_file_to_project(project, target, 'MyRingsView.swift', 'KPKNFit/Presentation/Components')
-add_file_to_project(project, target, 'DashboardView.swift', 'KPKNFit/Presentation/Screens')
+# Scan recursively for all Swift files in KPKNFit app directory
+Dir.glob('ios-native/KPKNFit/KPKNFit/**/*.swift') do |path|
+  relative_path = path.sub('ios-native/KPKNFit/', '')
+  parts = relative_path.split('/')
+  file_name = parts.pop
+  group_path = parts.join('/')
+  
+  add_file_to_project(project, target, file_name, group_path)
+end
 
 project.save
-puts "Project saved successfully!"
+puts "Project auto-sync complete!"
