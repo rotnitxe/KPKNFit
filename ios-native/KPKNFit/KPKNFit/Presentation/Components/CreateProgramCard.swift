@@ -23,14 +23,9 @@ public struct CreateProgramCard: View {
                         .clear
                     ])
                     
-                    context.draw(
-                        Image(size: size) { gc in
-                            gc.fill(
-                                Path(ellipseIn: CGRect(x: centerX - maxRadius, y: centerY - maxRadius, width: maxRadius * 2, height: maxRadius * 2)),
-                                with: .radialGradient(gradient, center: CGPoint(x: centerX, y: centerY), startRadius: 0, endRadius: maxRadius)
-                            )
-                        },
-                        in: CGRect(origin: .zero, size: size)
+                    context.fill(
+                        Path(ellipseIn: CGRect(x: centerX - maxRadius, y: centerY - maxRadius, width: maxRadius * 2, height: maxRadius * 2)),
+                        with: .radialGradient(gradient, center: CGPoint(x: centerX, y: centerY), startRadius: 0, endRadius: maxRadius)
                     )
                 }
                 .frame(height: 220)
@@ -58,17 +53,6 @@ public struct CreateProgramCard: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
-    }
-}
-
-// Simple Helper for Drawing inside Canvas
-extension Image {
-    init(size: CGSize, renderer: (inout GraphicsContext) -> Void) {
-        let image = UIGraphicsImageRenderer(size: size).image { context in
-            var gc = GraphicsContext(context.cgContext)
-            renderer(&gc)
-        }
-        self.init(uiImage: image)
     }
 }
 
