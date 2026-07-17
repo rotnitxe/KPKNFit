@@ -1,4 +1,0 @@
-interface:
-  display_name: "KPKN Parity Auditor"
-  short_description: "Audit real PWA-to-Kotlin parity, not claims."
-  default_prompt: "Use $kpkn-parity-auditor to audit, verify, or document parity between the KPKN PWA and android-native Kotlin app, focusing on real behavior, native adaptations, and remaining migration gaps."

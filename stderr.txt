@@ -1,1 +1,0 @@
-fatal: not a git repository: C:/Users/valen/Downloads/kpkn-fit-(beta-test)/.git/worktrees/focused-clarke

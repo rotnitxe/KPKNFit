@@ -1,7 +1,0 @@
-interface:
-  display_name: "KPKN AUGE Engine"
-  short_description: "Protect and migrate KPKN AUGE logic safely."
-  default_prompt: "Use $kpkn-auge-engine to migrate, audit, or validate KPKN AUGE calculations from the PWA into android-native Kotlin with strict behavior awareness."
-
-policy:
-  allow_implicit_invocation: true

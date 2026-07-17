@@ -1,9 +1,0 @@
-{
-  "requestFramePermissions": [
-    "camera",
-    "microphone",
-    "geolocation"
-  ],
-  "name": "KPKN Fit (Beta Test)",
-  "description": "Smart AI Training Assistant"
-}

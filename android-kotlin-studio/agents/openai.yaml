@@ -1,7 +1,0 @@
-interface:
-  display_name: "Android Kotlin Studio"
-  short_description: "Production-safe Android Kotlin changes and debugging."
-  default_prompt: "Use $android-kotlin-studio to make a safe Android repo change with idiomatic Kotlin, minimal Gradle risk, and focused validation."
-
-policy:
-  allow_implicit_invocation: true
