@@ -206,7 +206,25 @@ The home dashboard centers around **three concentric recovery rings** representi
 
 ---
 
-## 📋 6. Key Parity Guidelines for iOS (Swift)
+## 📋 6. Auxiliary Systems (Telemetry, Routing, Notifications)
+
+### 6.1 Telemetry & Analytics (`com.example.kpkn.telemetry`)
+*   **`KpknTelemetry.kt` / `TelemetryEvents.kt`:** A custom analytics wrapper that records user flows (e.g., workout completion rates, feature usage).
+
+### 6.2 Deep Linking (`com.example.kpkn.navigation`)
+*   **`DeepLinkRouter.kt` / `KpknDeepLinks.kt`:** URL scheme handler that intercepts incoming deep links and pushes the correct route to the Jetpack Compose `NavHost` (useful for push notifications or external widgets).
+
+### 6.3 Local Alarm & Notification Managers
+*   **`NutritionNotificationManager.kt` / `WorkoutReminderManager.kt`:** Uses Android's `AlarmManager` to schedule local notifications reminding the user of meal times or scheduled workout days.
+*   **`WorkoutReminderBootReceiver.kt`:** A `BroadcastReceiver` that re-registers all alarms if the Android device is rebooted.
+
+### 6.4 Audio & TTS Subsystem (`com.example.kpkn.services.workout`)
+*   **`WorkoutTtsManager.kt`:** Uses Android's `TextToSpeech` engine to narrate rest periods, targets ("Log 80 kilos for 8 reps"), and encouragements.
+*   **`SystemAudioHelper.kt`:** Manages Audio Focus, ensuring that background music (e.g., Spotify) is "ducked" (volume lowered) when the TTS speaks or when the rest timer alarm rings.
+
+---
+
+## 🍏 7. Key Parity Guidelines for iOS (Swift)
 
 For the Swift implementation, use the following technology mapping:
 
