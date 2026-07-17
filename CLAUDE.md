@@ -47,3 +47,4 @@ All Android build and test commands must be run from the `android-native/` subdi
 *   See [REPO_STRUCTURE.md](docs/REPO_STRUCTURE.md) for directory organization.
 *   See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for general layers and logic overview.
 *   See [ANDROID_ARCHITECTURE_MAP.md](docs/ANDROID_ARCHITECTURE_MAP.md) for a comprehensive technical mapping of all systems and databases for parity reference.
+*   See [ANDROID_UI_SCREENS_MAP.md](docs/ANDROID_UI_SCREENS_MAP.md) for detailed mappings of Jetpack Compose screens, ViewModels, and UI layouts.
