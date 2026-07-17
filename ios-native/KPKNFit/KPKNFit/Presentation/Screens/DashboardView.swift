@@ -57,6 +57,16 @@ struct DashboardView: View {
                     .padding(.horizontal)
                     .padding(.top, 16)
                     
+                    // The "My Rings" System
+                    MyRingsView(
+                        muscularProgress: 0.88,
+                        cnsProgress: 0.82,
+                        spinalProgress: 0.65
+                    )
+                    .frame(width: 260, height: 260)
+                    .liquidGlass(cornerRadius: 130, borderOpacity: 0.4)
+                    .padding(.vertical, 8)
+                    
                     // Neural Battery Card (Liquid Glass)
                     VStack(spacing: 16) {
                         HStack {
