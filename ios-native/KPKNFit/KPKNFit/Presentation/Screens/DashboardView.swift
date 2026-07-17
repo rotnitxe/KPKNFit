@@ -6,206 +6,172 @@ struct DashboardView: View {
     
     // Sample muscle status
     let muscles = [
-        MuscleStatus(name: "Pectorales", score: 90, icon: "bolt.fill", color: .green),
-        MuscleStatus(name: "Cuádriceps", score: 45, icon: "exclamationmark.triangle.fill", color: .orange),
-        MuscleStatus(name: "Bíceps", score: 85, icon: "bolt.fill", color: .green),
-        MuscleStatus(name: "Lumbar", score: 20, icon: "xmark.octagon.fill", color: .red)
+        MuscleStatus(name: "Pectorales", score: 90, icon: "bolt.fill", color: AppColors.neonCyan),
+        MuscleStatus(name: "Cuádriceps", score: 45, icon: "exclamationmark.triangle.fill", color: AppColors.neonYellow),
+        MuscleStatus(name: "Bíceps", score: 85, icon: "bolt.fill", color: AppColors.neonCyan),
+        MuscleStatus(name: "Lumbar", score: 20, icon: "xmark.octagon.fill", color: AppColors.neonMagenta)
     ]
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                // Top Header
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("KPKN FIT")
-                            .font(.system(.title3, design: .monospaced))
-                            .fontWeight(.black)
-                            .tracking(2)
-                            .foregroundColor(.primary)
-                        
-                        Text("ATHLETE STATUS REPORT")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.secondary)
-                    }
-                    Spacer()
-                    
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .frame(width: 36, height: 36)
-                        .foregroundColor(.accentColor)
-                }
-                .padding(.horizontal)
-                .padding(.top, 16)
+        ZStack {
+            // 1. Absolute Black Base
+            AppColors.bgDeepBlack
+                .ignoresSafeArea()
+            
+            // 2. Liquid Glass Neon Orbs
+            GeometryReader { geo in
+                NeonOrbView(color: AppColors.neonMagenta)
+                    .frame(width: 300, height: 300)
+                    .position(x: geo.size.width * 0.8, y: geo.size.height * 0.2)
                 
-                // Neural Battery Card (Glassmorphism look)
-                VStack(spacing: 16) {
+                NeonOrbView(color: AppColors.neonCyan)
+                    .frame(width: 250, height: 250)
+                    .position(x: geo.size.width * 0.1, y: geo.size.height * 0.6)
+            }
+            .ignoresSafeArea()
+            
+            // 3. Foreground Content
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Top Header
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("SNC Neural Battery")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                            Text("Systemic fatigue levels")
+                            Text("KPKN FIT")
+                                .font(.system(.title3, design: .monospaced))
+                                .fontWeight(.black)
+                                .tracking(2)
+                                .foregroundColor(AppColors.textPrimary)
+                            
+                            Text("ATHLETE STATUS REPORT")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .fontWeight(.semibold)
+                                .foregroundColor(AppColors.textSecondary)
                         }
                         Spacer()
-                        Text("\(Int(neuralBattery))%")
-                            .font(.system(.title, design: .rounded))
-                            .fontWeight(.black)
-                            .foregroundColor(batteryColor(neuralBattery))
-                    }
-                    
-                    // Battery Bar
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule()
-                                .fill(Color(UIColor.secondarySystemFill))
-                                .frame(height: 8)
-                            Capsule()
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [batteryColor(neuralBattery), batteryColor(neuralBattery).opacity(0.6)]),
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .frame(width: geo.size.width * CGFloat(neuralBattery / 100.0), height: 8)
-                        }
-                    }
-                    .frame(height: 8)
-                    
-                    HStack {
-                        Label("Optimal Readiness", systemImage: "checkmark.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(.green)
-                        Spacer()
-                        Text("TTC: 4h 30m")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .padding()
-                .background(Color(UIColor.secondarySystemBackground))
-                .cornerRadius(16)
-                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-                .padding(.horizontal)
-                
-                // Muscle Recovery Grid
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("MUSCULAR RECOVERY STATUS")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal)
-                    
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                        ForEach(muscles) { muscle in
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Image(systemName: muscle.icon)
-                                        .foregroundColor(muscle.color)
-                                    Spacer()
-                                    Text("\(muscle.score)%")
-                                        .font(.system(.subheadline, design: .rounded))
-                                        .fontWeight(.bold)
-                                        .foregroundColor(muscle.color)
-                                }
-                                
-                                Text(muscle.name)
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                
-                                Text(muscle.score >= 80 ? "Fresh" : muscle.score >= 40 ? "Recovering" : "Exhausted")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
-                            .background(Color(UIColor.secondarySystemBackground))
-                            .cornerRadius(12)
-                        }
+                        
+                        Image(systemName: "person.crop.circle.fill")
+                            .resizable()
+                            .frame(width: 36, height: 36)
+                            .foregroundColor(AppColors.neonYellow)
                     }
                     .padding(.horizontal)
-                }
-                
-                // Nutrition Macros Card
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("NUTRITION MONITOR")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(.secondary)
+                    .padding(.top, 16)
                     
-                    HStack(spacing: 20) {
-                        MacroRing(name: "Proteína", current: 120, target: 160, color: .blue)
-                        MacroRing(name: "Carbos", current: 180, target: 240, color: .orange)
-                        MacroRing(name: "Grasas", current: 55, target: 70, color: .yellow)
+                    // Neural Battery Card (Liquid Glass)
+                    VStack(spacing: 16) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("SNC Neural Battery")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(AppColors.textPrimary)
+                                Text("Systemic fatigue levels")
+                                    .font(.caption)
+                                    .foregroundColor(AppColors.textSecondary)
+                            }
+                            Spacer()
+                            Text("\(Int(neuralBattery))%")
+                                .font(.system(.title, design: .rounded))
+                                .fontWeight(.black)
+                                .foregroundColor(AppColors.neonCyan)
+                        }
+                        
+                        // Battery Bar
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule()
+                                    .fill(Color.white.opacity(0.1))
+                                    .frame(height: 8)
+                                Capsule()
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [AppColors.neonCyan, AppColors.neonCyan.opacity(0.6)]),
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .frame(width: geo.size.width * CGFloat(neuralBattery / 100.0), height: 8)
+                            }
+                        }
+                        .frame(height: 8)
+                        
+                        HStack {
+                            Label("Optimal Readiness", systemImage: "checkmark.circle.fill")
+                                .font(.caption2)
+                                .foregroundColor(AppColors.neonCyan)
+                            Spacer()
+                            Text("TTC: 4h 30m")
+                                .font(.caption2)
+                                .foregroundColor(AppColors.textSecondary)
+                        }
                     }
-                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .liquidGlass(cornerRadius: 24, borderOpacity: 0.3)
+                    .padding(.horizontal)
+                    
+                    // Muscle Recovery Grid
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("MUSCULAR RECOVERY STATUS")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(AppColors.textSecondary)
+                            .padding(.horizontal)
+                        
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                            ForEach(muscles, id: \.name) { muscle in
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack {
+                                        Image(systemName: muscle.icon)
+                                            .foregroundColor(muscle.color)
+                                        Spacer()
+                                        Text("\(muscle.score)%")
+                                            .font(.subheadline)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(AppColors.textPrimary)
+                                    }
+                                    
+                                    Text(muscle.name)
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(AppColors.textSecondary)
+                                }
+                                .padding(16)
+                                .liquidGlass(cornerRadius: 16, borderOpacity: 0.2)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    
+                    // Action Button
+                    Button(action: {
+                        // Action
+                    }) {
+                        HStack {
+                            Text("START TODAY's SESSION")
+                                .fontWeight(.bold)
+                            Image(systemName: "arrow.right")
+                        }
+                        .foregroundColor(.black)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(AppColors.neonYellow)
+                        .cornerRadius(16)
+                    }
+                    .padding()
+                    
+                    Spacer(minLength: 40)
                 }
-                .padding()
-                .background(Color(UIColor.secondarySystemBackground))
-                .cornerRadius(16)
-                .padding(.horizontal)
-                
             }
-            .padding(.bottom, 32)
         }
-        .background(Color(UIColor.systemBackground).ignoresSafeArea())
-    }
-    
-    private func batteryColor(_ score: Double) -> Color {
-        if score >= 80 { return .green }
-        if score >= 50 { return .orange }
-        return .red
     }
 }
 
-struct MuscleStatus: Identifiable {
-    let id = UUID()
+// Data Model
+struct MuscleStatus {
     let name: String
     let score: Int
     let icon: String
     let color: Color
-}
-
-struct MacroRing: View {
-    let name: String
-    let current: Double
-    let target: Double
-    let color: Color
-    
-    var progress: Double {
-        return min(current / target, 1.0)
-    }
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            ZStack {
-                Circle()
-                    .stroke(color.opacity(0.15), lineWidth: 6)
-                    .frame(width: 60, height: 60)
-                
-                Circle()
-                    .trim(from: 0.0, to: CGFloat(progress))
-                    .stroke(color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                    .frame(width: 60, height: 60)
-                    .rotationEffect(Angle(degrees: -90))
-                
-                Text("\(Int(progress * 100))%")
-                    .font(.caption)
-                    .fontWeight(.bold)
-            }
-            
-            Text(name)
-                .font(.caption2)
-                .fontWeight(.bold)
-            
-            Text("\(Int(current))g / \(Int(target))g")
-                .font(.system(size: 8, weight: .semibold, design: .monospaced))
-                .foregroundColor(.secondary)
-        }
-    }
 }
 
 #Preview {
