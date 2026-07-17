@@ -10,6 +10,8 @@
 		03527A43481970445C56D60C /* MacroCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F595C0F937B0C064F8A6B24 /* MacroCalculator.swift */; };
 		0B32A090B26C6B55C94E1DDC /* AugeRecoveryEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 864074E1D165DC8B1692556A /* AugeRecoveryEngine.swift */; };
 		46A30284448598AAD109E49B /* LiquidGlassModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103A51A81B9573B3CEF8C16A /* LiquidGlassModifier.swift */; };
+		4877C8351C36F0ACDA6261DA /* KpknIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B054BB6B5785EF1164EFF73 /* KpknIcons.swift */; };
+		65A87291B72330BA9C161EF7 /* SharedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0EE0B09A4971E2834B8553 /* SharedComponents.swift */; };
 		68D6FB73A6685480C410BEAC /* HomeHeaderSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F480FC4204273D22AE629D5F /* HomeHeaderSection.swift */; };
 		828FDC813009B31E00857720 /* KPKNFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC803009B31E00857720 /* KPKNFitApp.swift */; };
 		828FDC833009B31E00857720 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC823009B31E00857720 /* ContentView.swift */; };
@@ -23,6 +25,7 @@
 		828FDCB03009B3E800857720 /* Services in Resources */ = {isa = PBXBuildFile; fileRef = 828FDCAC3009B3E700857720 /* Services */; };
 		828FDCB13009B3E800857720 /* Domain in Resources */ = {isa = PBXBuildFile; fileRef = 828FDCAD3009B3E800857720 /* Domain */; };
 		8D542241FFDABB73B8608863 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC06BB6B1D2BD2008A3AE818 /* DashboardView.swift */; };
+		9CED78A368637452E67F05BB /* HomeCornersSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3FECDA477E5B579EF77C59 /* HomeCornersSection.swift */; };
 		AE5A1411986EBAAEC1ACE501 /* MyRingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C8ACA6C21DD3683786D412A /* MyRingsView.swift */; };
 		B832FD7CEEFBAE1FCB5B11BB /* NeonOrbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2262A05CAF919C642F34E57 /* NeonOrbView.swift */; };
 		C86E9FAED6D6FBD03D73D851 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 510D6B9D4F12D376D68E2948 /* AppColors.swift */; };
@@ -47,10 +50,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0A0EE0B09A4971E2834B8553 /* SharedComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/SharedComponents.swift; sourceTree = SOURCE_ROOT; };
 		0F595C0F937B0C064F8A6B24 /* MacroCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Domain/Nutrition/MacroCalculator.swift; sourceTree = SOURCE_ROOT; };
 		103A51A81B9573B3CEF8C16A /* LiquidGlassModifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/LiquidGlassModifier.swift; sourceTree = SOURCE_ROOT; };
+		3B054BB6B5785EF1164EFF73 /* KpknIcons.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/KpknIcons.swift; sourceTree = SOURCE_ROOT; };
 		4C8ACA6C21DD3683786D412A /* MyRingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/MyRingsView.swift; sourceTree = SOURCE_ROOT; };
 		510D6B9D4F12D376D68E2948 /* AppColors.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/AppColors.swift; sourceTree = SOURCE_ROOT; };
+		5E3FECDA477E5B579EF77C59 /* HomeCornersSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/HomeCornersSection.swift; sourceTree = SOURCE_ROOT; };
 		681F0C48B86EA1770DE7D5A4 /* NutritionModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Models/NutritionModels.swift; sourceTree = SOURCE_ROOT; };
 		828FDC7D3009B31E00857720 /* KPKNFit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KPKNFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		828FDC803009B31E00857720 /* KPKNFitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KPKNFitApp.swift; sourceTree = "<group>"; };
@@ -211,6 +217,9 @@
 			children = (
 				4C8ACA6C21DD3683786D412A /* MyRingsView.swift */,
 				F480FC4204273D22AE629D5F /* HomeHeaderSection.swift */,
+				3B054BB6B5785EF1164EFF73 /* KpknIcons.swift */,
+				5E3FECDA477E5B579EF77C59 /* HomeCornersSection.swift */,
+				0A0EE0B09A4971E2834B8553 /* SharedComponents.swift */,
 			);
 			name = Components;
 			sourceTree = "<group>";
@@ -389,6 +398,9 @@
 				0B32A090B26C6B55C94E1DDC /* AugeRecoveryEngine.swift in Sources */,
 				03527A43481970445C56D60C /* MacroCalculator.swift in Sources */,
 				68D6FB73A6685480C410BEAC /* HomeHeaderSection.swift in Sources */,
+				4877C8351C36F0ACDA6261DA /* KpknIcons.swift in Sources */,
+				9CED78A368637452E67F05BB /* HomeCornersSection.swift in Sources */,
+				65A87291B72330BA9C161EF7 /* SharedComponents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
