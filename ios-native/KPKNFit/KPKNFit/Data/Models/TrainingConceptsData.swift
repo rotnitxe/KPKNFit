@@ -127,7 +127,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
             "Contar series de calentamiento como volumen efectivo",
             "Agregar volumen sin mejorar la calidad de cada serie",
             "No ajustar el volumen cuando cambian otros estresores (sueño, dieta, estrés)",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -153,7 +153,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
             "Confundir 'entrenar pesado' con 'entrenar intenso' — no son lo mismo",
             "Entrenar siempre al fallo creyendo que más intensidad siempre es mejor",
             "Ignorar la intensidad del esfuerzo y contar solo el peso en la barra",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -178,7 +178,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Entrenar un músculo solo 1x/semana con volumen excesivo en esa sesión",
             "Aumentar frecuencia sin reducir volumen por sesión (acumular fatiga)",
-        ],
+        ]
     ),
 
     // ═══════════════════════════════════════════════════════════════════
@@ -208,7 +208,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
             "Principiantes que paran a RIR 5 creyendo estar a RIR 1",
             "Usar el mismo RIR para todos los ejercicios sin considerar el riesgo",
             "No ajustar el peso entre series cuando el RIR cambia significativamente",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -233,7 +233,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "No calibrar la escala con intentos reales al fallo",
             "Confundir dificultad cardiovascular con RPE muscular",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -259,7 +259,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
             "Ir al fallo en cada serie de cada ejercicio — genera fatiga excesiva",
             "Usar fallo en ejercicios de alto riesgo (sentadilla, peso muerto) rutinariamente",
             "No distinguir entre fallo técnico y fallo concéntrico",
-        ],
+        ]
     ),
 
     // ═══════════════════════════════════════════════════════════════════
@@ -289,7 +289,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
             "Ignorar señales de fatiga sistémica y seguir empujando",
             "Confundir fatiga sistémica con falta de motivación",
             "No programar deloads regulares",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -314,7 +314,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Buscar agujetas como indicador de efectividad del entrenamiento",
             "Cambiar ejercicios constantemente para 'sorprender al músculo' (más daño innecesario)",
-        ],
+        ]
     ),
 
     // ═══════════════════════════════════════════════════════════════════
@@ -343,7 +343,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Cargar más peso perdiendo Torque sobre el músculo objetivo (compensación con sinergistas o inercia).",
             "Creer que quemazón (lactato) significa alta tensión mecánica (son mecanismos distintos)."
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -368,7 +368,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Basar todo el entrenamiento en el pump ignorando la tensión mecánica",
             "Creer que más pump: más hipertrofia",
-        ],
+        ]
     ),
 
     // ═══════════════════════════════════════════════════════════════════
@@ -397,7 +397,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Cargar más peso a costa de reducir el rango de movimiento",
             "No diferenciar entre limitación de movilidad y ROM del ejercicio",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -422,7 +422,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Juzgar un ejercicio solo por el peso levantado ignorando el brazo de momento.",
             "Usar bandas elásticas que sobrecargan el final del movimiento cuando el músculo necesita estímulo en el estiramiento."
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -447,7 +447,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Dejar caer el peso en la fase excéntrica (perder tensión y estímulo)",
             "Abusar de excéntricas muy lentas que generan exceso de daño muscular",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -472,7 +472,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Mover la barra demasiado lento deliberadamente en ejercicios pesados",
             "Usar impulso excesivo que elimina la tensión del músculo objetivo",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -498,7 +498,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Contener la respiración durante isometrías largas (maniobra de Valsalva excesiva)",
             "Usar solo isometría sin contracciones dinámicas en un programa completo",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -525,7 +525,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
             "Hacer pliometría fatigado (riesgo de lesión y pérdida de calidad)",
             "Volumen excesivo de saltos sin base de fuerza previa",
             "Tiempos de contacto largos que eliminan el componente elástico",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -550,7 +550,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Acumular excesiva carga axial en una sesión sin descompresión",
             "Ignorar la carga axial como factor de fatiga en la programación",
-        ],
+        ]
     ),
 
     // ═══════════════════════════════════════════════════════════════════
@@ -579,7 +579,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Usar pesos libres sin dominar la técnica básica",
             "Evitar pesos libres por miedo, perdiendo sus beneficios únicos",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -604,7 +604,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Usar solo máquinas ignorando los beneficios de los pesos libres",
             "No ajustar correctamente la máquina a las proporciones corporales",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -629,7 +629,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Usar demasiado peso y compensar con impulso corporal",
             "No aprovechar la versatilidad de ángulos que ofrecen las poleas",
-        ],
+        ]
     ),
 
     // ═══════════════════════════════════════════════════════════════════
@@ -657,7 +657,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         ],
         commonMistakes: [
             "Confundir 'peso en la barra' con 'fuerza producida'. La técnica de powerlifting acorta brazos de momento externos para mover más kilos, minimizando el torque muscular demandado."
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -682,7 +682,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Entrenar potencia en estado de fatiga (pierde el propósito)",
             "No tener base de fuerza suficiente antes de trabajar potencia",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -707,7 +707,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Confundir flexibilidad (rango pasivo) con elasticidad (almacenamiento de energía)",
             "Pausar entre la excéntrica y la concéntrica, disipando la energía elástica",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -732,7 +732,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Confundir resistencia cardiovascular con resistencia muscular",
             "Entrenar solo resistencia y descuidar la fuerza máxima",
-        ],
+        ]
     ),
 
     // ═══════════════════════════════════════════════════════════════════
@@ -762,7 +762,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
             "Intentar progresar demasiado rápido (saltos de 5-10kg por semana)",
             "No registrar el entrenamiento, imposibilitando saber si hay progresión",
             "Cambiar de ejercicios constantemente, impidiendo medir progresión en ninguno",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -788,7 +788,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
             "Saltarse los deloads y acumular fatiga hasta lesionarse o estancarse",
             "Hacer deloads demasiado frecuentes que no permiten acumular estrés suficiente",
             "Entrenar duro durante el deload porque 'te sientes bien' (el propósito es recuperar)",
-        ],
+        ]
     ),
 
     TrainingConcept(
@@ -813,7 +813,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
         commonMistakes: [
             "Hacer demasiada variedad sin consistencia en los ejercicios principales",
             "Ignorar la especificidad y esperar transferencia total entre ejercicios distintos",
-        ],
+        ]
     ),
 ]
 

@@ -13,7 +13,7 @@ in_database = false
 list_depth = 0
 skip_next_line = false
 
-lines.each do |line|
+lines.each_with_index do |line, idx|
   stripped = line.strip
   
   if skip_next_line
@@ -61,12 +61,27 @@ lines.each do |line|
     
     # Replace closing parenthesis with brackets if we are in list_depth > 1
     if list_depth > 1
+      is_last_param = false
+      next_idx = idx + 1
+      while next_idx < lines.length
+        next_line_stripped = lines[next_idx].strip
+        if !next_line_stripped.empty?
+          if next_line_stripped == '),' || next_line_stripped == ')'
+            is_last_param = true
+          end
+          break
+        end
+        next_idx += 1
+      end
+      
       if line_translated.end_with?("),\n") || line_translated.end_with?("),\r\n")
-        line_translated.sub!(/\),\n$/, "],\n")
-        line_translated.sub!(/\),\r\n$/, "],\r\n")
+        replacement = is_last_param ? "]\n" : "],\n"
+        line_translated.sub!(/\),\n$/, replacement)
+        line_translated.sub!(/\),\r\n$/, replacement.gsub("\n", "\r\n"))
         list_depth -= 1
       elsif line_translated.strip == '),'
-        line_translated.gsub!('),', '],')
+        replacement = is_last_param ? ']' : '],'
+        line_translated.gsub!('),', replacement)
         list_depth -= 1
       elsif line_translated.strip == ')'
         line_translated.gsub!(')', ']')
@@ -203,4 +218,4 @@ public struct TrainingConcept: Identifiable {
 SWIFT
 
 File.write(swift_file, header + "\n" + output.join)
-puts "Successfully translated TrainingConceptsData.kt to Swift!"
+puts "Successfully translated TrainingConceptsData.kt to Swift with lookahead to remove trailing commas!"
