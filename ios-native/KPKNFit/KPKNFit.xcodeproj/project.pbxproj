@@ -8,16 +8,24 @@
 
 /* Begin PBXBuildFile section */
 		03527A43481970445C56D60C /* MacroCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F595C0F937B0C064F8A6B24 /* MacroCalculator.swift */; };
+		072C421BC1F3F6CA6A7D1D00 /* WorkoutViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FF5A1EC13D379ADFA5DF0C /* WorkoutViewModel.swift */; };
+		08CC5D4BE594AB21951003EB /* PostSessionSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91F4523610DAE51FD88202A3 /* PostSessionSheetView.swift */; };
 		0A1C553D358888723125FAA8 /* HomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 535228ADFD26881B2285CC7D /* HomeScreen.swift */; };
 		0B32A090B26C6B55C94E1DDC /* AugeRecoveryEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 864074E1D165DC8B1692556A /* AugeRecoveryEngine.swift */; };
+		0FB9FACC7C9C2B444DA3D0C7 /* ProgramRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB122BC16AF27415DB0D90D0 /* ProgramRepository.swift */; };
 		15BCBEDE5E1F0B463D40BFB9 /* CreateProgramCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66494A943B38F3D6684CCF06 /* CreateProgramCard.swift */; };
+		2B61EB39E76D51CF1EEE5001 /* ReadinessSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCAF0CE00630D2EB3A7C98D2 /* ReadinessSheetView.swift */; };
+		3FD6C4E48DD5E053837B0A69 /* AugeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E8E4DA8FC6E1EB71597E480 /* AugeViewModel.swift */; };
 		46A30284448598AAD109E49B /* LiquidGlassModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103A51A81B9573B3CEF8C16A /* LiquidGlassModifier.swift */; };
 		4877C8351C36F0ACDA6261DA /* KpknIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B054BB6B5785EF1164EFF73 /* KpknIcons.swift */; };
 		5890EE3340990008A12B16E4 /* HomeWikiLabSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47D5EB4EBCC54EA9ECFE7BA5 /* HomeWikiLabSection.swift */; };
+		64376C9995BB3F8D555C8D81 /* WorkoutModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E2128CCA6F01014D913EE26 /* WorkoutModels.swift */; };
 		65A87291B72330BA9C161EF7 /* SharedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0EE0B09A4971E2834B8553 /* SharedComponents.swift */; };
 		67CE829E333F0A83980971A0 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4509370CB68DFFD70ABD42A9 /* HomeViewModel.swift */; };
 		68D6FB73A6685480C410BEAC /* HomeHeaderSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F480FC4204273D22AE629D5F /* HomeHeaderSection.swift */; };
 		7A13BBF8E0386273E40BD42D /* HomeSessionSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E57387C4B69C4EEE59A9C21 /* HomeSessionSection.swift */; };
+		7B4C9B80073B6E273BAF5A2B /* SettingsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A94B1672EEB584D00A9EE12 /* SettingsModels.swift */; };
+		7D0DB70B87098634AFEC88E8 /* ProgramStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D56D89CDB78FC78560ED3E /* ProgramStore.swift */; };
 		828FDC813009B31E00857720 /* KPKNFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC803009B31E00857720 /* KPKNFitApp.swift */; };
 		828FDC833009B31E00857720 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC823009B31E00857720 /* ContentView.swift */; };
 		828FDC853009B32000857720 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 828FDC843009B32000857720 /* Assets.xcassets */; };
@@ -35,10 +43,15 @@
 		9CED78A368637452E67F05BB /* HomeCornersSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3FECDA477E5B579EF77C59 /* HomeCornersSection.swift */; };
 		A0DFB3EAF3757EAD8C0098D7 /* HomeProgramsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDF3F1645F2F1792CC97AA31 /* HomeProgramsSection.swift */; };
 		AE5A1411986EBAAEC1ACE501 /* MyRingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C8ACA6C21DD3683786D412A /* MyRingsView.swift */; };
+		B21AA65DE5CA1E7F94439BDE /* WorkoutViewModelTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 477BCD2FE7DA8B44FC0A39FB /* WorkoutViewModelTypes.swift */; };
+		B45184BEF35A1201D1F3A2AF /* ReadinessGateScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5CC2E9619153EA87FFD457 /* ReadinessGateScreen.swift */; };
 		B832FD7CEEFBAE1FCB5B11BB /* NeonOrbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2262A05CAF919C642F34E57 /* NeonOrbView.swift */; };
 		BA73017657F4EDE0D6A854EA /* HomeCardsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4622B4952979D90B8309AA60 /* HomeCardsSection.swift */; };
 		BD7A42C8EDC0B0E89F2A901C /* ProgramModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63C1801BD5F4F66E389CF0D6 /* ProgramModels.swift */; };
 		C86E9FAED6D6FBD03D73D851 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 510D6B9D4F12D376D68E2948 /* AppColors.swift */; };
+		E37C2C89186E440EEFF4978C /* WorkoutExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2104FAFCE286D75C2BD3C98C /* WorkoutExtensions.swift */; };
+		E48631043B3F36E2F94B85E3 /* AugeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A89FCE8BEB93A29410CF978 /* AugeModels.swift */; };
+		F81238C8D8BC4DE102384541 /* PostExerciseSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 083FB5B04924E48612A8C440 /* PostExerciseSheetView.swift */; };
 		F9410B932C6CBA81B437454F /* NutritionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 681F0C48B86EA1770DE7D5A4 /* NutritionModels.swift */; };
 /* End PBXBuildFile section */
 
@@ -60,13 +73,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		083FB5B04924E48612A8C440 /* PostExerciseSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/Auge/PostExerciseSheetView.swift; sourceTree = SOURCE_ROOT; };
 		0A0EE0B09A4971E2834B8553 /* SharedComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/SharedComponents.swift; sourceTree = SOURCE_ROOT; };
 		0F595C0F937B0C064F8A6B24 /* MacroCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Domain/Nutrition/MacroCalculator.swift; sourceTree = SOURCE_ROOT; };
 		103A51A81B9573B3CEF8C16A /* LiquidGlassModifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/LiquidGlassModifier.swift; sourceTree = SOURCE_ROOT; };
+		18D56D89CDB78FC78560ED3E /* ProgramStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/Auge/ProgramStore.swift; sourceTree = SOURCE_ROOT; };
+		1A89FCE8BEB93A29410CF978 /* AugeModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Models/AugeModels.swift; sourceTree = SOURCE_ROOT; };
+		2104FAFCE286D75C2BD3C98C /* WorkoutExtensions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/Workout/WorkoutExtensions.swift; sourceTree = SOURCE_ROOT; };
 		30E29568DD60617FE25A2095 /* SessionModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Models/SessionModels.swift; sourceTree = SOURCE_ROOT; };
 		3B054BB6B5785EF1164EFF73 /* KpknIcons.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/KpknIcons.swift; sourceTree = SOURCE_ROOT; };
 		4509370CB68DFFD70ABD42A9 /* HomeViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/HomeViewModel.swift; sourceTree = SOURCE_ROOT; };
 		4622B4952979D90B8309AA60 /* HomeCardsSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/HomeCardsSection.swift; sourceTree = SOURCE_ROOT; };
+		477BCD2FE7DA8B44FC0A39FB /* WorkoutViewModelTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/Workout/WorkoutViewModelTypes.swift; sourceTree = SOURCE_ROOT; };
 		47D5EB4EBCC54EA9ECFE7BA5 /* HomeWikiLabSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/HomeWikiLabSection.swift; sourceTree = SOURCE_ROOT; };
 		4C8ACA6C21DD3683786D412A /* MyRingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/MyRingsView.swift; sourceTree = SOURCE_ROOT; };
 		510D6B9D4F12D376D68E2948 /* AppColors.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/AppColors.swift; sourceTree = SOURCE_ROOT; };
@@ -75,6 +93,7 @@
 		63C1801BD5F4F66E389CF0D6 /* ProgramModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Models/ProgramModels.swift; sourceTree = SOURCE_ROOT; };
 		66494A943B38F3D6684CCF06 /* CreateProgramCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/CreateProgramCard.swift; sourceTree = SOURCE_ROOT; };
 		681F0C48B86EA1770DE7D5A4 /* NutritionModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Models/NutritionModels.swift; sourceTree = SOURCE_ROOT; };
+		6E8E4DA8FC6E1EB71597E480 /* AugeViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/Auge/AugeViewModel.swift; sourceTree = SOURCE_ROOT; };
 		7E57387C4B69C4EEE59A9C21 /* HomeSessionSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/HomeSessionSection.swift; sourceTree = SOURCE_ROOT; };
 		828FDC7D3009B31E00857720 /* KPKNFit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KPKNFit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		828FDC803009B31E00857720 /* KPKNFitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KPKNFitApp.swift; sourceTree = "<group>"; };
@@ -91,7 +110,14 @@
 		828FDCAC3009B3E700857720 /* Services */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Services; sourceTree = "<group>"; };
 		828FDCAD3009B3E800857720 /* Domain */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Domain; sourceTree = "<group>"; };
 		864074E1D165DC8B1692556A /* AugeRecoveryEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Domain/Auge/AugeRecoveryEngine.swift; sourceTree = SOURCE_ROOT; };
+		8A94B1672EEB584D00A9EE12 /* SettingsModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Models/SettingsModels.swift; sourceTree = SOURCE_ROOT; };
+		8E2128CCA6F01014D913EE26 /* WorkoutModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Models/WorkoutModels.swift; sourceTree = SOURCE_ROOT; };
+		91F4523610DAE51FD88202A3 /* PostSessionSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/Auge/PostSessionSheetView.swift; sourceTree = SOURCE_ROOT; };
 		92A9D215FF8943CD48831B3A /* TrainingConceptsData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Models/TrainingConceptsData.swift; sourceTree = SOURCE_ROOT; };
+		B3FF5A1EC13D379ADFA5DF0C /* WorkoutViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/Workout/WorkoutViewModel.swift; sourceTree = SOURCE_ROOT; };
+		BCAF0CE00630D2EB3A7C98D2 /* ReadinessSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/Auge/ReadinessSheetView.swift; sourceTree = SOURCE_ROOT; };
+		CA5CC2E9619153EA87FFD457 /* ReadinessGateScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/Auge/ReadinessGateScreen.swift; sourceTree = SOURCE_ROOT; };
+		CB122BC16AF27415DB0D90D0 /* ProgramRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Repository/ProgramRepository.swift; sourceTree = SOURCE_ROOT; };
 		CDF3F1645F2F1792CC97AA31 /* HomeProgramsSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/HomeProgramsSection.swift; sourceTree = SOURCE_ROOT; };
 		DC06BB6B1D2BD2008A3AE818 /* DashboardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/DashboardView.swift; sourceTree = SOURCE_ROOT; };
 		F2262A05CAF919C642F34E57 /* NeonOrbView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/NeonOrbView.swift; sourceTree = SOURCE_ROOT; };
@@ -123,6 +149,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0753589779BEDB155A0F33BE /* Repository */ = {
+			isa = PBXGroup;
+			children = (
+				CB122BC16AF27415DB0D90D0 /* ProgramRepository.swift */,
+			);
+			name = Repository;
+			path = Repository;
+			sourceTree = "<group>";
+		};
 		0D7B6053246027BFB5FE1308 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -130,6 +165,9 @@
 				92A9D215FF8943CD48831B3A /* TrainingConceptsData.swift */,
 				63C1801BD5F4F66E389CF0D6 /* ProgramModels.swift */,
 				30E29568DD60617FE25A2095 /* SessionModels.swift */,
+				1A89FCE8BEB93A29410CF978 /* AugeModels.swift */,
+				8E2128CCA6F01014D913EE26 /* WorkoutModels.swift */,
+				8A94B1672EEB584D00A9EE12 /* SettingsModels.swift */,
 			);
 			name = Models;
 			path = Models;
@@ -139,6 +177,7 @@
 			isa = PBXGroup;
 			children = (
 				0D7B6053246027BFB5FE1308 /* Models */,
+				0753589779BEDB155A0F33BE /* Repository */,
 			);
 			name = Data;
 			path = Data;
@@ -232,9 +271,36 @@
 				DC06BB6B1D2BD2008A3AE818 /* DashboardView.swift */,
 				4509370CB68DFFD70ABD42A9 /* HomeViewModel.swift */,
 				535228ADFD26881B2285CC7D /* HomeScreen.swift */,
+				9858DDBC1D550C203FC9DE59 /* Auge */,
+				ADBF7B6124CFF455D094347A /* Workout */,
 			);
 			name = Screens;
 			path = Screens;
+			sourceTree = "<group>";
+		};
+		9858DDBC1D550C203FC9DE59 /* Auge */ = {
+			isa = PBXGroup;
+			children = (
+				91F4523610DAE51FD88202A3 /* PostSessionSheetView.swift */,
+				083FB5B04924E48612A8C440 /* PostExerciseSheetView.swift */,
+				6E8E4DA8FC6E1EB71597E480 /* AugeViewModel.swift */,
+				CA5CC2E9619153EA87FFD457 /* ReadinessGateScreen.swift */,
+				BCAF0CE00630D2EB3A7C98D2 /* ReadinessSheetView.swift */,
+				18D56D89CDB78FC78560ED3E /* ProgramStore.swift */,
+			);
+			name = Auge;
+			path = Auge;
+			sourceTree = "<group>";
+		};
+		ADBF7B6124CFF455D094347A /* Workout */ = {
+			isa = PBXGroup;
+			children = (
+				477BCD2FE7DA8B44FC0A39FB /* WorkoutViewModelTypes.swift */,
+				B3FF5A1EC13D379ADFA5DF0C /* WorkoutViewModel.swift */,
+				2104FAFCE286D75C2BD3C98C /* WorkoutExtensions.swift */,
+			);
+			name = Workout;
+			path = Workout;
 			sourceTree = "<group>";
 		};
 		E5143CA327FBF3F9244C2351 /* Components */ = {
@@ -441,6 +507,19 @@
 				8878DD49D5359C1B736E6FDE /* SessionModels.swift in Sources */,
 				7A13BBF8E0386273E40BD42D /* HomeSessionSection.swift in Sources */,
 				0A1C553D358888723125FAA8 /* HomeScreen.swift in Sources */,
+				E48631043B3F36E2F94B85E3 /* AugeModels.swift in Sources */,
+				08CC5D4BE594AB21951003EB /* PostSessionSheetView.swift in Sources */,
+				F81238C8D8BC4DE102384541 /* PostExerciseSheetView.swift in Sources */,
+				3FD6C4E48DD5E053837B0A69 /* AugeViewModel.swift in Sources */,
+				B45184BEF35A1201D1F3A2AF /* ReadinessGateScreen.swift in Sources */,
+				2B61EB39E76D51CF1EEE5001 /* ReadinessSheetView.swift in Sources */,
+				7D0DB70B87098634AFEC88E8 /* ProgramStore.swift in Sources */,
+				64376C9995BB3F8D555C8D81 /* WorkoutModels.swift in Sources */,
+				B21AA65DE5CA1E7F94439BDE /* WorkoutViewModelTypes.swift in Sources */,
+				072C421BC1F3F6CA6A7D1D00 /* WorkoutViewModel.swift in Sources */,
+				0FB9FACC7C9C2B444DA3D0C7 /* ProgramRepository.swift in Sources */,
+				7B4C9B80073B6E273BAF5A2B /* SettingsModels.swift in Sources */,
+				E37C2C89186E440EEFF4978C /* WorkoutExtensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
