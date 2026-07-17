@@ -14,6 +14,7 @@
 		4877C8351C36F0ACDA6261DA /* KpknIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B054BB6B5785EF1164EFF73 /* KpknIcons.swift */; };
 		5890EE3340990008A12B16E4 /* HomeWikiLabSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47D5EB4EBCC54EA9ECFE7BA5 /* HomeWikiLabSection.swift */; };
 		65A87291B72330BA9C161EF7 /* SharedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0EE0B09A4971E2834B8553 /* SharedComponents.swift */; };
+		67CE829E333F0A83980971A0 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4509370CB68DFFD70ABD42A9 /* HomeViewModel.swift */; };
 		68D6FB73A6685480C410BEAC /* HomeHeaderSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F480FC4204273D22AE629D5F /* HomeHeaderSection.swift */; };
 		828FDC813009B31E00857720 /* KPKNFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC803009B31E00857720 /* KPKNFitApp.swift */; };
 		828FDC833009B31E00857720 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC823009B31E00857720 /* ContentView.swift */; };
@@ -32,6 +33,7 @@
 		A0DFB3EAF3757EAD8C0098D7 /* HomeProgramsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDF3F1645F2F1792CC97AA31 /* HomeProgramsSection.swift */; };
 		AE5A1411986EBAAEC1ACE501 /* MyRingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C8ACA6C21DD3683786D412A /* MyRingsView.swift */; };
 		B832FD7CEEFBAE1FCB5B11BB /* NeonOrbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2262A05CAF919C642F34E57 /* NeonOrbView.swift */; };
+		BA73017657F4EDE0D6A854EA /* HomeCardsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4622B4952979D90B8309AA60 /* HomeCardsSection.swift */; };
 		BD7A42C8EDC0B0E89F2A901C /* ProgramModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63C1801BD5F4F66E389CF0D6 /* ProgramModels.swift */; };
 		C86E9FAED6D6FBD03D73D851 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 510D6B9D4F12D376D68E2948 /* AppColors.swift */; };
 		F9410B932C6CBA81B437454F /* NutritionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 681F0C48B86EA1770DE7D5A4 /* NutritionModels.swift */; };
@@ -59,6 +61,8 @@
 		0F595C0F937B0C064F8A6B24 /* MacroCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Domain/Nutrition/MacroCalculator.swift; sourceTree = SOURCE_ROOT; };
 		103A51A81B9573B3CEF8C16A /* LiquidGlassModifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/LiquidGlassModifier.swift; sourceTree = SOURCE_ROOT; };
 		3B054BB6B5785EF1164EFF73 /* KpknIcons.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/KpknIcons.swift; sourceTree = SOURCE_ROOT; };
+		4509370CB68DFFD70ABD42A9 /* HomeViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/HomeViewModel.swift; sourceTree = SOURCE_ROOT; };
+		4622B4952979D90B8309AA60 /* HomeCardsSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/HomeCardsSection.swift; sourceTree = SOURCE_ROOT; };
 		47D5EB4EBCC54EA9ECFE7BA5 /* HomeWikiLabSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/HomeWikiLabSection.swift; sourceTree = SOURCE_ROOT; };
 		4C8ACA6C21DD3683786D412A /* MyRingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/MyRingsView.swift; sourceTree = SOURCE_ROOT; };
 		510D6B9D4F12D376D68E2948 /* AppColors.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/AppColors.swift; sourceTree = SOURCE_ROOT; };
@@ -219,6 +223,7 @@
 			isa = PBXGroup;
 			children = (
 				DC06BB6B1D2BD2008A3AE818 /* DashboardView.swift */,
+				4509370CB68DFFD70ABD42A9 /* HomeViewModel.swift */,
 			);
 			name = Screens;
 			path = Screens;
@@ -235,6 +240,7 @@
 				66494A943B38F3D6684CCF06 /* CreateProgramCard.swift */,
 				47D5EB4EBCC54EA9ECFE7BA5 /* HomeWikiLabSection.swift */,
 				CDF3F1645F2F1792CC97AA31 /* HomeProgramsSection.swift */,
+				4622B4952979D90B8309AA60 /* HomeCardsSection.swift */,
 			);
 			name = Components;
 			sourceTree = "<group>";
@@ -421,6 +427,8 @@
 				5890EE3340990008A12B16E4 /* HomeWikiLabSection.swift in Sources */,
 				BD7A42C8EDC0B0E89F2A901C /* ProgramModels.swift in Sources */,
 				A0DFB3EAF3757EAD8C0098D7 /* HomeProgramsSection.swift in Sources */,
+				67CE829E333F0A83980971A0 /* HomeViewModel.swift in Sources */,
+				BA73017657F4EDE0D6A854EA /* HomeCardsSection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
