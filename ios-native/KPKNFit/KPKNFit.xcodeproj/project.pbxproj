@@ -12,6 +12,7 @@
 		15BCBEDE5E1F0B463D40BFB9 /* CreateProgramCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66494A943B38F3D6684CCF06 /* CreateProgramCard.swift */; };
 		46A30284448598AAD109E49B /* LiquidGlassModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103A51A81B9573B3CEF8C16A /* LiquidGlassModifier.swift */; };
 		4877C8351C36F0ACDA6261DA /* KpknIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B054BB6B5785EF1164EFF73 /* KpknIcons.swift */; };
+		5890EE3340990008A12B16E4 /* HomeWikiLabSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47D5EB4EBCC54EA9ECFE7BA5 /* HomeWikiLabSection.swift */; };
 		65A87291B72330BA9C161EF7 /* SharedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A0EE0B09A4971E2834B8553 /* SharedComponents.swift */; };
 		68D6FB73A6685480C410BEAC /* HomeHeaderSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F480FC4204273D22AE629D5F /* HomeHeaderSection.swift */; };
 		828FDC813009B31E00857720 /* KPKNFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC803009B31E00857720 /* KPKNFitApp.swift */; };
@@ -25,6 +26,7 @@
 		828FDCAF3009B3E800857720 /* Data in Resources */ = {isa = PBXBuildFile; fileRef = 828FDCAB3009B3E700857720 /* Data */; };
 		828FDCB03009B3E800857720 /* Services in Resources */ = {isa = PBXBuildFile; fileRef = 828FDCAC3009B3E700857720 /* Services */; };
 		828FDCB13009B3E800857720 /* Domain in Resources */ = {isa = PBXBuildFile; fileRef = 828FDCAD3009B3E800857720 /* Domain */; };
+		8346D6BF0F00A6FE5610EAD7 /* TrainingConceptsData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92A9D215FF8943CD48831B3A /* TrainingConceptsData.swift */; };
 		8D542241FFDABB73B8608863 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC06BB6B1D2BD2008A3AE818 /* DashboardView.swift */; };
 		9CED78A368637452E67F05BB /* HomeCornersSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3FECDA477E5B579EF77C59 /* HomeCornersSection.swift */; };
 		AE5A1411986EBAAEC1ACE501 /* MyRingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C8ACA6C21DD3683786D412A /* MyRingsView.swift */; };
@@ -55,6 +57,7 @@
 		0F595C0F937B0C064F8A6B24 /* MacroCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Domain/Nutrition/MacroCalculator.swift; sourceTree = SOURCE_ROOT; };
 		103A51A81B9573B3CEF8C16A /* LiquidGlassModifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/LiquidGlassModifier.swift; sourceTree = SOURCE_ROOT; };
 		3B054BB6B5785EF1164EFF73 /* KpknIcons.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/KpknIcons.swift; sourceTree = SOURCE_ROOT; };
+		47D5EB4EBCC54EA9ECFE7BA5 /* HomeWikiLabSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/HomeWikiLabSection.swift; sourceTree = SOURCE_ROOT; };
 		4C8ACA6C21DD3683786D412A /* MyRingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/MyRingsView.swift; sourceTree = SOURCE_ROOT; };
 		510D6B9D4F12D376D68E2948 /* AppColors.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/AppColors.swift; sourceTree = SOURCE_ROOT; };
 		5E3FECDA477E5B579EF77C59 /* HomeCornersSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/HomeCornersSection.swift; sourceTree = SOURCE_ROOT; };
@@ -75,6 +78,7 @@
 		828FDCAC3009B3E700857720 /* Services */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Services; sourceTree = "<group>"; };
 		828FDCAD3009B3E800857720 /* Domain */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Domain; sourceTree = "<group>"; };
 		864074E1D165DC8B1692556A /* AugeRecoveryEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Domain/Auge/AugeRecoveryEngine.swift; sourceTree = SOURCE_ROOT; };
+		92A9D215FF8943CD48831B3A /* TrainingConceptsData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Models/TrainingConceptsData.swift; sourceTree = SOURCE_ROOT; };
 		DC06BB6B1D2BD2008A3AE818 /* DashboardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/DashboardView.swift; sourceTree = SOURCE_ROOT; };
 		F2262A05CAF919C642F34E57 /* NeonOrbView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Theme/NeonOrbView.swift; sourceTree = SOURCE_ROOT; };
 		F480FC4204273D22AE629D5F /* HomeHeaderSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/HomeHeaderSection.swift; sourceTree = SOURCE_ROOT; };
@@ -109,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				681F0C48B86EA1770DE7D5A4 /* NutritionModels.swift */,
+				92A9D215FF8943CD48831B3A /* TrainingConceptsData.swift */,
 			);
 			name = Models;
 			path = Models;
@@ -223,6 +228,7 @@
 				5E3FECDA477E5B579EF77C59 /* HomeCornersSection.swift */,
 				0A0EE0B09A4971E2834B8553 /* SharedComponents.swift */,
 				66494A943B38F3D6684CCF06 /* CreateProgramCard.swift */,
+				47D5EB4EBCC54EA9ECFE7BA5 /* HomeWikiLabSection.swift */,
 			);
 			name = Components;
 			sourceTree = "<group>";
@@ -405,6 +411,8 @@
 				9CED78A368637452E67F05BB /* HomeCornersSection.swift in Sources */,
 				65A87291B72330BA9C161EF7 /* SharedComponents.swift in Sources */,
 				15BCBEDE5E1F0B463D40BFB9 /* CreateProgramCard.swift in Sources */,
+				8346D6BF0F00A6FE5610EAD7 /* TrainingConceptsData.swift in Sources */,
+				5890EE3340990008A12B16E4 /* HomeWikiLabSection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
