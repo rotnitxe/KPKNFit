@@ -35,6 +35,7 @@ add_file_to_project(project, target, 'AppColors.swift', 'KPKNFit/Presentation/Th
 add_file_to_project(project, target, 'LiquidGlassModifier.swift', 'KPKNFit/Presentation/Theme')
 add_file_to_project(project, target, 'NeonOrbView.swift', 'KPKNFit/Presentation/Theme')
 add_file_to_project(project, target, 'MyRingsView.swift', 'KPKNFit/Presentation/Components')
+add_file_to_project(project, target, 'DashboardView.swift', 'KPKNFit/Presentation/Screens')
 
 project.save
 puts "Project saved successfully!"
