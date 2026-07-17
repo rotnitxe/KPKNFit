@@ -21,38 +21,12 @@ public struct HomeScreen: View {
     @State private var sncProgress: Double = 0.82
     @State private var columnaProgress: Double = 0.65
     
-    @State private var userName: String = "Carlos"
-    @State private var greeting: String = "Buenos días"
-    @State private var todaySessions: [TodaySessionItem] = [
-        TodaySessionItem(
-            session: Session(id: "s1", name: "Push A - Fuerza", exercises: [
-                Exercise(id: "e1", name: "Press Banca Plano", sets: [
-                    ExerciseSet(id: "s1", targetReps: 8, weight: 80.0),
-                    ExerciseSet(id: "s2", targetReps: 8, weight: 80.0)
-                ]),
-                Exercise(id: "e2", name: "Press Militar", sets: [
-                    ExerciseSet(id: "s3", targetReps: 10, weight: 50.0)
-                ])
-            ]),
-            program: Program(id: "p1", name: "Hipertrofia Funcional", coverImage: "gradient://lagoon", mode: .HYPERTROPHY, totalProgramWeeks: 8),
-            location: SessionLocation(macroIndex: 0, mesoIndex: 0, weekId: "w1"),
-            isCompleted: false,
-            dayOfWeek: Calendar.current.component(.weekday, from: Date()),
-            log: nil,
-            isOngoing: false
-        )
-    ]
-    @State private var hasActiveProgram: Bool = true
-    @State private var activeProgramId: String? = "p1"
-    @State private var competitionCountdown: CompetitionCountdown? = CompetitionCountdown(
-        programId: "p1",
-        programName: "Hipertrofia Funcional",
-        competitionDate: "2026-11-20",
-        competitionDateLabel: "20 Nov",
-        daysUntil: 126,
-        countdownLabel: "126 días",
-        competitionWeekLabel: "Semana 8"
-    )
+    @State private var userName: String = ""
+    @State private var greeting: String = ""
+    @State private var todaySessions: [TodaySessionItem] = []
+    @State private var hasActiveProgram: Bool = false
+    @State private var activeProgramId: String? = nil
+    @State private var competitionCountdown: CompetitionCountdown? = nil
     
     public init(
         onNavigateToSettings: @escaping () -> Void = {},
@@ -108,7 +82,6 @@ public struct HomeScreen: View {
                         spinalProgress: columnaProgress
                     )
                     .padding(.vertical, 8)
-                    .liquidGlass(cornerRadius: 24, borderOpacity: 0.3)
                     .padding(.horizontal, 24)
                     
                     // 3. Auto-Deload Banner Mock (empty here by default)
@@ -144,10 +117,7 @@ public struct HomeScreen: View {
                     
                     // 7. Home Programs Section
                     HomeProgramsSection(
-                        programs: [
-                            Program(id: "p1", name: "Hipertrofia Funcional", coverImage: "gradient://lagoon", mode: .HYPERTROPHY, totalProgramWeeks: 8),
-                            Program(id: "p2", name: "Fuerza Estricta", coverImage: "gradient://velvet", mode: .POWERLIFTING, totalProgramWeeks: 12)
-                        ],
+                        programs: [],
                         activeProgramId: activeProgramId,
                         onProgramClick: onNavigateToProgram,
                         onCreateProgram: onCreateProgram
@@ -189,7 +159,7 @@ public struct HomeScreen: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.vertical, 16)
-                .background(.ultraThinMaterial)
+                .background(Color.black.opacity(0.85))
                 
                 Spacer()
             }
