@@ -45,7 +45,7 @@ public struct SwipeToDeleteCard<Content: View>: View {
                             Spacer()
                             Image(systemName: "trash.fill")
                                 .foregroundColor(.white)
-                                .padding(.end, 24)
+                                .padding(.trailing, 24)
                         }
                     )
                     .cornerRadius(28)

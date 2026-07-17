@@ -336,7 +336,7 @@ private func getSessionInvolvedMuscles(session: Session) -> [String] {
 
 private func getSessionDurationDisplay(session: Session, log: WorkoutLog?) -> String {
     if let log = log {
-        return "\(log.durationMinutes} min promedio"
+        return "\(log.durationMinutes) min promedio"
     }
     
     let exercises = session.exercises + session.parts.flatMap { $0.exercises }

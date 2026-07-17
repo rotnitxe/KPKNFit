@@ -11,9 +11,15 @@ in_enum = false
 in_data_class = false
 in_database = false
 list_depth = 0
+skip_next_line = false
 
 lines.each do |line|
   stripped = line.strip
+  
+  if skip_next_line
+    skip_next_line = false
+    next
+  end
   
   if line.start_with?('package ') || line.start_with?('import ')
     next
@@ -35,11 +41,10 @@ lines.each do |line|
     next
   elsif line.start_with?('val TRAINING_CONCEPTS_DATABASE')
     in_database = true
-    output << 'public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = ['
+    output << "public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [\n"
     list_depth += 1
     next
   elsif in_database
-    # Replace Kotlin syntax in this line
     line_translated = line.dup
     
     # Track list depth
@@ -54,9 +59,8 @@ lines.each do |line|
     
     line_translated.gsub!(/(\b\w+)\s*=\s*/, '\1: ')
     
-    # Replace closing parenthesis with brackets if we are in list_depth
-    if list_depth > 0
-      # If line ends with ), or )
+    # Replace closing parenthesis with brackets if we are in list_depth > 1
+    if list_depth > 1
       if line_translated.end_with?("),\n") || line_translated.end_with?("),\r\n")
         line_translated.sub!(/\),\n$/, "],\n")
         line_translated.sub!(/\),\r\n$/, "],\r\n")
@@ -71,17 +75,19 @@ lines.each do |line|
     end
     
     # Check if the list of database is closing
-    if stripped == ')' && list_depth == 0
+    if stripped == ')' && list_depth == 1
       line_translated = "]\n"
       in_database = false
+      list_depth = 0
     end
     output << line_translated
   else
     # Outside database, let's translate functions if any
     if line.start_with?('fun getConceptCategories()')
       output << "public func getConceptCategories() -> [ConceptCategory] {\n"
-      output << "    Array(Set(TRAINING_CONCEPTS_DATABASE.map { $0.category })).sorted { $0.rawValue < $1.rawValue }\n"
+      output << "    Array(Set(TRAINING_CONCEPTS_DATABASE.map { $0.category })).sorted { $0.label < $1.label }\n"
       output << "}\n"
+      skip_next_line = true # Skip the Kotlin body line
     elsif line.start_with?('fun searchConcepts(query: String)')
       output << "public func searchConcepts(query: String) -> [TrainingConcept] {\n"
       output << "    if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return TRAINING_CONCEPTS_DATABASE }\n"
@@ -93,7 +99,7 @@ lines.each do |line|
       output << "        concept.category.label.lowercased().contains(q)\n"
       output << "    }\n"
       output << "}\n"
-      in_data_class = true # Skip rest of implementation
+      in_data_class = true # Skip rest of implementation until closing brace
     elsif in_data_class && stripped == '}'
       in_data_class = false
       next

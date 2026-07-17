@@ -99,6 +99,7 @@ public struct TrainingConcept: Identifiable {
 
 
 public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
+
     // ═══════════════════════════════════════════════════════════════════
     // GESTIÓN DE CARGA
     // ═══════════════════════════════════════════════════════════════════
@@ -127,7 +128,7 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
             "Agregar volumen sin mejorar la calidad de cada serie",
             "No ajustar el volumen cuando cambian otros estresores (sueño, dieta, estrés)",
         ],
-    ],
+    ),
 
     TrainingConcept(
         id: "intensidad",
@@ -818,9 +819,8 @@ public let TRAINING_CONCEPTS_DATABASE: [TrainingConcept] = [
 
 /** Get all unique categories present in the database */
 public func getConceptCategories() -> [ConceptCategory] {
-    Array(Set(TRAINING_CONCEPTS_DATABASE.map { $0.category })).sorted { $0.rawValue < $1.rawValue }
+    Array(Set(TRAINING_CONCEPTS_DATABASE.map { $0.category })).sorted { $0.label < $1.label }
 }
-    TRAINING_CONCEPTS_DATABASE.map { it.category }.distinct().sortedBy { it.ordinal }
 
 /** Search concepts by query across name, description and definition */
 public func searchConcepts(query: String) -> [TrainingConcept] {

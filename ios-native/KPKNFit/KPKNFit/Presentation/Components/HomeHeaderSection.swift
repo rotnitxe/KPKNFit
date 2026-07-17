@@ -36,7 +36,7 @@ private struct ThreeRingsHeaderIcon: View {
     
     var body: some View {
         Canvas { context, size in
-            let r = size.minDimension / 6.0
+            let r = min(size.width, size.height) / 6.0
             let s = r * 1.6
             let cy = size.height / 2.0
             let cx = size.width / 2.0
@@ -67,7 +67,7 @@ private struct ThreeRingsHeaderIcon: View {
 private struct SingleRingHeaderIcon: View {
     var body: some View {
         Canvas { context, size in
-            let r = size.minDimension / 2.5
+            let r = min(size.width, size.height) / 2.5
             let center = CGPoint(x: size.width / 2.0, y: size.height / 2.0)
             let rect = CGRect(
                 x: center.x - r,
