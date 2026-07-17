@@ -1,55 +1,25 @@
-# Repo Structure
+# Repository Structure
 
-## Intent
+This repository is dedicated entirely to the native Kotlin Android application (`android-native/`) and its supporting backend services. All legacy PWA, React, and Capacitor code has been removed to keep the codebase focused, clean, and professional.
 
-Keep the repository root focused on active app entrypoints, build/config files, and assets that are still referenced by the current PWA/Capacitor workflow.
+## Top-Level Directories
 
-Everything else should live in a more specific place:
+*   📂 **`android-native/`**
+    The core Android mobile application, written in native Kotlin. Built using Jetpack Compose, Room Database, and Coroutines/Flows following Clean Architecture principles.
+*   📂 **`backend/`**
+    Backend server configurations, schema management, and shared AI endpoints.
+*   📂 **`data/`**
+    Static datasets and databases (e.g., USDA food database JSON files, exercise libraries) used for pre-populating local app databases.
+*   📂 **`design_assets/`**
+    Logos, icons, illustrations, and backgrounds in PNG and SVG formats.
+*   📂 **`docs/`**
+    Living documentation, architectural guides, and past development reports.
+*   📂 **`scripts/`**
+    Helper scripts (Python and Node.js) for dataset normalization, voice generation, and database exports.
 
-- `docs/`: living documentation and archived planning material
-- `artifacts/`: generated diagnostics, screenshots, diffs, figma dumps, and legacy build outputs
-- `scripts/`: reusable scripts, including ad-hoc helpers under `scripts/ad-hoc/`
-- `packages/`: shared packages used by the active codebase
-- `android-native/`: Kotlin/Android migration work
+## Core Config Files at Root
 
-## Current Top-Level Rules
-
-- Keep active web app source roots at the top level for now:
-  `components/`, `contexts/`, `data/`, `hooks/`, `routes/`, `services/`, `stores/`, `utils/`, `workers/`
-- Keep active build/config entrypoints at the top level:
-  `App.tsx`, `index.tsx`, `index.html`, `manifest.json`, `service-worker.js`, `package.json`, `tsconfig.json`, `tailwind.config.js`, `capacitor.config.json`
-- Keep only assets that are still referenced directly by the current build in the root.
-- Put one-off helper scripts in `scripts/ad-hoc/` instead of the root.
-- Put migration plans, audits, and superseded RN material in `docs/archive/`.
-- Put logs, screenshots, diffs, figma exports, and legacy generated JS/CSS in `artifacts/`.
-
-## Archive Layout
-
-- `docs/archive/react-native-migration/`
-  Old plans, manifests, and porting docs from the cancelled PWA -> React Native effort.
-- `docs/archive/reports/`
-  Audit writeups, reports, and ad-hoc narrative documents that are worth keeping but should not live in the root.
-- `artifacts/logs/`
-  Test logs and typecheck outputs.
-- `artifacts/diffs/`
-  Git/database/history snapshots and comparison dumps.
-- `artifacts/screenshots/`
-  Emulator or UI capture images.
-- `artifacts/figma/`
-  Figma export JSON/TXT dumps.
-- `artifacts/legacy-root-build/`
-  Root-level generated outputs that should not be confused with the real build output in `www/`.
-
-## Deliberately Not Moved Yet
-
-The following directories were left in place because moving them can break local tooling, IDEs, or parallel migration work:
-
-- `android-kotlin-studio/`
-- `kpkn-auge-engine/`
-- `kpkn-compose-kpkn-ui/`
-- `kpkn-nutrition-ai/`
-- `kpkn-parity-auditor/`
-- `kpkn-program-workout-flow/`
-- `kpkn-pwa-to-kotlin-migrator/`
-
-If you want, those can be consolidated later under a dedicated parent such as `workspaces/` or `migration/`, but that should be a separate pass with path verification.
+*   📄 **`CLAUDE.md`**: Cheat sheet of build, test, and style guidelines for AI assistants.
+*   📄 **`README.md`**: Main public project profile and list of features.
+*   📄 **`.env` / `.env.example`**: Environment variables for API keys and endpoint paths.
+*   📄 **`.gitignore`**: Git path exclusions.
