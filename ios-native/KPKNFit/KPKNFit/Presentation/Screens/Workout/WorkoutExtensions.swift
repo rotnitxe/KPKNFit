@@ -1189,3 +1189,20 @@ extension Exercise {
         return .LOAD
     }
 }
+
+// ─── calculateGeneralizedCapacity ─────────────────────────────────────────────
+
+func calculateGeneralizedCapacity(_ load: Double, _ metric: Double) -> Double {
+    if load <= 0 || metric <= 0 { return 0.0 }
+    if metric <= 1.0 { return load }
+    let normalizedMetric = min(300.0, metric)
+    let capacity: Double
+    if normalizedMetric <= 10.0 {
+        capacity = load * (36.0 / (37.0 - normalizedMetric))
+    } else if normalizedMetric <= 20.0 {
+        capacity = load * (1.0 + normalizedMetric / 30.0)
+    } else {
+        capacity = load * (1.0 + 20.0 / 30.0) * pow(1.0 + (normalizedMetric - 20.0) / 80.0, 0.9)
+    }
+    return round(capacity * 10.0) / 10.0
+}

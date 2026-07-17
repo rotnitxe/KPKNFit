@@ -2,7 +2,7 @@ import Foundation
 
 internal struct AugeUtils {
 
-    static func physiologicalFloor(settings: Settings) -> PhysiologicalFloor {
+    static func physiologicalFloor(settings: AppSettings) -> PhysiologicalFloor {
         switch settings.athleteType {
         case .POWERLIFTER, .WEIGHTLIFTER:
             return PhysiologicalFloor(muscular: 15, cns: 20, spinal: 12)

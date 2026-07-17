@@ -6,6 +6,7 @@ internal final class ProgramRepository {
     var programs: [Program] = []
     var programQueue: [String] = []
     var isReady: Bool = false
+    var activeProgramState: ActiveProgramState?
 
     var ongoingWorkout: OngoingWorkoutState?
     var history: [WorkoutLog] = []
