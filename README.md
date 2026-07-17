@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="design_assets/kpkn-logo.png" alt="KPKN Fit Logo" width="200"/>
+  <img src="design_assets/KPKN-LOGO-OFICIAL-black.svg" alt="KPKN Fit Logo" width="200"/>
   <h1>KPKN Fit</h1>
   <p>Native Kotlin Mobile Application for Smart Training, Recovery, and Nutrition Tracking</p>
 </div>
