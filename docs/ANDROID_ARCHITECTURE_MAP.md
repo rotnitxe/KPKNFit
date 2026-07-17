@@ -10,7 +10,8 @@ This document provides a comprehensive technical mapping of the native Android K
 *   **UI Framework:** Jetpack Compose (Declarative UI)
 *   **Database:** Room (SQLite abstraction) with FTS4 (Full-Text Search)
 *   **Concurrency:** Kotlin Coroutines & Flows (Reactive UI updates)
-*   **Dependency injection:** Manual constructor injection orchestrated in `KpknApplication.kt`
+*   **Dependency injection:** Manual constructor injection orchestrated in `MainActivity.kt` and ViewModels (No Hilt/Dagger overhead).
+*   **Performance Monitoring:** Android `StrictMode` enabled in debug builds to catch main-thread disk I/O and SQLite leaks.
 
 ---
 
@@ -49,6 +50,10 @@ KPKN Fit uses a **local-first (offline-first)** data architecture. The Room data
 | `global_foods` | `GlobalFoodEntity` | `foodId` (String) | `name`, `normalizedName`, `normalizedBrand` | Cleaned-up USDA and OpenFoodFacts Chile food data. |
 | `global_foods_fts` | `GlobalFoodFtsEntity` | Virtual FTS4 | None | SQLite Full-text search content entity pointing to `global_foods`. |
 | `learned_resolutions` | `LearnedResolutionEntity` | `id` (String) | `queryKey` (Unique) | Maps raw user voice strings (e.g. "two eggs") to specific food database IDs. |
+
+### 2.2 Advanced Catalogs & JSON Mobility (`com.example.kpkn.data.models` & `db`)
+*   **`DiscomfortCatalog.kt` & `MobilityExerciseCatalog.kt`:** Hardcoded maps used by the Auge Engine to link specific articular pains (e.g., "Knee Pain") to prescriptive mobility routines.
+*   **`DatabaseBackupHelper.kt`:** A crucial utility that exports the entire Room database (Workouts, Programs, Settings, Meals) into a portable JSON structure. **For iOS Parity**, the Swift app must be able to ingest this exact JSON format to allow cross-platform user data migration.
 
 ### 2.2 Static Database Assets (Pre-populated on App Launch)
 
@@ -181,6 +186,10 @@ The home dashboard centers around **three concentric recovery rings** representi
 5.  **`nutrition`:** Displays macro bars (Protein, Carbs, Fats) and a log of meals. Includes a quick-add dialog, search bar with FTS4, and a **Voice Dictation Bar** (press to talk and log meals like "two eggs and a cup of oatmeal").
 6.  **`wikilab`:** Interactive anatomical explorer divided into muscles, joints, tendons, and movement patterns.
 7.  **`settings`:** Sliders for overriding batteries, theme controls (dark mode), haptic feedback switches, and database backup options.
+
+### 4.3 Design System & Theming (`ui/theme/Theme.kt`)
+*   **High Contrast Dark Mode:** The app deliberately eschews standard Material colors for an aggressive, premium dark mode (`AppThemeMode.HIGH_CONTRAST`).
+*   **Color Palette:** Pitch black backgrounds (`Color.Black` or hex `#000000`), accented strictly by neon highlight colors: Neon Yellow (Primary), Neon Cyan (Secondary), and Magenta (Tertiary). Text is high-contrast white. Swift parity should enforce these exact RGB values globally.
 
 ---
 
