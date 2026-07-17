@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0A139C070D5E258AE2740EDC /* NeonOrbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F060092D8D7826A3C7440A /* NeonOrbView.swift */; };
+		7D92949C4FE26F012E6136E4 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE79C76564D5FA06BF0E831C /* AppColors.swift */; };
 		828FDC813009B31E00857720 /* KPKNFitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC803009B31E00857720 /* KPKNFitApp.swift */; };
 		828FDC833009B31E00857720 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC823009B31E00857720 /* ContentView.swift */; };
 		828FDC853009B32000857720 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 828FDC843009B32000857720 /* Assets.xcassets */; };
@@ -14,6 +16,12 @@
 		828FDC923009B32100857720 /* KPKNFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC913009B32100857720 /* KPKNFitTests.swift */; };
 		828FDC9C3009B32100857720 /* KPKNFitUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC9B3009B32100857720 /* KPKNFitUITests.swift */; };
 		828FDC9E3009B32100857720 /* KPKNFitUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828FDC9D3009B32100857720 /* KPKNFitUITestsLaunchTests.swift */; };
+		828FDCAE3009B3E800857720 /* Presentation in Resources */ = {isa = PBXBuildFile; fileRef = 828FDCAA3009B3E700857720 /* Presentation */; };
+		828FDCAF3009B3E800857720 /* Data in Resources */ = {isa = PBXBuildFile; fileRef = 828FDCAB3009B3E700857720 /* Data */; };
+		828FDCB03009B3E800857720 /* Services in Resources */ = {isa = PBXBuildFile; fileRef = 828FDCAC3009B3E700857720 /* Services */; };
+		828FDCB13009B3E800857720 /* Domain in Resources */ = {isa = PBXBuildFile; fileRef = 828FDCAD3009B3E800857720 /* Domain */; };
+		CF0305DD67AD87B15FD196C1 /* MyRingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8EC578102691BD679E425F0 /* MyRingsView.swift */; };
+		DA58E48C7DD07520FD03E108 /* LiquidGlassModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8C34531173C8E4CD55EE6C /* LiquidGlassModifier.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +52,14 @@
 		828FDC973009B32100857720 /* KPKNFitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KPKNFitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		828FDC9B3009B32100857720 /* KPKNFitUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KPKNFitUITests.swift; sourceTree = "<group>"; };
 		828FDC9D3009B32100857720 /* KPKNFitUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KPKNFitUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		828FDCAA3009B3E700857720 /* Presentation */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Presentation; sourceTree = "<group>"; };
+		828FDCAB3009B3E700857720 /* Data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Data; sourceTree = "<group>"; };
+		828FDCAC3009B3E700857720 /* Services */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Services; sourceTree = "<group>"; };
+		828FDCAD3009B3E800857720 /* Domain */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Domain; sourceTree = "<group>"; };
+		96F060092D8D7826A3C7440A /* NeonOrbView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NeonOrbView.swift; sourceTree = "<group>"; };
+		DE79C76564D5FA06BF0E831C /* AppColors.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
+		EC8C34531173C8E4CD55EE6C /* LiquidGlassModifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiquidGlassModifier.swift; sourceTree = "<group>"; };
+		F8EC578102691BD679E425F0 /* MyRingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MyRingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +87,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		690881535ABBA3D32323D1D6 /* Presentation */ = {
+			isa = PBXGroup;
+			children = (
+				E95F67D475FBDDD2D9C4014E /* Theme */,
+				E5143CA327FBF3F9244C2351 /* Components */,
+			);
+			name = Presentation;
+			sourceTree = "<group>";
+		};
 		828FDC743009B31E00857720 = {
 			isa = PBXGroup;
 			children = (
@@ -94,10 +119,15 @@
 		828FDC7F3009B31E00857720 /* KPKNFit */ = {
 			isa = PBXGroup;
 			children = (
+				828FDCAB3009B3E700857720 /* Data */,
+				828FDCAD3009B3E800857720 /* Domain */,
+				828FDCAA3009B3E700857720 /* Presentation */,
+				828FDCAC3009B3E700857720 /* Services */,
 				828FDC803009B31E00857720 /* KPKNFitApp.swift */,
 				828FDC823009B31E00857720 /* ContentView.swift */,
 				828FDC843009B32000857720 /* Assets.xcassets */,
 				828FDC863009B32000857720 /* Preview Content */,
+				690881535ABBA3D32323D1D6 /* Presentation */,
 			);
 			path = KPKNFit;
 			sourceTree = "<group>";
@@ -125,6 +155,24 @@
 				828FDC9D3009B32100857720 /* KPKNFitUITestsLaunchTests.swift */,
 			);
 			path = KPKNFitUITests;
+			sourceTree = "<group>";
+		};
+		E5143CA327FBF3F9244C2351 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				F8EC578102691BD679E425F0 /* MyRingsView.swift */,
+			);
+			name = Components;
+			sourceTree = "<group>";
+		};
+		E95F67D475FBDDD2D9C4014E /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				DE79C76564D5FA06BF0E831C /* AppColors.swift */,
+				EC8C34531173C8E4CD55EE6C /* LiquidGlassModifier.swift */,
+				96F060092D8D7826A3C7440A /* NeonOrbView.swift */,
+			);
+			name = Theme;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -231,7 +279,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				828FDCB13009B3E800857720 /* Domain in Resources */,
+				828FDCB03009B3E800857720 /* Services in Resources */,
 				828FDC883009B32000857720 /* Preview Assets.xcassets in Resources */,
+				828FDCAE3009B3E800857720 /* Presentation in Resources */,
+				828FDCAF3009B3E800857720 /* Data in Resources */,
 				828FDC853009B32000857720 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -259,6 +311,10 @@
 			files = (
 				828FDC833009B31E00857720 /* ContentView.swift in Sources */,
 				828FDC813009B31E00857720 /* KPKNFitApp.swift in Sources */,
+				7D92949C4FE26F012E6136E4 /* AppColors.swift in Sources */,
+				DA58E48C7DD07520FD03E108 /* LiquidGlassModifier.swift in Sources */,
+				0A139C070D5E258AE2740EDC /* NeonOrbView.swift in Sources */,
+				CF0305DD67AD87B15FD196C1 /* MyRingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -424,6 +480,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"KPKNFit/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -452,6 +509,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"KPKNFit/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
