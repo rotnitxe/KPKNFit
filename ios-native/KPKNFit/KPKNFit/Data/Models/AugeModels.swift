@@ -503,3 +503,114 @@ private extension Int {
         Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
     }
 }
+
+// ─── Auge Adaptive Models ─────────────────────────────────────────────────────
+
+public struct AugeAdaptiveCache: Codable {
+    public let personalizedRecoveryHours: [String: Double]
+    public let muscleDeltas: [String: Double]
+    public let cnsLearningDelta: Double
+    public let spinalLearningDelta: Double
+    public let cnsRecoveryHours: Double?
+    public let spinalRecoveryHours: Double?
+    public let cnsDrainMultiplier: Double
+    public let spinalDrainMultiplier: Double
+    public let muscleDrainMultipliers: [String: Double]
+    public let totalObservations: Int
+    public let lastUpdatedMs: Int64
+
+    public init(
+        personalizedRecoveryHours: [String: Double] = [:],
+        muscleDeltas: [String: Double] = [:],
+        cnsLearningDelta: Double = 0.0,
+        spinalLearningDelta: Double = 0.0,
+        cnsRecoveryHours: Double? = nil,
+        spinalRecoveryHours: Double? = nil,
+        cnsDrainMultiplier: Double = 1.0,
+        spinalDrainMultiplier: Double = 1.0,
+        muscleDrainMultipliers: [String: Double] = [:],
+        totalObservations: Int = 0,
+        lastUpdatedMs: Int64 = 0
+    ) {
+        self.personalizedRecoveryHours = personalizedRecoveryHours
+        self.muscleDeltas = muscleDeltas
+        self.cnsLearningDelta = cnsLearningDelta
+        self.spinalLearningDelta = spinalLearningDelta
+        self.cnsRecoveryHours = cnsRecoveryHours
+        self.spinalRecoveryHours = spinalRecoveryHours
+        self.cnsDrainMultiplier = cnsDrainMultiplier
+        self.spinalDrainMultiplier = spinalDrainMultiplier
+        self.muscleDrainMultipliers = muscleDrainMultipliers
+        self.totalObservations = totalObservations
+        self.lastUpdatedMs = lastUpdatedMs
+    }
+}
+
+public struct RecoveryLearningObservation: Codable {
+    public let muscle: String
+    public let predictedBattery: Int
+    public let actualBattery: Int
+    public let sessionStress: Double
+    public let hoursSinceSession: Double
+    public let sleepQuality: Int
+    public let nutritionMultiplier: Double
+    public let stressLevel: Int
+
+    public init(
+        muscle: String,
+        predictedBattery: Int,
+        actualBattery: Int,
+        sessionStress: Double,
+        hoursSinceSession: Double,
+        sleepQuality: Int = 3,
+        nutritionMultiplier: Double = 1.0,
+        stressLevel: Int = 3
+    ) {
+        self.muscle = muscle
+        self.predictedBattery = predictedBattery
+        self.actualBattery = actualBattery
+        self.sessionStress = sessionStress
+        self.hoursSinceSession = hoursSinceSession
+        self.sleepQuality = sleepQuality
+        self.nutritionMultiplier = nutritionMultiplier
+        self.stressLevel = stressLevel
+    }
+}
+
+// ─── Additional Auge Models ───────────────────────────────────────────────────
+
+public struct PhysiologicalFloor: Codable {
+    public let muscular: Int
+    public let cns: Int
+    public let spinal: Int
+
+    public init(muscular: Int, cns: Int, spinal: Int) {
+        self.muscular = muscular
+        self.cns = cns
+        self.spinal = spinal
+    }
+}
+
+public struct BatteryTanks: Codable {
+    public let cns: Double
+    public let muscular: Double
+    public let spinal: Double
+
+    public init(cns: Double, muscular: Double, spinal: Double) {
+        self.cns = cns
+        self.muscular = muscular
+        self.spinal = spinal
+    }
+}
+
+public struct PredictedDrain: Codable {
+    public let cns: Int
+    public let muscular: Int
+    public let spinal: Int
+
+    public init(cns: Int, muscular: Int, spinal: Int) {
+        self.cns = cns
+        self.muscular = muscular
+        self.spinal = spinal
+    }
+}
