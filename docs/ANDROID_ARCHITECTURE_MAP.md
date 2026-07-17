@@ -64,6 +64,10 @@ Located in `android-native/app/src/main/assets/`:
 *   **Text Normalization:** Lowercases, strips accents, removes non-letter characters, and builds search alias arrays (`normalizeSearch` / `encodeAliases`).
 *   **Database Pre-population:** Batched transactions (`BATCH_SIZE = 2000`) into the `global_foods` SQLite table during first run.
 
+### 2.4 Additional Data Layer Services
+*   **External AI Services (`ExternalAiService.kt`):** A remote fallback data provider connecting to Gemini (1.5/2.0), OpenAI (GPT-4o-mini), or DeepSeek. Used specifically for complex semantic parsing of nutrition voice commands if the local heuristic parser fails.
+*   **WikiLab Prepopulation (`WikiLabPrepopulate.kt`):** Executes on first launch to parse and relate the anatomical JSONs (joints, tendons, muscles) into the local Room database.
+
 ---
 
 ## 🌀 3. Core Business Logic (Domain Layer)
@@ -126,6 +130,17 @@ graph TD
 
 *   **Loop Engine:** Implements the routine progression engine, managing set types (Normal, Warmup, Drop-set, Myo-reps, Failure) and tracking target volume metrics.
 *   **Plate Calculator:** Solves a linear matching problem to determine exactly which weight plates to put on each side of the barbell for any given target weight (e.g. using 20kg, 15kg, 10kg, 5kg, 2.5kg, 1.25kg plates, assuming a 20kg barbell).
+
+### 3.4 Biomechanics Engine (`BiomechanicsEngine.kt`)
+*   **Lever Classification:** Evaluates joint angles to classify movements into First, Second, and Third-class levers.
+*   **Stickman Model:** Uses anthropometric ratios (femur length, torso length, arm span) to calculate moments of force (torques) for specific lifts (e.g., comparing High-Bar vs Low-Bar squats based on the user's femur/torso ratio).
+
+### 3.5 Session Assistant Engine (`SessionAssistantEngine.kt`)
+*   **Smart Session Parsing:** Analyzes an active session's parameters (volume, predicted muscular drain, rest times).
+*   **Time Optimization Suggestions:** If a session exceeds the user's target duration, the engine generates actionable suggestions such as:
+    *   Reducing rest times between sets.
+    *   Converting linear sets into Supersets (pairing antagonistic muscles) or Drop-sets.
+    *   Dropping lower-priority auxiliary volume.
 
 ---
 

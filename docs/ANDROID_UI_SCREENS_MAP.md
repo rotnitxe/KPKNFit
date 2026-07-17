@@ -150,7 +150,29 @@ Shows the physiological diagnostic overview from the AUGE Engine.
 
 ---
 
-## 🛠️ 5. Swift (iOS) Presentation Parity Strategy
+## 📁 5. Additional Feature Screens
+
+1.  **Program Management (`programs` & `programdetail`):**
+    *   **Programs List:** Vertical scroll of active, historical, and premium templates.
+    *   **Program Detail View:** A calendar-like microcycle view. Includes volume charts displaying accumulated sets per muscle group per week.
+2.  **Session Editor (`sessioneditor`):**
+    *   **Drag-and-Drop Builder:** Interface for sequencing exercises within a session.
+    *   **Supersets & Drop-sets:** UI to bundle adjacent exercises into supersets (creates visual brackets connecting cards).
+    *   **Parameter Editor:** Inputs to customize default rest times, RPE targets, and reps.
+3.  **WikiLab Encyclopedia (`wikilab`):**
+    *   **Anatomical Explorer:** Grid of categories: Muscles, Joints, Tendons, Movement Patterns.
+    *   **Detail Pages:** Shows 3D-like structural descriptions, origins/insertions, and related exercises.
+4.  **Settings & Overrides (`settings`):**
+    *   **Manual Battery Sliders:** 0-100% sliders to manually force the Muscular, CNS, or Spinal batteries to a specific value (overriding the engine).
+    *   **Theme & Haptics:** Toggles for Dark/Light mode and haptic engine intensity.
+    *   **Data Backup:** Export/Import JSON database files.
+5.  **Profile & Social (`profile` & `competitions`):**
+    *   **Profile:** Tracks user body weight, lifting levels, and milestones.
+    *   **Competitions:** Leaderboards tracking total volume lifted or readiness consistency compared to other users.
+
+---
+
+## 🛠️ 6. Swift (iOS) Presentation Parity Strategy
 
 To achieve visual and functional parity in SwiftUI:
 
