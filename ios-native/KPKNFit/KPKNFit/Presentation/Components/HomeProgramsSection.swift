@@ -171,8 +171,8 @@ private struct EmptyProgramsCard: View {
         VStack(spacing: 20) {
             HomeProgramsSection(
                 programs: [
-                    Program(id: "1", name: "Ripped to Shreds", coverImage: "gradient://lagoon", mode: .HYPERTROPHY, totalProgramWeeks: 12),
-                    Program(id: "2", name: "Max Power 5x5", coverImage: "gradient://velvet", mode: .POWERLIFTING, totalProgramWeeks: 8)
+                    Program(id: "1", name: "Ripped to Shreds", coverImage: "gradient://lagoon", mode: .HYPERTROPHY),
+                    Program(id: "2", name: "Max Power 5x5", coverImage: "gradient://velvet", mode: .POWERLIFTING)
                 ],
                 activeProgramId: "1",
                 onProgramClick: { _ in },

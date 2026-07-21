@@ -23,6 +23,7 @@ import java.time.Instant
 import java.time.LocalDate
 
 class AugeRecoveryEngineManualOverrideTest {
+    private val json = Json { ignoreUnknownKeys = true }
     private val exerciseDb = mapOf(
         "bench" to ExerciseMuscleInfo(
             id = "bench",
@@ -124,7 +125,7 @@ class AugeRecoveryEngineManualOverrideTest {
 
     @Test
     fun legacyWellbeingWithoutManualAnchorStillDecodes() {
-        val decoded = Json { ignoreUnknownKeys = true }.decodeFromString<DailyWellbeingLog>(
+        val decoded = json.decodeFromString<DailyWellbeingLog>(
             """
             {
               "id": "legacy",

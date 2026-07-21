@@ -28,6 +28,7 @@ import SwiftUI
     @Published var currentCoachMessage: CoachMessage?
 
     var lastLog: WorkoutLog? { repository.getLogsForSession(sessionId).first }
+    var exerciseIndex: [String: ExerciseMuscleInfo] { EXERCISE_DATABASE_BY_ID }
 
     init(programId: String, sessionId: String) {
         self.programId = programId
@@ -186,12 +187,55 @@ import SwiftUI
             $0.targetDurationMinutes = resumedState?.customTargetDurationMinutes ?? restoredSession.targetDurationMinutes
         }
 
+        // Restore rest timer state if still active
+        let currentTimeMs = nowMs()
+        if let restoredRestState = resumedState?.restModalState, restoredRestState.endsAtMs > UInt64(currentTimeMs) {
+            let restoredSeconds = max(1, Int((Int64(restoredRestState.endsAtMs) - currentTimeMs) / 1000))
+            let patchedRestState = restoredRestState
+            updateState {
+                $0.restTimerTotal = patchedRestState.activeSeconds
+                $0.isRestTimerRunning = true
+                $0.restModalState = patchedRestState
+            }
+            startRestTimer(seconds: restoredSeconds, preserveElapsed: true)
+        }
+
+        // Initialize persistedLoadModeByExercise from hydrated profiles if not yet set
+        if resumedState?.persistedLoadModeByExercise?.isEmpty ?? true {
+            for (_, profile) in hydratedProfiles.0 {
+                guard let lm = profile.loadMode else { continue }
+                let exKey = workoutExerciseContextKey(exerciseId: profile.exerciseKey, tagId: profile.tagId)
+                updateState { $0.persistedLoadModeByExercise[exKey] = lm }
+            }
+        }
+
+        // Calculate mesocycle stress EMA
+        let ema = AugeFatigueEngine.calculateMesocycleStressEMA(
+            logs: repository.history,
+            programId: programId,
+            mesoIndex: uiState.mesoIndex
+        )
+        updateState { $0.mesocycleStressEMA = ema }
+
+        updateCoachMessage(setDrain: SetDrain(cnsDrainPct: 0, muscularDrainPct: 0, spinalDrainPct: 0), sessionProgress: 0)
+
         refreshLoadSuggestions()
         if uiState.activeStepKey == nil || uiState.activeStepKey!.isEmpty {
             updateState { $0.activeStepKey = nextIncompleteStepAfter($0, includeCurrent: true)?.stepKey }
         }
 
         if resumedState == nil {
+            // Auto-migrate legacy context profiles to user-created tags
+            for exercise in exercisesForMode {
+                let exKey = canonicalExerciseKey(exercise)
+                if restoredUserCreatedTags[exKey] == nil || restoredUserCreatedTags[exKey]!.isEmpty {
+                    let migrated = migrateContextProfilesToTags(hydratedProfiles.0, exerciseKey: exKey)
+                    if !migrated.isEmpty {
+                        restoredUserCreatedTags[exKey] = migrated
+                    }
+                }
+            }
+
             let initialExercise = exercisesForMode.first
             repository.startWorkout(OngoingWorkoutState(
                 programId: programId,
@@ -419,6 +463,33 @@ import SwiftUI
         return uiState.contextProfilesV3.values
             .filter { $0.exerciseKey == key }
             .sorted { ($0.lastUsedAtIso ?? "") > ($1.lastUsedAtIso ?? "") }
+    }
+
+    func dominantMuscleGroupFor(_ exercise: Exercise) -> String? {
+        guard let info = catalogInfoForExercise(exercise) else { return nil }
+        let dominant = info.involvedMuscles
+            .filter { resolveMuscleVolumeContribution($0, capAtOne: false) > 0.0 }
+            .max { a, b in
+                let aScore = resolveMuscleVolumeContribution(a, capAtOne: false) + {
+                    switch a.role {
+                    case .PRIMARY: return 1.0
+                    case .SECONDARY: return 0.45
+                    case .STABILIZER: return 0.20
+                    case .NEUTRALIZER: return 0.10
+                    }
+                }()
+                let bScore = resolveMuscleVolumeContribution(b, capAtOne: false) + {
+                    switch b.role {
+                    case .PRIMARY: return 1.0
+                    case .SECONDARY: return 0.45
+                    case .STABILIZER: return 0.20
+                    case .NEUTRALIZER: return 0.10
+                    }
+                }()
+                return aScore < bScore
+            } ?? info.involvedMuscles.first
+        guard let d = dominant else { return nil }
+        return VolumeCalculator.normalizeCanonicalMuscleGroup(d.muscle, emphasis: d.emphasis)
     }
 
     func activeContextProfile(_ exerciseId: String) -> WorkoutContextProfile? {
@@ -1049,6 +1120,40 @@ import SwiftUI
         } else if remainingMin <= 0 {
             updateState { $0.pacingAlertMessage = "Tiempo de sesión agotado" }
         } else {
+            updateState { $0.pacingAlertMessage = nil }
+        }
+    }
+
+    private func checkPacingStatus() {
+        let state = uiState
+        guard let totalMinutes = state.customTargetDurationMinutes ?? state.targetDurationMinutes else { return }
+        guard let remainingSeconds = state.sessionTimeRemainingSeconds else { return }
+        let allExercises = visibleExercises(state)
+        let totalSets = allExercises.reduce(0) { $0 + $1.sets.count }
+        guard totalSets > 0 else { return }
+
+        let uniqueCompleted = Set(state.completedSets.keys.map { key -> String in
+            let parts = key.split(separator: "_").map(String.init)
+            return parts.count >= 2 ? "\(parts[0])_\(parts[1])" : key
+        }).count
+
+        let progress = Double(uniqueCompleted) / Double(totalSets)
+        guard progress < 1.0 else { return }
+
+        let totalSeconds = totalMinutes * 60
+        let elapsedSeconds = totalSeconds - remainingSeconds
+        guard elapsedSeconds >= 300 else { return }
+
+        let expectedProgress = Double(elapsedSeconds) / Double(totalSeconds)
+
+        if progress < expectedProgress - 0.15 {
+            let remainingSets = totalSets - uniqueCompleted
+            let remainingMinutes = max(0, remainingSeconds / 60)
+            let message = "Ritmo lento · \(remainingSets) series · \(remainingMinutes) min"
+            if message != state.pacingAlertMessage {
+                updateState { $0.pacingAlertMessage = message }
+            }
+        } else if state.pacingAlertMessage != nil {
             updateState { $0.pacingAlertMessage = nil }
         }
     }
@@ -1817,6 +1922,7 @@ import SwiftUI
                 if remaining == 300 { /* speak 5 min warning */ }
                 if remaining == 60 { /* speak 1 min warning */ }
                 if remaining == 0 { /* speak time up */ }
+                self.checkPacingStatus()
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 remaining -= 1
             }
@@ -2012,7 +2118,7 @@ import SwiftUI
 
     // MARK: - Finish Workout
 
-    func finishWorkout(notes: String, fatigueLevel: Int, closingFeedback: SessionClosingFeedback, onComplete: @escaping () -> Void = {}) {
+    func finishWorkout(notes: String, fatigueLevel: Int, closingFeedback: SessionClosingFeedback, onPendingQuestionnaire: ((PendingQuestionnaire) -> Void)? = nil, onComplete: @escaping () -> Void = {}) {
         let state = uiState
         guard let session = state.session else { return }
         let durationMs = nowMs() - state.startTimeMs
@@ -2050,17 +2156,42 @@ import SwiftUI
             }
         }
         let logId = UUID().uuidString
+        let drain = AugeFatigueEngine.calculateCompletedSessionDrain(completedExercises: completedExercises, exerciseDb: EXERCISE_DATABASE_BY_ID, settings: repository.settings)
+        let base = AugeFatigueEngine.calculateCompletedSessionStress(completedExercises: completedExercises, exerciseDb: EXERCISE_DATABASE_BY_ID, settings: repository.settings)
 
-        let stressScore: Double = {
-            let drain = AugeFatigueEngine.calculateCompletedSessionDrain(completedExercises: completedExercises, exerciseDb: EXERCISE_DATABASE_BY_ID, settings: repository.settings)
-            let base = AugeFatigueEngine.calculateCompletedSessionStress(completedExercises: completedExercises, exerciseDb: EXERCISE_DATABASE_BY_ID, settings: repository.settings)
-            let predicted = (drain.cns * 0.45 + drain.muscular * 0.25 + drain.spinal * 0.30)
-            let adjSystem = min(100.0, max(0.0, drain.cns + Double(closingFeedback.systemAdjustment)))
-            let adjMuscular = min(100.0, max(0.0, drain.muscular + Double(closingFeedback.muscularAdjustment)))
-            let adjStructure = min(100.0, max(0.0, drain.spinal + Double(closingFeedback.structureAdjustment)))
-            let adjOverall = (adjSystem * 0.45 + adjMuscular * 0.25 + adjStructure * 0.30)
-            return max(1.0, base * (adjOverall / max(1.0, predicted)))
+        let predictedOverall = max(1.0, drain.cns * 0.45 + drain.muscular * 0.25 + drain.spinal * 0.30)
+        let adjSystem = (drain.cns + Double(closingFeedback.systemAdjustment)).clamped(0, 100)
+        let adjMuscular = (drain.muscular + Double(closingFeedback.muscularAdjustment)).clamped(0, 100)
+        let adjStructure = (drain.spinal + Double(closingFeedback.structureAdjustment)).clamped(0, 100)
+        let adjOverall = max(1.0, adjSystem * 0.45 + adjMuscular * 0.25 + adjStructure * 0.30)
+        let impactFactor = adjOverall / predictedOverall
+
+        let avgSetEffortSignal = calculateUnifiedSessionEffortSignal(completedExercises.flatMap { $0.sets })
+        let avgTechValues = state.postExerciseFeedbackByExerciseId.values.map { Double($0.technicalQuality) }
+        let avgTech = avgTechValues.isEmpty ? 8.0 : avgTechValues.reduce(0, +) / Double(avgTechValues.count)
+        let techniqueQuality5 = max(1, min(5, Int(avgTech - 5.0)))
+        let techniquePenalty = AugeFatigueEngine.calculateTechniquePenalty(technicalQuality: techniqueQuality5, effortSignal: avgSetEffortSignal).clamped(1.0, 1.5)
+        let clarityFactor: Double = {
+            if closingFeedback.clarityRating >= 8 { return 0.96 }
+            if closingFeedback.clarityRating <= 4 { return 1.10 }
+            return 1.0
         }()
+        let stressScore = max(1.0, base * impactFactor * techniquePenalty * clarityFactor)
+
+        let muscleGroups = completedExercises.compactMap { ex -> String? in
+            let info = catalogInfoForCompletedExercise(ex)
+            if let primary = info?.involvedMuscles.first(where: { $0.role == .PRIMARY }) {
+                let canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, emphasis: primary.emphasis)
+                return getAugeMuscleDisplayId(canonical, emphasis: primary.emphasis)
+            }
+            return ex.exerciseName
+        }.distinct().prefix(6).map { $0 }
+
+        let finalEnergySummary = TrainingEnergyEngine.estimateCompletedSession(completedExercises: completedExercises, settings: repository.settings, postExerciseFeedback: state.postExerciseFeedbackByExerciseId)
+
+        let actualDate = ISO8601DateFormatter().string(from: Date()).prefix(10).description
+        let scheduledDate = scheduledDateForSession(state.weekId, session: session)
+        let scheduleDeltaDays: Int? = nil // Would compute from dates
 
         let log = WorkoutLog(
             id: logId,
@@ -2068,10 +2199,13 @@ import SwiftUI
             sessionId: sessionId,
             sessionName: session.name,
             date: nowIso(),
+            scheduledDate: scheduledDate,
+            actualDate: String(actualDate),
+            scheduleDeltaDays: scheduleDeltaDays,
             durationMinutes: durationMinutes,
             completedExercises: completedExercises,
             fatigueLevel: fatigueLevel,
-            discomforts: closingFeedback.discomforts,
+            discomforts: (closingFeedback.discomforts + state.postExerciseFeedbackByExerciseId.values.flatMap { $0.discomfortIds }.filter { $0 != "none" }).distinct(),
             notes: notes.isEmpty ? nil : notes,
             totalVolume: totalVolume,
             sessionStressScore: stressScore,
@@ -2082,13 +2216,33 @@ import SwiftUI
             environmentTags: closingFeedback.environmentTags,
             planDeviations: state.planDeviations,
             exerciseTags: state.exerciseTags,
+            contextualPerformanceStateV2: state.contextualPerformanceCache,
+            globalPerformanceStateV3: state.globalPerformanceCache,
+            contextProfilesV3: state.contextProfilesV3,
+            postExerciseReports: state.postExerciseFeedbackByExerciseId.values.map { fb in
+                ExerciseDiscomfortReport(exerciseId: fb.exerciseId, exerciseDbId: fb.exerciseDbId, canonicalExerciseId: fb.canonicalExerciseId, exerciseName: fb.exerciseName, technicalQuality: fb.technicalQuality, discomfortIds: fb.discomfortIds.filter { $0 != "none" }, notes: fb.notes, perceivedIntensityRpe: fb.perceivedIntensityRpe, perceivedFailure: fb.perceivedFailure)
+            },
             omittedExercises: [],
-            scheduledDate: nil,
-            actualDate: ISO8601DateFormatter().string(from: Date()).prefix(10).description
+            energySummary: finalEnergySummary,
+            stillPresentDiscomfortIds: closingFeedback.stillPresentDiscomfortIds
         )
 
         repository.addWorkoutLog(log)
+        updatePredictionBiasFromClosingFeedback(closingFeedback)
         repository.clearOngoingWorkout()
+
+        onPendingQuestionnaire?(PendingQuestionnaire(logId: logId, sessionName: session.name, muscleGroups: muscleGroups, stillPresentDiscomfortIds: closingFeedback.stillPresentDiscomfortIds, scheduledTimeMs: nowMs() + 86400000))
+
+        let deltas = computeWorkoutVolumeDelta(state.session ?? session, completedSets: state.completedSets)
+        if !deltas.isEmpty {
+            deferredOnComplete = onComplete
+            updateState {
+                $0.pendingVolumeAdvances = deltas
+                $0.showVolumeAdvanceModal = true
+                $0.showFinishSheet = false
+            }
+            return
+        }
 
         updateState { $0.isComplete = true; $0.showFinishSheet = false; $0.sessionStressScore = stressScore }
         onComplete()
@@ -2718,7 +2872,71 @@ import SwiftUI
         return abs(adaptiveRest - baseRest) >= 15
     }
 
-    private func computeWorkoutVolumeDelta(_ plannedSession: Session, completedSets: [String: CompletedSet]) -> [MuscleAdvance] { [] }
+    private func computeWorkoutVolumeDelta(_ plannedSession: Session, completedSets: [String: CompletedSet]) -> [MuscleAdvance] {
+        guard !programId.isEmpty else { return [] }
+        var plannedPerMuscle: [String: Double] = [:]
+        for ex in plannedSession.allExercises() {
+            guard let dbId = ex.exerciseDbId ?? ex.exerciseId else { continue }
+            guard let info = exerciseIndex[dbId] else { continue }
+            for muscle in info.involvedMuscles where muscle.role == .PRIMARY {
+                let muscleId = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, emphasis: muscle.emphasis)
+                plannedPerMuscle[muscleId] = (plannedPerMuscle[muscleId] ?? 0.0) + Double(ex.sets.count)
+            }
+        }
+
+        var actualPerMuscle: [String: Double] = [:]
+        var completedByExercise: [String: Int] = [:]
+        for (key, _) in completedSets {
+            var exerciseId = String(key.split(separator: "_").dropLast().joined(separator: "_"))
+            if exerciseId.hasSuffix("_L") || exerciseId.hasSuffix("_R") {
+                exerciseId = String(exerciseId.split(separator: "_").dropLast().joined(separator: "_"))
+            }
+            completedByExercise[exerciseId] = (completedByExercise[exerciseId] ?? 0) + 1
+        }
+        for ex in plannedSession.allExercises() {
+            let sets = completedByExercise[ex.id] ?? 0
+            if sets == 0 { continue }
+            guard let dbId = ex.exerciseDbId ?? ex.exerciseId else { continue }
+            guard let info = exerciseIndex[dbId] else { continue }
+            for muscle in info.involvedMuscles where muscle.role == .PRIMARY {
+                let muscleId = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, emphasis: muscle.emphasis)
+                actualPerMuscle[muscleId] = (actualPerMuscle[muscleId] ?? 0.0) + Double(sets)
+            }
+        }
+
+        var surplusMuscles: [String] = []
+        for (muscle, planned) in plannedPerMuscle {
+            let actual = actualPerMuscle[muscle] ?? 0.0
+            let delta = actual - planned
+            if delta > 0 { surplusMuscles.append(muscle) }
+        }
+        if surplusMuscles.isEmpty { return [] }
+
+        guard let program = repository.getProgramById(programId) else { return [] }
+        let state = uiState
+        guard state.macroIndex >= 0, state.macroIndex < program.macrocycles.count else { return [] }
+        let macro = program.macrocycles[state.macroIndex]
+        let allMeso = macro.blocks.flatMap { $0.mesocycles }
+        guard state.mesoIndex >= 0, state.mesoIndex < allMeso.count else { return [] }
+        let week = allMeso[state.mesoIndex].weeks.first { $0.id == state.weekId }
+        guard let week = week else { return [] }
+        let weekSessions = week.sessions
+
+        guard let nextSession = SessionAssistantEngine.findNextSessionWithMuscles(
+            currentSessionId: plannedSession.id,
+            weekSessions: weekSessions,
+            muscleIds: surplusMuscles,
+            exerciseIndex: exerciseIndex
+        ) else { return [] }
+
+        return SessionAssistantEngine.computeProposedDiscounts(
+            currentSession: plannedSession,
+            nextSession: nextSession,
+            targetMuscles: surplusMuscles,
+            completedSets: completedSets,
+            exerciseIndex: exerciseIndex
+        )
+    }
 
     private func latestTechniqueSignal(_ exerciseId: String, _ exerciseDbId: String) -> Int {
         let reports = repository.history.sorted(by: { $0.date > $1.date }).flatMap { $0.postExerciseReports ?? [] }.filter { $0.exerciseId == exerciseId || $0.canonicalExerciseId == exerciseDbId }.prefix(2)
@@ -3022,18 +3240,35 @@ import SwiftUI
     // MARK: - Session schedule
 
     private func scheduledDateForSession(_ weekId: String?, session: Session) -> String? {
-        return nil
+        guard let weekId = weekId, !weekId.isEmpty else { return nil }
+        guard let program = repository.getProgramById(programId) else { return nil }
+        let projected = ProgramCalendarEngine.project(program).scheduledDateFor(session, weekId: weekId)
+        if let projected = projected { return projected }
+        let week = program.macrocycles
+            .flatMap { $0.blocks }
+            .flatMap { $0.mesocycles }
+            .flatMap { $0.weeks }
+            .first { $0.id == weekId }
+            ?? { () -> ProgramWeek? in nil }()
+        guard let w = week else { return nil }
+        if let day = session.dayOfWeek, day >= 1, day <= 7 {
+            if let explicit = w.trainingDayDates[day], !explicit.isEmpty { return explicit }
+        }
+        return w.startDate
     }
 
     // MARK: - Format helpers
 
-    private func formatWorkoutWeight(_ weight: Double) -> String {
+    func formatWorkoutWeight(_ weight: Double) -> String {
+        if weight == 0 { return "0" }
         if weight.truncatingRemainder(dividingBy: 1.0) == 0.0 {
             return "\(Int(weight))"
-        } else {
-            return String(weight).trimmingCharacters(in: CharacterSet(charactersIn: "0.")).trimmingCharacters(in: .whitespaces)
         }
+        let formatted = String(format: "%.1f", weight)
+        return formatted.hasSuffix(".0") ? "\(Int(weight))" : formatted
     }
+
+
 
     // MARK: - Tag multiplier
 

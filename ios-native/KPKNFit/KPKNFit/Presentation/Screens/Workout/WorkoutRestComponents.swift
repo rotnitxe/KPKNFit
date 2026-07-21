@@ -1,2 +1,1 @@
-// Placeholder for screens/workout/WorkoutRestComponents.kt
-// To be translated to Swift
+// Legacy RestTimerOverlay has been moved and fully redesigned inside Presentation/Screens/Workout/Components/WorkoutRestOverlay.swift

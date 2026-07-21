@@ -5,15 +5,10 @@ import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.domain.training.VolumeCalculator
 
 fun matchesMuscle(exercise: ExerciseMuscleInfo, anatomy: MuscleAnatomy): Boolean {
-    val involvements = exercise.involvedMuscles.filter {
+    return exercise.involvedMuscles.any {
         VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) == anatomy.canonicalName
+            && it.role == MuscleRole.PRIMARY
     }
-    if (involvements.isEmpty()) return false
-
-    if (anatomy.canonicalName.equals("Trapecio", ignoreCase = true)) {
-        return involvements.any { it.role == MuscleRole.PRIMARY || it.role == MuscleRole.SECONDARY }
-    }
-    return true
 }
 
 fun matchesMuscleHead(

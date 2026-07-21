@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.*
 import org.junit.Assert.*
 import org.junit.Test
 
+@Suppress("DEPRECATION")
 class VolumeCalculatorTest {
 
     private val squatMuscles = listOf(

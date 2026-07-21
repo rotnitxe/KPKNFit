@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.suggestRestSeconds
+import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -302,15 +303,13 @@ object SessionEditorRulesEngine {
         val map = mutableMapOf<String, Double>()
         session.allExercises().forEach { exercise ->
             val setCount = exercise.sets.count { !it.isIneffective }.coerceAtLeast(1)
-            val info = resolveExerciseInfo(exercise, exerciseIndex)
-            if (info == null) {
+            val muscles = ExerciseMuscleResolver.effectiveMuscles(exercise, exerciseIndex)
+            if (muscles.isEmpty()) {
                 val fallback = exercise.name.ifBlank { "General" }
                 map[fallback] = (map[fallback] ?: 0.0) + setCount.toDouble()
                 return@forEach
             }
-            val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(
-                com.example.kpkn.domain.auge.SessionMuscleFilter.relevantMusclesFor(info)
-            )
+            val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(muscles)
             contributions.forEach { (canonical, multiplier) ->
                 if (canonical.isNotBlank() && multiplier > 0.0) {
                     map[canonical] = (map[canonical] ?: 0.0) + setCount * multiplier

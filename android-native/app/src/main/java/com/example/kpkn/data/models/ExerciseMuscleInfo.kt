@@ -71,6 +71,13 @@ data class ExerciseMuscleInfo(
     val averageRestSeconds: Int? = null,
     val executionOptions: List<String>? = null,
     val movementPattern: String? = null,
+
+    // Variant Group (exercises that are technical variants of each other)
+    val variantGroupId: String? = null,
+    val variantGroupName: String? = null,
+    val variantName: String? = null,
+    val variantOrder: Int? = null,
+    val technicalAspects: List<TechnicalAspect>? = null,
 )
 
 @Serializable
@@ -146,6 +153,43 @@ data class SetupDetails(
     val seatPosition: String? = null,
     val pinPosition: String? = null,
     val equipmentNotes: String? = null,
+)
+
+// ═══════════════════════════════════════════════════════════════
+// Technical Aspect System (Variant Groups)
+// ═══════════════════════════════════════════════════════════════
+
+@Serializable
+enum class ModifierType {
+    @SerialName("set") SET,
+    @SerialName("add") ADD,
+    @SerialName("mult") MULT,
+}
+
+@Serializable
+data class MuscleModifier(
+    val muscle: String,
+    val type: ModifierType,
+    val value: Double,
+    val role: MuscleRole? = null,
+    val emphasis: String? = null,
+)
+
+@Serializable
+data class AspectOption(
+    val id: String,
+    val name: String,
+    val description: String? = null,
+    val modifiers: List<MuscleModifier> = emptyList(),
+)
+
+@Serializable
+data class TechnicalAspect(
+    val id: String,
+    val name: String,
+    val description: String? = null,
+    val options: List<AspectOption> = emptyList(),
+    val defaultOptionId: String? = null,
 )
 
 val HYPERTROPHY_ROLE_MULTIPLIERS = mapOf(

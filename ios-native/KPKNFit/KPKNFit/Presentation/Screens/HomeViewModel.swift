@@ -29,8 +29,10 @@ public final class HomeViewModel: ObservableObject {
     }
 
     public func loadFeedbacks() {
-        feedbacks = AugeRepository.shared.getPostSessionFeedbacks()
-        refresh()
+        Task {
+            feedbacks = await AugeRepository.shared.getPostSessionFeedbacks()
+            refresh()
+        }
     }
 
     public func refresh() {
@@ -529,4 +531,32 @@ public struct HomeNutritionSnapshot {
     public var protein: Double = 0.0
     public var carbs: Double = 0.0
     public var fats: Double = 0.0
+}
+
+// MARK: - KT Translation Additions
+
+private extension Session {
+    func matchesDay(dayOfWeek: Int) -> Bool {
+        self.dayOfWeek == dayOfWeek || assignedDays.contains(dayOfWeek)
+    }
+}
+
+extension HomeViewModel {
+    public func computeIpfGlPoints() -> Double {
+        let strength = getRelativeStrengthData()
+        let bw = repository.settings.userVitals.weight ?? 0.0
+        guard strength.totalKg > 0, bw > 0 else { return 0.0 }
+        let gender: String = {
+            switch repository.settings.userVitals.gender {
+            case .FEMALE: return "female"
+            default: return "male"
+            }
+        }()
+        return calculateIPFGLPoints(
+            totalLifted: strength.totalKg,
+            bodyWeight: bw,
+            gender: gender,
+            equipment: .classic
+        )
+    }
 }

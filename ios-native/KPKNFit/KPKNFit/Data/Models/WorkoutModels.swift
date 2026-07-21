@@ -109,25 +109,25 @@ private func normalizeWorkoutHeaderLabel(_ raw: String?) -> String? {
 
 // ─── WorkoutSessionContracts ─────────────────────────────────────────────────
 
-internal enum RestTimerKind: String, Codable {
+public enum RestTimerKind: String, Codable {
     case STANDARD, SUPERSET_INTRA, SUPERSET_ROUND, WARMUP, BETWEEN_SIDES
 }
 
-internal struct WorkoutSetDraft: Codable {
-    var weightText: String?
-    var valueText: String?
-    var intensityText: String?
-    var loadMode: LoadModeV2?
-    var selectedSide: String?
-    var partialReps: Int?
-    var reachedFailure: Bool?
-    var voiceFields: Set<WorkoutVoiceField>
-    var isDirty: Bool
-    var updatedAtMs: UInt64
-    var rom: Int?
-    var assistedReps: Int?
+public struct WorkoutSetDraft: Codable {
+    public var weightText: String?
+    public var valueText: String?
+    public var intensityText: String?
+    public var loadMode: LoadModeV2?
+    public var selectedSide: String?
+    public var partialReps: Int?
+    public var reachedFailure: Bool?
+    public var voiceFields: Set<WorkoutVoiceField>
+    public var isDirty: Bool
+    public var updatedAtMs: UInt64
+    public var rom: Int?
+    public var assistedReps: Int?
 
-    init(
+    public init(
         weightText: String? = nil,
         valueText: String? = nil,
         intensityText: String? = nil,
@@ -156,21 +156,21 @@ internal struct WorkoutSetDraft: Codable {
     }
 }
 
-internal struct WorkoutRestModalState: Codable {
-    var exerciseId: String?
-    var exerciseName: String
-    var kind: RestTimerKind
-    var plannedSeconds: Int
-    var suggestedSeconds: Int
-    var activeSeconds: Int
-    var endsAtMs: UInt64
-    var isManualOverride: Bool
-    var notificationsEnabled: Bool
-    var exactAlarmGranted: Bool
-    var soundReady: Bool
-    var skipCurrentExerciseOnFinish: Bool
+public struct WorkoutRestModalState: Codable {
+    public var exerciseId: String?
+    public var exerciseName: String
+    public var kind: RestTimerKind
+    public var plannedSeconds: Int
+    public var suggestedSeconds: Int
+    public var activeSeconds: Int
+    public var endsAtMs: UInt64
+    public var isManualOverride: Bool
+    public var notificationsEnabled: Bool
+    public var exactAlarmGranted: Bool
+    public var soundReady: Bool
+    public var skipCurrentExerciseOnFinish: Bool
 
-    init(
+    public init(
         exerciseId: String? = nil,
         exerciseName: String = "",
         kind: RestTimerKind = .STANDARD,
@@ -929,15 +929,15 @@ internal func pendingSetEditAction(hasPendingDraftChanges: Bool, isAlreadyEditin
 
 // ─── WorkoutVoiceModels ──────────────────────────────────────────────────────
 
-internal enum WorkoutVoiceField: String, Codable {
+public enum WorkoutVoiceField: String, Codable {
     case WEIGHT, VALUE, INTENSITY, SIDE, FAILURE
 }
 
-internal enum WorkoutVoiceIntensityKind: String, Codable {
+public enum WorkoutVoiceIntensityKind: String, Codable {
     case RPE, RIR, PERCENT_RM
 }
 
-internal enum WorkoutVoiceUiState: Equatable {
+public enum WorkoutVoiceUiState: Equatable {
     case idle
     case listening(exerciseId: String, setIdx: Int, side: String?, partialText: String, isReady: Bool)
     case confirmation(exerciseId: String, setIdx: Int, side: String?, interpretation: WorkoutVoiceInterpretation)
@@ -945,17 +945,17 @@ internal enum WorkoutVoiceUiState: Equatable {
     case error(exerciseId: String, setIdx: Int, side: String?, message: String)
 }
 
-internal struct WorkoutVoiceInterpretation: Equatable {
-    let transcript: String
-    let weightKg: Double?
-    let metricValue: Int?
-    let intensityValue: Double?
-    let intensityKind: WorkoutVoiceIntensityKind?
-    let side: String?
-    let reachedFailure: Bool
-    let fields: Set<WorkoutVoiceField>
+public struct WorkoutVoiceInterpretation: Equatable {
+    public let transcript: String
+    public let weightKg: Double?
+    public let metricValue: Int?
+    public let intensityValue: Double?
+    public let intensityKind: WorkoutVoiceIntensityKind?
+    public let side: String?
+    public let reachedFailure: Bool
+    public var fields: Set<WorkoutVoiceField>
 
-    init(transcript: String, weightKg: Double? = nil, metricValue: Int? = nil, intensityValue: Double? = nil, intensityKind: WorkoutVoiceIntensityKind? = nil, side: String? = nil, reachedFailure: Bool = false, fields: Set<WorkoutVoiceField> = []) {
+    public init(transcript: String, weightKg: Double? = nil, metricValue: Int? = nil, intensityValue: Double? = nil, intensityKind: WorkoutVoiceIntensityKind? = nil, side: String? = nil, reachedFailure: Bool = false, fields: Set<WorkoutVoiceField> = []) {
         self.transcript = transcript
         self.weightKg = weightKg
         self.metricValue = metricValue
@@ -1176,249 +1176,11 @@ internal func getEffectiveRPE(_ set: CompletedSet) -> Double {
     return 7.0
 }
 
-// ─── ExerciseMuscleInfo ──────────────────────────────────────────────────────
+// Redundant ExerciseMuscleInfo and related structures removed (defined in ExerciseMuscleInfo.swift)
 
-struct InvolvedMuscle: Codable {
-    var muscle: String = ""
-    var emphasis: String? = nil
-    var role: MuscleRole = .PRIMARY
-    var contribution: Double? = nil
-}
 
-struct ResistanceProfile: Codable {
-    var description: String? = nil
-}
+// Redundant WorkoutTag, SubTag, feature flags, and performance structs removed (defined in WorkoutV2Models.swift)
 
-struct AnatomicalConsideration: Codable {
-    var description: String? = nil
-}
-
-struct CommonMistake: Codable {
-    var description: String? = nil
-}
-
-struct Progression: Codable {
-    var name: String? = nil
-    var description: String? = nil
-}
-
-struct PeriodizationNote: Codable {
-    var note: String? = nil
-}
-
-struct InjuryRisk: Codable {
-    var level: String? = nil
-    var description: String? = nil
-}
-
-struct ScoreJustification: Codable {
-    var score: Double? = nil
-    var justification: String? = nil
-}
-
-struct AiCoachAnalysis: Codable {
-    var analysis: String? = nil
-}
-
-struct SetupDetails: Codable {
-    var seatPosition: String? = nil
-    var pinPosition: String? = nil
-    var barWeightKg: Double? = nil
-    var equipmentNotes: String? = nil
-}
-
-struct ExerciseMuscleInfo: Codable {
-    var id: String = ""
-    var name: String = ""
-    var alias: String? = nil
-    var description: String? = nil
-    var involvedMuscles: [InvolvedMuscle] = []
-    var equipment: String? = nil
-    var category: String? = nil
-    var type: String? = nil
-    var force: String? = nil
-    var chain: String? = nil
-    var bodyPart: String? = nil
-    var tier: String? = nil
-    var isCustom: Bool = false
-    var efc: Double? = nil
-    var cnc: Double? = nil
-    var ssc: Double? = nil
-    var ttc: Double? = nil
-    var axialLoadFactor: Double? = nil
-    var technicalDifficulty: Double? = nil
-    var coreInvolvement: String? = nil
-    var bracingRecommended: Bool? = nil
-    var strapsRecommended: Bool? = nil
-    var resistanceProfile: ResistanceProfile? = nil
-    var anatomicalConsiderations: [AnatomicalConsideration]? = nil
-    var commonMistakes: [CommonMistake]? = nil
-    var setupCues: [String]? = nil
-    var executionCues: [String]? = nil
-    var progressions: [Progression]? = nil
-    var regressions: [Progression]? = nil
-    var recommendedMobility: [String]? = nil
-    var periodizationNotes: [PeriodizationNote]? = nil
-    var functionalTransfer: String? = nil
-    var sportsRelevance: [String]? = nil
-    var injuryRisk: InjuryRisk? = nil
-    var sfr: ScoreJustification? = nil
-    var primeStars: ScoreJustification? = nil
-    var bodybuildingScore: Double? = nil
-    var communityOpinion: [String]? = nil
-    var aiCoachAnalysis: AiCoachAnalysis? = nil
-    var images: [String]? = nil
-    var videos: [String]? = nil
-    var setupDetails: SetupDetails? = nil
-    var setupTime: Int? = nil
-    var averageRestSeconds: Int? = nil
-    var executionOptions: [String]? = nil
-    var movementPattern: String? = nil
-}
-
-// ─── WorkoutTag / SubTag ─────────────────────────────────────────────────────
-
-enum SubTagCategory: String, Codable {
-    case MARCA, SETUP, TECNICA, LIBRE
-}
-
-struct WorkoutTag: Codable, Identifiable {
-    var id: String = ""
-    var name: String = ""
-    var exerciseKey: String = ""
-    var subTags: [WorkoutSubTag] = []
-    var createdAtIso: String = ""
-    var lastUsedAtIso: String = ""
-    var usageCount: Int = 0
-}
-
-struct WorkoutSubTag: Codable, Identifiable {
-    var id: String = ""
-    var name: String = ""
-    var category: SubTagCategory = .LIBRE
-}
-
-// ─── WorkoutFeatureFlags ─────────────────────────────────────────────────────
-
-struct WorkoutFeatureFlags: Codable {
-    var workoutV2UiShell: Bool = true
-    var workoutV2SetCarousel: Bool = true
-    var workoutV2LoadModes: Bool = true
-    var workoutV2Homologation: Bool = true
-    var workoutV2ContextMenu: Bool = true
-    var workoutV2HeaderWidgets: Bool = true
-    var workoutV3UnifiedFlow: Bool = true
-}
-
-// ─── Performance States ──────────────────────────────────────────────────────
-
-struct ContextPerformanceStateV2: Codable {
-    var contextKey: String = ""
-    var ewma: Double = 0.0
-    var mean: Double = 0.0
-    var variance: Double = 0.0
-    var bestScore: Double = 0.0
-    var sampleCount: Int = 0
-    var recentScores: [Double] = []
-    var consecutiveGreenSessions: Int = 0
-    var lastSuggestedLoad: Double? = nil
-    var lastUpdatedAtIso: String? = nil
-}
-
-struct GlobalPerformanceStateV3: Codable {
-    var globalKey: String = ""
-    var ewma: Double = 0.0
-    var mean: Double = 0.0
-    var variance: Double = 0.0
-    var bestScore: Double = 0.0
-    var sampleCount: Int = 0
-    var recentScores: [Double] = []
-    var lastUpdatedAtIso: String? = nil
-}
-
-// ─── WorkoutHeaderWidgets ────────────────────────────────────────────────────
-
-struct WorkoutHeaderWidgets: Codable {
-    var showRmCalculator: Bool = false
-    var showRealtimeRings: Bool = false
-}
-
-// ─── SetOutcomeV2 ────────────────────────────────────────────────────────────
-
-public struct SetOutcomeV2: Codable {
-    var contextKey: String = ""
-    var loadMode: LoadModeV2 = .LOAD
-    var unitMode: UnitModeV2 = .REPS
-    var plannedTarget: Double? = nil
-    var actualValue: Double = 0.0
-    var actualIntensity: Double? = nil
-    var debt: Double = 0.0
-    var failedSet: Bool = false
-    var reachedFailure: Bool = false
-    var amrapOverride: Bool = false
-    var techniques: [SetTechniqueV2] = []
-    var metricType: String = ""
-    var metricValue: Double = 0.0
-    var estimatedRm: Double? = nil
-    var trm: Double? = nil
-    var globalPerformanceIndex: Double = 50.0
-    var contextPercentile: Double = 50.0
-    var globalPercentile: Double = 0.0
-    var contextEwma: Double = 0.0
-    var contextStdDev: Double = 0.0
-    var globalEwma: Double = 0.0
-    var globalStdDev: Double = 0.0
-    var isContextPr: Bool = false
-    var isGlobalPr: Bool = false
-    var historyColor: HistoryColorV2 = .NEUTRAL
-    var difficultySignal: DifficultySignalV2 = .MATCHED
-    var suggestedNextLoad: Double? = nil
-    var suggestedTargetSeconds: Int? = nil
-    var suggestionReason: String? = nil
-    var augeEquivalentLoad: Double = 0.0
-    var augeEquivalentReps: Int = 0
-    var suggestedLoadMode: LoadModeV2? = nil
-}
-
-// ─── VoiceSessionState ───────────────────────────────────────────────────────
-
-enum VoicePipelineStage: String, Codable {
-    case DISABLED, LISTENING, PROCESSING, CONFIRM_WAIT, TTS_SPEAKING, ERROR_RECOVERY
-}
-
-struct VoiceSessionState {
-    var stage: VoicePipelineStage = .DISABLED
-    var partialText: String = ""
-    var lastInterpretation: WorkoutVoiceInterpretation? = nil
-    var lastCommand: VoiceSessionCommand? = nil
-    var errorMessage: String? = nil
-    var duckHandle: String? = nil
-    var consecutiveErrors: Int = 0
-    var isListening: Bool { stage == .LISTENING }
-    var isDucking: Bool { duckHandle != nil }
-    var hasPendingConfirmation: Bool { stage == .CONFIRM_WAIT }
-}
-
-// ─── VoiceSessionCommand ─────────────────────────────────────────────────────
-
-enum VoiceSessionCommand {
-    case registerSet(WorkoutVoiceInterpretation)
-    case confirm
-    case cancel
-    case skipExercise
-    case skipSet
-    case previousExercise
-    case suggestWeight
-    case restStatus
-    case whatExercise
-    case nextExercise
-    case turnOffVoice
-    case finishSession
-    case cancelSession
-    case logFeedback(technicalQuality: Int?, discomfortId: String?, perceivedIntensity: Double?, isSaveAction: Bool, exerciseSearchName: String?)
-    case logFinalFeedback(notes: String?, discomfortId: String?, additionalDiscomfortNote: String?, neuralBattery: Int?, spinalBattery: Int?, isSaveAction: Bool)
-    case unknown(String)
-}
 
 // ─── WorkoutContinuityTransitionTarget ───────────────────────────────────────
 
@@ -1430,235 +1192,20 @@ struct WorkoutContinuityTransitionTarget: Codable {
     var accentHex: String? = nil
 }
 
-// ─── MesocycleStressEMA ──────────────────────────────────────────────────────
+// Redundant Auge, Energy, and Discomfort structures removed (defined in AugeModels.swift, EnergyModels.swift, and WorkoutLog.swift)
 
-enum StressTrend: String, Codable {
-    case RISING, STABLE, FALLING
-}
 
-struct MesocycleStressEMA: Codable {
-    var programId: String = ""
-    var mesoIndex: Int = 0
-    var emaValue: Double = 0.0
-    var sessionCount: Int = 0
-    var latestStressScore: Double? = nil
-    var stressTrend: StressTrend = .STABLE
-    var computedAtMs: Int64 = 0
-}
+// Redundant RecordedSetPayload removed (defined in WorkoutV2Models.swift)
 
-// ─── ExerciseReadiness ───────────────────────────────────────────────────────
-// ArticularBattery and ArticularBatteryState are defined in AugeModels.swift
-
-struct ExerciseReadiness: Codable {
-    var exerciseId: String = ""
-    var exerciseName: String = ""
-    var overallScore: Int = 0
-    var muscularComponent: Int = 0
-    var cnsComponent: Int = 0
-    var spinalComponent: Int = 0
-    var articularComponent: Int = 0
-    var structuralComponent: Int = 0
-    var relatedArticular: [ArticularBattery] = []
-    var muscularWeight: Double = 0.0
-    var cnsWeight: Double = 0.0
-    var spinalWeight: Double = 0.0
-    var articularWeight: Double = 0.0
-    var setsPenaltyFactor: Double = 0.0
-    var intensityPenaltyFactor: Double = 0.0
-    var ermProximityFactor: Double = 0.0
-    var patternId: String? = nil
-    var involvedMuscleIds: [String] = []
-    var limitingFactor: String? = nil
-    var limitingDetail: String? = nil
-}
-
-// ─── MovementPatternReadiness ────────────────────────────────────────────────
-
-struct MovementPatternReadiness: Codable {
-    var patternId: String = ""
-    var patternLabel: String = ""
-    var overallScore: Int = 0
-    var exerciseCount: Int = 0
-    var totalSets: Int = 0
-    var contributingMuscles: [String] = []
-    var averageMuscleRecovery: Int = 0
-}
-
-// ─── SetAdjustmentSuggestion ─────────────────────────────────────────────────
-
-struct SetAdjustmentSuggestion: Codable {
-    var exerciseId: String = ""
-    var setIndex: Int = 0
-    var currentPlannedWeight: Double = 0.0
-    var readinessScore: Int = 0
-    var severityFactor: Double = 0.0
-    var reductionPercent: Double = 0.0
-    var suggestedWeight: Double = 0.0
-    var averageErm: Double? = nil
-    var reason: String = ""
-    var suggestedLoadMode: LoadModeV2 = .LOAD
-}
-
-// ─── SessionEnergySummary ────────────────────────────────────────────────────
-
-enum EnergyConfidence: String, Codable {
-    case HIGH, MEDIUM, LOW
-}
-
-enum EnergyEstimateSource: String, Codable {
-    case PLANNED, LIVE, FINAL
-}
-
-struct CalorieRange: Codable {
-    var low: Int = 0
-    var mid: Int = 0
-    var high: Int = 0
-}
-
-struct ExerciseEnergyContribution: Codable {
-    var exerciseId: String = ""
-    var exerciseDbId: String? = nil
-    var exerciseName: String = ""
-    var activeKcal: Int = 0
-    var epocKcal: Int = 0
-    var totalKcal: Int = 0
-    var percentageOfSession: Double = 0.0
-    var completedSets: Int = 0
-    var totalSets: Int = 0
-}
-
-struct SessionEnergySummary: Codable {
-    var activeKcal: CalorieRange = CalorieRange()
-    var epocKcal: CalorieRange = CalorieRange()
-    var totalKcal: CalorieRange = CalorieRange()
-    var projectedTotalKcal: Int? = nil
-    var confidence: EnergyConfidence = .LOW
-    var source: EnergyEstimateSource = .PLANNED
-    var methodVersion: String = "auge-energy-v1"
-    var exerciseContributions: [ExerciseEnergyContribution] = []
-    var notes: [String] = []
-}
-
-// ─── PlanDeviation ───────────────────────────────────────────────────────────
-// PlanDeviation and PlanDeviationType are defined in SessionModels.swift
-
-// ─── ExerciseDiscomfortReport ────────────────────────────────────────────────
-
-public struct ExerciseDiscomfortReport: Codable {
-    var exerciseId: String = ""
-    var exerciseDbId: String? = nil
-    var canonicalExerciseId: String? = nil
-    var exerciseName: String = ""
-    var technicalQuality: Int = 0
-    var discomfortIds: [String] = []
-    var notes: String? = nil
-    var perceivedIntensityRpe: Double? = nil
-    var perceivedFailure: Bool = false
-}
-
-// ─── RecordedSetPayload ──────────────────────────────────────────────────────
-
-public struct RecordedSetPayload: Codable {
-    var contextProfileId: String? = nil
-    var exerciseId: String = ""
-    var exerciseDbId: String? = nil
-    var side: String? = nil
-    var loadInputMode: LoadModeV2 = .LOAD
-    var unitMode: UnitModeV2 = .REPS
-    var externalLoad: Double? = nil
-    var assistedLoad: Double? = nil
-    var bodyWeightSnapshot: Double? = nil
-    var completedReps: Int? = nil
-    var partialReps: Int? = nil
-    var durationSeconds: Int? = nil
-    var actualIntensityMode: IntensityMode? = nil
-    var actualIntensityValue: Double? = nil
-    var techniques: [SetTechniqueV2] = []
-    var failedSet: Bool = false
-    var reachedFailure: Bool = false
-    var amrapPerformed: Bool = false
-    var timerTargetSeconds: Int? = nil
-    var timerElapsedSeconds: Int? = nil
-    var failureReason: String? = nil
-    var executionError: Bool = false
-    var skipped: Bool = false
-    var superSetWithExerciseId: String? = nil
-}
 
 // ─── WorkoutVoiceUiState (extended with .Idle) ───────────────────────────────
 // WorkoutVoiceUiState is already defined above in WorkoutModels.swift
 
-// ─── MuscleAdvance ───────────────────────────────────────────────────────────
-// MuscleAdvance and DiscountProposal are defined in SessionModels.swift
+// Redundant PerformanceRangeData removed (defined in PerformanceRangeEntity.swift)
 
-// ─── OmittedExercise ─────────────────────────────────────────────────────────
-// OmittedExercise is already defined in SessionModels.swift
 
-// ─── TimerAction ─────────────────────────────────────────────────────────────
+// Redundant SetEntryV2 removed (defined in WorkoutV2Models.swift)
 
-internal enum TimerAction {
-    case completeSet
-    case skipTimer
-    case addTime
-    case subtractTime
-}
-
-// ─── PerformanceRangeData ────────────────────────────────────────────────────
-
-internal struct PerformanceRangeData: Codable, Equatable {
-    let contextKey: String
-    let ermMin: Double
-    let ermMax: Double
-    let ermRms: Double
-    let sampleCount: Int
-    let lastUpdatedMs: Int64
-    let consecutiveAbove: Int
-    let consecutiveBelow: Int
-    init(contextKey: String, ermMin: Double = 0, ermMax: Double = 0, ermRms: Double = 0, sampleCount: Int = 0, lastUpdatedMs: Int64 = 0, consecutiveAbove: Int = 0, consecutiveBelow: Int = 0) {
-        self.contextKey = contextKey
-        self.ermMin = ermMin
-        self.ermMax = ermMax
-        self.ermRms = ermRms
-        self.sampleCount = sampleCount
-        self.lastUpdatedMs = lastUpdatedMs
-        self.consecutiveAbove = consecutiveAbove
-        self.consecutiveBelow = consecutiveBelow
-    }
-}
-
-// ─── SetEntryV2 ──────────────────────────────────────────────────────────────
-
-internal struct SetEntryV2: Codable, Equatable {
-    let exerciseId: String
-    let exerciseDbId: String?
-    let canonicalExerciseId: String?
-    let setIndex: Int
-    let loadMode: LoadModeV2
-    let unitMode: UnitModeV2
-    let plannedTarget: Double?
-    let actualValue: Double
-    let loggedLoad: Double?
-    let bodyWeight: Double?
-    let plannedIntensity: Double?
-    let actualIntensity: Double?
-    let debt: Double
-    let failedSet: Bool
-    let reachedFailure: Bool
-    let amrapOverride: Bool
-    let techniques: [SetTechniqueV2]
-    let tagId: String?
-    let setupId: String?
-    let machineBrand: String?
-    let contextKey: String
-    let timeProgressionStrategy: TimeProgressionStrategyV3
-    let barWeightKg: Double?
-    let rom: Int?
-    let assistedReps: Int?
-    let isFirstEvaluationInSession: Bool
-    func resolvedCanonicalExerciseId() -> String { canonicalExerciseId ?? exerciseId }
-    func resolvedExerciseDbId() -> String { exerciseDbId ?? exerciseId }
-    func setIdx() -> Int { setIndex }
-}
 
 // ─── SessionLocationCursor ───────────────────────────────────────────────────
 
@@ -1671,47 +1218,8 @@ internal struct SessionLocationCursor {
     let sessionSlot: Int
 }
 
-// ─── OngoingWorkoutState ─────────────────────────────────────────────────────
+// Redundant OngoingWorkoutState removed (defined in WorkoutLog.swift)
 
-internal struct OngoingWorkoutState: Codable {
-    let programId: String
-    let session: Session
-    var isPaused: Bool
-    let startTime: Int64
-    var activeExerciseId: String?
-    var activeSetId: String?
-    var activeSetIndex: Int
-    var activeExerciseIndex: Int
-    var activeStepKey: String?
-    var activeMode: WeekVariant
-    var completedSets: [String: CompletedSet]
-    var dynamicWeights: [String: Double]
-    var loadSuggestionReasons: [String: String]
-    var setDrafts: [String: WorkoutSetDraft]
-    var manualLoadOverrides: [String: Double]
-    var editingSetKey: String?
-    var isCarpeDiem: Bool
-    var macroIndex: Int?
-    var mesoIndex: Int?
-    var weekId: String?
-    var exerciseTags: [String: String]
-    var activeTags: [String: [String]]
-    var activeSubTags: [String: [String]]
-    var userCreatedTags: [String: [WorkoutTag]]
-    var contextProfilesV3: [String: WorkoutContextProfile]
-    var activeContextProfileByExerciseId: [String: String]
-    var skippedExerciseIds: Set<String>
-    var warmupCompletedExerciseIds: Set<String>
-    var mobilityCompletedExerciseIds: Set<String>
-    var readinessNeuralOverride: Int?
-    var readinessMuscularOverride: Int?
-    var readinessSpinalOverride: Int?
-    var readinessMuscleOverrides: [String: Int]
-    var restModalState: WorkoutRestModalState?
-    var persistedLoadModeBySet: [String: LoadModeV2]
-    var persistedLoadModeByExercise: [String: LoadModeV2]
-    var customTargetDurationMinutes: Int?
-}
 
 // ─── WorkoutPerformanceHomologationEngine ────────────────────────────────────
 

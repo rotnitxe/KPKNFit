@@ -29,9 +29,9 @@ class AugeAdaptiveEngineTest {
             structureAdjustment = 0,
             totalObservations = 50,
         )
-        // alpha = max(0.15, min(0.5, 1/51)) = max(0.15, 0.0196) = 0.15
-        // newCns = 10*0.85 + 40*0.15 = 8.5 + 6 = 14.5
-        assertEquals(14.5, newCns, 0.01)
+        // alpha = max(0.05, min(0.5, 1.5/51)) = max(0.05, 0.0294) = 0.05
+        // newCns = 10*0.95 + 40*0.05 = 9.5 + 2.0 = 11.5
+        assertEquals(11.5, newCns, 0.01)
     }
 
     @Test

@@ -598,10 +598,15 @@ object AugeFatigueEngine {
                     return@forEach
                 }
             val densityMult = getDensityMultiplierForExercise(ex.supersetId, ex.restTime ?: 90)
-            val primaryMuscle = dbInfo?.involvedMuscles
-                ?.find { it.role == MuscleRole.PRIMARY }
-                ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
-                ?: "Core"
+            val primaryMuscle = if (!ex.effectiveMuscles.isNullOrEmpty()) {
+                ex.effectiveMuscles!!
+                    .find { it.role == MuscleRole.PRIMARY }
+                    ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
+            } else {
+                dbInfo?.involvedMuscles
+                    ?.find { it.role == MuscleRole.PRIMARY }
+                    ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
+            } ?: "Core"
             var accumulated = muscleVolumeMap[primaryMuscle] ?: 0
             val muscleKey = primaryMuscle.lowercase().trim()
             val muscleMult = adaptiveCache.muscleDrainMultipliers[muscleKey] ?: 1.0

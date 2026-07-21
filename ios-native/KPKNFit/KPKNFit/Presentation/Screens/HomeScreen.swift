@@ -173,7 +173,7 @@ public struct HomeScreen: View {
         self.hasActiveProgram = true
         self.activeProgramId = "p1"
         
-        let p = Program(id: "p1", name: "Hipertrofia Funcional", coverImage: "gradient://lagoon", mode: .HYPERTROPHY, totalProgramWeeks: 8)
+        let p = Program(id: "p1", name: "Hipertrofia Funcional", coverImage: "gradient://lagoon", mode: .HYPERTROPHY)
         let s = Session(id: "s1", name: "Push A - Fuerza", exercises: [
             Exercise(id: "e1", name: "Press Banca Plano", sets: [
                 ExerciseSet(id: "s1", targetReps: 8, weight: 80.0),

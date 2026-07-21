@@ -35,7 +35,9 @@ import com.example.kpkn.domain.calculations.estimateSessionDurationMinutes
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.calculations.SessionTimeBreakdown
 import com.example.kpkn.domain.calculations.suggestRestSeconds
+import com.example.kpkn.domain.exercises.TechnicalAspectEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
+import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -3038,8 +3040,8 @@ class SessionEditorViewModel(
         var applied = false
         fun updateExercise(exercise: Exercise): Exercise {
             if (applied) return exercise
-            val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return exercise
-            val normalized = info.involvedMuscles.any { m ->
+            val muscles = ExerciseMuscleResolver.effectiveMuscles(exercise, exerciseIndex)
+            val normalized = muscles.any { m ->
                 VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis) == muscle
             }
             if (!normalized) return exercise
@@ -3118,9 +3120,8 @@ class SessionEditorViewModel(
 
     private fun exerciseMatchesPrimaryMuscle(exercise: Exercise, muscle: String?): Boolean {
         if (muscle.isNullOrBlank()) return false
-        val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return false
-        val primary = resolvePrimaryMuscle(info) ?: return false
-        return primary == VolumeCalculator.normalizeMuscleGroup(muscle)
+        val muscles = ExerciseMuscleResolver.effectiveMuscles(exercise, exerciseIndex)
+        return muscles.any { it.muscle.equals(muscle, ignoreCase = true) && it.role == MuscleRole.PRIMARY }
     }
 
 }
@@ -3600,19 +3601,16 @@ private fun accumulateSessionVolume(
     targetMap: MutableMap<String, AugeVolumeAccumulator>,
 ) {
     session.allExercises().forEach { exercise ->
-        val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return@forEach
+        val muscles = ExerciseMuscleResolver.effectiveMuscles(exercise, exerciseIndex)
+        if (muscles.isEmpty()) return@forEach
         exercise.validAugeSets().forEach { set ->
             val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(set.effectiveTargetRpe())
-            // Bug fix #3: usamos SessionMuscleFilter.relevantMusclesFor(info) en lugar de
-            // info.involvedMuscles crudo, para que el volumen semanal acumulado use el mismo
-            // filtro de músculos que computeSessionAugeComputation y los números sean coherentes.
-            VolumeCalculator.buildPerExerciseMuscleContributions(
-                SessionMuscleFilter.relevantMusclesFor(info)
-            ).forEach { (normalized, hyperFactor) ->
-                val bucket = targetMap.getOrPut(normalized) { AugeVolumeAccumulator() }
-                bucket.flat += hyperFactor
-                bucket.effective += hyperFactor * volumeMultiplier
-            }
+            VolumeCalculator.buildPerExerciseMuscleContributions(muscles)
+                .forEach { (normalized, hyperFactor) ->
+                    val bucket = targetMap.getOrPut(normalized) { AugeVolumeAccumulator() }
+                    bucket.flat += hyperFactor
+                    bucket.effective += hyperFactor * volumeMultiplier
+                }
         }
     }
 }
@@ -4035,6 +4033,24 @@ private fun buildCloneSourceOptions(
 
     private fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<WorkoutLog>): Exercise {
         val trainingMode = TrainingMode.REPS
+        val variantResult = VariantFlowResultCache.consume(info.id)
+
+        val effectiveMuscles: List<InvolvedMuscle>? = if (variantResult != null) {
+            val selectedOptions = variantResult.selectedAspects.mapNotNull { (aspectId, optId) ->
+                info.technicalAspects
+                    ?.firstOrNull { it.id == aspectId }
+                    ?.options
+                    ?.firstOrNull { it.id == optId }
+            }
+            val result = TechnicalAspectEngine.computeEffectiveMuscles(
+                baseMuscles = info.involvedMuscles,
+                selectedOptions = selectedOptions,
+            )
+            result.effectiveMuscles
+        } else {
+            null
+        }
+
         return Exercise(
             id = UUID.randomUUID().toString(),
             name = info.name,
@@ -4042,6 +4058,11 @@ private fun buildCloneSourceOptions(
             exerciseId = info.id,
             canonicalExerciseId = info.id.lowercase(),
             exerciseFamilyId = info.id.lowercase(),
+            variantName = variantResult?.variantName ?: info.variantName,
+            variantGroupId = variantResult?.variantGroupId ?: info.variantGroupId,
+            variantGroupName = variantResult?.variantGroupName ?: info.variantGroupName,
+            selectedAspects = variantResult?.selectedAspects,
+            effectiveMuscles = effectiveMuscles,
             trainingMode = trainingMode,
             restTime = suggestRestSeconds(3, 8.0),
             sets = listOf(

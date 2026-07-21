@@ -5260,7 +5260,178 @@
     "coreInvolvement": "low",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 6
+    "bodybuildingScore": 6,
+    "variantGroupId": "vg_bench_press",
+    "variantGroupName": "Press de Banca con Barra Libre",
+    "variantName": "Plano",
+    "variantOrder": 1,
+    "technicalAspects": [
+      {
+        "id": "tas_bench_grip_width",
+        "name": "Anchura del Agarre",
+        "description": "Distancia entre las manos en la barra",
+        "defaultOptionId": "bench_grip_medium",
+        "options": [
+          {
+            "id": "bench_grip_medium",
+            "name": "Medio (Normal)",
+            "description": "Anchura de hombros o ligeramente mayor",
+            "modifiers": []
+          },
+          {
+            "id": "bench_grip_narrow",
+            "name": "Cerrado",
+            "description": "Manos a la anchura de los hombros. Enfatiza tríceps y deltoides anterior",
+            "modifiers": [
+              {
+                "muscle": "Pectorales",
+                "type": "add",
+                "value": -0.15
+              },
+              {
+                "muscle": "Tríceps",
+                "type": "add",
+                "value": 0.25
+              },
+              {
+                "muscle": "Deltoides",
+                "type": "add",
+                "value": 0.1
+              }
+            ]
+          },
+          {
+            "id": "bench_grip_wide",
+            "name": "Ancho",
+            "description": "Apertura amplia de manos. Reduce rango de movimiento y activación de tríceps",
+            "modifiers": [
+              {
+                "muscle": "Tríceps",
+                "type": "add",
+                "value": -0.15
+              },
+              {
+                "muscle": "Deltoides",
+                "type": "add",
+                "value": -0.05
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tas_bench_grip_orientation",
+        "name": "Orientación del Agarre",
+        "description": "Posición de las palmas de las manos en la barra",
+        "defaultOptionId": "bench_grip_prono",
+        "options": [
+          {
+            "id": "bench_grip_prono",
+            "name": "Prono (Normal)",
+            "description": "Palmas hacia el frente/pies",
+            "modifiers": []
+          },
+          {
+            "id": "bench_grip_inverso",
+            "name": "Inverso (Supino)",
+            "description": "Palmas hacia la cara. Mayor implicación del bíceps para estabilizar y cambio en plano del hombro",
+            "modifiers": [
+              {
+                "muscle": "Pectorales",
+                "type": "add",
+                "value": 0.0,
+                "emphasis": "superior"
+              },
+              {
+                "muscle": "Tríceps",
+                "type": "add",
+                "value": -0.1
+              },
+              {
+                "muscle": "Bíceps",
+                "type": "add",
+                "value": 0.15
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tas_bench_arch",
+        "name": "Arco Lumbar",
+        "description": "Arqueo lumbar y técnica de leg drive para estabilización",
+        "defaultOptionId": "bench_arch_flat",
+        "options": [
+          {
+            "id": "bench_arch_flat",
+            "name": "Plano",
+            "description": "Espalda completamente apoyada en el banco",
+            "modifiers": []
+          },
+          {
+            "id": "bench_arch_powerlifting",
+            "name": "Con Arco (Powerlifting)",
+            "description": "Arco lumbar pronunciado con leg drive activo. Reduce palanca del deltoides anterior",
+            "modifiers": [
+              {
+                "muscle": "Pectorales",
+                "type": "add",
+                "value": 0.0,
+                "emphasis": "inferior"
+              },
+              {
+                "muscle": "Deltoides",
+                "type": "add",
+                "value": -0.1
+              },
+              {
+                "muscle": "Core",
+                "type": "add",
+                "value": 0.1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tas_bench_tempo",
+        "name": "Tempo",
+        "description": "Velocidad de ejecución y patrón de repeticiones",
+        "defaultOptionId": "bench_tempo_normal",
+        "options": [
+          {
+            "id": "bench_tempo_normal",
+            "name": "Normal",
+            "description": "Fase concéntrica y excéntrica estándar",
+            "modifiers": []
+          },
+          {
+            "id": "bench_tempo_slow_eccentric",
+            "name": "Excéntrica Lenta",
+            "description": "Bajada controlada (3-4 segundos)",
+            "modifiers": [
+              {
+                "muscle": "Tríceps",
+                "type": "add",
+                "value": 0.02
+              }
+            ]
+          },
+          {
+            "id": "bench_tempo_pause",
+            "name": "Con Pausa",
+            "description": "Pausa isométrica de 1-2 segundos en el pecho. Incrementa tensión abdominal de estabilidad",
+            "modifiers": [
+              {
+                "muscle": "Core",
+                "type": "add",
+                "value": 0.05
+              }
+            ]
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "tren_superior_press_banca_plano_mancuernas",
@@ -5348,7 +5519,12 @@
     "coreInvolvement": "low",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 6
+    "bodybuildingScore": 6,
+    "variantGroupId": "vg_bench_press",
+    "variantGroupName": "Press de Banca con Barra Libre",
+    "variantName": "Inclinado",
+    "variantOrder": 2,
+    "technicalAspects": null
   },
   {
     "id": "tren_superior_press_banca_inclinado_mancuernas",
@@ -5432,7 +5608,12 @@
     "coreInvolvement": "low",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 6
+    "bodybuildingScore": 6,
+    "variantGroupId": "vg_bench_press",
+    "variantGroupName": "Press de Banca con Barra Libre",
+    "variantName": "Declinado",
+    "variantOrder": 3,
+    "technicalAspects": null
   },
   {
     "id": "tren_superior_press_banca_declinado_mancuernas",
@@ -5515,7 +5696,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 6
+    "bodybuildingScore": 6,
+    "variantGroupId": null,
+    "variantGroupName": null,
+    "variantName": null,
+    "variantOrder": null
   },
   {
     "id": "tren_superior_press_pecho_maquina_convergente",
@@ -5992,7 +6177,12 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 6
+    "bodybuildingScore": 6,
+    "variantGroupId": "vg_bench_press",
+    "variantGroupName": "Press de Banca con Barra Libre",
+    "variantName": "Press Spoto",
+    "variantOrder": 5,
+    "technicalAspects": null
   },
   {
     "id": "tren_superior_press_banda_resistencia",
@@ -11700,7 +11890,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "variantGroupId": null,
+    "variantGroupName": null,
+    "variantName": null,
+    "variantOrder": null
   },
   {
     "id": "ultimo_hex_press_mancuernas",
@@ -12669,7 +12863,12 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 6
+    "bodybuildingScore": 6,
+    "variantGroupId": "vg_bench_press",
+    "variantGroupName": "Press de Banca con Barra Libre",
+    "variantName": "Floor Press",
+    "variantOrder": 4,
+    "technicalAspects": null
   },
   {
     "id": "ultimo_press_larsen",
@@ -17656,7 +17855,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "variantGroupId": null,
+    "variantGroupName": null,
+    "variantName": null,
+    "variantOrder": null
   },
   {
     "id": "ultimo_arrancada_profunda",
@@ -20923,8 +21126,8 @@
   },
   {
     "id": "tren_inferior_patada_gluteo_polea_mayor",
-    "name": "Patada de Glúteo en Polea",
-    "description": "Patada de glúteo unilateral en polea baja. Máxima contracción del glúteo mayor al final de la extensión.",
+    "name": "Patada de Glúteos en Polea",
+    "description": "Extensión de cadera unilateral en polea baja con tobillera. Trabaja glúteo mayor en rango de extensión. Movimiento controlado, sin balanceo de cadera.",
     "involvedMuscles": [
       {
         "muscle": "Glúteos",
@@ -20935,12 +21138,12 @@
       {
         "muscle": "Isquiosurales",
         "role": "secondary",
-        "activation": 0.3
+        "activation": 0.5
       },
       {
         "muscle": "Core",
         "role": "stabilizer",
-        "activation": 0.2
+        "activation": 0.4
       }
     ],
     "category": "Hipertrofia",
@@ -20949,11 +21152,15 @@
     "force": "Extensión",
     "bodyPart": "lower",
     "chain": "posterior",
-    "efc": 1.8,
-    "cnc": 2.5,
-    "ssc": 0.1,
-    "ttc": 1.0,
-    "movementPattern": "Extensión de Cadera"
+    "efc": 2.2,
+    "cnc": 2.0,
+    "ssc": 0.3,
+    "ttc": 2.0,
+    "movementPattern": "Extensión de Cadera",
+    "averageRestSeconds": 60,
+    "coreInvolvement": "low",
+    "bracingRecommended": true,
+    "bodybuildingScore": 8.0
   },
   {
     "id": "tren_inferior_patada_gluteo_maquina",
@@ -21043,35 +21250,6 @@
     "movementPattern": "Extensión de Cadera"
   },
   {
-    "id": "tren_inferior_abduccion_cadera_polea",
-    "name": "Abducción de Cadera en Polea",
-    "description": "Abducción lateral de cadera en polea baja. Tensión constante en el glúteo medio en todo el rango.",
-    "involvedMuscles": [
-      {
-        "muscle": "Glúteos",
-        "role": "primary",
-        "activation": 1,
-        "emphasis": "medio"
-      },
-      {
-        "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.3
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Otro",
-    "bodyPart": "lower",
-    "chain": "lateral",
-    "efc": 1.4,
-    "cnc": 2.5,
-    "ssc": 0.0,
-    "ttc": 1.0,
-    "movementPattern": "Abducción de Cadera"
-  },
-  {
     "id": "tren_inferior_abduccion_cadera_banda",
     "name": "Abducción de Cadera con Banda",
     "description": "Abducción de cadera de pie o acostado utilizando banda de resistencia. Excelente activación del glúteo medio.",
@@ -21086,30 +21264,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Banda",
-    "force": "Otro",
-    "bodyPart": "lower",
-    "chain": "lateral",
-    "efc": 1.2,
-    "cnc": 2.5,
-    "ssc": 0.0,
-    "ttc": 0.8,
-    "movementPattern": "Abducción de Cadera"
-  },
-  {
-    "id": "tren_inferior_abduccion_cadera_maquina",
-    "name": "Abducción de Cadera en Máquina",
-    "description": "Aperturas de piernas sentada en máquina abductora. Estabilidad perfecta para aislar el glúteo medio y mínimo.",
-    "involvedMuscles": [
-      {
-        "muscle": "Glúteos",
-        "role": "primary",
-        "activation": 1,
-        "emphasis": "medio"
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Máquina",
     "force": "Otro",
     "bodyPart": "lower",
     "chain": "lateral",
@@ -21176,35 +21330,6 @@
     "ssc": 0.2,
     "ttc": 1.5,
     "movementPattern": "Bisagra"
-  },
-  {
-    "id": "tren_inferior_reverse_hyper_maquina",
-    "name": "Reverse Hyper en Máquina",
-    "description": "Extensión de cadera inversa en máquina pendular. Permite entrenar los glúteos e isquios de forma descompresiva para la columna lumbar.",
-    "involvedMuscles": [
-      {
-        "muscle": "Glúteos",
-        "role": "primary",
-        "activation": 1,
-        "emphasis": "mayor"
-      },
-      {
-        "muscle": "Erectores Espinales",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Máquina",
-    "force": "Otro",
-    "bodyPart": "lower",
-    "chain": "posterior",
-    "efc": 2.5,
-    "cnc": 2.5,
-    "ssc": 0.1,
-    "ttc": 1.2,
-    "movementPattern": "Extensión de Cadera"
   },
   {
     "id": "tren_inferior_hip_thrust_mancuerna",
@@ -22354,29 +22479,6 @@
     "movementPattern": "Aducción Cadera"
   },
   {
-    "id": "tren_inferior_aduccion_cadera_polea",
-    "name": "Aducción de Cadera en Polea Baja",
-    "description": "De pie cruzando la pierna activa por el frente de la pierna de apoyo usando una polea baja para aislar el muslo interno.",
-    "involvedMuscles": [
-      {
-        "muscle": "Aductores",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Otro",
-    "bodyPart": "lower",
-    "chain": "lateral",
-    "efc": 1.2,
-    "cnc": 2.5,
-    "ssc": 0.0,
-    "ttc": 0.8,
-    "movementPattern": "Aducción Cadera"
-  },
-  {
     "id": "tren_superior_peso_muerto_jefferson",
     "name": "Peso Muerto Jefferson",
     "description": "Levantamiento de peso muerto parado a horcajadas sobre la barra. Excelente ejercicio asimétrico para erectores y estabilidad lumbar.",
@@ -22613,5 +22715,395 @@
     "ssc": 0.5,
     "ttc": 1.2,
     "movementPattern": "Core"
+  },
+  {
+    "id": "nuevo_press_pines_barra",
+    "name": "Press desde Pines con Barra (Pin Press)",
+    "description": "Variante de press de banca ejecutada dentro de un rack, iniciando el empuje concéntrico desde un punto muerto sobre los pines de seguridad. Elimina el reflejo miotático y sobrecarga rangos específicos.",
+    "involvedMuscles": [
+      {
+        "muscle": "Pectorales",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Deltoides",
+        "role": "secondary",
+        "activation": 0.5,
+        "emphasis": "anterior"
+      },
+      {
+        "muscle": "Tríceps",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
+    "category": "Fuerza",
+    "type": "Accesorio",
+    "equipment": "Barra",
+    "force": "Empuje",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 4.2,
+    "cnc": 4.5,
+    "ssc": 0.5,
+    "ttc": 2.2,
+    "movementPattern": "Empuje Horizontal",
+    "executionOptions": null,
+    "subMuscleGroup": "Pectorales",
+    "averageRestSeconds": 120,
+    "coreInvolvement": "medium",
+    "bracingRecommended": true,
+    "strapsRecommended": false,
+    "bodybuildingScore": 5,
+    "variantGroupId": "vg_bench_press",
+    "variantGroupName": "Press de Banca con Barra Libre",
+    "variantName": "Desde Pines",
+    "variantOrder": 6,
+    "technicalAspects": null
+  },
+  {
+    "id": "tren_inferior_step_up_barra",
+    "name": "Step-Up con Barra",
+    "description": "Subida al cajón con barra sobre trapecios. Cuádriceps y glúteos unilateral.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.5
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      },
+      {
+        "muscle": "Erectores Espinales",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
+    "subMuscleGroup": "Cuádriceps",
+    "category": "Fuerza",
+    "type": "Accesorio",
+    "equipment": "Barra",
+    "force": "Sentadilla",
+    "bodyPart": "lower",
+    "chain": "anterior",
+    "efc": 3.8,
+    "cnc": 3.5,
+    "ssc": 1.2,
+    "ttc": 2.4,
+    "averageRestSeconds": 90,
+    "coreInvolvement": "medium",
+    "bracingRecommended": false,
+    "strapsRecommended": false,
+    "bodybuildingScore": 6.0
+  },
+  {
+    "id": "tren_inferior_patada_gluteo_polea_a_cuatro_patas",
+    "name": "Patada de Glúteos en Polea (A Cuatro Patas)",
+    "description": "Extensión de cadera en cuadrupedia con polea baja. Mayor rango de movimiento y aislamiento del glúteo mayor. Clásico ejercicio de bodybuilding.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
+    "subMuscleGroup": "Glúteos",
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Polea",
+    "force": "Empuje",
+    "bodyPart": "lower",
+    "chain": "posterior",
+    "efc": 2.0,
+    "cnc": 1.8,
+    "ssc": 0.3,
+    "ttc": 2.2,
+    "averageRestSeconds": 60,
+    "coreInvolvement": "low",
+    "bracingRecommended": false,
+    "strapsRecommended": false,
+    "bodybuildingScore": 8.5
+  },
+  {
+    "id": "tren_inferior_patada_gluteo_polea_lateral",
+    "name": "Patada de Glúteos Lateral en Polea",
+    "description": "Abducción de cadera en polea baja. Trabaja glúteo medio y menor. Mantén pelvis estable y evita inclinación lateral.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "medio"
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.5,
+        "emphasis": "menor"
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
+      }
+    ],
+    "subMuscleGroup": "Glúteos",
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Polea",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "lateral",
+    "efc": 2.0,
+    "cnc": 1.8,
+    "ssc": 0.2,
+    "ttc": 2.0,
+    "averageRestSeconds": 60,
+    "coreInvolvement": "low",
+    "bracingRecommended": true,
+    "strapsRecommended": false,
+    "bodybuildingScore": 7.5
+  },
+  {
+    "id": "tren_inferior_abduccion_polea_tumbado",
+    "name": "Abducción de Cadera en Polea (Tumbado Lateral)",
+    "description": "Abducción de cadera tumbado de lado con polea baja. Aísla glúteo medio y menor. Ideal para trabajar la banda lateral de la cadera en rango completo.",
+    "involvedMuscles": [
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 1,
+        "emphasis": "medio"
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "secondary",
+        "activation": 0.6,
+        "emphasis": "menor"
+      },
+      {
+        "muscle": "Tensor Fascia Lata",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
+    "subMuscleGroup": "Glúteos",
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Polea",
+    "force": "Otro",
+    "bodyPart": "lower",
+    "chain": "lateral",
+    "efc": 1.8,
+    "cnc": 1.6,
+    "ssc": 0.2,
+    "ttc": 2.0,
+    "averageRestSeconds": 60,
+    "coreInvolvement": "low",
+    "bracingRecommended": false,
+    "strapsRecommended": false,
+    "bodybuildingScore": 7.0
+  },
+  {
+    "id": "tren_inferior_step_up_mancuernas",
+    "name": "Step-Up con Mancuernas",
+    "description": "Subida a cajón o banco con mancuernas. Trabaja cuádriceps y glúteo en patrón funcional. Controla el descenso para maximizar el estímulo excéntrico.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuádriceps",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Glúteos",
+        "role": "primary",
+        "activation": 0.8,
+        "emphasis": "mayor"
+      },
+      {
+        "muscle": "Isquiosurales",
+        "role": "secondary",
+        "activation": 0.4
+      }
+    ],
+    "subMuscleGroup": "Cuádriceps",
+    "category": "Funcional",
+    "type": "Básico",
+    "equipment": "Mancuerna",
+    "force": "Empuje",
+    "bodyPart": "lower",
+    "chain": "anterior",
+    "efc": 3.2,
+    "cnc": 3.0,
+    "ssc": 0.8,
+    "ttc": 2.2,
+    "averageRestSeconds": 75,
+    "coreInvolvement": "medium",
+    "bracingRecommended": true,
+    "strapsRecommended": false,
+    "bodybuildingScore": 7.5
+  },
+  {
+    "id": "tren_superior_flexion_lateral_cuello_mancuerna",
+    "name": "Flexión Lateral de Cuello con Mancuerna",
+    "description": "Acostado de lado en un banco plano, sosteniendo una mancuerna ligera (envuelta en una toalla) contra la sien para realizar flexión lateral cervical controlada de forma unilateral.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      }
+    ],
+    "subMuscleGroup": "Cuello",
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuerna",
+    "force": "Otro",
+    "bodyPart": "upper",
+    "chain": "lateral",
+    "efc": 1.2,
+    "cnc": 2.2,
+    "ssc": 0.6,
+    "ttc": 1.0,
+    "averageRestSeconds": 60,
+    "coreInvolvement": "low",
+    "bracingRecommended": false,
+    "strapsRecommended": false,
+    "bodybuildingScore": 6.5
+  },
+  {
+    "id": "tren_superior_extension_cuello_mancuerna",
+    "name": "Extensión de Cuello con Mancuerna",
+    "description": "Acostado boca abajo en un banco plano con la cabeza libre, sosteniendo una mancuerna ligera con una toalla sobre la nuca para realizar extensiones cervicales dinámicas.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "secondary",
+        "activation": 0.5
+      }
+    ],
+    "subMuscleGroup": "Cuello",
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Mancuerna",
+    "force": "Extensión",
+    "bodyPart": "upper",
+    "chain": "posterior",
+    "efc": 1.5,
+    "cnc": 2.2,
+    "ssc": 0.8,
+    "ttc": 1.0,
+    "averageRestSeconds": 60,
+    "coreInvolvement": "low",
+    "bracingRecommended": false,
+    "strapsRecommended": false,
+    "bodybuildingScore": 6.5
+  },
+  {
+    "id": "tren_superior_flexion_cuello_banda",
+    "name": "Flexión de Cuello Dinámica con Banda",
+    "description": "De pie o sentado de espaldas al punto de anclaje de la banda elástica colocada alrededor de la frente, realizando flexiones dinámicas del cuello controlando la fase excéntrica.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
+    "subMuscleGroup": "Cuello",
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Banda",
+    "force": "Flexión",
+    "bodyPart": "upper",
+    "chain": "anterior",
+    "efc": 1.3,
+    "cnc": 2.0,
+    "ssc": 0.4,
+    "ttc": 1.2,
+    "averageRestSeconds": 60,
+    "coreInvolvement": "low",
+    "bracingRecommended": false,
+    "strapsRecommended": false,
+    "bodybuildingScore": 7.0
+  },
+  {
+    "id": "tren_superior_extension_cuello_banda",
+    "name": "Extensión de Cuello Dinámica con Banda",
+    "description": "De pie o sentado de frente al punto de anclaje de la banda elástica colocada alrededor de la nuca, realizando extensiones dinámicas del cuello controlando el rango de movimiento.",
+    "involvedMuscles": [
+      {
+        "muscle": "Cuello",
+        "role": "primary",
+        "activation": 1
+      },
+      {
+        "muscle": "Trapecio",
+        "role": "secondary",
+        "activation": 0.4
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.3
+      }
+    ],
+    "subMuscleGroup": "Cuello",
+    "category": "Hipertrofia",
+    "type": "Aislamiento",
+    "equipment": "Banda",
+    "force": "Extensión",
+    "bodyPart": "upper",
+    "chain": "posterior",
+    "efc": 1.4,
+    "cnc": 2.0,
+    "ssc": 0.5,
+    "ttc": 1.2,
+    "averageRestSeconds": 60,
+    "coreInvolvement": "low",
+    "bracingRecommended": false,
+    "strapsRecommended": false,
+    "bodybuildingScore": 7.0
   }
 ]

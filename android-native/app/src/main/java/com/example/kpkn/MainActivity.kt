@@ -135,17 +135,17 @@ class MainActivity : ComponentActivity() {
         pendingDeepLinkRoute.value = resolveNavigationRouteFromIntent(intent)
         pendingSharedNutritionText.value = extractSharedNutritionText(intent)
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            // 1. Initialize repositories and primary database
-            runCatching {
-                ProgramRepository.init(this@MainActivity)
-                com.example.kpkn.data.repository.CompetitionRepository.init(this@MainActivity)
-                com.example.kpkn.data.repository.AugeRepository.getInstance(this@MainActivity)
-                com.example.kpkn.data.repository.NutritionRepository.init(this@MainActivity)
-                com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this@MainActivity)
-                com.example.kpkn.data.repository.LearnRepository.initialize(this@MainActivity)
-            }.onFailure { logKpknError("MainActivity", "Error initializing repositories", it) }
+        // Initialize repositories synchronously before setContent
+        runCatching {
+            ProgramRepository.init(this@MainActivity)
+            com.example.kpkn.data.repository.CompetitionRepository.init(this@MainActivity)
+            com.example.kpkn.data.repository.AugeRepository.getInstance(this@MainActivity)
+            com.example.kpkn.data.repository.NutritionRepository.init(this@MainActivity)
+            com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this@MainActivity)
+            com.example.kpkn.data.repository.LearnRepository.initialize(this@MainActivity)
+        }.onFailure { logKpknError("MainActivity", "Error initializing repositories", it) }
 
+        lifecycleScope.launch(Dispatchers.IO) {
             // 2. Initialize Exercise Database
             runCatching {
                 com.example.kpkn.data.exercises.initializeExerciseDatabase(this@MainActivity)

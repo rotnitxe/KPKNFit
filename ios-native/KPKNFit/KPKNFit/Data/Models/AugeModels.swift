@@ -423,78 +423,8 @@ public final class WorkoutReadinessBridge {
 
 // ─── Discomfort Catalog ───────────────────────────────────────────────────────
 
-public enum DiscomfortSection: String, Codable {
-    case SHOULDERS_ARMS
-    case SPINE_NECK
-    case HIP_PELVIS
-    case KNEE
-    case ANKLE_FOOT
-    case GENERAL
+// Redundant DiscomfortSection removed (defined in DiscomfortCatalog.swift)
 
-    public var label: String {
-        switch self {
-        case .SHOULDERS_ARMS: return "Hombro y brazos"
-        case .SPINE_NECK: return "Columna y cuello"
-        case .HIP_PELVIS: return "Cadera y pelvis"
-        case .KNEE: return "Rodilla"
-        case .ANKLE_FOOT: return "Tobillo y pie"
-        case .GENERAL: return "General"
-        }
-    }
-}
-
-public struct DiscomfortCatalogEntry: Codable {
-    public let id: String
-    public let label: String
-    public let description: String
-    public let section: DiscomfortSection
-    public let relatedMuscles: [String]
-
-    public init(
-        id: String,
-        label: String,
-        description: String,
-        section: DiscomfortSection,
-        relatedMuscles: [String] = []
-    ) {
-        self.id = id
-        self.label = label
-        self.description = description
-        self.section = section
-        self.relatedMuscles = relatedMuscles
-    }
-}
-
-public let DISCOMFORT_CATALOG: [DiscomfortCatalogEntry] = [
-    DiscomfortCatalogEntry(id: "none", label: "Sin molestias", description: "No hay molestias reportadas", section: .GENERAL),
-    DiscomfortCatalogEntry(id: "shoulder_anterior", label: "Hombro anterior", description: "Dolor en la parte frontal del hombro", section: .SHOULDERS_ARMS, relatedMuscles: ["Deltoides anterior"]),
-    DiscomfortCatalogEntry(id: "shoulder_posterior", label: "Hombro posterior", description: "Dolor en la parte posterior del hombro", section: .SHOULDERS_ARMS, relatedMuscles: ["Deltoides posterior"]),
-    DiscomfortCatalogEntry(id: "elbow_medial", label: "Codo interno", description: "Dolor en el epicóndilo medial", section: .SHOULDERS_ARMS, relatedMuscles: ["Antebrazo"]),
-    DiscomfortCatalogEntry(id: "elbow_lateral", label: "Codo externo", description: "Dolor en el epicóndilo lateral", section: .SHOULDERS_ARMS, relatedMuscles: ["Antebrazo"]),
-    DiscomfortCatalogEntry(id: "wrist_hand", label: "Muñeca/mano", description: "Dolor en muñeca o mano", section: .SHOULDERS_ARMS, relatedMuscles: ["Antebrazo"]),
-    DiscomfortCatalogEntry(id: "neck_cervical", label: "Cervical", description: "Dolor en la zona cervical", section: .SPINE_NECK, relatedMuscles: ["Trapecio", "Cervicales"]),
-    DiscomfortCatalogEntry(id: "upper_back", label: "Espalda alta", description: "Dolor en zona torácica alta", section: .SPINE_NECK, relatedMuscles: ["Dorsales", "Trapecio"]),
-    DiscomfortCatalogEntry(id: "lumbar", label: "Lumbar", description: "Dolor en la zona lumbar", section: .SPINE_NECK, relatedMuscles: ["Lumbar"]),
-    DiscomfortCatalogEntry(id: "hip_front", label: "Cadera frontal", description: "Dolor en la parte frontal de la cadera", section: .HIP_PELVIS, relatedMuscles: ["Iliopsoas"]),
-    DiscomfortCatalogEntry(id: "hip_lateral", label: "Cadera lateral", description: "Dolor lateral en la cadera (TFL/IT band)", section: .HIP_PELVIS, relatedMuscles: ["Glúteos", "TFL"]),
-    DiscomfortCatalogEntry(id: "adductor_groin", label: "Aductores/ingle", description: "Dolor en aductores o zona inguinal", section: .HIP_PELVIS, relatedMuscles: ["Aductores"]),
-    DiscomfortCatalogEntry(id: "hamstring_proximal", label: "Isquios proximal", description: "Dolor en la inserción proximal de isquiosurales", section: .HIP_PELVIS, relatedMuscles: ["Isquiosurales"]),
-    DiscomfortCatalogEntry(id: "knee_patellar", label: "Rodilla rotuliana", description: "Dolor en la rótula o tendón rotuliano", section: .KNEE, relatedMuscles: ["Cuádriceps"]),
-    DiscomfortCatalogEntry(id: "knee_medial", label: "Rodilla interna", description: "Dolor en el compartmento interno de la rodilla", section: .KNEE, relatedMuscles: ["Vasto interno"]),
-    DiscomfortCatalogEntry(id: "achilles", label: "Aquiles", description: "Dolor en el tendón de Aquiles", section: .ANKLE_FOOT, relatedMuscles: ["Gemelos", "Sóleo"]),
-    DiscomfortCatalogEntry(id: "ankle", label: "Tobillo", description: "Dolor en el tobillo", section: .ANKLE_FOOT, relatedMuscles: ["Gemelos"]),
-    DiscomfortCatalogEntry(id: "plantar_foot", label: "Planta del pie", description: "Dolor en la fascia plantar", section: .ANKLE_FOOT, relatedMuscles: ["Pantorrilla"]),
-]
-
-public let DISCOMFORT_CATALOG_BY_ID: [String: DiscomfortCatalogEntry] = {
-    var dict: [String: DiscomfortCatalogEntry] = [:]
-    for entry in DISCOMFORT_CATALOG { dict[entry.id] = entry }
-    return dict
-}()
-
-public func discomfortLabel(id: String) -> String {
-    DISCOMFORT_CATALOG_BY_ID[id]?.label ?? id
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -612,5 +542,367 @@ public struct PredictedDrain: Codable {
         self.cns = cns
         self.muscular = muscular
         self.spinal = spinal
+    }
+}
+
+// ─── Wellbeing & Logging (continued) ──────────────────────────────────────────
+
+public struct SleepLog: Codable {
+    public let id: String
+    public let date: String
+    public let endTime: String
+    public let duration: Double
+
+    public init(id: String, date: String, endTime: String, duration: Double) {
+        self.id = id
+        self.date = date
+        self.endTime = endTime
+        self.duration = duration
+    }
+}
+
+// ─── AUGE Metrics (per-exercise) ─────────────────────────────────────────────
+
+public struct AugeMetrics: Codable {
+    public let efc: Double
+    public let ssc: Double
+    public let cnc: Double
+
+    public init(efc: Double = 2.5, ssc: Double = 0.5, cnc: Double = 2.5) {
+        self.efc = efc
+        self.ssc = ssc
+        self.cnc = cnc
+    }
+
+    public var snc: Double { cnc }
+}
+
+public struct SleepRecommendation: Codable {
+    public let targetHours: Double
+    public let reasons: [String]
+
+    public init(targetHours: Double, reasons: [String]) {
+        self.targetHours = targetHours
+        self.reasons = reasons
+    }
+}
+
+// ─── TTC / Articular Battery ──────────────────────────────────────────────────
+
+public enum AlertSeverity: String, Codable {
+    case WARNING
+    case DANGER
+}
+
+public struct StructuralReadinessBreakdown: Codable {
+    public let muscleName: String
+    public let muscleBattery: Int
+    public let articularBattery: Int
+    public let combinedBattery: Int
+    public let limitingBattery: Int
+    public let relatedArticular: [ArticularBattery]
+
+    public init(muscleName: String, muscleBattery: Int, articularBattery: Int, combinedBattery: Int, limitingBattery: Int, relatedArticular: [ArticularBattery]) {
+        self.muscleName = muscleName
+        self.muscleBattery = muscleBattery
+        self.articularBattery = articularBattery
+        self.combinedBattery = combinedBattery
+        self.limitingBattery = limitingBattery
+        self.relatedArticular = relatedArticular
+    }
+}
+
+public struct TendonImbalanceAlert: Codable {
+    public let type: AlertSeverity
+    public let muscleLabel: String
+    public let articularLabel: String
+    public let muscleBattery: Int
+    public let articularBattery: Int
+    public let gap: Int
+    public let message: String
+
+    public init(type: AlertSeverity, muscleLabel: String, articularLabel: String, muscleBattery: Int, articularBattery: Int, gap: Int, message: String) {
+        self.type = type
+        self.muscleLabel = muscleLabel
+        self.articularLabel = articularLabel
+        self.muscleBattery = muscleBattery
+        self.articularBattery = articularBattery
+        self.gap = gap
+        self.message = message
+    }
+}
+
+public enum SuggestionType: String, Codable {
+    case BIOMECHANICAL
+    case NUTRITION
+}
+
+public struct TendonCompensationSuggestion: Codable {
+    public let type: SuggestionType
+    public let title: String
+    public let message: String
+
+    public init(type: SuggestionType, title: String, message: String) {
+        self.type = type
+        self.title = title
+        self.message = message
+    }
+}
+
+// ─── Mesocycle Stress EMA ──────────────────────────────────────────────────────
+
+public enum StressTrend: String, Codable {
+    case RISING
+    case STABLE
+    case FALLING
+}
+
+public struct MesocycleStressEMA: Codable {
+    public let programId: String
+    public let mesoIndex: Int
+    public let emaValue: Double
+    public let sessionCount: Int
+    public let latestStressScore: Double?
+    public let stressTrend: StressTrend
+    public let computedAtMs: Int64
+
+    public init(programId: String, mesoIndex: Int, emaValue: Double, sessionCount: Int, latestStressScore: Double?, stressTrend: StressTrend, computedAtMs: Int64) {
+        self.programId = programId
+        self.mesoIndex = mesoIndex
+        self.emaValue = emaValue
+        self.sessionCount = sessionCount
+        self.latestStressScore = latestStressScore
+        self.stressTrend = stressTrend
+        self.computedAtMs = computedAtMs
+    }
+}
+
+// ─── Mis RINGS: Rankings ──────────────────────────────────────────────────────
+
+public struct SessionDrainRanking: Codable {
+    public let logId: String
+    public let sessionName: String
+    public let date: String
+    public let totalDrain: Double
+    public let cnsDrain: Double
+    public let muscularDrain: Double
+    public let spinalDrain: Double
+
+    public init(logId: String, sessionName: String, date: String, totalDrain: Double, cnsDrain: Double, muscularDrain: Double, spinalDrain: Double) {
+        self.logId = logId
+        self.sessionName = sessionName
+        self.date = date
+        self.totalDrain = totalDrain
+        self.cnsDrain = cnsDrain
+        self.muscularDrain = muscularDrain
+        self.spinalDrain = spinalDrain
+    }
+}
+
+public struct ExerciseDrainRanking: Codable {
+    public let exerciseName: String
+    public let exerciseDbId: String?
+    public let overallDrain: Double
+    public let muscularDrain: Double
+    public let cnsDrain: Double
+    public let spinalDrain: Double
+    public let sessionCount: Int
+
+    public init(exerciseName: String, exerciseDbId: String?, overallDrain: Double, muscularDrain: Double, cnsDrain: Double, spinalDrain: Double, sessionCount: Int) {
+        self.exerciseName = exerciseName
+        self.exerciseDbId = exerciseDbId
+        self.overallDrain = overallDrain
+        self.muscularDrain = muscularDrain
+        self.cnsDrain = cnsDrain
+        self.spinalDrain = spinalDrain
+        self.sessionCount = sessionCount
+    }
+}
+
+// ─── Mis RINGS: Recuperación personal ─────────────────────────────────────────
+
+public struct PersonalRecoveryStats: Codable {
+    public let avgRecoveryHoursOverall: Double
+    public let avgRecoveryHoursMuscular: Double
+    public let avgRecoveryHoursCns: Double
+    public let avgRecoveryHoursSpinal: Double
+    public let fastestRecoverySession: String?
+    public let slowestRecoverySession: String?
+    public let sampleCount: Int
+
+    public init(avgRecoveryHoursOverall: Double, avgRecoveryHoursMuscular: Double, avgRecoveryHoursCns: Double, avgRecoveryHoursSpinal: Double, fastestRecoverySession: String?, slowestRecoverySession: String?, sampleCount: Int) {
+        self.avgRecoveryHoursOverall = avgRecoveryHoursOverall
+        self.avgRecoveryHoursMuscular = avgRecoveryHoursMuscular
+        self.avgRecoveryHoursCns = avgRecoveryHoursCns
+        self.avgRecoveryHoursSpinal = avgRecoveryHoursSpinal
+        self.fastestRecoverySession = fastestRecoverySession
+        self.slowestRecoverySession = slowestRecoverySession
+        self.sampleCount = sampleCount
+    }
+}
+
+// ─── Mis RINGS: Interferencia ──────────────────────────────────────────────────
+
+public struct SharedMuscleInterference: Codable {
+    public let muscleName: String
+    public let drainFromSessionA: Double
+    public let usageInSessionB: Double
+    public let recoveryDeficit: Double
+
+    public init(muscleName: String, drainFromSessionA: Double, usageInSessionB: Double, recoveryDeficit: Double) {
+        self.muscleName = muscleName
+        self.drainFromSessionA = drainFromSessionA
+        self.usageInSessionB = usageInSessionB
+        self.recoveryDeficit = recoveryDeficit
+    }
+}
+
+public struct SessionInterference: Codable {
+    public let sessionAId: String
+    public let sessionAName: String
+    public let sessionBId: String
+    public let sessionBName: String
+    public let sessionADate: String?
+    public let sessionBDate: String?
+    public let interferencePercent: Int
+    public let sharedMuscles: [SharedMuscleInterference]
+    public let recommendation: String
+    public let isFromHistory: Bool
+    public let hoursApart: Double
+
+    public init(sessionAId: String, sessionAName: String, sessionBId: String, sessionBName: String, sessionADate: String?, sessionBDate: String?, interferencePercent: Int, sharedMuscles: [SharedMuscleInterference], recommendation: String, isFromHistory: Bool, hoursApart: Double) {
+        self.sessionAId = sessionAId
+        self.sessionAName = sessionAName
+        self.sessionBId = sessionBId
+        self.sessionBName = sessionBName
+        self.sessionADate = sessionADate
+        self.sessionBDate = sessionBDate
+        self.interferencePercent = interferencePercent
+        self.sharedMuscles = sharedMuscles
+        self.recommendation = recommendation
+        self.isFromHistory = isFromHistory
+        self.hoursApart = hoursApart
+    }
+}
+
+// ─── Mis RINGS: Sueño extendido ───────────────────────────────────────────────
+
+public struct SleepLogExtended: Codable {
+    public let id: String
+    public let date: String
+    public let bedTime: String
+    public let wakeTime: String
+    public let duration: Double
+    public let quality: Int
+    public let awakenings: Int
+    public let notes: String?
+
+    public init(id: String, date: String, bedTime: String, wakeTime: String, duration: Double, quality: Int = 3, awakenings: Int = 0, notes: String? = nil) {
+        self.id = id
+        self.date = date
+        self.bedTime = bedTime
+        self.wakeTime = wakeTime
+        self.duration = duration
+        self.quality = quality
+        self.awakenings = awakenings
+        self.notes = notes
+    }
+
+    public func toSleepLog() -> SleepLog {
+        SleepLog(id: id, date: date, endTime: wakeTime, duration: duration)
+    }
+}
+
+// ─── Readiness por Patrón de Movimiento y Ejercicio ───────────────────────────
+
+public struct MovementPatternReadiness: Codable {
+    public let patternId: String
+    public let patternLabel: String
+    public let overallScore: Int
+    public let exerciseCount: Int
+    public let totalSets: Int
+    public let contributingMuscles: [String]
+    public let averageMuscleRecovery: Int
+
+    public init(patternId: String, patternLabel: String, overallScore: Int, exerciseCount: Int, totalSets: Int, contributingMuscles: [String], averageMuscleRecovery: Int) {
+        self.patternId = patternId
+        self.patternLabel = patternLabel
+        self.overallScore = overallScore
+        self.exerciseCount = exerciseCount
+        self.totalSets = totalSets
+        self.contributingMuscles = contributingMuscles
+        self.averageMuscleRecovery = averageMuscleRecovery
+    }
+}
+
+public struct ExerciseReadiness: Codable {
+    public let exerciseId: String
+    public let exerciseName: String
+    public let overallScore: Int
+    public let muscularComponent: Int
+    public let cnsComponent: Int
+    public let spinalComponent: Int
+    public let articularComponent: Int
+    public let structuralComponent: Int
+    public let relatedArticular: [ArticularBattery]
+    public let muscularWeight: Double
+    public let cnsWeight: Double
+    public let spinalWeight: Double
+    public let articularWeight: Double
+    public let setsPenaltyFactor: Double
+    public let intensityPenaltyFactor: Double
+    public let ermProximityFactor: Double
+    public let patternId: String?
+    public let involvedMuscleIds: [String]
+    public let limitingFactor: String?
+    public let limitingDetail: String?
+
+    public init(exerciseId: String, exerciseName: String, overallScore: Int, muscularComponent: Int, cnsComponent: Int, spinalComponent: Int, articularComponent: Int, structuralComponent: Int, relatedArticular: [ArticularBattery], muscularWeight: Double, cnsWeight: Double, spinalWeight: Double, articularWeight: Double, setsPenaltyFactor: Double, intensityPenaltyFactor: Double, ermProximityFactor: Double, patternId: String?, involvedMuscleIds: [String], limitingFactor: String? = nil, limitingDetail: String? = nil) {
+        self.exerciseId = exerciseId
+        self.exerciseName = exerciseName
+        self.overallScore = overallScore
+        self.muscularComponent = muscularComponent
+        self.cnsComponent = cnsComponent
+        self.spinalComponent = spinalComponent
+        self.articularComponent = articularComponent
+        self.structuralComponent = structuralComponent
+        self.relatedArticular = relatedArticular
+        self.muscularWeight = muscularWeight
+        self.cnsWeight = cnsWeight
+        self.spinalWeight = spinalWeight
+        self.articularWeight = articularWeight
+        self.setsPenaltyFactor = setsPenaltyFactor
+        self.intensityPenaltyFactor = intensityPenaltyFactor
+        self.ermProximityFactor = ermProximityFactor
+        self.patternId = patternId
+        self.involvedMuscleIds = involvedMuscleIds
+        self.limitingFactor = limitingFactor
+        self.limitingDetail = limitingDetail
+    }
+}
+
+public struct SetAdjustmentSuggestion: Codable {
+    public let exerciseId: String
+    public let setIndex: Int
+    public let currentPlannedWeight: Double
+    public let readinessScore: Int
+    public let severityFactor: Double
+    public let reductionPercent: Double
+    public let suggestedWeight: Double
+    public let averageErm: Double?
+    public let reason: String
+    public let suggestedLoadMode: LoadModeV2
+
+    public init(exerciseId: String, setIndex: Int, currentPlannedWeight: Double, readinessScore: Int, severityFactor: Double, reductionPercent: Double, suggestedWeight: Double, averageErm: Double?, reason: String, suggestedLoadMode: LoadModeV2 = .LOAD) {
+        self.exerciseId = exerciseId
+        self.setIndex = setIndex
+        self.currentPlannedWeight = currentPlannedWeight
+        self.readinessScore = readinessScore
+        self.severityFactor = severityFactor
+        self.reductionPercent = reductionPercent
+        self.suggestedWeight = suggestedWeight
+        self.averageErm = averageErm
+        self.reason = reason
+        self.suggestedLoadMode = suggestedLoadMode
     }
 }

@@ -289,7 +289,12 @@ object ProgramAnalyticsEngine {
             }
             if (bodyPart == "upper") upper += sets
             if (bodyPart == "lower") lower += sets
-            info.involvedMuscles.forEach { muscle ->
+            val muscles = if (!row.exercise.effectiveMuscles.isNullOrEmpty()) {
+                row.exercise.effectiveMuscles!!
+            } else {
+                info.involvedMuscles
+            }
+            muscles.forEach { muscle ->
                 val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
                 val contribution = resolveMuscleVolumeContribution(muscle)
                 if (canonical == "Cuádriceps" || chainLower == "anterior") quads += sets * contribution

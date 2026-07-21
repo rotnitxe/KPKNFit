@@ -5,6 +5,7 @@ import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.db.toExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.domain.exercises.VariantGroupIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -62,6 +63,7 @@ fun initializeExerciseDatabase(context: Context) {
             aliases.mapKeys { it.key.lowercase() }.mapValues { it.value.lowercase() } +
                 extraWikiLabExerciseAliases.mapKeys { it.key.lowercase() }.mapValues { it.value.lowercase() }
             )
+        VariantGroupIndex.rebuild(exercises)
         exerciseCatalogInitialized = true
     }
 }
@@ -80,6 +82,7 @@ suspend fun loadCustomExercisesAsync(context: Context) {
         val merged = buildMergedExerciseCatalog()
         exerciseDatabaseCache = merged
         exerciseDatabaseByIdCache = merged.associateBy { it.id.lowercase() }
+        VariantGroupIndex.rebuild(merged)
     }
 }
 

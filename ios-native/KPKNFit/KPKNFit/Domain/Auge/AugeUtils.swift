@@ -33,6 +33,10 @@ internal struct AugeUtils {
         return 0
     }
 
+    static func logDateMs(_ log: WorkoutLog) -> Int64 {
+        logDateMs(log: log)
+    }
+
     static func parseIsoMs(_ dateString: String) -> Int64 {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]

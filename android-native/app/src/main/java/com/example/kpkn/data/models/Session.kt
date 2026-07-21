@@ -235,6 +235,10 @@ data class Exercise(
     val supersetRestAfter: Int? = null,
     val supersetGroupRef: String? = null,
     val variantName: String? = null,
+    val variantGroupId: String? = null,
+    val variantGroupName: String? = null,
+    val selectedAspects: Map<String, String>? = null,
+    val effectiveMuscles: List<InvolvedMuscle>? = null,
     val selectedExecutionOption: String? = null,
     val selectedMovementPattern: String? = null,
     val prFor1RM: PrReference? = null,
@@ -431,3 +435,5 @@ fun Session.effectiveSupersetGroupFor(exercise: Exercise): SupersetGroup? {
 
 fun Exercise.supersetGroupRefOrLegacyId(): String? =
     supersetGroupRef?.takeIf { it.isNotBlank() } ?: supersetId?.takeIf { it.isNotBlank() }
+
+

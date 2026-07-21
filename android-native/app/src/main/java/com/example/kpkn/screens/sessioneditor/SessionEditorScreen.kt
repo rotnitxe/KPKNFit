@@ -6931,6 +6931,7 @@ private fun SupersetManagerSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ExercisePickerSheet(
     query: String,
@@ -7047,7 +7048,13 @@ internal fun ExercisePickerSheet(
         }
     }
 
+    var variantFlowExercise by remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
+
     fun handleSelect(info: ExerciseMuscleInfo) {
+        if (!info.variantGroupId.isNullOrBlank() && editingExisting) {
+            variantFlowExercise = info
+            return
+        }
         if (editingExisting) {
             onSelect(info)
         } else {
@@ -7675,6 +7682,26 @@ internal fun ExercisePickerSheet(
             associatedDiscomforts = discomfortByExercise[selected.id].orEmpty(),
             onOpenExercise = onOpenExerciseDetail,
             onDismiss = { infoExerciseId = null },
+        )
+    }
+
+    variantFlowExercise?.let { exercise ->
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        VariantFlowSheet(
+            initialExercise = exercise,
+            sheetState = sheetState,
+            onConfirm = { selectedVariant, selectedAspects ->
+                VariantFlowResultCache.store(
+                    exerciseDbId = selectedVariant.id,
+                    variantName = selectedVariant.variantName,
+                    variantGroupId = selectedVariant.variantGroupId,
+                    variantGroupName = selectedVariant.variantGroupName,
+                    selectedAspects = selectedAspects,
+                )
+                onSelect(selectedVariant)
+                variantFlowExercise = null
+            },
+            onDismiss = { variantFlowExercise = null },
         )
     }
 }

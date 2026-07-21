@@ -1,2 +1,1 @@
-// Placeholder for data/models/AugeAdaptiveModels.kt
-// To be translated to Swift
+// Redundant model definitions moved to Data/Models/AugeModels.swift to resolve duplication.

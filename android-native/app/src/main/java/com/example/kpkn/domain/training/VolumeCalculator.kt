@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.AugeFatigueEngine
+import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 
 data class MuscleVolumeEntry(
     val muscleId: String,
@@ -195,8 +196,7 @@ object VolumeCalculator {
                 val validSetsCount = countEffectiveSets(exercise.sets)
 
                 if (validSetsCount > 0) {
-                    val dbInfo = exercise.exerciseDbId?.let { exIndex[it.lowercase()] }
-                    val musclesToCount = dbInfo?.let { SessionMuscleFilter.relevantMusclesFor(it) } ?: emptyList()
+                    val musclesToCount = ExerciseMuscleResolver.effectiveMuscles(exercise, exIndex)
 
                     if (musclesToCount.isNotEmpty()) {
                         val uniqueMultipliers = buildPerExerciseMuscleContributions(musclesToCount)
@@ -291,10 +291,9 @@ object VolumeCalculator {
             val effectiveSets = countEffectiveSets(exercise.sets)
             if (effectiveSets <= 0) return@forEach
 
-            val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: return@forEach
-            val contributions = buildPerExerciseMuscleContributions(
-                SessionMuscleFilter.relevantMusclesFor(dbInfo)
-            )
+            val musclesToCount = ExerciseMuscleResolver.effectiveMuscles(exercise, exerciseIndex)
+            if (musclesToCount.isEmpty()) return@forEach
+            val contributions = buildPerExerciseMuscleContributions(musclesToCount)
             contributions.forEach { (canonical, multiplier) ->
                 volumeMap[canonical] = (volumeMap[canonical] ?: 0.0) + effectiveSets * multiplier
             }
@@ -316,12 +315,12 @@ object VolumeCalculator {
                 val effectiveSets = countEffectiveSets(exercise.sets)
                 if (effectiveSets <= 0) continue
 
-                val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: continue
                 val musclesToCount = if (useFilter) {
-                    SessionMuscleFilter.relevantMusclesFor(dbInfo)
+                    ExerciseMuscleResolver.effectiveMuscles(exercise, exerciseIndex)
                 } else {
-                    dbInfo.involvedMuscles
+                    ExerciseMuscleResolver.effectiveMusclesWithoutFilter(exercise, exerciseIndex)
                 }
+                if (musclesToCount.isEmpty()) continue
                 val contributions = buildPerExerciseMuscleContributions(musclesToCount)
                 for ((canonical, multiplier) in contributions) {
                     volumeMap[canonical] = (volumeMap[canonical] ?: 0.0) + effectiveSets * multiplier

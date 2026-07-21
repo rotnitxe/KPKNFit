@@ -269,7 +269,13 @@ object InterferenceEngine {
             // Estimar drenaje basado en EFC normalizado (sin sets reales)
             val estimatedDrain = (metrics.efc / 5.0) * 0.4   // 40% max drain estimado por ejercicio
 
-            info.involvedMuscles.forEach { im ->
+            val involvedMuscles = if (!ex.effectiveMuscles.isNullOrEmpty()) {
+                ex.effectiveMuscles!!
+            } else {
+                info.involvedMuscles
+            }
+
+            involvedMuscles.forEach { im ->
                 val roleW = ROLE_DRAIN_WEIGHT[im.role] ?: 0.0
                 if (roleW > 0.0) {
                     val muscleDrain = estimatedDrain * roleW
@@ -290,7 +296,12 @@ object InterferenceEngine {
 
         allExercises.forEach { ex ->
             val info = resolveExercise(ex.exerciseDbId, ex.name, exerciseDb) ?: return@forEach
-            info.involvedMuscles.forEach { im ->
+            val involvedMuscles = if (!ex.effectiveMuscles.isNullOrEmpty()) {
+                ex.effectiveMuscles!!
+            } else {
+                info.involvedMuscles
+            }
+            involvedMuscles.forEach { im ->
                 val roleW = ROLE_DRAIN_WEIGHT[im.role] ?: 0.0
                 if (roleW > 0.0) {
                     usages[im.muscle] = maxOf(usages[im.muscle] ?: 0.0, roleW)

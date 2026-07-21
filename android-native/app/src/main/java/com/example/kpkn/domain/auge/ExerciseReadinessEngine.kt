@@ -45,9 +45,14 @@ object ExerciseReadinessEngine {
             ?: EXERCISE_DATABASE_BY_ID[exercise.exerciseId?.lowercase()]
             ?: return null
 
-        val involvedMuscles = dbInfo.involvedMuscles
-            .filter { resolveMuscleVolumeContribution(it) > 0.0 }
-            .filter { it.role != MuscleRole.NEUTRALIZER }
+        val involvedMuscles = if (!exercise.effectiveMuscles.isNullOrEmpty()) {
+            exercise.effectiveMuscles!!
+                .filter { resolveMuscleVolumeContribution(it) > 0.0 }
+        } else {
+            dbInfo.involvedMuscles
+                .filter { resolveMuscleVolumeContribution(it) > 0.0 }
+                .filter { it.role != MuscleRole.NEUTRALIZER }
+        }
 
         val muscleIds = involvedMuscles
             .mapNotNull { getAugeMuscleDisplayId(it.muscle, it.emphasis) }

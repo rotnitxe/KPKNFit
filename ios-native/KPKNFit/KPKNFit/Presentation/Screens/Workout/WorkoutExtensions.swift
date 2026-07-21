@@ -1,157 +1,13 @@
 import Foundation
 
-// ─── Exercise Identity Extensions ────────────────────────────────────────────
+// Redundant Exercise, CompletedExercise, and Session identity extensions removed (defined in ExerciseIdentity.swift and Session.swift)
 
-extension Exercise {
-    func resolvedCanonicalExerciseId() -> String {
-        if let cid = canonicalExerciseId, !cid.isEmpty {
-            return cid.lowercased().folding(options: .diacriticInsensitive, locale: .current)
-        }
-        if let dbId = exerciseDbId, !dbId.isEmpty {
-            return dbId.lowercased().folding(options: .diacriticInsensitive, locale: .current)
-        }
-        if let exId = exerciseId, !exId.isEmpty {
-            return exId.lowercased().folding(options: .diacriticInsensitive, locale: .current)
-        }
-        let normalizedName = name.lowercased().folding(options: .diacriticInsensitive, locale: .current).replacingOccurrences(of: " ", with: "_")
-        if !normalizedName.isEmpty { return "custom:\(normalizedName)" }
-        return "legacy:\(id)"
-    }
 
-    func normalizedIdentityFields() -> Exercise {
-        let resolved = resolvedCanonicalExerciseId()
-        return Exercise(
-            id: id, name: name, exerciseDbId: exerciseDbId, exerciseId: exerciseId,
-            canonicalExerciseId: resolved, exerciseFamilyId: exerciseFamilyId,
-            relativeToCanonicalExerciseId: relativeToCanonicalExerciseId,
-            relationshipType: relationshipType, relationshipNotes: relationshipNotes,
-            sets: sets, warmupSets: warmupSets, restTime: restTime, isFavorite: isFavorite,
-            trainingMode: trainingMode, customUnit: customUnit, reference1RM: reference1RM,
-            targetSessionGoal: targetSessionGoal, isStarTarget: isStarTarget,
-            trackHeartRate: trackHeartRate, trackRom: trackRom, setupDetails: setupDetails,
-            supersetId: supersetId, supersetRestBetween: supersetRestBetween,
-            supersetRestAfter: supersetRestAfter, supersetGroupRef: supersetGroupRef,
-            variantName: variantName, selectedExecutionOption: selectedExecutionOption,
-            selectedMovementPattern: selectedMovementPattern, prFor1RM: prFor1RM,
-            consolidatedWeight: consolidatedWeight, brandEquivalencies: brandEquivalencies,
-            isUnilateral: isUnilateral, unilateralMode: unilateralMode,
-            unilateralSideOrder: unilateralSideOrder, unilateralIntensityMode: unilateralIntensityMode,
-            restBetweenSidesSeconds: restBetweenSidesSeconds, isCalibratorAmrap: isCalibratorAmrap,
-            goal1RM: goal1RM, goalPr: goalPr, calculated1RM: calculated1RM,
-            damageProfile: damageProfile, isCompetitionLift: isCompetitionLift,
-            setupCues: setupCues, executionCues: executionCues,
-            contextProfilesV3: contextProfilesV3, defaultContextProfileIdV3: defaultContextProfileIdV3,
-            mobilitySeries: mobilitySeries, timeStrategy: timeStrategy,
-            targetDurationMinutes: targetDurationMinutes
-        )
-    }
-}
+// Redundant EXERCISE_DATABASE_BY_ID and WorkoutContextRecurrenceEngine removed (defined in ExerciseDatabase.swift and WorkoutContextRecurrenceEngine.swift)
 
-extension CompletedExercise {
-    func resolvedCanonicalExerciseId() -> String {
-        if let cid = canonicalExerciseId, !cid.isEmpty {
-            return cid.lowercased().folding(options: .diacriticInsensitive, locale: .current)
-        }
-        if let dbId = exerciseDbId, !dbId.isEmpty {
-            return dbId.lowercased().folding(options: .diacriticInsensitive, locale: .current)
-        }
-        if !exerciseId.isEmpty {
-            return exerciseId.lowercased().folding(options: .diacriticInsensitive, locale: .current)
-        }
-        let normalizedName = exerciseName.lowercased().folding(options: .diacriticInsensitive, locale: .current).replacingOccurrences(of: " ", with: "_")
-        if !normalizedName.isEmpty { return "custom:\(normalizedName)" }
-        return "legacy:\(exerciseId)"
-    }
-}
 
-// ─── Session Extensions ──────────────────────────────────────────────────────
+// Redundant SupersetRules stub removed (defined in SupersetRules.swift)
 
-extension Session {
-    func normalizedIdentityFields() -> Session {
-        copy(
-            exercises: exercises.map { $0.normalizedIdentityFields() },
-            parts: parts.map { part in
-                SessionPart(id: part.id, name: part.name, exercises: part.exercises.map { $0.normalizedIdentityFields() }, color: part.color, targetDurationMinutes: part.targetDurationMinutes)
-            },
-            sessionB: sessionB?.normalizedIdentityFields(),
-            sessionC: sessionC?.normalizedIdentityFields(),
-            sessionD: sessionD?.normalizedIdentityFields(),
-            trainingBackup: trainingBackup?.normalizedIdentityFields()
-        )
-    }
-    
-    func effectiveSupersetGroupFor(_ exercise: Exercise) -> SupersetGroup? {
-        guard let ref = exercise.supersetGroupRefOrLegacyId() else { return nil }
-        return allSupersetGroups().first(where: { $0.id == ref })
-    }
-    
-    func allSupersetGroups() -> [SupersetGroup] {
-        return supersetGroups
-    }
-}
-
-// ─── EXERCISE_DATABASE_BY_ID ─────────────────────────────────────────────────
-
-let EXERCISE_DATABASE_BY_ID: [String: ExerciseMuscleInfo] = [:]
-
-// ─── WorkoutContextRecurrenceEngine ──────────────────────────────────────────
-
-struct WorkoutContextRecurrenceEngine {
-    struct DayRecurrence {
-        let confidence: Int
-        let tagId: String?
-        let profileId: String?
-    }
-
-    static func detectDayRecurrence(exerciseDbId: String, dayOfWeek: Int, logs: [WorkoutLog]) -> DayRecurrence {
-        DayRecurrence(confidence: 0, tagId: nil, profileId: nil)
-    }
-}
-
-// ─── SupersetRules ───────────────────────────────────────────────────────────
-
-struct SupersetRules {
-    static func orderedMembers(_ session: Session, _ groupId: String) -> [Exercise] {
-        guard let group = session.supersetGroups.first(where: { $0.id == groupId }) else { return [] }
-        let allEx = session.allExercises()
-        return group.exerciseOrder.compactMap { id in allEx.first { $0.id == id } }
-    }
-
-    static func roundCount(_ session: Session, _ groupId: String) -> Int {
-        session.supersetGroups.first(where: { $0.id == groupId })?.rounds ?? 1
-    }
-
-    static func normalizeSession(_ session: Session) -> Session {
-        session
-    }
-    
-    static func createSuperset(
-        session: Session,
-        groupId: String,
-        exerciseIds: [String],
-        restBetweenExercises: Int,
-        restAfterSuperset: Int,
-        rounds: Int? = nil,
-        anchorPartId: String? = nil,
-        anchorExerciseId: String? = nil
-    ) -> Session {
-        return session
-    }
-
-    static func dissolve(_ session: Session, _ groupId: String) -> Session {
-        return session
-    }
-
-    static func updateRest(
-        session: Session,
-        groupId: String,
-        restBetweenExercises: Int?,
-        restAfterSuperset: Int?,
-        rounds: Int?
-    ) -> Session {
-        return session
-    }
-}
 
 // ─── WorkoutSetDraft copy ────────────────────────────────────────────────────
 
@@ -517,48 +373,8 @@ struct WorkoutStepRules {
     }
 }
 
-struct TrainingEnergyEngine {
-    static func estimateLiveSession(completedExercises: [CompletedExercise], settings: AppSettings) -> SessionEnergySummary {
-        SessionEnergySummary()
-    }
-}
+// Redundant TrainingEnergyEngine, ExerciseReadinessEngine, and AugeFatigueEngine stubs removed (defined in their respective Domain engine files)
 
-struct ExerciseReadinessEngine {
-    static func evaluate(_ exercise: Exercise, settings: AppSettings) -> ExerciseReadiness {
-        ExerciseReadiness()
-    }
-    
-    static func calculatePerExerciseReadiness(
-        exercise: Exercise,
-        augeBatteries: GlobalBatteries,
-        perMuscle: [String: MuscleRecoveryStatus],
-        averageErm: Double?
-    ) -> ExerciseReadiness? {
-        return ExerciseReadiness()
-    }
-    
-    static func calculatePerMovementPatternReadiness(
-        exercises: [Exercise],
-        exerciseReadinessMap: [String: ExerciseReadiness],
-        perMuscle: [String: MuscleRecoveryStatus]
-    ) -> [MovementPatternReadiness] {
-        return []
-    }
-}
-
-struct AugeFatigueEngine {
-    struct PredictedDrain {
-        let cns: Double
-        let muscular: Double
-        let spinal: Double
-    }
-    static func calculateCompletedSessionDrain(completedExercises: [CompletedExercise], exerciseDb: [String: ExerciseMuscleInfo], settings: AppSettings) -> PredictedDrain {
-        PredictedDrain(cns: 0, muscular: 0, spinal: 0)
-    }
-    static func calculateCompletedSessionStress(completedExercises: [CompletedExercise], exerciseDb: [String: ExerciseMuscleInfo], settings: AppSettings) -> Double {
-        0.0
-    }
-}
 
 // ─── Voice Helper Functions ───────────────────────────────────────────────────
 
@@ -601,13 +417,8 @@ extension WorkoutLog: Hashable, Equatable {
     }
 }
 
-// ─── CompletedSet Extensions ──────────────────────────────────────────────────
+// Redundant CompletedSet effectiveRepEquivalent removed (defined in WorkoutLog.swift)
 
-extension CompletedSet {
-    func effectiveRepEquivalent() -> Double {
-        Double(reps) + Double(max(0, partialReps ?? 0)) * 0.5
-    }
-}
 
 // ─── WorkoutUiState copy ─────────────────────────────────────────────────────
 
@@ -964,30 +775,9 @@ func calculateHybrid1RM(_ weight: Double, reps: Int, isAmrap: Bool = false) -> D
 }
 
 func calculateSuggestedLoad(_ exercise: Exercise, set: ExerciseSet) -> Double? {
-    return nil
+    return calculateSuggestedLoad(exercise, set)
 }
 
-func buildWorkoutContextKey(
-    exerciseId: String,
-    machineBrand: String?,
-    tagId: String?,
-    loadMode: LoadModeV2,
-    unitMode: UnitModeV2,
-    techSubTags: String? = nil
-) -> String {
-    let brandPart = machineBrand?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? machineBrand! : "na"
-    let tagPart = tagId?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? tagId! : "na"
-    let techPart = techSubTags?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? techSubTags! : "na"
-    
-    return [
-        exerciseId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "unknown" : exerciseId,
-        brandPart,
-        tagPart,
-        techPart,
-        loadMode.rawValue,
-        unitMode.rawValue
-    ].joined(separator: "|")
-}
 
 // ─── SessionPart copy ────────────────────────────────────────────────────────
 
