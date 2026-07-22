@@ -160,7 +160,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     // ─── Core recompute ───────────────────────────────────────────────────────
 
     private suspend fun recompute(history: List<WorkoutLog>, settings: Settings) {
-        _snapshot.update { it.copy(isLoading = true) }
+        _snapshot.update { if (it.dashboard.headline == "Calculando...") it.copy(isLoading = true) else it }
         val todayWellbeing = augeRepo.getTodayWellbeing()
         val overrideWellbeing = augeRepo.getActiveWellbeingWithManualOverrides()
         val wellbeing = if (overrideWellbeing != null &&
@@ -215,8 +215,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             val twoWeeksAgo = System.currentTimeMillis() - 14L * 24 * 3600_000
             val cumFatigue = history
                 .filter { log ->
-                    runCatching { Instant.parse(log.date).toEpochMilli() }
-                        .getOrDefault(0L) >= twoWeeksAgo
+                    com.example.kpkn.domain.auge.AugeUtils.logDateMs(log) >= twoWeeksAgo
                 }
                 .sumOf { log ->
                     AugeFatigueEngine.calculateCompletedSessionStress(

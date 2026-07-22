@@ -363,6 +363,7 @@ class WorkoutViewModel(
     private var restReferenceAdvanced: SetAdvancedFeedback? = null
     private var restStartedAtMs: Long? = null
     private var voiceJob: Job? = null
+    private var persistJob: Job? = null
     private val recordingGate = WorkoutRecordingGate()
     private val evaluatedContextKeysThisSession = mutableSetOf<String>()
 
@@ -3040,51 +3041,65 @@ class WorkoutViewModel(
         }
     }
 
-    private fun persistOngoingState(state: WorkoutUiState = _uiState.value) {
+    private fun persistOngoingState(state: WorkoutUiState = _uiState.value, immediate: Boolean = false) {
         val session = state.session ?: return
         val visible = visibleExercises(state)
         val activeExercise = visible.getOrNull(state.currentExerciseIdx)
+        val safeSetIdx = state.currentSetIdx.coerceIn(0, (activeExercise?.sets?.size?.minus(1))?.coerceAtLeast(0) ?: 0)
         val activeSetId = activeExercise
             ?.sets
-            ?.getOrNull(state.currentSetIdx)
+            ?.getOrNull(safeSetIdx)
             ?.id
 
-        repository.updateOngoingWorkout { ongoing ->
-            if (ongoing.programId != programId || ongoing.session.id != sessionId) {
-                ongoing
-            } else {
-                ongoing.copy(
-                    session = session,
-                    activeMode = state.activeMode,
-                    activeExerciseId = activeExercise?.id,
-                    activeSetId = activeSetId,
-                    activeSetIndex = state.currentSetIdx,
-                    activeExerciseIndex = state.currentExerciseIdx,
-                    activeStepKey = state.activeStepKey,
-                    completedSets = state.completedSets,
-                    dynamicWeights = state.loadSuggestions.mapValues { it.value.suggestedWeight },
-                    loadSuggestionReasons = state.loadSuggestions.mapValues { it.value.reason },
-                    exerciseTags = state.exerciseTags,
-                    activeTags = state.activeTagsByExercise,
-                    activeSubTags = state.activeSubTagsByExercise,
-                    userCreatedTags = state.userCreatedTags,
-                    contextProfilesV3 = state.contextProfilesV3,
-                    activeContextProfileByExerciseId = state.activeContextProfileByExerciseId,
-                    skippedExerciseIds = state.skippedExerciseIds,
-                    warmupCompletedExerciseIds = state.warmupCompletedExerciseIds,
-                    mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
-                    readinessNeuralOverride = state.readinessNeuralOverride,
-                    readinessMuscularOverride = state.readinessMuscularOverride,
-                    readinessSpinalOverride = state.readinessSpinalOverride,
-                    readinessMuscleOverrides = state.readinessMuscleOverrides,
-                    setDrafts = state.setDrafts,
-                    manualLoadOverrides = state.manualLoadOverrides,
-                    editingSetKey = state.editingState?.setKey,
-                    restModalState = state.restModalState,
-                    persistedLoadModeBySet = state.persistedLoadModeBySet,
-                    persistedLoadModeByExercise = state.persistedLoadModeByExercise,
-                    customTargetDurationMinutes = state.customTargetDurationMinutes,
-                )
+        val performSave = {
+            repository.updateOngoingWorkout { ongoing ->
+                if (ongoing.programId != programId || ongoing.session.id != sessionId) {
+                    ongoing
+                } else {
+                    ongoing.copy(
+                        session = session,
+                        activeMode = state.activeMode,
+                        activeExerciseId = activeExercise?.id,
+                        activeSetId = activeSetId,
+                        activeSetIndex = safeSetIdx,
+                        activeExerciseIndex = state.currentExerciseIdx,
+                        activeStepKey = state.activeStepKey,
+                        completedSets = state.completedSets,
+                        dynamicWeights = state.loadSuggestions.mapValues { it.value.suggestedWeight },
+                        loadSuggestionReasons = state.loadSuggestions.mapValues { it.value.reason },
+                        exerciseTags = state.exerciseTags,
+                        activeTags = state.activeTagsByExercise,
+                        activeSubTags = state.activeSubTagsByExercise,
+                        userCreatedTags = state.userCreatedTags,
+                        contextProfilesV3 = state.contextProfilesV3,
+                        activeContextProfileByExerciseId = state.activeContextProfileByExerciseId,
+                        skippedExerciseIds = state.skippedExerciseIds,
+                        warmupCompletedExerciseIds = state.warmupCompletedExerciseIds,
+                        mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
+                        readinessNeuralOverride = state.readinessNeuralOverride,
+                        readinessMuscularOverride = state.readinessMuscularOverride,
+                        readinessSpinalOverride = state.readinessSpinalOverride,
+                        readinessMuscleOverrides = state.readinessMuscleOverrides,
+                        setDrafts = state.setDrafts,
+                        manualLoadOverrides = state.manualLoadOverrides,
+                        editingSetKey = state.editingState?.setKey,
+                        restModalState = state.restModalState,
+                        persistedLoadModeBySet = state.persistedLoadModeBySet,
+                        persistedLoadModeByExercise = state.persistedLoadModeByExercise,
+                        customTargetDurationMinutes = state.customTargetDurationMinutes,
+                    )
+                }
+            }
+        }
+
+        if (immediate) {
+            persistJob?.cancel()
+            performSave()
+        } else {
+            persistJob?.cancel()
+            persistJob = viewModelScope.launch(Dispatchers.IO) {
+                delay(350L)
+                performSave()
             }
         }
     }

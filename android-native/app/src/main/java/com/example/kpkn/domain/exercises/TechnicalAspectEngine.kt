@@ -38,12 +38,34 @@ object TechnicalAspectEngine {
         return EffectiveMuscleResult(effective, summary)
     }
 
-    private class EffectiveMuscleBuilder(private val baseMuscles: List<InvolvedMuscle>) {
-        private val muscleMap = baseMuscles.associateBy { it.muscle }.toMutableMap()
-        private val order = baseMuscles.map { it.muscle }.toMutableList()
+    private fun normalizeMuscleKey(muscle: String): String = when (muscle.trim()) {
+        "Glúteos" -> "Glúteo Mayor"
+        "Pectorales" -> "Pectoral Mayor"
+        "Tríceps" -> "Tríceps Braquial"
+        "Bíceps" -> "Bíceps Braquial"
+        else -> muscle.trim()
+    }
+
+    private class EffectiveMuscleBuilder(baseMuscles: List<InvolvedMuscle>) {
+        private val normalizedBase = baseMuscles.map { it.copy(muscle = when (it.muscle.trim()) {
+            "Glúteos" -> "Glúteo Mayor"
+            "Pectorales" -> "Pectoral Mayor"
+            "Tríceps" -> "Tríceps Braquial"
+            "Bíceps" -> "Bíceps Braquial"
+            else -> it.muscle.trim()
+        }) }
+        private val muscleMap = normalizedBase.associateBy { it.muscle }.toMutableMap()
+        private val order = normalizedBase.map { it.muscle }.toMutableList()
         private val additions = mutableListOf<InvolvedMuscle>()
 
-        fun apply(modifier: MuscleModifier) {
+        fun apply(rawModifier: MuscleModifier) {
+            val modifier = rawModifier.copy(muscle = when (rawModifier.muscle.trim()) {
+                "Glúteos" -> "Glúteo Mayor"
+                "Pectorales" -> "Pectoral Mayor"
+                "Tríceps" -> "Tríceps Braquial"
+                "Bíceps" -> "Bíceps Braquial"
+                else -> rawModifier.muscle.trim()
+            })
             when (modifier.type) {
                 ModifierType.SET -> applySet(modifier)
                 ModifierType.ADD -> applyAdd(modifier)
@@ -110,7 +132,16 @@ object TechnicalAspectEngine {
             for ((key, value) in muscleMap) {
                 if (key !in order) result.add(value)
             }
-            return result
+            return result.sortedWith(
+                compareBy<InvolvedMuscle> {
+                    when (it.role) {
+                        MuscleRole.PRIMARY -> 0
+                        MuscleRole.SECONDARY -> 1
+                        MuscleRole.STABILIZER -> 2
+                        MuscleRole.NEUTRALIZER -> 3
+                    }
+                }.thenByDescending { it.volumeContribution ?: 0.0 }
+            )
         }
     }
 }

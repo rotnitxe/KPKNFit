@@ -88,7 +88,7 @@ class SessionTemplateCatalogTest {
                 val resolved = resolveExercise(exercise.exerciseDbId)
                 assertNotNull("Ejercicio con dbId '${exercise.exerciseDbId}' no pudo ser resuelto", resolved)
                 val matchesName = exercise.name.equals(resolved!!.name, ignoreCase = true)
-                val matchesAlias = resolved.alias?.let { exercise.name.equals(it, ignoreCase = true) } ?: false
+                val matchesAlias = resolved.alias?.split(",")?.any { exercise.name.equals(it.trim(), ignoreCase = true) } ?: false
 
                 assertTrue(
                     "El nombre '${exercise.name}' en la plantilla '${template.name}' no coincide con el nombre oficial '${resolved.name}' ni con su alias '${resolved.alias}'",

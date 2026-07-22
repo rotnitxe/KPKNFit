@@ -972,15 +972,19 @@ object AugeRecoveryEngine {
         val stressLevel = wellbeing?.stressLevel ?: 3
         val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
 
+        // Optimización O(N): Truncar historia a los últimos 30 días (fatiga anterior a 30 días es < 0.001%)
+        val thirtyDaysAgo = nowMs() - 30L * 24 * 3600_000L
+        val recentHistory = history.filter { logDateMs(it) >= thirtyDaysAgo }
+
         // Optimización O(N^2): Precalcular capacidades de los músculos pilares antes de iterar
         val precomputedCapacities = PILLAR_MUSCLES.associateWith { muscle ->
-            calculateUserWorkCapacity(muscle, history, settings, exerciseDb)
+            calculateUserWorkCapacity(muscle, recentHistory, settings, exerciseDb)
         }
 
         return PILLAR_MUSCLES.associateWith { muscle ->
             calculateMuscleBattery(
                 muscleName = muscle,
-                history = history,
+                history = recentHistory,
                 wellbeing = wellbeing,
                 settings = settings,
                 exerciseDb = exerciseDb,

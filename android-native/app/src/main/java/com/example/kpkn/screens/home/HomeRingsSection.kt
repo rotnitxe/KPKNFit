@@ -215,7 +215,7 @@ private fun CurvedLabelsCanvas(labels: List<String>, ringColors: List<Color>) {
 
         labels.forEachIndexed { i, label ->
             val center = centers[i]
-            val textRadius = r - (14f * density)
+            val textRadius = max(r * 0.55f, r - (14f * density))
             
             // Paso angular dinámico para mantener constante la separación de las letras
             val desiredArcLength = 7.2f * density

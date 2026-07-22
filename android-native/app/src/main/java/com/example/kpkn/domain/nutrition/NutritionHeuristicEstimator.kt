@@ -182,15 +182,12 @@ private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listO
     ) to SAUCE_DRESSING,
 )
 
-// ─── Public API ───────────────────────────────────────────────────────────────
+object NutritionHeuristicEstimator {
+    fun estimatePer100g(foodName: String): NutritionProfile {
+        return estimateNutritionByKeyword(foodName) ?: MIXED_DISH
+    }
+}
 
-/**
- * Estimates macros per 100g from the food name using keyword matching.
- * Returns null if no keyword matched (unknown food category).
- * Confidence: ~0.45 (rough estimate, ±20–30%).
- *
- * Also detects cooking method keywords and boosts fats/kcal accordingly.
- */
 fun estimateNutritionByKeyword(foodName: String): NutritionProfile? {
     val lower = foodName.trim().lowercase()
 

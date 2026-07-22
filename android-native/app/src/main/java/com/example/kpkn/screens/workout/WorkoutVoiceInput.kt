@@ -419,3 +419,11 @@ private val VOICE_DECIMAL_DIGITS = mapOf(
     "ocho" to '8',
     "nueve" to '9',
 )
+
+internal suspend fun parseWorkoutVoiceTranscriptAsync(
+    transcript: String,
+    isTimeMode: Boolean,
+    isUnilateral: Boolean,
+): WorkoutVoiceInterpretation? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+    parseWorkoutVoiceTranscript(transcript, isTimeMode, isUnilateral)
+}

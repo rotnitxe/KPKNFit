@@ -22,8 +22,8 @@ object AugeAdaptiveEngine {
      * tau = 2.9957 / k
      */
     private fun deriveImpliedRecoveryTime(obs: RecoveryLearningObservation): Double? {
-        // No intentamos deducir tendencia si han pasado menos de 6 horas, el error sería muy inestable.
-        if (obs.hoursSinceSession < 6.0) return null
+        // Floor of 0.5h to prevent division by zero or extreme instability for immediate post-session feedback
+        if (obs.hoursSinceSession < 0.5) return null
 
         if (obs.sessionStress <= 0) {
             return if (obs.actualBattery >= 95) 12.0 else null
@@ -33,11 +33,12 @@ object AugeAdaptiveEngine {
         val initialDepletion = max(actualDepletion, obs.sessionStress)
 
         val remainingFraction = clamp(actualDepletion / initialDepletion, 0.01, 0.99)
+        val hours = max(0.5, obs.hoursSinceSession)
 
         val effectiveHours = when (obs.muscle.lowercase().trim()) {
-            "cns" -> obs.hoursSinceSession
-            "spinal" -> com.example.kpkn.domain.auge.AugeUtils.getSpinalRecoveryHours(obs.hoursSinceSession)
-            else -> com.example.kpkn.domain.auge.AugeUtils.getSigmoidalHours(obs.hoursSinceSession)
+            "cns" -> hours
+            "spinal" -> com.example.kpkn.domain.auge.AugeUtils.getSpinalRecoveryHours(hours)
+            else -> com.example.kpkn.domain.auge.AugeUtils.getSigmoidalHours(hours)
         }
 
         val k = -ln(remainingFraction) / effectiveHours

@@ -93,6 +93,7 @@ import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TipsAndUpdates
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
@@ -6992,16 +6993,26 @@ internal fun ExercisePickerSheet(
     val activeRegion = selectedRegion ?: ExerciseCatalogRegion.ALL
     val showGroupBrowser = false
 
-    val filteredMuscles = remember(activeRegion, fullCatalog) {
+    val exercisesByRegion = remember(fullCatalog) {
+        fullCatalog.groupBy { resolveExerciseRegion(it) }
+    }
+    val exercisesByMuscle = remember(fullCatalog) {
+        val map = mutableMapOf<String, MutableList<ExerciseMuscleInfo>>()
+        fullCatalog.forEach { ex ->
+            ex.involvedMuscles.forEach { m ->
+                map.getOrPut(m.muscle.lowercase()) { mutableListOf() }.add(ex)
+            }
+        }
+        map
+    }
+
+    val filteredMuscles = remember(activeRegion, fullCatalog, exercisesByRegion) {
         if (activeRegion == ExerciseCatalogRegion.ALL) {
             ALL_MUSCLES
         } else {
-            ALL_MUSCLES.filter { muscle ->
-                fullCatalog.any { exercise ->
-                    resolveExerciseRegion(exercise) == activeRegion &&
-                        exercise.involvedMuscles.any { it.muscle.equals(muscle.canonicalName, ignoreCase = true) }
-                }
-            }
+            val regionExs = exercisesByRegion[activeRegion].orEmpty()
+            val presentMuscles = regionExs.flatMap { ex -> ex.involvedMuscles.map { it.muscle.lowercase() } }.toSet()
+            ALL_MUSCLES.filter { it.canonicalName.lowercase() in presentMuscles }
         }
     }
 
@@ -7011,17 +7022,14 @@ internal fun ExercisePickerSheet(
         }
     }
 
-    val filteredRegions = remember(selectedMuscle, fullCatalog) {
+    val filteredRegions = remember(selectedMuscle, fullCatalog, exercisesByMuscle) {
         val allRegions = ExerciseCatalogRegion.values().toList()
         if (selectedMuscle == null) {
             allRegions
         } else {
-            allRegions.filter { region ->
-                region == ExerciseCatalogRegion.ALL || fullCatalog.any { exercise ->
-                    resolveExerciseRegion(exercise) == region &&
-                        exercise.involvedMuscles.any { it.muscle.equals(selectedMuscle, ignoreCase = true) }
-                }
-            }
+            val muscleExs = exercisesByMuscle[selectedMuscle!!.lowercase()].orEmpty()
+            val presentRegions = muscleExs.map { resolveExerciseRegion(it) }.toSet()
+            allRegions.filter { it == ExerciseCatalogRegion.ALL || it in presentRegions }
         }
     }
 
@@ -7051,10 +7059,6 @@ internal fun ExercisePickerSheet(
     var variantFlowExercise by remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
 
     fun handleSelect(info: ExerciseMuscleInfo) {
-        if (!info.variantGroupId.isNullOrBlank() && editingExisting) {
-            variantFlowExercise = info
-            return
-        }
         if (editingExisting) {
             onSelect(info)
         } else {
@@ -7096,8 +7100,14 @@ internal fun ExercisePickerSheet(
 
         val sorted = when (sortMode) {
             ExerciseCatalogSort.RELEVANCE -> searched
-            ExerciseCatalogSort.FATIGUE_HIGH -> searched.sortedByDescending { calculateFriendlyFatigue(it).overall }
-            ExerciseCatalogSort.FATIGUE_LOW -> searched.sortedBy { calculateFriendlyFatigue(it).overall }
+            ExerciseCatalogSort.FATIGUE_HIGH -> {
+                val fatigueMap: Map<String, Int> = searched.associate { it.id to calculateFriendlyFatigue(it).overall }
+                searched.sortedByDescending { fatigueMap[it.id] ?: 0 }
+            }
+            ExerciseCatalogSort.FATIGUE_LOW -> {
+                val fatigueMap: Map<String, Int> = searched.associate { it.id to calculateFriendlyFatigue(it).overall }
+                searched.sortedBy { fatigueMap[it.id] ?: 0 }
+            }
             ExerciseCatalogSort.NAME -> searched.sortedBy { it.name }
             ExerciseCatalogSort.GROUP_BY_MUSCLE -> searched.sortedWith(compareBy({ resolvePrimaryMuscleLabel(it) }, { it.name }))
             else -> searched
@@ -7449,9 +7459,10 @@ internal fun ExercisePickerSheet(
                               items(exercisesInCategory, key = { it.id }) { info ->
                                   ExercisePickerCompactCard(
                                       info = info,
-                                      isSelected = selectedExercises.any { it.id == info.id },
+                                      isSelected = info.id in selectedExercisesIds,
                                       onSelect = { handleSelect(info) },
                                       onInfo = { infoExerciseId = info.id },
+                                      onOpenVariantFlow = { variantFlowExercise = info },
                                   )
                               }
                           }
@@ -7472,7 +7483,7 @@ internal fun ExercisePickerSheet(
                   items(uncategorizedCatalog, key = { it.id }) { info ->
                       ExercisePickerDetailedCard(
                           info = info,
-                          isSelected = selectedExercises.any { it.id == info.id },
+                          isSelected = info.id in selectedExercisesIds,
                           onSelect = { handleSelect(info) },
                           onInfo = { infoExerciseId = info.id },
                       )
@@ -7541,7 +7552,7 @@ internal fun ExercisePickerSheet(
                              highlightedExercise?.let { info ->
                                  ExercisePickerDetailedCard(
                                      info = info,
-                                     isSelected = selectedExercises.any { it.id == info.id },
+                                     isSelected = info.id in selectedExercisesIds,
                                      onSelect = { handleSelect(info) },
                                      onInfo = { infoExerciseId = info.id },
                                  )
@@ -7552,7 +7563,7 @@ internal fun ExercisePickerSheet(
                                  .forEach { info ->
                                      ExercisePickerDetailedCard(
                                          info = info,
-                                         isSelected = selectedExercises.any { it.id == info.id },
+                                         isSelected = info.id in selectedExercisesIds,
                                          onSelect = { handleSelect(info) },
                                          onInfo = { infoExerciseId = info.id },
                                      )
@@ -7564,9 +7575,10 @@ internal fun ExercisePickerSheet(
               items(results, key = { it.id }) { info ->
                   ExercisePickerDetailedCard(
                       info = info,
-                      isSelected = selectedExercises.any { it.id == info.id },
+                      isSelected = info.id in selectedExercisesIds,
                       onSelect = { handleSelect(info) },
                       onInfo = { infoExerciseId = info.id },
+                      onOpenVariantFlow = { variantFlowExercise = info },
                   )
               }
           }
@@ -7682,6 +7694,7 @@ internal fun ExercisePickerSheet(
             associatedDiscomforts = discomfortByExercise[selected.id].orEmpty(),
             onOpenExercise = onOpenExerciseDetail,
             onDismiss = { infoExerciseId = null },
+            onOpenVariantFlow = { ex -> variantFlowExercise = ex },
         )
     }
 
@@ -7698,7 +7711,14 @@ internal fun ExercisePickerSheet(
                     variantGroupName = selectedVariant.variantGroupName,
                     selectedAspects = selectedAspects,
                 )
-                onSelect(selectedVariant)
+                if (editingExisting) {
+                    onSelect(selectedVariant)
+                } else {
+                    if (selectedVariant.id !in selectedExercisesIds) {
+                        selectionOrder = selectionOrder + selectedVariant.id
+                        onToggleExerciseSelection(selectedVariant.id)
+                    }
+                }
                 variantFlowExercise = null
             },
             onDismiss = { variantFlowExercise = null },
@@ -7817,6 +7837,7 @@ internal fun ExercisePickerCompactCard(
     isSelected: Boolean,
     onSelect: () -> Unit,
     onInfo: () -> Unit,
+    onOpenVariantFlow: (() -> Unit)? = null,
 ) {
     val bgAlpha = if (isSelected) 0.40f else 0.24f
     Surface(
@@ -7845,6 +7866,16 @@ internal fun ExercisePickerCompactCard(
                     overflow = TextOverflow.Ellipsis,
                     color = Color.White
                 )
+                if (onOpenVariantFlow != null && !info.variantGroupId.isNullOrBlank()) {
+                    IconButton(onClick = onOpenVariantFlow, modifier = Modifier.size(26.dp)) {
+                        Icon(
+                            Icons.Default.Tune,
+                            contentDescription = "Configuración avanzada",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                }
                 if (isSelected) {
                     Icon(
                         Icons.Default.CheckCircle,
@@ -7874,6 +7905,7 @@ internal fun ExercisePickerDetailedCard(
     isSelected: Boolean,
     onSelect: () -> Unit,
     onInfo: () -> Unit,
+    onOpenVariantFlow: (() -> Unit)? = null,
 ) {
     val primaryMuscle = resolvePrimaryMuscleLabel(info)
     val bgAlpha = if (isSelected) 0.44f else 0.28f
@@ -7913,6 +7945,15 @@ internal fun ExercisePickerDetailedCard(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
+                if (onOpenVariantFlow != null && !info.variantGroupId.isNullOrBlank()) {
+                    IconButton(onClick = onOpenVariantFlow) {
+                        Icon(
+                            Icons.Default.Tune,
+                            contentDescription = "Configuración avanzada",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
                 if (isSelected) {
                     Icon(
                         Icons.Default.CheckCircle,
@@ -7946,6 +7987,7 @@ internal fun ExerciseCatalogInfoDialog(
     associatedDiscomforts: List<Pair<String, Int>>,
     onOpenExercise: (String) -> Unit,
     onDismiss: () -> Unit,
+    onOpenVariantFlow: ((ExerciseMuscleInfo) -> Unit)? = null,
 ) {
     val fatigue = remember(exercise.id) { calculateFriendlyFatigue(exercise) }
     val kinship = remember(exercise.id, catalog) { buildExerciseKinships(exercise, catalog) }
@@ -7983,6 +8025,21 @@ internal fun ExerciseCatalogInfoDialog(
                     }
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Default.Close, contentDescription = "Cerrar")
+                    }
+                }
+
+                if (onOpenVariantFlow != null && !exercise.variantGroupId.isNullOrBlank()) {
+                    OutlinedButton(
+                        onClick = {
+                            onDismiss()
+                            onOpenVariantFlow(exercise)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                    ) {
+                        Icon(Icons.Default.Tune, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Configuración avanzada (Aspectos técnicos)")
                     }
                 }
 

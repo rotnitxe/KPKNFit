@@ -4,18 +4,19 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,6 +24,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -30,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,23 +41,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.AspectOption
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
+import com.example.kpkn.data.models.ModifierType
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.TechnicalAspect
 import com.example.kpkn.domain.exercises.TechnicalAspectEngine
 import com.example.kpkn.domain.exercises.VariantGroup
 import com.example.kpkn.domain.exercises.VariantGroupIndex
 import com.example.kpkn.domain.exercises.VariantPreferenceStore
+import com.example.kpkn.screens.wikilab.wikilabMuscleColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,18 +83,15 @@ fun VariantFlowSheet(
         return
     }
 
-    var step by remember { mutableStateOf(0) }
-    val initialVariant = remember(group) {
-        val lastId = prefStore.loadLastVariant(group.id)
-        group.variants.firstOrNull { it.id == lastId } ?: initialExercise
-    }
-    var selectedVariant by remember { mutableStateOf(initialVariant) }
-    val savedAspects = remember(group, initialVariant) {
+    // Opens DIRECTLY on Step 1 (Technical Aspects for selected exercise)
+    var step by remember { mutableStateOf(1) }
+    var selectedVariant by remember { mutableStateOf(initialExercise) }
+    val savedAspects = remember(group, selectedVariant) {
         prefStore.loadAspectDefaults(group.id)
     }
     var selectedAspects by remember { mutableStateOf<Map<String, String>>(savedAspects) }
 
-    val defaults = remember(group) { computeDefaults(group) }
+    val defaults = remember(selectedVariant) { computeDefaults(selectedVariant) }
     if (selectedAspects.isEmpty()) {
         selectedAspects = defaults
     }
@@ -98,31 +103,42 @@ fun VariantFlowSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 32.dp)
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 24.dp)
                 .animateContentSize(),
         ) {
+            // Header Sobrio y Profesional
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    group.name,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = selectedVariant.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "Configuración técnica y biomecánica",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 IconButton(onClick = onDismiss) {
                     Icon(Icons.Default.Close, contentDescription = "Cerrar")
                 }
             }
 
-            StepIndicator(step = step, totalSteps = 2)
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(14.dp))
 
             when (step) {
                 0 -> VariantSelectorStep(
@@ -131,8 +147,8 @@ fun VariantFlowSheet(
                     onSelect = { variant ->
                         selectedVariant = variant
                         prefStore.saveLastVariant(group.id, variant.id)
-                        val variantDefaults = computeDefaults(VariantGroupIndex.getGroup(group.id) ?: group)
-                        if (variantDefaults.isNotEmpty() && selectedAspects.isEmpty()) {
+                        val variantDefaults = computeDefaults(variant)
+                        if (variantDefaults.isNotEmpty()) {
                             selectedAspects = variantDefaults
                         }
                         step = 1
@@ -150,17 +166,21 @@ fun VariantFlowSheet(
                 )
             }
 
-            Spacer(Modifier.height(16.dp))
-            HorizontalDivider()
+            Spacer(Modifier.height(14.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
             Spacer(Modifier.height(12.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (step > 0) {
-                    TextButton(onClick = { step-- }) {
-                        Text("Atrás")
+                    TextButton(
+                        onClick = { step = 0 },
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("Cambiar Variante", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
                     }
                 } else {
                     Spacer(Modifier.width(1.dp))
@@ -170,19 +190,21 @@ fun VariantFlowSheet(
                     Button(
                         onClick = { step = 1 },
                         enabled = selectedVariant.variantGroupId != null,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     ) {
-                        Text("Siguiente")
+                        Text("Ajustes Técnicos →", fontWeight = FontWeight.Bold)
                     }
                 } else {
                     Button(
                         onClick = { onConfirm(selectedVariant, selectedAspects) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                        ),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        modifier = Modifier.height(42.dp)
                     ) {
-                        Icon(Icons.Default.Check, contentDescription = null)
+                        Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Agregar ejercicio")
+                        Text("Aplicar Ejercicio", fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -190,9 +212,9 @@ fun VariantFlowSheet(
     }
 }
 
-private fun computeDefaults(group: VariantGroup): Map<String, String> {
-    val allAspects = group.variants.flatMap { it.technicalAspects.orEmpty() }
-    return allAspects.mapNotNull { aspect ->
+private fun computeDefaults(variant: ExerciseMuscleInfo): Map<String, String> {
+    val aspects = variant.technicalAspects.orEmpty()
+    return aspects.mapNotNull { aspect ->
         val defaultId = aspect.defaultOptionId
             ?: aspect.options.firstOrNull()?.id
         defaultId?.let { aspect.id to it }
@@ -216,55 +238,11 @@ private fun computeEffective(
 }
 
 @Composable
-private fun StepIndicator(step: Int, totalSteps: Int) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        for (i in 0..totalSteps) {
-            val isActive = i == step
-            val isDone = i < step
-            Box(
-                modifier = Modifier
-                    .then(
-                        if (isActive || isDone) Modifier
-                            .size(10.dp)
-                            .clip(RoundedCornerShape(5.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                        else Modifier
-                            .size(8.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(MaterialTheme.colorScheme.outlineVariant)
-                    ),
-            )
-            if (i < totalSteps) {
-                Box(
-                    modifier = Modifier
-                        .width(if (isDone) 24.dp else 16.dp)
-                        .height(2.dp)
-                        .background(
-                            if (isDone) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.outlineVariant
-                        ),
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun VariantSelectorStep(
     group: VariantGroup,
     selectedVariant: ExerciseMuscleInfo,
     onSelect: (ExerciseMuscleInfo) -> Unit,
 ) {
-    Text(
-        "Selecciona la variante",
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold,
-    )
-    Spacer(Modifier.height(12.dp))
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -277,52 +255,51 @@ private fun VariantSelectorStep(
             val primaryMuscles = variant.involvedMuscles
                 .filter { it.role == MuscleRole.PRIMARY }
                 .map { it.muscle }
-                .take(3)
 
-            Box(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    )
-                    .then(
-                        if (isSelected) Modifier.border(
-                            2.dp,
-                            MaterialTheme.colorScheme.primary,
-                            RoundedCornerShape(12.dp),
-                        )
-                        else Modifier
-                    )
-                    .clickable { onSelect(variant) }
-                    .padding(12.dp),
+                    .clickable { onSelect(variant) },
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isSelected)
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                    else
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                ),
+                border = if (isSelected)
+                    androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                else
+                    androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)),
             ) {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
-                            variant.variantName ?: variant.name,
+                            text = variant.variantName ?: variant.name,
+                            style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
                         )
-                        if (isSelected) {
-                            Icon(
-                                Icons.Default.Check,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        }
+                        Text(
+                            text = primaryMuscles.joinToString(" · "),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        primaryMuscles.joinToString(", "),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    if (isSelected) {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
         }
@@ -341,45 +318,23 @@ private fun TechnicalAspectsStep(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .height(400.dp)
             .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Text(
-            "Aspectos técnicos",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            variant.variantName ?: variant.name,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Spacer(Modifier.height(16.dp))
-
+        // Aspectos Técnicos con Segmented Controls Visibles simultáneamente
         aspects.forEach { aspect ->
             AspectSelectorCard(
                 aspect = aspect,
                 selectedOptionId = selectedAspects[aspect.id],
                 onSelect = { optId -> onAspectChange(aspect.id, optId) },
             )
-            Spacer(Modifier.height(8.dp))
         }
 
-        Spacer(Modifier.height(16.dp))
-        HorizontalDivider()
-        Spacer(Modifier.height(12.dp))
-
-        Text(
-            "Activación muscular",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(Modifier.height(8.dp))
+        // Vista sobria de Enfoque Muscular Resultante Dinámico
         MuscleActivationPreview(
             baseMuscles = variant.involvedMuscles,
             effectiveMuscles = effectiveResult.effectiveMuscles,
-            summary = effectiveResult.summary,
         )
     }
 }
@@ -392,80 +347,68 @@ private fun AspectSelectorCard(
 ) {
     val selectedId = selectedOptionId ?: aspect.defaultOptionId
         ?: aspect.options.firstOrNull()?.id
+    val selectedOption = aspect.options.firstOrNull { it.id == selectedId }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
             .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            aspect.name,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp,
+            text = aspect.name,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
         )
-        if (!aspect.description.isNullOrBlank()) {
-            Text(
-                aspect.description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Spacer(Modifier.height(8.dp))
 
+        // Segmented Control de Ancho Total - TODAS las opciones visibles al instante sin carrusel ni scroll horizontal
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f))
+                .padding(3.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             aspect.options.forEach { option ->
                 val isOptSelected = option.id == selectedId
-                Box(
+                Surface(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(
-                            if (isOptSelected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surfaceVariant
-                        )
-                        .clickable { onSelect(option.id) }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                        .weight(1f)
+                        .clickable { onSelect(option.id) },
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (isOptSelected)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        Color.Transparent,
                 ) {
                     Text(
-                        option.name,
-                        fontSize = 13.sp,
+                        text = option.name,
+                        modifier = Modifier.padding(vertical = 7.dp, horizontal = 4.dp),
+                        style = MaterialTheme.typography.labelMedium,
                         color = if (isOptSelected) MaterialTheme.colorScheme.onPrimary
                         else MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = if (isOptSelected) FontWeight.SemiBold else FontWeight.Normal,
+                        fontWeight = if (isOptSelected) FontWeight.Bold else FontWeight.Medium,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
         }
 
-        val selectedOption = aspect.options.firstOrNull { it.id == selectedId }
-        if (selectedOption != null && !selectedOption.description.isNullOrBlank()) {
-            Spacer(Modifier.height(4.dp))
-            Text(
-                selectedOption.description,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            )
-        }
-
-        if (selectedOption != null && selectedOption.modifiers.isNotEmpty()) {
-            Spacer(Modifier.height(6.dp))
-            Text(
-                selectedOption.modifiers.joinToString(", ") { m ->
-                    when (m.type) {
-                        com.example.kpkn.data.models.ModifierType.SET -> "${m.muscle} → ${m.role?.name ?: ""}"
-                        com.example.kpkn.data.models.ModifierType.ADD -> "${m.muscle} +${m.value}"
-                        com.example.kpkn.data.models.ModifierType.MULT -> "${m.muscle} ×${m.value}"
-                    }
-                },
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.secondary,
-            )
+        // Descripción concisa y seria de la opción activa
+        selectedOption?.let { opt ->
+            if (!opt.description.isNullOrBlank()) {
+                Text(
+                    text = opt.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
@@ -474,76 +417,129 @@ private fun AspectSelectorCard(
 internal fun MuscleActivationPreview(
     baseMuscles: List<InvolvedMuscle>,
     effectiveMuscles: List<InvolvedMuscle>,
-    summary: String,
 ) {
-    val maxBase = baseMuscles.maxOfOrNull { it.volumeContribution ?: 1.0 } ?: 1.0
-    val maxEff = effectiveMuscles.maxOfOrNull { it.volumeContribution ?: 1.0 } ?: 1.0
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-            .padding(12.dp),
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
+        ),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+        ),
     ) {
-        Text(
-            "Base: $summary",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.height(8.dp))
-
-        effectiveMuscles.take(8).forEach { muscle ->
-            val baseEntry = baseMuscles.firstOrNull { it.muscle == muscle.muscle }
-            val baseVC = baseEntry?.volumeContribution ?: muscle.volumeContribution ?: 0.0
-            val effVC = muscle.volumeContribution ?: 0.0
-            val changed = baseEntry == null || baseEntry.role != muscle.role || baseVC != effVC
-
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        muscle.muscle,
-                        fontSize = 12.sp,
-                        fontWeight = if (changed) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (changed) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface,
-                    )
-                    if (changed) {
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            "•",
-                            fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.primary,
+                Text(
+                    text = "Enfoque Muscular Resultante",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = "Actualizado en tiempo real",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+            // Lista dinámica ordenada por dominancia muscular resultante
+            effectiveMuscles.forEach { muscle ->
+                val baseEntry = baseMuscles.firstOrNull { it.muscle == muscle.muscle }
+                val baseVC = baseEntry?.volumeContribution ?: muscle.volumeContribution ?: 0.0
+                val effVC = muscle.volumeContribution ?: 0.0
+                val roleChanged = baseEntry?.role != muscle.role
+                val muscleColor = wikilabMuscleColor(muscle.muscle)
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Surface(
+                                modifier = Modifier.size(8.dp),
+                                shape = CircleShape,
+                                color = muscleColor,
+                            ) {}
+                            Text(
+                                text = muscle.muscle,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            if (roleChanged) {
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                ) {
+                                    Text(
+                                        text = "Cambio de Rol",
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                            Text(
+                                text = formatRoleLabel(muscle.role),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    // Barra visual de intensidad proporcional
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(effVC.toFloat().coerceIn(0.1f, 1.0f))
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(muscleColor)
                         )
                     }
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        muscle.role.name.lowercase().replaceFirstChar { it.uppercase() },
-                        fontSize = 11.sp,
-                        color = roleColor(muscle.role),
-                    )
-                    val pct = (effVC * 100).toInt()
-                    Text(
-                        "$pct% VC",
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
                 }
             }
         }
     }
 }
 
-@Composable
-private fun roleColor(role: MuscleRole): Color = when (role) {
-    MuscleRole.PRIMARY -> MaterialTheme.colorScheme.primary
-    MuscleRole.SECONDARY -> MaterialTheme.colorScheme.secondary
-    MuscleRole.STABILIZER -> Color(0xFF8B8B8B)
-    MuscleRole.NEUTRALIZER -> Color(0xFFAAAAAA)
+private fun formatRoleLabel(role: MuscleRole): String = when (role) {
+    MuscleRole.PRIMARY -> "Principal"
+    MuscleRole.SECONDARY -> "Secundario"
+    MuscleRole.STABILIZER -> "Estabilizador"
+    MuscleRole.NEUTRALIZER -> "Guiado"
 }
 
 object VariantFlowResultCache {

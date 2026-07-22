@@ -153,10 +153,12 @@ object ExerciseReadinessEngine {
 
         val discomfortPenaltyFactor = computeDiscomfortPenaltyFactor(involvedMuscles, unresolvedDiscomfortIds)
 
-        // Hardcap progresivo por TTC + articular baja (protección balística progresiva para mejor UX)
-        val ttcHardCap = if (exerciseTtc >= 3.0 && articularComponent < 40) {
-            val scale = articularComponent / 40.0
-            (30 + scale * 30).toInt() // Rango de Cap: [30, 60]
+        // Hardcap progresivo continuo por TTC + articular baja (protección balística para mejor UX)
+        val ttcFactor = (exerciseTtc / 5.0).coerceIn(0.4, 1.0)
+        val ttcHardCap = if (articularComponent < 60) {
+            val scale = (articularComponent / 60.0).coerceIn(0.0, 1.0)
+            val capMin = 25.0 + (1.0 - ttcFactor) * 20.0
+            (capMin + scale * (100.0 - capMin)).toInt()
         } else {
             100
         }

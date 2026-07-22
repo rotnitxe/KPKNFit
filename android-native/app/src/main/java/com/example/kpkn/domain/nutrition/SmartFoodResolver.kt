@@ -113,12 +113,7 @@ class SmartFoodResolver(
                 foodIndex.search(token).let { expandedIds.addAll(it) }
             }
             if (expandedIds.isEmpty()) {
-                return@withContext ResolutionResult(
-                    query = query,
-                    candidates = emptyList(),
-                    decision = Decision.UNRESOLVED,
-                    resolvedFoodId = null,
-                )
+                return@withContext resolveDatasetOrHeuristicFallback(query, normalizedQuery)
             }
             return@withContext scoreAndRank(query, normalizedQuery, queryTokens, expandedIds, brandHint, learned)
         }
@@ -199,21 +194,76 @@ class SmartFoodResolver(
         }.sortedByDescending { it.score }
 
         val top = candidates.take(4)
+        if (top.isEmpty() || top.first().score < 0.25) {
+            return resolveDatasetOrHeuristicFallback(originalQuery, normalizedQuery)
+        }
+
         val decision = when {
-            top.isEmpty() -> Decision.UNRESOLVED
             learned != null && top.first().score >= LEARNED_AUTO_THRESHOLD -> Decision.AUTO_SELECT
             top.first().score >= HIGH_THRESHOLD && (top.size == 1 || top.first().score - top[1].score >= SAFE_GAP) -> Decision.AUTO_SELECT
             top.first().score >= MEDIUM_THRESHOLD -> Decision.NEEDS_REVIEW
-            else -> Decision.UNRESOLVED
+            else -> Decision.AUTO_SELECT
         }
 
-        val resolvedId = if (decision == Decision.AUTO_SELECT) top.firstOrNull()?.foodId else null
+        val resolvedId = top.firstOrNull()?.foodId
 
         return ResolutionResult(
             query = originalQuery,
             candidates = top,
             decision = decision,
             resolvedFoodId = resolvedId,
+        )
+    }
+
+    private fun resolveDatasetOrHeuristicFallback(
+        query: String,
+        normalizedQuery: String,
+    ): ResolutionResult {
+        val semantic = SemanticPortionRetriever.retrieve(query)
+        val macroRange = semantic.macroRange
+        if (macroRange != null && semantic.confidence > 0.12) {
+            val candidate = ResolutionCandidate(
+                foodId = "dataset_${normalizedQuery.replace(" ", "_")}",
+                name = query.replaceFirstChar { it.uppercase() },
+                brand = "Dataset KPKN (19.4K)",
+                score = (semantic.confidence * 0.85).coerceIn(0.65, 0.92),
+                confidence = Confidence.HIGH,
+                source = "DATASET_SEMANTIC",
+                calories = macroRange.kcalMedian,
+                protein = macroRange.proteinMedian,
+                carbs = macroRange.carbsMedian,
+                fats = macroRange.fatsMedian,
+                fiber = 0.0,
+                trace = listOf("Dataset Semantic Match", "Confidence ${semantic.confidence}"),
+            )
+            return ResolutionResult(
+                query = query,
+                candidates = listOf(candidate),
+                decision = Decision.AUTO_SELECT,
+                resolvedFoodId = candidate.foodId,
+            )
+        }
+
+        val profile = NutritionHeuristicEstimator.estimatePer100g(query)
+        val fallbackCandidate = ResolutionCandidate(
+            foodId = "heuristic_${normalizedQuery.replace(" ", "_")}",
+            name = query.replaceFirstChar { it.uppercase() },
+            brand = "Estimación KPKN",
+            score = 0.60,
+            confidence = Confidence.MEDIUM,
+            source = "LOCAL_HEURISTIC",
+            calories = profile.calories,
+            protein = profile.protein,
+            carbs = profile.carbs,
+            fats = profile.fats,
+            fiber = 0.0,
+            trace = listOf("Rule-Based Heuristic Estimator"),
+        )
+        return ResolutionResult(
+            query = query,
+            candidates = listOf(fallbackCandidate),
+            decision = Decision.AUTO_SELECT,
+            resolvedFoodId = fallbackCandidate.foodId,
         )
     }
 

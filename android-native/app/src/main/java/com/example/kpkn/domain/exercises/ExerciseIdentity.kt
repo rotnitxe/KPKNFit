@@ -251,8 +251,10 @@ private fun defaultReplacementLoadMode(info: ExerciseMuscleInfo): LoadModeV2 {
     }
 }
 
-private fun ExerciseSet.resetForCatalogReplacement(defaultLoadMode: LoadModeV2): ExerciseSet =
-    copy(
+private fun ExerciseSet.resetForCatalogReplacement(defaultLoadMode: LoadModeV2): ExerciseSet {
+    val isTimeExercise = targetDuration != null && targetReps == null
+    val newUnitMode = if (isTimeExercise) UnitModeV2.TIME else UnitModeV2.REPS
+    return copy(
         weight = null,
         targetPercentageRM = null,
         intensityMode = null,
@@ -269,10 +271,9 @@ private fun ExerciseSet.resetForCatalogReplacement(defaultLoadMode: LoadModeV2):
         discomfortIds = emptyList(),
         refereeNotes = null,
         loadModeV2 = defaultLoadMode,
-        unitModeV2 = when {
-            targetDuration != null -> UnitModeV2.TIME
-            else -> UnitModeV2.REPS
-        },
+        unitModeV2 = newUnitMode,
+        targetReps = if (newUnitMode == UnitModeV2.REPS) (targetReps ?: 10) else null,
+        targetDuration = if (newUnitMode == UnitModeV2.TIME) targetDuration else null,
         plannedTargetV2 = null,
         tagId = null,
         setupId = null,
@@ -286,6 +287,7 @@ private fun ExerciseSet.resetForCatalogReplacement(defaultLoadMode: LoadModeV2):
         restPauses = emptyList(),
         plannedIntensityTechniques = emptyList(),
     )
+}
 
 fun ExerciseRelationshipType.displayLabel(): String = when (this) {
     ExerciseRelationshipType.VARIATION -> "Variacion"
