@@ -1,0 +1,93 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="300dp"
+    android:height="300dp"
+    android:viewportWidth="300"
+    android:viewportHeight="300">
+
+    <!-- Background Grid Lines -->
+    <path
+        android:pathData="M150,20 V280 M40,270 H260"
+        android:strokeColor="#33A855F7"
+        android:strokeWidth="1" />
+
+    <!-- Floor Line -->
+    <path
+        android:pathData="M30,270 H270"
+        android:strokeColor="#A855F7"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+
+    <!-- Caupolicán Head & Trarilonco -->
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M138,42 C138,32 162,32 162,42 L160,58 C160,65 140,65 140,58 Z" />
+    <path
+        android:fillColor="#1A1A1A"
+        android:pathData="M136,40 C136,30 164,30 164,40 C164,34 136,34 136,40 Z" />
+    <path
+        android:fillColor="#A855F7"
+        android:pathData="M136,42 H164 V47 H136 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M140,44 h3 v3 h-3 z M148,44 h3 v3 h-3 z M156,44 h3 v3 h-3 z M161,44 h3 v3 h-3 z" />
+
+    <!-- Neck & Rear Deltoids Shelf -->
+    <path
+        android:fillColor="#A46938"
+        android:pathData="M143,58 H157 V68 H143 Z" />
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M125,72 C135,66 165,66 175,72 L170,98 H130 Z" />
+
+    <!-- Barbell (LOW BAR Position - Resting 4cm lower on Rear Delts/Scapula) -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M40,82 H260 V88 H40 Z" />
+    <path
+        android:fillColor="#64748B"
+        android:pathData="M65,79 H72 V91 H65 Z M228,79 H235 V91 H228 Z" />
+    <path
+        android:fillColor="#FF3B30"
+        android:pathData="M50,62 H65 V106 H50 Z M235,62 H250 V106 H235 Z" />
+
+    <!-- Wider Hand Placement for Low Bar -->
+    <path
+        android:strokeColor="#C68A56"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:pathData="M125,76 L90,83 M175,76 L210,83" />
+
+    <!-- Torso (Standing) -->
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M128,85 L118,110 L125,145 L175,145 L182,110 L172,85 Z" />
+
+    <!-- Athletic Shorts -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M122,143 H178 L184,180 H116 Z" />
+    <path
+        android:fillColor="#A855F7"
+        android:pathData="M116,176 H184 V180 H116 Z" />
+
+    <!-- Legs -->
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M123,180 L120,225 L138,225 L145,180 Z M155,180 L162,225 L180,225 L177,180 Z" />
+    <path
+        android:fillColor="#A46938"
+        android:pathData="M120,225 H138 V234 H120 Z M162,225 H180 V234 H162 Z" />
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M122,234 L124,265 L136,265 L136,234 Z M164,234 L164,265 L176,265 L178,234 Z" />
+    <path
+        android:fillColor="#A855F7"
+        android:pathData="M115,265 H138 V270 H115 Z M162,265 H185 V270 H162 Z" />
+
+    <!-- Low Bar Trajectory Line -->
+    <path
+        android:strokeColor="#A855F7"
+        android:strokeWidth="2"
+        android:pathData="M150,85 V215" />
+
+</vector>

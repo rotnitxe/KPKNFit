@@ -24,7 +24,9 @@ import androidx.compose.foundation.BorderStroke
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.CustomExerciseRepository
+import com.example.kpkn.screens.wikilab.components.CaupolicanSquatInteractiveViewer
 import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
+import com.example.kpkn.screens.wikilab.components.SquatVariant
 
 // ─── MAIN SCREEN ──────────────────────────────────────────────────────────
 
@@ -47,6 +49,14 @@ fun ExerciseDetailScreen(
             .associateBy { it.id.lowercase() }
             .values
             .toList()
+    }
+
+    val isSquatExercise = remember(exercise.id, exercise.name) {
+        val id = exercise.id.lowercase()
+        val name = exercise.name.lowercase()
+        id.contains("high_bar") || id.contains("low_bar") ||
+        name.contains("barra alta") || name.contains("barra baja") ||
+        name.contains("high bar") || name.contains("low bar")
     }
 
     Scaffold(
@@ -117,6 +127,21 @@ fun ExerciseDetailScreen(
                             ),
                         )
                     }
+                }
+            }
+
+            // ─── Caupolicán Animated Exercise Movement Viewer ──────────────
+            if (isSquatExercise) {
+                item {
+                    val defaultVariant = if (exercise.id.lowercase().contains("low") || exercise.name.lowercase().contains("baja")) {
+                        SquatVariant.LOW_BAR
+                    } else {
+                        SquatVariant.HIGH_BAR
+                    }
+                    CaupolicanSquatInteractiveViewer(
+                        initialVariant = defaultVariant,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
                 }
             }
 

@@ -1,0 +1,110 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="300dp"
+    android:height="300dp"
+    android:viewportWidth="300"
+    android:viewportHeight="300">
+
+    <!-- Background aura / Grid lines for posture -->
+    <path
+        android:pathData="M150,20 V280 M40,270 H260"
+        android:strokeColor="#3300D2FF"
+        android:strokeWidth="1" />
+
+    <!-- Floor line -->
+    <path
+        android:pathData="M30,270 H270"
+        android:strokeColor="#00D2FF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+
+    <!-- Caupolicán Head & Trarilonco (Top Position) -->
+    <!-- Head/Face -->
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M138,42 C138,32 162,32 162,42 L160,58 C160,65 140,65 140,58 Z" />
+    <!-- Hair -->
+    <path
+        android:fillColor="#1A1A1A"
+        android:pathData="M136,40 C136,30 164,30 164,40 C164,34 136,34 136,40 Z" />
+    <!-- Trarilonco (Mapuche Headband) -->
+    <path
+        android:fillColor="#00D2FF"
+        android:pathData="M136,42 H164 V47 H136 Z" />
+    <!-- Silver studs on Trarilonco -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M140,44 h3 v3 h-3 z M148,44 h3 v3 h-3 z M156,44 h3 v3 h-3 z M161,44 h3 v3 h-3 z" />
+
+    <!-- Neck & Traps -->
+    <path
+        android:fillColor="#A46938"
+        android:pathData="M143,58 H157 V68 H143 Z" />
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M125,72 C135,66 165,66 175,72 L170,95 H130 Z" />
+
+    <!-- Barbell (High Bar Position - Resting on Upper Traps) -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M40,68 H260 V74 H40 Z" />
+    <!-- Barbell Collars & Sleeves -->
+    <path
+        android:fillColor="#64748B"
+        android:pathData="M65,65 H72 V77 H65 Z M228,65 H235 V77 H228 Z" />
+    <!-- Weight Plates (Red Competition 25kg) -->
+    <path
+        android:fillColor="#FF3B30"
+        android:pathData="M50,48 H65 V92 H50 Z M235,48 H250 V92 H235 Z" />
+    <!-- Plate Highlights -->
+    <path
+        android:fillColor="#E11D48"
+        android:pathData="M53,50 H62 V90 H53 Z M238,50 H247 V90 H238 Z" />
+
+    <!-- Torso / Pectorals & Abs (Standing Straight) -->
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M128,75 L118,105 L125,145 L175,145 L182,105 L172,75 Z" />
+    <!-- Pectoral Definition Lines -->
+    <path
+        android:strokeColor="#A46938"
+        android:strokeWidth="2"
+        android:pathData="M130,95 Q150,102 150,105 Q150,102 170,95 M150,105 V145" />
+
+    <!-- Arms / Hands Gripping Barbell -->
+    <path
+        android:strokeColor="#C68A56"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M125,74 L100,71 M175,74 L200,71" />
+
+    <!-- Athletic Shorts with Mapuche Pattern Trim -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M122,143 H178 L184,180 H116 Z" />
+    <path
+        android:fillColor="#00D2FF"
+        android:pathData="M116,176 H184 V180 H116 Z" />
+
+    <!-- Legs (Quads & Knees Standing Extended) -->
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M123,180 L120,225 L138,225 L145,180 Z M155,180 L162,225 L180,225 L177,180 Z" />
+    <path
+        android:fillColor="#A46938"
+        android:pathData="M120,225 H138 V234 H120 Z M162,225 H180 V234 H162 Z" />
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M122,234 L124,265 L136,265 L136,234 Z M164,234 L164,265 L176,265 L178,234 Z" />
+    <!-- Shoes / Feet -->
+    <path
+        android:fillColor="#00D2FF"
+        android:pathData="M115,265 H138 V270 H115 Z M162,265 H185 V270 H162 Z" />
+
+    <!-- High Bar Trajectory Indicator (Upright Bar Path) -->
+    <path
+        android:strokeColor="#FFCC00"
+        android:strokeWidth="2"
+        android:pathData="M150,71 V210" />
+
+</vector>

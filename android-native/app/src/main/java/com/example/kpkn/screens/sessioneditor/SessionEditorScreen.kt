@@ -8051,6 +8051,25 @@ internal fun ExerciseCatalogInfoDialog(
                     )
                 }
 
+                val isHighOrLowBarSquat = remember(exercise.id, exercise.name) {
+                    val id = exercise.id.lowercase()
+                    val name = exercise.name.lowercase()
+                    id.contains("high_bar") || id.contains("low_bar") ||
+                    name.contains("barra alta") || name.contains("barra baja") ||
+                    name.contains("high bar") || name.contains("low bar")
+                }
+                if (isHighOrLowBarSquat) {
+                    val defaultVariant = if (exercise.id.lowercase().contains("low") || exercise.name.lowercase().contains("baja")) {
+                        com.example.kpkn.screens.wikilab.components.SquatVariant.LOW_BAR
+                    } else {
+                        com.example.kpkn.screens.wikilab.components.SquatVariant.HIGH_BAR
+                    }
+                    com.example.kpkn.screens.wikilab.components.CaupolicanSquatInteractiveViewer(
+                        initialVariant = defaultVariant,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
+
                 com.example.kpkn.screens.wikilab.ExerciseMinimalistChipsCarousel(
                     exercise = exercise,
                     fatigueScore = fatigue.overall,

@@ -1,0 +1,108 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="300dp"
+    android:height="300dp"
+    android:viewportWidth="300"
+    android:viewportHeight="300">
+
+    <!-- Background Grid Lines -->
+    <path
+        android:pathData="M150,20 V280 M40,270 H260"
+        android:strokeColor="#33A855F7"
+        android:strokeWidth="1" />
+
+    <!-- Floor Line -->
+    <path
+        android:pathData="M30,270 H270"
+        android:strokeColor="#A855F7"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+
+    <!-- Low Bar Vertical Path Reference -->
+    <path
+        android:strokeColor="#A855F7"
+        android:strokeWidth="2"
+        android:pathData="M150,85 V215" />
+
+    <!-- Caupolicán Head & Trarilonco (Inclined Torso, Looking 2 meters ahead on floor) -->
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M148,135 C148,125 172,125 172,135 L170,151 C170,158 150,158 150,151 Z" />
+    <path
+        android:fillColor="#1A1A1A"
+        android:pathData="M146,133 C146,123 174,123 174,133 Z" />
+    <!-- Trarilonco (Mapuche Headband) -->
+    <path
+        android:fillColor="#A855F7"
+        android:pathData="M146,135 H174 V140 H146 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M150,137 h3 v3 h-3 z M158,137 h3 v3 h-3 z M166,137 h3 v3 h-3 z" />
+
+    <!-- Forward Torso Angle (~45° Hip Hinge in Low Bar Bottom) -->
+    <path
+        android:fillColor="#A46938"
+        android:pathData="M153,151 H167 V161 H153 Z" />
+    <!-- Torso leaning forward from hips at X=110, Y=220 -->
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M135,160 L110,185 L105,220 L165,220 L185,185 L185,160 Z" />
+
+    <!-- Barbell Resting Low on Scapula (Centrally aligned over Midfoot) -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M40,165 H260 V171 H40 Z" />
+    <path
+        android:fillColor="#64748B"
+        android:pathData="M65,162 H72 V174 H65 Z M228,162 H235 V174 H228 Z" />
+    <path
+        android:fillColor="#FF3B30"
+        android:pathData="M50,145 H65 V189 H50 Z M235,145 H250 V189 H235 Z" />
+
+    <!-- Arms Holding Barbell Low -->
+    <path
+        android:strokeColor="#C68A56"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:pathData="M135,167 L95,167 M175,167 L215,167" />
+
+    <!-- Glute & Posterior Chain Activation (Highlighted in Purple/Magenta) -->
+    <path
+        android:fillColor="#A855F7"
+        android:pathData="M80,215 C70,215 70,240 95,245 L125,245 L120,215 Z M180,215 L175,245 L205,245 C230,240 230,215 220,215 Z" />
+
+    <!-- Athletic Shorts (Extended backwards over hips) -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M95,215 H205 L195,242 H105 Z" />
+    <path
+        android:fillColor="#EC4899"
+        android:pathData="M105,239 H195 V242 H105 Z" />
+
+    <!-- Legs in Low Bar Position (Knees travel LESS forward, Shins more vertical) -->
+    <!-- Quads & Thighs -->
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M105,242 L100,258 L125,264 L132,242 Z M195,242 L168,242 L175,264 L200,258 Z" />
+
+    <!-- Knees (Near vertical over ankles) -->
+    <path
+        android:fillColor="#A46938"
+        android:pathData="M96,254 C96,246 112,246 112,262 Z M204,254 C204,246 188,246 188,262 Z" />
+
+    <!-- Shins (Nearly vertical ~75-80°) -->
+    <path
+        android:fillColor="#C68A56"
+        android:pathData="M100,258 L120,266 L130,266 L112,258 Z M200,258 L188,258 L170,266 L180,266 Z" />
+
+    <!-- Feet/Shoes flat on floor -->
+    <path
+        android:fillColor="#A855F7"
+        android:pathData="M115,265 H138 V270 H115 Z M162,265 H185 V270 H162 Z" />
+
+    <!-- Biomechanical Inclination Indicator (~45° Torso Line) -->
+    <path
+        android:strokeColor="#EC4899"
+        android:strokeWidth="2.5"
+        android:pathData="M160,135 L110,225" />
+
+</vector>
