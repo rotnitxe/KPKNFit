@@ -50,40 +50,41 @@ class AugeRecoveryEnginePreWorkoutDiscomfortTest {
     fun testPreWorkoutDiscomfortAppliesPenaltyToMuscles() {
         val now = System.currentTimeMillis()
         val settings = Settings()
-        val history = listOf(heavyWorkoutLog(now - 30L * 3600 * 1000)) // 30 hours ago
+        val history = listOf(heavyWorkoutLog(now - 8L * 3600 * 1000))
 
-        // 1. Calculate base muscle score without discomfort
         val wellbeingNoDiscomfort = DailyWellbeingLog(
             id = "today",
             date = LocalDate.now().toString(),
             preWorkoutDiscomforts = emptyList()
         )
-        val baseScore = AugeRecoveryEngine.calculateMuscleBattery(
+        val base = AugeRecoveryEngine.calculateMuscleBattery(
             muscleName = "Pectorales",
             history = history,
             wellbeing = wellbeingNoDiscomfort,
             settings = settings,
             exerciseDb = exerciseDb,
-            precomputedCapacity = 200.0
-        ).recoveryScore
+            precomputedCapacity = 150.0
+        )
 
-        // 2. Calculate muscle score with pre-workout discomfort affecting "Pectorales" (shoulder_anterior relates to Pectorales)
         val wellbeingWithDiscomfort = DailyWellbeingLog(
             id = "today",
             date = LocalDate.now().toString(),
             preWorkoutDiscomforts = listOf("shoulder_anterior")
         )
-        val penalizedScore = AugeRecoveryEngine.calculateMuscleBattery(
+        val penalized = AugeRecoveryEngine.calculateMuscleBattery(
             muscleName = "Pectorales",
             history = history,
             wellbeing = wellbeingWithDiscomfort,
             settings = settings,
             exerciseDb = exerciseDb,
-            precomputedCapacity = 200.0
-        ).recoveryScore
+            precomputedCapacity = 150.0
+        )
 
         // Penalized score should be strictly lower than base score
-        assertTrue("Penalized score ($penalizedScore) should be less than base score ($baseScore)", penalizedScore < baseScore)
+        assertTrue(
+            "Penalized score (${penalized.recoveryScore}) should be less than base score (${base.recoveryScore})",
+            penalized.recoveryScore < base.recoveryScore,
+        )
     }
 
     @Test

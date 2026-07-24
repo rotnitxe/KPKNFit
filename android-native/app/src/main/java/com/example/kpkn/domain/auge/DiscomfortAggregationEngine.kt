@@ -4,7 +4,7 @@ import com.example.kpkn.data.models.ArticularBattery
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
 import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.screens.workout.PostExerciseFeedback
+import com.example.kpkn.data.models.PostExerciseFeedback
 
 data class SessionDiscomfortSummary(
     val discomfortId: String,

@@ -3,7 +3,8 @@ package com.example.kpkn.domain.nutrition
 /**
  * MacroValidator — Valida macros calculados contra rangos del dataset.
  *
- * Si la desviación > 40% del rango esperado → ajusta o flaggea.
+ * Rangos del dataset son solo advertencias (nunca sobrescriben USDA/OFF/estáticos).
+ * Solo corrige incoherencias físicas extremas (p. ej. >5000 kcal).
  * Calcula confidence final basada en convergencia de fuentes.
  */
 object MacroValidator {
@@ -40,47 +41,36 @@ object MacroValidator {
         var adjustedFats = input.fats
         var wasAdjusted = false
 
-        // Check against dataset macro ranges if available
+        // Dataset ranges are advisory only. Verified USDA/OFF/static values must never
+        // be overwritten by a semantic estimate.
         if (retrievalResult?.macroRange != null) {
             val range = retrievalResult.macroRange
 
-            // Validate calories
             if (input.calories > 0 && range.kcalMax > 0) {
                 val deviation = calculateDeviation(input.calories, range.kcalMin, range.kcalMax)
                 if (deviation > 0.4) {
                     warnings.add("Calorías fuera de rango esperado (${range.kcalMin.toInt()}-${range.kcalMax.toInt()} kcal)")
-                    adjustedCalories = clampToRange(input.calories, range.kcalMin, range.kcalMax)
-                    wasAdjusted = true
                 }
             }
 
-            // Validate protein
             if (input.protein > 0 && range.proteinMax > 0) {
                 val deviation = calculateDeviation(input.protein, range.proteinMin, range.proteinMax)
-                if (deviation > 0.5) { // More tolerance for protein
+                if (deviation > 0.5) {
                     warnings.add("Proteína fuera de rango esperado (${range.proteinMin.toInt()}-${range.proteinMax.toInt()}g)")
-                    adjustedProtein = clampToRange(input.protein, range.proteinMin, range.proteinMax)
-                    wasAdjusted = true
                 }
             }
 
-            // Validate carbs
             if (input.carbs > 0 && range.carbsMax > 0) {
                 val deviation = calculateDeviation(input.carbs, range.carbsMin, range.carbsMax)
                 if (deviation > 0.5) {
                     warnings.add("Carbohidratos fuera de rango esperado (${range.carbsMin.toInt()}-${range.carbsMax.toInt()}g)")
-                    adjustedCarbs = clampToRange(input.carbs, range.carbsMin, range.carbsMax)
-                    wasAdjusted = true
                 }
             }
 
-            // Validate fats
             if (input.fats > 0 && range.fatsMax > 0) {
                 val deviation = calculateDeviation(input.fats, range.fatsMin, range.fatsMax)
                 if (deviation > 0.5) {
                     warnings.add("Grasas fuera de rango esperado (${range.fatsMin.toInt()}-${range.fatsMax.toInt()}g)")
-                    adjustedFats = clampToRange(input.fats, range.fatsMin, range.fatsMax)
-                    wasAdjusted = true
                 }
             }
         }
@@ -142,10 +132,6 @@ object MacroValidator {
         val median = (min + max) / 2
         val halfRange = (max - min) / 2
         return kotlin.math.abs(value - median) / (halfRange.coerceAtLeast(1.0))
-    }
-
-    private fun clampToRange(value: Double, min: Double, max: Double): Double {
-        return value.coerceIn(min, max)
     }
 
     private fun calculateConfidence(

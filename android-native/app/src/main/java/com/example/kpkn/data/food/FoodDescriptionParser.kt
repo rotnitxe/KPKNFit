@@ -236,13 +236,13 @@ object FoodDescriptionParser {
      *
      * @param rawName The raw product_name field (column 10)
      * @param rawBrand The raw brands field (column 18)
-     * @param rawCalories energy-kcal_100g (column 88)
+     * @param rawCalories energy-kcal_100g (column 89)
      * @param rawProtein proteins_100g (column 150)
      * @param rawFat fat_100g (column 92)
      * @param rawCarbs carbohydrates_100g (column 129)
-     * @param rawFiber fiber_100g (column 131)
+     * @param rawFiber fiber_100g (column 146)
      * @param rawSugars sugars_100g (column 130)
-     * @param rawSodium sodium_100g (column 128)
+     * @param rawSodium sodium_100g (column 156)
      */
     fun parse(
         rawName: String,
@@ -254,6 +254,7 @@ object FoodDescriptionParser {
         rawFiber: Double = 0.0,
         rawSugars: Double = 0.0,
         rawSodium: Double = 0.0,
+        allowDatabaseMatch: Boolean = true,
     ): ParsedDescription {
         // Step 1: Clean the name
         val cleaned = cleanProductName(rawName)
@@ -262,7 +263,7 @@ object FoodDescriptionParser {
         val brand = extractBrand(rawName, rawBrand)
 
         // Step 3: Match against FoodDatabase
-        val matched = matchFoodDatabase(cleaned, rawName)
+        val matched = if (allowDatabaseMatch) matchFoodDatabase(cleaned, rawName) else null
 
         // Step 4: Detect category
         val category = detectCategory(cleaned, rawName)

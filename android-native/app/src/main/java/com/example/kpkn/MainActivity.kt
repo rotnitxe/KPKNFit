@@ -382,7 +382,6 @@ fun KPKNApp(
     
     val isFullscreenWizard = currentRoute == KpknRoute.WikiLabExerciseCreator.route ||
         currentRoute?.startsWith("session-editor") == true ||
-        currentRoute?.startsWith("readiness-gate") == true ||
         currentRoute?.startsWith("workout") == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
 
@@ -392,7 +391,6 @@ fun KPKNApp(
         currentRoute?.startsWith("program-metric-") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("program-editor") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("session-editor") == true -> KpknRoute.Training.route
-        currentRoute?.startsWith("readiness-gate") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("workout") == true -> KpknRoute.Training.route
         currentRoute?.startsWith(KpknRoute.Competitions.route) == true -> KpknRoute.Training.route
         currentRoute?.startsWith("competition/") == true -> KpknRoute.Training.route

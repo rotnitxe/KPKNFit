@@ -21,7 +21,7 @@ import java.time.Instant
 object FoodImporter {
     private const val TAG = "FoodImporter"
     private const val BATCH_SIZE = 2000
-    private const val DATA_VERSION = 3
+    private const val DATA_VERSION = 7
     private const val USDA_FOOD_CSV = "food_data/food.csv"
     private const val USDA_NUTRIENT_CSV = "food_data/food_nutrient.csv"
     private const val OFF_CHILE_CSV = "food_data/off_chile.csv"
@@ -85,7 +85,6 @@ object FoodImporter {
 
         android.util.Log.d(TAG, "Importando USDA...")
         val nutIdxMap = mapOf(
-            1008 to 0, // kcal
             1003 to 1, // protein
             1004 to 2, // fat
             1005 to 3, // carbs
@@ -95,6 +94,7 @@ object FoodImporter {
             1092 to 7, // potassium mg
             1051 to 8, // water g ~= ml
         )
+        val energyPriorityByFood = HashMap<Int, Int>()
 
         val foodNutrients = HashMap<Int, FloatArray>(120_000)
         context.assets.open(USDA_NUTRIENT_CSV).bufferedReader().use { reader ->
@@ -104,9 +104,23 @@ object FoodImporter {
                 if (parts.size < 4) continue
                 val fdcId = parts[1].toIntOrNull() ?: continue
                 val nutrientId = parts[2].toIntOrNull() ?: continue
-                val idx = nutIdxMap[nutrientId] ?: continue
                 val amount = parts[3].toFloatOrNull() ?: 0f
-                foodNutrients.getOrPut(fdcId) { FloatArray(9) }[idx] = amount
+                val nutrients = foodNutrients.getOrPut(fdcId) { FloatArray(9) }
+                val energyPriority = when (nutrientId) {
+                    2048 -> 3 // Energy, Atwater specific factors (kcal)
+                    2047 -> 2 // Energy, Atwater general factors (kcal)
+                    1008 -> 1 // Legacy Energy (kcal)
+                    else -> null
+                }
+                if (energyPriority != null) {
+                    if (amount > 0f && energyPriority > (energyPriorityByFood[fdcId] ?: 0)) {
+                        nutrients[0] = amount
+                        energyPriorityByFood[fdcId] = energyPriority
+                    }
+                } else {
+                    val idx = nutIdxMap[nutrientId] ?: continue
+                    nutrients[idx] = amount
+                }
             }
         }
         _importProgress.value = 0.18f
@@ -119,24 +133,27 @@ object FoodImporter {
                 val parts = parseCsvLine(line)
                 if (parts.size < 3) continue
                 val fdcId = parts[0].toIntOrNull() ?: continue
+                val dataType = parts[1].trim('"')
+                if (dataType != "foundation_food") continue
                 val name = parts[2].trim('"')
                 if (name.isBlank()) continue
                 val normalizedName = normalizeSearch(name)
-                val nutrients = foodNutrients[fdcId]
+                val nutrients = foodNutrients[fdcId] ?: continue
+                if (nutrients[0] <= 0f) continue
                 usdaBatch.add(
                     GlobalFoodEntity(
                         foodId = "usda_$fdcId",
                         name = name,
                         normalizedName = normalizedName,
-                        calories = nutrients?.get(0)?.toDouble() ?: 0.0,
-                        protein = nutrients?.get(1)?.toDouble() ?: 0.0,
-                        fats = nutrients?.get(2)?.toDouble() ?: 0.0,
-                        carbs = nutrients?.get(3)?.toDouble() ?: 0.0,
-                        fiber = nutrients?.get(4)?.toDouble() ?: 0.0,
-                        sugar = nutrients?.get(5)?.toDouble() ?: 0.0,
-                        sodiumMg = nutrients?.get(6)?.toDouble() ?: 0.0,
-                        potassiumMg = nutrients?.get(7)?.toDouble() ?: 0.0,
-                        waterMl = nutrients?.get(8)?.toDouble() ?: 0.0,
+                        calories = nutrients[0].toDouble(),
+                        protein = nutrients[1].toDouble(),
+                        fats = nutrients[2].toDouble(),
+                        carbs = nutrients[3].toDouble(),
+                        fiber = nutrients[4].toDouble(),
+                        sugar = nutrients[5].toDouble(),
+                        sodiumMg = nutrients[6].toDouble(),
+                        potassiumMg = nutrients[7].toDouble(),
+                        waterMl = nutrients[8].toDouble(),
                         aliasesJson = "[]",
                         source = "USDA",
                         sourcePriority = 70,
@@ -168,9 +185,11 @@ object FoodImporter {
                 //   0   = code (barcode)
                 //   10  = product_name
                 //   18  = brands
-                //   88  = energy-kcal_100g
+                //   88  = energy-kj_100g
+                //   89  = energy-kcal_100g
                 //   92  = fat_100g
-                //   128 = sodium_100g (in grams)
+                //   146 = fiber_100g
+                //   156 = sodium_100g (in grams)
                 //   129 = carbohydrates_100g
                 //   130 = sugars_100g
                 //   131 = fiber_100g
@@ -178,17 +197,17 @@ object FoodImporter {
                 val idxCode = 0
                 val idxName = 10
                 val idxBrand = 18
-                val idxKcal = 88
+                val idxKcal = 89
                 val idxFat = 92
-                val idxSodium = 128
                 val idxCarb = 129
                 val idxSugar = 130
-                val idxFiber = 131
+                val idxFiber = 146
                 val idxProt = 150
+                val idxSodium = 156
 
                 for (line in reader.lineSequence()) {
                     val parts = parseTsvLine(line)
-                    if (parts.size < 151) {
+                    if (parts.size <= idxSodium) {
                         offSkipped++
                         continue
                     }
@@ -203,18 +222,38 @@ object FoodImporter {
                     }
                     val rawBrand = parts[idxBrand].trim().takeIf { it.isNotBlank() }
 
-                    // Parse raw nutrition values
-                    val rawKcal = parts[idxKcal].toDoubleOrNull() ?: 0.0
-                    val rawProt = parts[idxProt].toDoubleOrNull() ?: 0.0
-                    val rawFat = parts[idxFat].toDoubleOrNull() ?: 0.0
-                    val rawCarb = parts[idxCarb].toDoubleOrNull() ?: 0.0
-                    val rawFiber = parts[idxFiber].toDoubleOrNull() ?: 0.0
-                    val rawSugar = parts[idxSugar].toDoubleOrNull() ?: 0.0
-                    val rawSodium = parts[idxSodium].toDoubleOrNull() ?: 0.0
+                    // Parse raw nutrition values and reject physically impossible/corrupt values.
+                    fun boundedValue(index: Int, max: Double): Double {
+                        return parts[index].toDoubleOrNull()
+                            ?.takeIf { it.isFinite() && it in 0.0..max }
+                            ?: 0.0
+                    }
+                    val rawKcal = boundedValue(idxKcal, 1000.0)
+                    val rawProt = boundedValue(idxProt, 100.0)
+                    val rawFat = boundedValue(idxFat, 100.0)
+                    val rawCarb = boundedValue(idxCarb, 100.0)
+                    val rawFiber = boundedValue(idxFiber, 100.0)
+                    val rawSugar = boundedValue(idxSugar, 100.0)
+                    val rawSodium = parts[idxSodium].toDoubleOrNull()
+                        ?.takeIf { it.isFinite() && it in 0.0..5.0 }
+                    if (parts[idxSodium].isNotBlank() && rawSodium == null) {
+                        offSkipped++
+                        continue
+                    }
 
-                    val hasRawNutrition = rawKcal > 0 || rawProt > 0 || rawFat > 0 || rawCarb > 0
+                    val macroEnergy = rawProt * 4.0 + rawFat * 9.0 + rawCarb * 4.0
+                    val hasRawNutrition = rawKcal > 0.0 && macroEnergy > 0.0
+                    if (!hasRawNutrition) {
+                        offSkipped++
+                        continue
+                    }
+                    val energyDeviation = kotlin.math.abs(rawKcal - macroEnergy) / macroEnergy
+                    if (energyDeviation > 0.5) {
+                        offSkipped++
+                        continue
+                    }
 
-                    // Run heuristic description parser (works with or without raw nutrition)
+                    // Clean and validate declared OFF data without substituting generic catalog macros.
                     val parsed = FoodDescriptionParser.parse(
                         rawName = rawName,
                         rawBrand = rawBrand,
@@ -224,19 +263,9 @@ object FoodImporter {
                         rawCarbs = rawCarb,
                         rawFiber = rawFiber,
                         rawSugars = rawSugar,
-                        rawSodium = rawSodium,
+                        rawSodium = rawSodium ?: 0.0,
+                        allowDatabaseMatch = false,
                     )
-
-                    // Accept if: has raw nutrition data OR matched FoodDatabase with confidence >= 0.65
-                    val hasDbMatch = parsed.matchedFoodName != null && parsed.confidence >= 0.65f
-                    if (!hasRawNutrition && !hasDbMatch) {
-                        offSkipped++
-                        continue
-                    }
-
-                    if (!hasRawNutrition && hasDbMatch) {
-                        offDbFilled++
-                    }
 
                     val normalizedName = normalizeSearch(parsed.cleanedName)
                     val normalizedBrand = parsed.brandHint?.let(::normalizeSearch)
@@ -245,13 +274,6 @@ object FoodImporter {
                         if (!normalizedBrand.isNullOrBlank()) add(normalizedBrand)
                         parsed.matchedFoodName?.let { add(normalizeSearch(it)) }
                     }.distinct().filter { it.isNotBlank() }
-
-                    // Lower priority for DB-filled entries (no real OFF nutrition data)
-                    val (sourcePriority, verifiedScore) = if (!hasRawNutrition && hasDbMatch) {
-                        60 to 0.55 // DB-filled: lower priority, lower confidence
-                    } else {
-                        80 to parsed.confidence.toDouble() // Real OFF data
-                    }
 
                     offBatch.add(
                         GlobalFoodEntity(
@@ -269,8 +291,8 @@ object FoodImporter {
                             sugar = parsed.sugars,
                             sodiumMg = parsed.sodiumMg,
                             source = "OFF Chile",
-                            sourcePriority = sourcePriority,
-                            verifiedScore = verifiedScore,
+                            sourcePriority = 80,
+                            verifiedScore = parsed.confidence.toDouble(),
                         )
                     )
                     offProcessed++

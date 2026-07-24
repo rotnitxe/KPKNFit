@@ -5897,21 +5897,22 @@ class WorkoutViewModel(
 
         viewModelScope.launch {
             val stressScore = withContext(Dispatchers.Default) {
+                val adaptiveCache = com.example.kpkn.data.repository.AugeRepository
+                    .getInstance(appContext)
+                    .getAdaptiveCache()
                 val drainSummary = AugeFatigueEngine.calculateCompletedSessionDrain(
                     completedExercises = completedExercises,
                     exerciseDb = EXERCISE_DATABASE_BY_ID,
                     settings = repository.settings.value,
+                    adaptiveCache = adaptiveCache,
                 )
-                val base = AugeFatigueEngine.calculateCompletedSessionStress(
-                    completedExercises = completedExercises,
-                    exerciseDb = EXERCISE_DATABASE_BY_ID,
-                    settings = repository.settings.value,
-                )
-                val predictedOverall = (
+                // Stress is derived from the same drain pass (no second full traversal)
+                val base = (
                     drainSummary.cns * 0.45 +
                         drainSummary.muscular * 0.25 +
                         drainSummary.spinal * 0.30
                     ).coerceAtLeast(1.0)
+                val predictedOverall = base
                 val adjustedSystem = (drainSummary.cns + closingFeedback.systemAdjustment).coerceIn(0, 100)
                 val adjustedMuscular = (drainSummary.muscular + closingFeedback.muscularAdjustment).coerceIn(0, 100)
                 val adjustedStructure = (drainSummary.spinal + closingFeedback.structureAdjustment).coerceIn(0, 100)
@@ -5929,7 +5930,7 @@ class WorkoutViewModel(
                     .average()
                     .takeIf { !it.isNaN() }
                     ?: 8.0
-                val techniqueQuality5 = (avgTech - 5.0).toInt().coerceIn(1, 5)
+                val techniqueQuality5 = technicalQuality10ToPenaltyScale(avgTech.toInt())
                 val techniquePenalty = AugeFatigueEngine.calculateTechniquePenalty(
                     technicalQuality = techniqueQuality5,
                     effortSignal = avgSetEffortSignal,

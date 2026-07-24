@@ -130,6 +130,20 @@ data class CompletedSet(
 fun CompletedSet.effectiveRepEquivalent(): Double =
     reps.toDouble() + ((partialReps ?: 0).coerceAtLeast(0) * 0.5)
 
+/** Per-exercise feedback captured during/after a set block. Lives in data so domain engines can use it. */
+@Serializable
+data class PostExerciseFeedback(
+    val exerciseId: String,
+    val exerciseDbId: String? = null,
+    val canonicalExerciseId: String? = null,
+    val exerciseName: String,
+    val technicalQuality: Int,
+    val discomfortIds: List<String> = emptyList(),
+    val notes: String? = null,
+    val perceivedIntensityRpe: Double? = null,
+    val perceivedFailure: Boolean = false,
+)
+
 @Serializable
 data class OngoingWorkoutState(
     val programId: String,

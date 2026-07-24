@@ -126,7 +126,7 @@ import com.example.kpkn.data.models.WorkoutSubTag
 import com.example.kpkn.data.models.SubTagCategory
 import com.example.kpkn.data.models.WorkoutHeaderWidgets
 import com.example.kpkn.screens.workout.ExerciseHistoryEntry
-import com.example.kpkn.screens.workout.PostExerciseFeedback
+import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.AugeTtcEngine
 import com.example.kpkn.domain.auge.DiscomfortAggregationEngine
@@ -1191,7 +1191,8 @@ fun WorkoutScreen(
         readinessMuscularStart = readinessMuscularStart,
         readinessSpinalStart = readinessSpinalStart,
         hazeState = readinessHaze,
-        onSave = { neural, muscular, spinal, perMuscle, discomforts ->
+        onSave = { neural, muscular, spinal, perMuscle, discomforts,
+            manualNeural, manualSpinal, manualMuscular, manualMuscleBatteries ->
             val log = DailyWellbeingLog(
                 id = todayWellbeing?.id ?: UUID.randomUUID().toString(),
                 date = LocalDate.now().toString(),
@@ -1203,14 +1204,20 @@ fun WorkoutScreen(
                 moodState = todayWellbeing?.moodState,
                 workIntensity = todayWellbeing?.workIntensity,
                 studyIntensity = todayWellbeing?.studyIntensity,
-                manualMuscularBattery = muscular,
-                manualNeuralBattery = neural,
-                manualSpinalBattery = spinal,
-                manualMuscleBatteries = perMuscle,
+                // Persist AUGE manuals only for channels the user actually edited
+                manualMuscularBattery = manualMuscular ?: todayWellbeing?.manualMuscularBattery,
+                manualNeuralBattery = manualNeural ?: todayWellbeing?.manualNeuralBattery,
+                manualSpinalBattery = manualSpinal ?: todayWellbeing?.manualSpinalBattery,
+                manualMuscleBatteries = if (manualMuscleBatteries.isNotEmpty()) {
+                    (todayWellbeing?.manualMuscleBatteries.orEmpty()) + manualMuscleBatteries
+                } else {
+                    todayWellbeing?.manualMuscleBatteries.orEmpty()
+                },
                 notes = todayWellbeing?.notes,
                 preWorkoutDiscomforts = discomforts,
             )
             augeViewModel.saveWellbeing(log)
+            // Session-scoped readiness (load adjustment) still uses displayed values
             viewModel.saveReadinessAdjustments(
                 neural = neural,
                 muscular = muscular,
@@ -2428,6 +2435,8 @@ fun WorkoutScreen(
                     onComplete = {
                         augeViewModel.applyManualBatteries(
                             neural = closingFeedback.finalNeuralBattery ?: readinessNeuralStart,
+                            // Leave global muscular to the engine (per-muscle map + 0.85/0.15 formula)
+                            muscular = null,
                             spinal = closingFeedback.finalSpinalBattery ?: readinessSpinalStart,
                             perMuscle = closingFeedback.finalMuscleBatteries,
                             sessionCnsDrain = completedSessionDrains.cns.toDouble(),

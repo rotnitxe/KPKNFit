@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarization
 import com.example.kpkn.data.models.ProgramCalendarizationMode

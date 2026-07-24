@@ -38,15 +38,20 @@ fun HomeRingsSection(
     sncProgress: Float,
     columnaProgress: Float,
     hasActiveProgram: Boolean = true,
+    isLoading: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    val progressValues = remember(muscularProgress, sncProgress, columnaProgress) {
-        listOf(muscularProgress, sncProgress, columnaProgress)
+    val progressValues = remember(muscularProgress, sncProgress, columnaProgress, isLoading) {
+        if (isLoading) listOf(0f, 0f, 0f)
+        else listOf(muscularProgress, sncProgress, columnaProgress)
     }
 
-    val ringColors = remember(hasActiveProgram) {
-        if (hasActiveProgram) RingColors
-        else listOf(Color(0xFF666666), Color(0xFF888888), Color(0xFFAAAAAA))
+    val ringColors = remember(hasActiveProgram, isLoading) {
+        when {
+            isLoading -> listOf(Color(0xFF444444), Color(0xFF555555), Color(0xFF666666))
+            hasActiveProgram -> RingColors
+            else -> listOf(Color(0xFF666666), Color(0xFF888888), Color(0xFFAAAAAA))
+        }
     }
 
     var showInfoDialog by remember { mutableStateOf(false) }
@@ -72,7 +77,7 @@ fun HomeRingsSection(
             )
         }
 
-        CombinedRingsView(progressValues, ringColors, hasActiveProgram)
+        CombinedRingsView(progressValues, ringColors, hasActiveProgram, isLoading = isLoading)
         Spacer(Modifier.height(4.dp))
     }
 
@@ -86,6 +91,7 @@ private fun CombinedRingsView(
     progressValues: List<Float>,
     ringColors: List<Color>,
     hasActiveProgram: Boolean = true,
+    isLoading: Boolean = false,
 ) {
     Column(
         modifier = Modifier
@@ -124,7 +130,7 @@ private fun CombinedRingsView(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "${(progress * 100).toInt()}%",
+                            if (isLoading) "—" else "${(progress * 100).toInt()}%",
                             style = MaterialTheme.typography.labelSmall,
                             color = ringColors[i],
                             fontWeight = FontWeight.Black,
@@ -190,7 +196,7 @@ private fun AugeRingsCanvas(mp: Float, sp: Float, cp: Float, ringColors: List<Co
             drawArc(
                 data[i].first,
                 -90f,
-                360f * data[i].second,
+                360f * data[i].second.coerceIn(0f, 1f),
                 false,
                 Offset(c.x - r, c.y - r),
                 Size(r * 2, r * 2),

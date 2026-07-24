@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.PlanDeviation
 import com.example.kpkn.data.models.PlanDeviationType
+import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.MuscleFeedbackEntry
 import com.example.kpkn.data.models.RestPauseData
@@ -38,18 +39,6 @@ data class SetAdvancedFeedback(
     val timerTargetSeconds: Int? = null,
     val rom: Int? = null,
     val assistedReps: Int? = null,
-)
-
-data class PostExerciseFeedback(
-    val exerciseId: String,
-    val exerciseDbId: String? = null,
-    val canonicalExerciseId: String? = null,
-    val exerciseName: String,
-    val technicalQuality: Int,
-    val discomfortIds: List<String> = emptyList(),
-    val notes: String? = null,
-    val perceivedIntensityRpe: Double? = null,
-    val perceivedFailure: Boolean = false,
 )
 
 sealed interface PostExerciseFeedbackTarget {
@@ -208,16 +197,17 @@ fun calculateUnifiedSessionEffortSignal(
     }
     if (effectiveSets.isEmpty()) return 7.0
 
+    // getEffectiveRPE already includes technique bonuses — do not double-count
     return effectiveSets
-        .map { set ->
-            var signal = AugeFatigueEngine.getEffectiveRPE(set)
-            if (set.isFailure) signal += 0.6
-            if (set.dropSets.isNotEmpty()) signal += 0.4
-            if (set.restPauses.isNotEmpty()) signal += 0.5
-            signal.coerceIn(1.0, 12.0)
-        }
+        .map { set -> AugeFatigueEngine.getEffectiveRPE(set).coerceIn(1.0, 12.0) }
         .average()
         .coerceIn(1.0, 12.0)
+}
+
+/** Maps a 1–10 technical quality score to the 1–5 scale expected by calculateTechniquePenalty. */
+fun technicalQuality10ToPenaltyScale(technicalQuality: Int): Int {
+    val q = technicalQuality.coerceIn(1, 10)
+    return (1 + ((q - 1) * 4) / 9).coerceIn(1, 5)
 }
 
 @Suppress("unused")

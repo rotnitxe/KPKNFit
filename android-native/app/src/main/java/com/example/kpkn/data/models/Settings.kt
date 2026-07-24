@@ -46,6 +46,10 @@ data class Settings(
     val dailyHydrationGoalMl: Int? = 2000,
     val nutritionShowOverages: Boolean = true,
     val calorieGoalObjective: CalorieGoalObjective = CalorieGoalObjective.MAINTENANCE,
+    /** PAL categórico 1–5 (Harris–Benedict style) usado en el plan nutricional. */
+    val nutritionActivityLevel: Int = 3,
+    /** omnivore | vegetarian | vegan — ajusta proteína recomendada. */
+    val nutritionDietaryPreference: String = "omnivore",
 
     val sleepTargetHours: Double = 8.0,
     val smartSleepEnabled: Boolean = false,
@@ -109,6 +113,8 @@ data class UserVitals(
     val bodyFatPercentage: Double? = null,
     val muscleMassPercentage: Double? = null,
     val targetWeight: Double? = null,
+    /** Perfil hormonal para Mifflin/Harris; independiente de Gender. */
+    val metabolicProfile: MetabolicProfile? = null,
 )
 
 enum class Gender { MALE, FEMALE, OTHER }

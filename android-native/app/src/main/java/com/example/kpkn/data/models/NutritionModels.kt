@@ -186,6 +186,16 @@ data class MealTemplate(
 
 enum class AnalysisSource { RULES, DATABASE, USER_MEMORY, LOCAL_AI_ESTIMATE, EXTERNAL_API_ESTIMATE, LOCAL_HEURISTIC }
 
+/** How the user expressed quantity — locked intents must not be re-scaled by context/priors. */
+enum class AmountIntent {
+    /** Explicit g/kg/ml/oz/lb. */
+    EXPLICIT_MASS,
+    /** Utensil/gesture resolved once (taza, cucharada, puñado…). */
+    RESOLVED_SUBJECTIVE,
+    /** Name-only or portion preset; context/priors may apply. */
+    UNSPECIFIED,
+}
+
 @Serializable
 data class ParsedMealItem(
     val tag: String = "",
@@ -206,6 +216,7 @@ data class ParsedMealItem(
     val appliedCookingFactor: Double = 1.0,
     val modifierScale: MacroOverrides? = null,
     val isExcluded: Boolean = false,
+    val amountIntent: AmountIntent = AmountIntent.UNSPECIFIED,
 )
 
 @Serializable

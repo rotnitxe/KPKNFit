@@ -16,7 +16,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -24,11 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.settings.components.SettingsSectionCard
 import com.example.kpkn.screens.settings.components.SettingsSectionHeader
 import com.example.kpkn.screens.settings.components.SettingsSliderItem
 import com.example.kpkn.screens.settings.components.SettingsSwitchItem
 import com.example.kpkn.screens.settings.components.SettingsTextFieldItem
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +43,17 @@ fun SettingsAugeScreen(
     val settings by viewModel.settings.collectAsState()
     val algorithm = settings.algorithmSettings
     var showAdvanced by rememberSaveable { mutableStateOf(false) }
+    val augeViewModel = rememberAugeViewModel()
+
+    var readinessDraft by remember(algorithm.augeReadinessThreshold) {
+        mutableFloatStateOf(algorithm.augeReadinessThreshold.toFloat())
+    }
+    var fatigueDraft by remember(algorithm.augeFatigueSensitivity) {
+        mutableFloatStateOf(algorithm.augeFatigueSensitivity.toFloat())
+    }
+    var recoveryDraft by remember(algorithm.augeRecoverySensitivity) {
+        mutableFloatStateOf(algorithm.augeRecoverySensitivity.toFloat())
+    }
 
     Scaffold(
         topBar = {
@@ -62,8 +77,8 @@ fun SettingsAugeScreen(
             item {
                 SettingsSectionCard {
                     SettingsSwitchItem(
-                        title = "Seguimiento de nutricion",
-                        description = "Considera la nutricion para la recuperacion",
+                        title = "Seguimiento de nutrición",
+                        description = "Considera la nutrición para la recuperación",
                         checked = algorithm.augeEnableNutritionTracking,
                         onCheckedChange = { value ->
                             viewModel.update {
@@ -72,8 +87,8 @@ fun SettingsAugeScreen(
                         },
                     )
                     SettingsSwitchItem(
-                        title = "Seguimiento de sueno",
-                        description = "Incluye descanso en calculos de fatiga y readiness",
+                        title = "Seguimiento de sueño",
+                        description = "Incluye descanso en cálculos de fatiga y readiness",
                         checked = algorithm.augeEnableSleepTracking,
                         onCheckedChange = { value ->
                             viewModel.update {
@@ -104,17 +119,40 @@ fun SettingsAugeScreen(
                 }
             }
 
+            item { SettingsSectionHeader("Overrides manuales") }
+            item {
+                SettingsSectionCard {
+                    TextButton(
+                        onClick = {
+                            augeViewModel.clearManualBatteryOverrides()
+                        },
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        Text("Volver a automático (baterías)")
+                    }
+                    TextButton(
+                        onClick = {
+                            augeViewModel.resetAdaptiveCache()
+                        },
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        Text("Reiniciar aprendizaje adaptativo")
+                    }
+                }
+            }
+
             item { SettingsSectionHeader("Sensibilidad") }
             item {
                 SettingsSectionCard {
                     SettingsSliderItem(
                         title = "Umbral de readiness",
-                        value = algorithm.augeReadinessThreshold.toFloat(),
-                        onValueChange = { value ->
+                        value = readinessDraft,
+                        onValueChange = { readinessDraft = it },
+                        onValueChangeFinished = {
                             viewModel.update {
                                 it.copy(
                                     algorithmSettings = it.algorithmSettings.copy(
-                                        augeReadinessThreshold = value.toInt().coerceIn(20, 90),
+                                        augeReadinessThreshold = readinessDraft.roundToInt().coerceIn(20, 90),
                                     ),
                                 )
                             }
@@ -124,12 +162,14 @@ fun SettingsAugeScreen(
                     )
                     SettingsSliderItem(
                         title = "Sensibilidad de fatiga",
-                        value = algorithm.augeFatigueSensitivity.toFloat(),
-                        onValueChange = { value ->
+                        value = fatigueDraft,
+                        onValueChange = { fatigueDraft = it },
+                        onValueChangeFinished = {
+                            val rounded = (fatigueDraft * 10).roundToInt() / 10.0
                             viewModel.update {
                                 it.copy(
                                     algorithmSettings = it.algorithmSettings.copy(
-                                        augeFatigueSensitivity = (value * 10).toInt() / 10.0,
+                                        augeFatigueSensitivity = rounded,
                                     ),
                                 )
                             }
@@ -139,13 +179,15 @@ fun SettingsAugeScreen(
                         valueLabel = { "%.1f".format(it) },
                     )
                     SettingsSliderItem(
-                        title = "Sensibilidad de recuperacion",
-                        value = algorithm.augeRecoverySensitivity.toFloat(),
-                        onValueChange = { value ->
+                        title = "Sensibilidad de recuperación",
+                        value = recoveryDraft,
+                        onValueChange = { recoveryDraft = it },
+                        onValueChangeFinished = {
+                            val rounded = (recoveryDraft * 10).roundToInt() / 10.0
                             viewModel.update {
                                 it.copy(
                                     algorithmSettings = it.algorithmSettings.copy(
-                                        augeRecoverySensitivity = (value * 10).toInt() / 10.0,
+                                        augeRecoverySensitivity = rounded,
                                     ),
                                 )
                             }

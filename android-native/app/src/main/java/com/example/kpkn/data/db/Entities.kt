@@ -125,36 +125,49 @@ data class WorkoutReplacementDecisionEntity(@PrimaryKey val id: String, val prog
 fun ExerciseReplacementDecisionV2.toEntity() = WorkoutReplacementDecisionEntity(id = id, programId = programId, sessionId = sessionId, createdAt = createdAtIso, data = dbJson.encodeToString(this))
 fun WorkoutReplacementDecisionEntity.toExerciseReplacementDecisionV2(): ExerciseReplacementDecisionV2 = dbJson.decodeFromString(data)
 
-@Entity(tableName = "auge_wellbeing", indices = [Index("date")])
+@Entity(tableName = "auge_wellbeing", indices = [Index(value = ["date"], unique = true)])
 data class WellbeingEntity(@PrimaryKey val id: String, val date: String, val data: String)
 fun DailyWellbeingLog.toEntity() = WellbeingEntity(id = id, date = date, data = dbJson.encodeToString(this))
-fun WellbeingEntity.toWellbeingLog(): DailyWellbeingLog = dbJson.decodeFromString(data)
+fun WellbeingEntity.toWellbeingLog(): DailyWellbeingLog? = runCatching {
+    dbJson.decodeFromString<DailyWellbeingLog>(data)
+}.getOrNull()
 
 @Entity(tableName = "auge_sleep", indices = [Index("date")])
 data class SleepLogEntity(@PrimaryKey val id: String, val date: String, val data: String)
 fun SleepLog.toEntity() = SleepLogEntity(id = id, date = date, data = dbJson.encodeToString(this))
-fun SleepLogEntity.toSleepLog(): SleepLog = dbJson.decodeFromString(data)
+fun SleepLogEntity.toSleepLog(): SleepLog? = runCatching {
+    dbJson.decodeFromString<SleepLog>(data)
+}.getOrNull()
 
 @Entity(tableName = "auge_sleep_extended", indices = [Index("date")])
 data class SleepLogExtendedEntity(@PrimaryKey val id: String, val date: String, val data: String)
 fun com.example.kpkn.data.models.SleepLogExtended.toExtendedEntity() = SleepLogExtendedEntity(id = id, date = date, data = dbJson.encodeToString(this))
-fun SleepLogExtendedEntity.toSleepLogExtended(): com.example.kpkn.data.models.SleepLogExtended = dbJson.decodeFromString(data)
+fun SleepLogExtendedEntity.toSleepLogExtended(): com.example.kpkn.data.models.SleepLogExtended? = runCatching {
+    dbJson.decodeFromString<com.example.kpkn.data.models.SleepLogExtended>(data)
+}.getOrNull()
 
 @Entity(tableName = "auge_feedback", indices = [Index("date")])
 data class PostSessionFeedbackEntity(@PrimaryKey val logId: String, val date: String, val data: String)
 fun PostSessionFeedback.toEntity() = PostSessionFeedbackEntity(logId = logId, date = date, data = dbJson.encodeToString(this))
-fun PostSessionFeedbackEntity.toFeedback(): PostSessionFeedback = dbJson.decodeFromString(data)
+fun PostSessionFeedbackEntity.toFeedback(): PostSessionFeedback? = runCatching {
+    dbJson.decodeFromString<PostSessionFeedback>(data)
+}.getOrNull()
 
 @Entity(tableName = "auge_pending")
-data class PendingQuestionnaireEntity(@PrimaryKey val rowId: Int = 1, val data: String?)
+data class PendingQuestionnaireEntity(@PrimaryKey val rowId: Int = 1, val data: String)
 fun PendingQuestionnaire.toEntity() = PendingQuestionnaireEntity(data = dbJson.encodeToString(this))
-fun PendingQuestionnaireEntity.toPendingQuestionnaire(): PendingQuestionnaire = dbJson.decodeFromString(data ?: "{}")
+fun PendingQuestionnaireEntity.toPendingQuestionnaire(): PendingQuestionnaire? {
+    val raw = data.takeIf { it.isNotBlank() } ?: return null
+    return runCatching { dbJson.decodeFromString<PendingQuestionnaire>(raw) }.getOrNull()
+}
 
 @Entity(tableName = "auge_adaptive_cache")
-data class AugeAdaptiveCacheEntity(@PrimaryKey val rowId: Int = 1, val data: String?)
+data class AugeAdaptiveCacheEntity(@PrimaryKey val rowId: Int = 1, val data: String)
 fun com.example.kpkn.data.models.AugeAdaptiveCache.toEntity() = AugeAdaptiveCacheEntity(data = dbJson.encodeToString(this))
 fun AugeAdaptiveCacheEntity.toAdaptiveCache(): com.example.kpkn.data.models.AugeAdaptiveCache =
-    dbJson.decodeFromString(data ?: "{}")
+    runCatching {
+        dbJson.decodeFromString<com.example.kpkn.data.models.AugeAdaptiveCache>(data.ifBlank { "{}" })
+    }.getOrDefault(com.example.kpkn.data.models.AugeAdaptiveCache())
 
 @Entity(tableName = "nutrition_logs", indices = [Index("date")])
 data class NutritionLogEntity(@PrimaryKey val id: String, val date: String, val mealType: String, val data: String)

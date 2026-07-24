@@ -469,7 +469,9 @@ object AugeTtcEngine {
 
         for (involved in info.involvedMuscles) {
             if (involved.role != MuscleRole.PRIMARY && involved.role != MuscleRole.SECONDARY) continue
-            val articulars = MUSCLE_TO_ARTICULAR[involved.muscle] ?: continue
+            val articulars = MUSCLE_TO_ARTICULAR[involved.muscle]
+                ?: MUSCLE_TO_ARTICULAR[getAugeMusclePillarId(involved.muscle, involved.emphasis)]
+                ?: continue
             for (ab in articulars) {
                 val roleMult = if (involved.role == MuscleRole.PRIMARY) 1.0 else 0.6
                 result[ab] = (result[ab] ?: 0.0) + roleMult

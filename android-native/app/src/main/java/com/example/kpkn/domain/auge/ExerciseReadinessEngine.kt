@@ -59,10 +59,12 @@ object ExerciseReadinessEngine {
 
         if (muscleIds.isEmpty()) return null
 
-        // Componente muscular: promedio ponderado por rol (PRIMARY=1.0, SECONDARY=0.5, STABILIZER=0.25)
+        // Componente muscular: promedio ponderado por rol; lookup against pillar keys in perMuscle
         val (scoreSum, weightSum) = involvedMuscles.fold(0.0 to 0.0) { (s, w), involved ->
-            val id = getAugeMuscleDisplayId(involved.muscle, involved.emphasis) ?: return@fold s to w
-            val recovery = perMuscle[id]?.recoveryScore?.toDouble() ?: return@fold s to w
+            val pillarId = getAugeMusclePillarId(involved.muscle, involved.emphasis)
+            val displayId = getAugeMuscleDisplayId(involved.muscle, involved.emphasis)
+            val recovery = (perMuscle[displayId] ?: perMuscle[pillarId])?.recoveryScore?.toDouble()
+                ?: return@fold s to w
             val roleWeight = FATIGUE_ROLE_MULTIPLIERS[involved.role] ?: return@fold s to w
             (s + recovery * roleWeight) to (w + roleWeight)
         }
@@ -75,8 +77,11 @@ object ExerciseReadinessEngine {
 
         // NUEVO Step C' — Articular component (limiting por ejercicio)
         val (artScoreSum, artWeightSum) = involvedMuscles.fold(0.0 to 0.0) { (s, w), involved ->
-            val id = getAugeMuscleDisplayId(involved.muscle, involved.emphasis) ?: return@fold s to w
-            val relatedArtic = AugeTtcEngine.MUSCLE_TO_ARTICULAR[id].orEmpty()
+            val pillarId = getAugeMusclePillarId(involved.muscle, involved.emphasis)
+            val displayId = getAugeMuscleDisplayId(involved.muscle, involved.emphasis)
+            val relatedArtic = AugeTtcEngine.MUSCLE_TO_ARTICULAR[displayId]
+                ?: AugeTtcEngine.MUSCLE_TO_ARTICULAR[pillarId]
+                ?: emptyList()
             if (relatedArtic.isEmpty()) return@fold s to w
             val roleWeight = FATIGUE_ROLE_MULTIPLIERS[involved.role] ?: return@fold s to w
             val avgScore = relatedArtic

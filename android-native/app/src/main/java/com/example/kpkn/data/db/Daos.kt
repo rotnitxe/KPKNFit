@@ -179,6 +179,21 @@ interface AugeDao {
     @Query("DELETE FROM auge_sleep_extended WHERE id = :id")
     suspend fun deleteSleepLogExtended(id: String)
 
+    @Query("DELETE FROM auge_sleep WHERE id = :id")
+    suspend fun deleteSleepLog(id: String)
+
+    @androidx.room.Transaction
+    suspend fun upsertSleepLogExtendedAtomic(extended: SleepLogExtendedEntity, basic: SleepLogEntity) {
+        upsertSleepLogExtended(extended)
+        upsertSleepLog(basic)
+    }
+
+    @androidx.room.Transaction
+    suspend fun deleteSleepLogBoth(id: String) {
+        deleteSleepLogExtended(id)
+        deleteSleepLog(id)
+    }
+
     // Post-session feedback
     @Query("SELECT * FROM auge_feedback ORDER BY date DESC")
     suspend fun getAllFeedback(): List<PostSessionFeedbackEntity>
@@ -309,6 +324,9 @@ interface NutritionDao {
     
     @Query("SELECT * FROM global_foods WHERE name LIKE '%' || :query || '%' LIMIT 100")
     suspend fun searchGlobalFoods(query: String): List<GlobalFoodEntity>
+
+    @Query("SELECT * FROM global_foods WHERE foodId = :foodId LIMIT 1")
+    suspend fun getGlobalFoodById(foodId: String): GlobalFoodEntity?
 
     @Query(
         """

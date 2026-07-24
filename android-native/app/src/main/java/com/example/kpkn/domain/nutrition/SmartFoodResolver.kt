@@ -45,6 +45,7 @@ class SmartFoodResolver(
         val candidates: List<ResolutionCandidate>,
         val decision: Decision,
         val resolvedFoodId: String?,
+        val semanticRetrieval: SemanticPortionRetriever.RetrievalResult? = null,
     )
 
     enum class Decision { AUTO_SELECT, NEEDS_REVIEW, UNRESOLVED }
@@ -202,7 +203,7 @@ class SmartFoodResolver(
             learned != null && top.first().score >= LEARNED_AUTO_THRESHOLD -> Decision.AUTO_SELECT
             top.first().score >= HIGH_THRESHOLD && (top.size == 1 || top.first().score - top[1].score >= SAFE_GAP) -> Decision.AUTO_SELECT
             top.first().score >= MEDIUM_THRESHOLD -> Decision.NEEDS_REVIEW
-            else -> Decision.AUTO_SELECT
+            else -> Decision.NEEDS_REVIEW
         }
 
         val resolvedId = top.firstOrNull()?.foodId
@@ -221,26 +222,39 @@ class SmartFoodResolver(
     ): ResolutionResult {
         val semantic = SemanticPortionRetriever.retrieve(query)
         val macroRange = semantic.macroRange
-        if (macroRange != null && semantic.confidence > 0.12) {
+        val topSemanticScore = semantic.matches.firstOrNull()?.score ?: 0.0
+        if (
+            macroRange != null &&
+            macroRange.sampleCount > 0 &&
+            semantic.confidence >= DATASET_MIN_CONFIDENCE &&
+            topSemanticScore >= DATASET_MIN_MATCH_SCORE
+        ) {
+            val candidateScore = (semantic.confidence * 0.9).coerceIn(0.0, 0.85)
             val candidate = ResolutionCandidate(
                 foodId = "dataset_${normalizedQuery.replace(" ", "_")}",
                 name = query.replaceFirstChar { it.uppercase() },
                 brand = "Dataset KPKN (19.4K)",
-                score = (semantic.confidence * 0.85).coerceIn(0.65, 0.92),
-                confidence = Confidence.HIGH,
+                score = candidateScore,
+                confidence = if (candidateScore >= MEDIUM_THRESHOLD) Confidence.MEDIUM else Confidence.LOW,
                 source = "DATASET_SEMANTIC",
                 calories = macroRange.kcalMedian,
                 protein = macroRange.proteinMedian,
                 carbs = macroRange.carbsMedian,
                 fats = macroRange.fatsMedian,
                 fiber = 0.0,
-                trace = listOf("Dataset Semantic Match", "Confidence ${semantic.confidence}"),
+                trace = listOf(
+                    "Dataset Semantic Match",
+                    "Confidence ${"%.3f".format(semantic.confidence)}",
+                    "Samples ${macroRange.sampleCount}",
+                    "Docs ${macroRange.sourceDocumentIds.joinToString(",")}",
+                ),
             )
             return ResolutionResult(
                 query = query,
                 candidates = listOf(candidate),
-                decision = Decision.AUTO_SELECT,
+                decision = Decision.NEEDS_REVIEW,
                 resolvedFoodId = candidate.foodId,
+                semanticRetrieval = semantic,
             )
         }
 
@@ -249,7 +263,7 @@ class SmartFoodResolver(
             foodId = "heuristic_${normalizedQuery.replace(" ", "_")}",
             name = query.replaceFirstChar { it.uppercase() },
             brand = "Estimación KPKN",
-            score = 0.60,
+            score = 0.45,
             confidence = Confidence.MEDIUM,
             source = "LOCAL_HEURISTIC",
             calories = profile.calories,
@@ -262,8 +276,9 @@ class SmartFoodResolver(
         return ResolutionResult(
             query = query,
             candidates = listOf(fallbackCandidate),
-            decision = Decision.AUTO_SELECT,
+            decision = Decision.NEEDS_REVIEW,
             resolvedFoodId = fallbackCandidate.foodId,
+            semanticRetrieval = semantic,
         )
     }
 
@@ -520,5 +535,7 @@ class SmartFoodResolver(
         const val MIN_THRESHOLD = 0.18
         const val SAFE_GAP = 0.16
         const val LEARNED_AUTO_THRESHOLD = 0.74
+        const val DATASET_MIN_CONFIDENCE = 0.35
+        const val DATASET_MIN_MATCH_SCORE = 0.12
     }
 }

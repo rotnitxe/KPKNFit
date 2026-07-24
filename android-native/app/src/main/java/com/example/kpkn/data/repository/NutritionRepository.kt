@@ -2,10 +2,12 @@ package com.example.kpkn.data.repository
 
 import android.content.Context
 import com.example.kpkn.data.db.*
+import com.example.kpkn.data.food.DatasetKnowledgeStore
 import com.example.kpkn.data.food.buildFoodDatabase
 import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.FoodIndex
+import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
 import com.example.kpkn.domain.nutrition.SmartFoodResolver
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import kotlinx.coroutines.CancellationException
@@ -16,6 +18,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -375,6 +379,32 @@ class NutritionRepository private constructor(context: Context) {
     // ─── SmartFoodResolver Integration (Phase B) ────────────────────────────────
 
     private val foodIndexLock = Any()
+    private val datasetKnowledgeMutex = Mutex()
+    @Volatile
+    private var datasetKnowledgeReady = false
+
+    private suspend fun ensureDatasetKnowledge() {
+        if (datasetKnowledgeReady) return
+        datasetKnowledgeMutex.withLock {
+            if (datasetKnowledgeReady) return@withLock
+            runCatching {
+                DatasetKnowledgeStore.load(appContext)
+            }.onSuccess { snapshot ->
+                SemanticPortionRetriever.install(snapshot)
+                datasetKnowledgeReady = true
+                android.util.Log.i(
+                    "NutritionRepository",
+                    "Dataset knowledge ready: ${snapshot.documentCount} docs, v${snapshot.formatVersion}",
+                )
+            }.onFailure { error ->
+                android.util.Log.w("NutritionRepository", "Dataset knowledge load failed", error)
+            }
+        }
+    }
+
+    suspend fun prepareSemanticDataset() {
+        ensureDatasetKnowledge()
+    }
 
     suspend fun initFoodIndex() = withContext(Dispatchers.Default) {
         synchronized(foodIndexLock) {
@@ -398,7 +428,8 @@ class NutritionRepository private constructor(context: Context) {
         query: String,
         brandHint: String? = null,
     ): SmartFoodResolver.ResolutionResult {
-        // Ensure index is built synchronously before resolving
+        // Ensure both verified foods and offline semantic knowledge are ready.
+        ensureDatasetKnowledge()
         initFoodIndex()
         return smartResolver.resolve(query, brandHint)
     }
@@ -418,13 +449,15 @@ class NutritionRepository private constructor(context: Context) {
      */
     suspend fun getFoodById(foodId: String): FoodItem? = withContext(Dispatchers.IO) {
         val cached = _foodDatabase.value.find { it.id == foodId }
-        if (cached != null) return@withContext cached
-
-        // Check global foods (USDA/OFF)
-        val global = runCatching {
-            db.nutritionDao().searchGlobalFoods(foodId).firstOrNull()?.toFoodItem()
-        }.getOrNull()
-        global
+        val global = if (cached == null) {
+            // Check global foods (USDA/OFF)
+            runCatching {
+                db.nutritionDao().getGlobalFoodById(foodId)?.toFoodItem()
+            }.getOrNull()
+        } else {
+            null
+        }
+        cached ?: global
     }
 
     // ─── Bootstrap ──────────────────────────────────────────────────────────
@@ -492,8 +525,9 @@ class NutritionRepository private constructor(context: Context) {
                 _bodyMeasurements.value = measurements
                 _measurementSchedule.value = normalizeMeasurementSchedule(schedule)
 
-                // Initialize Phase B FoodIndex proactively in the background
+                // Initialize verified and semantic indexes proactively in the background.
                 launch(Dispatchers.Default) {
+                    ensureDatasetKnowledge()
                     initFoodIndex()
                 }
 

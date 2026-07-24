@@ -4,7 +4,6 @@ import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
 import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.screens.workout.PostExerciseFeedback
 import kotlin.math.min
 
 object TrainingEnergyEngine {
@@ -121,11 +120,16 @@ object TrainingEnergyEngine {
         userBodyWeightKg: Double?,
         postExerciseFeedback: Map<String, PostExerciseFeedback>?,
         isPlanned: Boolean,
+        weightUnit: WeightUnit = WeightUnit.KG,
     ): SessionEnergySummary {
         val setScores = mutableListOf<SetEnergyScore>()
         val contributions = mutableListOf<ExerciseEnergyContribution>()
         val notes = mutableListOf<String>()
-        val userWeight = userBodyWeightKg
+        val userWeight = when {
+            userBodyWeightKg == null -> null
+            weightUnit == WeightUnit.LBS -> userBodyWeightKg / 2.2046226218
+            else -> userBodyWeightKg
+        }
         if (userWeight == null) {
             notes.add("Peso corporal no disponible — confianza baja")
         }
@@ -179,8 +183,13 @@ object TrainingEnergyEngine {
                     if (effectiveRpe < 5.0) continue
 
                     val rpeMult = AugeFatigueEngine.calculateRpeMultiplier(effectiveRpe)
-                    val effectiveLoad = set.homologatedResultV3?.augeEquivalentLoad
+                    val effectiveLoadRaw = set.homologatedResultV3?.augeEquivalentLoad
                         ?: set.weight
+                    val effectiveLoad = if (weightUnit == WeightUnit.LBS) {
+                        effectiveLoadRaw / 2.2046226218
+                    } else {
+                        effectiveLoadRaw
+                    }
                     val effectiveReps = set.effectiveRepEquivalent()
 
                     val loadForKcal = effectiveLoad + (userWeight ?: 0.0) * bodyweightPart
@@ -409,6 +418,7 @@ object TrainingEnergyEngine {
             userBodyWeightKg = bodyWeight,
             postExerciseFeedback = null,
             isPlanned = true,
+            weightUnit = settings.weightUnit,
         ).copy(source = EnergyEstimateSource.PLANNED)
     }
 
@@ -424,6 +434,7 @@ object TrainingEnergyEngine {
             userBodyWeightKg = bodyWeight,
             postExerciseFeedback = null,
             isPlanned = false,
+            weightUnit = settings.weightUnit,
         ).copy(source = EnergyEstimateSource.LIVE)
     }
 
@@ -440,6 +451,7 @@ object TrainingEnergyEngine {
             userBodyWeightKg = bodyWeight,
             postExerciseFeedback = postExerciseFeedback,
             isPlanned = false,
+            weightUnit = settings.weightUnit,
         ).copy(source = EnergyEstimateSource.FINAL)
     }
 

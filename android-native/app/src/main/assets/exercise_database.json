@@ -4377,7 +4377,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Press Francés Tumbado con Barra EZ"
   },
   {
     "id": "triceps_press_frances_barra_neutra",
@@ -5116,7 +5117,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Extensión de Tríceps en Polea Alta con Cuerda"
   },
   {
     "id": "triceps_pushdown_polea_unilateral",
@@ -6283,9 +6285,7 @@
         "muscle": "Tríceps",
         "role": "primary",
         "activation": 1,
-        "emphasis": [
-          "Pectorales"
-        ]
+        "emphasis": "Pectorales"
       }
     ],
     "category": "Hipertrofia",
@@ -6373,10 +6373,7 @@
         "muscle": "Tríceps",
         "role": "primary",
         "activation": 1,
-        "emphasis": [
-          "Pectorales",
-          "Deltoides"
-        ]
+        "emphasis": "Pectorales, Deltoides"
       }
     ],
     "category": "Hipertrofia",
@@ -6580,9 +6577,7 @@
         "muscle": "Tríceps",
         "role": "primary",
         "activation": 1,
-        "emphasis": [
-          "Pectorales"
-        ]
+        "emphasis": "Pectorales"
       }
     ],
     "category": "Hipertrofia",
@@ -6612,9 +6607,7 @@
         "muscle": "Tríceps",
         "role": "primary",
         "activation": 1,
-        "emphasis": [
-          "Pectorales"
-        ]
+        "emphasis": "Pectorales"
       }
     ],
     "category": "Hipertrofia",
@@ -6674,9 +6667,7 @@
         "muscle": "Tríceps",
         "role": "primary",
         "activation": 1,
-        "emphasis": [
-          "Dorsales"
-        ]
+        "emphasis": "Dorsales"
       }
     ],
     "category": "Hipertrofia",
@@ -6748,7 +6739,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "alias": "Remo Inclinado Prono con Barra"
   },
   {
     "id": "back_remo_barra_recta_cerrado",
@@ -7013,7 +7005,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "alias": "Remo a una Mano con Mancuerna"
   },
   {
     "id": "back_remo_kettlebell",
@@ -8126,7 +8119,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "alias": "Remo Sentado en Polea Baja"
   },
   {
     "id": "back_remo_polea_baja_unilateral",
@@ -9398,7 +9392,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "alias": "Jalón al Pecho"
   },
   {
     "id": "back_jalon_pecho_polea_cerrado",
@@ -9888,7 +9883,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "alias": "Dominadas"
   },
   {
     "id": "back_dominadas_supinas",
@@ -11208,7 +11204,7 @@
   },
   {
     "id": "back_face_pull_polea",
-    "name": "Face Pull en Polea",
+    "name": "Face Pull en Polea (Espalda Alta)",
     "description": "Tirón al rostro en polea alta.",
     "involvedMuscles": [
       {
@@ -11261,7 +11257,7 @@
   },
   {
     "id": "back_face_pull_banda",
-    "name": "Face Pull en Banda Elástica",
+    "name": "Face Pull en Banda Elástica (Espalda Alta)",
     "description": "Face pull con banda elástica.",
     "involvedMuscles": [
       {
@@ -11795,7 +11791,7 @@
   },
   {
     "id": "back_buenos_dias_barra_ssb",
-    "name": "Buenos Días con Barra Safety (SSB)",
+    "name": "Buenos Días con Barra Safety (Espalda Baja)",
     "description": "Buenos días con barra de seguridad SSB.",
     "involvedMuscles": [
       {
@@ -12195,7 +12191,7 @@
   },
   {
     "id": "back_pull_through_polea",
-    "name": "Pull-Through en Polea Baja",
+    "name": "Pull-Through en Polea Baja (Espalda Baja)",
     "description": "Extensión de cadera en polea baja.",
     "involvedMuscles": [
       {
@@ -12430,7 +12426,7 @@
   },
   {
     "id": "back_buenos_dias_mancuernas",
-    "name": "Buenos Días con Mancuernas",
+    "name": "Buenos Días con Mancuernas (Espalda Baja)",
     "description": "Buenos días abrazando mancuerna al pecho o sobre hombros.",
     "involvedMuscles": [
       {
@@ -12736,7 +12732,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "alias": "Curl de Bíceps con Barra Recta"
   },
   {
     "id": "biceps_curl_de_pie_supino_barra_ez",
@@ -12771,7 +12768,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "alias": "Curl de Bíceps con Barra EZ"
   },
   {
     "id": "biceps_curl_de_pie_supino_mancuernas",
@@ -13156,7 +13154,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "alias": "Curl Martillo con Mancuernas"
   },
   {
     "id": "biceps_curl_de_pie_martillo_kettlebell",
@@ -22276,7 +22275,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "alias": "Press Militar de Pie con Barra"
   },
   {
     "id": "deltoides_press_militar_de_pie_barra_ez",
@@ -23566,7 +23566,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "alias": "Elevaciones Laterales con Mancuernas"
   },
   {
     "id": "deltoides_elevaciones_laterales_de_pie_kettlebell",
@@ -25445,7 +25446,7 @@
   },
   {
     "id": "deltoides_face_pull_polea",
-    "name": "Face Pull en Polea",
+    "name": "Face Pull en Polea (Deltoides)",
     "description": "Tirón al rostro en polea alta con cuerda.",
     "involvedMuscles": [
       {
@@ -25481,7 +25482,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "alias": "Face Pull en Polea Alta, Face Pull en Polea"
   },
   {
     "id": "deltoides_face_pull_polea_unilateral",
@@ -25525,7 +25527,7 @@
   },
   {
     "id": "deltoides_face_pull_banda",
-    "name": "Face Pull en Banda Elástica",
+    "name": "Face Pull en Banda Elástica (Deltoides)",
     "description": "Face pull con resistencia de banda elástica.",
     "involvedMuscles": [
       {
@@ -25601,7 +25603,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "alias": "Sentadilla Trasera Barra Alta"
   },
   {
     "id": "quads_sentadilla_trasera_barra_baja",
@@ -26661,7 +26664,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "alias": "Sentadilla Sissy"
   },
   {
     "id": "quads_sentadilla_sissy_maquina_smith",
@@ -26906,7 +26910,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "alias": "Prensa de Piernas a 45 Grados"
   },
   {
     "id": "quads_prensa_piernas_horizontal_maquina",
@@ -30666,7 +30671,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "alias": "Hip Thrust con Barra Libre, Hip Thrust con Pie Elevado"
   },
   {
     "id": "glutes_hip_thrust_mancuerna",
@@ -31581,7 +31587,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "alias": "Abducción de Cadera en Máquina"
   },
   {
     "id": "glutes_abduccion_cadera_polea",
@@ -31761,7 +31768,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "alias": "Peso Muerto Rumano"
   },
   {
     "id": "hams_peso_muerto_rumano_mancuernas",
@@ -32136,7 +32144,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "alias": "Peso Muerto Piernas Rígidas"
   },
   {
     "id": "hams_peso_muerto_piernas_rigidas_mancuernas",
@@ -32260,7 +32269,7 @@
   },
   {
     "id": "hams_buenos_dias_barra_ssb",
-    "name": "Buenos Días con Barra Safety (SSB)",
+    "name": "Buenos Días con Barra Safety (Isquiosurales)",
     "description": "Buenos Días de pie con barra Safety SSB.",
     "involvedMuscles": [
       {
@@ -32300,7 +32309,7 @@
   },
   {
     "id": "hams_buenos_dias_mancuernas",
-    "name": "Buenos Días con Mancuernas",
+    "name": "Buenos Días con Mancuernas (Isquiosurales)",
     "description": "Buenos Días abrazando mancuerna al pecho.",
     "involvedMuscles": [
       {
@@ -33756,7 +33765,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "alias": "Peso Muerto Convencional"
   },
   {
     "id": "hams_peso_muerto_sumo_barra_recta",
@@ -33880,7 +33890,7 @@
   },
   {
     "id": "hams_pull_through_polea",
-    "name": "Pull-Through en Polea Baja",
+    "name": "Pull-Through en Polea Baja (Isquiosurales)",
     "description": "Tracción de cadera de espaldas a la polea baja con cuerda.",
     "involvedMuscles": [
       {
@@ -36711,7 +36721,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "alias": "Elevación de Gemelos Tipo Burro (Donkey)"
   },
   {
     "id": "calves_elevacion_talones_sentado_maquina",
@@ -37871,7 +37882,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "alias": ", Bicho Muerto (Dead Bug)"
   },
   {
     "id": "core_rueda_abdominal_rodillas",
@@ -38361,7 +38373,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "alias": ", Hollow Body Hold"
   },
   {
     "id": "core_plancha_lateral_iso",

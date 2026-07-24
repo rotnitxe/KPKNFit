@@ -45,7 +45,7 @@ object AugeRecoveryEngine {
         "Pectorales" to "medium", "Dorsales" to "medium", "Hombros" to "medium", "Trapecio" to "medium",
         "Romboide" to "medium", "Redondo Menor" to "medium", "Redondo Mayor" to "medium",
         "Infraespinoso" to "medium", "Supraespinoso" to "medium", "Subescapular" to "medium",
-        "Serrato Anterior" to "medium", "Cuadriceps" to "medium",
+        "Serrato Anterior" to "medium",
         "Cuádriceps" to "slow", "Glúteos" to "slow",
         "Glúteo Mayor" to "slow", "Glúteo Medio" to "slow", "Glúteo Menor" to "slow",
         "Aductores" to "medium", "Tensor Fascia Lata" to "medium",
@@ -163,9 +163,16 @@ object AugeRecoveryEngine {
         wellbeing: DailyWellbeingLog?,
         sleepLogs: List<SleepLog>,
     ): Double {
-        // La recuperación sistémica sigue una curva estándar base pura.
-        // Se descartan multiplicadores directos de sueño para evitar fricción diaria.
-        return 1.0
+        val hours = calculateWeightedSleepHours(sleepLogs, wellbeing)
+        val quality = wellbeing?.sleepQuality ?: 3
+        val multiplier = when {
+            hours >= 7.5 && quality >= 4 -> 0.85
+            hours >= 7.0 && quality >= 3 -> 0.92
+            hours < 6.0 || quality <= 2 -> 1.18
+            hours < 6.5 -> 1.08
+            else -> 1.0
+        }
+        return multiplier.coerceIn(0.85, 1.25)
     }
 
     private fun resolveDbInfo(
@@ -396,10 +403,12 @@ object AugeRecoveryEngine {
         val recoveryTimeMultiplier = 1.0 +
             (feedbackPenaltyPct.coerceAtLeast(0.0) / 48.0) +
             (discomfortPenaltyPct.coerceAtLeast(0.0) / 120.0)
-        val realRecoveryTime = baseRecoveryTime * max(0.5, multiplier) * recoveryTimeMultiplier
+        val sleepMult = systemicRecoveryMultiplier(wellbeing, sleepLogs)
+        val realRecoveryTime = baseRecoveryTime * max(0.5, multiplier) * recoveryTimeMultiplier * sleepMult
 
         val k = 2.9957 / max(1.0, realRecoveryTime)
         val tenDaysAgo = now - 10L * 24 * 3600 * 1000
+        val muscularCap = (100 - physiologicalFloor(settings).muscular).coerceAtLeast(5).toDouble()
 
         val manualScore = wellbeing?.manualMuscleBatteries?.get(muscleName)
         val anchorMs = manualBatteryAnchorMs(wellbeing)
@@ -428,6 +437,7 @@ object AugeRecoveryEngine {
             var accumulatedDrain = 0.0
             val overallMuscleVolumeMap = mutableMapOf<String, Int>()
             var sessionMuscleStress = 0.0
+            var sessionSoftAccum = 0.0
 
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
@@ -472,7 +482,10 @@ object AugeRecoveryEngine {
                     if (involvement != null) {
                         val roleMult = FATIGUE_ROLE_MULTIPLIERS[involvement.role] ?: 1.0
                         val activation = involvement.volumeContribution ?: VOLUME_CONTRIBUTION_FALLBACKS[involvement.role] ?: 1.0
-                        sessionMuscleStress += adjustedMuscular * roleMult * activation
+                        val contrib = adjustedMuscular * roleMult * activation
+                        val capped = AugeUtils.applySessionSoftCap(contrib, sessionSoftAccum, muscularCap)
+                        sessionSoftAccum += capped
+                        sessionMuscleStress += capped
                         
                         if (hoursSince <= 168 && (involvement.role == MuscleRole.PRIMARY || involvement.role == MuscleRole.SECONDARY)) {
                             effectiveSetsCount++
@@ -518,13 +531,14 @@ object AugeRecoveryEngine {
         }
 
         val floor = physiologicalFloor(settings).muscular.toDouble()
-        battery = max(battery, floor)
-
         val myDelta = adaptiveCache.muscleDeltas[muscleName.lowercase().trim()]
             ?: adaptiveCache.muscleDeltas[normKey(muscleName)]
             ?: adaptiveCache.muscleDeltas.entries.firstOrNull { normKey(it.key) == normKey(muscleName) }?.value
             ?: 0.0
-        battery = clamp(battery + myDelta, 0.0, 100.0)
+        // Pre-workout discomfort is a readiness signal now, not only a τ stretch
+        battery = clamp(battery - discomfortPenaltyPct * 0.35, 0.0, 100.0)
+        // Apply deltas first, then enforce physiological floor so calibration cannot sink below floor
+        battery = max(clamp(battery + myDelta, 0.0, 100.0), floor)
 
         return MuscleRecoveryStatus(
             muscleName             = muscleName,
@@ -614,7 +628,9 @@ object AugeRecoveryEngine {
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
         val baseTau = adaptiveCache.cnsRecoveryHours ?: 36.0
         val feedbackPenalty = calculateSystemFeedbackPenaltyPct(feedbacks)
-        val tauHours = baseTau * (1.0 + feedbackPenalty.coerceAtLeast(0.0) / 48.0)
+        val sleepMult = systemicRecoveryMultiplier(wellbeing, sleepLogs)
+        val cnsCap = (100 - physiologicalFloor(settings).cns).coerceAtLeast(5).toDouble()
+        val tauHours = baseTau * (1.0 + feedbackPenalty.coerceAtLeast(0.0) / 48.0) * sleepMult
         val last10Days = now - 10L * 24 * 3600 * 1000
 
         val manualNeural = wellbeing?.manualNeuralBattery
@@ -641,6 +657,7 @@ object AugeRecoveryEngine {
             var accumulatedDrain = 0.0
             val overallMuscleVolumeMap = mutableMapOf<String, Int>()
             var sessionCns = 0.0
+            var sessionSoftAccum = 0.0
 
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
@@ -677,7 +694,9 @@ object AugeRecoveryEngine {
                     if (s.weight > 0.0 && s.reps <= 3 && AugeFatigueEngine.getEffectiveRPE(s) >= 9.5) {
                         currentCns += adjustedCns * 0.15
                     }
-                    sessionCns += currentCns
+                    val capped = AugeUtils.applySessionSoftCap(currentCns, sessionSoftAccum, cnsCap)
+                    sessionSoftAccum += capped
+                    sessionCns += capped
                 }
                 overallMuscleVolumeMap[primaryMuscle] = accumulated
             }
@@ -744,6 +763,7 @@ object AugeRecoveryEngine {
         val now = nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
         val tauHours = adaptiveCache.spinalRecoveryHours ?: 52.0
+        val spinalCap = (100 - physiologicalFloor(settings).spinal).coerceAtLeast(5).toDouble()
         val last10Days = now - 10L * 24 * 3600 * 1000
 
         val manualSpinal = wellbeing?.manualSpinalBattery
@@ -806,6 +826,7 @@ object AugeRecoveryEngine {
             var accumulatedDrain = 0.0
             val overallMuscleVolumeMap = mutableMapOf<String, Int>()
             var sessionSpinalLoad = 0.0
+            var sessionSoftAccum = 0.0
 
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
@@ -838,7 +859,10 @@ object AugeRecoveryEngine {
                     
                     accumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
                     
-                    sessionSpinalLoad += adjustedSpinal * spineProtectionMultiplier
+                    val contrib = adjustedSpinal * spineProtectionMultiplier
+                    val capped = AugeUtils.applySessionSoftCap(contrib, sessionSoftAccum, spinalCap)
+                    sessionSoftAccum += capped
+                    sessionSpinalLoad += capped
                 }
                 overallMuscleVolumeMap[primaryMuscle] = accumulated
             }
@@ -902,7 +926,20 @@ object AugeRecoveryEngine {
         }
 
         val muscularAvg = if (wellbeing?.manualMuscularBattery != null) {
-            wellbeing.manualMuscularBattery
+            // Same anchor + temporal decay semantics as neural/spinal — do not freeze raw value all day
+            val manualBattery = wellbeing.manualMuscularBattery.coerceIn(0, 100).toDouble()
+            val anchorMs = manualBatteryAnchorMs(wellbeing)
+            val hoursSinceAnchor = max(0.0, (nowMs() - anchorMs) / 3_600_000.0)
+            val baseTau = adaptiveCache.personalizedRecoveryHours.values
+                .takeIf { it.isNotEmpty() }
+                ?.average()
+                ?: 48.0
+            val sleepMult = systemicRecoveryMultiplier(wellbeing, sleepLogs)
+            val tauHours = max(1.0, baseTau * sleepMult)
+            val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
+            val k = 2.9957 / tauHours
+            val recovered = 100.0 - penalty * exp(-k * AugeUtils.getSigmoidalHours(hoursSinceAnchor))
+            recovered.roundToInt().coerceIn(0, 100)
         } else if (gatedPillarBatteries.isEmpty()) {
             100
         } else {
@@ -936,18 +973,26 @@ object AugeRecoveryEngine {
         val avgMuscleDelta = if (adaptiveCache.muscleDeltas.isNotEmpty()) {
             adaptiveCache.muscleDeltas.values.average().coerceIn(-25.0, 25.0)
         } else 0.0
+        val cnsDelta = adaptiveCache.cnsLearningDelta.coerceIn(-15.0, 15.0)
+        val spinalDelta = adaptiveCache.spinalLearningDelta.coerceIn(-15.0, 15.0)
         val floor = physiologicalFloor(settings)
 
-        val decelMuscular = decelerateBattery(muscularAvg.toDouble()).toInt()
-        val finalMuscular = clamp(
-            (maxOf(decelMuscular, floor.muscular) + avgMuscleDelta).toDouble(),
-            0.0, 100.0,
+        val decelMuscular = decelerateBattery(muscularAvg.toDouble())
+        val finalMuscular = max(
+            clamp(decelMuscular + avgMuscleDelta, 0.0, 100.0),
+            floor.muscular.toDouble(),
         ).toInt()
-        val finalCnc = decelerateBattery(
-            maxOf(cncBattery.toDouble(), floor.cns.toDouble())
+        val finalCnc = max(
+            decelerateBattery(
+                clamp(cncBattery.toDouble() + cnsDelta, 0.0, 100.0),
+            ),
+            floor.cns.toDouble(),
         ).toInt().coerceIn(0, 100)
-        val finalSpinal = decelerateBattery(
-            maxOf(spinalBattery.toDouble(), floor.spinal.toDouble())
+        val finalSpinal = max(
+            decelerateBattery(
+                clamp(spinalBattery.toDouble() + spinalDelta, 0.0, 100.0),
+            ),
+            floor.spinal.toDouble(),
         ).toInt().coerceIn(0, 100)
 
         return GlobalBatteries(

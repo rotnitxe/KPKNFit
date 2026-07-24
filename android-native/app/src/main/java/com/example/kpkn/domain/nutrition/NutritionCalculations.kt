@@ -55,6 +55,9 @@ data class NutritionRiskFlag(
 
 enum class RiskSeverity { INFO, WARNING, DANGER }
 
+/** Wishnofsky heuristic (~7700 kcal ≈ 1 kg). Pace estimates only — not metabolic precision. */
+const val KCAL_PER_KG_FAT = 7700.0
+
 data class CalculationSnapshot(
     val formula: FormulaType,
     val activityFactor: Double,
@@ -190,8 +193,8 @@ fun calculateDailyCalorieGoal(
     val weeklyChange = config.weeklyChangeKg ?: 0.5
 
     when (config.goal) {
-        CalorieGoal.LOSE -> tdee -= (weeklyChange * 7700) / 7
-        CalorieGoal.GAIN -> tdee += (weeklyChange * 7700) / 7
+        CalorieGoal.LOSE -> tdee -= (weeklyChange * KCAL_PER_KG_FAT) / 7
+        CalorieGoal.GAIN -> tdee += (weeklyChange * KCAL_PER_KG_FAT) / 7
         CalorieGoal.MAINTAIN -> Unit
     }
 
@@ -206,7 +209,111 @@ fun calculateTDEE(
 ): Int? {
     val bmr = calculateBMR(input, config) ?: return null
     val factor = getActivityFactor(config)
-    return kotlin.math.round(bmr * factor).toInt()
+    return kotlin.math.round(bmr * factor * config.healthMultiplier).toInt()
+}
+
+/** Wishnofsky heuristic alias kept near macros helpers. */
+data class PlanMacroTargets(
+    val calories: Int,
+    val proteinG: Int,
+    val carbsG: Int,
+    val fatsG: Int,
+    val proteinPerKg: Double,
+    val fatPerKgMin: Double,
+    val dietProteinMultiplier: Double,
+    val formulaUsed: FormulaType,
+)
+
+/**
+ * Recommended macros for a nutrition plan.
+ *
+ * Protein (ISSN / Helms range on body weight):
+ * - LOSE 2.3 g/kg, MAINTAIN 1.8 g/kg, GAIN 2.0 g/kg
+ * - Vegetarian +8%, vegan +15% (digestibility heuristic)
+ *
+ * Fat: max(hormonal floor g/kg, ~25% energy / 9) — ACSM ~20–35% energy band.
+ * Carbs: residual energy at 4 kcal/g (Atwater).
+ */
+fun recommendPlanMacros(
+    input: NutritionInput,
+    config: CalorieGoalConfig,
+    dietaryPreference: String = "omnivore",
+): PlanMacroTargets? {
+    val effectiveConfig = if (
+        config.formula == FormulaType.MIFFLIN &&
+        input.bodyFatPercentage != null &&
+        input.bodyFatPercentage > 0
+    ) {
+        config.copy(formula = FormulaType.KATCH)
+    } else {
+        config
+    }
+    val tdee = calculateTDEE(input, effectiveConfig) ?: return null
+    val weeklyChange = config.weeklyChangeKg ?: 0.5
+    val targetKcal = when (config.goal) {
+        CalorieGoal.LOSE -> tdee - ((weeklyChange * KCAL_PER_KG_FAT) / 7).toInt()
+        CalorieGoal.GAIN -> tdee + ((weeklyChange * KCAL_PER_KG_FAT) / 7).toInt()
+        CalorieGoal.MAINTAIN -> tdee
+    }.coerceAtLeast(800)
+
+    val dietMult = when (dietaryPreference.lowercase()) {
+        "vegan" -> 1.15
+        "vegetarian" -> 1.08
+        else -> 1.0
+    }
+    val proteinPerKg = when (config.goal) {
+        CalorieGoal.LOSE -> 2.3
+        CalorieGoal.MAINTAIN -> 1.8
+        CalorieGoal.GAIN -> 2.0
+    }
+    val proteinG = kotlin.math.round(input.weightKg * proteinPerKg * dietMult).toInt().coerceAtLeast(40)
+
+    val isFemale = input.gender == Gender.FEMALE
+    val fatPerKgMin = if (isFemale) 1.0 else 0.7
+    val floorG = if (isFemale) 50 else 45
+    val fatsMin = kotlin.math.max(
+        kotlin.math.round(input.weightKg * fatPerKgMin).toInt(),
+        floorG,
+    )
+    val fatsFromEnergy = kotlin.math.round(targetKcal * 0.25 / 9.0).toInt()
+    val fatsG = kotlin.math.max(fatsMin, fatsFromEnergy)
+
+    val carbsG = kotlin.math.max(
+        40,
+        kotlin.math.round((targetKcal - proteinG * 4 - fatsG * 9) / 4.0).toInt(),
+    )
+    val calories = proteinG * 4 + carbsG * 4 + fatsG * 9
+
+    return PlanMacroTargets(
+        calories = calories,
+        proteinG = proteinG,
+        carbsG = carbsG,
+        fatsG = fatsG,
+        proteinPerKg = proteinPerKg,
+        fatPerKgMin = fatPerKgMin,
+        dietProteinMultiplier = dietMult,
+        formulaUsed = effectiveConfig.formula,
+    )
+}
+
+/** Weekly weight change (kg) implied by macro budget vs TDEE. Positive = gain. */
+fun weeklyChangeFromCalories(macroCalories: Int, tdee: Int): Double {
+    if (tdee <= 0) return 0.0
+    return ((macroCalories - tdee) * 7.0) / KCAL_PER_KG_FAT
+}
+
+/** Linear ETA date (yyyy-MM-dd) from current → goal at |weeklyChangeKg|. */
+fun estimatePlanEndDate(
+    currentValue: Double,
+    goalValue: Double,
+    weeklyChangeKg: Double,
+): String? {
+    val delta = kotlin.math.abs(goalValue - currentValue)
+    val pace = kotlin.math.abs(weeklyChangeKg)
+    if (pace < 1e-6 || delta < 1e-6) return null
+    val weeks = delta / pace
+    if (!weeks.isFinite() || weeks > 520) return null
+    return java.time.LocalDate.now().plusDays(kotlin.math.round(weeks * 7).toLong()).toString()
 }
 
 // ─── Build Snapshot ──────────────────────────────────────────────────────────

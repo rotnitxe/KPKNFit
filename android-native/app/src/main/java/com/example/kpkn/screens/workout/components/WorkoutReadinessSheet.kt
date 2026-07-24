@@ -71,7 +71,18 @@ fun WorkoutReadinessSheet(
     readinessMuscularStart: Int,
     readinessSpinalStart: Int,
     hazeState: HazeState,
-    onSave: (neural: Int, muscular: Int?, spinal: Int, perMuscle: Map<String, Int>, discomforts: List<String>) -> Unit,
+    onSave: (
+        neural: Int,
+        muscular: Int?,
+        spinal: Int,
+        perMuscle: Map<String, Int>,
+        discomforts: List<String>,
+        /** Only channels the user actually edited — used for AUGE manual overrides. */
+        manualNeural: Int?,
+        manualSpinal: Int?,
+        manualMuscular: Int?,
+        manualMuscleBatteries: Map<String, Int>,
+    ) -> Unit,
     onDismissWithoutVerify: () -> Unit,
     patternReadiness: List<MovementPatternReadiness> = emptyList(),
     exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
@@ -532,7 +543,23 @@ fun WorkoutReadinessSheet(
                 // 3. BOTÓN PRINCIPAL
                 Button(
                     onClick = {
-                        onSave(neural, derivedMuscular, spinal, muscleAdjustments.toMap(), selectedDiscomforts.toList())
+                        val editedMuscleMap = muscleAdjustments
+                            .filter { (id, _) -> userEditedMuscles[id] == true }
+                            .mapValues { (_, v) -> v.coerceIn(0, 100) }
+                        val manualMuscular = if (editedMuscleMap.isNotEmpty()) {
+                            editedMuscleMap.values.average().toInt().coerceIn(0, 100)
+                        } else null
+                        onSave(
+                            neural,
+                            derivedMuscular,
+                            spinal,
+                            muscleAdjustments.toMap(),
+                            selectedDiscomforts.toList(),
+                            if (userEditedNeural) neural.coerceIn(0, 100) else null,
+                            if (userEditedSpinal) spinal.coerceIn(0, 100) else null,
+                            manualMuscular,
+                            editedMuscleMap,
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()

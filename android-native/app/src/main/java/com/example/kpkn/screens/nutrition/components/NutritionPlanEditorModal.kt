@@ -92,7 +92,10 @@ import com.example.kpkn.domain.nutrition.RiskInput
 import com.example.kpkn.domain.nutrition.RiskSeverity
 import com.example.kpkn.domain.nutrition.buildNutritionRiskFlags
 import com.example.kpkn.domain.nutrition.calculateBMR
-import com.example.kpkn.domain.nutrition.getActivityFactor
+import com.example.kpkn.domain.nutrition.calculateTDEE
+import com.example.kpkn.domain.nutrition.estimatePlanEndDate
+import com.example.kpkn.domain.nutrition.recommendPlanMacros
+import com.example.kpkn.domain.nutrition.weeklyChangeFromCalories
 import java.time.Instant
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -125,7 +128,7 @@ private data class EditorState(
     val height: String,
     val weight: String,
     val age: String,
-    val gender: Gender,                           // identidad, no afecta cálculos
+    val gender: Gender,                           // identidad; también influye en mínimos de grasa y umbrales de riesgo
     val metabolicProfile: MetabolicProfile,       // perfil hormonal, alimenta la fórmula de TMB
     val bodyFat: String,
     val muscleMass: String,
@@ -145,6 +148,29 @@ private data class EditorState(
 
 private const val KG_TO_LB = 2.20462262185
 private const val LB_TO_KG = 0.45359237
+
+private fun formatWeightField(value: Double): String {
+    val rounded = kotlin.math.round(value * 10.0) / 10.0
+    return if (rounded == rounded.toLong().toDouble()) rounded.toLong().toString() else rounded.toString()
+}
+
+/** Convert displayed weight/goal when toggling kg ↔ lb without distorting the underlying mass. */
+private fun withWeightUnit(state: EditorState, newUnit: WeightUnit): EditorState {
+    if (state.weightUnit == newUnit) return state
+    val weight = state.weight.toDoubleOrNull()
+    val goal = state.goalValue.toDoubleOrNull()
+    val convertedWeight = weight?.let {
+        if (newUnit == WeightUnit.LBS) it * KG_TO_LB else it * LB_TO_KG
+    }
+    val convertedGoal = if (state.goalMetric == GoalMetric.WEIGHT) {
+        goal?.let { if (newUnit == WeightUnit.LBS) it * KG_TO_LB else it * LB_TO_KG }
+    } else null
+    return state.copy(
+        weightUnit = newUnit,
+        weight = convertedWeight?.let(::formatWeightField) ?: state.weight,
+        goalValue = convertedGoal?.let(::formatWeightField) ?: state.goalValue,
+    )
+}
 
 @Composable
 fun NutritionPlanEditorModal(
@@ -203,31 +229,52 @@ fun NutritionPlanEditorModal(
         metabolicProfile = state.metabolicProfile,
         bodyFatPercentage = bodyFatD,
     )
+    val effectiveFormula = when {
+        bodyFatD != null && bodyFatD > 0 && state.formula == FormulaType.MIFFLIN -> FormulaType.KATCH
+        else -> state.formula
+    }
     val calorieConfig = CalorieGoalConfig(
-        formula = state.formula,
+        formula = effectiveFormula,
         activityLevel = state.activityLevel,
         goal = state.goal,
         weeklyChangeKg = state.weeklyChangeKg,
         healthMultiplier = state.healthMultiplier,
     )
     val bmr = calculateBMR(nutritionInput, calorieConfig)
-    val tdee = bmr?.let { (it * getActivityFactor(calorieConfig) * state.healthMultiplier).roundToInt() }
+    val tdee = calculateTDEE(nutritionInput, calorieConfig)
 
-    val proteinMultiplier = when (state.dietaryPreference) {
+    val recommended = recommendPlanMacros(nutritionInput, calorieConfig, state.dietaryPreference)
+    val proteinMultiplier = recommended?.dietProteinMultiplier ?: when (state.dietaryPreference) {
         "vegan" -> 1.15
         "vegetarian" -> 1.08
         else -> 1.0
     }
+    val proteinPerKg = recommended?.proteinPerKg ?: when (state.goal) {
+        CalorieGoal.LOSE -> 2.3
+        CalorieGoal.MAINTAIN -> 1.8
+        CalorieGoal.GAIN -> 2.0
+    }
+    val autoProtein = recommended?.proteinG
+        ?: kotlin.math.round(weightKg * proteinPerKg * proteinMultiplier).toInt().coerceAtLeast(40)
+    val autoFatsMin = recommended?.let {
+        kotlin.math.max(
+            kotlin.math.round(weightKg * it.fatPerKgMin).toInt(),
+            if (state.gender == Gender.FEMALE) 50 else 45,
+        )
+    } ?: run {
+        val fatPerKgMin = if (state.gender == Gender.FEMALE) 1.0 else 0.7
+        kotlin.math.max(
+            kotlin.math.round(weightKg * fatPerKgMin).toInt(),
+            if (state.gender == Gender.FEMALE) 50 else 45,
+        )
+    }
+    val autoFats = recommended?.fatsG ?: autoFatsMin
+    val autoCarbs = recommended?.carbsG ?: 40
+    val targetKcalCurrent = recommended?.calories ?: (tdee ?: 2000)
 
     val proteinGoal = proteinD.roundToInt()
     val macroCalories = (proteinGoal * 4) + carbsD.roundToInt() * 4 + fatsD.roundToInt() * 9
-    val weeklyTrendKg = if (tdee != null && tdee > 0 && state.goal == CalorieGoal.LOSE) {
-        -((tdee - macroCalories) * 7) / 7700.0
-    } else if (tdee != null && tdee > 0 && state.goal == CalorieGoal.GAIN) {
-        ((macroCalories - tdee) * 7) / 7700.0
-    } else if (tdee != null && tdee > 0) {
-        ((macroCalories - tdee) * 7) / 7700.0
-    } else null
+    val weeklyTrendKg = tdee?.takeIf { it > 0 }?.let { weeklyChangeFromCalories(macroCalories, it) }
 
     val weeklyRateStatus = when {
         weeklyTrendKg == null -> null
@@ -252,11 +299,12 @@ fun NutritionPlanEditorModal(
         goalValueD
     }
 
+    val effectiveWeeklyChangeKg = weeklyTrendKg?.let { kotlin.math.abs(it) } ?: state.weeklyChangeKg
     val riskFlags = remember(
         state.goal,
         state.goalMetric,
         state.goalValue,
-        state.weeklyChangeKg,
+        effectiveWeeklyChangeKg,
         state.weight,
         state.height,
         state.age,
@@ -270,46 +318,17 @@ fun NutritionPlanEditorModal(
                 calorieTarget = macroCalories,
                 goalMetric = state.goalMetric,
                 goalValue = goalValueKg,
-                weeklyChangeKg = state.weeklyChangeKg,
+                weeklyChangeKg = effectiveWeeklyChangeKg,
                 calorieGoal = state.goal,
             )
         )
     }
-
-    // Proteína: varía según objetivo para maximizar síntesis proteica y minimizar catabolismo
-    // Déficit:      2.2-2.4 g/kg → usamos 2.3 (Helms et al., 2014 / Moon et al., 2015)
-    // Mantención:   1.8 g/kg (recomposición corporal)
-    // Superávit:    2.0 g/kg (síntesis muscular sin exceso de calorías proteicas)
-    val proteinPerKg = when (state.goal) {
-        CalorieGoal.LOSE     -> 2.3
-        CalorieGoal.MAINTAIN -> 1.8
-        CalorieGoal.GAIN     -> 2.0
+    val blocksSave = riskFlags.any { it.hardStop }
+    val formulaLabel = when (effectiveFormula) {
+        FormulaType.KATCH -> "Katch–McArdle"
+        FormulaType.HARRIS -> "Harris–Benedict"
+        FormulaType.MIFFLIN -> "Mifflin–St Jeor"
     }
-    val autoProtein = kotlin.math.round(weightKg * proteinPerKg * proteinMultiplier).toInt().coerceAtLeast(40)
-
-    // Grasas mínimas diferenciadas por sexo para salud hormonal:
-    // Hombre/Otro: ~0.7 g/kg | Mujer: ~1.0 g/kg (Hamalainen et al., 1984 / ACSM)
-    val fatPerKgMin = if (state.gender == com.example.kpkn.data.models.Gender.FEMALE) 1.0 else 0.7
-    val autoFatsMin = kotlin.math.max(
-        kotlin.math.round(weightKg * fatPerKgMin).toInt(),
-        if (state.gender == com.example.kpkn.data.models.Gender.FEMALE) 50 else 45
-    )
-
-    // Calorías objetivo calculadas en tiempo real para el paso actual
-    val targetKcalCurrent = if (tdee != null) tdee + when (state.goal) {
-        CalorieGoal.LOSE -> -((state.weeklyChangeKg * 7700) / 7).roundToInt()
-        CalorieGoal.GAIN -> ((state.weeklyChangeKg * 7700) / 7).roundToInt()
-        else -> 0
-    } else 2000
-
-    // Distribución proporcional óptima de grasas y carbohidratos:
-    // Asignamos el 25% de las calorías totales a grasas (estándar saludable), respetando el mínimo hormonal de seguridad.
-    val autoFats = kotlin.math.max(
-        autoFatsMin,
-        kotlin.math.round(targetKcalCurrent * 0.25 / 9.0).toInt()
-    )
-
-    val autoCarbs = kotlin.math.max(40, kotlin.math.round((targetKcalCurrent - autoProtein * 4 - autoFats * 9) / 4.0).toInt())
 
     fun syncMacrosFromCalories(newKcal: Int) {
         val totalFrom = proteinD * 4 + carbsD * 4 + fatsD * 9
@@ -337,23 +356,15 @@ fun NutritionPlanEditorModal(
     // Esto garantiza que las calorías se actualicen al instante en el Paso 3.
     androidx.compose.runtime.LaunchedEffect(state.goal) {
         if (currentStep == EditorStep.MACROS && lastSyncedGoal != null && lastSyncedGoal != state.goal) {
-            val targetKcal = if (tdee != null) tdee + when (state.goal) {
-                CalorieGoal.LOSE -> -((state.weeklyChangeKg * 7700) / 7).roundToInt()
-                CalorieGoal.GAIN -> ((state.weeklyChangeKg * 7700) / 7).roundToInt()
-                else -> 0
-            } else 2000
-            val p = autoProtein
-            val f = kotlin.math.max(
-                autoFatsMin,
-                kotlin.math.round(targetKcal * 0.25 / 9.0).toInt()
-            )
-            val c = kotlin.math.max(40, kotlin.math.round((targetKcal - p * 4 - f * 9) / 4.0).toInt())
-            state = state.copy(
-                proteinG = p.toString(),
-                fatsG = f.toString(),
-                carbsG = c.toString(),
-                lastMacroTouched = ""
-            )
+            val macros = recommendPlanMacros(nutritionInput, calorieConfig.copy(goal = state.goal), state.dietaryPreference)
+            if (macros != null) {
+                state = state.copy(
+                    proteinG = macros.proteinG.toString(),
+                    fatsG = macros.fatsG.toString(),
+                    carbsG = macros.carbsG.toString(),
+                    lastMacroTouched = "",
+                )
+            }
         }
         lastSyncedGoal = state.goal
     }
@@ -660,8 +671,12 @@ fun NutritionPlanEditorModal(
                                 val wLabel = if (state.weightUnit == WeightUnit.LBS) "lb" else "kg"
 
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    GoalChipNoBorder("kg", state.weightUnit == WeightUnit.KG, Modifier.widthIn(max = 50.dp)) { state = state.copy(weightUnit = WeightUnit.KG) }
-                                    GoalChipNoBorder("lb", state.weightUnit == WeightUnit.LBS, Modifier.widthIn(max = 50.dp)) { state = state.copy(weightUnit = WeightUnit.LBS) }
+                                    GoalChipNoBorder("kg", state.weightUnit == WeightUnit.KG, Modifier.widthIn(max = 50.dp)) {
+                                        state = withWeightUnit(state, WeightUnit.KG)
+                                    }
+                                    GoalChipNoBorder("lb", state.weightUnit == WeightUnit.LBS, Modifier.widthIn(max = 50.dp)) {
+                                        state = withWeightUnit(state, WeightUnit.LBS)
+                                    }
                                 }
 
                                 TwoFieldRow(
@@ -740,7 +755,7 @@ fun NutritionPlanEditorModal(
                                                 color = Color.White,
                                             )
                                             Text(
-                                                "Solo informativo.",
+                                                "Usado para mínimos de grasa y alertas de riesgo.",
                                                 style = MaterialTheme.typography.labelSmall,
                                                 color = PANEL_MUTED,
                                             )
@@ -843,25 +858,22 @@ fun NutritionPlanEditorModal(
                             val isCustomPace = state.lastMacroTouched.isNotEmpty()
                             
                             fun setPace(pace: Double) {
-                                val targetKcal = if (tdee != null) tdee + when (state.goal) {
-                                    CalorieGoal.LOSE -> -((pace * 7700) / 7).roundToInt()
-                                    CalorieGoal.GAIN -> ((pace * 7700) / 7).roundToInt()
-                                    else -> 0
-                                } else 2000
-                                val p = autoProtein
-                                val f = kotlin.math.max(
-                                    autoFatsMin,
-                                    kotlin.math.round(targetKcal * 0.25 / 9.0).toInt()
+                                val macros = recommendPlanMacros(
+                                    nutritionInput,
+                                    calorieConfig.copy(weeklyChangeKg = pace, goal = state.goal),
+                                    state.dietaryPreference,
                                 )
-                                val c = kotlin.math.max(40, kotlin.math.round((targetKcal - p * 4 - f * 9) / 4.0).toInt())
-                                
-                                state = state.copy(
-                                    weeklyChangeKg = pace,
-                                    proteinG = p.toString(),
-                                    fatsG = f.toString(),
-                                    carbsG = c.toString(),
-                                    lastMacroTouched = ""
-                                )
+                                if (macros != null) {
+                                    state = state.copy(
+                                        weeklyChangeKg = pace,
+                                        proteinG = macros.proteinG.toString(),
+                                        fatsG = macros.fatsG.toString(),
+                                        carbsG = macros.carbsG.toString(),
+                                        lastMacroTouched = "",
+                                    )
+                                } else {
+                                    state = state.copy(weeklyChangeKg = pace, lastMacroTouched = "")
+                                }
                             }
 
                             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -1253,7 +1265,7 @@ fun NutritionPlanEditorModal(
                                     SummaryMiniCard(
                                         title = "TMB estimado",
                                         value = bmr?.let { "${it.roundToInt()} kcal" } ?: "\u2014",
-                                        detail = "F\u00F3rmula Mifflin",
+                                        detail = formulaLabel,
                                         icon = Icons.Default.FitnessCenter,
                                         modifier = Modifier.weight(1f),
                                     )
@@ -1290,25 +1302,22 @@ fun NutritionPlanEditorModal(
                             val isCustomPace = state.lastMacroTouched.isNotEmpty()
                             
                             fun setPace(pace: Double) {
-                                val targetKcal = if (tdee != null) tdee + when (state.goal) {
-                                    CalorieGoal.LOSE -> -((pace * 7700) / 7).roundToInt()
-                                    CalorieGoal.GAIN -> ((pace * 7700) / 7).roundToInt()
-                                    else -> 0
-                                } else 2000
-                                val p = autoProtein
-                                val f = kotlin.math.max(
-                                    autoFatsMin,
-                                    kotlin.math.round(targetKcal * 0.25 / 9.0).toInt()
+                                val macros = recommendPlanMacros(
+                                    nutritionInput,
+                                    calorieConfig.copy(weeklyChangeKg = pace, goal = state.goal),
+                                    state.dietaryPreference,
                                 )
-                                val c = kotlin.math.max(40, kotlin.math.round((targetKcal - p * 4 - f * 9) / 4.0).toInt())
-                                
-                                state = state.copy(
-                                    weeklyChangeKg = pace,
-                                    proteinG = p.toString(),
-                                    fatsG = f.toString(),
-                                    carbsG = c.toString(),
-                                    lastMacroTouched = ""
-                                )
+                                if (macros != null) {
+                                    state = state.copy(
+                                        weeklyChangeKg = pace,
+                                        proteinG = macros.proteinG.toString(),
+                                        fatsG = macros.fatsG.toString(),
+                                        carbsG = macros.carbsG.toString(),
+                                        lastMacroTouched = "",
+                                    )
+                                } else {
+                                    state = state.copy(weeklyChangeKg = pace, lastMacroTouched = "")
+                                }
                             }
 
                             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -1552,8 +1561,12 @@ fun NutritionPlanEditorModal(
                                             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                                                 val wLabel = if (state.weightUnit == WeightUnit.LBS) "lb" else "kg"
                                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                                    GoalChipNoBorder("kg", state.weightUnit == WeightUnit.KG, Modifier.widthIn(max = 50.dp)) { state = state.copy(weightUnit = WeightUnit.KG) }
-                                                    GoalChipNoBorder("lb", state.weightUnit == WeightUnit.LBS, Modifier.widthIn(max = 50.dp)) { state = state.copy(weightUnit = WeightUnit.LBS) }
+                                                    GoalChipNoBorder("kg", state.weightUnit == WeightUnit.KG, Modifier.widthIn(max = 50.dp)) {
+                                                        state = withWeightUnit(state, WeightUnit.KG)
+                                                    }
+                                                    GoalChipNoBorder("lb", state.weightUnit == WeightUnit.LBS, Modifier.widthIn(max = 50.dp)) {
+                                                        state = withWeightUnit(state, WeightUnit.LBS)
+                                                    }
                                                 }
 
                                                 TwoFieldRow(
@@ -1634,7 +1647,7 @@ fun NutritionPlanEditorModal(
                                                                 color = Color.White,
                                                             )
                                                             Text(
-                                                                "Solo informativo.",
+                                                                "Usado para mínimos de grasa y alertas de riesgo.",
                                                                 style = MaterialTheme.typography.labelSmall,
                                                                 color = PANEL_MUTED,
                                                             )
@@ -1819,18 +1832,23 @@ fun NutritionPlanEditorModal(
                                     }
                                 }
 
+                                if (blocksSave) return@Button
+
                                 if (!heightError && !weightError && !ageError && !showStep1ValidationError && !macrosValidationError) {
                                     coroutineScope.launch {
                                         com.example.kpkn.data.repository.ProgramRepository.getInstance().updateSettings { s ->
                                             s.copy(
                                                 age = ageI.takeIf { it > 0 } ?: s.age,
                                                 weightUnit = state.weightUnit,
+                                                nutritionActivityLevel = state.activityLevel,
+                                                nutritionDietaryPreference = state.dietaryPreference,
                                                 userVitals = s.userVitals.copy(
                                                     height = heightD.takeIf { it > 0.0 } ?: s.userVitals.height,
                                                     weight = weightKg.takeIf { it > 0.0 } ?: s.userVitals.weight,
                                                     gender = state.gender,
                                                     bodyFatPercentage = bodyFatD ?: s.userVitals.bodyFatPercentage,
                                                     muscleMassPercentage = muscleD ?: s.userVitals.muscleMassPercentage,
+                                                    metabolicProfile = state.metabolicProfile,
                                                 )
                                             )
                                         }
@@ -1841,6 +1859,13 @@ fun NutritionPlanEditorModal(
                                         goalValueD
                                     }
                                     val finalWeeklyChange = weeklyTrendKg?.let { kotlin.math.abs(it) } ?: state.weeklyChangeKg
+                                    val startVal = activePlan?.startValue
+                                        ?: fallbackGoalValue(GoalMetric.WEIGHT, weightKg, bodyFatD, muscleD)
+                                    val eta = estimatePlanEndDate(
+                                        currentValue = if (state.goalMetric == GoalMetric.WEIGHT) weightKg else goalValueKg,
+                                        goalValue = finalGoalValue,
+                                        weeklyChangeKg = finalWeeklyChange,
+                                    )
 
                                     onSave(
                                         NutritionPlan(
@@ -1860,9 +1885,9 @@ fun NutritionPlanEditorModal(
                                                 label = goalMetricLabel(state.goalMetric),
                                                 unit = goalMetricUnit(state.goalMetric, state.weightUnit),
                                             ),
-                                            estimatedEndDate = activePlan?.estimatedEndDate,
+                                            estimatedEndDate = eta,
                                             weeklyChangeKg = finalWeeklyChange,
-                                            startValue = activePlan?.startValue ?: fallbackGoalValue(GoalMetric.WEIGHT, weightKg, bodyFatD, muscleD),
+                                            startValue = startVal,
                                             targetBodyFat = state.targetBodyFat.toDoubleOrNull(),
                                             targetMuscle = state.targetMuscle.toDoubleOrNull(),
                                         )
@@ -1870,16 +1895,24 @@ fun NutritionPlanEditorModal(
                                 }
                             },
                             modifier = Modifier.weight(1.2f).height(52.dp),
+                            enabled = !blocksSave,
                             shape = RoundedCornerShape(14.dp),
                             border = BorderStroke(0.dp, Color.Transparent),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = ACCENT_GREEN,
-                                contentColor = Color.White
+                                contentColor = Color.White,
+                                disabledContainerColor = Color.Gray.copy(alpha = 0.4f),
+                                disabledContentColor = Color.White.copy(alpha = 0.6f),
                             )
                         ) {
                             Icon(Icons.Default.Check, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Guardar cambios", fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            Text(
+                                if (blocksSave) "Corrige alertas críticas" else "Guardar cambios",
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            )
                         }
                     } else {
                         Button(
@@ -2050,7 +2083,7 @@ private fun WeeklyRateAlert(
 
 @Composable
 private fun StepIndicator(currentStep: EditorStep, modifier: Modifier = Modifier) {
-    val steps = EditorStep.values()
+    val steps = EditorStep.entries.filter { it != EditorStep.EDIT_PLAN }
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -2131,8 +2164,8 @@ private fun buildInitialState(currentSettings: Settings, activePlan: NutritionPl
         gender = vitals.gender ?: Gender.MALE,
         bodyFat = vitals.bodyFatPercentage?.let(::formatGoalFieldValue).orEmpty(),
         muscleMass = vitals.muscleMassPercentage?.let(::formatGoalFieldValue).orEmpty(),
-        activityLevel = 3,
-        dietaryPreference = "omnivore",
+        activityLevel = currentSettings.nutritionActivityLevel.coerceIn(1, 5),
+        dietaryPreference = currentSettings.nutritionDietaryPreference.ifBlank { "omnivore" },
         formula = FormulaType.MIFFLIN,
         weeklyChangeKg = activePlan?.weeklyChangeKg ?: 0.5,
         healthMultiplier = 1.0,
@@ -2143,11 +2176,10 @@ private fun buildInitialState(currentSettings: Settings, activePlan: NutritionPl
         lastMacroTouched = "",
         targetBodyFat = activePlan?.targetBodyFat?.let(::formatGoalFieldValue).orEmpty(),
         targetMuscle = activePlan?.targetMuscle?.let(::formatGoalFieldValue).orEmpty(),
-        // Por defecto, inferimos el perfil desde el género almacenado si existe
-        metabolicProfile = when (vitals.gender) {
+        metabolicProfile = vitals.metabolicProfile ?: when (vitals.gender) {
             Gender.FEMALE -> MetabolicProfile.ESTROGEN
-            Gender.MALE   -> MetabolicProfile.TESTOSTERONE
-            else          -> MetabolicProfile.MIXED
+            Gender.MALE -> MetabolicProfile.TESTOSTERONE
+            else -> MetabolicProfile.MIXED
         },
     )
 }

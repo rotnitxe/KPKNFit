@@ -1,63 +1,85 @@
 # Architecture Guide: KPKN Fit Android App
 
-KPKN Fit is a local-first mobile application written in **native Kotlin** for Android. The architecture is designed around **Clean Architecture** and **MVVM (Model-View-ViewModel)** patterns to ensure high separation of concerns, off-line functionality, testability, and scalability.
+KPKN Fit is a local-first mobile application written in **native Kotlin** for Android. The architecture follows **Clean Architecture** and **MVVM** to guarantee separation of concerns, offline functionality, testability, and scalability.
+
+> For the full directory tree see [REPO_STRUCTURE.md](REPO_STRUCTURE.md). For exhaustive system/table-level mapping see [ANDROID_ARCHITECTURE_MAP.md](ANDROID_ARCHITECTURE_MAP.md).
 
 ---
 
 ## 🏗️ Architectural Layers
 
-The app is divided into three primary layers located under `android-native/app/src/main/java/com/example/kpkn/`:
+All app code lives under `android-native/app/src/main/java/com/example/kpkn/` (single Gradle module `:app`, 260+ Kotlin files):
 
 ```mermaid
 graph TD
-    UI[Presentation Layer: Jetpack Compose & ViewModels] --> Domain[Domain Layer: Pure Kotlin Business Logic]
-    Data[Data Layer: Room SQLite, Repositories, JSON Importers] --> Domain
+    UI[Presentation: screens/ + ui/ + navigation/] --> Domain[Domain: domain/ pure Kotlin engines]
+    Data[Data: data/ Room, repositories, importers] --> Domain
     UI --> Data
+    Services[services/ background & hardware] --> Data
 ```
 
-### 1. Data Layer (`com.example.kpkn.data`)
-Responsible for data persistence, local storage, remote API calls, and local asset importing.
-*   **Local Persistence (Room Database):** 
-    *   Defined in `data/db/KpknDatabase.kt`.
-    *   Entities live in `Entities.kt` and `WikiLabEntities.kt` (using immutable `data class` with type converters).
-    *   DAOs live in `Daos.kt` and `WikiLabDao.kt`.
-    *   Implements an **Offline-First** pattern: writes and reads always pass through Room before syncing with backend APIs (e.g. Supabase).
-*   **Local Assets Importer:**
-    *   Pre-populates database tables for exercises (`WikiLabPrepopulate.kt`) and food databases (`FoodImporter.kt` / `FoodDatabase.kt`) using large JSON datasets in `/data`.
-*   **Repositories:**
-    *   Act as the single source of truth for the rest of the application, managing transitions between databases and network requests.
+**Dependency rule:** `domain/` never imports `android.*`. All persistence, I/O, and framework code lives in `data/`, `services/`, or the presentation layer.
 
-### 2. Domain Layer (`com.example.kpkn.domain`)
-The heart of the application containing pure Kotlin business rules and calculations. It has zero dependencies on Android UI frameworks, making it highly testable.
-*   **AUGE Adaptive Engine (`domain/auge/`):**
-    *   Calculates systemic fatigue (`AugeFatigueEngine`), target time-to-recovery (`AugeTtcEngine`), muscle interference (`InterferenceEngine`), and joint/articular readiness (`ExerciseReadinessEngine`).
-*   **Nutrition Engine (`domain/nutrition/`):**
-    *   Parses user descriptions using phonetic mapping and heuristics (`FoodParser`, `TextNormalizer`, `SmartFoodResolver`).
-    *   Calculates macronutrient values and translates subjective portion descriptions (e.g., "half a plate", "one cup") to grams (`SubjectivePortionEngine`).
-*   **Training & Biomechanics (`domain/training/`, `domain/biomechanics/`):**
-    *   Analyzes workout volumes (`VolumeCalculator`), plate layouts (`PlateCalculator`), and exercises (`ExerciseAnatomy`).
+### 1. Data Layer (`data/`)
 
-### 3. Presentation Layer (`com.example.kpkn.screens`, `com.example.kpkn.ui`, `com.example.kpkn.navigation`)
-Responsible for rendering user interfaces and handling UI-related state.
-*   **Jetpack Compose:** Declarative UI layouts using custom Compose canvases, components, and responsive themes (`com.example.kpkn.ui`).
-*   **ViewModels & StateFlow:** Screens consume state reactively via ViewModels exposing Kotlin `StateFlow`/`SharedFlow`. ViewModels orchestrate calls to the Repository layer.
-*   **Navigation:** Managed declaratively using custom Compose navigation graphs (`com.example.kpkn.navigation`).
+Responsible for persistence, local assets, and remote calls.
 
-### 4. Services Layer (`com.example.kpkn.services`)
-Manages hardware interfaces and background tasks.
-*   **Voice Logging Engine (`services/workout/WorkoutContinuousVoiceEngine.kt`):**
-    *   Implements continuous background voice recognition to allow hands-free logging during heavy lifts.
-    *   Processes spoken commands using custom parser structures (`WorkoutVoiceCommandParser`).
-*   **Text-to-Speech (TTS):** Provides audio cues for rests and set transitions.
-*   **Active Workout Foreground Service:** Ensures the active workout timer and rest alerts stay alive even if the app is minimized.
+*   **Room Database (`data/db/`):**
+    *   `KpknDatabase.kt` — single database, **version 19**, ~34 entities.
+    *   Entities: `Entities.kt`, `WikiLabEntities.kt`, `PerformanceRangeEntity.kt`, `PerformanceSnapshotEntity.kt`. Complex models are serialized to JSON strings (Kotlinx Serialization) in a `data` column.
+    *   DAOs: `Daos.kt`, `WikiLabDao.kt`. FTS4 virtual table (`global_foods_fts`) powers food search.
+    *   **Offline-First:** every read/write passes through Room; network sync is a secondary concern.
+    *   `DatabaseBackupHelper.kt` — full-database JSON export/import (used for cross-platform migration and user backups).
+*   **Repositories (`data/repository/`):** Single source of truth per domain: `ProgramRepository`, `AugeRepository`, `AugeMetricsRepository`, `NutritionRepository`, `WikiLabRepository`, `CompetitionRepository`, `SessionTemplateRepository`, `CustomExerciseRepository`, `LearnRepository`.
+*   **Models (`data/models/`):** Serializable domain models (`Program`, `Session`, `WorkoutLog`, `Settings`, `AugeModels`, `AugeAdaptiveModels`, `NutritionModels`, `CompetitionModels`, `WorkoutV2Models`, `EnergyModels`) plus hardcoded catalogs (`DiscomfortCatalog`, `MobilityExerciseCatalog`).
+*   **Static content loaders:** `exercises/ExerciseDatabase.kt`, `food/FoodDatabase.kt` + `food/FoodImporter.kt` (USDA + OpenFoodFacts Chile prepopulation, batched transactions), `WikiLabPrepopulate.kt` (anatomy JSONs → Room), `programs/`, `sessions/`, `splits/`, `protocols/`, `learn/`, `wikilab/` (bundled templates and content).
+*   **Remote (`data/remote/`):** `ExternalAiService.kt` — optional AI fallback (Gemini / OpenAI / DeepSeek) for hard nutrition parsing cases; `AiNutritionModels.kt` DTOs.
+*   **Voice (`data/voice/`):** `VoiceNutritionRecognizer.kt` — speech-to-food-log pipeline feeding the nutrition domain engines.
+
+### 2. Domain Layer (`domain/`)
+
+Pure Kotlin business logic with zero Android dependencies — the most heavily tested code in the repo (`app/src/test/domain/`).
+
+*   **AUGE Recovery System (`domain/auge/`):** `AugeRecoveryEngine` (three battery rings: muscular, CNS, spinal), `AugeFatigueEngine` (exponential decay per muscle), `AugeTtcEngine` (time-to-recovery), `InterferenceEngine` (structural muscle interference), `ExerciseReadinessEngine` (articular readiness), `AugeAdaptiveEngine`, `DiscomfortAggregationEngine`, `NutritionRecoveryEngine`, `SessionIntensityEngine`, plus classifiers and utilities.
+*   **Nutrition Engine (`domain/nutrition/`):** `FoodParser`, `SmartFoodResolver`, `TextNormalizer`, `PhoneticEs` (Spanish phonetics), `SubjectivePortionEngine` ("media taza" → grams), `MacroCalculator`/`MacroValidator`, cooking-method factors, dataset knowledge.
+*   **Training (`domain/training/`):** `LoopEngine` (set progression: warmup, drop-sets, myo-reps, failure), `VolumeCalculator`, `ProgramCalendarEngine`, `ProgramAnalyticsEngine`, `SplitApplicationEngine`.
+*   **Workout (`domain/workout/`):** `SupersetRules`, `WorkoutContextRecurrenceEngine`, `WorkoutPerformanceHomologationEngine` (V2 performance tracking).
+*   **Exercises (`domain/exercises/`):** `ExerciseIdentity`, `ExerciseMatchEngine`, `ExerciseMuscleResolver`, `ExerciseAnatomy`, variant grouping/preference, catalog insights and filters.
+*   **Session Assistant (`domain/sessionassistant/`):** `SessionAssistantEngine` — suggests rest reductions, supersets, or volume cuts when a session exceeds its target duration.
+*   **Biomechanics (`domain/biomechanics/`):** `BiomechanicsEngine` — lever classification, anthropometric torque analysis.
+*   **Supporting packages:** `calculations/` (`PlateCalculator` — barbell plate layout), `energy/` (`TrainingEnergyEngine`), `performance/` (`PerformanceRangeCalculator`), `templates/` (`SessionTemplateEngine`).
+
+### 3. Presentation Layer (`screens/`, `ui/`, `navigation/`)
+
+*   **Jetpack Compose UI:** Single `MainActivity` hosting a `NavHost` and bottom navigation. Feature packages under `screens/`: `home`, `workout`, `nutrition`, `programs`, `programdetail`, `sessioneditor`, `settings`, `auge`, `wikilab`, `learn`, `profile`, `competitions`. Larger features keep sub-components in a local `components/` folder.
+*   **ViewModels & UDF:** Each screen pair (`FooScreen.kt` + `FooViewModel.kt`) follows unidirectional data flow — user events → ViewModel → immutable `StateFlow` → recomposition. ViewModels expose read-only `StateFlow` (`asStateFlow()`); mutable state never leaks to the UI.
+*   **Navigation (`navigation/`):** `Navigation.kt` declares all `KpknRoute` routes and the `NavHost`; `DeepLinkRouter`/`KpknDeepLinks` handle `kpkn://` and `https://kpkn.fit` links; `NavigationBus` decouples cross-feature navigation.
+*   **Design system (`ui/`):** `ui/theme/` (Color/Theme/Type — pitch-black + neon yellow/cyan/magenta), `ui/components/` (shared composables, custom icons), `ui/locale/LocaleManager.kt` (ES/EN). Glassmorphism via the Haze library.
+*   **Dependency Injection:** Manual constructor injection, wired in `MainActivity.kt` (no Hilt/Dagger).
+
+### 4. Services & Hardware (`services/`)
+
+*   **`services/workout/`:** `WorkoutRestForegroundService` (keeps timer/rest alive in background), `WorkoutContinuousVoiceEngine` + `WorkoutVoiceCommandParser`/`WorkoutVoiceController` (hands-free logging, Spanish commands), `WorkoutTtsManager` (audio cues), `WorkoutRestAlertManager`, `WorkoutReminderManager` + `WorkoutReminderBootReceiver` (alarm re-registration after reboot), `LoopNotificationManager`, `SystemAudioHelper` (audio-focus ducking), permission helpers.
+*   **`services/nutrition/`:** `NutritionNotificationManager` (meal reminders via `AlarmManager`).
+*   **`services/competition/`:** `CompetitionReminderManager`.
+*   **App Widget (`widgets/`):** `NutritionQuickActionWidget` — Glance-based home-screen macro rings.
+*   **Telemetry (`telemetry/`):** `KpknTelemetry`, `TelemetryEvents`, `TelemetryHelper` — lightweight in-app analytics.
+
+### 5. App Entry Points
+
+| Component | File | Role |
+| :--- | :--- | :--- |
+| Application | `KpknApplication.kt` | Process bootstrap (StrictMode in debug). |
+| Activity | `MainActivity.kt` | Compose host, NavHost, bottom nav, DI wiring. |
+| Manifest | `AndroidManifest.xml` | Permissions (audio, notifications, alarms, boot), foreground service, receivers, deep links, `FileProvider`. |
+| Flavors | `app/build.gradle.kts` | `base` (minSdk 24) and `health` (minSdk 26, adds Health Connect). |
 
 ---
 
 ## ⚡ Core Technical Principles
 
-1.  **Offline-First Strategy:**
-    *   All write operations are saved locally first. Network synchronization is treated as a secondary background task.
-2.  **Concurrency via Coroutines:**
-    *   Asynchronous operations use Kotlin Coroutines. Disk and network calls are confined to `Dispatchers.IO`, while UI state flows are updated on `Dispatchers.Main`.
-3.  **Uni-directional Data Flow (UDF):**
-    *   User interactions trigger events in ViewModels $\rightarrow$ ViewModels update state flows $\rightarrow$ Jetpack Compose screens recompose based on state changes.
+1.  **Offline-First:** All writes go to Room first. AI/network features degrade gracefully when offline.
+2.  **Coroutines everywhere:** Disk/network on `Dispatchers.IO`, UI state on `Dispatchers.Main`; reactive updates via `Flow`/`StateFlow`.
+3.  **Uni-directional Data Flow:** Events → ViewModel → `StateFlow` → Compose recomposition.
+4.  **Immutability:** `val` + `data class` by default; `var` only when mutation is strictly required.
+5.  **Testability:** Domain engines are pure Kotlin and covered by unit tests in `app/src/test/` (JUnit 4 + Robolectric + kotlinx-coroutines-test).

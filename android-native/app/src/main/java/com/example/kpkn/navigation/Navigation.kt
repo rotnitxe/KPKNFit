@@ -61,12 +61,6 @@ sealed class KpknRoute(val route: String) {
         const val ARG_SESSION_ID = "sessionId"
     }
 
-    object ReadinessGate : KpknRoute("readiness-gate/{programId}/{sessionId}") {
-        fun create(programId: String, sessionId: String) = "readiness-gate/$programId/$sessionId"
-        const val ARG_PROGRAM_ID = "programId"
-        const val ARG_SESSION_ID = "sessionId"
-    }
-
     object Competitions : KpknRoute("competitions")
     object CompetitionDetail : KpknRoute("competition/{competitionId}") {
         fun create(competitionId: String) = "competition/$competitionId"

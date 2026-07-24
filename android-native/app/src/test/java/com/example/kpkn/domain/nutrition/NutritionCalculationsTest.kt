@@ -246,4 +246,54 @@ class NutritionCalculationsTest {
         assertTrue(snapshot.tdee!! > 0)
         assertTrue(snapshot.calorieTarget > 0)
     }
+
+    @Test
+    fun `recommendPlanMacros lose uses higher protein than maintain`() {
+        val input = NutritionInput(80.0, 178.0, 28, Gender.MALE)
+        val lose = recommendPlanMacros(input, CalorieGoalConfig(goal = CalorieGoal.LOSE, weeklyChangeKg = 0.5))!!
+        val maintain = recommendPlanMacros(input, CalorieGoalConfig(goal = CalorieGoal.MAINTAIN))!!
+        assertEquals(2.3, lose.proteinPerKg, 0.01)
+        assertEquals(1.8, maintain.proteinPerKg, 0.01)
+        assertEquals(184, lose.proteinG) // 80 * 2.3
+        assertTrue(lose.calories < maintain.calories)
+    }
+
+    @Test
+    fun `recommendPlanMacros switches to Katch when body fat present`() {
+        val input = NutritionInput(80.0, 178.0, 28, Gender.MALE, bodyFatPercentage = 15.0)
+        val macros = recommendPlanMacros(input, CalorieGoalConfig(formula = FormulaType.MIFFLIN))!!
+        assertEquals(FormulaType.KATCH, macros.formulaUsed)
+    }
+
+    @Test
+    fun `weeklyChangeFromCalories and estimatePlanEndDate`() {
+        val weekly = weeklyChangeFromCalories(macroCalories = 2000, tdee = 2700)
+        // deficit 700 kcal/day → 700*7/7700 ≈ 0.636 kg/week loss → negative
+        assertEquals(-0.636, weekly, 0.01)
+        val eta = estimatePlanEndDate(currentValue = 80.0, goalValue = 75.0, weeklyChangeKg = 0.5)
+        assertNotNull(eta)
+    }
+
+    @Test
+    fun `tdee includes healthMultiplier`() {
+        val input = NutritionInput(75.0, 175.0, 25, Gender.MALE)
+        val base = calculateTDEE(input, CalorieGoalConfig())!!
+        val scaled = calculateTDEE(input, CalorieGoalConfig(healthMultiplier = 0.9))!!
+        assertEquals(kotlin.math.round(base * 0.9).toInt(), scaled)
+    }
+
+    @Test
+    fun `hardStop blocks extreme calorie target`() {
+        val flags = buildNutritionRiskFlags(
+            RiskInput(
+                settings = NutritionInput(70.0, 170.0, 25, Gender.FEMALE),
+                calorieTarget = 900,
+                goalMetric = GoalMetric.WEIGHT,
+                goalValue = 65.0,
+                weeklyChangeKg = 0.5,
+                calorieGoal = CalorieGoal.LOSE,
+            )
+        )
+        assertTrue(flags.any { it.hardStop })
+    }
 }

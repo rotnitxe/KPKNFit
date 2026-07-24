@@ -86,6 +86,17 @@ android {
     }
 }
 
+val verifyDatasetKnowledge by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Verifies that the compiled nutrition dataset matches its master JSON."
+    workingDir(rootProject.projectDir)
+    commandLine("python3", "scripts/process_dataset.py", "--check")
+}
+
+tasks.named("check").configure {
+    dependsOn(verifyDatasetKnowledge)
+}
+
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)

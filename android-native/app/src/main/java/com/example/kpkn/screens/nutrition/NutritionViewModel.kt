@@ -282,14 +282,14 @@ class NutritionViewModel : ViewModel() {
                 weight / ((height / 100) * (height / 100))
             } else null
             val ffmi = if (weight != null && height != null && bodyFat != null) {
-                (weight * (1 - bodyFat / 100)) / ((height / 100) * (height / 100))
+                com.example.kpkn.domain.calculations.calculateFFMI(height, weight, bodyFat)?.normalizedFfmi
             } else null
 
             listOf(
                 BodyKpi("Peso", if (weight != null) "${(kotlin.math.round(weight * 10) / 10.0)} kg" else "—"),
                 BodyKpi("% Grasa", if (bodyFat != null) "${(kotlin.math.round(bodyFat * 10) / 10.0)}%" else "—"),
                 BodyKpi("% Músculo", if (muscle != null) "${(kotlin.math.round(muscle * 10) / 10.0)}%" else "—"),
-                BodyKpi("FFMI", if (ffmi != null) "${(kotlin.math.round(ffmi * 10) / 10.0)}" else "—"),
+                BodyKpi("FFMI", if (ffmi != null) "$ffmi" else "—"),
                 BodyKpi("IMC", if (bmi != null) "${(kotlin.math.round(bmi * 10) / 10.0)}" else "—"),
             )
         }

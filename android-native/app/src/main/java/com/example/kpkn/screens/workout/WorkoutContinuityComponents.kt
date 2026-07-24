@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId

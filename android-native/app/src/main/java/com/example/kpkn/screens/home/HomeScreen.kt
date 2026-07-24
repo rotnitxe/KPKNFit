@@ -84,6 +84,8 @@ fun HomeScreen(
     val muscularProgress = augeSnapshot.ringScore(RecoveryChannelId.MUSCULAR) / 100f
     val sncProgress = augeSnapshot.ringScore(RecoveryChannelId.SYSTEM) / 100f
     val columnaProgress = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE) / 100f
+    val augeLoading = augeSnapshot.isLoading
+    val pendingQuestionnaire by augeViewModel.pendingQuestionnaire.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val todaySessions by viewModel.todaySessions.collectAsState()
     val activeProgramId by viewModel.activeProgramId.collectAsState()
@@ -195,6 +197,7 @@ fun HomeScreen(
                 muscularProgress = muscularProgress,
                 sncProgress = sncProgress,
                 columnaProgress = columnaProgress,
+                augeLoading = augeLoading,
                 perMuscle = augePerMuscle,
                 todaySessions = todaySessions,
                 competitionCountdown = competitionCountdown,
@@ -261,6 +264,17 @@ fun HomeScreen(
             initialDescription = null,
             initialTab = 0,
         )
+
+        pendingQuestionnaire?.let { questionnaire ->
+            com.example.kpkn.screens.auge.PostSessionSheet(
+                questionnaire = questionnaire,
+                onDismiss = { augeViewModel.dismissPendingQuestionnaire() },
+                onSave = { feedback ->
+                    augeViewModel.savePostSessionFeedback(feedback)
+                    viewModel.loadFeedbacks(context)
+                },
+            )
+        }
     }
 }
 
@@ -270,6 +284,7 @@ private fun HomeWithProgram(
     muscularProgress: Float,
     sncProgress: Float,
     columnaProgress: Float,
+    augeLoading: Boolean = false,
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
     todaySessions: List<TodaySessionItem>,
     competitionCountdown: CompetitionCountdown?,
@@ -310,6 +325,7 @@ private fun HomeWithProgram(
                 sncProgress = sncProgress,
                 columnaProgress = columnaProgress,
                 hasActiveProgram = hasActiveProgram,
+                isLoading = augeLoading,
             )
         }
         if (!autoDeloadMessage.isNullOrBlank()) {

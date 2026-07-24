@@ -39,6 +39,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     private val exerciseDb = EXERCISE_DATABASE_BY_ID
 
     private var recoveryTimerJob: Job? = null
+    private var pendingRevealJob: Job? = null
+    private val augeWriteMutex = kotlinx.coroutines.sync.Mutex()
 
     // ─── Public state ─────────────────────────────────────────────────────────
 
@@ -155,19 +157,22 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         super.onCleared()
         recoveryTimerJob?.cancel()
+        pendingRevealJob?.cancel()
     }
 
     // ─── Core recompute ───────────────────────────────────────────────────────
 
     private suspend fun recompute(history: List<WorkoutLog>, settings: Settings) {
-        _snapshot.update { if (it.dashboard.headline == "Calculando...") it.copy(isLoading = true) else it }
+        _snapshot.update { it.copy(isLoading = true) }
         val todayWellbeing = augeRepo.getTodayWellbeing()
         val overrideWellbeing = augeRepo.getActiveWellbeingWithManualOverrides()
-        val wellbeing = if (overrideWellbeing != null &&
-            todayWellbeing?.manualNeuralBattery == null &&
-            todayWellbeing?.manualSpinalBattery == null &&
-            todayWellbeing?.manualMuscularBattery == null
-        ) {
+        val todayHasManualOverrides = todayWellbeing != null && (
+            todayWellbeing.manualNeuralBattery != null ||
+                todayWellbeing.manualSpinalBattery != null ||
+                todayWellbeing.manualMuscularBattery != null ||
+                todayWellbeing.manualMuscleBatteries.isNotEmpty()
+            )
+        val wellbeing = if (overrideWellbeing != null && !todayHasManualOverrides) {
             overrideWellbeing
         } else {
             todayWellbeing
@@ -256,11 +261,11 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * Exposes [q] to [pendingQuestionnaire] only when its scheduled time has passed.
-     * If not yet due, schedules a coroutine to reveal it at the right moment.
-     * This prevents the post-session feedback sheet from appearing immediately after
-     * finishing a workout — it should only appear ~24h later.
+     * If not yet due, schedules a single cancellable job to reveal it at the right moment.
      */
     private fun exposePendingIfDue(q: PendingQuestionnaire?) {
+        pendingRevealJob?.cancel()
+        pendingRevealJob = null
         if (q == null) {
             if (_pendingQuestionnaire.value != null) _pendingQuestionnaire.value = null
             return
@@ -269,10 +274,10 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         if (remaining <= 0L) {
             if (_pendingQuestionnaire.value != q) _pendingQuestionnaire.value = q
         } else {
-            // Not due yet — keep hidden and reveal after the remaining time
+            // Not due yet — keep hidden and reveal exactly when scheduled (no 24h cap that would early-reveal)
             _pendingQuestionnaire.value = null
-            viewModelScope.launch {
-                kotlinx.coroutines.delay(remaining.coerceAtMost(24 * 60 * 60_000L))
+            pendingRevealJob = viewModelScope.launch {
+                delay(remaining)
                 val stillPending = augeRepo.getPendingQuestionnaire()
                 if (stillPending != null && System.currentTimeMillis() >= stillPending.scheduledTimeMs) {
                     _pendingQuestionnaire.value = stillPending
@@ -286,14 +291,22 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     /** Call when user submits the daily wellbeing log (from ReadinessSheet). */
     fun saveWellbeing(log: DailyWellbeingLog) {
         viewModelScope.launch {
-            // Centralize manualBatteryAnchorMs: always stamp now when manual batteries are present
-            val anchoredLog = if (log.manualNeuralBattery != null || log.manualSpinalBattery != null || log.manualMuscleBatteries.isNotEmpty()) {
+            augeWriteMutex.lock()
+            try {
+            // Stamp anchor only when real manual overrides are present (not auto-filled predictions)
+            val hasManualOverrides = log.manualNeuralBattery != null ||
+                log.manualSpinalBattery != null ||
+                log.manualMuscularBattery != null ||
+                log.manualMuscleBatteries.isNotEmpty()
+            val anchoredLog = if (hasManualOverrides) {
                 log.copy(manualBatteryAnchorMs = System.currentTimeMillis())
-            } else log
+            } else {
+                log.copy(manualBatteryAnchorMs = null)
+            }
             augeRepo.saveWellbeingLog(anchoredLog)
 
             // Learn from manual adjustments if any (pre-workout signal)
-            if (anchoredLog.manualNeuralBattery != null || anchoredLog.manualSpinalBattery != null || anchoredLog.manualMuscleBatteries.isNotEmpty()) {
+            if (hasManualOverrides) {
                 val snapshot = _snapshot.value
                 learnFromManualAdjustment(
                     manualNeural = anchoredLog.manualNeuralBattery,
@@ -310,6 +323,9 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             recompute(programRepo.history.value, programRepo.settings.value)
+            } finally {
+                augeWriteMutex.unlock()
+            }
         }
     }
 
@@ -364,13 +380,11 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         predictedMuscleBatteries: Map<String, Int> = emptyMap(),
     ) {
         viewModelScope.launch {
+            augeWriteMutex.lock()
+            try {
             val base = augeRepo.getTodayWellbeing()
-            val derivedMuscular = muscular
-                ?: perMuscle.values
-                    .takeIf { it.isNotEmpty() }
-                    ?.average()
-                    ?.toInt()
-                    ?.coerceIn(0, 100)
+            // Do not invent a global muscular override from a simple average of per-muscle
+            // values — that freezes the muscular ring and diverges from the engine formula.
             val updated = DailyWellbeingLog(
                 id = base?.id ?: UUID.randomUUID().toString(),
                 date = LocalDate.now().toString(),
@@ -382,12 +396,13 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 moodState = base?.moodState,
                 workIntensity = base?.workIntensity,
                 studyIntensity = base?.studyIntensity,
-                manualMuscularBattery = derivedMuscular,
+                manualMuscularBattery = muscular?.coerceIn(0, 100),
                 manualNeuralBattery = neural.coerceIn(0, 100),
                 manualSpinalBattery = spinal.coerceIn(0, 100),
                 manualMuscleBatteries = perMuscle.mapValues { (_, value) -> value.coerceIn(0, 100) },
                 manualBatteryAnchorMs = manualBatteryAnchorMs ?: System.currentTimeMillis(),
                 notes = base?.notes,
+                preWorkoutDiscomforts = base?.preWorkoutDiscomforts.orEmpty(),
             )
             augeRepo.saveWellbeingLog(updated)
 
@@ -405,6 +420,9 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             )
 
             recompute(programRepo.history.value, programRepo.settings.value)
+            } finally {
+                augeWriteMutex.unlock()
+            }
         }
     }
 
@@ -514,6 +532,11 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             24.0
         }
+        val nutritionMultiplier = AugeRecoveryEngine.getNutritionMultiplier(
+            settings = programRepo.settings.value,
+            nutritionLogs = nutritionRepo.nutritionLogs.value,
+            stressLevel = wellbeing.stressLevel,
+        )
 
         val cnsObs = if (manualNeural != null && predictedNeuralBattery != null && predictedNeuralBattery != manualNeural) {
             RecoveryLearningObservation(
@@ -521,8 +544,9 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 predictedBattery = predictedNeuralBattery,
                 actualBattery = manualNeural,
                 sessionStress = if (sessionCnsDrain > 0.0) sessionCnsDrain else 20.0,
-                hoursSinceSession = if (sessionCnsDrain > 0.0) 0.25 else derivedHoursSince,
+                hoursSinceSession = derivedHoursSince,
                 sleepQuality = wellbeing.sleepQuality,
+                nutritionMultiplier = nutritionMultiplier,
                 stressLevel = wellbeing.stressLevel
             )
         } else null
@@ -533,8 +557,9 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 predictedBattery = predictedSpinalBattery,
                 actualBattery = manualSpinal,
                 sessionStress = if (sessionSpinalDrain > 0.0) sessionSpinalDrain else 20.0,
-                hoursSinceSession = if (sessionSpinalDrain > 0.0) 0.25 else derivedHoursSince,
+                hoursSinceSession = derivedHoursSince,
                 sleepQuality = wellbeing.sleepQuality,
+                nutritionMultiplier = nutritionMultiplier,
                 stressLevel = wellbeing.stressLevel
             )
         } else null
@@ -568,8 +593,9 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                     predictedBattery = predicted,
                     actualBattery = manualBattery.coerceIn(0, 100),
                     sessionStress = if (sessionMuscleDrain > 0.0) sessionMuscleDrain else 20.0,
-                    hoursSinceSession = if (sessionMuscleDrain > 0.0) 0.25 else derivedHoursSince,
+                    hoursSinceSession = derivedHoursSince,
                     sleepQuality = wellbeing.sleepQuality,
+                    nutritionMultiplier = nutritionMultiplier,
                     stressLevel = wellbeing.stressLevel,
                 )
                 updatedCache = updatedCache.copy(
@@ -597,22 +623,47 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        if (obsCount == 0) obsCount = 1
+        if (obsCount == 0) return
         updatedCache = updatedCache.copy(
             totalObservations = cache.totalObservations + obsCount,
             lastUpdatedMs = System.currentTimeMillis(),
         )
         augeRepo.saveAdaptiveCache(updatedCache)
     }
+
+    /** Clears manual battery overrides and recomputes rings from engine only. */
+    fun clearManualBatteryOverrides() {
+        viewModelScope.launch {
+            augeWriteMutex.lock()
+            try {
+                augeRepo.clearManualBatteryOverrides()
+                recompute(programRepo.history.value, programRepo.settings.value)
+            } finally {
+                augeWriteMutex.unlock()
+            }
+        }
+    }
+
+    /** Resets adaptive learning cache to defaults. */
+    fun resetAdaptiveCache() {
+        viewModelScope.launch {
+            augeWriteMutex.lock()
+            try {
+                augeRepo.resetAdaptiveCache()
+                recompute(programRepo.history.value, programRepo.settings.value)
+            } finally {
+                augeWriteMutex.unlock()
+            }
+        }
+    }
 }
 
-private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
-private data class Quintuple<A, B, C, D, E>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E)
-private data class Sextuple<A, B, C, D, E, F>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F)
 private data class Septuple<A, B, C, D, E, F, G>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F, val seventh: G)
 
 @Composable
 fun rememberAugeViewModel(): AugeViewModel {
-    val activity = LocalContext.current as ComponentActivity
+    val context = LocalContext.current
+    val activity = context as? ComponentActivity
+        ?: error("rememberAugeViewModel requires a ComponentActivity context")
     return viewModel(activity)
 }

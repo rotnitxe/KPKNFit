@@ -1,7 +1,6 @@
 package com.example.kpkn.domain.energy
 
 import com.example.kpkn.data.models.*
-import com.example.kpkn.screens.workout.PostExerciseFeedback
 import org.junit.Assert.*
 import org.junit.Test
 

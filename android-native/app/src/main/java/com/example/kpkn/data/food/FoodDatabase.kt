@@ -76,9 +76,10 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
         micronutrients = listOf(Micronutrient("Vitamina A", 709.0, "µg"))),
     FoodItem(id = "gen055", name = "Arvejas (cocidas)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 84.0, protein = 5.4, carbs = 15.0, fats = 0.2),
     FoodItem(id = "gen056", name = "Frijoles rojos (cocidos)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 127.0, protein = 8.7, carbs = 28.0, fats = 0.5),
-    // servingSize=100g (valores por 100g seca). Anteriormente estaba en 30g, lo que producía ~1133 kcal para 100g.
-    // cookingWeightFactor eliminado: el usuario mide en seco; el factor de hidratación (×4) lo ajusta manualmente.
+    // servingSize=100g (valores por 100g seca).
+    // cookingWeightFactor ≈ hidratación típica (100 g seca → ~350 g hidratada).
     FoodItem(id = "gen057", name = "Soya texturizada (seca)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 340.0, protein = 52.0, carbs = 33.0, fats = 1.2,
+        cookingWeightFactor = 3.5,
         searchAliases = listOf("soya texturizada", "pvt", "proteina vegetal", "carne vegetal", "soja texturizada"),
         micronutrients = listOf(Micronutrient("Hierro", 8.8, "mg"), Micronutrient("Calcio", 350.0, "mg"))),
     FoodItem(id = "gen058", name = "Avena Instantánea", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 389.0, protein = 16.9, carbs = 66.0, fats = 6.9,

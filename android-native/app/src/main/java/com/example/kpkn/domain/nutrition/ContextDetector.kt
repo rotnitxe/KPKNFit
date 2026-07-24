@@ -104,13 +104,37 @@ object ContextDetector {
 
         val primary = detected.firstOrNull() ?: MealContext.GENERAL
         val confidence = if (detected.isEmpty()) 0.5 else 0.8
+        val profile = getContextProfile(primary)
+        val stableProfiles = SemanticPortionRetriever.contextProfiles()
+            .filter { it.sampleCount >= MIN_CONTEXT_SAMPLES }
+        val baselineGrams = stableProfiles.map { it.medianGrams }
+            .filter { it > 0.0 }
+            .medianOrNull()
+        val baselineProtein = stableProfiles.map { it.medianProtein }
+            .filter { it > 0.0 }
+            .medianOrNull()
+        val datasetPortionAdjustment = if (profile != null && baselineGrams != null && profile.medianGrams > 0.0) {
+            (profile.medianGrams / baselineGrams).coerceIn(MIN_PORTION_FACTOR, MAX_PORTION_FACTOR)
+        } else {
+            primary.portionFactor
+        }
+        val datasetProteinAdjustment = if (
+            profile != null &&
+            baselineProtein != null &&
+            profile.medianProtein > 0.0
+        ) {
+            (profile.medianProtein / baselineProtein - 1.0)
+                .coerceIn(MIN_PROTEIN_ADJUSTMENT, MAX_PROTEIN_ADJUSTMENT)
+        } else {
+            primary.proteinBoost
+        }
 
         return ContextResult(
             primaryContext = primary,
             detectedContexts = detected,
             confidence = confidence,
-            portionAdjustment = primary.portionFactor,
-            proteinAdjustment = primary.proteinBoost,
+            portionAdjustment = datasetPortionAdjustment,
+            proteinAdjustment = datasetProteinAdjustment,
         )
     }
 
@@ -131,8 +155,18 @@ object ContextDetector {
     /**
      * Get context profile from dataset knowledge.
      */
-    fun getContextProfile(context: MealContext): DatasetKnowledgeContext.ContextProfile? {
-        val key = context.name
-        return DatasetKnowledgeContext.CONTEXT_PROFILES[key]
+    fun getContextProfile(context: MealContext): DatasetContextProfile? =
+        SemanticPortionRetriever.contextProfile(context.name)
+
+    private fun List<Double>.medianOrNull(): Double? {
+        if (isEmpty()) return null
+        val sorted = sorted()
+        return sorted[sorted.size / 2]
     }
+
+    private const val MIN_CONTEXT_SAMPLES = 10
+    private const val MIN_PORTION_FACTOR = 0.65
+    private const val MAX_PORTION_FACTOR = 1.50
+    private const val MIN_PROTEIN_ADJUSTMENT = -0.10
+    private const val MAX_PROTEIN_ADJUSTMENT = 0.30
 }

@@ -74,11 +74,17 @@ internal object AugeUtils {
         return if (b < 30.0) 30.0 * kotlin.math.sqrt(b / 30.0) else b
     }
 
+    /**
+     * Curva de recuperación muscular: primeras 24h cuentan ~50% del tiempo lineal
+     * (antes 15% — overnight se sentía "pegado"). Tras 24h se acelera.
+     * A 10h → 5.0h efectivas; a 24h → 12.0h; luego +1.25× por hora.
+     */
     fun getSigmoidalHours(hoursSince: Double): Double {
-        return if (hoursSince < 24.0) {
-            hoursSince * 0.15
+        val h = hoursSince.coerceAtLeast(0.0)
+        return if (h < 24.0) {
+            h * 0.50
         } else {
-            3.6 + (hoursSince - 24.0) * 1.35
+            12.0 + (h - 24.0) * 1.25
         }
     }
 
@@ -87,5 +93,20 @@ internal object AugeUtils {
             return hoursSince
         }
         return hoursSince + 18.0
+    }
+
+    /**
+     * Soft-cap compartido para drenaje de sesión (PredictedDrain y RecoveryEngine).
+     * Damping crece con la fatiga acumulada respecto al techo fisiológico.
+     */
+    fun applySessionSoftCap(drain: Double, accumulated: Double, cap: Double): Double {
+        if (drain <= 0.0 || cap <= 0.0) return 0.0
+        val p = (accumulated / cap).coerceIn(0.0, 1.0)
+        val damping = when {
+            p <= 0.40 -> 1.0 - p * 0.5
+            p <= 0.70 -> 0.80 * exp(-3.2 * (p - 0.40))
+            else -> 0.30 * exp(-5.5 * (p - 0.70))
+        }
+        return (drain * damping).coerceAtLeast(0.0)
     }
 }

@@ -51,7 +51,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PerformanceSnapshotEntity::class,
         AugeAdaptiveCacheEntity::class,
     ],
-    version = 19,
+    version = 20,
     exportSchema = false,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -460,6 +460,57 @@ abstract class KpknDatabase : RoomDatabase() {
             }
         }
 
+        // v20: unique wellbeing date; non-null pending/adaptive data; dual-write sleep support
+        val MIGRATION_19_20 = object : Migration(19, 20) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Dedupe wellbeing rows keeping the latest physical row per date
+                db.execSQL(
+                    """
+                    DELETE FROM auge_wellbeing WHERE rowid NOT IN (
+                        SELECT MAX(rowid) FROM auge_wellbeing GROUP BY date
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("DROP INDEX IF EXISTS `index_auge_wellbeing_date`")
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS `index_auge_wellbeing_date` ON `auge_wellbeing` (`date`)",
+                )
+
+                // pending: make data NON NULL (replace nulls with empty object that maps to null safely)
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `auge_pending_new` (
+                        `rowId` INTEGER NOT NULL DEFAULT 1,
+                        `data` TEXT NOT NULL,
+                        PRIMARY KEY(`rowId`)
+                    )
+                """.trimIndent())
+                db.execSQL(
+                    """
+                    INSERT INTO auge_pending_new (rowId, data)
+                    SELECT rowId, COALESCE(data, '') FROM auge_pending
+                    """.trimIndent(),
+                )
+                db.execSQL("DROP TABLE IF EXISTS auge_pending")
+                db.execSQL("ALTER TABLE auge_pending_new RENAME TO auge_pending")
+
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `auge_adaptive_cache_new` (
+                        `rowId` INTEGER NOT NULL DEFAULT 1,
+                        `data` TEXT NOT NULL,
+                        PRIMARY KEY(`rowId`)
+                    )
+                """.trimIndent())
+                db.execSQL(
+                    """
+                    INSERT INTO auge_adaptive_cache_new (rowId, data)
+                    SELECT rowId, COALESCE(data, '{}') FROM auge_adaptive_cache
+                    """.trimIndent(),
+                )
+                db.execSQL("DROP TABLE IF EXISTS auge_adaptive_cache")
+                db.execSQL("ALTER TABLE auge_adaptive_cache_new RENAME TO auge_adaptive_cache")
+            }
+        }
+
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -486,6 +537,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_16_17,
                     MIGRATION_17_18,
                     MIGRATION_18_19,
+                    MIGRATION_19_20,
                 )
                 .build()
                 .also { INSTANCE = it }

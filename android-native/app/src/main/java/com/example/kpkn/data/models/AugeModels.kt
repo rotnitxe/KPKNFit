@@ -324,13 +324,35 @@ data class SleepLogExtended(
     val awakenings: Int = 0,       // despertares nocturnos
     val notes: String? = null,
 ) {
-    /** Convierte al SleepLog básico que usa el motor AUGE. */
+    /**
+     * Convierte al SleepLog básico que usa el motor AUGE.
+     * [SleepLog.endTime] must be ISO-8601; [wakeTime] alone ("07:00") is not valid.
+     */
     fun toSleepLog(): SleepLog = SleepLog(
         id = id,
         date = date,
-        endTime = wakeTime,
+        endTime = wakeTimeToIso8601(date, wakeTime),
         duration = duration,
     )
+
+    companion object {
+        fun wakeTimeToIso8601(date: String, wakeTime: String): String {
+            return try {
+                val localDate = java.time.LocalDate.parse(date.take(10))
+                val parts = wakeTime.split(":")
+                val hour = parts.getOrNull(0)?.toIntOrNull()?.coerceIn(0, 23) ?: 7
+                val minute = parts.getOrNull(1)?.toIntOrNull()?.coerceIn(0, 59) ?: 0
+                localDate.atTime(hour, minute)
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toInstant()
+                    .toString()
+            } catch (_: Exception) {
+                // Fallback: assemble a parseable ISO local datetime string
+                val time = if (wakeTime.length == 5) "$wakeTime:00" else wakeTime
+                "${date.take(10)}T$time"
+            }
+        }
+    }
 }
 
 // ─── Readiness por Patrón de Movimiento y Ejercicio ───────────────────────────

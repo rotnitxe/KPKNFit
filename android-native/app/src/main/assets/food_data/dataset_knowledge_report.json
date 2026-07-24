@@ -1,0 +1,24 @@
+{
+  "formatVersion": 2,
+  "checksum": "1365eea5d988e6cf193c3037ca2f94fb17fb80c1c0caed4a12923f8f4f907737",
+  "sourceEntries": 19405,
+  "runtimeDocuments": 19405,
+  "documentsWithMacros": 16679,
+  "documentsWithPer100gMacros": 7402,
+  "documentsWithTotalMacros": 9277,
+  "documentsWithPortions": 8237,
+  "tokenCount": 6020,
+  "trigramCount": 3460,
+  "portionPriorCount": 2592,
+  "contextProfileCount": 11,
+  "invalidPostingCount": 0,
+  "rawBytes": 4404308,
+  "compressedBytes": 1333933,
+  "typeCounts": {
+    "DATABASE_LOOKUP": 3961,
+    "DESCRIBE": 1791,
+    "GENERAL": 8514,
+    "MACRO_CALC": 3738,
+    "QUESTION": 1401
+  }
+}

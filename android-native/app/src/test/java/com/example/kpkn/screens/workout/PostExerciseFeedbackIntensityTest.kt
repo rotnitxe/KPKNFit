@@ -2,6 +2,7 @@ package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.PostExerciseFeedback
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame

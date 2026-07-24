@@ -1,7 +1,11 @@
 package com.example.kpkn.domain.nutrition
 
 /**
- * CookingMethodParser — Detecta 440+ expresiones de métodos de cocción y aplica multiplicadores.
+ * CookingMethodParser — Legacy rich pattern catalog (440+ expressions).
+ *
+ * NOT wired into the live FoodLoggerDrawer pipeline. Production uses
+ * FoodParser.COOKING_PATTERNS + COOKING_FACTORS + oil grams in FoodLoggerDrawer.
+ * Aggressive fritura multipliers here (2–3.5×) would exaggerate macros — do not cable blindly.
  */
 object CookingMethodParser {
 

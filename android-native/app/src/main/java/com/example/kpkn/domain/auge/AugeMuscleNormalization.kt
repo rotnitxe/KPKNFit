@@ -83,6 +83,10 @@ internal fun getAugeMuscleDisplayId(rawMuscle: String, rawEmphasis: String? = nu
     return resolved.specific ?: resolved.broad
 }
 
+/** Pillar / broad group id used by perMuscle batteries (never a specific head). */
+internal fun getAugeMusclePillarId(rawMuscle: String, rawEmphasis: String? = null): String =
+    resolveAugeMuscle(rawMuscle, rawEmphasis).broad
+
 internal fun matchesAugeMuscleTarget(rawMuscle: String, target: String, rawEmphasis: String? = null): Boolean {
     val targetResolved = resolveAugeMuscle(target)
     val muscleResolved = resolveAugeMuscle(rawMuscle, rawEmphasis)

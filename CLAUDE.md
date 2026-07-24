@@ -42,10 +42,27 @@ All Android build and test commands must be run from the `android-native/` subdi
 
 ---
 
+## 🗺️ Key Locations (Quick Reference)
+
+All app code lives in `android-native/app/src/main/java/com/example/kpkn/`:
+
+*   **Entry points:** `KpknApplication.kt`, `MainActivity.kt` (NavHost + manual DI).
+*   **Data layer:** `data/db/` (Room, `KpknDatabase` **v20**), `data/repository/`, `data/models/`, plus loaders (`data/exercises/`, `data/food/`, `data/wikilab/`...).
+*   **Domain engines (pure Kotlin):** `domain/auge/`, `domain/nutrition/`, `domain/training/`, `domain/workout/`, `domain/exercises/`, `domain/sessionassistant/`, `domain/biomechanics/`, `domain/calculations/`.
+*   **UI screens:** `screens/<feature>/` (`home`, `workout`, `nutrition`, `programs`, `programdetail`, `sessioneditor`, `settings`, `auge`, `wikilab`, `learn`, `profile`, `competitions`).
+*   **Navigation:** `navigation/Navigation.kt` (all `KpknRoute` routes), deep links in `navigation/DeepLinkRouter.kt`.
+*   **Background/hardware:** `services/workout/` (voice engine, TTS, foreground service, reminders), `services/nutrition/`, `services/competition/`, `widgets/`.
+*   **Theme:** `ui/theme/` (pitch-black + neon palette), shared composables in `ui/components/`.
+*   **Bundled assets:** `android-native/app/src/main/assets/` (exercise JSONs, ~80 MB food CSVs, wikilab anatomy JSONs).
+*   **Unit tests:** `android-native/app/src/test/` (mirrors main packages; domain-heavy).
+*   **Build flavors:** `base` (minSdk 24) and `health` (minSdk 26, adds Health Connect) — e.g. `./gradlew assembleBaseDebug`.
+
+---
+
 ## 📂 Architecture Guides
 
-*   See [REPO_STRUCTURE.md](docs/REPO_STRUCTURE.md) for directory organization.
+*   See [REPO_STRUCTURE.md](docs/REPO_STRUCTURE.md) for directory organization (full tree, assets, tests).
 *   See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for general layers and logic overview.
 *   See [ANDROID_ARCHITECTURE_MAP.md](docs/ANDROID_ARCHITECTURE_MAP.md) for a comprehensive technical mapping of all systems and databases for parity reference.
-*   See [ANDROID_UI_SCREENS_MAP.md](docs/ANDROID_UI_SCREENS_MAP.md) for detailed mappings of Jetpack Compose screens, ViewModels, and UI layouts.
+*   See [ANDROID_UI_SCREENS_MAP.md](docs/ANDROID_UI_SCREENS_MAP.md) for detailed mappings of Jetpack Compose screens, routes, ViewModels, and UI layouts.
 *   See [IOS_DEVELOPMENT_PLAN.md](docs/IOS_DEVELOPMENT_PLAN.md) for the 5-phase execution strategy to port the app to Swift/iOS.

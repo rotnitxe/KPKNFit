@@ -36,13 +36,8 @@ object InterferenceEngine {
         "Isquiosurales" to 96.0, "Erectores Espinales" to 96.0,
     )
 
-    // Peso de impacto por rol muscular (FATIGUE_ROLE_MULTIPLIERS)
-    private val ROLE_DRAIN_WEIGHT = mapOf(
-        MuscleRole.PRIMARY    to 1.0,
-        MuscleRole.SECONDARY  to 0.6,
-        MuscleRole.STABILIZER to 0.3,
-        MuscleRole.NEUTRALIZER to 0.15,
-    )
+    // Peso de impacto por rol muscular — misma fuente que fatiga AUGE
+    private val ROLE_DRAIN_WEIGHT = FATIGUE_ROLE_MULTIPLIERS
 
     // Umbral mínimo de drenaje residual para que un músculo cuente como interferencia
     private const val MIN_RESIDUAL_THRESHOLD = 0.08   // 8% fatiga residual mínima
@@ -207,19 +202,21 @@ object InterferenceEngine {
 
             ce.sets.forEach { set ->
                 if (!AugeFatigueEngine.isSetEffective(set)) return@forEach
-                val metrics = AugeFatigueEngine.getDynamicAugeMetrics(info.name, info.equipment) ?: AugeMetrics()
+                val metrics = AugeFatigueEngine.getDynamicAugeMetrics(info.name, info.equipment, info) ?: AugeMetrics()
                 val drain = AugeFatigueEngine.calculateSetBatteryDrain(
                     set             = set,
                     metrics         = metrics,
                     tanks           = tanks,
                     accumulatedSets = accumulated.values.sum(),
-                    restTime        = ce.restTime,
+                    restTime        = ce.supersetRestBetween ?: ce.restTime,
+                    weightUnit      = settings.weightUnit,
                 )
                 info.involvedMuscles.forEach { im ->
                     val roleW = ROLE_DRAIN_WEIGHT[im.role] ?: 0.0
                     if (roleW > 0.0) {
+                        val muscleKey = getAugeMusclePillarId(im.muscle, im.emphasis)
                         val muscleDrain = drain.muscularDrainPct * roleW * 0.01
-                        drains[im.muscle] = (drains[im.muscle] ?: 0.0) + muscleDrain
+                        drains[muscleKey] = (drains[muscleKey] ?: 0.0) + muscleDrain
                     }
                 }
                 accumulated[ce.exerciseId] = (accumulated[ce.exerciseId] ?: 0) + 1
@@ -243,7 +240,8 @@ object InterferenceEngine {
             info.involvedMuscles.forEach { im ->
                 val roleW = ROLE_DRAIN_WEIGHT[im.role] ?: 0.0
                 if (roleW > 0.0) {
-                    usages[im.muscle] = maxOf(usages[im.muscle] ?: 0.0, roleW)
+                    val muscleKey = getAugeMusclePillarId(im.muscle, im.emphasis)
+                    usages[muscleKey] = maxOf(usages[muscleKey] ?: 0.0, roleW)
                 }
             }
         }
@@ -265,7 +263,7 @@ object InterferenceEngine {
 
         allExercises.forEach { ex ->
             val info = resolveExercise(ex.exerciseDbId, ex.name, exerciseDb) ?: return@forEach
-            val metrics = AugeFatigueEngine.getDynamicAugeMetrics(info.name, info.equipment) ?: AugeMetrics()
+            val metrics = AugeFatigueEngine.getDynamicAugeMetrics(info.name, info.equipment, info) ?: AugeMetrics()
             // Estimar drenaje basado en EFC normalizado (sin sets reales)
             val estimatedDrain = (metrics.efc / 5.0) * 0.4   // 40% max drain estimado por ejercicio
 
@@ -278,8 +276,9 @@ object InterferenceEngine {
             involvedMuscles.forEach { im ->
                 val roleW = ROLE_DRAIN_WEIGHT[im.role] ?: 0.0
                 if (roleW > 0.0) {
+                    val muscleKey = getAugeMusclePillarId(im.muscle, im.emphasis)
                     val muscleDrain = estimatedDrain * roleW
-                    drains[im.muscle] = maxOf(drains[im.muscle] ?: 0.0, muscleDrain)
+                    drains[muscleKey] = maxOf(drains[muscleKey] ?: 0.0, muscleDrain)
                 }
             }
         }

@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.calculations.calculateFFMI
 import java.util.UUID
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -108,7 +109,10 @@ fun BodyProgressScreen(
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val vitals = settings.userVitals
     val plans by nutritionRepo.nutritionPlans.collectAsState()
-    val activePlan = plans.lastOrNull { it.isActive } ?: plans.lastOrNull()
+    val activePlanId by nutritionRepo.activeNutritionPlanId.collectAsState()
+    val activePlan = plans.find { it.id == activePlanId }
+        ?: plans.lastOrNull { it.isActive }
+        ?: plans.lastOrNull()
     val bodyMeasurements by nutritionRepo.bodyMeasurements.collectAsState()
     val measurementSchedule by nutritionRepo.measurementSchedule.collectAsState()
 
@@ -117,10 +121,11 @@ fun BodyProgressScreen(
     val contextualBottomBarClearance = 220.dp
 
     // Compute derived body metrics
-    val weight = vitals.weight
+    val latestMeasurement = bodyMeasurements.maxByOrNull { it.date }
+    val weight = vitals.weight ?: latestMeasurement?.weight
     val height = vitals.height
-    val bodyFat = vitals.bodyFatPercentage
-    val muscle = vitals.muscleMassPercentage
+    val bodyFat = vitals.bodyFatPercentage ?: latestMeasurement?.bodyFat
+    val muscle = vitals.muscleMassPercentage ?: latestMeasurement?.muscleMass
     val goalType = activePlan?.goalType ?: GoalMetric.WEIGHT
     // Target value interpreted by goalType: kg for WEIGHT, % for BODY_FAT/MUSCLE_MASS
     val targetWeight = if (goalType == GoalMetric.WEIGHT) vitals.targetWeight ?: activePlan?.goalValue else null
@@ -129,10 +134,13 @@ fun BodyProgressScreen(
 
     val bmi = if (weight != null && height != null && height > 0)
         weight / ((height / 100) * (height / 100)) else null
-    val ffmi = if (weight != null && height != null && bodyFat != null && height > 0)
-        (weight * (1 - bodyFat / 100)) / ((height / 100) * (height / 100)) else null
-    val lbm = if (weight != null && bodyFat != null)
-        weight * (1 - bodyFat / 100) else null
+    val ffmiResult = if (weight != null && height != null && bodyFat != null) {
+        calculateFFMI(heightCm = height, weightKg = weight, bodyFatPercent = bodyFat)
+    } else {
+        null
+    }
+    val ffmi = ffmiResult?.normalizedFfmi
+    val lbm = ffmiResult?.leanBodyMass
     val fatMass = if (weight != null && bodyFat != null)
         weight * (bodyFat / 100) else null
 
@@ -384,18 +392,15 @@ fun BodyProgressScreen(
             onDismiss = { showAddMeasurement = false },
             onSave = { entry ->
                 nutritionRepo.addBodyMeasurement(entry)
-                // Actualizar vitals con el peso más reciente si se proveyó
-                if (entry.weight != null) {
-                    ProgramRepository.getInstance().let { repo ->
-                        repo.updateSettings { s ->
-                            s.copy(
-                                userVitals = s.userVitals.copy(
-                                    weight = entry.weight,
-                                    bodyFatPercentage = entry.bodyFat ?: s.userVitals.bodyFatPercentage,
-                                    muscleMassPercentage = entry.muscleMass ?: s.userVitals.muscleMassPercentage,
-                                ),
-                            )
-                        }
+                ProgramRepository.getInstance().let { repo ->
+                    repo.updateSettings { s ->
+                        s.copy(
+                            userVitals = s.userVitals.copy(
+                                weight = entry.weight ?: s.userVitals.weight,
+                                bodyFatPercentage = entry.bodyFat ?: s.userVitals.bodyFatPercentage,
+                                muscleMassPercentage = entry.muscleMass ?: s.userVitals.muscleMassPercentage,
+                            ),
+                        )
                     }
                 }
                 showAddMeasurement = false

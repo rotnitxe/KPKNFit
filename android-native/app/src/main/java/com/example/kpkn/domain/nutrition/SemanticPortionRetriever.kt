@@ -1,18 +1,13 @@
 package com.example.kpkn.domain.nutrition
 
+import java.text.Normalizer
+import kotlin.math.sqrt
+
 /**
- * SemanticPortionRetriever — "RAG sin IA" motor de búsqueda semántica sobre 19K ejemplos del dataset.
- *
- * Algoritmo:
- * 1. Tokenizar input del usuario
- * 2. Calcular similitud TF-IDF contra instrucciones del dataset
- * 3. Ranking por similitud coseno → top-K matches
- * 4. Extraer priors de porciones, macros y contexto
- *
- * Performance: < 5ms (índice en memoria, búsqueda optimizada)
+ * Deterministic offline retrieval over the structured 19K-example dataset.
+ * The immutable snapshot is decoded by the data layer and installed at startup.
  */
 object SemanticPortionRetriever {
-
     data class RetrievalResult(
         val query: String,
         val matches: List<DatasetMatch>,
@@ -21,6 +16,7 @@ object SemanticPortionRetriever {
         val macroRange: MacroRangeEstimate?,
         val confidence: Double,
         val elapsedMs: Long,
+        val datasetChecksum: String? = null,
     )
 
     data class DatasetMatch(
@@ -28,6 +24,7 @@ object SemanticPortionRetriever {
         val instruction: String,
         val score: Double,
         val type: String,
+        val contexts: Set<String> = emptySet(),
     )
 
     data class MacroRangeEstimate(
@@ -43,310 +40,327 @@ object SemanticPortionRetriever {
         val carbsMin: Double,
         val carbsMax: Double,
         val carbsMedian: Double,
+        val sampleCount: Int = 0,
+        val sourceDocumentIds: List<Int> = emptyList(),
     )
 
-    private val MN_PATTERN = Regex("\\p{Mn}+")
-    private val NON_ALPHANUMERIC_PATTERN = Regex("[^\\p{L}\\p{Nd}]+")
-    private val SPACES_PATTERN = Regex("\\s+")
-    private val GRAMS_DE_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*g\s+de\s+([a-záéíóúñü\s]{2,}?)(?:\s*,|\s+y\s+|\s*\(|\s*$)""")
-    private val PAREN_GRAMS_PATTERN = Regex("""([a-záéíóúñü\s]{2,}?)\s*\((\d+(?:[.,]\d+)?)\s*g\)""")
-    private val KCAL_MATCH_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*kcal""")
-    private val PROTEIN_MATCH_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*[pP]""")
-    private val FATS_MATCH_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*[gG](?:rasas?)?""")
-    private val CARBS_MATCH_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*[cC](?:arbohidratos?)?""")
+    data class DatasetStatus(
+        val ready: Boolean,
+        val formatVersion: Int?,
+        val checksum: String?,
+        val documentCount: Int,
+        val tokenCount: Int,
+        val trigramCount: Int,
+        val portionPriorCount: Int,
+    )
 
-    private val SPANISH_STOPWORDS = setOf(
+    private data class CandidateScore(
+        val documentId: Int,
+        val score: Double,
+    )
+
+    private val combiningMarks = Regex("\\p{Mn}+")
+    private val nonAlphanumeric = Regex("[^\\p{L}\\p{Nd}]+")
+    private val spaces = Regex("\\s+")
+
+    private val stopwords = setOf(
         "de", "la", "el", "con", "sin", "a", "al", "en", "por", "y", "o", "un", "una",
         "unos", "unas", "del", "las", "los", "lo", "para", "que", "es", "su", "se",
-        "no", "más", "como", "le", "me", "te", "mi", "tu", "muy", "ya", "si",
+        "no", "más", "mas", "como", "le", "me", "te", "mi", "tu", "muy", "ya", "si",
         "pero", "porque", "cuando", "donde", "cual", "quien", "este", "esta", "ese",
-        "esa", "todos", "todas", "todo", "toda", "otro", "otra", "otros", "otras",
-        "mismo", "misma", "cada", "sobre", "entre", "hasta", "desde", "hacia",
-        "hay", "son", "fue", "era", "tiene", "puede", "debe", "calcula", "cuáles",
-        "oficiales", "gramos", "calorías", "macros",
+        "esa", "calcula", "cuáles", "cuales", "oficiales", "gramos", "calorías", "calorias", "macros",
     )
 
-    /**
-     * Retrieve semantically similar examples from the dataset.
-     */
+    private val contextKeywords = mapOf(
+        "CASINO" to listOf("casino", "cafeteria", "comedor", "buffet", "menu del dia"),
+        "POST_ENTRENO" to listOf("post entreno", "post entrenamiento", "recuperacion", "post workout"),
+        "POWERBUILDER" to listOf("powerbuilder", "power builder", "volumen extremo", "volumen sucio"),
+        "ABUELA_CHILENA" to listOf("abuela", "contundente", "plato hondo", "plato rebosante"),
+        "OFICINA" to listOf("oficina", "escritorio", "trabajo", "reunion"),
+        "ESTUDIANTE" to listOf("estudiante", "universidad", "facultad", "campus"),
+        "CONDOMINIO" to listOf("condominio", "edificio", "departamento"),
+        "SNACK" to listOf("snack", "colacion", "merienda", "tentempie", "refrigerio"),
+        "DESAYUNO" to listOf("desayuno", "desayunar", "manana"),
+        "ALMUERZO" to listOf("almuerzo", "almorzar", "mediodia"),
+        "CENA" to listOf("cena", "cenar", "noche", "nocturno"),
+    )
+
+    private val cookingTerms = setOf(
+        "plancha", "horno", "frito", "frita", "cocido", "cocida", "hervido", "hervida",
+        "crudo", "cruda", "vapor", "parrilla", "asado", "asada", "guisado", "guisada",
+        "ahumado", "ahumada", "salteado", "salteada",
+    )
+
+    @Volatile
+    private var knowledge: DatasetKnowledgeSnapshot? = null
+
+    fun install(snapshot: DatasetKnowledgeSnapshot) {
+        require(snapshot.documents.indices.all { snapshot.documents[it].id == it }) {
+            "Dataset document IDs must be contiguous"
+        }
+        knowledge = snapshot
+    }
+
+    fun status(): DatasetStatus {
+        val snapshot = knowledge
+        return DatasetStatus(
+            ready = snapshot != null,
+            formatVersion = snapshot?.formatVersion,
+            checksum = snapshot?.checksum,
+            documentCount = snapshot?.documentCount ?: 0,
+            tokenCount = snapshot?.tokenIndex?.size ?: 0,
+            trigramCount = snapshot?.trigramIndex?.size ?: 0,
+            portionPriorCount = snapshot?.portionPriors?.size ?: 0,
+        )
+    }
+
+    fun contextProfile(context: String): DatasetContextProfile? =
+        knowledge?.contextProfiles?.get(context)
+
+    fun contextProfiles(): Collection<DatasetContextProfile> =
+        knowledge?.contextProfiles?.values.orEmpty()
+
     fun retrieve(query: String, topK: Int = 8): RetrievalResult {
-        val startMs = System.currentTimeMillis()
+        val startedAt = System.nanoTime()
+        val snapshot = knowledge ?: return emptyResult(query, startedAt)
         val normalized = normalize(query)
         val tokens = tokenize(normalized)
+        if (tokens.isEmpty()) return emptyResult(query, startedAt, snapshot.checksum)
 
-        if (tokens.isEmpty()) {
-            return RetrievalResult(query, emptyList<DatasetMatch>(), emptyList(), emptyMap(), null, 0.0, 0L)
-        }
-
-        // Phase 1: Token-based matching against the compiled TF-IDF index
-        val docScores = mutableMapOf<Int, Double>()
-
-        for (token in tokens) {
-            val entry = DatasetKnowledge.TFIDF_TOKEN_INDEX[token]
-            if (entry != null) {
-                val matchesList = entry.split(',')
-                for (matchStr in matchesList) {
-                    val parts = matchStr.split(':')
-                    if (parts.size == 2) {
-                        val docId = parts[0].toIntOrNull() ?: continue
-                        val score = parts[1].toDoubleOrNull() ?: 0.0
-                        docScores[docId] = (docScores[docId] ?: 0.0) + score
-                    }
-                }
+        val tokenCounts = tokens.groupingBy { it }.eachCount()
+        val dotProducts = HashMap<Int, Double>()
+        var queryNormSquared = 0.0
+        var matchedQueryTokens = 0
+        for ((token, count) in tokenCounts) {
+            val entry = snapshot.tokenIndex[token] ?: continue
+            matchedQueryTokens++
+            val queryWeight = (count.toDouble() / tokens.size) * entry.idf
+            queryNormSquared += queryWeight * queryWeight
+            for (posting in entry.postings) {
+                dotProducts[posting.documentId] =
+                    (dotProducts[posting.documentId] ?: 0.0) + queryWeight * posting.weight
             }
         }
 
-        // Use context keywords for context boosting
-        for ((context, keywords) in DatasetKnowledge.CONTEXT_KEYWORDS) {
-            for (kw in keywords) {
-                if (tokens.any { it.contains(kw) || kw.contains(it) }) {
-                    docScores[context.hashCode()] = 1.0
-                }
+        val queryTrigrams = tokens.flatMapTo(mutableSetOf(), ::generateTrigrams)
+        val trigramHits = HashMap<Int, Int>()
+        for (trigram in queryTrigrams) {
+            for (documentId in snapshot.trigramIndex[trigram] ?: IntArray(0)) {
+                trigramHits[documentId] = (trigramHits[documentId] ?: 0) + 1
             }
         }
 
-        // Phase 2: Fuzzy matching via trigrams (if available)
-        val trigramHits = mutableMapOf<Int, Int>()
-        for (token in tokens) {
-            if (token.length >= 3) {
-                val trigrams = generateTrigrams(token)
-                for (trigram in trigrams) {
-                    val indexEntry = DatasetKnowledge.TFIDF_TRIGRAM_INDEX[trigram]
-                    if (indexEntry != null) {
-                        val docIds = indexEntry.split(',')
-                        for (docIdStr in docIds) {
-                            val docId = docIdStr.toIntOrNull() ?: continue
-                            trigramHits[docId] = (trigramHits[docId] ?: 0) + 1
-                        }
-                    }
-                }
+        val contexts = detectContexts(normalized)
+        val queryCookingTerms = cookingTerms.filterTo(mutableSetOf()) { normalized.contains(it) }
+        val candidateIds = (dotProducts.keys + trigramHits.keys).toSet()
+        val queryNorm = sqrt(queryNormSquared)
+        val ranked = candidateIds.mapNotNull { documentId ->
+            val document = snapshot.document(documentId) ?: return@mapNotNull null
+            val cosine = if (queryNorm > 0.0 && document.vectorNorm > 0.0) {
+                (dotProducts[documentId] ?: 0.0) / (queryNorm * document.vectorNorm)
+            } else {
+                0.0
+            }.coerceIn(0.0, 1.0)
+            val trigramCoverage = if (queryTrigrams.isEmpty()) {
+                0.0
+            } else {
+                (trigramHits[documentId] ?: 0).toDouble() /
+                    maxOf(queryTrigrams.size, document.trigramCount, 1)
+            }.coerceIn(0.0, 1.0)
+            val contextBoost = if (contexts.any(document.contexts::contains)) 0.07 else 0.0
+            val cookingBoost = if (queryCookingTerms.any(document.cookingTerms::contains)) 0.03 else 0.0
+            val score = (cosine * 0.78 + trigramCoverage * 0.12 + contextBoost + cookingBoost)
+                .coerceIn(0.0, 1.0)
+            CandidateScore(documentId, score).takeIf { score >= MINIMUM_MATCH_SCORE }
+        }.sortedByDescending(CandidateScore::score)
+            .take(topK.coerceIn(1, 20))
+
+        val matches = ranked.mapNotNull { candidate ->
+            snapshot.document(candidate.documentId)?.let { document ->
+                DatasetMatch(
+                    docId = document.id,
+                    instruction = document.instruction,
+                    score = candidate.score,
+                    type = document.type,
+                    contexts = document.contexts,
+                )
             }
         }
-
-        // Combine scores: TF-IDF (70%) + Trigram bonus (30%)
-        val maxTrigramHits = trigramHits.values.maxOrNull() ?: 1
-        for ((docId, triCount) in trigramHits) {
-            val triBonus = (triCount.toDouble() / maxTrigramHits) * 0.5
-            docScores[docId] = (docScores[docId] ?: 0.0) + triBonus
-        }
-
-        // Phase 3: Rank and get top-K
-        val sortedDocs = docScores.entries
-            .sortedByDescending { it.value }
-            .take(topK)
-
-        val maxScore = sortedDocs.firstOrNull()?.value ?: 1.0
-
-        val matches = sortedDocs.map { (docId, rawScore) ->
-            val normalizedScore = (rawScore / maxScore).coerceIn(0.0, 1.0)
-            val instruction = if (docId < DatasetKnowledge.INSTRUCTIONS.size) {
-                DatasetKnowledge.INSTRUCTIONS[docId]
-            } else ""
-            val type = if (docId < DatasetKnowledge.ENTRY_TYPES.size) {
-                DatasetKnowledge.ENTRY_TYPES[docId]
-            } else "GENERAL"
-
-            DatasetMatch(
-                docId = docId,
-                instruction = instruction,
-                score = normalizedScore,
-                type = type,
-            )
-        }.filter { it.instruction.isNotEmpty() }
-
-        // Phase 4: Detect context
-        val contextDetected = detectContexts(query)
-
-        // Phase 5: Extract portion priors from matches
-        val portionPriors = extractPortionPriors(matches, tokens)
-
-        // Phase 6: Estimate macro range
-        val macroRange = estimateMacroRange(matches)
-
-        // Phase 7: Calculate confidence
-        val confidence = calculateConfidence(matches, tokens.size)
-
-        val elapsed = System.currentTimeMillis() - startMs
+        val tokenCoverage = matchedQueryTokens.toDouble() / tokenCounts.size.coerceAtLeast(1)
+        val confidence = calculateConfidence(matches, tokenCoverage)
 
         return RetrievalResult(
             query = query,
             matches = matches,
-            contextDetected = contextDetected,
-            portionPriors = portionPriors,
-            macroRange = macroRange,
+            contextDetected = contexts,
+            portionPriors = estimatePortionPriors(snapshot, matches, tokens.toSet()),
+            macroRange = estimateMacroRange(snapshot, matches),
             confidence = confidence,
-            elapsedMs = elapsed,
+            elapsedMs = elapsedMillis(startedAt),
+            datasetChecksum = snapshot.checksum,
         )
     }
 
-    /**
-     * Get the most likely portion in grams for a given food name.
-     * Uses dataset triplets + retrieval priors.
-     */
     fun getGramsForFood(foodName: String, retrievalResult: RetrievalResult?): Double? {
-        val normalized = foodName.lowercase().trim()
+        val normalizedFood = normalize(foodName)
+        if (normalizedFood.isBlank()) return null
+        retrievalResult?.portionPriors?.entries
+            ?.maxByOrNull { (key, _) -> foodSimilarity(normalizedFood, key) }
+            ?.takeIf { (key, _) -> foodSimilarity(normalizedFood, key) >= PORTION_MATCH_THRESHOLD }
+            ?.let { return it.value }
 
-        // First check retrieval priors
-        if (retrievalResult != null && retrievalResult.portionPriors.isNotEmpty()) {
-            for ((key, grams) in retrievalResult.portionPriors) {
-                if (key.contains(normalized) || normalized.contains(key)) {
-                    return grams
+        val snapshot = knowledge ?: return null
+        snapshot.portionPriors[normalizedFood]?.let { return it.grams }
+        return snapshot.portionPriors.values.asSequence()
+            .map { prior -> prior to foodSimilarity(normalizedFood, prior.food) }
+            .filter { (_, similarity) -> similarity >= PORTION_MATCH_THRESHOLD }
+            .maxWithOrNull(
+                compareBy<Pair<DatasetPortionPrior, Double>> { it.second }
+                    .thenBy { it.first.frequency },
+            )
+            ?.first
+            ?.grams
+    }
+
+    private fun estimatePortionPriors(
+        snapshot: DatasetKnowledgeSnapshot,
+        matches: List<DatasetMatch>,
+        queryTokens: Set<String>,
+    ): Map<String, Double> {
+        if (matches.isEmpty()) return emptyMap()
+        val topScore = matches.first().score
+        val weighted = mutableMapOf<String, MutableList<Pair<Double, Double>>>()
+        for (match in matches) {
+            if (match.score < maxOf(MINIMUM_PRIOR_SCORE, topScore * 0.55)) continue
+            val document = snapshot.document(match.docId) ?: continue
+            for (portion in document.portions) {
+                val foodTokens = tokenize(portion.food).toSet()
+                if (foodTokens.isNotEmpty() && foodTokens.intersect(queryTokens).isNotEmpty()) {
+                    weighted.getOrPut(normalize(portion.food)) { mutableListOf() }
+                        .add(portion.grams to match.score)
                 }
             }
         }
-
-        // Fallback to dataset triplets
-        for (triplet in DatasetKnowledge.PORTION_TRIPLETS) {
-            val tripletName = triplet.food.lowercase().trim()
-            if (tripletName == normalized || tripletName.contains(normalized) || normalized.contains(tripletName)) {
-                return triplet.grams
-            }
+        return weighted.mapValues { (_, samples) ->
+            val totalWeight = samples.sumOf { it.second }.coerceAtLeast(0.0001)
+            samples.sumOf { (grams, weight) -> grams * weight } / totalWeight
         }
-
-        return null
     }
 
-    // ─── Internal ──────────────────────────────────────────────────────────
+    private fun estimateMacroRange(
+        snapshot: DatasetKnowledgeSnapshot,
+        matches: List<DatasetMatch>,
+    ): MacroRangeEstimate? {
+        if (matches.isEmpty()) return null
+        val topScore = matches.first().score
+        val samples = matches.mapNotNull { match ->
+            if (match.score < maxOf(MINIMUM_MACRO_SCORE, topScore * 0.60)) return@mapNotNull null
+            val document = snapshot.document(match.docId) ?: return@mapNotNull null
+            val macros = document.macros ?: return@mapNotNull null
+            if (document.macroBasis != DatasetMacroBasis.PER_100_G) return@mapNotNull null
+            Triple(document.id, macros, match.score)
+        }
+        if (samples.isEmpty()) return null
 
-    private fun normalize(text: String): String {
-        return java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)
-            .replace(MN_PATTERN, "")
+        fun values(selector: (DatasetMacros) -> Double): List<Pair<Double, Double>> =
+            samples.map { (_, macros, score) -> selector(macros) to score }
+                .filter { (value, _) -> value.isFinite() && value >= 0.0 }
+
+        val calories = values(DatasetMacros::calories)
+        val protein = values(DatasetMacros::protein)
+        val fats = values(DatasetMacros::fats)
+        val carbs = values(DatasetMacros::carbs)
+        if (calories.isEmpty() || protein.isEmpty()) return null
+
+        return MacroRangeEstimate(
+            kcalMin = weightedPercentile(calories, 0.10),
+            kcalMax = weightedPercentile(calories, 0.90),
+            kcalMedian = weightedPercentile(calories, 0.50),
+            proteinMin = weightedPercentile(protein, 0.10),
+            proteinMax = weightedPercentile(protein, 0.90),
+            proteinMedian = weightedPercentile(protein, 0.50),
+            fatsMin = weightedPercentile(fats, 0.10),
+            fatsMax = weightedPercentile(fats, 0.90),
+            fatsMedian = weightedPercentile(fats, 0.50),
+            carbsMin = weightedPercentile(carbs, 0.10),
+            carbsMax = weightedPercentile(carbs, 0.90),
+            carbsMedian = weightedPercentile(carbs, 0.50),
+            sampleCount = samples.size,
+            sourceDocumentIds = samples.map { it.first },
+        )
+    }
+
+    private fun weightedPercentile(values: List<Pair<Double, Double>>, percentile: Double): Double {
+        if (values.isEmpty()) return 0.0
+        val sorted = values.sortedBy { it.first }
+        val target = sorted.sumOf { it.second }.coerceAtLeast(0.0001) * percentile
+        var cumulative = 0.0
+        for ((value, weight) in sorted) {
+            cumulative += weight
+            if (cumulative >= target) return value
+        }
+        return sorted.last().first
+    }
+
+    private fun calculateConfidence(matches: List<DatasetMatch>, tokenCoverage: Double): Double {
+        if (matches.isEmpty()) return 0.0
+        val topScore = matches.first().score
+        val gap = (topScore - (matches.getOrNull(1)?.score ?: 0.0)).coerceIn(0.0, 1.0)
+        return (topScore * 0.65 + tokenCoverage.coerceIn(0.0, 1.0) * 0.25 + gap * 0.10)
+            .coerceIn(0.0, 1.0)
+    }
+
+    private fun detectContexts(normalizedQuery: String): List<String> =
+        contextKeywords.filterValues { keywords -> keywords.any(normalizedQuery::contains) }.keys.toList()
+
+    private fun foodSimilarity(left: String, right: String): Double {
+        if (left == right) return 1.0
+        val leftTokens = tokenize(left).toSet()
+        val rightTokens = tokenize(right).toSet()
+        if (leftTokens.isEmpty() || rightTokens.isEmpty()) return 0.0
+        val intersection = leftTokens.intersect(rightTokens).size.toDouble()
+        return intersection / leftTokens.union(rightTokens).size.coerceAtLeast(1)
+    }
+
+    private fun normalize(text: String): String =
+        Normalizer.normalize(text, Normalizer.Form.NFD)
+            .replace(combiningMarks, "")
             .lowercase()
-            .replace(NON_ALPHANUMERIC_PATTERN, " ")
-            .replace(SPACES_PATTERN, " ")
+            .replace(nonAlphanumeric, " ")
+            .replace(spaces, " ")
             .trim()
-    }
 
-    private fun tokenize(normalized: String): List<String> {
-        return normalized.split(SPACES_PATTERN)
-            .filter { it.length >= 2 && it !in SPANISH_STOPWORDS }
-    }
+    private fun tokenize(normalized: String): List<String> =
+        normalized.split(spaces).filter { it.length >= 2 && it !in stopwords }
 
     private fun generateTrigrams(token: String): Set<String> {
         if (token.length < 3) return setOf(token)
         val padded = "$$token$"
-        val trigrams = mutableSetOf<String>()
-        for (i in 0 until padded.length - 2) {
-            trigrams.add(padded.substring(i, i + 3))
-        }
-        return trigrams
-    }
-
-    private fun detectContexts(query: String): List<String> {
-        val lower = query.lowercase()
-        val detected = mutableListOf<String>()
-        for ((context, keywords) in DatasetKnowledge.CONTEXT_KEYWORDS) {
-            if (keywords.any { lower.contains(it) }) {
-                detected.add(context)
-            }
-        }
-        return detected
-    }
-
-    private fun extractPortionPriors(matches: List<DatasetMatch>, queryTokens: List<String>): Map<String, Double> {
-        val priors = mutableMapOf<String, MutableList<Double>>()
-
-        for (match in matches) {
-            if (match.score < 0.3) continue
-
-            val instruction = match.instruction.lowercase()
-
-            // Extract "Xg de food" patterns
-            for (gramMatch in GRAMS_DE_PATTERN.findAll(instruction)) {
-                val grams = gramMatch.groupValues[1].replace(",", ".").toDoubleOrNull() ?: continue
-                val food = gramMatch.groupValues[2].trim()
-                if (grams > 0 && grams <= 2000 && food.length >= 2) {
-                    priors.getOrPut(food) { mutableListOf() }.add(grams)
-                }
-            }
-
-            // Extract "food (Xg)" patterns
-            for (parenMatch in PAREN_GRAMS_PATTERN.findAll(instruction)) {
-                val grams = parenMatch.groupValues[2].replace(",", ".").toDoubleOrNull() ?: continue
-                val food = parenMatch.groupValues[1].trim()
-                if (grams > 0 && grams <= 2000 && food.length >= 2) {
-                    priors.getOrPut(food) { mutableListOf() }.add(grams)
-                }
-            }
-        }
-
-        // Average and return
-        return priors.mapValues { (_, grams) ->
-            grams.average()
+        return (0..padded.length - 3).mapTo(mutableSetOf()) { index ->
+            padded.substring(index, index + 3)
         }
     }
 
-    private fun estimateMacroRange(matches: List<DatasetMatch>): MacroRangeEstimate? {
-        val kcalValues = mutableListOf<Double>()
-        val proteinValues = mutableListOf<Double>()
-        val fatsValues = mutableListOf<Double>()
-        val carbsValues = mutableListOf<Double>()
-
-        for (match in matches) {
-            if (match.score < 0.3) continue
-
-            val output = extractMacrosFromInstruction(match.instruction)
-            if (output != null) {
-                output.kcal?.let { kcalValues.add(it) }
-                output.protein?.let { proteinValues.add(it) }
-                output.fats?.let { fatsValues.add(it) }
-                output.carbs?.let { carbsValues.add(it) }
-            }
-        }
-
-        if (kcalValues.isEmpty() && proteinValues.isEmpty()) return null
-
-        return MacroRangeEstimate(
-            kcalMin = kcalValues.minOrNull() ?: 0.0,
-            kcalMax = kcalValues.maxOrNull() ?: 0.0,
-            kcalMedian = kcalValues.sorted().let { if (it.isEmpty()) 0.0 else it[it.size / 2] },
-            proteinMin = proteinValues.minOrNull() ?: 0.0,
-            proteinMax = proteinValues.maxOrNull() ?: 0.0,
-            proteinMedian = proteinValues.sorted().let { if (it.isEmpty()) 0.0 else it[it.size / 2] },
-            fatsMin = fatsValues.minOrNull() ?: 0.0,
-            fatsMax = fatsValues.maxOrNull() ?: 0.0,
-            fatsMedian = fatsValues.sorted().let { if (it.isEmpty()) 0.0 else it[it.size / 2] },
-            carbsMin = carbsValues.minOrNull() ?: 0.0,
-            carbsMax = carbsValues.maxOrNull() ?: 0.0,
-            carbsMedian = carbsValues.sorted().let { if (it.isEmpty()) 0.0 else it[it.size / 2] },
-        )
-    }
-
-    private data class MacroOutput(
-        val kcal: Double?,
-        val protein: Double?,
-        val fats: Double?,
-        val carbs: Double?,
+    private fun emptyResult(
+        query: String,
+        startedAt: Long,
+        checksum: String? = null,
+    ): RetrievalResult = RetrievalResult(
+        query = query,
+        matches = emptyList(),
+        contextDetected = emptyList(),
+        portionPriors = emptyMap(),
+        macroRange = null,
+        confidence = 0.0,
+        elapsedMs = elapsedMillis(startedAt),
+        datasetChecksum = checksum,
     )
 
-    private fun extractMacrosFromInstruction(instruction: String): MacroOutput? {
-        val lower = instruction.lowercase()
+    private fun elapsedMillis(startedAt: Long): Long =
+        (System.nanoTime() - startedAt) / 1_000_000
 
-        // Look for output patterns in the instruction itself
-        val kcalMatch = KCAL_MATCH_PATTERN.find(lower)
-        val proteinMatch = PROTEIN_MATCH_PATTERN.findAll(lower).lastOrNull()
-        val fatsMatch = FATS_MATCH_PATTERN.findAll(lower).lastOrNull()
-        val carbsMatch = CARBS_MATCH_PATTERN.findAll(lower).lastOrNull()
-
-        val kcal = kcalMatch?.groupValues?.get(1)?.replace(",", ".")?.toDoubleOrNull()
-        val protein = proteinMatch?.groupValues?.get(1)?.replace(",", ".")?.toDoubleOrNull()?.takeIf { it > 0 && it <= 500 }
-        val fats = fatsMatch?.groupValues?.get(1)?.replace(",", ".")?.toDoubleOrNull()?.takeIf { it > 0 && it <= 300 }
-        val carbs = carbsMatch?.groupValues?.get(1)?.replace(",", ".")?.toDoubleOrNull()?.takeIf { it > 0 && it <= 500 }
-
-        if (kcal == null && protein == null && fats == null && carbs == null) return null
-
-        return MacroOutput(kcal, protein, fats, carbs)
-    }
-
-    private fun calculateConfidence(matches: List<DatasetMatch>, tokenCount: Int): Double {
-        if (matches.isEmpty()) return 0.0
-
-        val topScore = matches.first().score
-        val matchCount = matches.count { it.score >= 0.3 }
-        val tokenCoverage = if (tokenCount > 0) matchCount.toDouble() / tokenCount.coerceAtLeast(1) else 0.0
-
-        // Weighted confidence: top score (50%) + match count (30%) + token coverage (20%)
-        return (topScore * 0.5 + (matchCount.coerceAtMost(5) / 5.0) * 0.3 + tokenCoverage.coerceAtMost(1.0) * 0.2)
-            .coerceIn(0.0, 1.0)
-    }
+    private const val MINIMUM_MATCH_SCORE = 0.04
+    private const val MINIMUM_PRIOR_SCORE = 0.08
+    private const val MINIMUM_MACRO_SCORE = 0.10
+    private const val PORTION_MATCH_THRESHOLD = 0.50
 }

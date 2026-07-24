@@ -165,7 +165,10 @@ private val MODIFIER_KEYWORDS_FAST = listOf(
 
 // ─── Main Parser ─────────────────────────────────────────────────────────────
 
-fun parseMealDescription(description: String): ParsedMealDescription {
+fun parseMealDescription(
+    description: String,
+    retrievalResult: SemanticPortionRetriever.RetrievalResult? = null,
+): ParsedMealDescription {
     // Phase G: Normalize user input before parsing
     val normalized = TextNormalizer.normalize(description)
     val trimmed = normalized.trim()
@@ -177,7 +180,7 @@ fun parseMealDescription(description: String): ParsedMealDescription {
     val globalPortion = extractGlobalPortion(trimmed)
 
     for (frag in fragments) {
-        val parsed = parseFragment(frag) ?: continue
+        val parsed = parseFragment(frag, retrievalResult) ?: continue
         if (parsed.tag !in seen) {
             seen.add(parsed.tag)
             items.add(parsed.copy(portion = if (parsed.portion == PortionPreset.MEDIUM && globalPortion != PortionPreset.MEDIUM) globalPortion else parsed.portion))
@@ -193,7 +196,7 @@ fun parseMealDescription(description: String): ParsedMealDescription {
     }
 
     if (items.isEmpty() && trimmed.isNotEmpty()) {
-        parseFragment(trimmed)?.let { items.add(it) }
+        parseFragment(trimmed, retrievalResult)?.let { items.add(it) }
     }
 
     return ParsedMealDescription(items = items, rawDescription = trimmed)
@@ -207,7 +210,10 @@ private fun isKnownNegationModifier(text: String, negMatch: MatchResult): Boolea
 
 // ─── Fragment Parser ─────────────────────────────────────────────────────────
 
-private fun parseFragment(frag: String): ParsedMealItem? {
+private fun parseFragment(
+    frag: String,
+    retrievalResult: SemanticPortionRetriever.RetrievalResult? = null,
+): ParsedMealItem? {
     var text = frag.trim()
     if (text.isEmpty()) return null
 
@@ -227,7 +233,7 @@ private fun parseFragment(frag: String): ParsedMealItem? {
         val groupName = groupMatch.groupValues[1].trim()
         val content = groupMatch.groupValues[2].trim()
         val subFragments = splitByListConnectors(content)
-        val subItems = subFragments.mapNotNull { parseFragment(it) }
+        val subItems = subFragments.mapNotNull { parseFragment(it, retrievalResult) }
         if (subItems.isNotEmpty()) {
             return ParsedMealItem(tag = groupName, isGroup = true, subItems = subItems)
         }
@@ -238,14 +244,16 @@ private fun parseFragment(frag: String): ParsedMealItem? {
     var grams = gramsResult.first
     var working = gramsResult.second
     var refQuantity: Double? = null
+    var amountIntent = if (grams != null) AmountIntent.EXPLICIT_MASS else AmountIntent.UNSPECIFIED
 
     // If no grams, try reference (e.g., "1 cucharada de aceite")
     if (grams == null) {
-        val refResult = extractReferenceFromFragment(working)
+        val refResult = extractReferenceFromFragment(working, retrievalResult)
         if (refResult.grams != null) {
             grams = refResult.grams
             working = refResult.foodPart
             refQuantity = refResult.quantity
+            amountIntent = AmountIntent.RESOLVED_SUBJECTIVE
         }
     }
 
@@ -253,8 +261,8 @@ private fun parseFragment(frag: String): ParsedMealItem? {
     val cookingMethod = extractCookingMethod(working)
     working = cookingMethod.second
 
-    // Extract anatomical/preparation modifiers
-    val modifierResult = extractModifiers(working, grams)
+    // Extract anatomical/preparation modifiers (colmada/rasa scale subjective grams)
+    val modifierResult = extractModifiers(working, grams, amountIntent)
     working = modifierResult.third
     val modifierMacros = modifierResult.first
     grams = modifierResult.second
@@ -273,11 +281,18 @@ private fun parseFragment(frag: String): ParsedMealItem? {
     // Canonical resolution
     val shouldSingularize = STARTS_WITH_DIGIT.containsMatchIn(working.trim())
     val canonical = normalizeFoodName(foodName, singularize = shouldSingularize)
+    // Dataset priors only fill when the user gave no measure at all.
+    val resolvedGrams = when (amountIntent) {
+        AmountIntent.EXPLICIT_MASS, AmountIntent.RESOLVED_SUBJECTIVE -> grams
+        AmountIntent.UNSPECIFIED -> grams ?: retrievalResult
+            ?.takeIf { it.confidence >= DATASET_PORTION_MIN_CONFIDENCE }
+            ?.let { SemanticPortionRetriever.getGramsForFood(canonical, it) }
+    }
 
     return ParsedMealItem(
         tag = canonical,
         quantity = quantity,
-        amountGrams = grams,
+        amountGrams = resolvedGrams,
         cookingMethod = cookingMethod.first,
         portion = portionResult.first,
         isFuzzyMatch = false,
@@ -286,6 +301,7 @@ private fun parseFragment(frag: String): ParsedMealItem? {
             MacroOverrides(calories = it.kcal, protein = it.protein, carbs = it.carbs, fats = it.fats)
         },
         isExcluded = isExcluded,
+        amountIntent = amountIntent,
     )
 }
 
@@ -360,7 +376,10 @@ private data class ReferenceResult(
     val foodPart: String,
 )
 
-private fun extractReferenceFromFragment(text: String): ReferenceResult {
+private fun extractReferenceFromFragment(
+    text: String,
+    retrievalResult: SemanticPortionRetriever.RetrievalResult? = null,
+): ReferenceResult {
     val lower = text.lowercase()
     if (REFERENCE_KEYWORDS_FAST.none { lower.contains(it) }) {
         return ReferenceResult(null, 1.0, text)
@@ -382,7 +401,8 @@ private fun extractReferenceFromFragment(text: String): ReferenceResult {
         val subjectiveResult = SubjectivePortionEngine.resolve(
             expression = match.value,
             foodCategory = densityCategory,
-            standardPortion = food?.servingSize
+            standardPortion = food?.servingSize,
+            retrievalResult = retrievalResult,
         )
 
         val grams = if (subjectiveResult != null) {
@@ -399,6 +419,8 @@ private fun extractReferenceFromFragment(text: String): ReferenceResult {
     }
     return ReferenceResult(null, 1.0, text)
 }
+
+private const val DATASET_PORTION_MIN_CONFIDENCE = 0.35
 
 // ─── Extract Cooking Method ──────────────────────────────────────────────────
 
@@ -548,7 +570,11 @@ private val MODIFIER_PATTERNS = listOf(
         MacroScale()), // handled as portion modifier
 )
 
-private fun extractModifiers(text: String, currentGrams: Double?): Triple<MacroScale?, Double?, String> {
+private fun extractModifiers(
+    text: String,
+    currentGrams: Double?,
+    amountIntent: AmountIntent = AmountIntent.UNSPECIFIED,
+): Triple<MacroScale?, Double?, String> {
     val lower = text.lowercase()
     if (MODIFIER_KEYWORDS_FAST.none { lower.contains(it) }) {
         return Triple(null, currentGrams, text)
@@ -561,15 +587,15 @@ private fun extractModifiers(text: String, currentGrams: Double?): Triple<MacroS
         val match = pattern.find(working) ?: continue
         working = working.replace(match.value, " ").replace(MULTISPACE_PATTERN, " ").trim()
 
-        // Check if it's a portion modifier (grande/colmada or rasa/pequeña)
+        // Portion modifiers (colmada/rasa) scale subjective grams once; never touch explicit mass.
         val matchText = match.value.lowercase()
         if (matchText.contains("colmad") || matchText.contains("generos")) {
-            if (currentGrams == null) {
-                gramsOverride = (gramsOverride ?: 100.0) * 1.25
+            if (amountIntent != AmountIntent.EXPLICIT_MASS && gramsOverride != null) {
+                gramsOverride = gramsOverride * 1.25
             }
         } else if (matchText.contains("rasa") || matchText.contains("fina") || matchText.contains("pequeñ")) {
-            if (currentGrams == null) {
-                gramsOverride = (gramsOverride ?: 100.0) * 0.75
+            if (amountIntent != AmountIntent.EXPLICIT_MASS && gramsOverride != null) {
+                gramsOverride = gramsOverride * 0.75
             }
         } else {
             // It's a macro modifier - combine scales

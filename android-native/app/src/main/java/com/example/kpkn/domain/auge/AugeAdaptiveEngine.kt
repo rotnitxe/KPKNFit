@@ -45,7 +45,13 @@ object AugeAdaptiveEngine {
         if (k <= 0) return null
 
         val impliedTau = 2.9957 / k
-        return clamp(impliedTau, 6.0, 200.0)
+        val sleepAdj = when {
+            obs.sleepQuality >= 4 -> 0.94
+            obs.sleepQuality <= 2 -> 1.08
+            else -> 1.0
+        }
+        val nutritionAdj = obs.nutritionMultiplier.coerceIn(0.85, 1.15)
+        return clamp(impliedTau * sleepAdj * nutritionAdj, 6.0, 200.0)
     }
 
     /**
@@ -173,7 +179,7 @@ object AugeAdaptiveEngine {
         val newCnsMult = if (manualNeural != null && predictedNeural != null && preWorkoutNeural > predictedNeural) {
             val predictedDrain = (preWorkoutNeural - predictedNeural).toDouble().coerceAtLeast(1.0)
             val actualDrain = (preWorkoutNeural - manualNeural).toDouble().coerceAtLeast(1.0)
-            val ratio = (actualDrain / predictedDrain).coerceIn(0.2, 2.5)
+            val ratio = (actualDrain / predictedDrain).coerceIn(0.5, 1.6)
             currentCnsMult * (1.0 - alpha) + ratio * alpha
         } else {
             currentCnsMult
@@ -182,7 +188,7 @@ object AugeAdaptiveEngine {
         val newSpinalMult = if (manualSpinal != null && predictedSpinal != null && preWorkoutSpinal > predictedSpinal) {
             val predictedDrain = (preWorkoutSpinal - predictedSpinal).toDouble().coerceAtLeast(1.0)
             val actualDrain = (preWorkoutSpinal - manualSpinal).toDouble().coerceAtLeast(1.0)
-            val ratio = (actualDrain / predictedDrain).coerceIn(0.2, 2.5)
+            val ratio = (actualDrain / predictedDrain).coerceIn(0.5, 1.6)
             currentSpinalMult * (1.0 - alpha) + ratio * alpha
         } else {
             currentSpinalMult
@@ -197,15 +203,15 @@ object AugeAdaptiveEngine {
             if (predicted != null && preWorkout > predicted) {
                 val predictedDrain = (preWorkout - predicted).toDouble().coerceAtLeast(1.0)
                 val actualDrain = (preWorkout - manualValue).toDouble().coerceAtLeast(1.0)
-                val ratio = (actualDrain / predictedDrain).coerceIn(0.2, 2.5)
+                val ratio = (actualDrain / predictedDrain).coerceIn(0.5, 1.6)
                 val currentMult = currentMuscleMults[muscleKey] ?: 1.0
-                updatedMuscleMults[muscleKey] = clamp(currentMult * (1.0 - alpha) + ratio * alpha, 0.2, 2.5)
+                updatedMuscleMults[muscleKey] = clamp(currentMult * (1.0 - alpha) + ratio * alpha, 0.5, 1.6)
             }
         }
 
         return Triple(
-            clamp(newCnsMult, 0.2, 2.5),
-            clamp(newSpinalMult, 0.2, 2.5),
+            clamp(newCnsMult, 0.5, 1.6),
+            clamp(newSpinalMult, 0.5, 1.6),
             updatedMuscleMults
         )
     }

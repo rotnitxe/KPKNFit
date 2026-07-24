@@ -15,6 +15,8 @@ data class AugeAdaptiveCache(
     val muscleDrainMultipliers: Map<String, Double> = emptyMap(),
     val totalObservations: Int = 0,
     val lastUpdatedMs: Long = 0L,
+    /** Bump when semantics of deltas/multipliers change to invalidate learned cache. */
+    val schemaVersion: Int = 1,
 )
 
 @Serializable

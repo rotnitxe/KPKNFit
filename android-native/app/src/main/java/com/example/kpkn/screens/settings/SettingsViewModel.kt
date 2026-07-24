@@ -149,8 +149,10 @@ class SettingsViewModel : ViewModel() {
                     mealTemplates = emptyList(),
                     wellbeingLogs = augeRepository.getWellbeingLogs(),
                     sleepLogs = augeRepository.getLastNSleepLogs(30),
+                    sleepLogsExtended = augeRepository.getAllSleepLogsExtended(),
                     postSessionFeedback = augeRepository.getPostSessionFeedbacks(),
                     pendingQuestionnaire = augeRepository.getPendingQuestionnaire(),
+                    adaptiveCache = augeRepository.getAdaptiveCache(),
                 )
                 val exportJson = dbJson.encodeToString(payload)
                 val fileName = "kpkn-export-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))}.json"
@@ -209,11 +211,17 @@ class SettingsViewModel : ViewModel() {
                     }
                     payload.pantryItems.forEach { db.nutritionDao().upsertPantryItem(it.toEntity()) }
                     payload.mealTemplates.forEach { db.nutritionDao().upsertTemplate(it.toEntity()) }
-                    payload.wellbeingLogs.forEach { db.augeDao().upsertWellbeing(it.toEntity()) }
-                    payload.sleepLogs.forEach { db.augeDao().upsertSleepLog(it.toEntity()) }
-                    payload.postSessionFeedback.forEach { db.augeDao().upsertFeedback(it.toEntity()) }
-                    payload.pendingQuestionnaire?.let { db.augeDao().upsertPendingQuestionnaire(it.toEntity()) }
                 }
+
+                val augeRepository = AugeRepository.getInstance(context.applicationContext)
+                augeRepository.importBackupSlice(
+                    wellbeingLogs = payload.wellbeingLogs,
+                    sleepLogs = payload.sleepLogs,
+                    sleepLogsExtended = payload.sleepLogsExtended,
+                    postSessionFeedback = payload.postSessionFeedback,
+                    pendingQuestionnaire = payload.pendingQuestionnaire,
+                    adaptiveCache = payload.adaptiveCache,
+                )
 
                 programRepository.refreshData()
                 nutritionRepository.refreshData(context)
@@ -317,6 +325,8 @@ private data class SettingsExportPayload(
     val mealTemplates: List<com.example.kpkn.data.models.MealTemplate>,
     val wellbeingLogs: List<com.example.kpkn.data.models.DailyWellbeingLog>,
     val sleepLogs: List<com.example.kpkn.data.models.SleepLog>,
+    val sleepLogsExtended: List<com.example.kpkn.data.models.SleepLogExtended> = emptyList(),
     val postSessionFeedback: List<com.example.kpkn.data.models.PostSessionFeedback>,
     val pendingQuestionnaire: com.example.kpkn.data.models.PendingQuestionnaire?,
+    val adaptiveCache: com.example.kpkn.data.models.AugeAdaptiveCache? = null,
 )

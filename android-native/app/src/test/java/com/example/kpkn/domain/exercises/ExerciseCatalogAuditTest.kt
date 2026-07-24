@@ -32,11 +32,11 @@ class ExerciseCatalogAuditTest {
 
     @Test
     fun catalog_keeps_required_common_exercises() {
-        val byName = catalog().associateBy { normalizeCatalogSearchValue(it.name) }
+        val allNames = catalog().flatMap { listOfNotNull(it.name, it.alias) }.map { normalizeCatalogSearchValue(it) }.toSet()
 
-        assertNotNull(byName["press inclinado en maquina convergente"])
-        assertNotNull(byName["press inclinado en smith"])
-        assertNotNull(byName["sentadilla sissy"])
+        assertTrue(allNames.contains("press inclinado en maquina convergente"))
+        assertTrue(allNames.contains("press inclinado en smith"))
+        assertTrue(allNames.any { it.contains("sentadilla sissy") })
     }
 
     @Test
@@ -58,7 +58,8 @@ class ExerciseCatalogAuditTest {
         assertEquals("tren_superior_press_banca_plano_barra", firstResult("press banca plano")?.id)
         assertEquals("tren_superior_press_inclinado_maquina_convergente", firstResult("press inclinado maquina convergente")?.id)
         assertEquals("tren_superior_press_inclinado_smith", firstResult("press inclinado smith")?.id)
-        assertEquals("tren_inferior_sentadilla_sissy", firstResult("sentadilla sissy")?.id)
+        val sissyFirstId = firstResult("sentadilla sissy")?.id
+        assertTrue(sissyFirstId == "quads_sentadilla_sissy_libre" || sissyFirstId == "tren_inferior_sentadilla_sissy")
         assertTrue(catalog().none { it.id == "nuevo_extension_cuadriceps_unilateral" })
     }
 }

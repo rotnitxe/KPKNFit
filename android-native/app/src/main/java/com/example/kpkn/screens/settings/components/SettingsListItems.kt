@@ -215,6 +215,7 @@ fun SettingsSliderItem(
     valueRange: ClosedFloatingPointRange<Float>,
     steps: Int = 0,
     valueLabel: (Float) -> String,
+    onValueChangeFinished: (() -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -242,6 +243,7 @@ fun SettingsSliderItem(
         Slider(
             value = value,
             onValueChange = onValueChange,
+            onValueChangeFinished = { onValueChangeFinished?.invoke() },
             valueRange = valueRange,
             steps = steps,
         )

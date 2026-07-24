@@ -214,8 +214,10 @@ object SubjectivePortionEngine {
         Triple(Regex("""\buna\s+exageraci[oó]n\b""", RegexOption.IGNORE_CASE), 3.5, "exageracion"),
         Triple(Regex("""\bun\s+disparate\b""", RegexOption.IGNORE_CASE), 3.0, "disparate"),
         Triple(Regex("""\bun\s+porr[oó]n\b""", RegexOption.IGNORE_CASE), 3.0, "porron"),
+    )
 
-        // Scoops / medidas deportivas
+    // Scoops: absolute grams (not relative to standard portion)
+    private val SCOOP_PATTERNS = listOf(
         Triple(Regex("""\bun\s+scoop\s+generoso\b""", RegexOption.IGNORE_CASE), 40.0, "scoop_generoso"),
         Triple(Regex("""\b(\d+(?:[.,]\d+)?)\s+scoops?\s+generosos?\b""", RegexOption.IGNORE_CASE), 40.0, "scoops_generosos"),
         Triple(Regex("""\bun\s+scoop\b""", RegexOption.IGNORE_CASE), 30.0, "scoop"),
@@ -329,7 +331,72 @@ object SubjectivePortionEngine {
     ): PortionResult? {
         val lower = expression.lowercase().trim()
 
-        // Check retrieval priors first
+        // Utensils first — never let dataset priors override a cup/spoon match.
+        for ((pattern, baseMl, source) in UTENSIL_PATTERNS) {
+            val match = pattern.find(lower) ?: continue
+            val qty = match.groupValues.getOrNull(1)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
+            val category = foodCategory ?: FoodDensityCategory.MIXED
+            val grams = baseMl * qty * category.densityGPerMl
+            return PortionResult(
+                grams = grams,
+                confidence = 0.75,
+                source = "utensil:$source",
+                expression = expression,
+                relativeFactor = qty,
+            )
+        }
+
+        // Body/gesture patterns
+        for ((pattern, baseGrams, source) in BODY_PATTERNS) {
+            val match = pattern.find(lower) ?: continue
+            val category = foodCategory ?: FoodDensityCategory.MIXED
+            val grams = baseGrams * category.densityGPerMl / FoodDensityCategory.MIXED.densityGPerMl
+            return PortionResult(
+                grams = grams,
+                confidence = 0.70,
+                source = "body:$source",
+                expression = expression,
+                relativeFactor = 1.0,
+            )
+        }
+
+        // Scoops as absolute grams (protein scoop ≈ 30 g, not stdPortion × 30)
+        for ((pattern, baseGrams, source) in SCOOP_PATTERNS) {
+            val match = pattern.find(lower) ?: continue
+            val qty = match.groupValues.getOrNull(1)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
+            return PortionResult(
+                grams = baseGrams * qty,
+                confidence = 0.80,
+                source = "scoop:$source",
+                expression = expression,
+                relativeFactor = qty,
+            )
+        }
+
+        // Bread / containers before vague relative factors
+        for ((pattern, baseGrams, source) in BREAD_PATTERNS) {
+            val match = pattern.find(lower) ?: continue
+            return PortionResult(
+                grams = baseGrams,
+                confidence = 0.80,
+                source = "bread:$source",
+                expression = expression,
+                relativeFactor = 1.0,
+            )
+        }
+
+        for ((pattern, baseGrams, source) in CONTAINER_PATTERNS) {
+            val match = pattern.find(lower) ?: continue
+            return PortionResult(
+                grams = baseGrams,
+                confidence = 0.65,
+                source = "container:$source",
+                expression = expression,
+                relativeFactor = 1.0,
+            )
+        }
+
+        // Dataset priors only when no utensil/gesture/container matched
         if (retrievalResult != null && retrievalResult.portionPriors.isNotEmpty()) {
             val foodName = extractFoodName(expression)
             if (foodName != null) {
@@ -346,36 +413,7 @@ object SubjectivePortionEngine {
             }
         }
 
-        // Check utensil patterns
-        for ((pattern, baseMl, source) in UTENSIL_PATTERNS) {
-            val match = pattern.find(lower) ?: continue
-            val qty = match.groupValues.getOrNull(1)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
-            val category = foodCategory ?: FoodDensityCategory.MIXED
-            val grams = baseMl * qty * category.densityGPerMl
-            return PortionResult(
-                grams = grams,
-                confidence = 0.75,
-                source = "utensil:$source",
-                expression = expression,
-                relativeFactor = qty,
-            )
-        }
-
-        // Check body/gesture patterns
-        for ((pattern, baseGrams, source) in BODY_PATTERNS) {
-            val match = pattern.find(lower) ?: continue
-            val category = foodCategory ?: FoodDensityCategory.MIXED
-            val grams = baseGrams * category.densityGPerMl / FoodDensityCategory.MIXED.densityGPerMl
-            return PortionResult(
-                grams = grams,
-                confidence = 0.70,
-                source = "body:$source",
-                expression = expression,
-                relativeFactor = 1.0,
-            )
-        }
-
-        // Check subjective patterns (relative factors)
+        // Relative colloquial factors ("un poco", "un montón")
         for ((pattern, factor, source) in SUBJECTIVE_PATTERNS) {
             val match = pattern.find(lower) ?: continue
             val category = foodCategory ?: FoodDensityCategory.MIXED
@@ -390,31 +428,6 @@ object SubjectivePortionEngine {
             )
         }
 
-        // Check bread patterns
-        for ((pattern, baseGrams, source) in BREAD_PATTERNS) {
-            val match = pattern.find(lower) ?: continue
-            return PortionResult(
-                grams = baseGrams,
-                confidence = 0.80,
-                source = "bread:$source",
-                expression = expression,
-                relativeFactor = 1.0,
-            )
-        }
-
-        // Check container patterns
-        for ((pattern, baseGrams, source) in CONTAINER_PATTERNS) {
-            val match = pattern.find(lower) ?: continue
-            return PortionResult(
-                grams = baseGrams,
-                confidence = 0.65,
-                source = "container:$source",
-                expression = expression,
-                relativeFactor = 1.0,
-            )
-        }
-
-        // Check comparison patterns
         for ((pattern, baseGrams, source) in COMPARISON_PATTERNS) {
             val match = pattern.find(lower) ?: continue
             return PortionResult(
