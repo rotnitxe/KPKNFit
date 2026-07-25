@@ -162,7 +162,7 @@ class WorkoutTtsManager(context: Context) {
     }
 
     fun speakVoiceOn() {
-        speak("Voz activada. Di la palabra de activación para comandos.", queueFlush = true)
+        speak("Voz activada. Puedes dictar series y comandos.", queueFlush = true)
     }
 
     fun speakVoiceOff() {

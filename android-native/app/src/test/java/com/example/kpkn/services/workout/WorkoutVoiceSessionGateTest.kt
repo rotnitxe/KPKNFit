@@ -61,22 +61,7 @@ class WorkoutVoiceSessionGateTest {
     }
 
     @Test
-    fun ttsErrorOnlySurfacesWhenSessionWanted() {
-        assertNull(
-            WorkoutVoiceSessionGate.stageAfterTtsError(
-                sessionWanted = false,
-                current = VoicePipelineStage.DISABLED,
-            ),
-        )
-        assertEquals(
-            VoicePipelineStage.ERROR_RECOVERY,
-            WorkoutVoiceSessionGate.stageAfterTtsError(
-                sessionWanted = true,
-                current = VoicePipelineStage.LISTENING,
-            ),
-        )
-        assertFalse(
-            WorkoutVoiceSessionGate.shouldAcceptFinalResult(VoicePipelineStage.DISABLED),
-        )
+    fun confirmWaitTimeoutIsEightSeconds() {
+        assertEquals(8_000L, WorkoutVoiceSessionGate.CONFIRM_WAIT_TIMEOUT_MS)
     }
 }

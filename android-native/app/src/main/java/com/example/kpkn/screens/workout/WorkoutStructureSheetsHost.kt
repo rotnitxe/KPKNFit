@@ -1111,6 +1111,13 @@ internal fun WorkoutStructureSheetsHost(
     }
 
     uiState.pendingStructuralPersistence?.let { change ->
+        // Voice AddSet already asks sesión/permanente by TTS — hide tactile dialog until resolved.
+        if (change is PendingStructuralChange.AddSet &&
+            uiState.voiceSessionEnabled &&
+            uiState.voiceSessionState.pendingAddSetPersistence
+        ) {
+            return@let
+        }
         val options = viewModel.replacementScopeOptions()
         val title = when (change) {
             is PendingStructuralChange.AddSet -> "Añadir serie"

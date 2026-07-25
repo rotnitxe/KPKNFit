@@ -82,9 +82,11 @@ Un solo capturador a la vez:
 
 ## Auto-confirmación
 
-- **Eliminado**: el timeout de 5s en CONFIRM_WAIT **cancela** (no confirma) para evitar series fantasma.
+- **Eliminado**: el timeout en CONFIRM_WAIT **cancela** (no confirma) para evitar series fantasma.
+- Timeout unificado: **8s** (`WorkoutVoiceSessionGate.CONFIRM_WAIT_TIMEOUT_MS`) para sí/no y para persistencia AddSet.
 - Variable `confirmedOrCancelled` previene doble registro entre timeout y confirmación manual.
-- Serie extra: timeout de 8s en persistencia → default **solo esta sesión**.
+- Serie extra por voz: default al timeout → **solo esta sesión**. El diálogo táctil de persistencia se oculta mientras `pendingAddSetPersistence` está activo.
+- Al activar voz: TTS “Voz activada. Puedes dictar series y comandos.” (también si TTS termina de inicializar después del enable).
 
 ---
 

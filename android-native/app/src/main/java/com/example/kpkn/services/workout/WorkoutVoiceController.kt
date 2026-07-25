@@ -33,6 +33,7 @@ class WorkoutVoiceController(private val context: Context) {
     private var confirmedOrCancelled = false
     /** User wants continuous voice on; survives async TTS init without clobbering LISTENING. */
     private var sessionWanted = false
+    private var announcedVoiceOn = false
 
     var onCommandDetected: ((VoiceSessionCommand) -> Unit)? = null
     var onError: ((String) -> Unit)? = null
@@ -63,6 +64,7 @@ class WorkoutVoiceController(private val context: Context) {
             onReady = {
                 // Never force DISABLED over an active session (race with enable()).
                 WorkoutVoiceSessionGate.stageAfterTtsReady(sessionWanted, _state.value.stage)
+                announceVoiceOnIfReady()
             },
             onError = { msg ->
                 val next = WorkoutVoiceSessionGate.stageAfterTtsError(sessionWanted, _state.value.stage)
@@ -77,24 +79,36 @@ class WorkoutVoiceController(private val context: Context) {
 
     fun enable() {
         sessionWanted = true
+        announcedVoiceOn = false
         when (WorkoutVoiceSessionGate.enableAction(_state.value.stage)) {
             WorkoutVoiceSessionGate.EnableAction.NOOP_ALREADY_ACTIVE -> return
             WorkoutVoiceSessionGate.EnableAction.START_LISTENING -> {
                 startListening()
                 updateStage(VoicePipelineStage.LISTENING)
                 _state.update { it.copy(consecutiveErrors = 0, errorMessage = null) }
+                announceVoiceOnIfReady()
             }
         }
     }
 
     fun disable() {
         sessionWanted = false
+        announcedVoiceOn = false
         cancelAllJobs()
         continuousEngine.stop()
         ttsManager.stop()
         releaseDucking()
         updateStage(VoicePipelineStage.DISABLED)
         resetState()
+    }
+
+    private fun announceVoiceOnIfReady() {
+        if (!sessionWanted || announcedVoiceOn) return
+        if (!ttsManager.isInitialized) return
+        announcedVoiceOn = true
+        speakWhilePaused {
+            ttsManager.speakVoiceOn()
+        }
     }
 
     fun isEnabled(): Boolean = sessionWanted
@@ -540,7 +554,7 @@ class WorkoutVoiceController(private val context: Context) {
     private fun startAddSetPersistenceTimeout() {
         confirmationJob?.cancel()
         confirmationJob = scope?.launch {
-            delay(8_000L)
+            delay(WorkoutVoiceSessionGate.CONFIRM_WAIT_TIMEOUT_MS)
             if (!confirmedOrCancelled && _state.value.pendingAddSetPersistence) {
                 // Default: session-only (safer; set already added live).
                 resolveAddSetPersistence(VoiceSessionCommand.AddSetSessionOnly)
@@ -613,7 +627,7 @@ class WorkoutVoiceController(private val context: Context) {
     private fun startConfirmationTimeout(@Suppress("UNUSED_PARAMETER") interpretation: WorkoutVoiceInterpretation) {
         confirmationJob?.cancel()
         confirmationJob = scope?.launch {
-            delay(5_000L)
+            delay(WorkoutVoiceSessionGate.CONFIRM_WAIT_TIMEOUT_MS)
             if (!confirmedOrCancelled && _state.value.hasPendingConfirmation) {
                 // Auto-confirm removed: silence/timeout cancels instead of writing a set.
                 doCancel()
@@ -685,6 +699,7 @@ class WorkoutVoiceController(private val context: Context) {
 
     fun shutdown() {
         sessionWanted = false
+        announcedVoiceOn = false
         cancelAllJobs()
         continuousEngine.stop()
         ttsManager.stop()

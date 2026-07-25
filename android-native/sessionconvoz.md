@@ -112,11 +112,11 @@ Unilateral y supersets: el provider anuncia lado / ronda; el parser acepta lado 
 
 1. Compilar e instalar flavor `base` debug.
 2. Iniciar sesión de entrenamiento.
-3. Conceder micrófono al tocar el miniFAB (icono mic junto al check).
-4. Verificar chip “Escuchando comandos de voz…”.
-5. Dictar: “ochenta por ocho” → TTS pide confirmación → “sí”.
+3. Conceder micrófono (y notificaciones en Android 13+) al tocar el miniFAB.
+4. Verificar chip “Escuchando…” **y** TTS “Voz activada. Puedes dictar series y comandos.”
+5. Dictar: “ochenta por ocho” → TTS pide confirmación → “sí” (timeout de confirmación: **8s**, cancela si silencio).
 6. (Opcional) Salir a home con voz ON → dictar otra serie → volver y verificar registro.
-7. Dictar “añade una serie” → “solo esta sesión” o “para siempre”.
+7. Dictar “añade una serie” → prompt por voz (sin diálogo táctil duplicado) → “solo esta sesión” o “para siempre”.
 
 ---
 

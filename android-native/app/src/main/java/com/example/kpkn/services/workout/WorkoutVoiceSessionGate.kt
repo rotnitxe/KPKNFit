@@ -59,4 +59,6 @@ object WorkoutVoiceSessionGate {
 
     const val MAX_CONSECUTIVE_ENGINE_ERRORS = 5
     const val ENGINE_ERROR_RETRY_MS = 750L
+    /** Time to wait for sí/no (or AddSet persistence) after TTS finishes asking. */
+    const val CONFIRM_WAIT_TIMEOUT_MS = 8_000L
 }
