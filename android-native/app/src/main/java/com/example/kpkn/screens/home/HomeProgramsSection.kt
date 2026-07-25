@@ -19,6 +19,9 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.totalProgramWeeks
 import com.example.kpkn.ui.components.SectionHeader
+import com.example.kpkn.ui.theme.HomeCardSurface
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 
 @Composable
 fun HomeProgramsSection(
@@ -47,6 +50,9 @@ fun HomeProgramsSection(
                         isActive = program.id == activeProgramId,
                         onClick = { onProgramClick(program.id) },
                     )
+                }
+                item(key = "create-program") {
+                    CreateProgramChip(onClick = onCreateProgram)
                 }
             }
         }
@@ -142,7 +148,35 @@ private fun programCardCoverColors(coverValue: String?): List<Color> = when (cov
     else -> listOf(Color(0xFF20110F), Color(0xFF8D3D2E), Color(0xFFE08E45))
 }
 
-private val CardDark = Color(0xFF1C1C1E)
+
+@Composable
+private fun CreateProgramChip(onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier
+            .width(140.dp)
+            .height(112.dp),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+        ),
+    ) {
+        Column(
+            Modifier.fillMaxSize().padding(14.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Nuevo programa",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
+}
 
 @Composable
 private fun EmptyProgramsCard(modifier: Modifier = Modifier, onClick: () -> Unit) {
@@ -150,7 +184,7 @@ private fun EmptyProgramsCard(modifier: Modifier = Modifier, onClick: () -> Unit
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = CardDark),
+        colors = CardDefaults.cardColors(containerColor = HomeCardSurface),
     ) {
         Box(
             modifier = Modifier.fillMaxWidth().padding(28.dp),

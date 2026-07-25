@@ -76,14 +76,35 @@ object WorkoutVoiceCommandParser {
         "descartar sesion", "eliminar entrenamiento",
     )
 
+    private val ADD_SET_KEYWORDS = setOf(
+        "anade una serie", "añade una serie", "anadir serie", "añadir serie",
+        "agregar serie", "agrega serie", "serie extra", "otra serie",
+        "una serie mas", "una serie más", "suma una serie", "sumar serie",
+    )
+
+    private val ADD_SET_SESSION_ONLY_KEYWORDS = setOf(
+        "solo esta", "solo sesion", "solo esta sesion", "esta vez",
+        "esta sesion", "temporal", "solo ahora", "no permanente",
+    )
+
+    private val ADD_SET_PERMANENT_KEYWORDS = setOf(
+        "permanente", "para siempre", "guardar permanente", "siempre",
+        "en el programa", "al programa", "definitivo",
+    )
+
     fun parseCommand(
         transcript: String,
         isTimeMode: Boolean,
         isUnilateral: Boolean,
         hasPendingConfirmation: Boolean,
         isRestTimerActive: Boolean,
+        pendingAddSetPersistence: Boolean = false,
     ): VoiceSessionCommand {
         val lower = normalizeText(transcript)
+
+        if (pendingAddSetPersistence) {
+            return parseAddSetPersistence(lower)
+        }
 
         if (hasPendingConfirmation) {
             // Token/phrase match — never substring ("bueno"≠noise filler alone is OK as token;
@@ -106,6 +127,10 @@ object WorkoutVoiceCommandParser {
 
         if (TURN_OFF_VOICE_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.TurnOffVoice
+        }
+
+        if (ADD_SET_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.AddSet
         }
 
         if (SKIP_SET_KEYWORDS.any { lower.contains(it) }) {
@@ -142,6 +167,17 @@ object WorkoutVoiceCommandParser {
         }
 
         return VoiceSessionCommand.Unknown(transcript)
+    }
+
+    fun parseAddSetPersistence(normalizedTranscript: String): VoiceSessionCommand {
+        val lower = normalizedTranscript
+        if (ADD_SET_SESSION_ONLY_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.AddSetSessionOnly
+        }
+        if (ADD_SET_PERMANENT_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.AddSetPermanent
+        }
+        return VoiceSessionCommand.Unknown(normalizedTranscript)
     }
 
     private fun parseWorkoutVoiceTranscript(

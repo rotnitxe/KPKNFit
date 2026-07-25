@@ -25,12 +25,18 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import com.example.kpkn.ui.theme.RingBlue
+import com.example.kpkn.ui.theme.RingRed
+import com.example.kpkn.ui.theme.RingYellow
 import kotlin.math.*
 
 // ─── Ring Constants ──────────────────────────────────────────────────────────
 
-private val RingColors = listOf(Color(0xFFFF5252), Color(0xFF448AFF), Color(0xFFFFD740))
-private val RingLabels = listOf("MÚSCULOS", "ENERGÍA", "COLUMNA")
+private val RingColors = listOf(RingRed, RingBlue, RingYellow)
+private val RingLabels = listOf("Músculos", "Energía", "Columna")
 
 @Composable
 fun HomeRingsSection(
@@ -68,13 +74,16 @@ fun HomeRingsSection(
                 letterSpacing = 1.sp,
             )
             Spacer(Modifier.width(12.dp))
-            Text(
-                text = "¿Qué es esto?",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.clickable { showInfoDialog = true }
-            )
+            TextButton(
+                onClick = { showInfoDialog = true },
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+            ) {
+                Text(
+                    text = "¿Qué es esto?",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
         }
 
         CombinedRingsView(progressValues, ringColors, hasActiveProgram, isLoading = isLoading)
@@ -100,42 +109,51 @@ private fun CombinedRingsView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-            Box(Modifier.height(110.dp).fillMaxWidth()) {
+            Box(
+                Modifier
+                    .height(110.dp)
+                    .fillMaxWidth()
+                    .semantics(mergeDescendants = true) {
+                        val desc = if (isLoading) {
+                            "Calculando recuperación"
+                        } else {
+                            "Rings: Músculos ${(progressValues[0] * 100).toInt()}%, " +
+                                "Energía ${(progressValues[1] * 100).toInt()}%, " +
+                                "Columna ${(progressValues[2] * 100).toInt()}%"
+                        }
+                        contentDescription = desc
+                        stateDescription = desc
+                    },
+            ) {
                 AugeRingsCanvas(progressValues[0], progressValues[1], progressValues[2], ringColors)
-                CurvedLabelsCanvas(RingLabels, ringColors)
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center).size(28.dp),
+                        strokeWidth = 2.dp,
+                    )
+                }
             }
 
-            // Porcentajes alineados bajo cada ring
-            BoxWithConstraints(
-                Modifier.fillMaxWidth().height(24.dp),
+            // Labels lineales bajo cada ring
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                val density = LocalDensity.current.density
-                val widthPx = constraints.maxWidth.toFloat()
-                val heightPx = 110f * density
-                val r = min(widthPx / 5.8f, heightPx * 0.42f)
-                val s = r * 1.9f
-                val cx = widthPx / 2f
-                val centerXs = listOf(cx - s, cx, cx + s)
-
                 progressValues.forEachIndexed { i, progress ->
-                    Box(
-                        modifier = Modifier
-                            .offset {
-                                IntOffset(
-                                    (centerXs[i] - 30f * density).toInt(),
-                                    (4f * density).toInt()
-                                )
-                            }
-                            .width(60.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            if (isLoading) "—" else "${(progress * 100).toInt()}%",
+                            if (isLoading) "…" else "${(progress * 100).toInt()}%",
                             style = MaterialTheme.typography.labelSmall,
                             color = ringColors[i],
                             fontWeight = FontWeight.Black,
                             fontSize = 12.sp,
                             maxLines = 1,
+                        )
+                        Text(
+                            RingLabels[i],
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                            fontSize = 10.sp,
                         )
                     }
                 }
@@ -202,52 +220,6 @@ private fun AugeRingsCanvas(mp: Float, sp: Float, cp: Float, ringColors: List<Co
                 Size(r * 2, r * 2),
                 style = Stroke(strokePx),
             )
-        }
-    }
-}
-
-@Composable
-private fun CurvedLabelsCanvas(labels: List<String>, ringColors: List<Color>) {
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val density = LocalDensity.current.density
-        val widthPx = constraints.maxWidth.toFloat()
-        val heightPx = constraints.maxHeight.toFloat()
-
-        val r = min(widthPx / 5.8f, heightPx * 0.42f)
-        val s = r * 1.9f
-        val cy = heightPx / 2f
-        val cx = widthPx / 2f
-        val centers = listOf(Offset(cx - s, cy), Offset(cx, cy), Offset(cx + s, cy))
-
-        labels.forEachIndexed { i, label ->
-            val center = centers[i]
-            val textRadius = max(r * 0.55f, r - (14f * density))
-            
-            // Paso angular dinámico para mantener constante la separación de las letras
-            val desiredArcLength = 7.2f * density
-            val charAngleSpan = ((desiredArcLength / textRadius) * (180f / PI.toFloat())).coerceIn(8f, 18f)
-            
-            val totalSpan = charAngleSpan * (label.length - 1)
-            val startAngle = -90f - (totalSpan / 2f)
-
-            label.forEachIndexed { charIndex, char ->
-                val angle = startAngle + charIndex * charAngleSpan
-                val angleRad = (angle * PI / 180.0).toFloat()
-                val x = center.x + textRadius * cos(angleRad)
-                val y = center.y + textRadius * sin(angleRad)
-
-                Text(
-                    text = char.toString(),
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Black,
-                        fontSize = 7.5.sp,
-                        color = ringColors[i].copy(alpha = 0.7f)
-                    ),
-                    modifier = Modifier
-                        .offset { IntOffset((x - 4f * density).toInt(), (y - 6f * density).toInt()) }
-                        .graphicsLayer { rotationZ = angle + 90f }
-                )
-            }
         }
     }
 }

@@ -1026,10 +1026,17 @@ private fun KPKNNavGraph(
                 onNavigateToCard = { cardId ->
                     when (cardId) {
                         "body-progress", "ffmi", "imc", "fat", "muscle" -> {
-                            navController.navigate(KpknRoute.Profile.route)
+                            navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true }
                         }
                         "star-targets", "relative-strength", "history", "ipf-gl" -> {
-                            primaryProgramId?.let { navController.navigate(KpknRoute.ProgramDetail.create(it)) }
+                            val programId = primaryProgramId
+                            if (programId != null) {
+                                navController.navigate(
+                                    KpknRoute.ProgramDetail.create(programId, KpknRoute.ProgramDetail.TAB_ANALYTICS)
+                                )
+                            } else {
+                                createProgramAndOpen(navController)
+                            }
                         }
                     }
                 },
@@ -1044,6 +1051,7 @@ private fun KPKNNavGraph(
                         "wiki-concept-detail" -> navController.navigate(KpknRoute.WikiLabConcepts.route)
                         "nutrition" -> navController.navigate(KpknRoute.Nutrition.route)
                         "settings/notifications" -> navController.navigate(KpknRoute.SettingsNotifications.route)
+                        "settings/auge" -> navController.navigate(KpknRoute.SettingsAuge.route)
                         "learn", "cursos" -> navController.navigate(KpknRoute.Learn.route)
                         "powerlifter-corner" -> {
                             navController.navigate(KpknRoute.Competitions.route)
@@ -1397,8 +1405,13 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.ProgramDetail.route) { backStack ->
             val id = backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_PROGRAM_ID) ?: ""
+            val initialTab = when (backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_TAB)) {
+                KpknRoute.ProgramDetail.TAB_ANALYTICS -> MainTab.ANALYTICS
+                else -> null
+            }
             ProgramDetailScreen(
                 programId = id,
+                initialTab = initialTab,
                 onBack = {
                     if (!navController.popBackStack(KpknRoute.Training.route, inclusive = false)) {
                         navController.navigate(KpknRoute.Training.route) {

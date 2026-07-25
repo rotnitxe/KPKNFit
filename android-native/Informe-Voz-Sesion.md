@@ -82,9 +82,9 @@ Un solo capturador a la vez:
 
 ## Auto-confirmación
 
-- Si el parse tiene `weightKg != null` Y `metricValue != null` → auto-confirma a los 5s
-- Si no tiene datos válidos → auto-cancela a los 5s
-- Variable `confirmedOrCancelled` previene doble registro entre timeout y confirmación manual
+- **Eliminado**: el timeout de 5s en CONFIRM_WAIT **cancela** (no confirma) para evitar series fantasma.
+- Variable `confirmedOrCancelled` previene doble registro entre timeout y confirmación manual.
+- Serie extra: timeout de 8s en persistencia → default **solo esta sesión**.
 
 ---
 
@@ -95,7 +95,23 @@ Un solo capturador a la vez:
   - `android.speech.tts.TextToSpeech`
   - `android.media.AudioManager`
 - **Sin API keys**, sin tokens, sin consolas externas
-- **Permiso**: `RECORD_AUDIO` (ya existente en manifest)
+- **Permisos**: `RECORD_AUDIO`, `FOREGROUND_SERVICE_MICROPHONE` (hands-free en background vía `WorkoutVoiceForegroundService`)
+
+---
+
+## UI
+
+- MiniFAB mic (48dp) + FAB guardar en `WorkoutCommandDock` (no FAB flotante separado).
+- Chip de estado visible mientras `voiceSessionEnabled`.
+
+---
+
+## Comandos adicionales
+
+| Categoría | Ejemplos | Acción |
+|-----------|----------|--------|
+| Serie extra | "añade una serie", "serie extra" | Añade set live → pregunta sesión/permanente |
+| Persistencia | "solo esta sesión", "para siempre" | `SESSION_ONLY` o `PERMANENT` |
 
 ---
 

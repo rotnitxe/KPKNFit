@@ -359,6 +359,19 @@ class WorkoutViewModel(
                 override fun cancelWorkout() = this@WorkoutViewModel.cancelWorkout()
                 override fun savePostExerciseFeedback(feedback: PostExerciseFeedback) = this@WorkoutViewModel.savePostExerciseFeedback(feedback)
                 override fun savePostExerciseFeedbacks(feedbacks: List<PostExerciseFeedback>) = this@WorkoutViewModel.savePostExerciseFeedbacks(feedbacks)
+                override fun addSetToCurrentExercise() = this@WorkoutViewModel.addSetToCurrentExercise()
+                override fun commitStructuralPersistenceSessionOnly() {
+                    if (_uiState.value.pendingStructuralPersistence != null) {
+                        // Session-only: keep live change, dismiss persistence prompt.
+                        clearPendingStructuralPersistence()
+                    }
+                }
+                override fun commitStructuralPersistencePermanent() {
+                    if (_uiState.value.pendingStructuralPersistence != null) {
+                        commitStructuralPersistence(com.example.kpkn.data.models.ReplacementPersistenceScopeV2.PERMANENT)
+                    }
+                }
+                override fun clearPendingStructuralPersistence() = this@WorkoutViewModel.clearPendingStructuralPersistence()
             },
         )
         sessionHydrator = WorkoutSessionHydrator(
@@ -1033,7 +1046,8 @@ class WorkoutViewModel(
 
 
     /** Stops continuous listening when the activity goes to background; does not auto-resume. */
-    fun pauseVoiceForBackground() = voiceCommandHandler.pauseVoiceForBackground()
+    fun onVoiceHostPaused() = voiceCommandHandler.onVoiceHostPaused()
+    fun onVoiceHostResumed() = voiceCommandHandler.onVoiceHostResumed()
 
 
 
@@ -2471,6 +2485,7 @@ class WorkoutViewModel(
         ActiveWorkoutHolder.clear()
         if (::voiceCommandHandler.isInitialized) {
             voiceCommandHandler.cancelVoiceInput()
+            voiceCommandHandler.disableVoice()
         }
         runCatching { voiceController.shutdown() }
         pacingController.cancelSessionTimer()

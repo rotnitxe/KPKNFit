@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -52,53 +53,61 @@ fun HomeSessionSection(
     onStartWorkout: (Session, Program) -> Unit,
     onResumeWorkout: () -> Unit,
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
+    onCreateProgram: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var activeIndex by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(sessions.size) { activeIndex = 0 }
+    LaunchedEffect(sessions) {
+        val preferred = sessions.indexOfFirst { it.isToday && !it.isCompleted }
+            .takeIf { it >= 0 }
+            ?: sessions.indexOfFirst { it.isToday }.takeIf { it >= 0 }
+            ?: sessions.indexOfFirst { it.isOngoing }.takeIf { it >= 0 }
+            ?: 0
+        activeIndex = preferred.coerceIn(0, (sessions.size - 1).coerceAtLeast(0))
+    }
 
     Column(modifier.fillMaxWidth()) {
         val current = sessions.getOrNull(activeIndex) ?: sessions.firstOrNull()
-        val isCurrentToday = remember(current) {
-            current?.let { item ->
-                if (com.example.kpkn.domain.training.ProgramCalendarEngine.isCalendarized(item.program)) {
-                    val projection = com.example.kpkn.domain.training.ProgramCalendarEngine.project(item.program)
-                    projection.scheduledDateFor(item.session, item.location.weekId) == java.time.LocalDate.now()
-                } else {
-                    item.dayOfWeek == currentDayOfWeek
-                }
-            } ?: false
+        val isCurrentToday = current?.isToday == true
+        val headerTitle = when {
+            !hasActiveProgram -> "Sesión de hoy"
+            sessions.isEmpty() || sessions.none { it.isToday } -> "Próxima sesión"
+            isCurrentToday -> "Sesión de hoy"
+            else -> "Próxima sesión"
         }
-        val isCurrentCompleted = current?.isCompleted == true
-        val headerTitle = if (isCurrentToday && !isCurrentCompleted) "Sesión de hoy" else "Próxima sesión"
 
         SectionHeader(headerTitle, Modifier.padding(horizontal = 24.dp))
 
         if (!hasActiveProgram) {
-            NoProgramSessionCard(Modifier.padding(horizontal = 24.dp))
+            NoProgramSessionCard(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                onCreateProgram = onCreateProgram,
+            )
         } else if (sessions.isEmpty()) {
             RestDayCard(modifier = Modifier.padding(horizontal = 24.dp))
         } else {
-            val current = sessions.getOrElse(activeIndex) { sessions.first() }
+            val currentItem = sessions.getOrElse(activeIndex) { sessions.first() }
 
             SessionCard(
-                item = current,
+                item = currentItem,
                 currentDayOfWeek = currentDayOfWeek,
                 perMuscle = perMuscle,
-                onStart = { onStartWorkout(current.session, current.program) },
+                onStart = { onStartWorkout(currentItem.session, currentItem.program) },
                 onResume = onResumeWorkout,
-                onEdit = { onEditSession(current.session, current.program) },
+                onEdit = { onEditSession(currentItem.session, currentItem.program) },
                 modifier = Modifier.padding(horizontal = 24.dp),
             )
 
-            SessionCarousel(
-                sessions = sessions,
-                activeIndex = activeIndex,
-                perMuscle = perMuscle,
-                onIndexChange = { activeIndex = it },
-                modifier = Modifier.padding(top = 16.dp)
-            )
+            if (sessions.size > 1) {
+                SessionCarousel(
+                    sessions = sessions,
+                    activeIndex = activeIndex,
+                    perMuscle = perMuscle,
+                    onIndexChange = { activeIndex = it },
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+            }
         }
     }
 }
@@ -113,14 +122,7 @@ private fun SessionCard(
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isToday = remember(item) {
-        if (com.example.kpkn.domain.training.ProgramCalendarEngine.isCalendarized(item.program)) {
-            val projection = com.example.kpkn.domain.training.ProgramCalendarEngine.project(item.program)
-            projection.scheduledDateFor(item.session, item.location.weekId) == java.time.LocalDate.now()
-        } else {
-            item.dayOfWeek == currentDayOfWeek
-        }
-    }
+    val isToday = item.isToday
 
     val sessionMuscles = remember(item.session) {
         getSessionInvolvedMuscles(item.session)
@@ -225,7 +227,7 @@ private fun SessionCard(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilledIconButton(
                             onClick = onEdit,
-                            modifier = Modifier.size(36.dp),
+                            modifier = Modifier.size(48.dp),
                             colors = IconButtonDefaults.filledIconButtonColors(
                                 containerColor = Color.White.copy(alpha = 0.20f),
                             ),
@@ -240,7 +242,6 @@ private fun SessionCard(
                         FilledIconButton(
                             onClick = when {
                                 item.isOngoing -> onResume
-                                item.isCompleted -> onStart
                                 else -> onStart
                             },
                             modifier = Modifier.size(48.dp),
@@ -253,11 +254,11 @@ private fun SessionCard(
                         ) {
                             Icon(
                                 imageVector = when {
-                                    item.isCompleted -> Icons.Default.Check
+                                    item.isCompleted -> Icons.Default.Refresh
                                     else -> Icons.Default.PlayArrow
                                 },
                                 contentDescription = when {
-                                    item.isCompleted -> "Completado"
+                                    item.isCompleted -> "Repetir sesión"
                                     item.isOngoing -> "Reanudar"
                                     else -> "Iniciar"
                                 },
@@ -387,7 +388,7 @@ private fun SessionCarousel(
     ) {
         IconButton(
             onClick = { onIndexChange(if (activeIndex > 0) activeIndex - 1 else sessions.size - 1) },
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(48.dp),
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowBack,
@@ -413,7 +414,7 @@ private fun SessionCarousel(
 
         IconButton(
             onClick = { onIndexChange(if (activeIndex < sessions.size - 1) activeIndex + 1 else 0) },
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(48.dp),
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowForward,
@@ -460,7 +461,10 @@ private fun getSessionDurationDisplay(session: Session, log: WorkoutLog?): Strin
 }
 
 @Composable
-private fun NoProgramSessionCard(modifier: Modifier = Modifier) {
+private fun NoProgramSessionCard(
+    modifier: Modifier = Modifier,
+    onCreateProgram: () -> Unit = {},
+) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -487,6 +491,14 @@ private fun NoProgramSessionCard(modifier: Modifier = Modifier) {
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
             )
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onCreateProgram,
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                Text("Crear programa", fontWeight = FontWeight.Bold)
+            }
         }
     }
 }

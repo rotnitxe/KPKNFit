@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,9 +16,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.ui.components.SectionHeader
+import com.example.kpkn.ui.theme.HomeCardSurface
+import com.example.kpkn.ui.theme.HomeCardSurfaceAlt
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 
-private val HomeCardDark = Color(0xFF1C1C1E)
-private val HomeCardDarkAlt = Color(0xFF242426)
 
 @Composable
 fun HomeCardsSection(
@@ -28,44 +29,42 @@ fun HomeCardsSection(
     modifier: Modifier = Modifier,
     onAddMeal: () -> Unit = {},
 ) {
+    val cards by viewModel.cardsState.collectAsState()
+
     Column(modifier.fillMaxWidth()) {
         SectionHeader("Progreso físico y alimentación", Modifier.padding(horizontal = 24.dp))
-        MacroProgressBars(viewModel, onAddMeal, Modifier.padding(horizontal = 24.dp))
+        MacroProgressBars(cards, onAddMeal, Modifier.padding(horizontal = 24.dp))
 
         Spacer(Modifier.height(12.dp))
 
-        BiometryCardsCarousel(viewModel, onNavigateToCard)
+        BiometryCardsCarousel(cards, onNavigateToCard)
 
         Spacer(Modifier.height(18.dp))
 
         SectionHeader("Tus ejercicios", Modifier.padding(horizontal = 24.dp))
 
-        ExerciseMetricCards(viewModel, onNavigateToCard)
+        ExerciseMetricCards(cards, onNavigateToCard)
     }
 }
 
 // ─── Macro Progress Bars ────────────────────────────────────────────────────
 
 @Composable
-private fun MacroProgressBars(viewModel: HomeViewModel, onAddMeal: () -> Unit = {}, modifier: Modifier = Modifier) {
-    val calGoal by viewModel.dailyCalorieGoal.collectAsState()
-    val protGoal by viewModel.dailyProteinGoal.collectAsState()
-    val carbGoal by viewModel.dailyCarbGoal.collectAsState()
-    val fatGoal by viewModel.dailyFatGoal.collectAsState()
-    val nutritionToday by viewModel.todayNutritionTotals.collectAsState()
+private fun MacroProgressBars(state: HomeCardsState, onAddMeal: () -> Unit = {}, modifier: Modifier = Modifier) {
+    val nutritionToday = state.nutrition
 
     val macros = listOf(
-        MacroItem("Cal", nutritionToday.calories.toInt(), calGoal, Color(0xFF60A5FA)),
-        MacroItem("Prot", nutritionToday.protein.toInt(), protGoal, Color(0xFFF87171)),
-        MacroItem("Carb", nutritionToday.carbs.toInt(), carbGoal, Color(0xFFFBBF24)),
-        MacroItem("Fat", nutritionToday.fats.toInt(), fatGoal, Color(0xFFA78BFA)),
+        MacroItem("Cal", nutritionToday.calories.toInt(), state.calorieGoal, Color(0xFF60A5FA)),
+        MacroItem("Prot", nutritionToday.protein.toInt(), state.proteinGoal, Color(0xFFF87171)),
+        MacroItem("Carb", nutritionToday.carbs.toInt(), state.carbGoal, Color(0xFFFBBF24)),
+        MacroItem("Fat", nutritionToday.fats.toInt(), state.fatGoal, Color(0xFFA78BFA)),
     )
 
     Card(
         onClick = onAddMeal,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = HomeCardDark),
+        colors = CardDefaults.cardColors(containerColor = HomeCardSurface),
     ) {
         Column(
             Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
@@ -75,7 +74,7 @@ private fun MacroProgressBars(viewModel: HomeViewModel, onAddMeal: () -> Unit = 
                 "REGISTRO DE HOY",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
-                color = Color.White.copy(alpha = 0.48f),
+                color = Color.White.copy(alpha = 0.68f),
                 letterSpacing = 1.6.sp,
             )
             macros.forEach { m ->
@@ -93,7 +92,7 @@ private fun MacroProgressBars(viewModel: HomeViewModel, onAddMeal: () -> Unit = 
                         Text(
                             "${m.current}/${m.goal}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.46f),
+                            color = Color.White.copy(alpha = 0.68f),
                         )
                     }
                     LinearProgressIndicator(
@@ -119,36 +118,18 @@ private data class MacroItem(
 
 @Composable
 private fun BiometryCardsCarousel(
-    viewModel: HomeViewModel,
+    state: HomeCardsState,
     onNavigateToCard: (String) -> Unit,
 ) {
-    val lastWeight by viewModel.lastWeight.collectAsState()
-    val lastBodyFat by viewModel.lastBodyFat.collectAsState()
-    val lastMusclePct by viewModel.lastMusclePct.collectAsState()
-    val height by viewModel.heightCm.collectAsState()
-
-    val ffmiValue: Double? = remember(lastWeight, lastBodyFat, height) {
-        if (lastWeight != null && lastBodyFat != null) {
-            viewModel.computeNormalizedFfmi(lastWeight!!, height, lastBodyFat!!)
-        } else null
-    }
-    val ffmiInterpretation: String? = remember(lastWeight, lastBodyFat, height) {
-        if (lastWeight != null && lastBodyFat != null) {
-            viewModel.computeFfmiInterpretation(lastWeight!!, height, lastBodyFat!!)
-        } else null
-    }
-
-    val weightText: String = lastWeight?.let { String.format("%.1f", it) } ?: "--"
-    val ffmiText: String = ffmiValue?.let { String.format("%.1f", it) } ?: "--"
-    val imcText: String = lastWeight?.let { w ->
-        viewModel.computeImc(w, height)?.let { String.format("%.1f", it) }
-    } ?: "--"
-    val fatText: String = lastBodyFat?.let { String.format("%.1f", it) } ?: "--"
-    val muscleText: String = lastMusclePct?.let { String.format("%.1f", it) } ?: "--"
+    val weightText: String = state.weight?.let { String.format("%.1f", it) } ?: "--"
+    val ffmiText: String = state.ffmi?.let { String.format("%.1f", it) } ?: "--"
+    val imcText: String = state.imc?.let { String.format("%.1f", it) } ?: "--"
+    val fatText: String = state.bodyFat?.let { String.format("%.1f", it) } ?: "--"
+    val muscleText: String = state.musclePct?.let { String.format("%.1f", it) } ?: "--"
 
     val cards = listOf(
         BiometryCardData("Peso", weightText, "kg", "body-progress"),
-        BiometryCardData("FFMI", ffmiText, ffmiInterpretation ?: "S/D", "ffmi"),
+        BiometryCardData("FFMI", ffmiText, state.ffmiInterpretation ?: "S/D", "ffmi"),
         BiometryCardData("IMC", imcText, "", "imc"),
         BiometryCardData("% Grasa", fatText, "%", "fat"),
         BiometryCardData("% Músculo", muscleText, "%", "muscle"),
@@ -175,9 +156,13 @@ private data class BiometryCardData(
 private fun BiometryCard(data: BiometryCardData, onClick: () -> Unit) {
     Card(
         onClick = onClick,
-        modifier = Modifier.size(width = 118.dp, height = 124.dp),
+        modifier = Modifier
+            .size(width = 118.dp, height = 124.dp)
+            .semantics {
+                contentDescription = "${data.title} ${data.value} ${data.unit}. Tocar para ver progreso corporal"
+            },
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = HomeCardDarkAlt),
+        colors = CardDefaults.cardColors(containerColor = HomeCardSurfaceAlt),
     ) {
         Column(
             Modifier.fillMaxSize().padding(14.dp),
@@ -187,7 +172,7 @@ private fun BiometryCard(data: BiometryCardData, onClick: () -> Unit) {
                 data.title,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
-                color = Color.White.copy(alpha = 0.48f),
+                color = Color.White.copy(alpha = 0.68f),
                 letterSpacing = 1.2.sp,
             )
             Column {
@@ -202,7 +187,7 @@ private fun BiometryCard(data: BiometryCardData, onClick: () -> Unit) {
                         Text(
                             data.unit,
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.44f),
+                            color = Color.White.copy(alpha = 0.68f),
                             modifier = Modifier.padding(start = 2.dp, bottom = 4.dp),
                         )
                     }
@@ -224,19 +209,14 @@ private fun BiometryCard(data: BiometryCardData, onClick: () -> Unit) {
 
 @Composable
 private fun ExerciseMetricCards(
-    viewModel: HomeViewModel,
+    state: HomeCardsState,
     onNavigateToCard: (String) -> Unit,
 ) {
-    val starCount by viewModel.starTargetsCount.collectAsState()
-    val historyCount by viewModel.historyCount.collectAsState()
-    val strengthData = viewModel.getRelativeStrengthData()
-    val ipfGlPoints = viewModel.getIpfGlPoints()
-
     val cards = listOf(
-        ExerciseCardData("Metas 1RM", "$starCount", "Pendientes", "star-targets"),
-        ExerciseCardData("Fuerza Relativa", "${String.format("%.2f", strengthData.relativeStrength)}x", "Total: ${String.format("%.0f", strengthData.totalKg)}kg", "relative-strength"),
-        ExerciseCardData("Historiales", "$historyCount", "Sesiones registradas", "history"),
-        ExerciseCardData("IPF GL", if (ipfGlPoints > 0.0) String.format("%.0f", ipfGlPoints) else "--", "Puntos", "ipf-gl"),
+        ExerciseCardData("Metas estrella", "${state.starTargetsCount}", "Configuradas", "star-targets"),
+        ExerciseCardData("Fuerza Relativa", "${String.format("%.2f", state.relativeStrength)}x", "Total: ${String.format("%.0f", state.totalKg)}kg", "relative-strength"),
+        ExerciseCardData("Historiales", "${state.historyCount}", "Sesiones registradas", "history"),
+        ExerciseCardData("IPF GL", if (state.ipfGlPoints > 0.0) String.format("%.0f", state.ipfGlPoints) else "--", "Puntos", "ipf-gl"),
     )
 
     LazyRow(
@@ -260,9 +240,13 @@ private data class ExerciseCardData(
 private fun ExerciseCard(data: ExerciseCardData, onClick: () -> Unit) {
     Card(
         onClick = onClick,
-        modifier = Modifier.size(width = 156.dp, height = 106.dp),
+        modifier = Modifier
+            .size(width = 156.dp, height = 106.dp)
+            .semantics {
+                contentDescription = "${data.title} ${data.mainValue} ${data.subtitle}"
+            },
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = HomeCardDarkAlt),
+        colors = CardDefaults.cardColors(containerColor = HomeCardSurfaceAlt),
     ) {
         Column(
             Modifier.fillMaxSize().padding(14.dp),
@@ -285,7 +269,7 @@ private fun ExerciseCard(data: ExerciseCardData, onClick: () -> Unit) {
                     data.subtitle,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.48f),
+                    color = Color.White.copy(alpha = 0.68f),
                 )
             }
         }

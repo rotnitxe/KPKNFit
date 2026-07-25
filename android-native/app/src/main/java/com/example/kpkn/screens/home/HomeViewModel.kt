@@ -1,43 +1,47 @@
 package com.example.kpkn.screens.home
 
+import android.content.Context
+import androidx.activity.ComponentActivity
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.kpkn.data.models.MuscleRecoveryStatus
-import com.example.kpkn.data.models.ActiveProgramState
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.KeyDateType
+import com.example.kpkn.data.models.NutritionStatus
+import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStatus
-import com.example.kpkn.data.models.ProgramWeek
-import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TodaySessionItem
-import com.example.kpkn.data.models.NutritionStatus
 import com.example.kpkn.data.models.isSimpleTemporalProgram
-import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
-import com.example.kpkn.domain.nutrition.deriveMacroGoals
+import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.auge.OvertrainingDetector
 import com.example.kpkn.domain.calculations.IpfEquipment
 import com.example.kpkn.domain.calculations.calculateBrzycki1RM
 import com.example.kpkn.domain.calculations.calculateFFMI
 import com.example.kpkn.domain.calculations.calculateIPFGLPoints
+import com.example.kpkn.domain.nutrition.deriveMacroGoals
+import com.example.kpkn.domain.training.HomeSessionResolver
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Locale
-import android.content.Context
-import com.example.kpkn.data.repository.AugeRepository
-import com.example.kpkn.data.models.PostSessionFeedback
-import com.example.kpkn.domain.auge.OvertrainingDetector
-import kotlinx.coroutines.launch
 
 /**
  * HomeViewModel — State management for Home Screen.
@@ -50,6 +54,8 @@ class HomeViewModel : ViewModel() {
     private val _feedbacks = MutableStateFlow<List<PostSessionFeedback>>(emptyList())
     val feedbacks: StateFlow<List<PostSessionFeedback>> = _feedbacks.asStateFlow()
 
+    private var loadFeedbacksJob: Job? = null
+
     val programs = repository.programs
     val ongoingWorkout = repository.ongoingWorkout
 
@@ -60,8 +66,6 @@ class HomeViewModel : ViewModel() {
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    // Expose program from repository without re-scaling volumes in the UI layer
-    // (volume adjustments belong in domain consumers that need them)
     val activeProgram: StateFlow<Program?> = combine(
         repository.programs,
         activeProgramId,
@@ -82,7 +86,8 @@ class HomeViewModel : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     fun loadFeedbacks(context: Context) {
-        viewModelScope.launch {
+        loadFeedbacksJob?.cancel()
+        loadFeedbacksJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 _feedbacks.value = AugeRepository.getInstance(context).getPostSessionFeedbacks()
             } catch (_: Exception) {
@@ -99,21 +104,14 @@ class HomeViewModel : ViewModel() {
         if (p == null) emptyList()
         else OvertrainingDetector.detectOvertrainedMuscles(p, historyLogs, fbs)
     }
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    // ─── AUGE batteries (wired from AugeViewModel at composition) ─────────
-
-    // The actual battery values come from AugeViewModel (AndroidViewModel) which
-    // requires Application context. HomeScreen passes them in via collectAsState().
-
-    // ─── User Data (Derived StateFlow) ─────────────────────────────────────
 
     val userName: StateFlow<String> = repository.settings
         .map { it.username.ifBlank { "Usuario" } }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, "Usuario")
-
-    // ─── Business Logic ────────────────────────────────────────────────────
 
     fun getGreeting(): String {
         val h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -123,37 +121,6 @@ class HomeViewModel : ViewModel() {
             else -> "¡Buenas noches"
         }
     }
-
-    private data class WeekLocation(
-        val macroIndex: Int,
-        val blockIndex: Int,
-        val mesocycleIndex: Int,
-        val week: ProgramWeek,
-    )
-
-    private fun Program.allWeekLocations(): List<WeekLocation> {
-        val locations = mutableListOf<WeekLocation>()
-        var mesoIndex = 0
-        macrocycles.forEachIndexed { macroIndex, macro ->
-            macro.blocks.forEachIndexed { blockIndex, block ->
-                block.mesocycles.forEach { meso ->
-                    meso.weeks.forEach { week ->
-                        locations += WeekLocation(
-                            macroIndex = macroIndex,
-                            blockIndex = blockIndex,
-                            mesocycleIndex = mesoIndex,
-                            week = week,
-                        )
-                    }
-                    mesoIndex++
-                }
-            }
-        }
-        return locations
-    }
-
-    private fun Session.matchesDay(dayOfWeek: Int): Boolean =
-        this.dayOfWeek == dayOfWeek || assignedDays.contains(dayOfWeek)
 
     private fun currentDayOfWeek(): Int {
         val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
@@ -206,153 +173,43 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    private fun resolveWeekLocation(
-        program: Program,
-        active: ActiveProgramState?,
-        dayOfWeek: Int,
-    ): WeekLocation? {
-        val locations = program.allWeekLocations()
-        if (locations.isEmpty()) return null
-
-        if (com.example.kpkn.domain.training.ProgramCalendarEngine.isCalendarized(program)) {
-            val projection = com.example.kpkn.domain.training.ProgramCalendarEngine.project(program)
-            val today = java.time.LocalDate.now()
-            val calendarWeek = projection.weekForDate(today)
-            if (calendarWeek != null) {
-                val resolved = locations.firstOrNull { it.week.id == calendarWeek.weekId }
-                if (resolved != null) return resolved
-            }
-        }
-
-        val exactMatch = active?.takeIf { it.programId == program.id }?.let { state ->
-            locations.firstOrNull { location ->
-                location.macroIndex == state.currentMacrocycleIndex &&
-                    location.blockIndex == state.currentBlockIndex &&
-                    location.mesocycleIndex == state.currentMesocycleIndex &&
-                    location.week.id == state.currentWeekId
-            }
-        }
-        if (exactMatch != null) return exactMatch
-
-        val sameContainer = active?.takeIf { it.programId == program.id }?.let { state ->
-            locations.firstOrNull { location ->
-                location.macroIndex == state.currentMacrocycleIndex &&
-                    location.blockIndex == state.currentBlockIndex &&
-                    location.mesocycleIndex == state.currentMesocycleIndex
-            }
-        }
-        if (sameContainer != null) return sameContainer
-
-        return locations.firstOrNull { location ->
-            location.week.sessions.any { it.matchesDay(dayOfWeek) }
-        } ?: locations.first()
-    }
-
-    private fun resolveTodaySessions(
-        program: Program,
-        active: ActiveProgramState?,
-        currentDayOfWeek: Int,
-        history: List<com.example.kpkn.data.models.WorkoutLog>,
-        ongoing: com.example.kpkn.data.models.OngoingWorkoutState?,
-    ): List<TodaySessionItem> {
-        val weekLocation = resolveWeekLocation(program, active, currentDayOfWeek) ?: return emptyList()
-        val locations = program.allWeekLocations()
-        val currentIndex = locations.indexOfFirst { it.week.id == weekLocation.week.id }
-        var resolvedWeekLocation = weekLocation
-
-        if (currentIndex != -1) {
-            var tempIndex = currentIndex
-            while (tempIndex < locations.size) {
-                val currentLoc = locations[tempIndex]
-                val allCompleted = currentLoc.week.sessions.all { session ->
-                    history.any { log ->
-                        log.sessionId == session.id &&
-                            (log.weekId == currentLoc.week.id || log.date.startsWith(LocalDate.now().toString()))
-                    }
-                }
-                if (allCompleted) {
-                    tempIndex++
-                    if (tempIndex < locations.size) {
-                        resolvedWeekLocation = locations[tempIndex]
-                    }
-                } else {
-                    resolvedWeekLocation = currentLoc
-                    break
-                }
-            }
-        }
-
-        val sessions = resolvedWeekLocation.week.sessions
-
-        val projection = if (com.example.kpkn.domain.training.ProgramCalendarEngine.isCalendarized(program)) {
-            com.example.kpkn.domain.training.ProgramCalendarEngine.project(program)
-        } else {
-            null
-        }
-
-        val sessionIsToday = sessions.associate { session ->
-            val isToday = if (projection != null) {
-                projection.scheduledDateFor(session, resolvedWeekLocation.week.id) == LocalDate.now()
-            } else {
-                val day = session.dayOfWeek ?: session.assignedDays.firstOrNull() ?: currentDayOfWeek
-                day == currentDayOfWeek
-            }
-            session.id to isToday
-        }
-
-        return sessions.map { session ->
-            val matchingLog = history.find { log ->
-                log.sessionId == session.id &&
-                    (log.weekId == resolvedWeekLocation.week.id || log.date.startsWith(LocalDate.now().toString()))
-            }
-            TodaySessionItem(
-                session = session,
-                program = program,
-                location = com.example.kpkn.data.models.SessionLocation(
-                    macroIndex = resolvedWeekLocation.macroIndex,
-                    mesoIndex = resolvedWeekLocation.mesocycleIndex,
-                    weekId = resolvedWeekLocation.week.id,
-                ),
-                isCompleted = matchingLog != null,
-                dayOfWeek = session.dayOfWeek ?: session.assignedDays.firstOrNull() ?: currentDayOfWeek,
-                log = matchingLog,
-                isOngoing = ongoing?.programId == program.id && ongoing.session.id == session.id,
-            )
-        }.sortedWith(
-            compareBy<TodaySessionItem>(
-                { if (it.isOngoing) 0 else 1 },
-                { if (it.isCompleted) 1 else 0 },
-                { if (sessionIsToday[it.session.id] == true) 0 else 1 },
-                { it.dayOfWeek },
-                { if (it.session.isMainSession) 0 else 1 },
-            )
-        )
-    }
-
-    // ─── Today Sessions (from Active Program) ──────────────────────────────
-
     val todaySessions: StateFlow<List<TodaySessionItem>> = combine(
         repository.programs,
         repository.activeProgramState,
         repository.history,
         repository.ongoingWorkout,
     ) { programs, active, history, ongoing ->
-        if (active == null) return@combine emptyList()
+        if (active == null || active.status != ProgramStatus.ACTIVE) return@combine emptyList()
         val program = programs.find { it.id == active.programId } ?: return@combine emptyList()
-        val today = currentDayOfWeek()
-        resolveTodaySessions(program, active, today, history, ongoing)
+        HomeSessionResolver.resolveTodaySessions(
+            program = program,
+            active = active,
+            currentDayOfWeek = currentDayOfWeek(),
+            history = history,
+            ongoing = ongoing,
+        )
     }
         .distinctUntilChanged()
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // ─── Macro Goals ──────────────────────────────────────────────────────────
+    val primarySession: StateFlow<TodaySessionItem?> = todaySessions
+        .map { HomeSessionResolver.selectPrimarySession(it) }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val isRestDay: StateFlow<Boolean> = combine(hasActiveProgram, todaySessions, primarySession) { hasProgram, sessions, primary ->
+        hasProgram && sessions.isNotEmpty() && primary == null
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     private val macroGoals = combine(
         repository.settings,
         nutritionRepository.nutritionPlans,
         nutritionRepository.activeNutritionPlanId,
     ) { settings, plans, activeId ->
-        val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
+        val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive }
         deriveMacroGoals(settings, activePlan)
     }
         .distinctUntilChanged()
@@ -382,11 +239,9 @@ class HomeViewModel : ViewModel() {
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, 70)
 
-    // ─── Nutrition Snapshot (today) ─────────────────────────────────────────
-
     val todayNutritionTotals: StateFlow<HomeNutritionSnapshot> = nutritionRepository.nutritionLogs
         .map { logs ->
-            val today = java.time.LocalDate.now().toString()
+            val today = LocalDate.now().toString()
             var calories = 0.0
             var protein = 0.0
             var carbs = 0.0
@@ -412,9 +267,6 @@ class HomeViewModel : ViewModel() {
         }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, HomeNutritionSnapshot())
-
-    // ─── Body Metrics ────────────────────────────────────────────────────────────
-    // Priority: settings.userVitals (manually entered in profile) → latest bodyMeasurements entry
 
     val lastWeight: StateFlow<Double?> = combine(
         repository.settings,
@@ -465,21 +317,23 @@ class HomeViewModel : ViewModel() {
         return calculateFFMI(heightCm, weightKg, bodyFatPct)?.normalizedFfmi
     }
 
-    // ─── Active Program + Star Targets ─────────────────────────────────────────
-
     val starTargetsCount: StateFlow<Int> = combine(
-        repository.programs, repository.activeProgramState
+        repository.programs,
+        repository.activeProgramState,
     ) { programs, active ->
-        val program = if (active != null) programs.find { it.id == active.programId } else null
+        if (active == null || active.status != ProgramStatus.ACTIVE) return@combine 0
+        val program = programs.find { it.id == active.programId } ?: return@combine 0
         var count = 0
-        program?.macrocycles?.forEach { macro ->
+        program.macrocycles.forEach { macro ->
             macro.blocks.forEach { block ->
                 block.mesocycles.forEach { meso ->
                     meso.weeks.forEach { week ->
                         week.sessions.forEach { session ->
-                            val exercises = if (session.parts.isNotEmpty())
+                            val exercises = if (session.parts.isNotEmpty()) {
                                 session.parts.flatMap { it.exercises }
-                            else session.exercises
+                            } else {
+                                session.exercises
+                            }
                             exercises.forEach { if (it.isStarTarget == true) count++ }
                         }
                     }
@@ -487,18 +341,19 @@ class HomeViewModel : ViewModel() {
             }
         }
         count
-    }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
+    }
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
     val historyCount: StateFlow<Int> = repository.history
         .map { it.size }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
-    // ─── Relative Strength from History ────────────────────────────────────────
-
-    private fun findBest1RM(patterns: List<String>): Double {
+    private fun findBest1RM(history: List<com.example.kpkn.data.models.WorkoutLog>, patterns: List<String>): Double {
         var best = 0.0
-        repository.history.value.forEach { log ->
+        history.forEach { log ->
             log.completedExercises.forEach { ex ->
                 if (patterns.any { ex.exerciseName.lowercase().contains(it) }) {
                     ex.sets.forEach { s ->
@@ -511,12 +366,15 @@ class HomeViewModel : ViewModel() {
         return best
     }
 
-    fun getRelativeStrengthData(): RelativeStrengthData {
-        val squat = findBest1RM(listOf("sentadilla", "squat"))
-        val bench = findBest1RM(listOf("press banca", "bench press"))
-        val deadlift = findBest1RM(listOf("peso muerto", "deadlift"))
+    private fun computeRelativeStrength(
+        history: List<com.example.kpkn.data.models.WorkoutLog>,
+        bodyWeight: Double?,
+    ): RelativeStrengthData {
+        val squat = findBest1RM(history, listOf("sentadilla", "squat"))
+        val bench = findBest1RM(history, listOf("press banca", "bench press"))
+        val deadlift = findBest1RM(history, listOf("peso muerto", "deadlift"))
         val total = squat + bench + deadlift
-        val bw = repository.settings.value.userVitals.weight ?: 0.0
+        val bw = bodyWeight ?: 0.0
         return RelativeStrengthData(
             squatRM = squat,
             benchRM = bench,
@@ -526,21 +384,210 @@ class HomeViewModel : ViewModel() {
         )
     }
 
-    fun getIpfGlPoints(): Double {
-        val strength = getRelativeStrengthData()
-        val bodyWeight = repository.settings.value.userVitals.weight ?: return 0.0
-        if (strength.totalKg <= 0.0) return 0.0
-        return calculateIPFGLPoints(
+    val relativeStrengthData: StateFlow<RelativeStrengthData> = combine(
+        repository.history,
+        repository.settings,
+    ) { history, settings ->
+        computeRelativeStrength(history, settings.userVitals.weight)
+    }
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Lazily, RelativeStrengthData(0.0, 0.0, 0.0, 0.0, 0.0))
+
+    val ipfGlPoints: StateFlow<Double> = combine(
+        relativeStrengthData,
+        repository.settings,
+    ) { strength, settings ->
+        val bodyWeight = settings.userVitals.weight ?: return@combine 0.0
+        if (strength.totalKg <= 0.0) return@combine 0.0
+        calculateIPFGLPoints(
             totalLifted = strength.totalKg,
             bodyWeight = bodyWeight,
-            gender = when (repository.settings.value.userVitals.gender) {
+            gender = when (settings.userVitals.gender) {
                 com.example.kpkn.data.models.Gender.FEMALE -> "female"
                 else -> "male"
             },
             equipment = IpfEquipment.CLASSIC,
         )
     }
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
+
+    private data class CardsNutrition(
+        val calorieGoal: Int,
+        val proteinGoal: Int,
+        val carbGoal: Int,
+        val fatGoal: Int,
+        val nutrition: HomeNutritionSnapshot,
+    )
+
+    private data class CardsBody(
+        val weight: Double?,
+        val bodyFat: Double?,
+        val musclePct: Double?,
+        val ffmi: Double?,
+        val ffmiInterpretation: String?,
+        val imc: Double?,
+    )
+
+    private data class CardsExercise(
+        val starTargetsCount: Int,
+        val historyCount: Int,
+        val relativeStrength: Double,
+        val totalKg: Double,
+        val ipfGlPoints: Double,
+    )
+
+    /** Consolidated snapshot for HomeCardsSection to avoid many local collectors. */
+    val cardsState: StateFlow<HomeCardsState> = combine(
+        combine(macroGoals, todayNutritionTotals) { goals, nutrition ->
+            CardsNutrition(
+                calorieGoal = goals.calorieGoal,
+                proteinGoal = goals.proteinGoal,
+                carbGoal = goals.carbGoal,
+                fatGoal = goals.fatGoal,
+                nutrition = nutrition,
+            )
+        },
+        combine(lastWeight, lastBodyFat, lastMusclePct, heightCm) { weight, bodyFat, muscle, height ->
+            val ffmi = if (weight != null && bodyFat != null) computeNormalizedFfmi(weight, height, bodyFat) else null
+            val ffmiInterpretation = if (weight != null && bodyFat != null) computeFfmiInterpretation(weight, height, bodyFat) else null
+            val imc = if (weight != null) computeImc(weight, height) else null
+            CardsBody(weight, bodyFat, muscle, ffmi, ffmiInterpretation, imc)
+        },
+        combine(starTargetsCount, historyCount, relativeStrengthData, ipfGlPoints) { stars, history, strength, ipf ->
+            CardsExercise(
+                starTargetsCount = stars,
+                historyCount = history,
+                relativeStrength = strength.relativeStrength,
+                totalKg = strength.totalKg,
+                ipfGlPoints = ipf,
+            )
+        },
+    ) { nutrition, body, exercise ->
+        HomeCardsState(
+            calorieGoal = nutrition.calorieGoal,
+            proteinGoal = nutrition.proteinGoal,
+            carbGoal = nutrition.carbGoal,
+            fatGoal = nutrition.fatGoal,
+            nutrition = nutrition.nutrition,
+            weight = body.weight,
+            bodyFat = body.bodyFat,
+            musclePct = body.musclePct,
+            ffmi = body.ffmi,
+            ffmiInterpretation = body.ffmiInterpretation,
+            imc = body.imc,
+            starTargetsCount = exercise.starTargetsCount,
+            historyCount = exercise.historyCount,
+            relativeStrength = exercise.relativeStrength,
+            totalKg = exercise.totalKg,
+            ipfGlPoints = exercise.ipfGlPoints,
+        )
+    }
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Lazily, HomeCardsState())
+
+    private data class HomeUiCore(
+        val userName: String,
+        val hasActiveProgram: Boolean,
+        val activeProgramId: String?,
+        val todaySessions: List<TodaySessionItem>,
+        val primarySession: TodaySessionItem?,
+    )
+
+    private data class HomeUiExtras(
+        val isRestDay: Boolean,
+        val competitionCountdown: CompetitionCountdown?,
+        val dailyCalorieGoal: Int,
+        val todayNutritionTotals: HomeNutritionSnapshot,
+        val overtrainedMuscles: List<String>,
+        val programs: List<Program>,
+    )
+
+    /** Consolidated snapshot for HomeScreen to reduce cascade recompositions. */
+    val uiState: StateFlow<HomeUiState> = combine(
+        combine(
+            userName,
+            hasActiveProgram,
+            activeProgramId,
+            todaySessions,
+            primarySession,
+        ) { name, hasProgram, programId, sessions, primary ->
+            HomeUiCore(name, hasProgram, programId, sessions, primary)
+        },
+        combine(
+            isRestDay,
+            competitionCountdown,
+            dailyCalorieGoal,
+            todayNutritionTotals,
+            combine(overtrainedMuscles, programs) { overtrained, programList ->
+                overtrained to programList
+            },
+        ) { rest, countdown, calGoal, nutrition, overtrainedAndPrograms ->
+            HomeUiExtras(
+                rest,
+                countdown,
+                calGoal,
+                nutrition,
+                overtrainedAndPrograms.first,
+                overtrainedAndPrograms.second,
+            )
+        },
+    ) { core, extras ->
+        HomeUiState(
+            userName = core.userName,
+            greeting = getGreeting(),
+            hasActiveProgram = core.hasActiveProgram,
+            activeProgramId = core.activeProgramId,
+            todaySessions = core.todaySessions,
+            primarySession = core.primarySession,
+            isRestDay = extras.isRestDay,
+            competitionCountdown = extras.competitionCountdown,
+            dailyCalorieGoal = extras.dailyCalorieGoal,
+            todayNutritionTotals = extras.todayNutritionTotals,
+            overtrainedMuscles = extras.overtrainedMuscles,
+            programs = extras.programs,
+        )
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
 }
+
+data class HomeUiState(
+    val userName: String = "Usuario",
+    val greeting: String = "¡Buenos días",
+    val hasActiveProgram: Boolean = false,
+    val activeProgramId: String? = null,
+    val todaySessions: List<TodaySessionItem> = emptyList(),
+    val primarySession: TodaySessionItem? = null,
+    val isRestDay: Boolean = false,
+    val competitionCountdown: CompetitionCountdown? = null,
+    val dailyCalorieGoal: Int = 2500,
+    val todayNutritionTotals: HomeNutritionSnapshot = HomeNutritionSnapshot(),
+    val overtrainedMuscles: List<String> = emptyList(),
+    val programs: List<Program> = emptyList(),
+)
+
+data class HomeCardsState(
+    val calorieGoal: Int = 2500,
+    val proteinGoal: Int = 150,
+    val carbGoal: Int = 250,
+    val fatGoal: Int = 70,
+    val nutrition: HomeNutritionSnapshot = HomeNutritionSnapshot(),
+    val weight: Double? = null,
+    val bodyFat: Double? = null,
+    val musclePct: Double? = null,
+    val ffmi: Double? = null,
+    val ffmiInterpretation: String? = null,
+    val imc: Double? = null,
+    val starTargetsCount: Int = 0,
+    val historyCount: Int = 0,
+    val relativeStrength: Double = 0.0,
+    val totalKg: Double = 0.0,
+    val ipfGlPoints: Double = 0.0,
+)
 
 data class RelativeStrengthData(
     val squatRM: Double,
@@ -566,3 +613,15 @@ data class HomeNutritionSnapshot(
     val carbs: Double = 0.0,
     val fats: Double = 0.0,
 )
+
+/**
+ * Scopes [HomeViewModel] to the host Activity so its state survives navigation
+ * away/back from Home, preventing the "flash" of default state on return.
+ */
+@Composable
+fun rememberHomeViewModel(): HomeViewModel {
+    val context = LocalContext.current
+    val activity = context as? ComponentActivity
+        ?: error("rememberHomeViewModel requires a ComponentActivity context")
+    return viewModel(activity)
+}

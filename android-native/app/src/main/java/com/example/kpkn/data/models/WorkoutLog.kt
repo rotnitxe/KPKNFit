@@ -196,6 +196,7 @@ data class TodaySessionItem(
     val dayOfWeek: Int,
     val log: WorkoutLog? = null,
     val isOngoing: Boolean = false,
+    val isToday: Boolean = false,
 )
 
 data class SessionLocation(

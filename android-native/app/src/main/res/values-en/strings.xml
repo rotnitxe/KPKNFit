@@ -197,6 +197,10 @@
     <string name="notif_rest_action_skip">Skip rest</string>
     <string name="notif_rest_default_session">Training</string>
     <string name="notif_rest_default_exercise">Next set</string>
+    <string name="notif_channel_voice_ongoing_name">Voice control</string>
+    <string name="notif_channel_voice_ongoing_desc">Workout session with microphone active</string>
+    <string name="notif_voice_ongoing_title">Voice control active</string>
+    <string name="notif_voice_ongoing_body">Dictate sets, reps and intensity without opening the app</string>
 
     <!-- ═══════════════════════════════════════════════════════════════
          SESSION — Fatigue labels

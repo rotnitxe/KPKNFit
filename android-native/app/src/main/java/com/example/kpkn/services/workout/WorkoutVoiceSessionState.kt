@@ -19,6 +19,8 @@ data class VoiceSessionState(
     val errorMessage: String? = null,
     val duckHandle: Any? = null,
     val consecutiveErrors: Int = 0,
+    /** Waiting for "solo sesión" / "para siempre" after AddSet. */
+    val pendingAddSetPersistence: Boolean = false,
 ) {
     val isListening: Boolean get() = stage == VoicePipelineStage.LISTENING
     val isDucking: Boolean get() = duckHandle != null
@@ -39,6 +41,12 @@ sealed class VoiceSessionCommand {
     data object TurnOffVoice : VoiceSessionCommand()
     data object FinishSession : VoiceSessionCommand()
     data object CancelSession : VoiceSessionCommand()
+    /** Add an extra set to the current exercise (live session). */
+    data object AddSet : VoiceSessionCommand()
+    /** Resolve AddSet persistence prompt: keep session-only. */
+    data object AddSetSessionOnly : VoiceSessionCommand()
+    /** Resolve AddSet persistence prompt: save permanently to program. */
+    data object AddSetPermanent : VoiceSessionCommand()
     data class LogFeedback(
         val technicalQuality: Int?,
         val discomfortId: String?,

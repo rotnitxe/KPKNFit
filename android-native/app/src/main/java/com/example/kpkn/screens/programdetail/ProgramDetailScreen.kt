@@ -68,6 +68,7 @@ fun ProgramDetailScreen(
     onEditSession: (String) -> Unit,
     onCreateSession: (String, String, Int, Int, Int, Boolean) -> Unit,
     onContextTabStateChange: (MainTab, (MainTab) -> Unit) -> Unit = { _, _ -> },
+    initialTab: MainTab? = null,
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
 ) {
     val augeViewModel = rememberAugeViewModel()
@@ -97,6 +98,10 @@ fun ProgramDetailScreen(
 
     LaunchedEffect(programId) {
         viewModel.loadFeedbacks(context)
+    }
+
+    LaunchedEffect(programId, initialTab) {
+        if (initialTab != null) viewModel.setActiveTab(initialTab)
     }
 
     LaunchedEffect(uiState.activeTab) {

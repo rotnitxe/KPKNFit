@@ -57,17 +57,27 @@ fun WorkoutCommandDock(
         else -> Color.White.copy(alpha = 0.38f)
     }
 
-    val voiceIndicatorText = when (voiceSessionState.stage) {
-        VoicePipelineStage.LISTENING -> {
+    val voiceIndicatorText = when {
+        voiceSessionState.stage == VoicePipelineStage.LISTENING -> {
             if (voiceSessionState.partialText.isNotBlank()) "Escuchando: \"${voiceSessionState.partialText}\""
             else "Escuchando comandos de voz..."
         }
-        VoicePipelineStage.PROCESSING -> "Procesando..."
-        VoicePipelineStage.CONFIRM_WAIT -> "¿Confirmar? Di \"Sí\" o \"No\""
-        VoicePipelineStage.TTS_SPEAKING -> "Hablando..."
-        VoicePipelineStage.ERROR_RECOVERY -> "Reintentando..."
-        VoicePipelineStage.DISABLED -> ""
+        voiceSessionState.stage == VoicePipelineStage.PROCESSING -> "Procesando..."
+        voiceSessionState.stage == VoicePipelineStage.CONFIRM_WAIT -> {
+            if (voiceSessionState.pendingAddSetPersistence) {
+                "¿Solo sesión o permanente?"
+            } else {
+                "¿Confirmar? Di \"Sí\" o \"No\""
+            }
+        }
+        voiceSessionState.stage == VoicePipelineStage.TTS_SPEAKING -> "Hablando..."
+        voiceSessionState.stage == VoicePipelineStage.ERROR_RECOVERY ->
+            voiceSessionState.errorMessage?.let { "Error: $it" } ?: "Reintentando..."
+        voiceSessionEnabled -> "Control por voz activo"
+        else -> ""
     }
+
+    val showVoiceChip = voiceSessionEnabled && voiceIndicatorText.isNotBlank()
 
     val primaryButtonText = remember(exercise, setIndex, activeSide, isUnilateral) {
         if (exercise == null) "Completar Serie"
@@ -90,7 +100,7 @@ fun WorkoutCommandDock(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             AnimatedVisibility(
-                visible = voiceSessionState.stage != VoicePipelineStage.DISABLED && voiceIndicatorText.isNotBlank(),
+                visible = showVoiceChip,
                 enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn(),
                 exit = slideOutVertically(targetOffsetY = { it / 2 }) + fadeOut()
             ) {
@@ -141,8 +151,8 @@ fun WorkoutCommandDock(
 
             Box(
                 modifier = Modifier
-                    .width(112.dp)
-                    .height(64.dp),
+                    .width(128.dp)
+                    .height(72.dp),
                 contentAlignment = Alignment.BottomEnd,
             ) {
                 FloatingActionButton(
@@ -177,7 +187,8 @@ fun WorkoutCommandDock(
                     onClick = onToggleVoice,
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .size(36.dp)
+                        .padding(start = 0.dp, top = 0.dp)
+                        .size(48.dp)
                         .then(
                             if (isListening) Modifier
                                 .scale(pulseScale)
@@ -185,13 +196,21 @@ fun WorkoutCommandDock(
                             else Modifier
                         ),
                     shape = CircleShape,
-                    containerColor = if (voiceSessionEnabled) voiceIndicatorColor.copy(alpha = 0.92f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.86f),
-                    contentColor = if (voiceSessionEnabled) Color.Black else Color.White.copy(alpha = 0.78f),
+                    containerColor = when {
+                        voiceSessionEnabled && isListening -> Color(0xFF4CAF50)
+                        voiceSessionEnabled -> voiceIndicatorColor.copy(alpha = 0.95f)
+                        else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.94f)
+                    },
+                    contentColor = if (voiceSessionEnabled) Color.Black else Color.White.copy(alpha = 0.92f),
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 6.dp,
+                        pressedElevation = 8.dp,
+                    ),
                 ) {
                     Icon(
                         imageVector = if (voiceSessionEnabled) Icons.Default.Mic else Icons.Default.MicOff,
                         contentDescription = if (voiceSessionEnabled) "Desactivar control por voz" else "Activar control por voz",
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             }

@@ -11,6 +11,8 @@ import com.example.kpkn.services.workout.VoiceSessionCommand
 import com.example.kpkn.services.workout.VoicePipelineStage
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.services.workout.WorkoutVoiceController
+import com.example.kpkn.services.workout.WorkoutVoiceForegroundService
+import com.example.kpkn.services.workout.WorkoutVoicePermissionHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -57,6 +59,10 @@ class WorkoutVoiceCommandHandler(
         fun cancelWorkout()
         fun savePostExerciseFeedback(feedback: PostExerciseFeedback)
         fun savePostExerciseFeedbacks(feedbacks: List<PostExerciseFeedback>)
+        fun addSetToCurrentExercise()
+        fun commitStructuralPersistenceSessionOnly()
+        fun commitStructuralPersistencePermanent()
+        fun clearPendingStructuralPersistence()
     }
 
     private var voiceJob: Job? = null
@@ -249,25 +255,42 @@ class WorkoutVoiceCommandHandler(
     }
 
     fun enableVoice() {
-        val hasPerm = WorkoutVoiceRecognizer.hasPermission(appContext)
-        val isAvail = WorkoutVoiceRecognizer.isAvailable(appContext)
-        if (!hasPerm || !isAvail) {
+        val capability = WorkoutVoicePermissionHelper.checkVoiceCapability(appContext)
+        if (!capability.canUseVoice) {
             updateState {
                 it.copy(
                     voiceSessionEnabled = false,
                     voiceSessionState = VoiceSessionState(
                         stage = VoicePipelineStage.ERROR_RECOVERY,
-                        errorMessage = if (!hasPerm) "Permiso de micrófono no concedido" else "Reconocimiento no disponible por voz",
+                        errorMessage = capability.blockingReason
+                            ?: "Reconocimiento de voz no disponible",
                     ),
                 )
             }
             return
         }
         voiceController.enable()
+        val controllerState = voiceController.state.value
+        if (!voiceController.isEnabled() ||
+            controllerState.stage == VoicePipelineStage.DISABLED
+        ) {
+            updateState {
+                it.copy(
+                    voiceSessionEnabled = false,
+                    voiceSessionState = controllerState.copy(
+                        stage = VoicePipelineStage.ERROR_RECOVERY,
+                        errorMessage = controllerState.errorMessage
+                            ?: "No se pudo activar el control por voz",
+                    ),
+                )
+            }
+            return
+        }
+        WorkoutVoiceForegroundService.start(appContext)
         updateState {
             it.copy(
                 voiceSessionEnabled = true,
-                voiceSessionState = voiceController.state.value,
+                voiceSessionState = controllerState,
             )
         }
     }
@@ -280,11 +303,25 @@ class WorkoutVoiceCommandHandler(
                 voiceSessionState = voiceController.state.value,
             )
         }
+        WorkoutVoiceForegroundService.stop(appContext)
     }
 
-    fun pauseVoiceForBackground() {
+    /**
+     * Called when the activity goes to background. Does NOT disable voice —
+     * the microphone FGS keeps the session alive for hands-free logging.
+     */
+    fun onVoiceHostPaused() {
+        // Intentionally no-op for disable. Engine continues under FGS.
+    }
+
+    fun onVoiceHostResumed() {
         if (!getState().voiceSessionEnabled) return
-        disableVoice()
+        if (!voiceController.isEnabled()) {
+            enableVoice()
+        } else if (voiceController.getStage() == VoicePipelineStage.ERROR_RECOVERY) {
+            voiceController.enable()
+            updateState { it.copy(voiceSessionState = voiceController.state.value) }
+        }
     }
 
     fun handleVoiceCommand(command: VoiceSessionCommand) {
@@ -306,6 +343,13 @@ class WorkoutVoiceCommandHandler(
             is VoiceSessionCommand.CancelSession -> ports.cancelWorkout()
             is VoiceSessionCommand.LogFeedback -> handleVoiceLogFeedback(command)
             is VoiceSessionCommand.LogFinalFeedback -> handleVoiceLogFinalFeedback(command)
+            is VoiceSessionCommand.AddSet -> ports.addSetToCurrentExercise()
+            is VoiceSessionCommand.AddSetSessionOnly -> {
+                ports.commitStructuralPersistenceSessionOnly()
+            }
+            is VoiceSessionCommand.AddSetPermanent -> {
+                ports.commitStructuralPersistencePermanent()
+            }
             is VoiceSessionCommand.Unknown -> { /* no-op */ }
         }
     }

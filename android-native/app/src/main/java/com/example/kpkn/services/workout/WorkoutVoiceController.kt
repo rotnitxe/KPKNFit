@@ -31,6 +31,8 @@ class WorkoutVoiceController(private val context: Context) {
     private var errorCollectJob: Job? = null
     private var utteranceWatchdogJob: Job? = null
     private var confirmedOrCancelled = false
+    /** User wants continuous voice on; survives async TTS init without clobbering LISTENING. */
+    private var sessionWanted = false
 
     var onCommandDetected: ((VoiceSessionCommand) -> Unit)? = null
     var onError: ((String) -> Unit)? = null
@@ -58,21 +60,35 @@ class WorkoutVoiceController(private val context: Context) {
     fun initialize(scope: CoroutineScope) {
         this.scope = scope
         ttsManager.initialize(
-            onReady = { updateStage(VoicePipelineStage.DISABLED) },
-            onError = { updateStage(VoicePipelineStage.ERROR_RECOVERY) },
+            onReady = {
+                // Never force DISABLED over an active session (race with enable()).
+                WorkoutVoiceSessionGate.stageAfterTtsReady(sessionWanted, _state.value.stage)
+            },
+            onError = { msg ->
+                val next = WorkoutVoiceSessionGate.stageAfterTtsError(sessionWanted, _state.value.stage)
+                if (next != null) {
+                    _state.update { it.copy(stage = next, errorMessage = msg) }
+                    onStageChanged?.invoke(next)
+                    onError?.invoke(msg)
+                }
+            },
         )
     }
 
     fun enable() {
-        val s = _state.value
-        if (s.stage != VoicePipelineStage.DISABLED) return
-
-        startListening()
-        updateStage(VoicePipelineStage.LISTENING)
-        _state.update { it.copy(consecutiveErrors = 0) }
+        sessionWanted = true
+        when (WorkoutVoiceSessionGate.enableAction(_state.value.stage)) {
+            WorkoutVoiceSessionGate.EnableAction.NOOP_ALREADY_ACTIVE -> return
+            WorkoutVoiceSessionGate.EnableAction.START_LISTENING -> {
+                startListening()
+                updateStage(VoicePipelineStage.LISTENING)
+                _state.update { it.copy(consecutiveErrors = 0, errorMessage = null) }
+            }
+        }
     }
 
     fun disable() {
+        sessionWanted = false
         cancelAllJobs()
         continuousEngine.stop()
         ttsManager.stop()
@@ -81,9 +97,7 @@ class WorkoutVoiceController(private val context: Context) {
         resetState()
     }
 
-    fun isEnabled(): Boolean {
-        return _state.value.stage != VoicePipelineStage.DISABLED
-    }
+    fun isEnabled(): Boolean = sessionWanted
 
     fun getStage(): VoicePipelineStage = _state.value.stage
 
@@ -155,8 +169,7 @@ class WorkoutVoiceController(private val context: Context) {
     }
 
     private fun speakWhilePaused(block: () -> Unit) {
-        val s = _state.value
-        if (s.stage == VoicePipelineStage.DISABLED) return
+        if (!sessionWanted) return
 
         continuousEngine.pause()
 
@@ -226,22 +239,37 @@ class WorkoutVoiceController(private val context: Context) {
 
         errorCollectJob = scope.launch {
             continuousEngine.errors.collect { error ->
+                if (!sessionWanted) return@collect
+                val errors = _state.value.consecutiveErrors + 1
+                _state.update {
+                    it.copy(
+                        stage = VoicePipelineStage.ERROR_RECOVERY,
+                        errorMessage = error,
+                        consecutiveErrors = errors,
+                    )
+                }
+                onStageChanged?.invoke(VoicePipelineStage.ERROR_RECOVERY)
                 onError?.invoke(error)
+                if (errors <= WorkoutVoiceSessionGate.MAX_CONSECUTIVE_ENGINE_ERRORS) {
+                    delay(WorkoutVoiceSessionGate.ENGINE_ERROR_RETRY_MS)
+                    if (sessionWanted && _state.value.stage == VoicePipelineStage.ERROR_RECOVERY) {
+                        resumeListening()
+                    }
+                }
             }
         }
     }
 
     private fun handleFinalResult(text: String) {
         val s = _state.value
-        if (s.stage == VoicePipelineStage.DISABLED) return
-        if (s.stage == VoicePipelineStage.TTS_SPEAKING) return
+        if (!WorkoutVoiceSessionGate.shouldAcceptFinalResult(s.stage)) return
 
         if (s.stage == VoicePipelineStage.CONFIRM_WAIT) {
             handleConfirmInput(text)
             return
         }
 
-        if (s.stage == VoicePipelineStage.LISTENING || s.stage == VoicePipelineStage.ERROR_RECOVERY) {
+        if (WorkoutVoiceSessionGate.shouldProcessCommand(s.stage)) {
             continuousEngine.pause()
             requestDucking()
             val info = exerciseInfoProvider?.invoke()
@@ -279,11 +307,15 @@ class WorkoutVoiceController(private val context: Context) {
             isUnilateral = isUnilateral,
             hasPendingConfirmation = false,
             isRestTimerActive = exerciseInfo?.restSecondsRemaining != null,
+            pendingAddSetPersistence = false,
         )
 
         when (command) {
             is VoiceSessionCommand.RegisterSet -> {
                 handleRegisterSet(command.interpretation, exerciseInfo)
+            }
+            is VoiceSessionCommand.AddSet -> {
+                handleAddSet()
             }
             is VoiceSessionCommand.TurnOffVoice -> {
                 releaseDucking()
@@ -291,7 +323,9 @@ class WorkoutVoiceController(private val context: Context) {
                 return
             }
             is VoiceSessionCommand.Confirm,
-            is VoiceSessionCommand.Cancel -> {
+            is VoiceSessionCommand.Cancel,
+            is VoiceSessionCommand.AddSetSessionOnly,
+            is VoiceSessionCommand.AddSetPermanent -> {
                 releaseDucking()
                 resumeListening()
                 return
@@ -310,6 +344,33 @@ class WorkoutVoiceController(private val context: Context) {
                 }
             }
         }
+    }
+
+    private fun handleAddSet() {
+        confirmedOrCancelled = false
+        _state.update {
+            it.copy(
+                lastCommand = VoiceSessionCommand.AddSet,
+                pendingAddSetPersistence = true,
+            )
+        }
+        onCommandDetected?.invoke(VoiceSessionCommand.AddSet)
+
+        runSpeakingOrSkip(
+            onComplete = {
+                updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                val activeScope = scope
+                if (activeScope != null) {
+                    continuousEngine.start(activeScope)
+                    startAddSetPersistenceTimeout()
+                } else {
+                    resumeListening()
+                }
+            },
+            speak = {
+                ttsManager.speakError("Serie añadida. Di solo esta sesión o para siempre.")
+            },
+        )
     }
 
     private fun handleRegisterSet(
@@ -350,6 +411,11 @@ class WorkoutVoiceController(private val context: Context) {
     }
 
     private fun handleConfirmInput(text: String) {
+        if (_state.value.pendingAddSetPersistence) {
+            handleAddSetPersistenceInput(text)
+            return
+        }
+
         val confirmCommand = WorkoutVoiceCommandParser.parseCommand(
             transcript = text,
             isTimeMode = false,
@@ -420,6 +486,64 @@ class WorkoutVoiceController(private val context: Context) {
                         )
                     }
                 }
+            }
+        }
+    }
+
+    private fun handleAddSetPersistenceInput(text: String) {
+        val command = WorkoutVoiceCommandParser.parseCommand(
+            transcript = text,
+            isTimeMode = false,
+            isUnilateral = false,
+            hasPendingConfirmation = false,
+            isRestTimerActive = false,
+            pendingAddSetPersistence = true,
+        )
+        when (command) {
+            is VoiceSessionCommand.AddSetSessionOnly -> resolveAddSetPersistence(VoiceSessionCommand.AddSetSessionOnly)
+            is VoiceSessionCommand.AddSetPermanent -> resolveAddSetPersistence(VoiceSessionCommand.AddSetPermanent)
+            else -> {
+                runSpeakingOrSkip(
+                    onComplete = {
+                        updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                        continuousEngine.start(scope ?: return@runSpeakingOrSkip)
+                    },
+                    speak = {
+                        ttsManager.speakError("Di solo esta sesión o para siempre.")
+                    },
+                )
+            }
+        }
+    }
+
+    private fun resolveAddSetPersistence(command: VoiceSessionCommand) {
+        if (confirmedOrCancelled) return
+        confirmedOrCancelled = true
+        confirmationJob?.cancel()
+        _state.update { it.copy(pendingAddSetPersistence = false, lastCommand = command) }
+        onCommandDetected?.invoke(command)
+        runSpeakingOrSkip(
+            onComplete = {
+                releaseDucking()
+                resumeListening()
+            },
+            speak = {
+                val msg = when (command) {
+                    is VoiceSessionCommand.AddSetPermanent -> "Serie guardada en el programa."
+                    else -> "Serie solo para esta sesión."
+                }
+                ttsManager.speakError(msg)
+            },
+        )
+    }
+
+    private fun startAddSetPersistenceTimeout() {
+        confirmationJob?.cancel()
+        confirmationJob = scope?.launch {
+            delay(8_000L)
+            if (!confirmedOrCancelled && _state.value.pendingAddSetPersistence) {
+                // Default: session-only (safer; set already added live).
+                resolveAddSetPersistence(VoiceSessionCommand.AddSetSessionOnly)
             }
         }
     }
@@ -498,10 +622,18 @@ class WorkoutVoiceController(private val context: Context) {
     }
 
     private fun resumeListening() {
-        val s = _state.value
-        if (s.stage == VoicePipelineStage.DISABLED) return
+        if (!sessionWanted) return
 
-        _state.update { it.copy(partialText = "", lastInterpretation = null, lastCommand = null, errorMessage = null) }
+        _state.update {
+            it.copy(
+                partialText = "",
+                lastInterpretation = null,
+                lastCommand = null,
+                errorMessage = null,
+                consecutiveErrors = 0,
+                pendingAddSetPersistence = false,
+            )
+        }
         continuousEngine.start(scope ?: return)
         updateStage(VoicePipelineStage.LISTENING)
     }
@@ -541,6 +673,7 @@ class WorkoutVoiceController(private val context: Context) {
                 lastCommand = null,
                 errorMessage = null,
                 consecutiveErrors = 0,
+                pendingAddSetPersistence = false,
             )
         }
     }
@@ -551,6 +684,7 @@ class WorkoutVoiceController(private val context: Context) {
     }
 
     fun shutdown() {
+        sessionWanted = false
         cancelAllJobs()
         continuousEngine.stop()
         ttsManager.stop()
@@ -568,4 +702,5 @@ class WorkoutVoiceController(private val context: Context) {
         }
     }
 }
+
 

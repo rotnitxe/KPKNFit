@@ -310,4 +310,38 @@ class MacroCalculatorTest {
         assertEquals(257.0, logged.calories, 1.0)
         assertEquals(47.5, logged.protein, 0.1)
     }
+
+    @Test
+    fun `deriveMacroGoals prefers active plan targets over settings`() {
+        val settings = Settings(dailyCalorieGoal = 2200, dailyProteinGoal = 140)
+        val plan = NutritionPlan(
+            id = "plan1",
+            name = "Cut",
+            calorieTarget = 1800,
+            proteinGoal = 160,
+            carbGoal = 120,
+            fatGoal = 50,
+            isActive = true,
+        )
+        val goals = deriveMacroGoals(settings, plan)
+        assertEquals(1800, goals.calorieGoal)
+        assertEquals(160, goals.proteinGoal)
+        assertEquals(120, goals.carbGoal)
+        assertEquals(50, goals.fatGoal)
+    }
+
+    @Test
+    fun `deriveMacroGoals falls back to settings when plan is null`() {
+        val settings = Settings(
+            dailyCalorieGoal = 2500,
+            dailyProteinGoal = 180,
+            dailyCarbGoal = 280,
+            dailyFatGoal = 75,
+        )
+        val goals = deriveMacroGoals(settings, null)
+        assertEquals(2500, goals.calorieGoal)
+        assertEquals(180, goals.proteinGoal)
+        assertEquals(280, goals.carbGoal)
+        assertEquals(75, goals.fatGoal)
+    }
 }

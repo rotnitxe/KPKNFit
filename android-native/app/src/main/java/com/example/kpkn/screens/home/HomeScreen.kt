@@ -1,26 +1,23 @@
 package com.example.kpkn.screens.home
 
 import androidx.compose.foundation.Image
-import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -32,11 +29,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.R
 import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.Program
@@ -47,18 +42,19 @@ import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.domain.calculations.getCurrentDayOfWeek
 import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.repository.NutritionRepository
-import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.nutrition.NutritionViewModel
+import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
+import com.example.kpkn.ui.theme.AppThemeMode
+import com.example.kpkn.ui.theme.RingBlue
+import com.example.kpkn.ui.theme.RingRed
+import com.example.kpkn.ui.theme.RingYellow
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
-import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
-import com.example.kpkn.ui.theme.AppThemeMode
 import java.time.LocalDate
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,9 +70,13 @@ fun HomeScreen(
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToCard: (String) -> Unit = {},
     onNavigate: (String) -> Unit = {},
-    viewModel: HomeViewModel = viewModel(),
-    nutritionViewModel: NutritionViewModel? = null,
+    viewModel: HomeViewModel = rememberHomeViewModel(),
+    @Suppress("UNUSED_PARAMETER") nutritionViewModel: NutritionViewModel? = null,
 ) {
+    // Theme toggle lives in Settings; params kept for API compatibility with MainActivity.
+    @Suppress("UNUSED_VARIABLE")
+    val unusedTheme = themeMode to onThemeChange
+
     val augeViewModel = rememberAugeViewModel()
     val augePerMuscle by augeViewModel.perMuscle.collectAsState()
     val augeSnapshot by augeViewModel.snapshot.collectAsState()
@@ -86,21 +86,21 @@ fun HomeScreen(
     val columnaProgress = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE) / 100f
     val augeLoading = augeSnapshot.isLoading
     val pendingQuestionnaire by augeViewModel.pendingQuestionnaire.collectAsState()
-    val userName by viewModel.userName.collectAsState()
-    val todaySessions by viewModel.todaySessions.collectAsState()
-    val activeProgramId by viewModel.activeProgramId.collectAsState()
-    val hasActiveProgram by viewModel.hasActiveProgram.collectAsState()
-    val competitionCountdown by viewModel.competitionCountdown.collectAsState()
-    val dailyCalorieGoal by viewModel.dailyCalorieGoal.collectAsState()
-    val todayNutritionTotals by viewModel.todayNutritionTotals.collectAsState()
-    val greeting = viewModel.getGreeting()
+    val uiState by viewModel.uiState.collectAsState()
     val nutritionRepo = remember { NutritionRepository.getInstance() }
-    val foodDatabase by nutritionRepo.foodDatabase.collectAsState()
     var showFoodLogger by remember { mutableStateOf(false) }
-    var selectedMealForLogger by remember { mutableStateOf(MealType.LUNCH) }
-    val overtrainedMuscles by viewModel.overtrainedMuscles.collectAsState()
+    var selectedMealForLogger by remember {
+        mutableStateOf(
+            when (java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)) {
+                in 5..10 -> MealType.BREAKFAST
+                in 11..15 -> MealType.LUNCH
+                in 16..20 -> MealType.DINNER
+                else -> MealType.SNACK
+            }
+        )
+    }
     val context = LocalContext.current
-    LaunchedEffect(activeProgramId) {
+    LaunchedEffect(uiState.activeProgramId) {
         viewModel.loadFeedbacks(context)
     }
 
@@ -110,17 +110,17 @@ fun HomeScreen(
     val hazeState = remember { HazeState() }
     val hazeStyle = remember {
         HazeStyle(
-            blurRadius = 20.dp,
-            tint = HazeTint(Color.Black.copy(alpha = 0.30f)),
-            backgroundColor = Color.Black.copy(alpha = 0.34f),
-            noiseFactor = 0.03f,
+            blurRadius = 8.dp,
+            tint = HazeTint(Color.Black.copy(alpha = 0.35f)),
+            backgroundColor = Color.Black.copy(alpha = 0.55f),
+            noiseFactor = 0f,
         )
     }
 
+    // Stable indices after reorder: 0 header, 1 session, 2 rings, >=3 nutrition+
     val item0TopMarginPx = with(density) { 16.dp.roundToPx() }
     val item1TopMarginPx = with(density) { 4.dp.roundToPx() }
     val item2TopMarginPx = with(density) { 4.dp.roundToPx() }
-    val item3TopMarginPx = with(density) { 8.dp.roundToPx() }
 
     val greetingProgress by remember(item0TopMarginPx) {
         derivedStateOf {
@@ -137,7 +137,7 @@ fun HomeScreen(
         }
     }
 
-    val ringsProgress by remember(item1TopMarginPx) {
+    val sessionProgress by remember(item1TopMarginPx) {
         derivedStateOf {
             val item1 = listState.layoutInfo.visibleItemsInfo.find { it.index == 1 }
             when {
@@ -146,13 +146,13 @@ fun HomeScreen(
                 else -> {
                     val cut = (-item1.offset - item1TopMarginPx).toFloat()
                     val visibleHeight = (item1.size - item1TopMarginPx).toFloat().coerceAtLeast(1f)
-                    (cut / visibleHeight).coerceIn(0f, 1f)
+                    (cut / visibleHeight * 2.0f).coerceIn(0f, 1f)
                 }
             }
         }
     }
 
-    val sessionProgress by remember(item2TopMarginPx) {
+    val ringsProgress by remember(item2TopMarginPx) {
         derivedStateOf {
             val item2 = listState.layoutInfo.visibleItemsInfo.find { it.index == 2 }
             when {
@@ -161,23 +161,18 @@ fun HomeScreen(
                 else -> {
                     val cut = (-item2.offset - item2TopMarginPx).toFloat()
                     val visibleHeight = (item2.size - item2TopMarginPx).toFloat().coerceAtLeast(1f)
-                    (cut / visibleHeight * 2.0f).coerceIn(0f, 1f)
+                    (cut / visibleHeight).coerceIn(0f, 1f)
                 }
             }
         }
     }
 
-    val nutritionProgress by remember(item3TopMarginPx) {
+    val nutritionProgress by remember {
         derivedStateOf {
-            val item3 = listState.layoutInfo.visibleItemsInfo.find { it.index == 3 }
+            val first = listState.firstVisibleItemIndex
             when {
-                item3 == null -> 1f
-                item3.offset > -item3TopMarginPx -> 0f
-                else -> {
-                    val cut = (-item3.offset - item3TopMarginPx).toFloat()
-                    val visibleHeight = (item3.size - item3TopMarginPx).toFloat().coerceAtLeast(1f)
-                    (cut / visibleHeight * 3.0f).coerceIn(0f, 1f)
-                }
+                first < 3 -> 0f
+                else -> 1f
             }
         }
     }
@@ -199,14 +194,14 @@ fun HomeScreen(
                 columnaProgress = columnaProgress,
                 augeLoading = augeLoading,
                 perMuscle = augePerMuscle,
-                todaySessions = todaySessions,
-                competitionCountdown = competitionCountdown,
-                hasActiveProgram = hasActiveProgram,
-                activeProgramId = activeProgramId,
+                todaySessions = uiState.todaySessions,
+                competitionCountdown = uiState.competitionCountdown,
+                hasActiveProgram = uiState.hasActiveProgram,
+                activeProgramId = uiState.activeProgramId,
+                programs = uiState.programs,
                 listState = listState,
-                userName = userName,
-                greeting = greeting,
-                onSettingsClick = onNavigateToSettings,
+                userName = uiState.userName,
+                greeting = uiState.greeting,
                 onStartWorkout = onStartWorkout,
                 onResumeWorkout = onResumeWorkout,
                 onEditSession = onEditSession,
@@ -215,32 +210,30 @@ fun HomeScreen(
                 onNavigateToCard = onNavigateToCard,
                 onNavigate = onNavigate,
                 autoDeloadMessage = augeSnapshot.autoDeloadMessage,
-                overtrainedMuscles = overtrainedMuscles,
+                overtrainedMuscles = uiState.overtrainedMuscles,
                 onAddMeal = { showFoodLogger = true },
                 modifier = Modifier
                     .fillMaxSize()
                     .navigationBarsPadding(),
-                listModifier = Modifier,
             )
         }
 
         HomeTopBar(
             modifier = Modifier.align(Alignment.TopCenter),
-            themeMode = themeMode,
-            onThemeChange = onThemeChange,
-            greeting = greeting,
-            userName = userName,
+            greeting = uiState.greeting,
+            userName = uiState.userName,
             greetingProgress = greetingProgress,
             ringsProgress = ringsProgress,
             sessionProgress = sessionProgress,
             nutritionProgress = nutritionProgress,
-            hasPrograms = hasActiveProgram,
+            hasPrograms = uiState.hasActiveProgram,
             muscularProgress = muscularProgress,
             sncProgress = sncProgress,
             columnaProgress = columnaProgress,
-            todaySessions = todaySessions,
-            dailyCalorieGoal = dailyCalorieGoal,
-            consumedCalories = todayNutritionTotals.calories.toInt(),
+            primarySession = uiState.primarySession,
+            isRestDay = uiState.isRestDay || (uiState.hasActiveProgram && uiState.todaySessions.isEmpty()),
+            dailyCalorieGoal = uiState.dailyCalorieGoal,
+            consumedCalories = uiState.todayNutritionTotals.calories.toInt(),
             onSettingsClick = onNavigateToSettings,
             onStartWorkout = onStartWorkout,
             onCreateProgram = onCreateProgram,
@@ -250,20 +243,13 @@ fun HomeScreen(
             glassStyle = hazeStyle,
         )
 
-        FoodLoggerDrawer(
-            nutritionRepo = nutritionRepo,
-            isOpen = showFoodLogger,
-            onDismiss = { showFoodLogger = false },
-            onSave = { log ->
-                nutritionRepo.addNutritionLog(log)
-                showFoodLogger = false
-            },
-            foodDatabase = foodDatabase,
-            initialDate = LocalDate.now().toString(),
-            initialMealType = selectedMealForLogger,
-            initialDescription = null,
-            initialTab = 0,
-        )
+        if (showFoodLogger) {
+            HomeFoodLoggerHost(
+                nutritionRepo = nutritionRepo,
+                selectedMealForLogger = selectedMealForLogger,
+                onDismiss = { showFoodLogger = false },
+            )
+        }
 
         pendingQuestionnaire?.let { questionnaire ->
             com.example.kpkn.screens.auge.PostSessionSheet(
@@ -279,6 +265,29 @@ fun HomeScreen(
 }
 
 @Composable
+private fun HomeFoodLoggerHost(
+    nutritionRepo: NutritionRepository,
+    selectedMealForLogger: MealType,
+    onDismiss: () -> Unit,
+) {
+    val foodDatabase by nutritionRepo.foodDatabase.collectAsState()
+    FoodLoggerDrawer(
+        nutritionRepo = nutritionRepo,
+        isOpen = true,
+        onDismiss = onDismiss,
+        onSave = { log ->
+            nutritionRepo.addNutritionLog(log)
+            onDismiss()
+        },
+        foodDatabase = foodDatabase,
+        initialDate = LocalDate.now().toString(),
+        initialMealType = selectedMealForLogger,
+        initialDescription = null,
+        initialTab = 0,
+    )
+}
+
+@Composable
 private fun HomeWithProgram(
     viewModel: HomeViewModel,
     muscularProgress: Float,
@@ -290,10 +299,10 @@ private fun HomeWithProgram(
     competitionCountdown: CompetitionCountdown?,
     hasActiveProgram: Boolean,
     activeProgramId: String?,
+    programs: List<Program>,
     listState: androidx.compose.foundation.lazy.LazyListState,
     userName: String,
     greeting: String,
-    onSettingsClick: () -> Unit,
     onStartWorkout: (Session, Program) -> Unit,
     onResumeWorkout: () -> Unit,
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
@@ -302,24 +311,34 @@ private fun HomeWithProgram(
     onNavigateToCard: (String) -> Unit,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
-    listModifier: Modifier = Modifier,
     autoDeloadMessage: String? = null,
     overtrainedMuscles: List<String> = emptyList(),
     onAddMeal: () -> Unit = {},
 ) {
-    val programs by viewModel.programs.collectAsState()
-
     LazyColumn(
         state = listState,
-        modifier = modifier.fillMaxSize().then(listModifier),
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(bottom = 140.dp),
     ) {
-        item {
+        item(key = "header") {
             Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
             Spacer(Modifier.height(100.dp))
             HomeHeaderSection(greeting = greeting, userName = userName)
         }
-        item {
+        item(key = "session") {
+            HomeSessionSection(
+                sessions = todaySessions,
+                hasActiveProgram = hasActiveProgram,
+                currentDayOfWeek = getCurrentDayOfWeek(),
+                perMuscle = perMuscle,
+                onStartWorkout = onStartWorkout,
+                onResumeWorkout = onResumeWorkout,
+                onEditSession = onEditSession,
+                onCreateProgram = onCreateProgram,
+            )
+        }
+        item(key = "rings") {
             HomeRingsSection(
                 muscularProgress = muscularProgress,
                 sncProgress = sncProgress,
@@ -329,64 +348,38 @@ private fun HomeWithProgram(
             )
         }
         if (!autoDeloadMessage.isNullOrBlank()) {
-            item {
-                Surface(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.45f),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text("Auto-deload sugerido", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                        Text(autoDeloadMessage, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
-                    }
-                }
+            item(key = "auto-deload") {
+                AlertActionCard(
+                    title = "Auto-deload sugerido",
+                    body = autoDeloadMessage,
+                    actionLabel = "Ver AUGE",
+                    onAction = { onNavigate("settings/auge") },
+                    emphasize = false,
+                )
             }
         }
         if (overtrainedMuscles.isNotEmpty()) {
-            item {
-                Surface(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.65f),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text("⚠️ Sobreentrenamiento Crónico Detectado", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer)
-                        Text(
-                            text = "El coach detecta fatiga crítica acumulada en: ${overtrainedMuscles.joinToString(", ")}. Considera reducir las series semanales o tomar un descanso activo.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.85f)
-                        )
-                    }
-                }
+            item(key = "overtraining") {
+                AlertActionCard(
+                    title = "Sobreentrenamiento crónico detectado",
+                    body = "Fatiga crítica acumulada en: ${overtrainedMuscles.joinToString(", ")}. Considera reducir series semanales o tomar un descanso activo.",
+                    actionLabel = "Ver recomendaciones",
+                    onAction = { onNavigate("settings/auge") },
+                    emphasize = true,
+                    leadingIcon = true,
+                )
             }
         }
         competitionCountdown?.let { countdown ->
-            item {
+            item(key = "competition") {
                 CompetitionCountdownCard(countdown = countdown, onClick = { onNavigateToProgram(countdown.programId) })
             }
         }
-        item {
-            HomeSessionSection(
-                sessions = todaySessions,
-                hasActiveProgram = hasActiveProgram,
-                currentDayOfWeek = getCurrentDayOfWeek(),
-                perMuscle = perMuscle,
-                onStartWorkout = onStartWorkout,
-                onResumeWorkout = onResumeWorkout,
-                onEditSession = onEditSession,
-            )
-        }
-        item {
+        item(key = "cards") {
             Spacer(Modifier.height(8.dp))
             HomeCardsSection(viewModel = viewModel, onNavigateToCard = onNavigateToCard, onAddMeal = onAddMeal)
         }
-        item {
+        item(key = "programs") {
             Spacer(Modifier.height(8.dp))
             HomeProgramsSection(
                 programs = programs,
@@ -395,10 +388,57 @@ private fun HomeWithProgram(
                 onCreateProgram = onCreateProgram,
             )
         }
-        item {
+        item(key = "wikilab") {
             Spacer(Modifier.height(16.dp))
             HomeWikiLabSection(onNavigate = onNavigate)
-            Spacer(Modifier.height(140.dp))
+        }
+    }
+}
+
+@Composable
+private fun AlertActionCard(
+    title: String,
+    body: String,
+    actionLabel: String,
+    onAction: () -> Unit,
+    emphasize: Boolean,
+    leadingIcon: Boolean = false,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = if (emphasize) 0.65f else 0.45f),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (leadingIcon) {
+                    Icon(
+                        Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                }
+                Text(
+                    title,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                )
+            }
+            Text(
+                text = body,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.85f),
+            )
+            TextButton(onClick = onAction) {
+                Text(actionLabel, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
@@ -441,8 +481,6 @@ private fun CompetitionCountdownCard(countdown: CompetitionCountdown, onClick: (
 @Composable
 private fun HomeTopBar(
     modifier: Modifier = Modifier,
-    themeMode: AppThemeMode,
-    onThemeChange: (AppThemeMode) -> Unit,
     greeting: String,
     userName: String,
     greetingProgress: Float,
@@ -453,7 +491,8 @@ private fun HomeTopBar(
     muscularProgress: Float,
     sncProgress: Float,
     columnaProgress: Float,
-    todaySessions: List<TodaySessionItem>,
+    primarySession: TodaySessionItem?,
+    isRestDay: Boolean,
     dailyCalorieGoal: Int,
     consumedCalories: Int,
     onSettingsClick: () -> Unit,
@@ -499,7 +538,7 @@ private fun HomeTopBar(
                     val boxHeightDp = 24.dp
                     val topBarDensity = LocalDensity.current
                     val boxHeightPx = with(topBarDensity) { boxHeightDp.toPx() }
-                    
+
                     val greetingAlpha: Float
                     val greetingSlide: Float
                     val ringsAlpha: Float
@@ -509,54 +548,85 @@ private fun HomeTopBar(
                     val nutritionAlpha: Float
                     val nutritionSlide: Float
 
+                    // Order after F2: greeting → session → rings → nutrition
                     if (nutritionProgress > 0f) {
                         nutritionAlpha = nutritionProgress
                         nutritionSlide = (1f - nutritionProgress) * boxHeightPx
-                        sessionAlpha = 1f - nutritionProgress
-                        sessionSlide = -nutritionProgress * boxHeightPx
-                        ringsAlpha = 0f
-                        ringsSlide = 0f
+                        ringsAlpha = 1f - nutritionProgress
+                        ringsSlide = -nutritionProgress * boxHeightPx
+                        sessionAlpha = 0f
+                        sessionSlide = 0f
+                        greetingAlpha = 0f
+                        greetingSlide = 0f
+                    } else if (ringsProgress > 0f) {
+                        ringsAlpha = ringsProgress
+                        ringsSlide = (1f - ringsProgress) * boxHeightPx
+                        sessionAlpha = 1f - ringsProgress
+                        sessionSlide = -ringsProgress * boxHeightPx
+                        nutritionAlpha = 0f
+                        nutritionSlide = 0f
                         greetingAlpha = 0f
                         greetingSlide = 0f
                     } else if (sessionProgress > 0f) {
                         sessionAlpha = sessionProgress
                         sessionSlide = (1f - sessionProgress) * boxHeightPx
-                        ringsAlpha = 1f - sessionProgress
-                        ringsSlide = -sessionProgress * boxHeightPx
-                        nutritionAlpha = 0f
-                        nutritionSlide = 0f
-                        greetingAlpha = 0f
-                        greetingSlide = 0f
-                    } else if (ringsProgress > 0f) {
-                        greetingAlpha = 1f - ringsProgress
-                        greetingSlide = -ringsProgress * boxHeightPx
-                        ringsAlpha = ringsProgress
-                        ringsSlide = (1f - ringsProgress) * boxHeightPx
-                        sessionAlpha = 0f
-                        sessionSlide = 0f
+                        greetingAlpha = 1f - sessionProgress
+                        greetingSlide = -sessionProgress * boxHeightPx
+                        ringsAlpha = 0f
+                        ringsSlide = 0f
                         nutritionAlpha = 0f
                         nutritionSlide = 0f
                     } else {
-                        greetingAlpha = greetingProgress
-                        greetingSlide = (1f - greetingProgress) * boxHeightPx
+                        greetingAlpha = 1f - greetingProgress
+                        greetingSlide = greetingProgress * boxHeightPx
+                        sessionAlpha = greetingProgress
+                        sessionSlide = (greetingProgress - 1f) * boxHeightPx
                         ringsAlpha = 0f
                         ringsSlide = 0f
-                        sessionAlpha = 0f
-                        sessionSlide = 0f
                         nutritionAlpha = 0f
                         nutritionSlide = 0f
                     }
 
                     Box(modifier = Modifier.height(48.dp).weight(1f), contentAlignment = Alignment.TopStart) {
-                        Text("$greeting, $userName!", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.graphicsLayer { alpha = greetingAlpha; translationY = greetingSlide })
-                        MiniRingsWidget(muscularProgress = muscularProgress, sncProgress = sncProgress, columnaProgress = columnaProgress, hasActiveProgram = hasPrograms, modifier = Modifier.graphicsLayer { alpha = ringsAlpha; translationY = ringsSlide })
-                        MiniSessionCard(hasPrograms = hasPrograms, todaySessions = todaySessions, onStartWorkout = onStartWorkout, onCreateProgram = onCreateProgram, modifier = Modifier.graphicsLayer { alpha = sessionAlpha; translationY = sessionSlide })
-                        MiniNutritionCard(dailyCalorieGoal = dailyCalorieGoal, consumedCalories = consumedCalories, onAddMeal = onAddMeal, modifier = Modifier.graphicsLayer { alpha = nutritionAlpha; translationY = nutritionSlide })
+                        Text(
+                            "$greeting, $userName!",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            fontSize = 16.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.graphicsLayer { alpha = greetingAlpha; translationY = greetingSlide },
+                        )
+                        MiniSessionCard(
+                            hasPrograms = hasPrograms,
+                            primarySession = primarySession,
+                            isRestDay = isRestDay,
+                            onStartWorkout = onStartWorkout,
+                            onCreateProgram = onCreateProgram,
+                            modifier = Modifier.graphicsLayer { alpha = sessionAlpha; translationY = sessionSlide },
+                        )
+                        MiniRingsWidget(
+                            muscularProgress = muscularProgress,
+                            sncProgress = sncProgress,
+                            columnaProgress = columnaProgress,
+                            hasActiveProgram = hasPrograms,
+                            modifier = Modifier.graphicsLayer { alpha = ringsAlpha; translationY = ringsSlide },
+                        )
+                        MiniNutritionCard(
+                            dailyCalorieGoal = dailyCalorieGoal,
+                            consumedCalories = consumedCalories,
+                            onAddMeal = onAddMeal,
+                            modifier = Modifier.graphicsLayer { alpha = nutritionAlpha; translationY = nutritionSlide },
+                        )
                     }
                 }
                 Row {
-                    IconButton(onClick = onNavigateToProfile) { Icon(Icons.Default.Person, contentDescription = "Perfil", modifier = Modifier.size(22.dp), tint = MaterialTheme.colorScheme.onSurface) }
-                    IconButton(onClick = onSettingsClick) { Icon(Icons.Default.Settings, contentDescription = "Ajustes", modifier = Modifier.size(22.dp), tint = MaterialTheme.colorScheme.onSurface) }
+                    IconButton(onClick = onNavigateToProfile) {
+                        Icon(Icons.Default.Person, contentDescription = "Perfil", modifier = Modifier.size(22.dp), tint = MaterialTheme.colorScheme.onSurface)
+                    }
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(Icons.Default.Settings, contentDescription = "Ajustes", modifier = Modifier.size(22.dp), tint = MaterialTheme.colorScheme.onSurface)
+                    }
                 }
             }
         }
@@ -564,48 +634,152 @@ private fun HomeTopBar(
 }
 
 @Composable
-private fun MiniRingsWidget(muscularProgress: Float, sncProgress: Float, columnaProgress: Float, modifier: Modifier = Modifier, hasActiveProgram: Boolean = true) {
-    val ringColors = if (hasActiveProgram) listOf(Color(0xFFFF5252), Color(0xFF448AFF), Color(0xFFFFD740)) else listOf(Color(0xFF666666), Color(0xFF888888), Color(0xFFAAAAAA))
+private fun MiniRingsWidget(
+    muscularProgress: Float,
+    sncProgress: Float,
+    columnaProgress: Float,
+    modifier: Modifier = Modifier,
+    hasActiveProgram: Boolean = true,
+) {
+    val ringColors = if (hasActiveProgram) {
+        listOf(RingRed, RingBlue, RingYellow)
+    } else {
+        listOf(Color(0xFF666666), Color(0xFF888888), Color(0xFFAAAAAA))
+    }
     val progressValues = listOf(muscularProgress, sncProgress, columnaProgress)
     Canvas(modifier = modifier.fillMaxWidth().height(38.dp)) {
-        val r = size.height * 0.38f; val strokeW = r * 0.28f; val gap = r * 0.35f; val diameter = r * 2f; val spacing = diameter - gap
-        val totalWidth = diameter + spacing * 2; val startX = (size.width - totalWidth) / 2f + r; val cy = size.height / 2f
-        val centers = listOf(Offset(startX, cy), Offset(startX + spacing, cy), Offset(startX + spacing * 2, cy))
+        val r = size.height * 0.38f
+        val strokeW = r * 0.28f
+        val gap = r * 0.35f
+        val diameter = r * 2f
+        val spacing = diameter - gap
+        val totalWidth = diameter + spacing * 2
+        val startX = (size.width - totalWidth) / 2f + r
+        val cy = size.height / 2f
+        val centers = listOf(
+            Offset(startX, cy),
+            Offset(startX + spacing, cy),
+            Offset(startX + spacing * 2, cy),
+        )
         for (i in centers.indices) {
-            val c = centers[i]; val color = ringColors[i]; val progress = progressValues[i]
+            val c = centers[i]
+            val color = ringColors[i]
+            val progress = progressValues[i]
             drawCircle(color.copy(alpha = 0.15f), r, c, style = Stroke(strokeW))
-            drawArc(color, -90f, 360f * progress, false, Offset(c.x - r, c.y - r), Size(r * 2f, r * 2f), style = Stroke(strokeW))
+            drawArc(
+                color,
+                -90f,
+                360f * progress,
+                false,
+                Offset(c.x - r, c.y - r),
+                Size(r * 2f, r * 2f),
+                style = Stroke(strokeW),
+            )
         }
     }
 }
 
 @Composable
-private fun MiniSessionCard(hasPrograms: Boolean, todaySessions: List<TodaySessionItem>, onStartWorkout: (Session, Program) -> Unit, onCreateProgram: () -> Unit, modifier: Modifier = Modifier) {
-    Row(modifier = modifier.fillMaxWidth().height(44.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+private fun MiniSessionCard(
+    hasPrograms: Boolean,
+    primarySession: TodaySessionItem?,
+    isRestDay: Boolean,
+    onStartWorkout: (Session, Program) -> Unit,
+    onCreateProgram: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth().height(44.dp).padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
         if (!hasPrograms) {
-            Button(onClick = onCreateProgram, modifier = Modifier.weight(1f).height(36.dp), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), shape = RoundedCornerShape(8.dp)) { Text("Crear programa", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1) }
-        } else if (todaySessions.isEmpty()) {
-            Text("Día de descanso", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), maxLines = 1)
+            Button(
+                onClick = onCreateProgram,
+                modifier = Modifier.weight(1f).height(36.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(8.dp),
+            ) {
+                Text("Crear programa", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1)
+            }
+        } else if (isRestDay || primarySession == null) {
+            Text(
+                "Día de descanso",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                maxLines = 1,
+            )
         } else {
-            val session = todaySessions.first(); Text(session.session.name, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, fontSize = 13.sp, maxLines = 1, modifier = Modifier.weight(1f))
-            IconButton(onClick = { onStartWorkout(session.session, session.program) }, modifier = Modifier.size(32.dp)) { Icon(Icons.Filled.PlayArrow, "Iniciar", modifier = Modifier.size(18.dp)) }
+            Text(
+                primarySession.session.name,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                maxLines = 1,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(
+                onClick = { onStartWorkout(primarySession.session, primarySession.program) },
+                modifier = Modifier.size(48.dp),
+            ) {
+                Icon(Icons.Filled.PlayArrow, "Iniciar", modifier = Modifier.size(18.dp))
+            }
         }
     }
 }
 
 @Composable
-private fun MiniNutritionCard(dailyCalorieGoal: Int, consumedCalories: Int, onAddMeal: () -> Unit, modifier: Modifier = Modifier) {
-    val pct = if (dailyCalorieGoal > 0) (consumedCalories.toFloat() / dailyCalorieGoal.toFloat()).coerceIn(0f, 1.5f) else 0f
-    val progressColor = when { pct < 0.9f -> MaterialTheme.colorScheme.tertiary; pct <= 1.1f -> MaterialTheme.colorScheme.primary; else -> MaterialTheme.colorScheme.error }
-    Row(modifier = modifier.fillMaxWidth().height(44.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+private fun MiniNutritionCard(
+    dailyCalorieGoal: Int,
+    consumedCalories: Int,
+    onAddMeal: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val pct = if (dailyCalorieGoal > 0) {
+        (consumedCalories.toFloat() / dailyCalorieGoal.toFloat()).coerceIn(0f, 1.5f)
+    } else {
+        0f
+    }
+    val progressColor = when {
+        pct < 0.9f -> MaterialTheme.colorScheme.tertiary
+        pct <= 1.1f -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.error
+    }
+    Row(
+        modifier = modifier.fillMaxWidth().height(44.dp).padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
         Column(Modifier.weight(1f)) {
-            Text("Calorías", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+            Text(
+                "Calorías",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(consumedCalories.toString(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, fontSize = 15.sp)
-                Spacer(Modifier.width(2.dp)); Text("/ $dailyCalorieGoal", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                Spacer(Modifier.width(2.dp))
+                Text(
+                    "/ $dailyCalorieGoal",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                )
             }
-            LinearProgressIndicator(progress = { pct.coerceAtMost(1f) }, modifier = Modifier.padding(top = 2.dp, end = 8.dp).fillMaxWidth().height(3.dp).clip(RoundedCornerShape(50)), color = progressColor, trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            LinearProgressIndicator(
+                progress = { pct.coerceAtMost(1f) },
+                modifier = Modifier.padding(top = 2.dp, end = 8.dp).fillMaxWidth().height(3.dp).clip(RoundedCornerShape(50)),
+                color = progressColor,
+                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+            )
         }
-        IconButton(onClick = onAddMeal, modifier = Modifier.size(32.dp)) { Icon(Icons.Default.Add, "Agregar", modifier = Modifier.size(18.dp)) }
+        IconButton(onClick = onAddMeal, modifier = Modifier.size(48.dp)) {
+            Icon(Icons.Default.Add, "Agregar", modifier = Modifier.size(18.dp))
+        }
     }
 }

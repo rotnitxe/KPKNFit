@@ -1,150 +1,159 @@
-# INFORME FINAL DE AUDITORÍA MAESTRA
+# Sesión de Entrenamiento por Voz — Documentación actual
 
-## Sesión de Entrenamiento por Voz — Implementación Completa
-
----
-
-## 1. Contexto para la siguiente IA
-
-Esta implementación agrega control por voz completo a la sesión de entrenamiento de KPKN Fit (Android/Kotlin). El usuario usa audífonos Bluetooth sin botón accesible. La interacción es: wake word → comando dictado → TTS confirma → set registrado → auto-avance. La música del usuario se atenúa durante comandos (audio ducking) y se restaura al terminar.
-
-**Tecnologías**: Porcupine (wake word offline), Android SpeechRecognizer (comandos), Android TextToSpeech (feedback), AudioManager (ducking).
+> **Estado:** post-Porcupine (2026). Sin Picovoice, sin wake word, sin API keys.
+> Documento hermano más corto: [`Informe-Voz-Sesion.md`](Informe-Voz-Sesion.md).
 
 ---
 
-## 2. Archivos creados (10)
+## 1. Contexto
 
-| # | Archivo | Ruta | Propósito |
-|---|---------|------|-----------|
-| 1 | `libs.versions.toml` | `gradle/` | Versión `porcupine = "3.0.3"` |
-| 2 | `build.gradle.kts` | `app/` | Dependencia `libs.porcupine.android` |
-| 3 | `WorkoutVoiceSessionState.kt` | `services/workout/` | State machine (`VoicePipelineStage`) + data classes (`VoiceSessionState`, `VoiceSessionCommand`) |
-| 4 | `WorkoutWakeWordEngine.kt` | `services/workout/` | Interfaz `IWakeWordEngine` + `WakeWordEngineFactory` |
-| 5 | `PorcupineWakeWordEngine.kt` | `services/workout/` | Wake word con Porcupine (AudioRecord + keyword "Americano") |
-| 6 | `SpeechWakeWordEngine.kt` | `services/workout/` | Fallback: wake word con SpeechRecognizer continuo escaneando parciales |
-| 7 | `WorkoutVoiceCommandParser.kt` | `services/workout/` | NLP extendido: 10 tipos de comandos en español (RegisterSet, Confirm, Cancel, Skip, etc.) |
-| 8 | `WorkoutTtsManager.kt` | `services/workout/` | TextToSpeech con frases predefinidas español (carga sugerida, confirmación, estado descanso) |
-| 9 | `WorkoutVoiceController.kt` | `services/workout/` | Orquestador central: state machine WAKE_WORD→COMMAND→PROCESSING→CONFIRM_WAIT→WAKE_WORD |
-| 10 | `WorkoutVoicePermissionHelper.kt` | `services/workout/` | Verificación de permisos (mic, SpeechRecognizer, TTS) |
-| 11 | `WorkoutVoiceUi.kt` | `screens/workout/` | Componentes Compose: `WorkoutVoiceFab` (FAB con pulso) + `WorkoutVoiceStatusBar` |
+Control por voz continuo en la sesión live de KPKN Fit (Android/Kotlin). El usuario activa el mic con el miniFAB, dicta series (peso × reps, RPE/RIR, lado unilateral), confirma con “sí/no”, y puede seguir dictando con la app en background gracias a un FGS tipo `microphone`.
 
-## 3. Archivos modificados (4)
-
-| # | Archivo | Cambios |
-|---|---------|---------|
-| 1 | `SystemAudioHelper.kt` | Método `requestTransientDuckForVoice()` con `USAGE_VOICE_COMMUNICATION` |
-| 2 | `VoiceNutritionRecognizer.kt` | `pickBestTranscription()` prioriza palabras de gym sobre comida (`GYM_SIGNAL_WORDS`) |
-| 3 | `WorkoutViewModel.kt` | Integración completa: `voiceController`, `toggleVoiceSession()`, `enableVoice()`, `disableVoice()`, `handleVoiceCommand()`, `handleVoiceRegisterSet()`, `handleVoiceConfirmSet()`, `handleVoiceSuggestWeight()`, `handleVoiceRestStatus()`, `handleVoiceWhatExercise()`, `handleVoiceSkipExercise()`, `handleVoicePreviousExercise()`, `handleVoiceNextExercise()`, `handleVoiceCancelSet()`. Provider de contexto de ejercicio. Cleanup en `onCleared()`. |
-| 4 | `WorkoutScreen.kt` | `WorkoutVoiceFab` + `WorkoutVoiceStatusBar` integrados en el Scaffold |
+**Stack:** `SpeechRecognizer` nativo + `TextToSpeech` + `AudioManager` (ducking). Cero dependencias externas de voz.
 
 ---
 
-## 4. State machine de voz
+## 2. Arquitectura
 
 ```
-DISABLED ──[toggle ON]──▶ WAKE_WORD
-                           │ Porcupine activo (AudioRecord)
-                           │ SIN ducking (música normal)
-                           │
-              [detecta wake word] ──▶ COMMAND
-                           │            Ducking ON
-                           │            SpeechRecognizer (8s timeout)
-                           │
-                    [recibe comando] ──▶ PROCESSING → parseCommand()
-                           │                 │
-                           │         ┌───────┴──────────┐
-                           │   [RegisterSet]     [Confirm/Cancel/Skip/etc]
-                           │         │                  │
-                           │    CONFIRM_WAIT       Ejecuta → TTS responde
-                           │    TTS lee datos      Ducking OFF → WAKE_WORD
-                           │    5s timeout = auto
-                           │
-                           └── Ducking OFF → WAKE_WORD
+WorkoutCommandDock (miniFAB mic)
+  → WorkoutViewModel.toggleVoiceSession / enableVoice
+    → WorkoutVoiceCommandHandler
+      → WorkoutVoiceController
+          ├─ WorkoutContinuousVoiceEngine  (ciclos SpeechRecognizer)
+          ├─ WorkoutTtsManager             (TTS es-CL / es-ES)
+          ├─ SystemAudioHelper             (ducking)
+          └─ WorkoutVoiceCommandParser     (NLP ES)
+      → WorkoutVoiceForegroundService      (FGS microphone mientras enabled)
 ```
+
+### State machine
+
+```
+DISABLED ──[miniFAB ON]──▶ LISTENING ──[frase]──▶ PROCESSING ──[parse]──▶ …
+                              ▲                                            │
+                              │                                     RegisterSet → TTS_SPEAKING
+                              │                                            │
+                              │                                     CONFIRM_WAIT (sí/no)
+                              │                                     timeout 5s = CANCELA
+                              │                                            │
+                              └──────────── TTS_SPEAKING ←─────────────────┘
+                                              (serie registrada / cancelada)
+
+Errores del engine → ERROR_RECOVERY → retry acotado → LISTENING
+```
+
+**Importante:** `ttsManager.onReady` **no** puede forzar `DISABLED` si la sesión ya está activa (`sessionWanted` + `WorkoutVoiceSessionGate`). Eso evitaba el bug “modo voz sordo”.
 
 ---
 
-## 5. Comandos de voz soportados
+## 3. Archivos clave (rutas bajo `app/src/main/java/com/example/kpkn/`)
+
+| Archivo | Rol |
+|---------|-----|
+| `services/workout/WorkoutVoiceController.kt` | Orquestador + `sessionWanted` |
+| `services/workout/WorkoutVoiceSessionGate.kt` | Reglas puras de transición (testables) |
+| `services/workout/WorkoutContinuousVoiceEngine.kt` | Mic continuo, partials, prefer offline |
+| `services/workout/WorkoutVoiceCommandParser.kt` | Comandos ES |
+| `services/workout/WorkoutVoiceSessionState.kt` | Stages + `VoiceSessionCommand` |
+| `services/workout/WorkoutTtsManager.kt` | TTS |
+| `services/workout/WorkoutVoiceForegroundService.kt` | FGS `microphone` + notificación |
+| `services/workout/WorkoutVoicePermissionHelper.kt` | Capacidad mic / recognizer / TTS |
+| `screens/workout/WorkoutVoiceCommandHandler.kt` | Toggle, enable, comandos → VM ports |
+| `screens/workout/components/WorkoutCommandDock.kt` | MiniFAB 48dp + FAB check + chip de estado |
+| `screens/workout/WorkoutScreen.kt` | Permiso `RECORD_AUDIO` + Lifecycle pause/resume |
+
+### Eliminado (no volver a documentar como vigente)
+
+- Porcupine / `PorcupineWakeWordEngine` / `SpeechWakeWordEngine` / `WorkoutWakeWordEngine`
+- `WorkoutVoiceUi.kt` (`WorkoutVoiceFab` / `WorkoutVoiceStatusBar` huérfanos)
+- Auto-confirmación por timeout (ahora el timeout **cancela**)
+
+---
+
+## 4. UI
+
+- **MiniFAB mic (48dp)** arriba-izquierda del **FAB guardar (56dp)** en `WorkoutCommandDock`.
+- Chip de estado visible mientras `voiceSessionEnabled` (escuchando, confirmación, error, etc.).
+- `contentDescription`: “Activar/Desactivar control por voz”.
+
+---
+
+## 5. Comandos soportados
 
 | Comando | Ejemplo | Acción |
 |---------|---------|--------|
-| Registrar serie | "ochenta kilos por ocho reps RPE siete" | Rellena datos, TTS confirma, espera "confirmar" |
-| Confirmar | "confirmar", "sí", "dale" | Registra serie, auto-avanza |
-| Cancelar | "cancelar", "no", "corregir" | Descarta, vuelve a escuchar comando |
-| Saltar ejercicio | "saltar", "siguiente" | Omite ejercicio actual, avanza |
-| Ejercicio anterior | "anterior", "volver" | Retrocede al ejercicio previo |
-| Peso sugerido | "cuánto peso", "carga" | TTS anuncia peso sugerido |
-| Descanso restante | "cuánto falta", "timer" | TTS anuncia tiempo restante |
-| Qué ejercicio | "qué toca", "qué ejercicio" | TTS anuncia ejercicio actual |
-| Próximo ejercicio | "qué sigue" | TTS anuncia siguiente ejercicio |
-| Apagar voz | "apagar voz", "silencio" | Desactiva modo voz |
+| Registrar serie | “80 por 8 RPE 7”, “ochenta kilos por ocho derecha” | Parse → TTS → confirmar sí/no |
+| Confirmar / Cancelar | “sí”, “dale” / “no”, “cancelar” | Registra o descarta |
+| Serie extra | “añade una serie”, “serie extra” | Añade set live → “¿solo sesión o para siempre?” |
+| Persistencia AddSet | “solo esta sesión” / “para siempre” | `SESSION_ONLY` o `PERMANENT` |
+| Saltar set / ejercicio | “saltar serie”, “saltar” | Omite |
+| Anterior | “anterior”, “volver” | Retrocede |
+| Peso sugerido | “cuánto peso”, “carga” | TTS |
+| Descanso | “cuánto falta”, “timer” | TTS |
+| Qué / próximo ejercicio | “qué toca”, “qué sigue” | TTS |
+| Apagar | “apagar voz”, “silencio” | Desactiva + para FGS |
+| Finalizar / cancelar sesión | “finalizar entrenamiento”, “cancelar sesión” | Fin o descarte |
+
+Unilateral y supersets: el provider anuncia lado / ronda; el parser acepta lado en el dictado de serie.
 
 ---
 
-## 6. Requisitos para compilar
+## 6. Hands-free (background)
 
-1. **Porcupine API Key**: Registrar en https://console.picovoice.ai (gratis). Agregar al `AndroidManifest.xml`:
-```xml
-<meta-data android:name="PICOVOICE_ACCESS_KEY" android:value="TU_KEY_AQUI" />
+1. Permisos: `RECORD_AUDIO`, `FOREGROUND_SERVICE_MICROPHONE`.
+2. Al `enableVoice()` → `WorkoutVoiceForegroundService.start()` (notificación “Control por voz activo”).
+3. Al `disableVoice()` / `onCleared` → stop FGS.
+4. Lifecycle en `WorkoutScreen`: `ON_PAUSE` / `ON_RESUME` **no apagan** la sesión; en resume se reintenta si quedó en `ERROR_RECOVERY`.
+
+---
+
+## 7. Cómo probar
+
+1. Compilar e instalar flavor `base` debug.
+2. Iniciar sesión de entrenamiento.
+3. Conceder micrófono al tocar el miniFAB (icono mic junto al check).
+4. Verificar chip “Escuchando comandos de voz…”.
+5. Dictar: “ochenta por ocho” → TTS pide confirmación → “sí”.
+6. (Opcional) Salir a home con voz ON → dictar otra serie → volver y verificar registro.
+7. Dictar “añade una serie” → “solo esta sesión” o “para siempre”.
+
+---
+
+## 8. Tests unitarios relevantes
+
+- `WorkoutVoiceSessionGateTest` — race TTS / enable / accept result
+- `WorkoutVoiceAddSetParserTest` — AddSet + persistencia
+- `WorkoutVoiceConfirmWaitParserTest` — sí/no / corrección
+- `WorkoutVoiceUtteranceGuardTest` — gate TTS + timeout
+- `WorkoutVoiceInputTest` — parse peso/reps/RPE/lado
+
+```bash
+cd android-native
+./gradlew :app:testBaseDebugUnitTest --tests "com.example.kpkn.services.workout.WorkoutVoice*"
 ```
-Sin key, Porcupine falla silenciosamente y usa `SpeechWakeWordEngine` (fallback).
-
-2. **Modelo custom "Hola KPKN"** (opcional): Entrenar en Picovoice Console, colocar `.ppn` en `app/src/main/assets/wakewords/`. Actualmente usa built-in "Americano" como keyword por defecto.
-
-3. **Permiso `RECORD_AUDIO`**: Ya está en el manifest. El usuario debe concederlo al activar voz por primera vez.
 
 ---
 
-## 7. Problemas conocidos y limitaciones
+## 9. Limitaciones conocidas
 
-| Severidad | Problema | Mitigación |
-|-----------|----------|------------|
-| Media | SpeechRecognizer sin internet puede fallar en algunos dispositivos | Modo offline depende del dispositivo. TTS anuncia "Usa la pantalla" tras 3 errores |
-| Media | Ruido extremo de gimnasio degrada reconocimiento de comandos | Wake word (Porcupine) es robusto. Comandos pueden requerir repetición |
-| Baja | `Thread.sleep(100)` en `WorkoutVoicePermissionHelper` para detectar TTS | No bloquea UI (se llama desde corrutina). Funciona en 99% de casos |
-| Baja | `PorcupineWakeWordEngine.canInitialize()` accede a `Porcupine` como verificación de clase | Si la dependencia no está en classpath, `NoClassDefFoundError` es capturado por `Throwable` |
-| Baja | FAB de voz y FAB de completar serie pueden solaparse en pantallas pequeñas | El FAB de voz está 60dp más arriba. En pantallas muy pequeñas (<5") puede haber overlap |
-
----
-
-## 8. Lo que NO está implementado (para futura iteración)
-
-1. **Rest timer TTS al completarse**: El controller tiene el método `onRestTimerFinished()` pero no está enganchado al `WorkoutRestAlertManager.onAlarmFromReceiver()`. El ViewModel necesitaría llamar `voiceController.onRestTimerFinished(...)` cuando el timer llega a 0.
-
-2. **Wake word custom "Hola KPKN"**: Requiere entrenar modelo en Picovoice Console y embeber el `.ppn`. Actualmente usa "Americano" (built-in).
-
-3. **Ajuste de sensibilidad de wake word**: Porcupine acepta parámetro de sensibilidad (0.0-1.0). No expuesto al usuario.
-
-4. **Configuración de voz en Settings**: No hay pantalla de settings para elegir wake word, velocidad TTS, o activar/desactivar TTS.
-
-5. **Idioma inglés**: Todo el NLP y TTS está en español. Agregar inglés requeriría duplicar diccionarios de palabras clave.
+| Severidad | Problema | Notas |
+|-----------|----------|-------|
+| Media | Ruido de gimnasio degrada ASR | Prefer offline + reintentos; puede requerir repetir |
+| Media | OEMs pueden limitar mic en background pese al FGS | Validar en Android 14+ del dispositivo real |
+| Baja | Sin wake word | Activación solo por miniFAB (o “apagar voz” por voz) |
+| Baja | Dialog táctil de persistencia puede coexistir con prompt de voz al añadir serie | Ambos resuelven el mismo `PendingStructuralChange` |
+| Baja | NLP / TTS solo español | Inglés no soportado |
 
 ---
 
-## 9. Checklist de verificación para compilación
+## 10. Checklist de verificación (actual)
 
-- [x] `libs.versions.toml` tiene `porcupine = "3.0.3"` y entrada `porcupine-android`
-- [x] `app/build.gradle.kts` tiene `implementation(libs.porcupine.android)`
-- [x] `SystemAudioHelper` tiene `requestTransientDuckForVoice()` público
-- [x] `VoiceNutritionRecognizer` tiene `GYM_SIGNAL_WORDS` en companion object
-- [x] Todos los archivos nuevos compilan sin referencias circulares
-- [x] `WorkoutViewModel` importa `VoicePipelineStage`, `VoiceSessionState`, `VoiceSessionCommand`, `WorkoutVoiceController`
-- [x] `WorkoutVoiceController` NO importa `workoutSetKey` (internal de otro paquete) — **corregido**
-- [x] `SpeechWakeWordEngine.isActive` retorna `active` (no la lógica invertida) — **corregido**
-- [x] `handleCommandError` invoca `onError?.invoke(message)` — **corregido**
-- [x] `exerciseInfoProvider` está como `var` público y es asignado por ViewModel — **corregido**
-- [x] `handleVoiceRegisterSet` llama `nextSet()` después de `recordSetV2` — **corregido**
-- [ ] `ICONO_PORCUPINE_API_KEY` en `AndroidManifest.xml` — **PENDIENTE: requiere acción manual del desarrollador**
-
----
-
-## 10. Cómo probar
-
-1. `git clone` + abrir en Android Studio
-2. Agregar Picovoice API Key al `AndroidManifest.xml`
-3. Ejecutar en dispositivo con Android 8+ y micrófono
-4. Iniciar una sesión de entrenamiento
-5. Tocar FAB de micrófono (abajo derecha, arriba del check verde)
-6. Decir "Americana" (o la wake word configurada)
-7. Decir un comando, ej: "ochenta kilos por ocho"
-8. Verificar que TTS responde y el set se registra
+- [x] Sin dependencia Porcupine / Picovoice
+- [x] MiniFAB en `WorkoutCommandDock` (no FAB flotante separado)
+- [x] `sessionWanted` + gate anti-race TTS→DISABLED
+- [x] Timeout CONFIRM_WAIT cancela (no auto-confirma)
+- [x] FGS `microphone` + permiso en manifest
+- [x] Lifecycle no desactiva voz al background
+- [x] Comandos AddSet sesión/permanente
+- [x] `WorkoutVoicePermissionHelper` usado en `enableVoice()`

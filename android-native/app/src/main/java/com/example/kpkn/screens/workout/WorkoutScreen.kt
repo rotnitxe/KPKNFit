@@ -60,6 +60,9 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.core.graphics.toColorInt
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -276,6 +279,19 @@ fun WorkoutScreen(
         if (uiState.isComplete) {
             onComplete()
         }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> viewModel.onVoiceHostPaused()
+                Lifecycle.Event.ON_RESUME -> viewModel.onVoiceHostResumed()
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     if (session == null) {

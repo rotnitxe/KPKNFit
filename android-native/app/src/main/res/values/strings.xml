@@ -196,6 +196,10 @@
     <string name="notif_rest_action_skip">Saltar descanso</string>
     <string name="notif_rest_default_session">Entrenamiento</string>
     <string name="notif_rest_default_exercise">Siguiente serie</string>
+    <string name="notif_channel_voice_ongoing_name">Control por voz</string>
+    <string name="notif_channel_voice_ongoing_desc">Sesión de entrenamiento con micrófono activo</string>
+    <string name="notif_voice_ongoing_title">Control por voz activo</string>
+    <string name="notif_voice_ongoing_body">Di series, repeticiones e intensidad sin abrir la app</string>
 
      <string name="notif_channel_ai_inference_name">Procesamiento de IA</string>
      <string name="notif_channel_ai_inference_desc">Notificación temporal mientras Caupo AI procesa una solicitud</string>
