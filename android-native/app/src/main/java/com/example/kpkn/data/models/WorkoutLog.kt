@@ -142,6 +142,8 @@ data class PostExerciseFeedback(
     val notes: String? = null,
     val perceivedIntensityRpe: Double? = null,
     val perceivedFailure: Boolean = false,
+    /** Discomforts the athlete marked as still present (linked/previous). */
+    val stillPresentDiscomfortIds: List<String> = emptyList(),
 )
 
 @Serializable

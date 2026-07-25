@@ -15,6 +15,9 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.repository.ProgramRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -36,7 +39,7 @@ class SessionEditorViewModelCatalogTest {
     private lateinit var repository: ProgramRepository
 
     @Before
-    fun setup() {
+    fun setup() = runBlocking {
         Dispatchers.setMain(dispatcher)
         val context = ApplicationProvider.getApplicationContext<Context>()
         ProgramRepository.init(context)
@@ -44,6 +47,11 @@ class SessionEditorViewModelCatalogTest {
         repository.clearPrograms()
         repository.clearActiveProgram()
         repository.clearOngoingWorkout()
+        withTimeout(10_000) {
+            while (!repository.isReady.value) {
+                delay(25)
+            }
+        }
     }
 
     @After
@@ -52,7 +60,7 @@ class SessionEditorViewModelCatalogTest {
     }
 
     @Test
-    fun strengthCatalogExerciseDefaultsToRepsWithoutPercentRm() {
+    fun strengthCatalogExerciseDefaultsToRepsWithoutPercentRm() = runBlocking {
         val programId = "program-catalog-reps"
         val sessionId = "session-catalog-reps"
         repository.addProgram(
@@ -97,6 +105,12 @@ class SessionEditorViewModelCatalogTest {
             draftMesoIndex = 0,
             draftDayOfWeek = null,
         )
+        withTimeout(5_000) {
+            while (vm.uiState.value.session == null) {
+                vm.retryLoadSession()
+                delay(50)
+            }
+        }
 
         vm.addExerciseToPart(
             partId = null,

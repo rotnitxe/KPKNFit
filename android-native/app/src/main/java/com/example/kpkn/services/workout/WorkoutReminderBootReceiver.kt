@@ -43,8 +43,8 @@ class WorkoutReminderBootReceiver : BroadcastReceiver() {
                 } else {
                     reminderManager.cancelSleepReminder()
                 }
-            } catch (e: Exception) {
-                Log.e("WorkoutReminderBoot", "Failed to restore reminders after boot", e)
+            } catch (t: Throwable) {
+                Log.e("WorkoutReminderBoot", "Failed to restore reminders after boot", t)
             } finally {
                 pendingResult.finish()
             }

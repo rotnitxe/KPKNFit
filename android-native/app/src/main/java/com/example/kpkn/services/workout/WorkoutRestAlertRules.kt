@@ -12,6 +12,11 @@ internal data class WorkoutRestToneStep(
     val pauseAfterMs: Long = 0L,
 )
 
+internal fun shouldDeliverInAppRestCompletion(
+    activeTimerId: String?,
+    expectedTimerId: String?,
+): Boolean = activeTimerId != null && expectedTimerId != null && activeTimerId == expectedTimerId
+
 internal fun shouldScheduleWorkoutRestPrealert(
     durationSeconds: Int,
     leadSeconds: Int = WORKOUT_REST_PREALERT_LEAD_SECONDS,

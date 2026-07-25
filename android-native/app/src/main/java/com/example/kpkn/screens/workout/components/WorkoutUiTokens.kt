@@ -35,6 +35,9 @@ object WorkoutUiTokens {
     val SectionGap = 12.dp
     val FieldGap = 8.dp
     val TouchTargetMinSize = 48.dp
+    /** Minimum readable label size for gym/distance UI. */
+    val MinLabelSp = 11.sp
+    val MinTouchTarget = 40.dp
 
     // Semántica de Colores Material 3
     @Composable
@@ -54,6 +57,19 @@ object WorkoutUiTokens {
 
     @Composable
     fun warningColor(): Color = Color(0xFFFFD740) // Material Amber A200
+
+    @Composable
+    fun dangerColor(): Color = Color(0xFFFF5252)
+
+    @Composable
+    fun infoBlue(): Color = Color(0xFF448AFF)
+
+    /** Readiness / recovery score → green / amber / red. */
+    fun readinessColor(score: Int): Color = when {
+        score >= 75 -> Color(0xFF4CAF50)
+        score >= 50 -> Color(0xFFFFC107)
+        else -> Color(0xFFFF5252)
+    }
 }
 
 @Composable

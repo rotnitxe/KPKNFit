@@ -187,7 +187,7 @@ class WorkoutRestAlertManager(private val context: Context) {
 
     fun onTimerFinishedInApp(expectedTimerId: String?) {
         val activeId = prefs.getString(KEY_TIMER_ID, null)
-        if (activeId == null || expectedTimerId == null || activeId != expectedTimerId) return
+        if (!shouldDeliverInAppRestCompletion(activeId, expectedTimerId)) return
         val sessionName = prefs.getString(KEY_SESSION_NAME, "Entrenamiento") ?: "Entrenamiento"
         val exerciseName = prefs.getString(KEY_EXERCISE_NAME, "Siguiente serie") ?: "Siguiente serie"
         deliverCompletionAlert(sessionName, exerciseName)

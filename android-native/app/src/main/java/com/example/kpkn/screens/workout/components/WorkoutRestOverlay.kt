@@ -101,6 +101,7 @@ fun RestTimerOverlay(
                     onUseAdaptive = onUseAdaptive,
                     postExerciseFeedbackContent = postExerciseFeedbackContent ?: {},
                     feedbackExerciseCount = feedbackExerciseCount,
+                    showTimerChrome = remainingSeconds > 0,
                 )
             } else {
                 NormalRestContent(
@@ -139,6 +140,7 @@ private fun FeedbackContent(
     onUseAdaptive: (() -> Unit)?,
     postExerciseFeedbackContent: @Composable () -> Unit,
     feedbackExerciseCount: Int = 0,
+    showTimerChrome: Boolean = true,
 ) {
     val scrollState = rememberScrollState()
     Column(
@@ -182,72 +184,74 @@ private fun FeedbackContent(
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        if (showTimerChrome) {
+            Spacer(Modifier.height(8.dp))
 
-        val timerSize = if (feedbackExerciseCount <= 1) 152.dp else 132.dp
-        val strokeWidth = if (feedbackExerciseCount <= 1) 7.dp else 6.dp
-        val fontSize = if (feedbackExerciseCount <= 1) 34.sp else 30.sp
+            val timerSize = if (feedbackExerciseCount <= 1) 152.dp else 132.dp
+            val strokeWidth = if (feedbackExerciseCount <= 1) 7.dp else 6.dp
+            val fontSize = if (feedbackExerciseCount <= 1) 34.sp else 30.sp
 
-        Box(
-            modifier = Modifier.size(timerSize),
-            contentAlignment = Alignment.Center,
-        ) {
-            Canvas(modifier = Modifier.matchParentSize()) {
-                val sw = strokeWidth.toPx()
-                val center = Offset(size.width / 2f, size.height / 2f)
-                val outerRadius = (size.minDimension - sw) / 2f
-                val outerRect = Size(outerRadius * 2f, outerRadius * 2f)
-
-                drawArc(
-                    color = Color.White.copy(alpha = 0.08f),
-                    startAngle = -90f,
-                    sweepAngle = 360f,
-                    useCenter = false,
-                    topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                    size = outerRect,
-                    style = Stroke(sw, cap = StrokeCap.Round),
-                )
-
-                drawArc(
-                    color = sessionAccentColor,
-                    startAngle = -90f,
-                    sweepAngle = 360f * timerProgress,
-                    useCenter = false,
-                    topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                    size = outerRect,
-                    style = Stroke(sw, cap = StrokeCap.Round),
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+            Box(
+                modifier = Modifier.size(timerSize),
+                contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = formatTime(remainingSeconds.coerceAtLeast(0)),
-                    style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
-                    fontSize = fontSize,
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = when (state.kind) {
-                        RestTimerKind.SUPERSET_INTRA -> "superserie"
-                        RestTimerKind.SUPERSET_ROUND -> "siguiente ronda"
-                        RestTimerKind.WARMUP -> "aproximación"
-                        RestTimerKind.BETWEEN_SIDES -> "entre lados"
-                        RestTimerKind.STANDARD -> "descanso"
-                    }.uppercase(),
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                    color = Color.White.copy(alpha = 0.45f),
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 2.sp,
-                )
-            }
-        }
+                Canvas(modifier = Modifier.matchParentSize()) {
+                    val sw = strokeWidth.toPx()
+                    val center = Offset(size.width / 2f, size.height / 2f)
+                    val outerRadius = (size.minDimension - sw) / 2f
+                    val outerRect = Size(outerRadius * 2f, outerRadius * 2f)
 
-        Spacer(Modifier.height(16.dp))
+                    drawArc(
+                        color = Color.White.copy(alpha = 0.08f),
+                        startAngle = -90f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
+                        size = outerRect,
+                        style = Stroke(sw, cap = StrokeCap.Round),
+                    )
+
+                    drawArc(
+                        color = sessionAccentColor,
+                        startAngle = -90f,
+                        sweepAngle = 360f * timerProgress,
+                        useCenter = false,
+                        topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
+                        size = outerRect,
+                        style = Stroke(sw, cap = StrokeCap.Round),
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = formatTime(remainingSeconds.coerceAtLeast(0)),
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        fontSize = fontSize,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = when (state.kind) {
+                            RestTimerKind.SUPERSET_INTRA -> "superserie"
+                            RestTimerKind.SUPERSET_ROUND -> "siguiente ronda"
+                            RestTimerKind.WARMUP -> "aproximación"
+                            RestTimerKind.BETWEEN_SIDES -> "entre lados"
+                            RestTimerKind.STANDARD -> "descanso"
+                        }.uppercase(),
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                        color = Color.White.copy(alpha = 0.45f),
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 2.sp,
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+        }
 
         postExerciseFeedbackContent()
     }
@@ -359,7 +363,7 @@ private fun NormalRestContent(
                         RestTimerKind.BETWEEN_SIDES -> "entre lados"
                         RestTimerKind.STANDARD -> "descanso"
                     }.uppercase(),
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                     color = Color.White.copy(alpha = 0.45f),
                     fontWeight = FontWeight.Black,
                     letterSpacing = 2.sp,
@@ -566,14 +570,14 @@ private fun NormalRestContent(
                     ) {
                         Text(
                             text = if (isAdaptiveActive) "DESCANSO DINÁMICO" else "PLAN DE SESIÓN",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                             fontWeight = FontWeight.Black,
                             color = if (isAdaptiveActive) Color.White.copy(alpha = 0.5f) else sessionAccentColor
                         )
                         if (state.isManualOverride) {
                             Text(
                                 text = "Manual",
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White.copy(alpha = 0.62f),
                             )
@@ -701,7 +705,7 @@ private fun RestTinyBadge(
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
             fontWeight = FontWeight.Bold,
             color = color,
         )
@@ -784,7 +788,7 @@ fun RestTimerPill(
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
                     color = Color.White,
-                    fontSize = 10.sp,
+                    fontSize = 11.sp,
                 )
             }
             if (exerciseName.isNotBlank()) {

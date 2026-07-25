@@ -439,11 +439,7 @@ fun WorkoutReadinessSheet(
                                         modifier = Modifier.padding(bottom = 12.dp),
                                     ) {
                                         patternsByName.forEach { (_, pattern) ->
-                                            val color = when {
-                                                pattern.overallScore >= 75 -> Color(0xFF4CAF50)
-                                                pattern.overallScore >= 50 -> Color(0xFFFFC107)
-                                                else -> Color(0xFFFF5252)
-                                            }
+                                            val color = WorkoutUiTokens.readinessColor(pattern.overallScore)
                                             Surface(
                                                 shape = RoundedCornerShape(999.dp),
                                                 color = color.copy(alpha = 0.12f),
@@ -493,11 +489,7 @@ fun WorkoutReadinessSheet(
                                 )
                                 exerciseReadinessMap.forEach { (exerciseId, readiness) ->
                                     val exercise = sessionExercises.find { it.id == exerciseId }
-                                    val color = when {
-                                        readiness.overallScore >= 75 -> Color(0xFF4CAF50)
-                                        readiness.overallScore >= 50 -> Color(0xFFFFC107)
-                                        else -> Color(0xFFFF5252)
-                                    }
+                                    val color = WorkoutUiTokens.readinessColor(readiness.overallScore)
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()

@@ -20,6 +20,7 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WarmupSetDefinition
+import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -30,11 +31,11 @@ class WorkoutSessionRulesTest {
 
     @Test
     fun fatigue_factor_ignores_skipped_sets_progression() {
-        assertEquals(1.0, WorkoutLoadSuggestionRules.fatigueFactorForPriorCompletedSets(0), 0.0)
-        assertEquals(0.8, WorkoutLoadSuggestionRules.fatigueFactorForPriorCompletedSets(1), 0.0)
-        assertEquals(0.6, WorkoutLoadSuggestionRules.fatigueFactorForPriorCompletedSets(2), 0.0)
-        assertEquals(0.5, WorkoutLoadSuggestionRules.fatigueFactorForPriorCompletedSets(3), 0.0)
-        assertEquals(0.5, WorkoutLoadSuggestionRules.fatigueFactorForPriorCompletedSets(8), 0.0)
+        assertEquals(1.0, LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(0), 0.0)
+        assertEquals(0.8, LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(1), 0.0)
+        assertEquals(0.6, LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(2), 0.0)
+        assertEquals(0.5, LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(3), 0.0)
+        assertEquals(0.5, LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(8), 0.0)
     }
 
     @Test

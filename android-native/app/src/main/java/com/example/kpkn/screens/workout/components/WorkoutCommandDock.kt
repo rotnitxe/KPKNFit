@@ -37,29 +37,12 @@ fun WorkoutCommandDock(
     onPrimaryAction: () -> Unit,
     modifier: Modifier = Modifier,
     primaryActionEnabled: Boolean = true,
+    isRecording: Boolean = false,
     sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
     hazeState: HazeState? = null,
     isUpdateMode: Boolean = false,
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "dock_voice_pulse")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.15f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(850, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "pulse_scale",
-    )
-    val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.5f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(650, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "pulse_alpha",
-    )
+    val (pulseScale, pulseAlpha) = rememberVoicePulse(enabled = voiceSessionEnabled)
 
     val isListening = voiceSessionState.stage == VoicePipelineStage.LISTENING
     val isProcessing = voiceSessionState.stage == VoicePipelineStage.PROCESSING ||
@@ -86,7 +69,6 @@ fun WorkoutCommandDock(
         VoicePipelineStage.DISABLED -> ""
     }
 
-    @Suppress("UNUSED_VARIABLE")
     val primaryButtonText = remember(exercise, setIndex, activeSide, isUnilateral) {
         if (exercise == null) "Completar Serie"
         else if (isUnilateral && activeSide != null) {
@@ -144,7 +126,7 @@ fun WorkoutCommandDock(
                             overflow = TextOverflow.Ellipsis
                         )
                         if (voiceSessionState.errorMessage != null && voiceSessionState.stage == VoicePipelineStage.ERROR_RECOVERY) {
-                            Spacer(Modifier.width(4.dp))
+                            Spacer(modifier.width(4.dp))
                             Text(
                                 text = "(${voiceSessionState.errorMessage})",
                                 color = Color(0xFFFFCDD2),
@@ -159,15 +141,15 @@ fun WorkoutCommandDock(
 
             Box(
                 modifier = Modifier
-                    .width(96.dp)
-                    .height(51.dp),
+                    .width(112.dp)
+                    .height(64.dp),
                 contentAlignment = Alignment.BottomEnd,
             ) {
                 FloatingActionButton(
                     onClick = { if (primaryActionEnabled) onPrimaryAction() },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .size(45.dp),
+                        .size(56.dp),
                     shape = CircleShape,
                     containerColor = if (primaryActionEnabled) sessionAccentColor else MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = if (primaryActionEnabled) {
@@ -177,28 +159,25 @@ fun WorkoutCommandDock(
                     },
                 ) {
                     Icon(
-                        imageVector = if (!primaryActionEnabled) {
-                            Icons.Default.HourglassTop
-                        } else if (isUpdateMode) {
-                            Icons.Default.Update
-                        } else {
-                            Icons.Default.Check
+                        imageVector = when {
+                            isRecording -> Icons.Default.HourglassTop
+                            isUpdateMode -> Icons.Default.Update
+                            else -> Icons.Default.Check
                         },
-                        contentDescription = if (!primaryActionEnabled) {
-                            "Registrando serie"
-                        } else if (isUpdateMode) {
-                            "Actualizar serie"
-                        } else {
-                            "Completar serie"
+                        contentDescription = when {
+                            isRecording -> "Registrando serie"
+                            !primaryActionEnabled -> "Completar serie no disponible"
+                            isUpdateMode -> "Actualizar: $primaryButtonText"
+                            else -> primaryButtonText
                         },
-                        modifier = Modifier.size(26.dp),
+                        modifier = Modifier.size(28.dp),
                     )
                 }
                 SmallFloatingActionButton(
                     onClick = onToggleVoice,
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .size(32.dp)
+                        .size(36.dp)
                         .then(
                             if (isListening) Modifier
                                 .scale(pulseScale)
@@ -212,10 +191,35 @@ fun WorkoutCommandDock(
                     Icon(
                         imageVector = if (voiceSessionEnabled) Icons.Default.Mic else Icons.Default.MicOff,
                         contentDescription = if (voiceSessionEnabled) "Desactivar control por voz" else "Activar control por voz",
-                        modifier = Modifier.size(19.dp),
+                        modifier = Modifier.size(20.dp),
                     )
                 }
             }
         }
     }
+}
+
+@Composable
+private fun rememberVoicePulse(enabled: Boolean): Pair<Float, Float> {
+    if (!enabled) return 1f to 1f
+    val infiniteTransition = rememberInfiniteTransition(label = "dock_voice_pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(850, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "pulse_scale",
+    )
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.5f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(650, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "pulse_alpha",
+    )
+    return pulseScale to pulseAlpha
 }

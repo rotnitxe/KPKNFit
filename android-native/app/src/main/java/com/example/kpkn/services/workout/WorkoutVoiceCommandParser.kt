@@ -86,10 +86,12 @@ object WorkoutVoiceCommandParser {
         val lower = normalizeText(transcript)
 
         if (hasPendingConfirmation) {
-            if (CONFIRM_KEYWORDS.any { lower.contains(it) }) {
+            // Token/phrase match — never substring ("bueno"≠noise filler alone is OK as token;
+            // "anotacion" must NOT match "no").
+            if (matchesAnyKeyword(lower, CONFIRM_KEYWORDS)) {
                 return VoiceSessionCommand.Confirm
             }
-            if (CANCEL_KEYWORDS.any { lower.contains(it) }) {
+            if (matchesAnyKeyword(lower, CANCEL_KEYWORDS)) {
                 return VoiceSessionCommand.Cancel
             }
         }
@@ -230,6 +232,19 @@ object WorkoutVoiceCommandParser {
             .replace(Regex("[^a-záéíóúüñ0-9.,% ]"), " ")
             .replace(Regex("\\s+"), " ")
             .trim()
+    }
+
+    /** Exact token match for single words; substring phrase match for multi-word keywords. */
+    private fun matchesAnyKeyword(normalized: String, keywords: Set<String>): Boolean {
+        if (normalized.isBlank()) return false
+        val tokens = normalized.split(' ').filter { it.isNotBlank() }
+        return keywords.any { keyword ->
+            if (keyword.contains(' ')) {
+                normalized.contains(keyword)
+            } else {
+                tokens.any { it == keyword }
+            }
+        }
     }
 
     private fun normalizeWorkoutVoiceTranscript(transcript: String): List<String> {

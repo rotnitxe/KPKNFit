@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.workout.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.ui.focus.onFocusEvent
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.chrisbanes.haze.HazeState
@@ -101,6 +110,8 @@ private fun WorkoutStepperField(
     accentColor: Color = MaterialTheme.colorScheme.primary,
     roomier: Boolean = false,
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
     val containerColor = if (isError) {
         MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f)
     } else {
@@ -125,7 +136,9 @@ private fun WorkoutStepperField(
         ),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
-        modifier = modifier.height(controlHeight),
+        modifier = modifier
+            .height(controlHeight)
+            .bringIntoViewRequester(bringIntoViewRequester),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -179,7 +192,12 @@ private fun WorkoutStepperField(
                     onValueChange = { if (textInputEnabled) onValueChange(it) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 4.dp),
+                        .padding(horizontal = 4.dp)
+                        .onFocusEvent { focusState ->
+                            if (focusState.isFocused) {
+                                scope.launch { bringIntoViewRequester.bringIntoView() }
+                            }
+                        },
                     singleLine = true,
                     enabled = textInputEnabled,
                     textStyle = textStyle.copy(
@@ -296,10 +314,13 @@ private fun IntegratedLoadInput(
     modifier: Modifier = Modifier,
     loadMode: LoadModeV2 = LoadModeV2.LOAD,
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 58.dp),
+            .heightIn(min = 58.dp)
+            .bringIntoViewRequester(bringIntoViewRequester),
         shape = WorkoutUiTokens.InnerCardShape,
         color = WorkoutUiTokens.setInnerHighestColor(),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.36f)),
@@ -331,7 +352,13 @@ private fun IntegratedLoadInput(
                 BasicTextField(
                     value = if (isBodyweightMode) "" else value,
                     onValueChange = { if (!isBodyweightMode) onValueChange(it) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusEvent { focusState ->
+                            if (focusState.isFocused) {
+                                scope.launch { bringIntoViewRequester.bringIntoView() }
+                            }
+                        },
                     enabled = !isBodyweightMode,
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -510,13 +537,22 @@ private fun WorkoutMiniTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     accentColor: Color = MaterialTheme.colorScheme.primary,
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label, style = MaterialTheme.typography.labelSmall) },
         keyboardOptions = keyboardOptions,
         singleLine = true,
-        modifier = modifier.heightIn(min = 48.dp),
+        modifier = modifier
+            .heightIn(min = 48.dp)
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .onFocusEvent { focusState ->
+                if (focusState.isFocused) {
+                    scope.launch { bringIntoViewRequester.bringIntoView() }
+                }
+            },
         shape = WorkoutUiTokens.InnerCardShape,
         textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
         colors = OutlinedTextFieldDefaults.colors(
@@ -654,6 +690,7 @@ internal fun SetInputCardV2(
         mutableStateOf(draftValueText ?: defaultValue)
     }
     var showReadinessAdjustmentSheet by remember { mutableStateOf(false) }
+    var plannedSectionExpanded by rememberSaveable(exercise.id, setIndex) { mutableStateOf(false) }
     val targetLeftWeight = currentSet.leftTarget?.weight?.toTrimmedNumberString() ?: defaultWeight
     val targetRightWeight = currentSet.rightTarget?.weight?.toTrimmedNumberString() ?: defaultWeight
     val initialLeftWeight = if (initialSelectedSide == "left") draftWeightText ?: targetLeftWeight else targetLeftWeight
@@ -1064,7 +1101,7 @@ internal fun SetInputCardV2(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(Icons.Default.History, null, Modifier.size(14.dp), tint = Color(0xFF448AFF))
+                        Icon(Icons.Default.History, null, Modifier.size(14.dp), tint = WorkoutUiTokens.infoBlue())
                         Text(
                             buildString {
                                 append("Última ")
@@ -1074,21 +1111,17 @@ internal fun SetInputCardV2(
                             },
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF448AFF),
+                            color = WorkoutUiTokens.infoBlue(),
+                            fontSize = WorkoutUiTokens.MinLabelSp,
                         )
                     }
                 } else {
                     Spacer(Modifier.width(1.dp))
                 }
 
-                // ── Chip de readiness por ejercicio en la Card ──
                 if (exerciseReadiness != null) {
                     val score = exerciseReadiness.overallScore
-                    val chipColor = when {
-                        score >= 75 -> Color(0xFF4CAF50)
-                        score >= 50 -> Color(0xFFFFC107)
-                        else -> Color(0xFFFF5252)
-                    }
+                    val chipColor = WorkoutUiTokens.readinessColor(score)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -1104,11 +1137,11 @@ internal fun SetInputCardV2(
                                 .background(chipColor)
                         )
                         Text(
-                            text = "Mi estado: ${score}%",
+                            text = "${score}%",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White.copy(alpha = 0.9f),
                             fontWeight = FontWeight.Black,
-                            fontSize = 11.sp,
+                            fontSize = WorkoutUiTokens.MinLabelSp,
                         )
                     }
                 }
@@ -1120,60 +1153,100 @@ internal fun SetInputCardV2(
                 color = if (isFailedSet) WorkoutUiTokens.dangerContainerColor().copy(alpha = 0.15f) else WorkoutUiTokens.setInnerColor(),
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = WorkoutUiTokens.MinTouchTarget)
+                            .clickable { plannedSectionExpanded = !plannedSectionExpanded },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = if (isFailedSet) MaterialTheme.colorScheme.error.copy(alpha = 0.15f) else sessionAccentColor.copy(alpha = 0.15f),
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.weight(1f),
                         ) {
-                            Text(
-                                text = "Planificado",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isFailedSet) MaterialTheme.colorScheme.error else sessionAccentColor,
-                            )
-                        }
-                        if (onGoToPrevSet != null || onGoToNextSet != null) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = if (isFailedSet) MaterialTheme.colorScheme.error.copy(alpha = 0.15f) else sessionAccentColor.copy(alpha = 0.15f),
                             ) {
-                                if (onGoToPrevSet != null) {
-                                    IconButton(
-                                        onClick = onGoToPrevSet,
-                                        modifier = Modifier.size(28.dp),
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                            contentDescription = "Anterior",
-                                            tint = Color.White.copy(alpha = 0.78f),
-                                            modifier = Modifier.size(16.dp),
-                                        )
+                                Text(
+                                    text = "Planificado",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isFailedSet) MaterialTheme.colorScheme.error else sessionAccentColor,
+                                    fontSize = WorkoutUiTokens.MinLabelSp,
+                                )
+                            }
+                            if (!plannedSectionExpanded) {
+                                val planSummary = buildString {
+                                    val reps = currentSet.targetReps
+                                    if (reps != null && reps > 0) append("${reps}r")
+                                    currentSet.intensityMode?.let { mode ->
+                                        if (isNotEmpty()) append(" · ")
+                                        append(mode.name.take(6))
                                     }
+                                    if (isEmpty()) append("Ver plan")
                                 }
-                                if (onGoToNextSet != null) {
-                                    IconButton(
-                                        onClick = onGoToNextSet,
-                                        modifier = Modifier.size(28.dp),
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                            contentDescription = "Siguiente",
-                                            tint = Color.White.copy(alpha = 0.78f),
-                                            modifier = Modifier.size(16.dp),
-                                        )
-                                    }
-                                }
+                                Text(
+                                    planSummary,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                                    fontSize = WorkoutUiTokens.MinLabelSp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
                             }
                         }
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            if (onGoToPrevSet != null) {
+                                IconButton(
+                                    onClick = onGoToPrevSet,
+                                    modifier = Modifier.size(WorkoutUiTokens.MinTouchTarget),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = "Anterior",
+                                        tint = Color.White.copy(alpha = 0.78f),
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
+                            }
+                            if (onGoToNextSet != null) {
+                                IconButton(
+                                    onClick = onGoToNextSet,
+                                    modifier = Modifier.size(WorkoutUiTokens.MinTouchTarget),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                        contentDescription = "Siguiente",
+                                        tint = Color.White.copy(alpha = 0.78f),
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
+                            }
+                            Icon(
+                                imageVector = if (plannedSectionExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                contentDescription = if (plannedSectionExpanded) "Colapsar plan" else "Expandir plan",
+                                tint = Color.White.copy(alpha = 0.7f),
+                                modifier = Modifier.size(22.dp),
+                            )
+                        }
                     }
+
+                    AnimatedVisibility(
+                        visible = plannedSectionExpanded,
+                        enter = expandVertically(),
+                        exit = shrinkVertically(),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1255,10 +1328,10 @@ internal fun SetInputCardV2(
                                 shape = RoundedCornerShape(12.dp),
                                 border = BorderStroke(
                                     width = 1.dp,
-                                    color = if (isRecommended) Color(0xFFFF5252).copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                    color = if (isRecommended) WorkoutUiTokens.dangerColor().copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                                 ),
                                 colors = ButtonDefaults.outlinedButtonColors(
-                                    contentColor = if (isRecommended) Color(0xFFFF5252) else sessionAccentColor,
+                                    contentColor = if (isRecommended) WorkoutUiTokens.dangerColor() else sessionAccentColor,
                                 ),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                             ) {
@@ -1351,15 +1424,17 @@ internal fun SetInputCardV2(
                                 Icon(
                                     Icons.Default.Info, null,
                                     Modifier.size(14.dp),
-                                    tint = Color(0xFF4CAF50),
+                                    tint = WorkoutUiTokens.successColor(),
                                 )
                                 Text(
                                     adjustmentText,
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = Color(0xFF4CAF50),
+                                    color = WorkoutUiTokens.successColor(),
                                 )
                             }
+                        }
+                    }
                         }
                     }
                 }
@@ -2142,6 +2217,28 @@ internal fun SetInputCardV2(
                         val reportingSide = if (supportsIndependentSides) selectedSide else null
                         val reportedWeightText = reportingSide?.let { weightTextForSide(it) } ?: weightText
                         val reportedValueText = reportingSide?.let { valueTextForSide(it) } ?: valueText
+                        if (!isFailedSet && loadMode != LoadModeV2.BODYWEIGHT) {
+                            val parsedWeight = reportedWeightText.toDoubleOrNull()
+                            if (parsedWeight == null || parsedWeight <= 0.0) {
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "Carga inválida. Revisa el peso antes de registrar.",
+                                    android.widget.Toast.LENGTH_SHORT,
+                                ).show()
+                                return@label
+                            }
+                        }
+                        if (!isFailedSet) {
+                            val parsedValue = reportedValueText.toDoubleOrNull()
+                            if (parsedValue == null || parsedValue <= 0.0) {
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "Reps/tiempo inválidos. Revisa el valor antes de registrar.",
+                                    android.widget.Toast.LENGTH_SHORT,
+                                ).show()
+                                return@label
+                            }
+                        }
                         val weight = if (loadMode == LoadModeV2.BODYWEIGHT) 0.0 else (reportedWeightText.toDoubleOrNull() ?: 0.0)
                         val typedValue = if (isFailedSet) 0.0 else (reportedValueText.toDoubleOrNull() ?: 0.0)
                         val intensity = when {

@@ -28,6 +28,14 @@ class WorkoutRestAlertRulesTest {
     }
 
     @Test
+    fun in_app_finish_ignores_stale_or_missing_timer_id() {
+        assertFalse(shouldDeliverInAppRestCompletion(activeTimerId = "a", expectedTimerId = "b"))
+        assertFalse(shouldDeliverInAppRestCompletion(activeTimerId = null, expectedTimerId = "a"))
+        assertFalse(shouldDeliverInAppRestCompletion(activeTimerId = "a", expectedTimerId = null))
+        assertTrue(shouldDeliverInAppRestCompletion(activeTimerId = "a", expectedTimerId = "a"))
+    }
+
+    @Test
     fun completion_vibration_grows_with_intensity() {
         val light = workoutCompletionVibrationPattern(HapticIntensity.LIGHT)
         val strong = workoutCompletionVibrationPattern(HapticIntensity.STRONG)

@@ -173,7 +173,7 @@ fun WorkoutRoadmapBar(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(32.dp)
+                    .height(WorkoutUiTokens.MinTouchTarget)
                     .clickable {
                         onModeChange(if (activeMode == RoadmapMode.COMPACT) RoadmapMode.EXPANDED else RoadmapMode.COMPACT)
                     },
@@ -350,7 +350,7 @@ fun WorkoutRoadmapBar(
                                         ) {
                                             Text(
                                                 text = badgeText,
-                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                                                 fontWeight = FontWeight.Black,
                                                 color = accent,
                                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
@@ -562,7 +562,7 @@ private fun ExerciseRoadmapCard(
                         text = groupName,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                         fontWeight = FontWeight.Medium,
                         color = contentColor.copy(alpha = 0.6f),
                     )
@@ -655,7 +655,7 @@ private fun SupersetRoadmapCard(
                 )
                 Text(
                     text = if (isAllDone) "Completada" else currentRound?.let { "Ronda $it/$safeRoundCount" } ?: "$safeRoundCount rondas",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                     fontWeight = FontWeight.Bold,
                     color = if (isCurrent) accent else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
                     maxLines = 1,

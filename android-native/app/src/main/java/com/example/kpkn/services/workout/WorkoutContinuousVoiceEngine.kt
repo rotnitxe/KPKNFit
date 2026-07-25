@@ -12,6 +12,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -92,7 +93,8 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
         restarting = false
         unmuteSystemVolume()
         val currentScope = scope
-        if (currentScope != null) {
+        // If the ViewModel scope is already cancelled, launch{} never runs — destroy sync.
+        if (currentScope != null && currentScope.isActive) {
             currentScope.launch(Dispatchers.Main) {
                 destroyRecognizer()
             }

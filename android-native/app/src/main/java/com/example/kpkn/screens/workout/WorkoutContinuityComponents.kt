@@ -1,5 +1,10 @@
 package com.example.kpkn.screens.workout
 
+/**
+ * Continuity transition UI retained for androidTest fixtures.
+ * Production post-exercise feedback uses [WorkoutPostExerciseFeedbackContent] via rest overlay only.
+ */
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn

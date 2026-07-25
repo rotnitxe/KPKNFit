@@ -36,10 +36,11 @@ suspend fun SnackbarHostState.showKpknSnackbar(
     message: String,
     type: SnackbarType = SnackbarType.SUCCESS,
     duration: SnackbarDuration = SnackbarDuration.Short,
-) {
-    showSnackbar(
+    actionLabel: String? = null,
+): SnackbarResult {
+    return showSnackbar(
         message = "${type.emoji()} $message",
-        actionLabel = null,
+        actionLabel = actionLabel,
         withDismissAction = true,
         duration = duration,
     )

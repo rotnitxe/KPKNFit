@@ -6,15 +6,18 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import androidx.room.withTransaction
 import java.util.Calendar
 import java.util.UUID
 
@@ -26,7 +29,7 @@ import java.util.UUID
  * - StateFlow = cache en memoria (lecturas instantáneas, UI reactiva)
  * - Room = backing store persistente
  * - init() carga Room → StateFlow una vez al arrancar
- * - Mutaciones actualizan StateFlow inmediatamente + Room en background
+ * - Ongoing workout mutations write Room before returning (durable)
  */
 class ProgramRepository private constructor(context: Context) {
 
@@ -172,8 +175,26 @@ class ProgramRepository private constructor(context: Context) {
 
     fun addWorkoutLog(log: WorkoutLog) {
         val normalized = log.normalizedIdentityFields()
-        _history.update { listOf(normalized) + it }
+        _history.update { listOf(normalized) + it.filterNot { existing -> existing.id == normalized.id } }
         scope.launch { db.workoutLogDao().insert(normalized.toEntity()) }
+    }
+
+    /**
+     * Atomically persists the finished log and clears the ongoing session.
+     * Must be awaited before notifying UI completion.
+     */
+    suspend fun finalizeWorkout(log: WorkoutLog) {
+        val normalized = log.normalizedIdentityFields()
+        _history.update { listOf(normalized) + it.filterNot { existing -> existing.id == normalized.id } }
+        _ongoingWorkout.value = null
+        withContext(Dispatchers.IO) {
+            ongoingWorkoutMutex.withLock {
+                db.withTransaction {
+                    db.workoutLogDao().insert(normalized.toEntity())
+                    db.stateDao().clearOngoingWorkout()
+                }
+            }
+        }
     }
 
     fun getLogsForProgram(programId: String): List<WorkoutLog> =
@@ -189,29 +210,54 @@ class ProgramRepository private constructor(context: Context) {
     private val ongoingWorkoutMutex = Mutex()
 
     fun startWorkout(state: OngoingWorkoutState) {
-        val normalized = state.normalizedIdentityFields()
-        _ongoingWorkout.value = normalized
-        scope.launch {
+        runBlocking(Dispatchers.IO + NonCancellable) {
             ongoingWorkoutMutex.withLock {
+                val normalized = state.normalizedIdentityFields()
+                _ongoingWorkout.value = normalized
                 db.stateDao().upsertOngoingWorkout(normalized.toEntity())
             }
         }
     }
 
     fun updateOngoingWorkout(update: (OngoingWorkoutState) -> OngoingWorkoutState) {
-        _ongoingWorkout.update { current -> current?.let(update)?.normalizedIdentityFields() }
-        val target = _ongoingWorkout.value ?: return
-        scope.launch {
-            ongoingWorkoutMutex.withLock {
-                db.stateDao().upsertOngoingWorkout(target.toEntity())
-            }
+        runBlocking(Dispatchers.IO + NonCancellable) {
+            writeOngoingLocked(update)
+        }
+    }
+
+    /**
+     * Updates ongoing state in memory and waits until Room has the same snapshot.
+     * Use for structural session events (recorded set, skip, pause, finish prep).
+     */
+    suspend fun updateOngoingWorkoutAndFlush(update: (OngoingWorkoutState) -> OngoingWorkoutState) {
+        withContext(Dispatchers.IO + NonCancellable) {
+            writeOngoingLocked(update)
+        }
+    }
+
+    private suspend fun writeOngoingLocked(update: (OngoingWorkoutState) -> OngoingWorkoutState) {
+        ongoingWorkoutMutex.withLock {
+            val current = _ongoingWorkout.value ?: return@withLock
+            val next = update(current).normalizedIdentityFields()
+            _ongoingWorkout.value = next
+            db.stateDao().upsertOngoingWorkout(next.toEntity())
         }
     }
 
     fun clearOngoingWorkout() {
-        _ongoingWorkout.value = null
-        scope.launch {
+        runBlocking(Dispatchers.IO + NonCancellable) {
             ongoingWorkoutMutex.withLock {
+                _ongoingWorkout.value = null
+                db.stateDao().clearOngoingWorkout()
+            }
+        }
+    }
+
+    /** Clears ongoing in memory and waits for Room delete. */
+    suspend fun clearOngoingWorkoutAndFlush() {
+        withContext(Dispatchers.IO + NonCancellable) {
+            ongoingWorkoutMutex.withLock {
+                _ongoingWorkout.value = null
                 db.stateDao().clearOngoingWorkout()
             }
         }
@@ -226,15 +272,22 @@ class ProgramRepository private constructor(context: Context) {
         val currentWorkout = _ongoingWorkout.value
         val currentPrograms = _programs.value
         val currentActiveProgram = _activeProgramState.value
-        withContext(Dispatchers.IO) {
+        val latestLogs = _history.value.take(32)
+        withContext(Dispatchers.IO + NonCancellable) {
             currentPrograms.forEach { program ->
                 db.programDao().upsert(program.normalizedIdentityFields().toEntity())
             }
-            if (currentWorkout != null) {
-                db.stateDao().upsertOngoingWorkout(currentWorkout.toEntity())
+            ongoingWorkoutMutex.withLock {
+                val workout = _ongoingWorkout.value ?: currentWorkout
+                if (workout != null) {
+                    db.stateDao().upsertOngoingWorkout(workout.toEntity())
+                }
             }
             if (currentActiveProgram != null) {
                 db.stateDao().upsertActiveProgram(currentActiveProgram.toEntity())
+            }
+            latestLogs.forEach { log ->
+                db.workoutLogDao().insert(log.toEntity())
             }
         }
     }
@@ -339,7 +392,9 @@ class ProgramRepository private constructor(context: Context) {
                 val programEntities = db.programDao().getAll()
                 val programs = programEntities.map { entity -> entity.toProgram().normalizedIdentityFields() }
                 val logEntities = db.workoutLogDao().getAll()
-                val logs = logEntities.map { entity -> entity.toWorkoutLog().normalizedIdentityFields() }
+                val logs = logEntities.mapNotNull { entity ->
+                    entity.toWorkoutLog()?.normalizedIdentityFields()
+                }
                 val settings = db.settingsDao().get()?.toSettings() ?: Settings()
                 val activeProgram = db.stateDao().getActiveProgram()?.toActiveProgramState()
                 val ongoingWorkout = db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()?.normalizedIdentityFields()
@@ -361,7 +416,8 @@ class ProgramRepository private constructor(context: Context) {
                         scope.launch { db.programDao().upsert(normalized.toEntity()) }
                     }
                 }
-                logEntities.zip(logs).forEach { (entity, normalized) ->
+                logEntities.forEach { entity ->
+                    val normalized = entity.toWorkoutLog()?.normalizedIdentityFields() ?: return@forEach
                     if (entity.toWorkoutLog() != normalized) {
                         scope.launch { db.workoutLogDao().insert(normalized.toEntity()) }
                     }

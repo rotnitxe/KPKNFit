@@ -9,7 +9,6 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.suggestRestSeconds
-import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -137,100 +136,12 @@ object SessionEditorRulesEngine {
         ruleLimits: SessionEditorRuleLimits,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
     ): SessionRulesValidationResult {
-        val warnings = mutableListOf<String>()
         if (draft.name.isBlank()) {
             return SessionRulesValidationResult(blockingError = "La sesión debe tener un nombre antes de guardar.")
         }
-
-        // Editor rules are now defaults-only. Legacy limit fields can exist in old
-        // drafts, but they no longer block saves or emit warnings from this sheet.
+        // Editor rules are defaults-only. Legacy limit fields may exist in old drafts,
+        // but they intentionally do not block saves or emit warnings from this sheet.
         return SessionRulesValidationResult()
-
-        val maxRpe = ruleLimits.maxRPE
-        if (maxRpe != null) {
-            draft.allExercises().forEach { exercise ->
-                exercise.sets.forEach { set ->
-                    val isFailureSet = set.isFailure || set.intensityMode == IntensityMode.FAILURE
-                    if (isFailureSet) return@forEach
-                    val effectiveRpe = when {
-                        set.targetRPE != null -> set.targetRPE
-                        set.targetRIR != null -> (10 - set.targetRIR).toDouble()
-                        else -> null
-                    }
-                    if (effectiveRpe != null && effectiveRpe > maxRpe) {
-                        val message = "Intensidad máxima configurada: RPE ${formatOneDecimal(maxRpe)}. Hay series que la superan (RPE ${formatOneDecimal(effectiveRpe)})."
-                        if (ruleLimits.rigidLimits) return SessionRulesValidationResult(blockingError = message)
-                        warnings += message
-                    }
-                }
-            }
-        }
-
-        val maxExercisesPerMuscle = ruleLimits.maxExercisesPerMuscle
-        if (maxExercisesPerMuscle != null) {
-            val muscleCount = mutableMapOf<String, Int>()
-            draft.allExercises().forEach { exercise ->
-                val info = resolveExerciseInfo(exercise, exerciseIndex)
-                val primaryMuscle = info
-                    ?.involvedMuscles
-                    ?.firstOrNull { it.role == MuscleRole.PRIMARY }
-                    ?.let { VolumeCalculator.normalizeMuscleGroup(it.muscle, it.emphasis) }
-                    ?: "_desconocido"
-                muscleCount[primaryMuscle] = (muscleCount[primaryMuscle] ?: 0) + 1
-            }
-
-            val exceeded = muscleCount.entries.firstOrNull { (_, count) -> count > maxExercisesPerMuscle }
-            if (exceeded != null) {
-                val message = "Máx $maxExercisesPerMuscle ejercicios por músculo. ${exceeded.key} tiene ${exceeded.value}."
-                if (ruleLimits.rigidLimits) return SessionRulesValidationResult(blockingError = message)
-                warnings += message
-            }
-        }
-
-        val maxVolumePerMuscleSession = ruleLimits.maxVolumePerMuscleSession
-        if (maxVolumePerMuscleSession != null) {
-            val sessionVolume = computeSessionVolumeByMuscle(draft, exerciseIndex)
-            val exceeded = sessionVolume.entries.firstOrNull { it.value > maxVolumePerMuscleSession }
-            if (exceeded != null) {
-                val message = "Volumen sesión por músculo excedido (${formatOneDecimal(maxVolumePerMuscleSession)}). ${exceeded.key}: ${formatOneDecimal(exceeded.value)}."
-                if (ruleLimits.rigidLimits) return SessionRulesValidationResult(blockingError = message)
-                warnings += message
-            }
-        }
-
-        val maxVolumePerMuscleWeekly = ruleLimits.maxVolumePerMuscleWeekly
-        if (maxVolumePerMuscleWeekly != null) {
-            val draftAwareWeekSessions = if (weekSessions.any { it.id == draft.id }) {
-                weekSessions.map { if (it.id == draft.id) draft else it }
-            } else {
-                weekSessions + draft
-            }
-            val weeklyVolume = computeWeeklyVolumeByMuscle(draftAwareWeekSessions, exerciseIndex)
-            val exceeded = weeklyVolume.entries.firstOrNull { it.value > maxVolumePerMuscleWeekly }
-            if (exceeded != null) {
-                val message = "Volumen semanal por músculo excedido (${formatOneDecimal(maxVolumePerMuscleWeekly)}). ${exceeded.key}: ${formatOneDecimal(exceeded.value)}."
-                if (ruleLimits.rigidLimits) return SessionRulesValidationResult(blockingError = message)
-                warnings += message
-            }
-        }
-
-        val maxSamePatternPerSession = ruleLimits.maxSamePatternPerSession
-        if (maxSamePatternPerSession != null) {
-            val patternCount = mutableMapOf<String, Int>()
-            draft.allExercises().forEach { exercise ->
-                val info = resolveExerciseInfo(exercise, exerciseIndex)
-                val pattern = info?.force?.ifBlank { null } ?: "Patrón desconocido"
-                patternCount[pattern] = (patternCount[pattern] ?: 0) + 1
-            }
-            val exceeded = patternCount.entries.firstOrNull { it.value > maxSamePatternPerSession }
-            if (exceeded != null) {
-                val message = "Patrón repetido excedido (máx ${maxSamePatternPerSession}). ${exceeded.key}: ${exceeded.value}."
-                if (ruleLimits.rigidLimits) return SessionRulesValidationResult(blockingError = message)
-                warnings += message
-            }
-        }
-
-        return SessionRulesValidationResult(warnings = warnings)
     }
 
     private fun adjustExerciseIntensity(
@@ -280,56 +191,11 @@ object SessionEditorRulesEngine {
         return exercise.copy(sets = normalizedSets)
     }
 
-    private fun resolveExerciseInfo(
-        exercise: Exercise,
-        exerciseIndex: Map<String, ExerciseMuscleInfo>,
-    ): ExerciseMuscleInfo? {
-        val byId = exercise.exerciseDbId ?: exercise.exerciseId
-        return byId?.lowercase()?.let(exerciseIndex::get)
-            ?: exerciseIndex.values.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
-    }
-
     private fun resolvePrimaryMuscle(info: ExerciseMuscleInfo): String? {
         val primary = info.involvedMuscles.firstOrNull { it.role == MuscleRole.PRIMARY }
             ?: info.involvedMuscles.firstOrNull()
             ?: return null
         return VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, primary.emphasis)
-    }
-
-    private fun computeSessionVolumeByMuscle(
-        session: Session,
-        exerciseIndex: Map<String, ExerciseMuscleInfo>,
-    ): Map<String, Double> {
-        val map = mutableMapOf<String, Double>()
-        session.allExercises().forEach { exercise ->
-            val setCount = exercise.sets.count { !it.isIneffective }.coerceAtLeast(1)
-            val muscles = ExerciseMuscleResolver.effectiveMuscles(exercise, exerciseIndex)
-            if (muscles.isEmpty()) {
-                val fallback = exercise.name.ifBlank { "General" }
-                map[fallback] = (map[fallback] ?: 0.0) + setCount.toDouble()
-                return@forEach
-            }
-            val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(muscles)
-            contributions.forEach { (canonical, multiplier) ->
-                if (canonical.isNotBlank() && multiplier > 0.0) {
-                    map[canonical] = (map[canonical] ?: 0.0) + setCount * multiplier
-                }
-            }
-        }
-        return map
-    }
-
-    private fun computeWeeklyVolumeByMuscle(
-        sessions: List<Session>,
-        exerciseIndex: Map<String, ExerciseMuscleInfo>,
-    ): Map<String, Double> {
-        val map = mutableMapOf<String, Double>()
-        sessions.forEach { session ->
-            computeSessionVolumeByMuscle(session, exerciseIndex).forEach { (muscle, value) ->
-                map[muscle] = (map[muscle] ?: 0.0) + value
-            }
-        }
-        return map
     }
 
     private fun normalizeSet(set: ExerciseSet, exercise: Exercise): ExerciseSet {
@@ -363,7 +229,5 @@ object SessionEditorRulesEngine {
         val autoWeight = calculateSuggestedLoad(exercise, normalized)
         return normalized.copy(weight = autoWeight ?: normalized.weight)
     }
-
-    private fun formatOneDecimal(value: Double): String = "%.1f".format(value)
 }
 

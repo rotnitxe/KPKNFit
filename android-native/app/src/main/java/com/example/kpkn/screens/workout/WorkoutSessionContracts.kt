@@ -52,6 +52,33 @@ internal fun workoutSetKey(exerciseId: String, setIdx: Int, side: String? = null
     else -> "${exerciseId}_${setIdx}"
 }
 
+/**
+ * Parses `"exerciseId_setIdx"` / `"exerciseId_setIdx_L|R"`.
+ * Matches from the right so exerciseIds with underscores stay intact.
+ */
+internal data class ParsedCompletedSetKey(
+    val exerciseId: String,
+    val setIdx: Int,
+    val side: String?,
+)
+
+internal fun parseCompletedSetKey(key: String): ParsedCompletedSetKey? {
+    val unilateral = Regex("""^(.*)_(\d+)_(L|R)$""").matchEntire(key)
+    if (unilateral != null) {
+        return ParsedCompletedSetKey(
+            exerciseId = unilateral.groupValues[1],
+            setIdx = unilateral.groupValues[2].toInt(),
+            side = if (unilateral.groupValues[3] == "L") "left" else "right",
+        )
+    }
+    val bilateral = Regex("""^(.*)_(\d+)$""").matchEntire(key) ?: return null
+    return ParsedCompletedSetKey(
+        exerciseId = bilateral.groupValues[1],
+        setIdx = bilateral.groupValues[2].toInt(),
+        side = null,
+    )
+}
+
 internal fun workoutSetContextKey(exerciseId: String, setIdx: Int, tagId: String?): String {
     val cleanTag = tagId?.trim()?.lowercase()?.takeIf { it.isNotEmpty() } ?: "na"
     return "$exerciseId|$setIdx|$cleanTag"

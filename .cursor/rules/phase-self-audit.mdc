@@ -1,0 +1,17 @@
+---
+description: Tras implementar una fase de remediación, auto-auditar calidad antes de darla por cerrada
+alwaysApply: true
+---
+
+# Auto-auditoría al cerrar fases
+
+Cuando el usuario apruebe o pida implementar una **fase** de un plan (F0, F1, F2…), al terminar la implementación:
+
+1. **No declarar la fase cerrada** hasta completar una auto-auditoría escrita en la misma respuesta.
+2. La auto-auditoría debe ser severa: verificar rutas laterales, callers omitidos, tests, inconsistencias de patrón y regresiones.
+3. Formato mínimo:
+   - Veredicto (nota / ¿cerrable?)
+   - Tabla por ítem de la fase: ¿resuelve? / calidad / gaps
+   - Gaps: **hotfix inmediato** (P0/P1 del alcance) vs **escalados** (fuera de alcance o con excepción explícita del usuario). Nunca etiquetar gaps como “aceptados” sin esa excepción.
+4. Si la auto-auditoría encuentra gaps P0/P1 del propio alcance de la fase, **corregirlos en el mismo turno** antes de pasar a la siguiente fase.
+5. No esperar a que el usuario pida "audita lo que hiciste".

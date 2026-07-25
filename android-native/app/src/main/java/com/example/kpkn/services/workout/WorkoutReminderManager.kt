@@ -50,6 +50,7 @@ class WorkoutReminderManager(private val context: Context) {
     // ─── Channel Setup ────────────────────────────────────────────────────────
 
     fun createChannels() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val workoutChannel = NotificationChannel(
             CHANNEL_WORKOUT_REMINDER,
             appCtx.getString(com.example.kpkn.R.string.notif_channel_workout_name),

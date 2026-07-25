@@ -29,6 +29,7 @@ class WorkoutVoiceController(private val context: Context) {
     private var engineCollectJob: Job? = null
     private var partialCollectJob: Job? = null
     private var errorCollectJob: Job? = null
+    private var utteranceWatchdogJob: Job? = null
     private var confirmedOrCancelled = false
 
     var onCommandDetected: ((VoiceSessionCommand) -> Unit)? = null
@@ -158,15 +159,49 @@ class WorkoutVoiceController(private val context: Context) {
         if (s.stage == VoicePipelineStage.DISABLED) return
 
         continuousEngine.pause()
-        requestDucking()
-        updateStage(VoicePipelineStage.TTS_SPEAKING)
-        ttsManager.setOnUtteranceComplete {
-            scope?.launch {
-                releaseDucking()
-                resumeListening()
-            }
+
+        if (!ttsManager.isInitialized) {
+            resumeListening()
+            return
         }
-        block()
+
+        requestDucking()
+        runSpeakingOrSkip(
+            onComplete = {
+                scope?.launch {
+                    releaseDucking()
+                    resumeListening()
+                }
+            },
+            speak = block,
+        )
+    }
+
+    /**
+     * Speaks with a guaranteed resume path: if TTS is not ready, [onComplete] runs immediately;
+     * otherwise an 8s watchdog forces completion if the utterance callback never arrives.
+     */
+    private fun runSpeakingOrSkip(onComplete: () -> Unit, speak: () -> Unit) {
+        updateStage(VoicePipelineStage.TTS_SPEAKING)
+
+        if (!ttsManager.isInitialized) {
+            onComplete()
+            return
+        }
+
+        val finish = WorkoutVoiceUtteranceGuard.createCompletionGate {
+            utteranceWatchdogJob?.cancel()
+            utteranceWatchdogJob = null
+            onComplete()
+        }
+        ttsManager.setOnUtteranceComplete { finish() }
+        utteranceWatchdogJob?.cancel()
+        utteranceWatchdogJob = scope?.launch {
+            delay(WorkoutVoiceUtteranceGuard.TIMEOUT_MS)
+            ttsManager.setOnUtteranceComplete(null)
+            finish()
+        }
+        speak()
     }
 
     private fun startListening() {
@@ -291,20 +326,26 @@ class WorkoutVoiceController(private val context: Context) {
         }
 
         val isTimeMode = exerciseInfo?.isTimeMode ?: false
-        updateStage(VoicePipelineStage.TTS_SPEAKING)
-
-        ttsManager.setOnUtteranceComplete {
-            updateStage(VoicePipelineStage.CONFIRM_WAIT)
-            continuousEngine.start(scope ?: return@setOnUtteranceComplete)
-            startConfirmationTimeout(interpretation)
-        }
-
-        ttsManager.speakSetConfirmation(
-            weightKg = interpretation.weightKg,
-            reps = interpretation.metricValue,
-            rpe = if (interpretation.intensityKind == WorkoutVoiceIntensityKind.RPE) interpretation.intensityValue else null,
-            rir = if (interpretation.intensityKind == WorkoutVoiceIntensityKind.RIR) interpretation.intensityValue?.toInt() else null,
-            isTimeMode = isTimeMode,
+        runSpeakingOrSkip(
+            onComplete = {
+                updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                val activeScope = scope
+                if (activeScope != null) {
+                    continuousEngine.start(activeScope)
+                    startConfirmationTimeout(interpretation)
+                } else {
+                    resumeListening()
+                }
+            },
+            speak = {
+                ttsManager.speakSetConfirmation(
+                    weightKg = interpretation.weightKg,
+                    reps = interpretation.metricValue,
+                    rpe = if (interpretation.intensityKind == WorkoutVoiceIntensityKind.RPE) interpretation.intensityValue else null,
+                    rir = if (interpretation.intensityKind == WorkoutVoiceIntensityKind.RIR) interpretation.intensityValue?.toInt() else null,
+                    isTimeMode = isTimeMode,
+                )
+            },
         )
     }
 
@@ -320,7 +361,66 @@ class WorkoutVoiceController(private val context: Context) {
         when (confirmCommand) {
             is VoiceSessionCommand.Confirm -> doConfirm()
             is VoiceSessionCommand.Cancel -> doCancel()
-            else -> doConfirm()
+            else -> {
+                val info = exerciseInfoProvider?.invoke()
+                val reparsed = WorkoutVoiceCommandParser.parseCommand(
+                    transcript = text,
+                    isTimeMode = info?.isTimeMode == true,
+                    isUnilateral = info?.isUnilateral == true,
+                    hasPendingConfirmation = false,
+                    isRestTimerActive = false,
+                )
+                when (reparsed) {
+                    is VoiceSessionCommand.RegisterSet -> {
+                        // Correction while confirming: replace draft interpretation and re-ask sí/no.
+                        confirmedOrCancelled = false
+                        confirmationJob?.cancel()
+                        _state.update {
+                            it.copy(
+                                lastInterpretation = reparsed.interpretation,
+                                lastCommand = reparsed,
+                            )
+                        }
+                        runSpeakingOrSkip(
+                            onComplete = {
+                                updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                                val activeScope = scope
+                                if (activeScope != null) {
+                                    continuousEngine.start(activeScope)
+                                    startConfirmationTimeout(reparsed.interpretation)
+                                }
+                            },
+                            speak = {
+                                ttsManager.speakSetConfirmation(
+                                    weightKg = reparsed.interpretation.weightKg,
+                                    reps = reparsed.interpretation.metricValue,
+                                    rpe = if (reparsed.interpretation.intensityKind == WorkoutVoiceIntensityKind.RPE) {
+                                        reparsed.interpretation.intensityValue
+                                    } else {
+                                        null
+                                    },
+                                    rir = if (reparsed.interpretation.intensityKind == WorkoutVoiceIntensityKind.RIR) {
+                                        reparsed.interpretation.intensityValue?.toInt()
+                                    } else {
+                                        null
+                                    },
+                                    isTimeMode = info?.isTimeMode == true,
+                                )
+                            },
+                        )
+                    }
+                    else -> {
+                        // Noise / unrelated speech — never confirm.
+                        runSpeakingOrSkip(
+                            onComplete = {
+                                updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                                continuousEngine.start(scope ?: return@runSpeakingOrSkip)
+                            },
+                            speak = { ttsManager.speakError("Di sí para confirmar o no para cancelar.") },
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -341,31 +441,33 @@ class WorkoutVoiceController(private val context: Context) {
 
         onCommandDetected?.invoke(VoiceSessionCommand.RegisterSet(interpretation))
 
-        updateStage(VoicePipelineStage.TTS_SPEAKING)
-        ttsManager.setOnUtteranceComplete {
-            releaseDucking()
-            resumeListening()
-        }
-
-        if (isUnilateral) {
-            val completedSide = interpretation.side ?: "left"
-            val counterpart = if (completedSide == "left") "right" else "left"
-            if (completedSidesBefore == 0) {
-                ttsManager.speakUnilateralSideRegistered(completedSide, counterpart)
-            } else {
-                ttsManager.speakSetRegistered(
-                    weightKg = interpretation.weightKg,
-                    reps = interpretation.metricValue,
-                    isTimeMode = info.isTimeMode,
-                )
-            }
-        } else {
-            ttsManager.speakSetRegistered(
-                weightKg = interpretation.weightKg,
-                reps = interpretation.metricValue,
-                isTimeMode = info?.isTimeMode ?: false,
-            )
-        }
+        runSpeakingOrSkip(
+            onComplete = {
+                releaseDucking()
+                resumeListening()
+            },
+            speak = {
+                if (isUnilateral) {
+                    val completedSide = interpretation.side ?: "left"
+                    val counterpart = if (completedSide == "left") "right" else "left"
+                    if (completedSidesBefore == 0) {
+                        ttsManager.speakUnilateralSideRegistered(completedSide, counterpart)
+                    } else {
+                        ttsManager.speakSetRegistered(
+                            weightKg = interpretation.weightKg,
+                            reps = interpretation.metricValue,
+                            isTimeMode = info.isTimeMode,
+                        )
+                    }
+                } else {
+                    ttsManager.speakSetRegistered(
+                        weightKg = interpretation.weightKg,
+                        reps = interpretation.metricValue,
+                        isTimeMode = info?.isTimeMode ?: false,
+                    )
+                }
+            },
+        )
     }
 
     private fun doCancel() {
@@ -375,25 +477,21 @@ class WorkoutVoiceController(private val context: Context) {
 
         _state.update { it.copy(lastInterpretation = null, lastCommand = VoiceSessionCommand.Cancel) }
 
-        updateStage(VoicePipelineStage.TTS_SPEAKING)
-        ttsManager.setOnUtteranceComplete {
-            releaseDucking()
-            resumeListening()
-        }
-
-        ttsManager.speakError("Cancelado.")
+        runSpeakingOrSkip(
+            onComplete = {
+                releaseDucking()
+                resumeListening()
+            },
+            speak = { ttsManager.speakError("Cancelado.") },
+        )
     }
 
-    private fun startConfirmationTimeout(interpretation: WorkoutVoiceInterpretation) {
+    private fun startConfirmationTimeout(@Suppress("UNUSED_PARAMETER") interpretation: WorkoutVoiceInterpretation) {
         confirmationJob?.cancel()
-        val hasData = interpretation.weightKg != null && interpretation.metricValue != null
-
         confirmationJob = scope?.launch {
-            delay(5000)
-            if (!confirmedOrCancelled && _state.value.hasPendingConfirmation && hasData) {
-                doConfirm()
-                ttsManager.speakAutoConfirmed()
-            } else if (!confirmedOrCancelled) {
+            delay(5_000L)
+            if (!confirmedOrCancelled && _state.value.hasPendingConfirmation) {
+                // Auto-confirm removed: silence/timeout cancels instead of writing a set.
                 doCancel()
             }
         }
@@ -431,6 +529,8 @@ class WorkoutVoiceController(private val context: Context) {
         errorCollectJob = null
         confirmationJob?.cancel()
         confirmationJob = null
+        utteranceWatchdogJob?.cancel()
+        utteranceWatchdogJob = null
     }
 
     private fun resetState() {
@@ -468,3 +568,4 @@ class WorkoutVoiceController(private val context: Context) {
         }
     }
 }
+

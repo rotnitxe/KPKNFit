@@ -45,7 +45,9 @@ fun ProgramEntity.toProgram(): Program = dbJson.decodeFromString(data)
 )
 data class WorkoutLogEntity(@PrimaryKey val id: String, val programId: String, val sessionId: String, val date: String, val data: String)
 fun WorkoutLog.toEntity() = WorkoutLogEntity(id = id, programId = programId, sessionId = sessionId, date = date, data = dbJson.encodeToString(this))
-fun WorkoutLogEntity.toWorkoutLog(): WorkoutLog = dbJson.decodeFromString(data)
+fun WorkoutLogEntity.toWorkoutLog(): WorkoutLog? = runCatching {
+    dbJson.decodeFromString<WorkoutLog>(data)
+}.getOrNull()
 
 @Entity(
     tableName = "competition_records",
@@ -93,7 +95,9 @@ fun ActiveProgramEntity.toActiveProgramState(): ActiveProgramState = dbJson.deco
 @Entity(tableName = "ongoing_workout")
 data class OngoingWorkoutEntity(@PrimaryKey val rowId: Int = 1, val data: String?)
 fun OngoingWorkoutState.toEntity() = OngoingWorkoutEntity(data = dbJson.encodeToString(this))
-fun OngoingWorkoutEntity.toOngoingWorkoutState(): OngoingWorkoutState = dbJson.decodeFromString(data ?: "{}")
+fun OngoingWorkoutEntity.toOngoingWorkoutState(): OngoingWorkoutState? = runCatching {
+    dbJson.decodeFromString<OngoingWorkoutState>(data ?: "{}")
+}.getOrNull()
 
 @Entity(tableName = "workout_context_performance")
 data class WorkoutContextPerformanceEntity(@PrimaryKey val contextKey: String, val updatedAt: String, val data: String)
