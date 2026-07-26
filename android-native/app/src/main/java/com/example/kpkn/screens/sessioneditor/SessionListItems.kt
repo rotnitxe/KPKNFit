@@ -64,6 +64,13 @@ sealed class SessionListItem {
         override val stableKey: String = "part-$partId-exercise-$exerciseId"
     }
 
+    /** Footer button to add an exercise into an expanded group/part. */
+    data class PartAddExercise(
+        val partId: String,
+    ) : SessionListItem() {
+        override val stableKey: String = "part-add-$partId"
+    }
+
     data object AddActions : SessionListItem() {
         override val stableKey: String = "add-actions"
     }
@@ -100,6 +107,7 @@ fun buildSessionListItems(
                     session = session,
                     partId = part.id,
                 )
+                items += SessionListItem.PartAddExercise(part.id)
             }
         }
         items += SessionListItem.AddActions

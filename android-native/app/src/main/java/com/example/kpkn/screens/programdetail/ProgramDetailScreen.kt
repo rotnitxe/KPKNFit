@@ -1037,7 +1037,7 @@ private data class PendingCompetitionModeSelection(
 private fun createBlankRoadmapSession(sessionId: String, dayOfWeek: Int): Session =
     Session(
         id = sessionId,
-        name = "Sesión ${dayLabelShort(dayOfWeek)}",
+        name = "Sesión ${dayLabelFull(dayOfWeek)}",
         lastModifiedAtMs = System.currentTimeMillis(),
         dayOfWeek = dayOfWeek,
         isMainSession = true,
@@ -1119,6 +1119,17 @@ private fun dayLabelShort(dayOfWeek: Int): String = when (dayOfWeek) {
     6 -> "Sáb"
     7 -> "Dom"
     else -> "Día"
+}
+
+private fun dayLabelFull(dayOfWeek: Int): String = when (dayOfWeek) {
+    1 -> "Lunes"
+    2 -> "Martes"
+    3 -> "Miércoles"
+    4 -> "Jueves"
+    5 -> "Viernes"
+    6 -> "Sábado"
+    7 -> "Domingo"
+    else -> "día"
 }
 
 private fun locateWeekForSessionCreation(program: Program, weekId: String): WeekSessionLocation? {

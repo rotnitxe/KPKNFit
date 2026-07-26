@@ -388,22 +388,32 @@ internal fun SessionContextNavigator(
     val navModifier = if (hazeState != null) {
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .padding(horizontal = 14.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(28.dp))
             .hazeEffect(state = hazeState, style = hazeStyle)
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.16f),
+                shape = RoundedCornerShape(28.dp),
+            )
     } else {
-        Modifier.fillMaxWidth()
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(Color.Black.copy(alpha = 0.55f))
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.16f),
+                shape = RoundedCornerShape(28.dp),
+            )
     }
-    Surface(
-        modifier = navModifier,
-        shadowElevation = 0.dp,
-        tonalElevation = 0.dp,
-        color = Color.Transparent,
-    ) {
+    Box(modifier = navModifier) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+                .padding(horizontal = 14.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             // Block chips for advanced programs

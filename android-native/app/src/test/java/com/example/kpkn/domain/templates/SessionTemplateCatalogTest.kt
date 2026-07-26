@@ -1,9 +1,16 @@
 package com.example.kpkn.domain.templates
 
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
+import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
+import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTag
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -15,6 +22,7 @@ import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
 import java.io.File
+import kotlin.math.abs
 
 class SessionTemplateCatalogTest {
 
@@ -23,6 +31,8 @@ class SessionTemplateCatalogTest {
         private lateinit var exerciseDatabase: List<ExerciseMuscleInfo>
         private lateinit var exerciseDatabaseById: Map<String, ExerciseMuscleInfo>
         private lateinit var exerciseAliases: Map<String, String>
+        /** Índice con claves canónicas + aliases, como debe consumir [SessionTemplateAudit]. */
+        private lateinit var exerciseIndexWithAliases: Map<String, ExerciseMuscleInfo>
 
         @BeforeClass
         @JvmStatic
@@ -35,6 +45,11 @@ class SessionTemplateCatalogTest {
             exerciseAliases = json.decodeFromString<Map<String, String>>(aliasesFile.readText())
                 .mapKeys { it.key.lowercase() }
                 .mapValues { it.value.lowercase() }
+            val merged = exerciseDatabaseById.toMutableMap()
+            exerciseAliases.forEach { (alias, canonical) ->
+                exerciseDatabaseById[canonical]?.let { merged[alias] = it }
+            }
+            exerciseIndexWithAliases = merged
         }
 
         private fun findDbFile(fileName: String): File {
@@ -250,5 +265,263 @@ class SessionTemplateCatalogTest {
                 assertNotNull("El splitId '$splitId' en la plantilla '${template.name}' no existe en SPLIT_TEMPLATES", split)
             }
         }
+    }
+
+    @Test
+    fun auditProducesCountsDurationAndMusclesForRealTemplate() {
+        val template = SESSION_TEMPLATES_SYSTEM.first { it.id == "sys-push-ppl" }
+        val audit = SessionTemplateAudit.audit(template, exerciseIndexWithAliases)
+
+        val expectedExercises = template.session.exercises + template.session.parts.flatMap { it.exercises }
+        assertEquals(expectedExercises.size, audit.exerciseCount)
+        assertEquals(template.session.parts.size, audit.partCount)
+        assertEquals(expectedExercises.sumOf { it.sets.size }, audit.totalSets)
+        assertTrue("Debe haber series en Push Day", audit.totalSets > 0)
+        assertTrue("Duración estimada debe ser positiva", audit.estimatedDurationMinutes >= SessionTemplateAudit.MIN_DURATION_MINUTES)
+        assertTrue("Debe haber músculos primarios derivados de la DB", audit.primaryMuscleSets.isNotEmpty())
+        assertTrue(
+            "Push Day debe cargar pectorales como primario",
+            audit.primaryMuscleSets.keys.any { it.contains("Pectoral", ignoreCase = true) },
+        )
+        assertNotNull("Debe poder promediar RPE/RIR de las series", audit.averageTargetRpe)
+        assertTrue(
+            "RPE medio coherente: ${audit.averageTargetRpe}",
+            audit.averageTargetRpe!! in 5.0..10.0,
+        )
+        assertEquals(audit.exercises.size, audit.uniqueExerciseIds.size)
+        assertTrue(
+            "Todos los ejercicios de Push deben resolverse en el índice",
+            audit.exercises.all { SessionTemplateAudit.resolveCatalogInfo(it, exerciseIndexWithAliases) != null },
+        )
+    }
+
+    @Test
+    fun catalogUsesAtLeast75UniqueExerciseIds() {
+        val uniqueIds = linkedSetOf<String>()
+        SESSION_TEMPLATES_SYSTEM.forEach { template ->
+            template.session.allExercises().forEach { exercise ->
+                val resolved = resolveExerciseId(
+                    exercise.exerciseDbId ?: exercise.exerciseId ?: exercise.canonicalExerciseId,
+                )
+                assertNotNull("ID no resoluble en '${template.name}': ${exercise.exerciseDbId}", resolved)
+                uniqueIds += resolved!!
+            }
+        }
+        assertTrue(
+            "Catálogo debe usar >=75 IDs únicos (actual=${uniqueIds.size})",
+            uniqueIds.size >= 75,
+        )
+    }
+
+    @Test
+    fun noSingleExerciseDominatesMoreThan35PercentOfTemplates() {
+        val templateCount = SESSION_TEMPLATES_SYSTEM.size
+        val presence = mutableMapOf<String, Int>()
+        SESSION_TEMPLATES_SYSTEM.forEach { template ->
+            val idsInTemplate = template.session.allExercises()
+                .mapNotNull { resolveExerciseId(it.exerciseDbId ?: it.exerciseId ?: it.canonicalExerciseId) }
+                .toSet()
+            idsInTemplate.forEach { id ->
+                presence[id] = (presence[id] ?: 0) + 1
+            }
+        }
+        val limit = templateCount * 0.35
+        val offenders = presence.filter { it.value > limit }
+            .entries
+            .sortedByDescending { it.value }
+            .map { (id, count) -> "$id en $count/${templateCount} plantillas (${"%.0f".format(100.0 * count / templateCount)}%)" }
+        assertTrue(
+            "Ningún ejercicio debe aparecer en >35% de plantillas:\n${offenders.joinToString("\n")}",
+            offenders.isEmpty(),
+        )
+    }
+
+    @Test
+    fun templateMetadataMatchesRealExerciseAndPartCounts() {
+        val failures = mutableListOf<String>()
+        SESSION_TEMPLATES_SYSTEM.forEach { template ->
+            val audit = SessionTemplateAudit.audit(template, exerciseIndexWithAliases)
+            if (template.exerciseCount != audit.exerciseCount) {
+                failures += "'${template.name}': exerciseCount=${template.exerciseCount} real=${audit.exerciseCount}"
+            }
+            if (template.partCount != audit.partCount) {
+                failures += "'${template.name}': partCount=${template.partCount} real=${audit.partCount}"
+            }
+        }
+        assertTrue(failures.joinToString("\n"), failures.isEmpty())
+    }
+
+    @Test
+    fun templateTotalVolumeIsReasonable() {
+        val lowVolumeIds = SESSION_TEMPLATES_SYSTEM
+            .filter { it.id.contains("-low") || it.name.contains("Dosificad", ignoreCase = true) || it.name.contains("Alta Frecuencia", ignoreCase = true) }
+            .map { it.id }
+            .toSet()
+        val failures = mutableListOf<String>()
+        SESSION_TEMPLATES_SYSTEM.forEach { template ->
+            val totalSets = template.session.allExercises().sumOf { it.sets.size }
+            val isLow = template.id in lowVolumeIds
+            val range = if (isLow) 8..12 else 8..22
+            if (totalSets !in range) {
+                failures += "'${template.name}' (${template.id}): $totalSets series fuera de $range" +
+                    if (isLow) " [low]" else ""
+            }
+        }
+        assertTrue(failures.joinToString("\n"), failures.isEmpty())
+    }
+
+    @Test
+    fun declaredDurationStaysWithinAuditDivergence() {
+        val failures = mutableListOf<String>()
+        SESSION_TEMPLATES_SYSTEM.forEach { template ->
+            val audit = SessionTemplateAudit.audit(template, exerciseIndexWithAliases)
+            val declared = template.estimatedDurationMinutes
+            if (declared == null || declared <= 0 || audit.estimatedDurationMinutes <= 0) {
+                failures += "'${template.name}': duración declarada inválida ($declared)"
+                return@forEach
+            }
+            val ratio = abs(declared - audit.estimatedDurationMinutes).toDouble() /
+                audit.estimatedDurationMinutes.toDouble()
+            if (ratio > SessionTemplateAudit.DURATION_DIVERGENCE_RATIO) {
+                failures += "'${template.name}': declarada=$declared estimada=${audit.estimatedDurationMinutes} " +
+                    "(desvío ${(ratio * 100).toInt()}%)"
+            }
+            val durationIssues = audit.issues.filter { it.kind == SessionTemplateAuditIssueKind.DURATION_DIVERGENT }
+            if (durationIssues.isNotEmpty()) {
+                failures += durationIssues.joinToString { it.message }
+            }
+        }
+        assertTrue(failures.joinToString("\n"), failures.isEmpty())
+    }
+
+    @Test
+    fun primaryCoverageIncludesWeeklyVolumeMuscles() {
+        val covered = mutableSetOf<String>()
+        SESSION_TEMPLATES_SYSTEM.forEach { template ->
+            val audit = SessionTemplateAudit.audit(template, exerciseIndexWithAliases)
+            covered += audit.primaryMuscleSets.keys
+        }
+        // Antebrazo no está en WEEKLY_VOLUME_RANGES; el resto debe tener cobertura primaria.
+        val required = SessionTemplateCatalogPolicy.WEEKLY_VOLUME_RANGES.keys
+        val missing = required.filter { muscle ->
+            covered.none { it.equals(muscle, ignoreCase = true) }
+        }
+        assertTrue(
+            "Falta cobertura primaria de músculos semanales: $missing\nCubiertos=$covered",
+            missing.isEmpty(),
+        )
+    }
+
+    @Test
+    fun auditResolvesAllSystemTemplateExerciseIds() {
+        val failures = mutableListOf<String>()
+        SESSION_TEMPLATES_SYSTEM.forEach { template ->
+            val audit = SessionTemplateAudit.audit(template, exerciseIndexWithAliases)
+            audit.exercises.forEach { exercise ->
+                val viaAliasHelper = resolveExerciseId(
+                    exercise.exerciseDbId ?: exercise.exerciseId ?: exercise.canonicalExerciseId,
+                )
+                val viaAudit = SessionTemplateAudit.resolveCatalogInfo(exercise, exerciseIndexWithAliases)
+                if (viaAliasHelper == null) {
+                    failures += "'${template.name}': '${exercise.name}' sin ID resoluble " +
+                        "(dbId=${exercise.exerciseDbId})"
+                }
+                if (viaAudit == null) {
+                    failures += "'${template.name}': '${exercise.name}' no resuelve en índice con aliases " +
+                        "(dbId=${exercise.exerciseDbId})"
+                }
+            }
+            audit.uniqueExerciseIds.forEach { id ->
+                if (!exerciseDatabaseById.containsKey(id.lowercase())) {
+                    failures += "'${template.name}': uniqueExerciseId '$id' no es canónico de la DB"
+                }
+            }
+        }
+        assertTrue(failures.joinToString("\n"), failures.isEmpty())
+    }
+
+    @Test
+    fun auditConvertsRirToRpeWhenRpeMissing() {
+        val catalogId = exerciseDatabase.first().id
+        val session = Session(
+            id = "audit-rir",
+            name = "RIR probe",
+            exercises = listOf(
+                Exercise(
+                    id = "ex1",
+                    name = "Probe",
+                    exerciseDbId = catalogId,
+                    sets = listOf(
+                        ExerciseSet(id = "s1", targetReps = 8, targetRIR = 2, intensityMode = IntensityMode.RIR),
+                        ExerciseSet(id = "s2", targetReps = 8, targetRPE = 8.0, intensityMode = IntensityMode.RPE),
+                    ),
+                ),
+            ),
+        )
+        val audit = SessionTemplateAudit.audit(session, exerciseIndexWithAliases)
+        // (10-2)=8 y 8.0 → media 8.0
+        assertEquals(8.0, audit.averageTargetRpe!!, 0.01)
+    }
+
+    @Test
+    fun issuesDetectInconsistentMetadataAndDivergentDuration() {
+        val real = SESSION_TEMPLATES_SYSTEM.first()
+        val firstExercise = real.session.allExercises().first()
+        val info = SessionTemplateAudit.resolveCatalogInfo(firstExercise, exerciseIndexWithAliases)
+        assertNotNull(info)
+
+        val broken = SessionTemplate(
+            id = "audit-broken-meta",
+            sourceType = SessionTemplateSourceType.USER,
+            name = "Broken Meta",
+            description = "Plantilla sintética para issues",
+            difficulty = Difficulty.INTERMEDIO,
+            estimatedDurationMinutes = 120,
+            exerciseCount = 99,
+            partCount = 99,
+            session = Session(
+                id = "broken-session",
+                name = "Broken Meta",
+                parts = listOf(
+                    SessionPart(
+                        id = "p1",
+                        name = "Única",
+                        exercises = listOf(
+                            firstExercise.copy(
+                                id = "broken-ex",
+                                sets = listOf(
+                                    ExerciseSet(
+                                        id = "s1",
+                                        targetReps = 10,
+                                        targetRPE = 12.0,
+                                        intensityMode = IntensityMode.RPE,
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val audit = SessionTemplateAudit.audit(broken, exerciseIndexWithAliases)
+        val kinds = audit.issues.map { it.kind }.toSet()
+
+        assertTrue(
+            "Debe marcar metadata inconsistente: ${audit.issues}",
+            SessionTemplateAuditIssueKind.INCONSISTENT_METADATA in kinds,
+        )
+        assertTrue(
+            "Debe marcar intensidad fuera de rango: ${audit.issues}",
+            SessionTemplateAuditIssueKind.INTENSITY_OUT_OF_RANGE in kinds,
+        )
+        assertTrue(
+            "Debe marcar duración muy desviada: ${audit.issues}",
+            SessionTemplateAuditIssueKind.DURATION_DIVERGENT in kinds,
+        )
+        assertEquals(1, audit.exerciseCount)
+        assertEquals(1, audit.partCount)
+        assertTrue(audit.estimatedDurationMinutes < 120)
+        assertTrue(abs(120 - audit.estimatedDurationMinutes).toDouble() / audit.estimatedDurationMinutes > SessionTemplateAudit.DURATION_DIVERGENCE_RATIO)
     }
 }

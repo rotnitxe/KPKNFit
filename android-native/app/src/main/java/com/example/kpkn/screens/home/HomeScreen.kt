@@ -117,66 +117,48 @@ fun HomeScreen(
         )
     }
 
-    // Stable indices after reorder: 0 header, 1 session, 2 rings, >=3 nutrition+
-    val item0TopMarginPx = with(density) { 16.dp.roundToPx() }
-    val item1TopMarginPx = with(density) { 4.dp.roundToPx() }
-    val item2TopMarginPx = with(density) { 4.dp.roundToPx() }
+    // Stable indices: 0 header, 1 session, 2 rings. The mini cards switch when
+    // their source section reaches the pinned header, not after it has scrolled away.
+    val headerBottomPx = WindowInsets.statusBars.getTop(density) + with(density) { 64.dp.roundToPx() }
+    val handoffDistancePx = with(density) { 48.dp.roundToPx() }.toFloat()
+    val greetingHandoffStartPx = with(density) { 72.dp.roundToPx() }
 
-    val greetingProgress by remember(item0TopMarginPx) {
+    val greetingProgress by remember(headerBottomPx, greetingHandoffStartPx, handoffDistancePx) {
         derivedStateOf {
-            val item0 = listState.layoutInfo.visibleItemsInfo.find { it.index == 0 }
-            when {
-                item0 == null -> 1f
-                item0.offset > -item0TopMarginPx -> 0f
-                else -> {
-                    val cut = (-item0.offset - item0TopMarginPx).toFloat()
-                    val visibleHeight = (item0.size - item0TopMarginPx).toFloat().coerceAtLeast(1f)
-                    (cut / visibleHeight).coerceIn(0f, 1f)
-                }
+            val header = listState.layoutInfo.visibleItemsInfo.find { it.index == 0 }
+            if (header == null) {
+                1f
+            } else {
+                ((-header.offset - greetingHandoffStartPx) / handoffDistancePx).coerceIn(0f, 1f)
             }
         }
     }
 
-    val sessionProgress by remember(item1TopMarginPx) {
+    val sessionProgress by remember(headerBottomPx, handoffDistancePx) {
         derivedStateOf {
-            val item1 = listState.layoutInfo.visibleItemsInfo.find { it.index == 1 }
-            when {
-                item1 == null -> 1f
-                item1.offset > -item1TopMarginPx -> 0f
-                else -> {
-                    val cut = (-item1.offset - item1TopMarginPx).toFloat()
-                    val visibleHeight = (item1.size - item1TopMarginPx).toFloat().coerceAtLeast(1f)
-                    (cut / visibleHeight * 2.0f).coerceIn(0f, 1f)
-                }
+            val session = listState.layoutInfo.visibleItemsInfo.find { it.index == 1 }
+            if (session == null) {
+                1f
+            } else {
+                ((headerBottomPx - session.offset) / handoffDistancePx).coerceIn(0f, 1f)
             }
         }
     }
 
-    val ringsProgress by remember(item2TopMarginPx) {
+    val ringsProgress by remember(headerBottomPx, handoffDistancePx) {
         derivedStateOf {
-            val item2 = listState.layoutInfo.visibleItemsInfo.find { it.index == 2 }
-            when {
-                item2 == null -> 1f
-                item2.offset > -item2TopMarginPx -> 0f
-                else -> {
-                    val cut = (-item2.offset - item2TopMarginPx).toFloat()
-                    val visibleHeight = (item2.size - item2TopMarginPx).toFloat().coerceAtLeast(1f)
-                    (cut / visibleHeight).coerceIn(0f, 1f)
-                }
+            val rings = listState.layoutInfo.visibleItemsInfo.find { it.index == 2 }
+            if (rings == null) {
+                1f
+            } else {
+                ((headerBottomPx - rings.offset) / handoffDistancePx).coerceIn(0f, 1f)
             }
         }
     }
 
     val nutritionProgress by remember {
-        derivedStateOf {
-            val first = listState.firstVisibleItemIndex
-            when {
-                first < 3 -> 0f
-                else -> 1f
-            }
-        }
+        derivedStateOf { if (listState.firstVisibleItemIndex >= 3) 1f else 0f }
     }
-
     Box(
         Modifier
             .fillMaxSize()

@@ -40,6 +40,8 @@ import com.example.kpkn.screens.sessioneditor.DarkEditorChip
 import com.example.kpkn.screens.sessioneditor.sessionBackgroundPresets
 import com.example.kpkn.screens.sessioneditor.sessionGradients
 import com.example.kpkn.screens.sessioneditor.SessionEditorAugeSummary
+import com.example.kpkn.ui.components.kpknGlass
+import dev.chrisbanes.haze.HazeState
 
 @Composable
 internal fun SessionBackgroundLayer(background: SessionBackground?, blurDp: androidx.compose.ui.unit.Dp) {
@@ -152,18 +154,27 @@ internal fun TemplatesFab(onClick: () -> Unit) {
 internal fun HeroGlassFab(
     summary: SessionEditorAugeSummary,
     modifier: Modifier = Modifier,
+    hazeState: HazeState? = null,
     onClick: () -> Unit,
 ) {
-    FloatingActionButton(
-        onClick = onClick,
-        modifier = modifier,
-        containerColor = DarkEditorChip,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        shape = CircleShape,
+    // Same construction as the roadmap dock: Box + kpknGlass OVER a sibling hazeSource.
+    // Do NOT wrap this in Scaffold's floatingActionButton (that nests inside hazeSource and kills blur).
+    val glassModifier = if (hazeState != null) {
+        Modifier.kpknGlass(hazeState, CircleShape)
+    } else {
+        Modifier.background(DarkEditorChip, CircleShape)
+    }
+    Box(
+        modifier = modifier
+            .size(56.dp)
+            .then(glassModifier)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = Icons.Default.Visibility,
             contentDescription = "Abrir Asistente de sesión",
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(24.dp),
         )
     }

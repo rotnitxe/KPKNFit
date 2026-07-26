@@ -14,13 +14,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,8 +37,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.platform.LocalContext
@@ -48,9 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -96,6 +91,7 @@ import com.example.kpkn.telemetry.TelemetryHelper
 import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.icons.NutritionIcon
 import com.example.kpkn.ui.components.icons.WikiIcon
+import com.example.kpkn.ui.components.kpknGlass
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
@@ -478,15 +474,6 @@ fun KPKNApp(
     val showContextualSubtabbar = showTrainingSubtabbar || showNutritionSubtabbar || showWikiSearchSubtabbar
 
     val hazeState = remember { HazeState() }
-    val bottomBarGlassStyle = remember {
-        HazeStyle(
-            blurRadius = 20.dp,
-            tint = HazeTint(Color.Black.copy(alpha = 0.30f)),
-            backgroundColor = Color.Black.copy(alpha = 0.34f),
-            noiseFactor = 0.03f,
-        )
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
         if (isFullscreenWizard) {
             KPKNNavGraph(
@@ -528,24 +515,16 @@ fun KPKNApp(
                 )
                 }
 
-                // ─── Session in progress banner ─────────────────────────────
-                if (ongoingWorkout != null) {
-                    val floatingSessionBottomPadding = if (showContextualSubtabbar) 156.dp else 116.dp
+            }
+
+            // ─── Session in progress banner ─────────────────────────────────
+            // Glass overlays must be siblings drawn after hazeSource.
+            if (ongoingWorkout != null) {
+                    val floatingSessionBottomPadding by animateDpAsState(
+                        targetValue = if (showContextualSubtabbar) 196.dp else 128.dp,
+                        label = "ongoingSessionDockClearance",
+                    )
                     val bgValue = ongoingWorkout?.session?.background?.value
-                    val bgColors = remember(bgValue) {
-                        when (bgValue) {
-                            "gradient://ember" -> listOf(Color(0xFF20110F), Color(0xFF8D3D2E), Color(0xFFE08E45))
-                            "gradient://lagoon" -> listOf(Color(0xFF0D1B2A), Color(0xFF1B4965), Color(0xFF5FA8D3))
-                            "gradient://velvet" -> listOf(Color(0xFF1C1024), Color(0xFF5B2A86), Color(0xFFE26D5A))
-                            "gradient://forest" -> listOf(Color(0xFF102A1F), Color(0xFF2D6A4F), Color(0xFF95D5B2))
-                            "solid://obsidian" -> listOf(Color(0xFF111318), Color(0xFF111318), Color(0xFF111318))
-                            "solid://steel" -> listOf(Color(0xFF334155), Color(0xFF334155), Color(0xFF334155))
-                            "solid://ember-red" -> listOf(Color(0xFF7F1D1D), Color(0xFF7F1D1D), Color(0xFF7F1D1D))
-                            "solid://ocean" -> listOf(Color(0xFF0F3D5E), Color(0xFF0F3D5E), Color(0xFF0F3D5E))
-                            "solid://moss" -> listOf(Color(0xFF244B3C), Color(0xFF244B3C), Color(0xFF244B3C))
-                            else -> listOf(Color(0xFF20110F), Color(0xFF8D3D2E), Color(0xFFE08E45))
-                        }
-                    }
                     val accentColor = remember(bgValue) {
                         when (bgValue) {
                             "gradient://ember" -> Color(0xFFE08E45)
@@ -574,10 +553,7 @@ fun KPKNApp(
                                     offsetY = (offsetY + delta).coerceIn(-300f, 0f)
                                 },
                             )
-                            .shadow(16.dp, RoundedCornerShape(20.dp))
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(Brush.linearGradient(bgColors))
-                            .border(1.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(20.dp))
+                            .kpknGlass(hazeState, RoundedCornerShape(20.dp))
                             .zIndex(10f)
                             .clickable {
                                 val state = ongoingWorkout ?: return@clickable
@@ -608,22 +584,19 @@ fun KPKNApp(
                             ) { Text("Reanudar", fontWeight = FontWeight.Bold) }
                         }
                     }
-                }
             }
 
-            // ─── Glass bottom bar with blur ────────────────────────────────
-            Surface(
+            // ─── Liquid Glass bottom bar ───────────────────────────────────
+            Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .hazeEffect(
-                        state = hazeState,
-                        style = bottomBarGlassStyle,
+                    .navigationBarsPadding()
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
+                    .kpknGlass(
+                        hazeState = hazeState,
+                        shape = RoundedCornerShape(32.dp),
                     ),
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                color = Color.Black.copy(alpha = 0.18f),
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp,
             ) {
                 Column(Modifier.fillMaxWidth()) {
                 // ─── Subtabbar contextual extension (animated) ─────────────
@@ -637,14 +610,11 @@ fun KPKNApp(
                             .fillMaxWidth()
                             .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 2.dp)
                     ) {
-                        Surface(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(44.dp),
-                            shape = RoundedCornerShape(22.dp),
-                            color = Color.Black.copy(alpha = 0.24f),
-                            tonalElevation = 0.dp,
-                            shadowElevation = 0.dp,
+                                .height(44.dp)
+                                .clip(RoundedCornerShape(22.dp)),
                         ) {
                             if (showTrainingSubtabbar) {
                                 TabRow(
@@ -714,10 +684,11 @@ fun KPKNApp(
                     indicatorColor = Color.Transparent,
                 )
                 NavigationBar(
-                    containerColor = Color.Black.copy(alpha = 0.10f),
+                    containerColor = Color.Transparent,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     tonalElevation = 0.dp,
-                    modifier = Modifier.navigationBarsPadding(),
+                    windowInsets = WindowInsets(0, 0, 0, 0),
+                    modifier = Modifier.height(80.dp),
                 ) {
                     val homeSel = currentTab == KpknRoute.Home.route
                     NavigationBarItem(

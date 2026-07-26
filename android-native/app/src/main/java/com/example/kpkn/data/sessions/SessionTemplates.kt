@@ -2,8 +2,18 @@ package com.example.kpkn.data.sessions
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.splits.Difficulty
+import kotlin.math.roundToInt
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Alineado con [com.example.kpkn.domain.templates.SessionTemplateAudit] (sin depender de domain). */
+private const val TEMPLATE_SETUP_SECONDS = 90
+private const val TEMPLATE_DEFAULT_REST_SECONDS = 90
+private const val TEMPLATE_EXECUTION_SECONDS_PER_SET = 45
+private const val TEMPLATE_MIN_DURATION_MINUTES = 10
+private const val LOW_VOLUME_MIN_SETS = 8
+private const val LOW_VOLUME_MAX_SETS = 12
+private const val LOW_VOLUME_TARGET_SETS_PER_EXERCISE = 2
 
 private fun ex(
     id: String,
@@ -51,6 +61,63 @@ private fun nRirSets(prefix: String, count: Int, reps: Int, rir: Int): List<Exer
 private fun part(id: String, name: String, color: String, exercises: List<Exercise>) =
     SessionPart(id = id, name = name, color = color, exercises = exercises)
 
+private fun sessionTotalSets(session: Session): Int =
+    session.allExercises().sumOf { it.sets.size }
+
+/**
+ * Deriva exerciseCount / partCount / estimatedDurationMinutes del contenido real
+ * para evitar metadata duplicada inconsistente.
+ */
+private fun finalizedTemplate(template: SessionTemplate): SessionTemplate {
+    val exercises = template.session.allExercises()
+    var durationSeconds = 0
+    exercises.forEach { exercise ->
+        val setCount = exercise.sets.size
+        val rest = exercise.restTime?.takeIf { it > 0 } ?: TEMPLATE_DEFAULT_REST_SECONDS
+        val execution = setCount * TEMPLATE_EXECUTION_SECONDS_PER_SET
+        val restTotal = if (setCount > 1) rest * (setCount - 1) else 0
+        durationSeconds += TEMPLATE_SETUP_SECONDS + execution + restTotal
+    }
+    val estimated = (durationSeconds / 60.0)
+        .roundToInt()
+        .coerceAtLeast(if (exercises.isEmpty()) 0 else TEMPLATE_MIN_DURATION_MINUTES)
+    return template.copy(
+        exerciseCount = exercises.size,
+        partCount = template.session.parts.size,
+        estimatedDurationMinutes = estimated,
+    )
+}
+
+private fun mapSessionExercises(session: Session, transform: (Exercise) -> Exercise): Session =
+    session.copy(
+        parts = session.parts.map { part ->
+            part.copy(exercises = part.exercises.map(transform))
+        },
+        exercises = session.exercises.map(transform),
+    )
+
+private fun dropTrailingExercise(session: Session): Session {
+    if (session.parts.isNotEmpty()) {
+        for (i in session.parts.indices.reversed()) {
+            val part = session.parts[i]
+            if (part.exercises.isNotEmpty()) {
+                val trimmed = part.copy(exercises = part.exercises.dropLast(1))
+                val parts = session.parts.toMutableList()
+                if (trimmed.exercises.isEmpty() && session.parts.size > 1) {
+                    parts.removeAt(i)
+                } else {
+                    parts[i] = trimmed
+                }
+                return session.copy(parts = parts)
+            }
+        }
+    }
+    if (session.exercises.isNotEmpty()) {
+        return session.copy(exercises = session.exercises.dropLast(1))
+    }
+    return session
+}
+
 // ─── System templates ─────────────────────────────────────────────────────────
 
 private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
@@ -93,14 +160,14 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                         nSets("p1e3", 2, 12, 8.0), restTime = 90, damageProfile = DamageProfile.SQUEEZE),
                 )),
                 part("p-push-2", "Hombros", "#4A1942", listOf(
-                    ex("p2-ex2", "Elevaciones Laterales con Mancuernas", "tren_superior_elevaciones_laterales_mancuernas",
-                        nSets("p2e2", 2, 12, 8.0), restTime = 75),
+                    ex("p2-ex2", "Elevaciones Laterales de Pie en Polea", "deltoides_elevaciones_laterales_de_pie_polea",
+                        nSets("p2e2", 2, 12, 8.5), restTime = 75),
                 )),
                 part("p-push-3", "Tríceps", "#1F3A2E", listOf(
                     ex("p3-ex1", "Extensión de Tríceps en Polea Alta con Cuerda", "tren_superior_extension_triceps_polea_cuerda",
-                        nSets("p3e1", 2, 12, 8.0), restTime = 90),
-                    ex("p3-ex2", "Press Francés Tumbado con Barra EZ", "tren_superior_press_frances_barra_ez",
-                        nSets("p3e2", 2, 10, 7.5), restTime = 90, damageProfile = DamageProfile.STRETCH),
+                        nSets("p3e1", 2, 12, 8.5), restTime = 90),
+                    ex("p3-ex2", "Extensión de Tríceps Overhead con Mancuerna", "triceps_overhead_mancuerna",
+                        nSets("p3e2", 2, 10, 8.0), restTime = 90, damageProfile = DamageProfile.STRETCH),
                 )),
             ),
         ),
@@ -135,24 +202,24 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Pull Day · PPL",
             parts = listOf(
                 part("p-pull-1", "Espalda vertical", "#0F3D5E", listOf(
-                    ex("pu1-ex1", "Dominadas", "tren_superior_dominadas_pronas",
-                        nSets("pu1e1", 2, 8, 7.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("pu1-ex2", "Jalón al Pecho", "tren_superior_jalon_pecho_prono",
-                        nSets("pu1e2", 2, 10, 7.0), restTime = 120),
+                    ex("pu1-ex1", "Dominadas Supinas (Chin-Ups)", "back_dominadas_supinas",
+                        nSets("pu1e1", 2, 8, 7.5), restTime = 150, damageProfile = DamageProfile.STRETCH),
+                    ex("pu1-ex2", "Jalón Neutro en Polea", "back_jalon_neutro_polea",
+                        nSets("pu1e2", 2, 10, 7.5), restTime = 120),
                 )),
                 part("p-pull-2", "Espalda horizontal", "#244B3C", listOf(
-                    ex("pu2-ex1", "Remo Inclinado Prono con Barra", "tren_superior_remo_inclinado_prono_barra",
-                        nSets("pu2e1", 2, 8, 7.0), restTime = 150),
-                    ex("pu2-ex2", "Remo Sentado en Polea Baja", "tren_superior_remo_sentado_polea_baja",
-                        nSets("pu2e2", 2, 10, 7.0), restTime = 90),
-                    ex("pu2-ex3", "Face Pull en Polea Alta", "tren_superior_face_pull_polea",
-                        nRirSets("pu2e3", 2, 15, 3), restTime = 90),
+                    ex("pu2-ex1", "Remo con Pecho Apoyado con Mancuernas", "back_remo_pecho_apoyado_mancuernas",
+                        nSets("pu2e1", 2, 8, 7.5), restTime = 150),
+                    ex("pu2-ex2", "Remo en Máquina (Agarre Cerrado)", "back_remo_maquina_cerrado",
+                        nSets("pu2e2", 2, 10, 7.5), restTime = 90),
+                    ex("pu2-ex3", "Face Pull en Polea (Deltoides)", "deltoides_face_pull_polea",
+                        nSets("pu2e3", 2, 15, 8.0), restTime = 90),
                 )),
                 part("p-pull-3", "Bíceps", "#5B2A86", listOf(
-                    ex("pu3-ex1", "Curl de Bíceps con Barra EZ", "tren_superior_curl_biceps_barra_ez",
-                        nSets("pu3e1", 2, 10, 7.5), restTime = 90, damageProfile = DamageProfile.STRETCH),
-                    ex("pu3-ex2", "Curl Martillo con Mancuernas", "tren_superior_curl_martillo_mancuernas",
-                        nSets("pu3e2", 2, 12, 7.0), restTime = 90),
+                    ex("pu3-ex1", "Curl Predicador con Barra EZ", "biceps_curl_predicador_supino_barra_ez",
+                        nSets("pu3e1", 2, 10, 8.5), restTime = 90, damageProfile = DamageProfile.STRETCH),
+                    ex("pu3-ex2", "Curl Martillo de Pie con Mancuernas", "biceps_curl_de_pie_martillo_mancuernas",
+                        nSets("pu3e2", 2, 12, 8.0), restTime = 90),
                 )),
             ),
         ),
@@ -188,17 +255,17 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                 part("p-lq-1", "Dominante Cuádriceps", "#7F1D1D", listOf(
                     ex("lq1-ex1", "Sentadilla Trasera Barra Alta", "tren_inferior_sentadilla_barra_alta",
                         nSets("lq1e1", 2, 6, 8.0), restTime = 180, damageProfile = DamageProfile.STRETCH),
-                    ex("lq1-ex2", "Prensa de Piernas a 45 Grados", "tren_inferior_prensa_45",
-                        nSets("lq1e2", 2, 10, 8.0), restTime = 120),
-                    ex("lq1-ex3", "Extensión de Cuádriceps en Máquina", "tren_inferior_extension_cuadriceps",
-                        nRirSets("lq1e3", 2, 12, 2), restTime = 90, damageProfile = DamageProfile.SQUEEZE),
+                    ex("lq1-ex2", "Sentadilla en Máquina Hack", "quads_sentadilla_hack_maquina",
+                        nSets("lq1e2", 2, 10, 7.5), restTime = 120),
+                    ex("lq1-ex3", "Extensión de Cuádriceps en Máquina", "quads_extension_cuadriceps_maquina",
+                        nSets("lq1e3", 2, 12, 8.5), restTime = 90, damageProfile = DamageProfile.SQUEEZE),
                 )),
                 part("p-lq-2", "Accesorios y Posteriores", "#1E3A8A", listOf(
-                    ex("lq2-ex1", "Hip Thrust con Barra Libre", "tren_inferior_hip_thrust_barra",
+                    ex("lq2-ex1", "Hip Thrust en Máquina", "glutes_hip_thrust_maquina",
                         nSets("lq2e1", 2, 10, 8.0), restTime = 120, damageProfile = DamageProfile.SQUEEZE),
-                    ex("lq2-ex2", "Curl Femoral Tumbado en Máquina", "tren_inferior_curl_femoral_tumbado",
-                        nRirSets("lq2e2", 2, 12, 2), restTime = 90, damageProfile = DamageProfile.STRETCH),
-                    ex("lq2-ex3", "Elevación de Gemelos Tipo Burro (Donkey)", "ultimo_elevacion_gemelos_burro",
+                    ex("lq2-ex2", "Curl Femoral Sentado en Máquina", "hams_curl_femoral_sentado_maquina",
+                        nSets("lq2e2", 2, 12, 8.5), restTime = 90, damageProfile = DamageProfile.STRETCH),
+                    ex("lq2-ex3", "Elevación de Talones de Pie en Máquina", "calves_elevacion_talones_de_pie_maquina",
                         nSets("lq2e3", 3, 15, 8.5), restTime = 60),
                 )),
             ),
@@ -235,16 +302,16 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                 part("p-lh-1", "Bisagra de Cadera", "#244B3C", listOf(
                     ex("lh1-ex1", "Peso Muerto Rumano", "tren_inferior_peso_muerto_rumano",
                         nSets("lh1e1", 2, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("lh1-ex2", "Peso Muerto Piernas Rígidas", "tren_inferior_peso_muerto_piernas_rigidas",
+                    ex("lh1-ex2", "Buenos Días de Pie con Barra Recta", "hams_buenos_dias_barra_recta",
                         nSets("lh1e2", 2, 10, 7.5), restTime = 120),
                 )),
                 part("p-lh-2", "Glúteos e Isquios", "#1B4965", listOf(
-                    ex("lh2-ex1", "Hip Thrust con Barra Libre", "tren_inferior_hip_thrust_barra",
+                    ex("lh2-ex1", "Hip Thrust con Barra Recta", "glutes_hip_thrust_barra_recta",
                         nSets("lh2e1", 2, 10, 8.0), restTime = 120, damageProfile = DamageProfile.SQUEEZE),
-                    ex("lh2-ex2", "Curl Femoral Tumbado en Máquina", "tren_inferior_curl_femoral_tumbado",
-                        nRirSets("lh2e2", 2, 10, 2), restTime = 90, damageProfile = DamageProfile.STRETCH),
-                    ex("lh2-ex3", "Abducción de Cadera en Máquina", "tren_inferior_abduccion_cadera_maquina",
-                        nRirSets("lh2e3", 2, 15, 2), restTime = 60, damageProfile = DamageProfile.SQUEEZE),
+                    ex("lh2-ex2", "Curl Femoral de Pie en Máquina", "hams_curl_femoral_pie_maquina",
+                        nSets("lh2e2", 2, 10, 8.5), restTime = 90, damageProfile = DamageProfile.STRETCH),
+                    ex("lh2-ex3", "Abducción de Cadera Sentado en Máquina", "glutes_abduccion_cadera_sentado_maquina",
+                        nSets("lh2e3", 2, 15, 8.5), restTime = 60, damageProfile = DamageProfile.SQUEEZE),
                 )),
             ),
         ),
@@ -278,22 +345,22 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Torso A",
             parts = listOf(
                 part("p-ua-1", "Pecho + Espalda", "#1B4965", listOf(
-                    ex("ua1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("ua1-ex1", "Press de Banca Plano con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("ua1e1", 3, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("ua1-ex2", "Remo Inclinado Prono con Barra", "tren_superior_remo_inclinado_prono_barra",
-                        nSets("ua1e2", 2, 8, 8.0), restTime = 120),
-                    ex("ua1-ex3", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
+                    ex("ua1-ex2", "Remo en Máquina (Agarre Ancho)", "back_remo_maquina_ancho",
+                        nSets("ua1e2", 2, 8, 7.5), restTime = 120),
+                    ex("ua1-ex3", "Press Inclinado en Máquina Convergente", "tren_superior_press_inclinado_maquina_convergente",
                         nSets("ua1e3", 2, 10, 7.5), restTime = 120),
-                    ex("ua1-ex4", "Jalón al Pecho", "tren_superior_jalon_pecho_prono",
+                    ex("ua1-ex4", "Jalón al Pecho en Polea (Agarre Ancho)", "back_jalon_pecho_polea_ancho",
                         nSets("ua1e4", 2, 10, 7.5), restTime = 90),
                 )),
                 part("p-ua-2", "Hombros + Brazos", "#5B2A86", listOf(
-                    ex("ua2-ex2", "Elevaciones Laterales con Mancuernas", "tren_superior_elevaciones_laterales_mancuernas",
+                    ex("ua2-ex2", "Elevaciones Laterales Sentado en Máquina", "deltoides_elevaciones_laterales_sentado_maquina",
                         nSets("ua2e2", 2, 12, 8.5), restTime = 60),
-                    ex("ua2-ex3", "Curl de Bíceps con Barra EZ", "tren_superior_curl_biceps_barra_ez",
-                        nSets("ua2e3", 2, 10, 8.0), restTime = 75, damageProfile = DamageProfile.STRETCH),
-                    ex("ua2-ex4", "Extensión de Tríceps en Polea Alta con Cuerda", "tren_superior_extension_triceps_polea_cuerda",
-                        nSets("ua2e4", 2, 12, 8.0), restTime = 75),
+                    ex("ua2-ex3", "Curl de Bíceps de Pie con Mancuernas", "biceps_curl_de_pie_supino_mancuernas",
+                        nSets("ua2e3", 2, 10, 8.5), restTime = 75, damageProfile = DamageProfile.STRETCH),
+                    ex("ua2-ex4", "Patada de Tríceps en Polea", "triceps_patada_polea",
+                        nSets("ua2e4", 2, 12, 8.5), restTime = 75),
                 )),
             ),
         ),
@@ -326,22 +393,22 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Full Body · Base",
             parts = listOf(
                 part("p-fb-1", "Pierna", "#7F1D1D", listOf(
-                    ex("fb1-ex1", "Sentadilla Trasera Barra Alta", "tren_inferior_sentadilla_barra_alta",
-                        nSets("fb1e1", 2, 8, 7.5), restTime = 150),
-                    ex("fb1-ex2", "Hip Thrust con Barra Libre", "tren_inferior_hip_thrust_barra",
+                    ex("fb1-ex1", "Sentadilla Copa con Mancuerna (Goblet Squat)", "quads_sentadilla_copa_mancuerna",
+                        nSets("fb1e1", 2, 8, 7.0), restTime = 150),
+                    ex("fb1-ex2", "Hip Thrust con Mancuerna", "glutes_hip_thrust_mancuerna",
                         nSets("fb1e2", 2, 10, 7.5), restTime = 120),
                 )),
                 part("p-fb-2", "Empuje", "#1B4965", listOf(
-                    ex("fb2-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
-                        nSets("fb2e1", 2, 8, 7.5), restTime = 120, damageProfile = DamageProfile.STRETCH),
-                    ex("fb2-ex2", "Elevaciones Laterales con Mancuernas", "tren_superior_elevaciones_laterales_mancuernas",
-                        nSets("fb2e2", 2, 10, 7.5), restTime = 90),
+                    ex("fb2-ex1", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente",
+                        nSets("fb2e1", 2, 8, 7.0), restTime = 120, damageProfile = DamageProfile.STRETCH),
+                    ex("fb2-ex2", "Aperturas en Máquina Pec Deck", "tren_superior_aperturas_pec_deck",
+                        nSets("fb2e2", 2, 12, 7.5), restTime = 75),
                 )),
                 part("p-fb-3", "Tirón", "#244B3C", listOf(
-                    ex("fb3-ex1", "Remo Inclinado Prono con Barra", "tren_superior_remo_inclinado_prono_barra",
-                        nSets("fb3e1", 2, 8, 7.5), restTime = 120),
-                    ex("fb3-ex2", "Curl de Bíceps con Barra Recta", "tren_superior_curl_biceps_barra_recta",
-                        nSets("fb3e2", 2, 12, 8.0), restTime = 75),
+                    ex("fb3-ex1", "Jalón al Pecho en Máquina (Agarre Ancho)", "back_jalon_pecho_maquina_ancho",
+                        nSets("fb3e1", 2, 8, 7.0), restTime = 120),
+                    ex("fb3-ex2", "Curl Predicador en Máquina", "biceps_curl_predicador_supino_maquina",
+                        nSets("fb3e2", 2, 12, 7.5), restTime = 75),
                 )),
             ),
         ),
@@ -378,19 +445,19 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                 part("p-sbd-1", "Sentadilla", "#7F1D1D", listOf(
                     ex("sbd1-ex1", "Sentadilla Trasera Barra Alta", "tren_inferior_sentadilla_barra_alta",
                         nSets("sbd1e1", 3, 3, 8.0), restTime = 210),
-                    ex("sbd1-ex2", "Sentadilla Trasera Barra Alta", "tren_inferior_sentadilla_barra_alta",
+                    ex("sbd1-ex2", "Sentadilla Frontal con Barra Recta", "quads_sentadilla_frontal_barra_recta",
                         nSets("sbd1e2", 2, 5, 7.0), restTime = 180),
                 )),
                 part("p-sbd-2", "Banca", "#1B4965", listOf(
                     ex("sbd2-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("sbd2e1", 3, 3, 8.0), restTime = 210),
-                    ex("sbd2-ex2", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("sbd2-ex2", "Floor Press con Barra", "tren_superior_floor_press_barra",
                         nSets("sbd2e2", 2, 5, 7.0), restTime = 150),
                 )),
                 part("p-sbd-3", "Peso Muerto", "#244B3C", listOf(
                     ex("sbd3-ex1", "Peso Muerto Convencional", "tren_inferior_peso_muerto_convencional",
                         nSets("sbd3e1", 2, 3, 8.0), restTime = 240),
-                    ex("sbd3-ex2", "Peso Muerto Rumano", "tren_inferior_peso_muerto_rumano",
+                    ex("sbd3-ex2", "Peso Muerto Sumo con Barra Recta", "hams_peso_muerto_sumo_barra_recta",
                         nSets("sbd3e2", 2, 6, 7.0), restTime = 150),
                 )),
             ),
@@ -425,11 +492,11 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             exercises = listOf(
                 ex("min-ex1", "Sentadilla Trasera Barra Alta", "tren_inferior_sentadilla_barra_alta",
                     nSets("mine1", 3, 5, 8.0), restTime = 180),
-                ex("min-ex2", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                ex("min-ex2", "Press de Banca Plano con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                     nSets("mine2", 3, 5, 8.0), restTime = 150),
-                ex("min-ex3", "Peso Muerto Rumano", "tren_inferior_peso_muerto_rumano",
+                ex("min-ex3", "Peso Muerto Convencional", "tren_inferior_peso_muerto_convencional",
                     nSets("mine3", 3, 5, 8.0), restTime = 180),
-                ex("min-ex4", "Dominadas", "tren_superior_dominadas_pronas",
+                ex("min-ex4", "Dominadas Pronas", "back_dominadas_pronas",
                     nSets("mine4", 3, 6, 7.5), restTime = 120),
             ),
         ),
@@ -464,16 +531,16 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                 part("p-ch-1", "Pecho principal", "#1B4965", listOf(
                     ex("ch1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("ch1e1", 2, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("ch1-ex2", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
+                    ex("ch1-ex2", "Press de Banca Declinado con Mancuernas", "tren_superior_press_banca_declinado_mancuernas",
                         nSets("ch1e2", 2, 10, 7.5), restTime = 120, damageProfile = DamageProfile.STRETCH),
-                    ex("ch1-ex3", "Cruces en Polea Baja (Ascendentes)", "ultimo_cruces_polea_baja_ascendentes",
-                        nSets("ch1e3", 2, 12, 8.0), restTime = 90, damageProfile = DamageProfile.SQUEEZE),
+                    ex("ch1-ex3", "Cruce de Poleas Altas", "tren_superior_cruce_poleas_altas",
+                        nSets("ch1e3", 2, 12, 8.5), restTime = 90, damageProfile = DamageProfile.SQUEEZE),
                 )),
                 part("p-ch-2", "Hombros y Tríceps", "#4A1942", listOf(
-                    ex("ch2-ex1", "Elevaciones Laterales con Mancuernas", "tren_superior_elevaciones_laterales_mancuernas",
-                        nSets("ch2e1", 2, 12, 8.0), restTime = 75),
-                    ex("ch2-ex2", "Extensión de Tríceps en Polea Alta con Cuerda", "tren_superior_extension_triceps_polea_cuerda",
-                        nSets("ch2e2", 2, 12, 8.0), restTime = 90),
+                    ex("ch2-ex1", "Extensión de Tríceps Overhead en Polea", "triceps_overhead_polea",
+                        nSets("ch2e1", 2, 12, 8.5), restTime = 75),
+                    ex("ch2-ex2", "Patada de Tríceps en Polea", "triceps_patada_polea",
+                        nSets("ch2e2", 2, 12, 8.5), restTime = 90),
                 )),
             ),
         ),
@@ -511,21 +578,21 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                 part("p-lc-1", "Cuádriceps", "#7F1D1D", listOf(
                     ex("lc1-ex1", "Sentadilla Trasera Barra Alta", "tren_inferior_sentadilla_barra_alta",
                         nSets("lc1e1", 2, 6, 8.0), restTime = 180, damageProfile = DamageProfile.STRETCH),
-                    ex("lc1-ex2", "Prensa de Piernas a 45 Grados", "tren_inferior_prensa_45",
-                        nSets("lc1e2", 2, 10, 8.0), restTime = 120),
-                    ex("lc1-ex3", "Extensión de Cuádriceps en Máquina", "tren_inferior_extension_cuadriceps",
-                        nRirSets("lc1e3", 2, 12, 2), restTime = 90),
+                    ex("lc1-ex2", "Prensa de Piernas Horizontal en Máquina", "quads_prensa_piernas_horizontal_maquina",
+                        nSets("lc1e2", 2, 10, 7.5), restTime = 120),
+                    ex("lc1-ex3", "Zancada Frontal con Mancuernas", "quads_zancada_frontal_mancuernas",
+                        nSets("lc1e3", 2, 10, 8.0), restTime = 90),
                 )),
                 part("p-lc-2", "Isquios y Glúteos", "#244B3C", listOf(
-                    ex("lc2-ex1", "Peso Muerto Rumano", "tren_inferior_peso_muerto_rumano",
+                    ex("lc2-ex1", "Peso Muerto Rumano Estilo Sumo con Barra Recta", "hams_peso_muerto_rumano_sumo_barra_recta",
                         nSets("lc2e1", 2, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("lc2-ex2", "Curl Femoral Tumbado en Máquina", "tren_inferior_curl_femoral_tumbado",
-                        nRirSets("lc2e2", 2, 12, 2), restTime = 90),
-                    ex("lc2-ex3", "Hip Thrust con Barra Libre", "tren_inferior_hip_thrust_barra",
-                        nSets("lc2e3", 2, 10, 8.0), restTime = 120, damageProfile = DamageProfile.SQUEEZE),
+                    ex("lc2-ex2", "Curl Femoral Tumbado en Máquina", "hams_curl_femoral_tumbado_maquina",
+                        nSets("lc2e2", 2, 12, 8.5), restTime = 90),
+                    ex("lc2-ex3", "Patada de Glúteos en Polea", "glutes_patada_gluteo_polea",
+                        nSets("lc2e3", 2, 12, 8.5), restTime = 90, damageProfile = DamageProfile.SQUEEZE),
                 )),
                 part("p-lc-3", "Pantorrillas", "#1F3A2E", listOf(
-                    ex("lc3-ex1", "Elevación de Gemelos Tipo Burro (Donkey)", "ultimo_elevacion_gemelos_burro",
+                    ex("lc3-ex1", "Elevación de Talones Sentado en Máquina", "calves_elevacion_talones_sentado_maquina",
                         nSets("lc3e1", 2, 15, 8.5), restTime = 60),
                 )),
             ),
@@ -560,19 +627,19 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Pecho / Espalda",
             parts = listOf(
                 part("p-cba-1", "Empuje Pecho", "#1B4965", listOf(
-                    ex("cba1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("cba1-ex1", "Press de Banca Inclinado con Barra", "tren_superior_press_banca_inclinado_barra",
                         nSets("cba1e1", 2, 8, 8.0), restTime = 120),
-                    ex("cba1-ex2", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
+                    ex("cba1-ex2", "Press de Banca Plano con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("cba1e2", 2, 10, 7.5), restTime = 120),
-                    ex("cba1-ex3", "Aperturas en Máquina Pec Deck", "tren_superior_aperturas_pec_deck",
-                        nSets("cba1e3", 2, 12, 8.0), restTime = 90),
+                    ex("cba1-ex3", "Aperturas Planas con Mancuernas", "tren_superior_aperturas_planas_mancuernas",
+                        nSets("cba1e3", 2, 12, 8.5), restTime = 90),
                 )),
                 part("p-cba-2", "Tirón Espalda", "#244B3C", listOf(
-                    ex("cba2-ex1", "Remo Inclinado Prono con Barra", "tren_superior_remo_inclinado_prono_barra",
+                    ex("cba2-ex1", "Remo Pendlay con Barra Recta", "back_remo_pendlay_barra_recta",
                         nSets("cba2e1", 2, 8, 8.0), restTime = 120),
-                    ex("cba2-ex2", "Dominadas", "tren_superior_dominadas_pronas",
-                        nSets("cba2e2", 2, 8, 8.0), restTime = 120),
-                    ex("cba2-ex3", "Remo Sentado en Polea Baja", "tren_superior_remo_sentado_polea_baja",
+                    ex("cba2-ex2", "Jalón con Brazo Recto en Polea", "back_jalon_brazo_recto_polea",
+                        nSets("cba2e2", 2, 12, 8.0), restTime = 90),
+                    ex("cba2-ex3", "Remo en Polea Baja (Agarre Ancho)", "back_remo_polea_baja_ancho",
                         nSets("cba2e3", 2, 12, 7.5), restTime = 90),
                 )),
             ),
@@ -607,20 +674,20 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Hombro / Brazo",
             parts = listOf(
                 part("p-saa-1", "Hombros", "#4A1942", listOf(
-                    ex("saa1-ex1", "Press de Hombros Sentado con Mancuernas", "tren_superior_press_hombros_sentado_mancuernas",
+                    ex("saa1-ex1", "Press de Hombros Sentado con Barra Recta", "deltoides_press_hombros_sentado_barra_recta",
                         nSets("saa1e1", 2, 10, 7.5), restTime = 90),
-                    ex("saa1-ex2", "Elevaciones Laterales con Mancuernas", "tren_superior_elevaciones_laterales_mancuernas",
-                        nSets("saa1e2", 2, 12, 8.0), restTime = 60),
                 )),
                 part("p-saa-2", "Brazos", "#5B2A86", listOf(
-                    ex("saa2-ex1", "Curl de Bíceps con Barra EZ", "tren_superior_curl_biceps_barra_ez",
-                        nSets("saa2e1", 2, 10, 8.0), restTime = 75),
-                    ex("saa2-ex2", "Extensión de Tríceps en Polea Alta con Cuerda", "tren_superior_extension_triceps_polea_cuerda",
-                        nSets("saa2e2", 2, 12, 8.0), restTime = 75),
-                    ex("saa2-ex3", "Curl Martillo con Mancuernas", "tren_superior_curl_martillo_mancuernas",
-                        nSets("saa2e3", 2, 12, 7.5), restTime = 60),
-                    ex("saa2-ex4", "Press Francés Tumbado con Barra EZ", "tren_superior_press_frances_barra_ez",
-                        nSets("saa2e4", 2, 10, 7.5), restTime = 75),
+                    ex("saa2-ex1", "Curl en Banco Inclinado con Mancuernas", "biceps_curl_inclinado_supino_mancuernas",
+                        nSets("saa2e1", 2, 10, 8.5), restTime = 75),
+                    ex("saa2-ex2", "Extensión de Tríceps Overhead con Barra EZ", "triceps_overhead_barra_ez",
+                        nSets("saa2e2", 2, 12, 8.5), restTime = 75),
+                    ex("saa2-ex3", "Curl Concentrado con Mancuernas", "biceps_curl_concentrado_supino_mancuernas",
+                        nSets("saa2e3", 2, 12, 8.5), restTime = 60),
+                    ex("saa2-ex4", "Patada de Tríceps con Mancuerna", "triceps_patada_mancuerna",
+                        nSets("saa2e4", 2, 12, 8.5), restTime = 75),
+                    ex("saa2-ex5", "Elevaciones Laterales de Pie con Mancuernas", "deltoides_elevaciones_laterales_de_pie_mancuernas",
+                        nSets("saa2e5", 2, 15, 8.0), restTime = 60),
                 )),
             ),
         ),
@@ -653,16 +720,16 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Hombros / Abs",
             parts = listOf(
                 part("p-sag-1", "Hombros", "#4A1942", listOf(
-                    ex("sag1-ex1", "Press de Hombros Sentado con Mancuernas", "tren_superior_press_hombros_sentado_mancuernas",
-                        nSets("sag1e1", 3, 10, 7.5), restTime = 90),
-                    ex("sag1-ex2", "Elevaciones Laterales con Mancuernas", "tren_superior_elevaciones_laterales_mancuernas",
+                    ex("sag1-ex1", "Press de Hombros Sentado en Máquina", "deltoides_press_hombros_sentado_maquina",
+                        nSets("sag1e1", 3, 10, 7.0), restTime = 90),
+                    ex("sag1-ex2", "Elevaciones Laterales de Pie en Máquina", "deltoides_elevaciones_laterales_de_pie_maquina",
                         nSets("sag1e2", 3, 15, 7.5), restTime = 60),
                 )),
                 part("p-sag-2", "Core", "#1B4965", listOf(
-                    ex("sag2-ex1", "Bicho Muerto (Dead Bug)", "core_dead_bug",
+                    ex("sag2-ex1", "Press Pallof en Polea", "core_press_pallof_polea",
                         nSets("sag2e1", 3, 12, 7.0), restTime = 60),
-                    ex("sag2-ex2", "Hollow Body Hold", "core_hollow_body_hold",
-                        nSets("sag2e2", 3, 30, 7.5), restTime = 60),
+                    ex("sag2-ex2", "Plancha Frontal Isométrica", "core_plancha_frontal_iso",
+                        nSets("sag2e2", 3, 30, 7.0), restTime = 60),
                 )),
             ),
         ),
@@ -696,16 +763,16 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Glúteo / Isquios",
             parts = listOf(
                 part("p-ghs-1", "Cadena Posterior Base", "#244B3C", listOf(
-                    ex("ghs1-ex1", "Hip Thrust con Barra Libre", "tren_inferior_hip_thrust_barra",
+                    ex("ghs1-ex1", "Hip Thrust con Barra Recta", "glutes_hip_thrust_barra_recta",
                         nSets("ghs1e1", 2, 10, 8.0), restTime = 120),
-                    ex("ghs1-ex2", "Peso Muerto Rumano", "tren_inferior_peso_muerto_rumano",
+                    ex("ghs1-ex2", "Peso Muerto Rumano Estilo Sumo con Mancuernas", "hams_peso_muerto_rumano_sumo_mancuernas",
                         nSets("ghs1e2", 2, 8, 8.0), restTime = 120),
                 )),
                 part("p-ghs-2", "Aislamiento y Bombeo", "#4A1942", listOf(
-                    ex("ghs2-ex1", "Curl Femoral Tumbado en Máquina", "tren_inferior_curl_femoral_tumbado",
-                        nRirSets("ghs2e1", 2, 12, 2), restTime = 90),
-                    ex("ghs2-ex2", "Abducción de Cadera en Máquina", "tren_inferior_abduccion_cadera_maquina",
-                        nRirSets("ghs2e2", 2, 15, 2), restTime = 75),
+                    ex("ghs2-ex1", "Curl Femoral Sentado en Máquina", "hams_curl_femoral_sentado_maquina",
+                        nSets("ghs2e1", 2, 12, 8.5), restTime = 90),
+                    ex("ghs2-ex2", "Abducción de Cadera de Pie en Polea", "glutes_abduccion_cadera_polea",
+                        nSets("ghs2e2", 2, 15, 8.5), restTime = 75),
                 )),
             ),
         ),
@@ -739,14 +806,16 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Glúteo Pump",
             parts = listOf(
                 part("p-gp-1", "Activación y Rango", "#4A1942", listOf(
-                    ex("gp1-ex1", "Hip Thrust con Pie Elevado", "tren_inferior_hip_thrust_pie_elevado",
+                    ex("gp1-ex1", "Hip Thrust Unilateral con Mancuerna", "glutes_hip_thrust_unilateral_mancuerna",
                         nSets("gp1e1", 3, 12, 8.0), restTime = 105),
+                    ex("gp1-ex2", "Hiperextensión a 45º", "glutes_hiperextension_45",
+                        nSets("gp1e2", 3, 12, 8.0), restTime = 90),
                 )),
                 part("p-gp-2", "Aislamiento Estético", "#5B2A86", listOf(
-                    ex("gp2-ex1", "Abducción de Cadera en Máquina", "tren_inferior_abduccion_cadera_maquina",
-                        nRirSets("gp2e1", 3, 15, 2), restTime = 75),
-                    ex("gp2-ex2", "Elevación de Gemelos Tipo Burro (Donkey)", "ultimo_elevacion_gemelos_burro",
-                        nSets("gp2e2", 3, 15, 8.0), restTime = 60),
+                    ex("gp2-ex1", "Patada de Glúteo en Máquina", "glutes_patada_gluteo_maquina",
+                        nSets("gp2e1", 3, 15, 8.5), restTime = 75),
+                    ex("gp2-ex2", "Elevación de Talones Burro (Donkey Calf Raise) en Máquina", "calves_elevacion_talones_donkey_maquina",
+                        nSets("gp2e2", 3, 15, 8.5), restTime = 60),
                 )),
             ),
         ),
@@ -780,17 +849,17 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Torso Liviano",
             parts = listOf(
                 part("p-ulg-1", "Empuje y Tirón", "#1B4965", listOf(
-                    ex("ulg1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
-                        nSets("ulg1e1", 3, 10, 7.0), restTime = 90),
-                    ex("ulg1-ex2", "Jalón al Pecho", "tren_superior_jalon_pecho_prono",
-                        nSets("ulg1e2", 3, 10, 7.5), restTime = 90),
+                    ex("ulg1-ex1", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente",
+                        nSets("ulg1e1", 3, 10, 6.5), restTime = 90),
+                    ex("ulg1-ex2", "Jalón al Pecho en Máquina (Agarre Cerrado)", "back_jalon_pecho_maquina_cerrado",
+                        nSets("ulg1e2", 3, 10, 7.0), restTime = 90),
                 )),
                 part("p-ulg-2", "Accesorios Estéticos", "#4A1942", listOf(
-                    ex("ulg2-ex1", "Elevaciones Laterales con Mancuernas", "tren_superior_elevaciones_laterales_mancuernas",
-                        nSets("ulg2e1", 3, 12, 8.0), restTime = 60),
-                    ex("ulg2-ex2", "Curl de Bíceps con Barra EZ", "tren_superior_curl_biceps_barra_ez",
+                    ex("ulg2-ex1", "Elevaciones Laterales Sentado con Mancuernas", "deltoides_elevaciones_laterales_sentado_mancuernas",
+                        nSets("ulg2e1", 3, 12, 7.5), restTime = 60),
+                    ex("ulg2-ex2", "Curl Predicador en Máquina", "biceps_curl_predicador_supino_maquina",
                         nSets("ulg2e2", 2, 12, 7.5), restTime = 60),
-                    ex("ulg2-ex3", "Extensión de Tríceps en Polea Alta con Cuerda", "tren_superior_extension_triceps_polea_cuerda",
+                    ex("ulg2-ex3", "Extensión de Tríceps Overhead en Máquina", "triceps_overhead_maquina",
                         nSets("ulg2e3", 2, 12, 7.5), restTime = 60),
                 )),
             ),
@@ -828,11 +897,11 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                         nSets("bvp1e1", 5, 5, 8.0), restTime = 180),
                 )),
                 part("p-bvp-2", "Accesorios y Tracciones", "#244B3C", listOf(
-                    ex("bvp2-ex1", "Remo a una Mano con Mancuerna", "tren_superior_remo_una_mano_mancuerna",
+                    ex("bvp2-ex1", "Remo Seal con Mancuernas", "back_remo_seal_mancuernas",
                         nSets("bvp2e1", 3, 10, 8.0), restTime = 90),
                     ex("bvp2-ex2", "Fondos en Paralelas", "tren_superior_fondos_paralelas",
                         nSets("bvp2e2", 2, 10, 7.5), restTime = 90),
-                    ex("bvp2-ex3", "Elevaciones Laterales con Mancuernas", "tren_superior_elevaciones_laterales_mancuernas",
+                    ex("bvp2-ex3", "Encogimientos de Hombros con Mancuernas", "back_encogimientos_mancuernas",
                         nSets("bvp2e3", 3, 12, 8.0), restTime = 60),
                 )),
             ),
@@ -873,7 +942,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                         nSets("sbp1e2", 4, 5, 8.0), restTime = 180),
                 )),
                 part("p-sbp-2", "Espalda Accesoria", "#244B3C", listOf(
-                    ex("sbp2-ex1", "Remo Inclinado Prono con Barra", "tren_superior_remo_inclinado_prono_barra",
+                    ex("sbp2-ex1", "Remo en Barra T (Agarre Cerrado)", "back_remo_barra_t_cerrado",
                         nSets("sbp2e1", 3, 10, 7.5), restTime = 120),
                 )),
             ),
@@ -911,10 +980,10 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                         nSets("dlp1e1", 3, 5, 8.0), restTime = 210),
                 )),
                 part("p-dlp-2", "Accesorios", "#1B4965", listOf(
-                    ex("dlp2-ex1", "Press de Banca Inclinado con Barra", "tren_superior_press_banca_inclinado_barra",
+                    ex("dlp2-ex1", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
                         nSets("dlp2e1", 3, 8, 7.5), restTime = 120),
-                    ex("dlp2-ex2", "Dominadas", "tren_superior_dominadas_pronas",
-                        nSets("dlp2e2", 3, 8, 8.0), restTime = 120),
+                    ex("dlp2-ex2", "Dominadas Neutras", "back_dominadas_neutras",
+                        nSets("dlp2e2", 3, 8, 7.5), restTime = 120),
                 )),
             ),
         ),
@@ -950,8 +1019,8 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                     nSets("gzse1", 3, 3, 8.5), restTime = 180),
                 ex("gzs-ex2", "Peso Muerto Rumano", "tren_inferior_peso_muerto_rumano",
                     nSets("gzse2", 3, 8, 7.5), restTime = 120),
-                ex("gzs-ex3", "Remo Sentado en Polea Baja", "tren_superior_remo_sentado_polea_baja",
-                    nSets("gzse3", 4, 12, 7.0), restTime = 75),
+                ex("gzs-ex3", "Remo Gironda en Polea (Agarre Ancho)", "back_remo_gironda_ancho",
+                    nSets("gzse3", 4, 12, 8.0), restTime = 75),
             ),
         ),
     ),
@@ -984,10 +1053,10 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             exercises = listOf(
                 ex("gzb-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
                     nSets("gzbe1", 3, 3, 8.5), restTime = 180),
-                ex("gzb-ex2", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
+                ex("gzb-ex2", "Press Inclinado en Smith", "tren_superior_press_inclinado_smith",
                     nSets("gzbe2", 3, 8, 7.5), restTime = 120),
-                ex("gzb-ex3", "Jalón al Pecho", "tren_superior_jalon_pecho_prono",
-                    nSets("gzbe3", 4, 12, 7.0), restTime = 75),
+                ex("gzb-ex3", "Jalón Neutro en Polea", "back_jalon_neutro_polea",
+                    nSets("gzbe3", 4, 12, 8.0), restTime = 75),
             ),
         ),
     ),
@@ -1020,10 +1089,10 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             exercises = listOf(
                 ex("gzd-ex1", "Peso Muerto Convencional", "tren_inferior_peso_muerto_convencional",
                     nSets("gzde1", 3, 3, 8.5), restTime = 210),
-                ex("gzd-ex2", "Sentadilla Trasera Barra Alta", "tren_inferior_sentadilla_barra_alta",
+                ex("gzd-ex2", "Sentadilla Frontal con Barra Recta", "quads_sentadilla_frontal_barra_recta",
                     nSets("gzde2", 3, 8, 7.0), restTime = 150),
-                ex("gzd-ex3", "Remo a una Mano con Mancuerna", "tren_superior_remo_una_mano_mancuerna",
-                    nSets("gzde3", 4, 12, 7.5), restTime = 75),
+                ex("gzd-ex3", "Extensión Lumbar en Máquina", "back_extension_lumbar_maquina",
+                    nSets("gzde3", 3, 12, 7.5), restTime = 75),
             ),
         ),
     ),
@@ -1054,12 +1123,12 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             id = "tpl-t1-military-gzcl",
             name = "T1 Militar · GZCL",
             exercises = listOf(
-                ex("gzm-ex1", "Press Militar de Pie con Barra", "tren_superior_press_militar_pie_barra",
+                ex("gzm-ex1", "Press Militar de Pie con Barra Recta", "deltoides_press_militar_de_pie_barra_recta",
                     nSets("gzme1", 3, 3, 8.5), restTime = 180),
-                ex("gzm-ex2", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                ex("gzm-ex2", "Floor Press con Mancuernas", "tren_superior_floor_press_mancuernas",
                     nSets("gzme2", 3, 8, 7.5), restTime = 120),
-                ex("gzm-ex3", "Elevaciones Laterales con Mancuernas", "tren_superior_elevaciones_laterales_mancuernas",
-                    nSets("gzme3", 4, 12, 8.0), restTime = 60),
+                ex("gzm-ex3", "Elevaciones Laterales de Pie en Polea Unilateral", "deltoides_elevaciones_laterales_de_pie_polea_unilateral",
+                    nSets("gzme3", 4, 12, 8.5), restTime = 60),
             ),
         ),
     ),
@@ -1085,24 +1154,24 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
         sortOrder = 260,
         splitIds = listOf("ant_post_x4"),
         splitDayLabels = listOf("Cadena Anterior"),
-        focusCategory = SessionTemplateFocusCategory.FULL_BODY,
+        focusCategory = SessionTemplateFocusCategory.CADENA_ANTERIOR,
         shortDescription = "Cadena anterior cuádriceps y pecho",
         session = Session(
             id = "tpl-ant-chain-ap",
             name = "Cadena Anterior",
             parts = listOf(
                 part("p-aca-1", "Empujes Pierna", "#7F1D1D", listOf(
-                    ex("aca1-ex1", "Sentadilla Trasera Barra Alta", "tren_inferior_sentadilla_barra_alta",
+                    ex("aca1-ex1", "Sentadilla en Máquina Hack", "quads_sentadilla_hack_maquina",
                         nSets("aca1e1", 2, 8, 8.0), restTime = 150),
-                    ex("aca1-ex2", "Prensa de Piernas a 45 Grados", "tren_inferior_prensa_45",
+                    ex("aca1-ex2", "Prensa de Piernas a 45º en Máquina", "quads_prensa_piernas_45_maquina",
                         nSets("aca1e2", 2, 10, 7.5), restTime = 120),
                 )),
                 part("p-aca-2", "Empujes Torso", "#1B4965", listOf(
-                    ex("aca2-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("aca2-ex1", "Press de Banca Plano con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("aca2e1", 2, 8, 8.0), restTime = 120),
-                    ex("aca2-ex2", "Press Militar de Pie con Barra", "tren_superior_press_militar_pie_barra",
+                    ex("aca2-ex2", "Fondos en Máquina Asistida", "nuevo_fondos_maquina_asistida",
                         nSets("aca2e2", 2, 10, 7.5), restTime = 90),
-                    ex("aca2-ex3", "Extensión de Cuádriceps en Máquina", "tren_inferior_extension_cuadriceps",
+                    ex("aca2-ex3", "Aperturas en Máquina Pec Deck", "tren_superior_aperturas_pec_deck",
                         nSets("aca2e3", 2, 12, 8.0), restTime = 75),
                 )),
             ),
@@ -1130,7 +1199,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
         sortOrder = 270,
         splitIds = listOf("ant_post_x4"),
         splitDayLabels = listOf("Cadena Posterior"),
-        focusCategory = SessionTemplateFocusCategory.FULL_BODY,
+        focusCategory = SessionTemplateFocusCategory.CADENA_POSTERIOR,
         shortDescription = "Cadena posterior peso muerto y tracciones",
         session = Session(
             id = "tpl-post-chain-ap",
@@ -1139,18 +1208,18 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                 part("p-pca-1", "Cadena Posterior Pesada", "#244B3C", listOf(
                     ex("pca1-ex1", "Peso Muerto Convencional", "tren_inferior_peso_muerto_convencional",
                         nSets("pca1e1", 2, 5, 8.0), restTime = 180),
-                    ex("pca1-ex2", "Remo Inclinado Prono con Barra", "tren_superior_remo_inclinado_prono_barra",
+                    ex("pca1-ex2", "Remo Pendlay con Barra Recta", "back_remo_pendlay_barra_recta",
                         nSets("pca1e2", 2, 8, 8.0), restTime = 120),
                 )),
                 part("p-pca-2", "Aislamiento y Tracción", "#0F3D5E", listOf(
-                    ex("pca2-ex1", "Peso Muerto Rumano", "tren_inferior_peso_muerto_rumano",
+                    ex("pca2-ex1", "Buenos Días de Pie con Barra Recta", "hams_buenos_dias_barra_recta",
                         nSets("pca2e1", 2, 10, 7.5), restTime = 120),
-                    ex("pca2-ex2", "Dominadas", "tren_superior_dominadas_pronas",
-                        nSets("pca2e2", 2, 8, 8.0), restTime = 120),
-                    ex("pca2-ex3", "Face Pull en Polea Alta", "tren_superior_face_pull_polea",
-                        nSets("pca2e3", 2, 12, 8.0), restTime = 75),
-                    ex("pca2-ex4", "Curl Femoral Tumbado en Máquina", "tren_inferior_curl_femoral_tumbado",
-                        nSets("pca2e4", 2, 12, 8.0), restTime = 75),
+                    ex("pca2-ex2", "Dominadas Supinas (Chin-Ups)", "back_dominadas_supinas",
+                        nSets("pca2e2", 2, 8, 7.5), restTime = 120),
+                    ex("pca2-ex3", "Face Pull en Polea (Espalda Alta)", "back_face_pull_polea",
+                        nSets("pca2e3", 2, 12, 8.5), restTime = 75),
+                    ex("pca2-ex4", "Curl Femoral Sentado en Máquina", "hams_curl_femoral_sentado_maquina",
+                        nSets("pca2e4", 2, 12, 8.5), restTime = 75),
                 )),
             ),
         ),
@@ -1182,6 +1251,10 @@ private fun independentTemplate(
     )
 }
 
+/**
+ * Variante de alta frecuencia: conserva ~8–12 series (2 por ejercicio por defecto),
+ * sin recortar a 1 serie. Duración se deriva del contenido vía [finalizedTemplate].
+ */
 private fun lowVolumeSplitTemplate(
     sourceId: String,
     id: String,
@@ -1193,28 +1266,49 @@ private fun lowVolumeSplitTemplate(
     shortDescription: String,
 ): SessionTemplate {
     val source = SESSION_TEMPLATES_BASE.first { it.id == sourceId }
-    val isHighFrequency = splitIds.any { id ->
-        id.contains("x6") || id.contains("x5") || id.contains("x4") || id.contains("arnold") || id.contains("hybrid") || id.contains("ul") || id.contains("bro")
+    val maxSets = LOW_VOLUME_MIN_SETS // 8 series: caben en 8–12 y no revientan splits de alta frecuencia
+
+    var session = mapSessionExercises(source.session) { exercise ->
+        val kept = exercise.sets.take(LOW_VOLUME_TARGET_SETS_PER_EXERCISE)
+        exercise.copy(sets = if (kept.isNotEmpty()) kept else exercise.sets)
+    }.copy(id = "tpl-$id", name = name)
+
+    val sourceById = source.session.allExercises().associateBy { it.id }
+
+    // Subir hasta 8 series añadiendo de a una serie (sin saltar a 3 en todos a la vez).
+    var growGuard = 0
+    while (sessionTotalSets(session) < LOW_VOLUME_MIN_SETS && growGuard < 24) {
+        var added = false
+        session = mapSessionExercises(session) { exercise ->
+            if (added) return@mapSessionExercises exercise
+            val original = sourceById[exercise.id] ?: return@mapSessionExercises exercise
+            if (exercise.sets.size >= original.sets.size) return@mapSessionExercises exercise
+            added = true
+            exercise.copy(sets = original.sets.take(exercise.sets.size + 1))
+        }
+        if (!added) break
+        growGuard++
     }
-    val setsToTake = if (isHighFrequency) 1 else 2
-    val session = source.session.copy(
-        id = "tpl-$id",
-        name = name,
-        parts = source.session.parts.map { sessionPart ->
-            sessionPart.copy(
-                exercises = sessionPart.exercises.map { exercise ->
-                    exercise.copy(sets = exercise.sets.take(setsToTake))
-                },
-            )
-        },
-        exercises = source.session.exercises.map { exercise ->
-            exercise.copy(sets = exercise.sets.take(setsToTake))
-        },
-    )
+
+    // Bajar hasta maxSets: primero quitar series de cola, luego ejercicios.
+    var guard = 0
+    while (sessionTotalSets(session) > maxSets && guard < 32) {
+        val exercises = session.allExercises()
+        val trimCandidate = exercises.lastOrNull { it.sets.size > 1 }
+        session = if (trimCandidate != null) {
+            mapSessionExercises(session) { exercise ->
+                if (exercise.id == trimCandidate.id) exercise.copy(sets = exercise.sets.dropLast(1))
+                else exercise
+            }
+        } else {
+            dropTrailingExercise(session)
+        }
+        guard++
+    }
+
     return source.copy(
         id = id,
         name = name,
-        estimatedDurationMinutes = source.estimatedDurationMinutes?.coerceAtMost(45),
         sortOrder = sortOrder,
         splitIds = splitIds,
         splitDayLabels = splitDayLabels,
@@ -1261,7 +1355,7 @@ private val SESSION_TEMPLATES_DERIVED_SPLIT: List<SessionTemplate> = listOf(
         name = "Cadena Anterior Alta Frecuencia",
         splitIds = listOf("ant_post_x6"),
         splitDayLabels = listOf("Cadena Anterior"),
-        category = SessionTemplateFocusCategory.FULL_BODY,
+        category = SessionTemplateFocusCategory.CADENA_ANTERIOR,
         sortOrder = -97,
         shortDescription = "Cadena anterior dosificada para frecuencia 3x",
     ),
@@ -1271,7 +1365,7 @@ private val SESSION_TEMPLATES_DERIVED_SPLIT: List<SessionTemplate> = listOf(
         name = "Cadena Posterior Alta Frecuencia",
         splitIds = listOf("ant_post_x6"),
         splitDayLabels = listOf("Cadena Posterior"),
-        category = SessionTemplateFocusCategory.FULL_BODY,
+        category = SessionTemplateFocusCategory.CADENA_POSTERIOR,
         sortOrder = -96,
         shortDescription = "Cadena posterior dosificada para frecuencia 3x",
     ),
@@ -1319,11 +1413,31 @@ private val SESSION_TEMPLATES_DERIVED_SPLIT: List<SessionTemplate> = listOf(
         sourceId = "sys-shoulder-arms-arnold",
         id = "sys-shoulder-arms-high-volume-low",
         name = "Hombro / Brazo Dosificado",
-        splitIds = listOf("ppl_arnold", "arnold_ul", "arnold_classic_6", "bro_split", "dorian_yates"),
-        splitDayLabels = listOf("Hombro/Brazo", "Hombros/Brazos", "Hombros", "Brazos", "Hombro/Tríceps"),
+        splitIds = listOf("ppl_arnold", "arnold_ul", "arnold_classic_6", "dorian_yates"),
+        splitDayLabels = listOf("Hombro/Brazo", "Hombros/Brazos", "Hombro/Tríceps"),
         category = SessionTemplateFocusCategory.BRAZOS,
         sortOrder = -91,
         shortDescription = "Deltoides y brazos con volumen controlado",
+    ),
+    lowVolumeSplitTemplate(
+        sourceId = "sys-shoulders-abs-glute",
+        id = "sys-shoulders-bro-low",
+        name = "Hombros Dosificado",
+        splitIds = listOf("bro_split"),
+        splitDayLabels = listOf("Hombros"),
+        category = SessionTemplateFocusCategory.HOMBROS,
+        sortOrder = -90,
+        shortDescription = "Hombros dedicados con volumen controlado",
+    ),
+    lowVolumeSplitTemplate(
+        sourceId = "sys-shoulder-arms-arnold",
+        id = "sys-arms-bro-low",
+        name = "Brazos Dosificado",
+        splitIds = listOf("bro_split"),
+        splitDayLabels = listOf("Brazos"),
+        category = SessionTemplateFocusCategory.BRAZOS,
+        sortOrder = -89,
+        shortDescription = "Brazos dedicados con volumen controlado",
     ),
     lowVolumeSplitTemplate(
         sourceId = "sys-chest-pec",
@@ -1332,7 +1446,7 @@ private val SESSION_TEMPLATES_DERIVED_SPLIT: List<SessionTemplate> = listOf(
         splitIds = listOf("bro_split", "dorian_yates"),
         splitDayLabels = listOf("Pecho", "Pecho/Bíceps"),
         category = SessionTemplateFocusCategory.PECHO,
-        sortOrder = -90,
+        sortOrder = -88,
         shortDescription = "Pecho dedicado con volumen controlado",
     ),
     lowVolumeSplitTemplate(
@@ -1342,7 +1456,7 @@ private val SESSION_TEMPLATES_DERIVED_SPLIT: List<SessionTemplate> = listOf(
         splitIds = listOf("bro_split", "dorian_yates"),
         splitDayLabels = listOf("Espalda"),
         category = SessionTemplateFocusCategory.ESPALDA,
-        sortOrder = -89,
+        sortOrder = -87,
         shortDescription = "Espalda dedicada con volumen controlado",
     ),
     lowVolumeSplitTemplate(
@@ -1352,7 +1466,7 @@ private val SESSION_TEMPLATES_DERIVED_SPLIT: List<SessionTemplate> = listOf(
         splitIds = listOf("russian_bear"),
         splitDayLabels = listOf("Sentadilla/Banca"),
         category = SessionTemplateFocusCategory.POWERLIFTING,
-        sortOrder = -88,
+        sortOrder = -86,
         shortDescription = "Sentadilla y banca con volumen semanal controlado",
     ),
     lowVolumeSplitTemplate(
@@ -1362,7 +1476,7 @@ private val SESSION_TEMPLATES_DERIVED_SPLIT: List<SessionTemplate> = listOf(
         splitIds = listOf("russian_bear"),
         splitDayLabels = listOf("Peso Muerto/Press"),
         category = SessionTemplateFocusCategory.POWERLIFTING,
-        sortOrder = -87,
+        sortOrder = -85,
         shortDescription = "Bisagra y press con volumen semanal controlado",
     ),
 )
@@ -1448,6 +1562,444 @@ private val SESSION_TEMPLATES_INDEPENDENT: List<SessionTemplate> = listOf(
         sortOrder = 1_100,
         shortDescription = "Sesión liviana para recuperar ritmo",
     ),
+    independentTemplate(
+        sourceId = "sys-ant-chain-ap",
+        id = "sys-independent-anterior-chain",
+        name = "Enfoque Cadena Anterior",
+        category = SessionTemplateFocusCategory.CADENA_ANTERIOR,
+        sortOrder = 1_110,
+        shortDescription = "Empujes de cuádriceps y torso sin split",
+    ),
+    independentTemplate(
+        sourceId = "sys-post-chain-ap",
+        id = "sys-independent-posterior-chain",
+        name = "Enfoque Cadena Posterior",
+        category = SessionTemplateFocusCategory.CADENA_POSTERIOR,
+        sortOrder = 1_120,
+        shortDescription = "Bisagras y tracciones sin split",
+    ),
 )
 
-val SESSION_TEMPLATES_SYSTEM: List<SessionTemplate> = SESSION_TEMPLATES_BASE + SESSION_TEMPLATES_DERIVED_SPLIT + SESSION_TEMPLATES_INDEPENDENT
+/** Plantillas nuevas F2: focos musculares + variantes principiante/avanzado. */
+private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
+
+    SessionTemplate(
+        id = "sys-calves-focus",
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = "Pantorrillas · Enfoque",
+        description = "Sesión dedicada a sóleo y gemelos: trabajo de pie, sentado y en prensa para cubrir ambos rangos.",
+        emoji = "🦶",
+        tags = listOf(SessionTemplateTag.PIERNA, SessionTemplateTag.GEMELOS, SessionTemplateTag.HIPERTROFIA),
+        difficulty = Difficulty.INTERMEDIO,
+        muscleGroupsSummary = "Pantorrillas · Sóleo",
+        sortOrder = 1_200,
+        focusCategory = SessionTemplateFocusCategory.PANTORRILLAS,
+        shortDescription = "Volumen dedicado de pantorrillas",
+        session = Session(
+            id = "tpl-calves-focus",
+            name = "Pantorrillas · Enfoque",
+            parts = listOf(
+                part("p-cal-1", "Gemelos de pie", "#1F3A2E", listOf(
+                    ex("cal1-ex1", "Elevación de Talones de Pie en Máquina", "calves_elevacion_talones_de_pie_maquina",
+                        nSets("cale1", 3, 12, 8.5), restTime = 75),
+                    ex("cal1-ex2", "Elevación de Talones de Pie con Mancuernas", "calves_elevacion_talones_de_pie_mancuernas",
+                        nSets("cale2", 3, 15, 8.5), restTime = 60),
+                )),
+                part("p-cal-2", "Sóleo y variantes", "#244B3C", listOf(
+                    ex("cal2-ex1", "Elevación de Talones Sentado en Máquina", "calves_elevacion_talones_sentado_maquina",
+                        nSets("cale3", 3, 15, 8.5), restTime = 60),
+                    ex("cal2-ex2", "Elevación de Talones en Prensa a 45º", "calves_elevacion_talones_prensa_45",
+                        nSets("cale4", 3, 12, 8.0), restTime = 75),
+                )),
+            ),
+        ),
+    ),
+
+    SessionTemplate(
+        id = "sys-core-focus",
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = "Core · Abdomen",
+        description = "Estabilidad anti-rotación, flexión y control lumbar. Ideal como sesión corta o accesorio semanal.",
+        emoji = "🎯",
+        tags = listOf(SessionTemplateTag.CORE, SessionTemplateTag.HIPERTROFIA),
+        difficulty = Difficulty.INTERMEDIO,
+        muscleGroupsSummary = "Abdomen · Core · Oblicuos",
+        sortOrder = 1_210,
+        focusCategory = SessionTemplateFocusCategory.CORE,
+        shortDescription = "Core anti-rotación y flexión",
+        session = Session(
+            id = "tpl-core-focus",
+            name = "Core · Abdomen",
+            parts = listOf(
+                part("p-core-1", "Anti-rotación", "#1B4965", listOf(
+                    ex("co1-ex1", "Press Pallof en Polea", "core_press_pallof_polea",
+                        nSets("coe1", 3, 12, 7.5), restTime = 60),
+                    ex("co1-ex2", "Leñador en Polea (Woodchopper) de Alta a Baja", "core_lenador_polea_alta_baja",
+                        nSets("coe2", 3, 10, 8.0), restTime = 60),
+                )),
+                part("p-core-2", "Flexión y control", "#4A1942", listOf(
+                    ex("co2-ex1", "Crunch Abdominal en Máquina", "core_crunch_maquina",
+                        nSets("coe3", 3, 12, 8.0), restTime = 60),
+                    ex("co2-ex2", "Elevación de Piernas Colgado en Barra", "core_elevacion_piernas_colgado_barra",
+                        nSets("coe4", 3, 10, 8.0), restTime = 75),
+                )),
+            ),
+        ),
+    ),
+
+    SessionTemplate(
+        id = "sys-forearms-focus",
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = "Antebrazos · Grip",
+        description = "Flexores, extensores y agarre: curls de muñeca, farmer walks y suspensión isométrica.",
+        emoji = "✊",
+        tags = listOf(SessionTemplateTag.BRAZOS, SessionTemplateTag.HIPERTROFIA),
+        difficulty = Difficulty.INTERMEDIO,
+        muscleGroupsSummary = "Antebrazos · Agarre",
+        sortOrder = 1_220,
+        focusCategory = SessionTemplateFocusCategory.ANTEBRAZOS,
+        shortDescription = "Antebrazos y agarre dedicado",
+        session = Session(
+            id = "tpl-forearms-focus",
+            name = "Antebrazos · Grip",
+            parts = listOf(
+                part("p-fa-1", "Flexores / extensores", "#5B2A86", listOf(
+                    ex("fa1-ex1", "Curl de Muñeca Sentado con Barra Recta", "forearms_curl_muneca_sentado_barra_recta",
+                        nSets("fae1", 3, 15, 8.0), restTime = 60),
+                    ex("fa1-ex2", "Curl de Muñeca Inverso Sentado con Barra EZ", "forearms_curl_muneca_inverso_sentado_barra_ez",
+                        nSets("fae2", 3, 15, 8.0), restTime = 60),
+                    ex("fa1-ex3", "Curl de Muñeca Sentado con Mancuernas", "forearms_curl_muneca_sentado_mancuernas",
+                        nSets("fae3", 3, 12, 8.0), restTime = 60),
+                )),
+                part("p-fa-2", "Agarre", "#1F3A2E", listOf(
+                    ex("fa2-ex1", "Enrollamiento de Muñeca con Rodillo y Cuerda", "forearms_enrollamiento_muneca_rodillo",
+                        nSets("fae4", 3, 10, 8.0), restTime = 75),
+                )),
+            ),
+        ),
+    ),
+
+    SessionTemplate(
+        id = "sys-adductors-focus",
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = "Aductores · Enfoque",
+        description = "Trabajo dedicado de aductores con máquina, polea y estabilidad tipo Copenhagen.",
+        emoji = "🧲",
+        tags = listOf(SessionTemplateTag.PIERNA, SessionTemplateTag.HIPERTROFIA),
+        difficulty = Difficulty.INTERMEDIO,
+        muscleGroupsSummary = "Aductores · Estabilidad de cadera",
+        sortOrder = 1_230,
+        focusCategory = SessionTemplateFocusCategory.ADUCTORES,
+        shortDescription = "Aductores y control de cadera",
+        session = Session(
+            id = "tpl-adductors-focus",
+            name = "Aductores · Enfoque",
+            parts = listOf(
+                part("p-ad-1", "Aducción primaria", "#7F1D1D", listOf(
+                    ex("ad1-ex1", "Aducción de Cadera Sentado en Máquina", "adductors_aduccion_cadera_sentado_maquina",
+                        nSets("ade1", 3, 12, 8.5), restTime = 75),
+                    ex("ad1-ex2", "Aducción de Cadera de Pie en Polea", "adductors_aduccion_cadera_polea",
+                        nSets("ade2", 3, 12, 8.5), restTime = 60),
+                )),
+                part("p-ad-2", "Estabilidad", "#244B3C", listOf(
+                    ex("ad2-ex1", "Plancha Copenhagen (Copenhagen Plank)", "adductors_plancha_copenhagen_peso_corporal",
+                        nSets("ade3", 3, 20, 7.5), restTime = 75),
+                    ex("ad2-ex2", "Sentadilla Sumo con Mancuerna", "quads_sentadilla_sumo_mancuerna",
+                        nSets("ade4", 2, 10, 7.5), restTime = 90),
+                )),
+            ),
+        ),
+    ),
+
+    SessionTemplate(
+        id = "sys-push-beginner",
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = "Push · Principiante",
+        description = "Empuje estable con máquinas y mancuernas. Intensidad moderada (RPE 6.5–8) para aprender patrones.",
+        emoji = "🟢",
+        tags = listOf(SessionTemplateTag.EMPUJE, SessionTemplateTag.PECHO, SessionTemplateTag.HOMBROS, SessionTemplateTag.HIPERTROFIA),
+        difficulty = Difficulty.PRINCIPIANTE,
+        muscleGroupsSummary = "Pecho · Hombros · Tríceps",
+        sortOrder = 1_240,
+        focusCategory = SessionTemplateFocusCategory.PECHO,
+        shortDescription = "Empuje principiante con máquinas",
+        session = Session(
+            id = "tpl-push-beginner",
+            name = "Push · Principiante",
+            parts = listOf(
+                part("p-pb-1", "Pecho", "#1B4965", listOf(
+                    ex("pb1-ex1", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente",
+                        nSets("pbe1", 3, 10, 7.0), restTime = 120),
+                    ex("pb1-ex2", "Press Inclinado en Máquina Convergente", "tren_superior_press_inclinado_maquina_convergente",
+                        nSets("pbe2", 2, 12, 7.0), restTime = 90),
+                    ex("pb1-ex3", "Aperturas en Máquina Pec Deck", "tren_superior_aperturas_pec_deck",
+                        nSets("pbe3", 2, 12, 7.5), restTime = 75),
+                )),
+                part("p-pb-2", "Hombros + Tríceps", "#4A1942", listOf(
+                    ex("pb2-ex1", "Press de Hombros Sentado en Máquina", "deltoides_press_hombros_sentado_maquina",
+                        nSets("pbe4", 2, 10, 7.0), restTime = 90),
+                    ex("pb2-ex2", "Elevaciones Laterales Sentado en Máquina", "deltoides_elevaciones_laterales_sentado_maquina",
+                        nSets("pbe5", 2, 12, 7.5), restTime = 60),
+                    ex("pb2-ex3", "Extensión de Tríceps Overhead en Máquina", "triceps_overhead_maquina",
+                        nSets("pbe6", 2, 12, 7.5), restTime = 75),
+                )),
+            ),
+        ),
+    ),
+
+    SessionTemplate(
+        id = "sys-push-advanced",
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = "Push · Avanzado",
+        description = "Mayor volumen de empuje con barra, mancuernas y aislamientos. Sin técnicas especiales no modeladas.",
+        emoji = "🔴",
+        tags = listOf(SessionTemplateTag.EMPUJE, SessionTemplateTag.PECHO, SessionTemplateTag.ALTO_VOLUMEN, SessionTemplateTag.HIPERTROFIA),
+        difficulty = Difficulty.AVANZADO,
+        muscleGroupsSummary = "Pecho · Deltoides · Tríceps",
+        sortOrder = 1_250,
+        focusCategory = SessionTemplateFocusCategory.PECHO,
+        shortDescription = "Empuje avanzado alto estímulo",
+        session = Session(
+            id = "tpl-push-advanced",
+            name = "Push · Avanzado",
+            parts = listOf(
+                part("p-pa-1", "Pecho pesado", "#1B4965", listOf(
+                    ex("pa1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                        nSets("pae1", 3, 6, 7.5), restTime = 180),
+                    ex("pa1-ex2", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
+                        nSets("pae2", 3, 8, 7.5), restTime = 120),
+                    ex("pa1-ex3", "Aperturas Inclinadas con Mancuernas", "tren_superior_aperturas_inclinadas_mancuernas",
+                        nSets("pae3", 2, 12, 8.0), restTime = 90),
+                )),
+                part("p-pa-2", "Hombros + Tríceps", "#4A1942", listOf(
+                    ex("pa2-ex1", "Press de Hombros Sentado en Máquina", "deltoides_press_hombros_sentado_maquina",
+                        nSets("pae4", 2, 8, 7.5), restTime = 120),
+                    ex("pa2-ex2", "Elevaciones Laterales Super ROM con Mancuernas", "deltoides_elevaciones_laterales_super_rom_mancuernas",
+                        nSets("pae5", 3, 12, 8.0), restTime = 60),
+                    ex("pa2-ex3", "Extensión de Tríceps Overhead con Mancuerna", "triceps_overhead_mancuerna",
+                        nSets("pae6", 3, 10, 8.0), restTime = 75),
+                )),
+            ),
+        ),
+    ),
+
+    SessionTemplate(
+        id = "sys-pull-beginner",
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = "Pull · Principiante",
+        description = "Tirón guiado: jalones y remos en máquina, curls estables. Ideal para consolidar técnica.",
+        emoji = "🟢",
+        tags = listOf(SessionTemplateTag.TIRON, SessionTemplateTag.ESPALDA, SessionTemplateTag.HIPERTROFIA),
+        difficulty = Difficulty.PRINCIPIANTE,
+        muscleGroupsSummary = "Espalda · Bíceps",
+        sortOrder = 1_260,
+        focusCategory = SessionTemplateFocusCategory.ESPALDA,
+        shortDescription = "Tirón principiante guiado",
+        session = Session(
+            id = "tpl-pull-beginner",
+            name = "Pull · Principiante",
+            parts = listOf(
+                part("p-plb-1", "Vertical + horizontal", "#0F3D5E", listOf(
+                    ex("plb1-ex1", "Jalón al Pecho en Máquina (Agarre Ancho)", "back_jalon_pecho_maquina_ancho",
+                        nSets("plbe1", 3, 10, 7.0), restTime = 120),
+                    ex("plb1-ex2", "Remo en Máquina (Agarre Cerrado)", "back_remo_maquina_cerrado",
+                        nSets("plbe2", 3, 10, 7.0), restTime = 90),
+                    ex("plb1-ex3", "Pullover en Máquina", "back_pullover_maquina",
+                        nSets("plbe3", 2, 12, 7.5), restTime = 75),
+                )),
+                part("p-plb-2", "Bíceps", "#5B2A86", listOf(
+                    ex("plb2-ex1", "Curl Predicador en Máquina", "biceps_curl_predicador_supino_maquina",
+                        nSets("plbe4", 3, 12, 7.5), restTime = 75),
+                    ex("plb2-ex2", "Curl Martillo Predicador con Mancuernas", "biceps_curl_predicador_martillo_mancuernas",
+                        nSets("plbe5", 2, 12, 7.5), restTime = 60),
+                )),
+            ),
+        ),
+    ),
+
+    SessionTemplate(
+        id = "sys-pull-advanced",
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = "Pull · Avanzado",
+        description = "Tirón con dominadas, remos pesados y aislamiento de bíceps. Volumen alto controlado.",
+        emoji = "🔴",
+        tags = listOf(SessionTemplateTag.TIRON, SessionTemplateTag.ESPALDA, SessionTemplateTag.ALTO_VOLUMEN, SessionTemplateTag.HIPERTROFIA),
+        difficulty = Difficulty.AVANZADO,
+        muscleGroupsSummary = "Dorsales · Remo · Bíceps",
+        sortOrder = 1_270,
+        focusCategory = SessionTemplateFocusCategory.ESPALDA,
+        shortDescription = "Tirón avanzado alto estímulo",
+        session = Session(
+            id = "tpl-pull-advanced",
+            name = "Pull · Avanzado",
+            parts = listOf(
+                part("p-pla-1", "Tirón pesado", "#0F3D5E", listOf(
+                    ex("pla1-ex1", "Dominadas Pronas", "back_dominadas_pronas",
+                        nSets("plae1", 3, 6, 8.0), restTime = 150),
+                    ex("pla1-ex2", "Remo Pendlay con Barra Recta", "back_remo_pendlay_barra_recta",
+                        nSets("plae2", 3, 6, 8.0), restTime = 150),
+                    ex("pla1-ex3", "Remo en Polea Alta Unilateral", "back_remo_polea_alta_unilateral",
+                        nSets("plae3", 2, 10, 8.0), restTime = 90),
+                )),
+                part("p-pla-2", "Detalle", "#5B2A86", listOf(
+                    ex("pla2-ex1", "Jalón con Brazo Recto en Polea", "back_jalon_brazo_recto_polea",
+                        nSets("plae4", 2, 12, 8.5), restTime = 75),
+                    ex("pla2-ex2", "Curl Bayesian con Mancuernas", "biceps_curl_bayesian_supino_mancuernas",
+                        nSets("plae5", 3, 10, 8.5), restTime = 75),
+                    ex("pla2-ex3", "Encogimientos Kelso en Banco Inclinado con Mancuernas", "back_encogimientos_kelso_banco_inclinado_mancuernas",
+                        nSets("plae6", 3, 12, 8.0), restTime = 60),
+                )),
+            ),
+        ),
+    ),
+
+    SessionTemplate(
+        id = "sys-legs-beginner",
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = "Legs · Principiante",
+        description = "Tren inferior estable: prensa, hack, extensiones y curls en máquina. Intensidad controlada.",
+        emoji = "🟢",
+        tags = listOf(SessionTemplateTag.PIERNA, SessionTemplateTag.CUADRICEPS, SessionTemplateTag.HIPERTROFIA),
+        difficulty = Difficulty.PRINCIPIANTE,
+        muscleGroupsSummary = "Cuádriceps · Isquios · Glúteos",
+        sortOrder = 1_280,
+        focusCategory = SessionTemplateFocusCategory.PIERNAS,
+        shortDescription = "Piernas principiante en máquina",
+        session = Session(
+            id = "tpl-legs-beginner",
+            name = "Legs · Principiante",
+            parts = listOf(
+                part("p-lb-1", "Cuádriceps", "#7F1D1D", listOf(
+                    ex("lb1-ex1", "Sentadilla Copa con Mancuerna (Goblet Squat)", "quads_sentadilla_copa_mancuerna",
+                        nSets("lbe1", 3, 10, 7.0), restTime = 120),
+                    ex("lb1-ex2", "Prensa de Piernas a 45º en Máquina", "quads_prensa_piernas_45_maquina",
+                        nSets("lbe2", 3, 12, 7.0), restTime = 120),
+                    ex("lb1-ex3", "Extensión de Cuádriceps en Máquina", "quads_extension_cuadriceps_maquina",
+                        nSets("lbe3", 2, 12, 7.5), restTime = 75),
+                )),
+                part("p-lb-2", "Posteriores", "#244B3C", listOf(
+                    ex("lb2-ex1", "Curl Femoral Sentado en Máquina", "hams_curl_femoral_sentado_maquina",
+                        nSets("lbe4", 3, 12, 7.5), restTime = 75),
+                    ex("lb2-ex2", "Hip Thrust en Máquina", "glutes_hip_thrust_maquina",
+                        nSets("lbe5", 3, 10, 7.5), restTime = 90),
+                )),
+            ),
+        ),
+    ),
+
+    SessionTemplate(
+        id = "sys-legs-advanced",
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = "Legs · Avanzado",
+        description = "Sentadilla libre, unilaterales y aislamiento pesado. Volumen alto sin exceder caps por músculo.",
+        emoji = "🔴",
+        tags = listOf(SessionTemplateTag.PIERNA, SessionTemplateTag.CUADRICEPS, SessionTemplateTag.ALTO_VOLUMEN, SessionTemplateTag.HIPERTROFIA),
+        difficulty = Difficulty.AVANZADO,
+        muscleGroupsSummary = "Cuádriceps · Isquios · Glúteos · Pantorrillas",
+        sortOrder = 1_290,
+        focusCategory = SessionTemplateFocusCategory.PIERNAS,
+        shortDescription = "Piernas avanzado alto estímulo",
+        session = Session(
+            id = "tpl-legs-advanced",
+            name = "Legs · Avanzado",
+            parts = listOf(
+                part("p-la-1", "Cuádriceps", "#7F1D1D", listOf(
+                    ex("la1-ex1", "Sentadilla Trasera Barra Alta", "tren_inferior_sentadilla_barra_alta",
+                        nSets("lae1", 3, 5, 8.5), restTime = 180),
+                    ex("la1-ex2", "Sentadilla Búlgara Frontal con Mancuernas", "quads_sentadilla_bulgara_frontal_mancuernas",
+                        nSets("lae2", 3, 8, 8.0), restTime = 120),
+                    ex("la1-ex3", "Extensión de Cuádriceps Unilateral en Máquina", "quads_extension_cuadriceps_maquina_unilateral",
+                        nSets("lae3", 2, 12, 8.5), restTime = 75),
+                )),
+                part("p-la-2", "Posteriores + gemelos", "#244B3C", listOf(
+                    ex("la2-ex1", "Peso Muerto Rumano", "tren_inferior_peso_muerto_rumano",
+                        nSets("lae4", 3, 8, 8.0), restTime = 150),
+                    ex("la2-ex2", "Curl Nórdico (Nordic Hamstring Curl)", "hams_curl_nordic_peso_corporal",
+                        nSets("lae5", 3, 6, 8.5), restTime = 90),
+                    ex("la2-ex3", "Elevación de Talones de Pie Unilateral en Máquina", "calves_elevacion_talones_de_pie_unilateral_maquina",
+                        nSets("lae6", 3, 12, 8.5), restTime = 60),
+                )),
+            ),
+        ),
+    ),
+
+    SessionTemplate(
+        id = "sys-fullbody-advanced",
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = "Full Body · Avanzado",
+        description = "Un patrón motor exigente por bloque: sentadilla, press, tirón y bisagra con accesorios densos.",
+        emoji = "🔴",
+        tags = listOf(SessionTemplateTag.CUERPO_COMPLETO, SessionTemplateTag.FUERZA, SessionTemplateTag.HIPERTROFIA),
+        difficulty = Difficulty.AVANZADO,
+        muscleGroupsSummary = "Cuerpo completo · Fuerza",
+        sortOrder = 1_300,
+        focusCategory = SessionTemplateFocusCategory.FULL_BODY,
+        shortDescription = "Full body avanzado denso",
+        session = Session(
+            id = "tpl-fullbody-advanced",
+            name = "Full Body · Avanzado",
+            parts = listOf(
+                part("p-fba-1", "Pierna", "#7F1D1D", listOf(
+                    ex("fba1-ex1", "Sentadilla Frontal con Barra Recta", "quads_sentadilla_frontal_barra_recta",
+                        nSets("fbae1", 3, 5, 8.0), restTime = 180),
+                    ex("fba1-ex2", "Peso Muerto Rumano", "tren_inferior_peso_muerto_rumano",
+                        nSets("fbae2", 3, 6, 8.0), restTime = 150),
+                )),
+                part("p-fba-2", "Empuje", "#1B4965", listOf(
+                    ex("fba2-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                        nSets("fbae3", 3, 5, 8.0), restTime = 150),
+                    ex("fba2-ex2", "Press de Hombros de Pie con Mancuernas", "deltoides_press_hombros_de_pie_mancuernas",
+                        nSets("fbae4", 2, 8, 7.5), restTime = 90),
+                )),
+                part("p-fba-3", "Tirón", "#244B3C", listOf(
+                    ex("fba3-ex1", "Dominadas Pronas", "back_dominadas_pronas",
+                        nSets("fbae5", 3, 6, 8.0), restTime = 120),
+                    ex("fba3-ex2", "Remo Seal con Barra Recta", "back_remo_seal_barra_recta",
+                        nSets("fbae6", 3, 8, 8.0), restTime = 90),
+                )),
+            ),
+        ),
+    ),
+
+    SessionTemplate(
+        id = "sys-upper-beginner",
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = "Torso · Principiante",
+        description = "Upper body guiado para Upper/Lower: máquinas de pecho/espalda y accesorios estables.",
+        emoji = "🟢",
+        tags = listOf(SessionTemplateTag.TORSO, SessionTemplateTag.PECHO, SessionTemplateTag.ESPALDA, SessionTemplateTag.HIPERTROFIA),
+        difficulty = Difficulty.PRINCIPIANTE,
+        muscleGroupsSummary = "Pecho · Espalda · Hombros · Brazos",
+        sortOrder = 1_310,
+        focusCategory = SessionTemplateFocusCategory.FULL_BODY,
+        shortDescription = "Torso principiante máquinas",
+        session = Session(
+            id = "tpl-upper-beginner",
+            name = "Torso · Principiante",
+            parts = listOf(
+                part("p-ub-1", "Empuje / tirón", "#1B4965", listOf(
+                    ex("ub1-ex1", "Press de Pecho en Máquina Smith", "tren_superior_press_pecho_maquina_smith",
+                        nSets("ube1", 3, 10, 7.0), restTime = 120),
+                    ex("ub1-ex2", "Remo en Máquina (Agarre Ancho)", "back_remo_maquina_ancho",
+                        nSets("ube2", 3, 10, 7.0), restTime = 90),
+                    ex("ub1-ex3", "Press Inclinado en Máquina Convergente", "tren_superior_press_inclinado_maquina_convergente",
+                        nSets("ube3", 2, 12, 7.0), restTime = 90),
+                    ex("ub1-ex4", "Jalón al Pecho en Máquina (Agarre Cerrado)", "back_jalon_pecho_maquina_cerrado",
+                        nSets("ube4", 2, 12, 7.0), restTime = 75),
+                )),
+                part("p-ub-2", "Accesorios", "#5B2A86", listOf(
+                    ex("ub2-ex1", "Elevaciones Laterales de Pie en Máquina", "deltoides_elevaciones_laterales_de_pie_maquina",
+                        nSets("ube5", 2, 12, 7.5), restTime = 60),
+                    ex("ub2-ex2", "Curl Predicador en Máquina", "biceps_curl_predicador_supino_maquina",
+                        nSets("ube6", 2, 12, 7.5), restTime = 60),
+                    ex("ub2-ex3", "Extensión de Tríceps Overhead en Máquina", "triceps_overhead_maquina",
+                        nSets("ube7", 2, 12, 7.5), restTime = 60),
+                )),
+            ),
+        ),
+    ),
+)
+
+val SESSION_TEMPLATES_SYSTEM: List<SessionTemplate> =
+    (SESSION_TEMPLATES_BASE + SESSION_TEMPLATES_DERIVED_SPLIT + SESSION_TEMPLATES_INDEPENDENT + SESSION_TEMPLATES_EXPANDED)
+        .map(::finalizedTemplate)

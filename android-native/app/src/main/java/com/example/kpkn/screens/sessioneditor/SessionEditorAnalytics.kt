@@ -425,6 +425,86 @@ internal fun com.example.kpkn.data.models.ExerciseSet.editorEffectiveTargetRpe()
     return 8.0
 }
 
+/** Intensity tiers for session volume display (assistant muscle card). */
+enum class SessionIntensityTier(val label: String, val ordinalRank: Int) {
+    MEDIA("Media", 0),
+    ALTA("Alta", 1),
+    MUY_ALTA("Muy Alta", 2),
+    MAXIMA("Máxima", 3),
+}
+
+/**
+ * Classify a planned set's intensity for the assistant volume card.
+ * - Máxima: failure + dropset/rest-pause
+ * - Muy Alta: failure
+ * - Alta: RPE 8–9 / RIR 0–2
+ * - Media: RPE 6–7 / RIR 3–4 (and default)
+ */
+internal fun com.example.kpkn.data.models.ExerciseSet.sessionIntensityTier(): SessionIntensityTier {
+    val isFail = isFailure || intensityMode == com.example.kpkn.data.models.IntensityMode.FAILURE
+    val hasTechnique = isDropSet || isRestPause || dropSets.isNotEmpty() || restPauses.isNotEmpty()
+    if (isFail && hasTechnique) return SessionIntensityTier.MAXIMA
+    if (isFail) return SessionIntensityTier.MUY_ALTA
+    val rpe = editorEffectiveTargetRpe()
+    return if (rpe >= 8.0) SessionIntensityTier.ALTA else SessionIntensityTier.MEDIA
+}
+
+/** Average intensity tier across sets (ordinal mean → nearest tier). */
+internal fun averageSessionIntensityTier(
+    sets: List<com.example.kpkn.data.models.ExerciseSet>,
+): SessionIntensityTier {
+    val active = sets.filterNot { it.isIneffective }
+    if (active.isEmpty()) return SessionIntensityTier.MEDIA
+    val avg = active.map { it.sessionIntensityTier().ordinalRank }.average()
+    return SessionIntensityTier.entries.minByOrNull { kotlin.math.abs(it.ordinalRank - avg) }
+        ?: SessionIntensityTier.MEDIA
+}
+
+/**
+ * Per-muscle direct/indirect set counts for the assistant volume card.
+ * Direct = PRIMARY contribution × sets; Indirect = SECONDARY/STABILIZER contribution × sets.
+ * Intensity is averaged only over exercises that contribute PRIMARY volume to that muscle.
+ */
+internal data class MuscleVolumeRow(
+    val muscle: String,
+    val directSets: Double,
+    val indirectSets: Double,
+    val intensity: SessionIntensityTier,
+)
+
+internal fun buildMuscleVolumeRows(session: Session): List<MuscleVolumeRow> {
+    val exerciseIndex = EXERCISE_DATABASE.associateBy { it.id.lowercase() }
+    val direct = mutableMapOf<String, Double>()
+    val indirect = mutableMapOf<String, Double>()
+    val intensitySets = mutableMapOf<String, MutableList<com.example.kpkn.data.models.ExerciseSet>>()
+
+    session.allExercises().forEach { exercise ->
+        val effectiveSets = countDisplaySets(exercise.sets, adjustByIntensity = false)
+        if (effectiveSets <= 0.0) return@forEach
+        val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: return@forEach
+        val primary = buildDisplayContributions(dbInfo.involvedMuscles, countIndirect = false)
+        val secondary = buildDisplayContributions(dbInfo.involvedMuscles, countIndirect = true)
+        primary.forEach { (muscle, mult) ->
+            direct[muscle] = (direct[muscle] ?: 0.0) + effectiveSets * mult
+            intensitySets.getOrPut(muscle) { mutableListOf() }.addAll(exercise.sets.filterNot { it.isIneffective })
+        }
+        secondary.forEach { (muscle, mult) ->
+            indirect[muscle] = (indirect[muscle] ?: 0.0) + effectiveSets * mult
+        }
+    }
+
+    val muscles = (direct.keys + indirect.keys).toSet()
+    return muscles.map { muscle ->
+        MuscleVolumeRow(
+            muscle = muscle,
+            directSets = direct[muscle] ?: 0.0,
+            indirectSets = indirect[muscle] ?: 0.0,
+            intensity = averageSessionIntensityTier(intensitySets[muscle].orEmpty()),
+        )
+    }.filter { it.directSets > 0.0 || it.indirectSets > 0.0 }
+        .sortedByDescending { it.directSets }
+}
+
 internal fun buildDisplayContributions(
     involvedMuscles: List<com.example.kpkn.data.models.InvolvedMuscle>,
     countIndirect: Boolean

@@ -51,6 +51,8 @@ internal data class SessionAugeComputation(
     val averageRpe: Double,
     val volumeMap: Map<String, AugeVolumeAccumulator>,
     val muscleDrainProjection: Map<String, Int>,
+    val muscleEnergyDrain: Map<String, Int>,
+    val muscleSpinalDrain: Map<String, Int>,
     val totalSpinalLoad: Double,
     val elbowStress: Int,
     val kneeStress: Int,
@@ -281,6 +283,8 @@ internal fun buildAugeSummary(
         suggestions = orderedSuggestions,
         topExercises = currentMetrics.exerciseInsights.sortedByDescending { it.total }.take(4),
         muscleDrainProjection = currentMetrics.muscleDrainProjection,
+        muscleEnergyDrain = currentMetrics.muscleEnergyDrain,
+        muscleSpinalDrain = currentMetrics.muscleSpinalDrain,
         sessionVolumeByMuscle = currentMetrics.volumeMap.mapValues { (_, acc) -> acc.flat },
         weeklyVolumeByMuscle = weeklyVolumeMap.mapValues { (_, acc) -> acc.flat },
         volumeThresholdsByMuscle = volumeThresholdsByMuscle,
@@ -300,6 +304,8 @@ internal fun computeSessionAugeComputation(
     val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
     val volumeMap = mutableMapOf<String, AugeVolumeAccumulator>()
     val muscleDrainMap = mutableMapOf<String, Double>()
+    val muscleEnergyDrainMap = mutableMapOf<String, Double>()
+    val muscleSpinalDrainMap = mutableMapOf<String, Double>()
     val roleMap = mutableMapOf<String, MuscleRoleBreakdown>()
     val recommendationContext = mutableMapOf<String, MuscleRecommendationContext>()
     var totalSets = 0
@@ -399,10 +405,21 @@ internal fun computeSessionAugeComputation(
                     roleWeightByMuscle[muscle] = contribution
                 }
             val totalRoleWeight = roleWeightByMuscle.values.sum()
-            if (drain.muscularDrainPct > 0.0 && totalRoleWeight > 0.0) {
+            if (totalRoleWeight > 0.0) {
                 roleWeightByMuscle.forEach { (muscle, roleWeight) ->
                     val share = roleWeight / totalRoleWeight
-                    muscleDrainMap[muscle] = (muscleDrainMap[muscle] ?: 0.0) + (drain.muscularDrainPct * share)
+                    if (drain.muscularDrainPct > 0.0) {
+                        muscleDrainMap[muscle] = (muscleDrainMap[muscle] ?: 0.0) + (drain.muscularDrainPct * share)
+                    }
+                    if (drain.cnsDrainPct > 0.0) {
+                        muscleEnergyDrainMap[muscle] =
+                            (muscleEnergyDrainMap[muscle] ?: 0.0) + (drain.cnsDrainPct * share)
+                    }
+                    // Spinal cost only attributed when the exercise has axial load.
+                    if (drain.spinalDrainPct > 0.0 && (info.axialLoadFactor ?: 0.0) > 0.0) {
+                        muscleSpinalDrainMap[muscle] =
+                            (muscleSpinalDrainMap[muscle] ?: 0.0) + (drain.spinalDrainPct * share)
+                    }
                 }
             }
         }
@@ -474,6 +491,8 @@ internal fun computeSessionAugeComputation(
         volumeMap = volumeMap,
         muscleDrainProjection = muscleDrainMap
             .mapValues { (_, drainPct) -> drainPct.roundToInt().coerceIn(0, 100) },
+        muscleEnergyDrain = scaleMuscleDrainMap(muscleEnergyDrainMap, predictedDrain.cns),
+        muscleSpinalDrain = scaleMuscleDrainMap(muscleSpinalDrainMap, predictedDrain.spinal),
         totalSpinalLoad = totalSpinalLoad,
         elbowStress = elbowStress,
         kneeStress = kneeStress,
@@ -481,6 +500,16 @@ internal fun computeSessionAugeComputation(
         muscleRoleMap = roleMap,
         muscleRecommendationContext = recommendationContext,
     )
+}
+
+/** Scale raw per-muscle drain shares so their sum ≈ targetRingDrain (session ring coherence). */
+private fun scaleMuscleDrainMap(raw: Map<String, Double>, targetRingDrain: Int): Map<String, Int> {
+    if (raw.isEmpty() || targetRingDrain <= 0) return emptyMap()
+    val rawSum = raw.values.sum()
+    if (rawSum <= 0.0) return emptyMap()
+    val scale = targetRingDrain.toDouble() / rawSum
+    return raw.mapValues { (_, v) -> (v * scale).roundToInt().coerceIn(0, 100) }
+        .filterValues { it > 0 }
 }
 
 internal fun accumulateSessionVolume(

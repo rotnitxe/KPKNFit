@@ -1,10 +1,12 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,133 +24,298 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.PriorityHigh
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.models.*
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.sessions.SessionTemplate
+import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
-import androidx.compose.animation.animateContentSize
-import com.example.kpkn.domain.exercises.*
+import com.example.kpkn.domain.templates.SessionTemplateFacets
+import com.example.kpkn.domain.templates.TemplateCatalogFilterLogic
 import com.example.kpkn.screens.sessioneditor.formatEditorOneDecimal
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 
 @Composable
 internal fun CompactTemplateCard(
     template: SessionTemplate,
     onApply: () -> Unit,
     exerciseIndex: Map<String, ExerciseMuscleInfo>,
+    glassDark: Boolean = false,
+    facets: SessionTemplateFacets? = null,
+    advanced: Boolean = false,
 ) {
     var expanded by rememberSaveable(template.id) { mutableStateOf(false) }
+    val titleColor = if (glassDark) Color.White else MaterialTheme.colorScheme.onSurface
+    val mutedColor = if (glassDark) Color.White.copy(alpha = 0.55f) else MaterialTheme.colorScheme.onSurfaceVariant
+    val rowBg = if (glassDark) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
 
-    Card(
+    val durationMin = facets?.realDurationMinutes ?: template.estimatedDurationMinutes
+    val totalSets = facets?.totalSets ?: template.session.allExercises().sumOf { it.sets.size }
+    val exerciseCount = template.session.allExercises().size
+    val primaryMuscles = facets?.primaryMuscles?.sortedBy { it.lowercase() }.orEmpty()
+    val shortCopy = template.shortDescription.ifBlank {
+        template.description.take(120).ifBlank { template.muscleGroupsSummary }
+    }
+    val diffText = TemplateCatalogFilterLogic.difficultyLabel(template.difficulty)
+    val diffColor = when (template.difficulty) {
+        Difficulty.PRINCIPIANTE -> Color(0xFF66BB6A)
+        Difficulty.INTERMEDIO -> Color(0xFFFFA726)
+        Difficulty.AVANZADO -> Color(0xFFEF5350)
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .animateContentSize(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
-        shape = RoundedCornerShape(16.dp),
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = !expanded }
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = template.emoji.ifBlank { "💪" },
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(end = 10.dp)
-                )
-                
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = template.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        template.estimatedDurationMinutes?.let {
-                            Text(
-                                text = "~${it} min",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text("•", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outlineVariant)
-                        }
-                        Text(
-                            text = "${template.session.allExercises().size} ej.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text("•", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outlineVariant)
-                        val diffText = when (template.difficulty) {
-                            com.example.kpkn.data.splits.Difficulty.PRINCIPIANTE -> "Principiante"
-                            com.example.kpkn.data.splits.Difficulty.INTERMEDIO -> "Intermedio"
-                            com.example.kpkn.data.splits.Difficulty.AVANZADO -> "Avanzado"
-                        }
-                        val diffColor = when (template.difficulty) {
-                            com.example.kpkn.data.splits.Difficulty.PRINCIPIANTE -> Color(0xFF66BB6A)
-                            com.example.kpkn.data.splits.Difficulty.INTERMEDIO -> Color(0xFFFFA726)
-                            com.example.kpkn.data.splits.Difficulty.AVANZADO -> Color(0xFFEF5350)
-                        }
-                        Text(
-                            text = diffText,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = diffColor
-                        )
+            .clip(RoundedCornerShape(if (glassDark) 10.dp else 16.dp))
+            .background(rowBg)
+            .animateContentSize()
+            .semantics {
+                contentDescription = buildString {
+                    append(template.name)
+                    durationMin?.let { append(", $it minutos") }
+                    append(", $exerciseCount ejercicios, $totalSets series, $diffText")
+                    if (primaryMuscles.isNotEmpty()) {
+                        append(", músculos: ${primaryMuscles.joinToString()}")
                     }
                 }
-                
-                Spacer(Modifier.width(6.dp))
-
+            },
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .clickable { expanded = !expanded }
+                .padding(horizontal = if (glassDark) 8.dp else 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = template.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = titleColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (shortCopy.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = shortCopy,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = mutedColor,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    durationMin?.let {
+                        Text(text = "$it min", style = MaterialTheme.typography.labelSmall, color = mutedColor)
+                        Text("·", style = MaterialTheme.typography.labelSmall, color = mutedColor)
+                    }
+                    Text(
+                        text = "$exerciseCount ej.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = mutedColor,
+                    )
+                    Text("·", style = MaterialTheme.typography.labelSmall, color = mutedColor)
+                    Text(
+                        text = "$totalSets series",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = mutedColor,
+                    )
+                    Text("·", style = MaterialTheme.typography.labelSmall, color = mutedColor)
+                    Text(
+                        text = diffText,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = diffColor,
+                    )
+                }
+                if (advanced && primaryMuscles.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Enfoque: ${primaryMuscles.take(4).joinToString(" · ")}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (glassDark) Color.White.copy(alpha = 0.72f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                if (advanced && facets != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    AdvancedTemplateMetaRow(facets = facets, mutedColor = mutedColor, glassDark = glassDark)
+                }
+            }
+            Spacer(modifier = Modifier.width(6.dp))
+            if (glassDark) {
+                Text(
+                    text = "Aplicar",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Black,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(Color.White)
+                        .clickable(onClick = onApply)
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .semantics { contentDescription = "Aplicar plantilla ${template.name}" },
+                )
+            } else {
                 FilledTonalButton(
                     onClick = onApply,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                    modifier = Modifier.height(32.dp)
+                    modifier = Modifier
+                        .heightIn(min = 36.dp)
+                        .semantics { contentDescription = "Aplicar plantilla ${template.name}" },
                 ) {
                     Text("Aplicar", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
-
-                Spacer(Modifier.width(4.dp))
-
-                Icon(
-                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Colapsar" else "Expandir",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
             }
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = if (expanded) "Colapsar detalles" else "Expandir detalles",
+                tint = mutedColor,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+        AnimatedVisibility(visible = expanded) {
+            TemplateExpandedDetails(
+                template = template,
+                exerciseIndex = exerciseIndex,
+                glassDark = glassDark,
+                facets = facets,
+                advanced = advanced,
+            )
+        }
+        if (glassDark) {
+            HorizontalDivider(color = Color.White.copy(alpha = 0.08f))
+        }
+    }
+}
 
-            AnimatedVisibility(visible = expanded) {
-                TemplateExpandedDetails(template, exerciseIndex)
-            }
+@Composable
+private fun AdvancedTemplateMetaRow(
+    facets: SessionTemplateFacets,
+    mutedColor: Color,
+    glassDark: Boolean,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        val rpe = facets.averageTargetRpe
+
+        if (rpe != null) {
+            Text(
+                text = "RPE ${formatEditorOneDecimal(rpe)}",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = mutedColor,
+            )
+        }
+        CompactFatigueMeters(
+            energy = facets.drain.cns,
+            muscular = facets.drain.muscular,
+            spinal = facets.drain.spinal,
+            glassDark = glassDark,
+        )
+    }
+}
+
+@Composable
+internal fun CompactFatigueMeters(
+    energy: Int,
+    muscular: Int,
+    spinal: Int,
+    glassDark: Boolean,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        CompactFatigueChip(
+            label = "Energía",
+            value = energy.coerceIn(0, 100),
+            color = Color(0xFF448AFF),
+            glassDark = glassDark,
+            modifier = Modifier.weight(1f),
+        )
+        CompactFatigueChip(
+            label = "Muscular",
+            value = muscular.coerceIn(0, 100),
+            color = Color(0xFFFF5252),
+            glassDark = glassDark,
+            modifier = Modifier.weight(1f),
+        )
+        CompactFatigueChip(
+            label = "Columna",
+            value = spinal.coerceIn(0, 100),
+            color = Color(0xFFFFAB40),
+            glassDark = glassDark,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun CompactFatigueChip(
+    label: String,
+    value: Int,
+    color: Color,
+    glassDark: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val track = if (glassDark) Color.White.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    val textColor = if (glassDark) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurface
+    Column(
+        modifier = modifier.semantics {
+            contentDescription = "$label $value por ciento"
+        },
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        Text(
+            text = "$label $value%",
+            style = MaterialTheme.typography.labelSmall,
+            color = textColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            fontSize = 10.sp,
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(track),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(value / 100f)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(color),
+            )
         }
     }
 }
@@ -155,107 +323,125 @@ internal fun CompactTemplateCard(
 @Composable
 internal fun TemplateExpandedDetails(
     template: SessionTemplate,
-    exerciseIndex: Map<String, ExerciseMuscleInfo>
+    exerciseIndex: Map<String, ExerciseMuscleInfo>,
+    glassDark: Boolean = false,
+    facets: SessionTemplateFacets? = null,
+    advanced: Boolean = false,
 ) {
-    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        if (template.description.isNotBlank()) {
-            Text(
-                text = template.description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+    val titleColor = if (glassDark) Color.White else MaterialTheme.colorScheme.onSurface
+    val mutedColor = if (glassDark) Color.White.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurfaceVariant
+    val dividerColor = if (glassDark) Color.White.copy(alpha = 0.12f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
 
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = "Ejercicios incluidos:",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            template.session.allExercises().forEachIndexed { idx, ex ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "${idx + 1}. ${ex.name}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                    val setsCount = ex.sets.size
-                    SuggestionChip(
-                        onClick = {},
-                        label = { Text("$setsCount ${if (setsCount == 1) "serie" else "series"}", fontSize = 10.sp) },
-                        modifier = Modifier.height(22.dp)
-                    )
-                }
-            }
-        }
+    val estimatedVol = remember(template, exerciseIndex) {
+        SessionTemplateCatalogPolicy.calculateSessionMuscleVolume(template.session, exerciseIndex)
+    }
 
-        val estimatedVol = remember(template, exerciseIndex) {
-            SessionTemplateCatalogPolicy.calculateSessionMuscleVolume(template.session, exerciseIndex)
-        }
+    val drain = remember(facets, template, exerciseIndex) {
+        facets?.drain ?: SessionTemplateCatalogPolicy.evaluateTemplateRings(template, exerciseIndex)
+    }
 
-        val drain = remember(template, exerciseIndex) {
-            SessionTemplateCatalogPolicy.evaluateTemplateRings(template, exerciseIndex)
-        }
-
-        val warnings = remember(template, exerciseIndex) {
+    val warnings = remember(template, drain, advanced) {
+        if (!advanced) emptyList()
+        else {
             val list = mutableListOf<String>()
             val isPl = SessionTemplateCatalogPolicy.isPowerliftingTemplate(template)
             val maxCns = if (isPl) 45 else 35
             val maxMuscular = if (isPl) 50 else 45
             val maxSpinal = if (isPl) 40 else 30
-
             if (drain.cns > maxCns) list += "SNC elevada (${drain.cns}% > $maxCns%)"
             if (drain.muscular > maxMuscular) list += "Muscular elevada (${drain.muscular}% > $maxMuscular%)"
             if (drain.spinal > maxSpinal) list += "Axial/espinal elevada (${drain.spinal}% > $maxSpinal%)"
             list
         }
+    }
+
+    HorizontalDivider(color = dividerColor)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        if (template.description.isNotBlank()) {
+            Text(
+                text = template.description,
+                style = MaterialTheme.typography.bodySmall,
+                color = mutedColor,
+            )
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = "Ejercicios incluidos",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = titleColor,
+            )
+            template.session.allExercises().forEachIndexed { idx, ex ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = "${idx + 1}. ${ex.name}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = mutedColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    val setsCount = ex.sets.size
+                    Text(
+                        text = "$setsCount ${if (setsCount == 1) "serie" else "series"}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (glassDark) Color.White.copy(alpha = 0.75f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
 
         if (estimatedVol.isNotEmpty()) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    text = "Volumen estimado por músculo:",
+                    text = "Volumen estimado por músculo",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = titleColor,
                 )
-                
+
                 @OptIn(ExperimentalLayoutApi::class)
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     estimatedVol.entries.sortedByDescending { it.value }.forEach { (muscle, sets) ->
                         Surface(
                             shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-                            modifier = Modifier.height(24.dp)
+                            color = if (glassDark) {
+                                Color.White.copy(alpha = 0.12f)
+                            } else {
+                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                            },
+                            modifier = Modifier.height(24.dp),
                         ) {
                             Text(
                                 text = "$muscle: ${formatEditorOneDecimal(sets)} series",
                                 style = MaterialTheme.typography.labelSmall,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                color = if (glassDark) {
+                                    Color.White.copy(alpha = 0.85f)
+                                } else {
+                                    MaterialTheme.colorScheme.onSecondaryContainer
+                                },
                             )
                         }
                     }
@@ -263,57 +449,64 @@ internal fun TemplateExpandedDetails(
             }
         }
 
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Row(
+        if (advanced) {
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Text(
-                    text = "Fatiga SNC: ${drain.cns}%",
+                    text = "Fatiga estimada (AUGE)",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    fontWeight = FontWeight.Bold,
+                    color = titleColor,
                 )
-                Text(
-                    text = "Muscular: ${drain.muscular}%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                CompactFatigueMeters(
+                    energy = drain.cns,
+                    muscular = drain.muscular,
+                    spinal = drain.spinal,
+                    glassDark = glassDark,
                 )
-                Text(
-                    text = "Axial: ${drain.spinal}%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+                facets?.averageTargetRpe?.let { rpe ->
+                    Text(
+                        text = "RPE medio objetivo: ${formatEditorOneDecimal(rpe)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = mutedColor,
+                    )
+                }
+                if (facets != null && facets.primaryMuscles.isNotEmpty()) {
+                    Text(
+                        text = "Enfoque: ${facets.primaryMuscles.sortedBy { it.lowercase() }.joinToString(" · ")}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = mutedColor,
+                    )
+                }
 
-            if (warnings.isNotEmpty()) {
-                Spacer(Modifier.height(2.dp))
-                warnings.forEach { warning ->
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                if (warnings.isNotEmpty()) {
+                    warnings.forEach { warning ->
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f)),
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.PriorityHigh,
-                                contentDescription = "Advertencia",
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Text(
-                                text = warning,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.error,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PriorityHigh,
+                                    contentDescription = "Advertencia",
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(12.dp),
+                                )
+                                Text(
+                                    text = warning,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
                         }
                     }
                 }

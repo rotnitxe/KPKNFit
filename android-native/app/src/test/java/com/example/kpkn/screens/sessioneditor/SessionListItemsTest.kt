@@ -26,7 +26,7 @@ class SessionListItemsTest {
     }
 
     @Test
-    fun buildSessionListItems_collapsedPartSkipsExercises() {
+    fun buildSessionListItems_collapsedPartSkipsExercisesAndAddButton() {
         val part = SessionPart(
             id = "p1",
             name = "Chest",
@@ -36,6 +36,16 @@ class SessionListItemsTest {
         val items = buildSessionListItems(session, collapsedPartIds = setOf("p1"))
         assertTrue(items.any { it is SessionListItem.PartHeader && it.partId == "p1" })
         assertTrue(items.none { it is SessionListItem.PartExercise })
+        assertTrue(items.none { it is SessionListItem.PartAddExercise })
+    }
+
+    @Test
+    fun buildSessionListItems_emptyPartIncludesAddExerciseFooter() {
+        val part = SessionPart(id = "p1", name = "Chest", exercises = emptyList())
+        val session = Session(id = "s1", name = "Push", parts = listOf(part))
+        val items = buildSessionListItems(session)
+        assertTrue(items.any { it is SessionListItem.PartHeader && it.partId == "p1" })
+        assertTrue(items.any { it is SessionListItem.PartAddExercise && it.partId == "p1" })
     }
 
     @Test

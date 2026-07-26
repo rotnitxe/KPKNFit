@@ -408,6 +408,10 @@ internal fun SessionEditorSheets(
     val session = uiState.session ?: return
     if (uiState.sheet == SessionEditorSheet.NONE) return
 
+    // AUGE is rendered as an in-composition Liquid Glass overlay in SessionEditorScreen
+    // (sibling of hazeSource). Do NOT put it in ModalBottomSheet — blur would die.
+    if (uiState.sheet == SessionEditorSheet.AUGE) return
+
     val warmupExercise = session.allExercises().find { it.id == uiState.warmupExerciseId }
     val quickActionExercise = uiState.quickActionsExerciseId?.let { targetId ->
         session.allExercises().find { it.id == targetId }
@@ -627,17 +631,7 @@ internal fun SessionEditorSheets(
                 onDiscardSwitch = onDiscardSwitch,
                 isSimpleProgram = uiState.isSimpleProgram,
             )
-            SessionEditorSheet.AUGE -> AssistantSheet(
-                uiState = uiState,
-                templates = allTemplates,
-                onApplyAugeCorrection = onApplyAugeCorrection,
-                onAddGhostExercise = onAddGhostExercise,
-                onApplyAssistantSuggestion = onApplyAssistantSuggestion,
-                onTemplateSearchChange = onTemplateSearchChange,
-                onSelectTemplate = onSelectTemplate,
-                onConfirmApplyTemplate = onConfirmApplyTemplate,
-                onCancelTemplateApply = onCancelTemplateApply,
-            )
+            SessionEditorSheet.AUGE -> Unit // handled as glass overlay in SessionEditorScreen
             SessionEditorSheet.WARMUP -> WarmupSheet(exercise = warmupExercise, onSave = onWarmupSave)
             SessionEditorSheet.MOBILITY_PICKER -> MobilityPickerSheet(
                 onAdd = onAddMobilityExercise,

@@ -103,6 +103,10 @@ data class SessionEditorAugeSummary(
     val suggestions: List<SessionEditorAugeAlert> = emptyList(),
     val topExercises: List<SessionEditorAugeExerciseInsight> = emptyList(),
     val muscleDrainProjection: Map<String, Int> = emptyMap(),
+    /** Estimated CNS/energy drain contribution per canonical muscle (sums ≈ sessionDrain.cns). */
+    val muscleEnergyDrain: Map<String, Int> = emptyMap(),
+    /** Estimated spinal drain contribution per canonical muscle (sums ≈ sessionDrain.spinal; axial only). */
+    val muscleSpinalDrain: Map<String, Int> = emptyMap(),
     val sessionVolumeByMuscle: Map<String, Double> = emptyMap(),
     val weeklyVolumeByMuscle: Map<String, Double> = emptyMap(),
     val volumeThresholdsByMuscle: Map<String, SessionEditorVolumeThreshold> = emptyMap(),

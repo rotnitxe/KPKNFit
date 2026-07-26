@@ -488,7 +488,7 @@ internal fun dayLabelShort(dayOfWeek: Int?): String = when (dayOfWeek) {
 
 internal fun List<Double>.averageOrNull(): Double? = if (isEmpty()) null else average()
 
-internal fun defaultSessionNameForDay(dayOfWeek: Int?): String = "Sesion ${dayLabel(dayOfWeek)}"
+internal fun defaultSessionNameForDay(dayOfWeek: Int?): String = "Sesión ${dayLabel(dayOfWeek)}"
 
 internal fun buildCompetitionKeyDaysInWeek(program: Program, week: ProgramWeek?): Set<Int> {
     if (week == null) return emptySet()

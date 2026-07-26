@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.sessioneditor
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -51,8 +53,13 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import com.example.kpkn.screens.home.SingleRingCanvas
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -60,6 +67,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.min
 import com.example.kpkn.screens.sessioneditor.components.InlineSetRow
 import com.example.kpkn.screens.sessioneditor.components.SupersetRestWheelRow
 import androidx.compose.runtime.getValue
@@ -672,29 +680,126 @@ internal fun EstimatedRingsRow(
     energy: Int,
     spine: Int,
 ) {
-    val energyProgress = (energy.coerceIn(0, 100) / 100f)
-    val spineProgress = (spine.coerceIn(0, 100) / 100f)
-    val ringColors = listOf(Color(0xFF448AFF), Color(0xFFFFD740))
-    val ringLabels = listOf("ENERGÍA", "COLUMNA")
+    SessionEstimatedRings(
+        energyDrain = (100 - energy).coerceIn(0, 100),
+        spineDrain = (100 - spine).coerceIn(0, 100),
+        muscleDrain = 0,
+    )
+}
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
+/**
+ * Estimated session drain rings (same channels as live workout rings).
+ * Fill = predicted drain cost. Olympic-style zigzag overlap:
+ * Músculos (left-up) → Energía (center-down) → Columna (right-up).
+ */
+@Composable
+internal fun SessionEstimatedRings(
+    energyDrain: Int,
+    spineDrain: Int,
+    muscleDrain: Int,
+    modifier: Modifier = Modifier,
+) {
+    val muscleProgress = muscleDrain.coerceIn(0, 100) / 100f
+    val energyProgress = energyDrain.coerceIn(0, 100) / 100f
+    val spineProgress = spineDrain.coerceIn(0, 100) / 100f
+    val muscleColor = Color(0xFFFF5252)
+    val energyColor = Color(0xFF448AFF)
+    val spineColor = Color(0xFFFFD740)
+
+    val muscleAnim by animateFloatAsState(muscleProgress, label = "muscleRing")
+    val energyAnim by animateFloatAsState(energyProgress, label = "energyRing")
+    val spineAnim by animateFloatAsState(spineProgress, label = "spineRing")
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        listOf(energyProgress to ringLabels[0], spineProgress to ringLabels[1]).forEachIndexed { index, entry ->
-            val (progress, label) = entry
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                SingleRingCanvas(
-                    value = progress,
-                    color = ringColors[index],
-                    ringDiameter = 120f,
-                    strokeWidth = 8f,
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(176.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val stroke = 5.dp.toPx()
+                val r = min(size.width / 5.4f, size.height * 0.36f)
+                val cx = size.width / 2f
+                val cy = size.height / 2f
+                // Balanced spacing + zigzag stagger (Olympic)
+                val dx = r * 1.28f
+                val dy = r * 0.48f
+                val centers = listOf(
+                    Offset(cx - dx, cy - dy),  // Músculos (left-up)
+                    Offset(cx, cy + dy),       // Energía (center-down)
+                    Offset(cx + dx, cy - dy),  // Columna (right-up)
                 )
-                Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = ringColors[index])
-                Text("${(progress * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val colors = listOf(muscleColor, energyColor, spineColor)
+                val progresses = listOf(muscleAnim, energyAnim, spineAnim)
+
+                // Pass 1: visible track circles
+                centers.forEachIndexed { i, c ->
+                    drawCircle(
+                        color = colors[i].copy(alpha = 0.28f),
+                        radius = r,
+                        center = c,
+                        style = Stroke(width = stroke),
+                    )
+                }
+                // Pass 2: additive bloom glow behind the progress arcs
+                centers.forEachIndexed { i, c ->
+                    val color = colors[i]
+                    val sweep = 360f * progresses[i].coerceIn(0f, 1f)
+                    val topLeft = Offset(c.x - r, c.y - r)
+                    val arcSize = Size(r * 2, r * 2)
+                    val glowLayers = listOf(
+                        18.dp.toPx() to 0.12f,
+                        12.dp.toPx() to 0.20f,
+                        7.dp.toPx() to 0.32f,
+                    )
+                    glowLayers.forEach { (w, a) ->
+                        drawArc(
+                            color = color.copy(alpha = a),
+                            startAngle = -90f,
+                            sweepAngle = sweep,
+                            useCenter = false,
+                            topLeft = topLeft,
+                            size = arcSize,
+                            style = Stroke(width = w, cap = StrokeCap.Round),
+                            blendMode = BlendMode.Plus,
+                        )
+                    }
+                }
+                // Pass 3: bright thin progress arcs on top
+                centers.forEachIndexed { i, c ->
+                    drawArc(
+                        color = colors[i],
+                        startAngle = -90f,
+                        sweepAngle = 360f * progresses[i].coerceIn(0f, 1f),
+                        useCenter = false,
+                        topLeft = Offset(c.x - r, c.y - r),
+                        size = Size(r * 2, r * 2),
+                        style = Stroke(width = stroke, cap = StrokeCap.Round),
+                    )
+                }
             }
         }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            RingCaption("MÚSCULOS", muscleDrain.coerceIn(0, 100), muscleColor)
+            RingCaption("ENERGÍA", energyDrain.coerceIn(0, 100), energyColor)
+            RingCaption("COLUMNA", spineDrain.coerceIn(0, 100), spineColor)
+        }
+    }
+}
+
+@Composable
+private fun RingCaption(label: String, pct: Int, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = color)
+        Text("$pct%", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.85f))
     }
 }
 

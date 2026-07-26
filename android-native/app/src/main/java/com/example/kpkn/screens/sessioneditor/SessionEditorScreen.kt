@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -68,8 +67,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeSource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.Lifecycle
@@ -82,11 +79,14 @@ import com.example.kpkn.screens.sessioneditor.components.rememberSessionEditorSp
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
+import com.example.kpkn.ui.components.kpknGlassStyle
 import kotlinx.coroutines.launch
 
 import com.example.kpkn.screens.sessioneditor.components.SessionHero
 import com.example.kpkn.screens.sessioneditor.components.SessionContextNavigator
+import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionEditorSheets
+import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantGlassOverlay
 import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
 import com.example.kpkn.screens.sessioneditor.components.CompetitionConfigSheet
 import com.example.kpkn.screens.sessioneditor.components.CompetitionSessionEditor
@@ -106,7 +106,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.ui.text.style.TextOverflow
 import kotlin.math.roundToInt
 
@@ -176,14 +175,8 @@ fun SessionEditorScreen(
     }
 
     val hazeState = remember { HazeState() }
-    val roadmapGlassStyle = remember {
-        HazeStyle(
-            blurRadius = 28.dp,
-            tint = HazeTint(Color.Black.copy(alpha = 0.44f)),
-            backgroundColor = Color.Black.copy(alpha = 0.18f),
-            noiseFactor = 0.03f,
-        )
-    }
+    // Canonical KPKN glass (see docs "Blur KPKN.md"). Shared by the roadmap dock and the assistant FAB.
+    val roadmapGlassStyle = remember { kpknGlassStyle() }
 
     // Snackbar for auto-save and navigation messages from ViewModel
     LaunchedEffect(uiState.snackbarMessage) {
@@ -347,21 +340,16 @@ fun SessionEditorScreen(
         viewModel.saveDraftForExit()
         onBack()
     }
+    BackHandler(enabled = uiState.sheet == SessionEditorSheet.AUGE) {
+        viewModel.closeSheet()
+    }
 
-    Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            floatingActionButton = {
-                HeroGlassFab(
-                    summary = uiState.augeSummary,
-                    modifier = Modifier
-                        .navigationBarsPadding()
-                        .padding(bottom = fabBottomPadding),
-                    onClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
-                )
-            },
-            floatingActionButtonPosition = FabPosition.End,
+            // Glass FAB must live OUTSIDE hazeSource (sibling overlay) — same pattern as the roadmap dock.
         ) { padding ->
         LazyColumn(
             state = listState,
@@ -448,7 +436,7 @@ fun SessionEditorScreen(
 
             if (!session.isMeetDay) item {
                 val isEmptySession = session.exercises.isEmpty() &&
-                    session.parts.filterNot { it.isUncategorizedPart() }.all { it.exercises.isEmpty() }
+                    session.parts.none { !it.isUncategorizedPart() }
                 Column(
                     modifier = Modifier
                         .padding(horizontal = editorSpacing.screenPadding, vertical = 12.dp)
@@ -456,67 +444,52 @@ fun SessionEditorScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     if (isEmptySession) {
-                        Surface(
+                        SessionEditorEmptyState(
+                            onAddExercise = viewModel::openPickerForUncategorized,
+                            onAddGroup = viewModel::addPart,
+                        )
+                    } else {
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = editorSpacing.cardShape,
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            Column(
-                                modifier = Modifier.padding(20.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
+                            Button(
+                                onClick = viewModel::openPickerForUncategorized,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(18.dp),
                             ) {
-                                Icon(
-                                    Icons.Default.FitnessCenter,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(32.dp),
-                                )
-                                Text(
-                                    "Añade tu primer ejercicio",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                )
-                                Text(
-                                    "Construye la sesión eligiendo ejercicios del catálogo o creando un grupo.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center,
-                                )
+                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Añadir ejercicio", fontWeight = FontWeight.Bold)
                             }
-                        }
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Button(
-                            onClick = viewModel::openPickerForUncategorized,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(18.dp),
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                if (isEmptySession) "Añadir primer ejercicio" else "Añadir ejercicio",
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
-                        FilledTonalButton(
-                            onClick = viewModel::addPart,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(18.dp),
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("Nuevo grupo", fontWeight = FontWeight.Bold)
+                            FilledTonalButton(
+                                onClick = viewModel::addPart,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(18.dp),
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Nuevo grupo", fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }
             }
         }
         }
+        } // hazeSource — content behind glass overlays (dock + assistant FAB)
+
+        // Assistant FAB: sibling OVER hazeSource (never nested inside Scaffold FAB slot).
+        HeroGlassFab(
+            summary = uiState.augeSummary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .navigationBarsPadding()
+                .padding(end = 16.dp, bottom = fabBottomPadding)
+                .zIndex(260f),
+            hazeState = hazeState,
+            onClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
+        )
 
         Box(
             modifier = Modifier
@@ -568,6 +541,37 @@ fun SessionEditorScreen(
                 rect = previewRect,
                 offset = draggingExerciseOffset,
                 modifier = Modifier.zIndex(500f),
+            )
+        }
+
+        if (uiState.sheet == SessionEditorSheet.AUGE) {
+            AssistantGlassOverlay(
+                uiState = uiState,
+                templates = allTemplates,
+                hazeState = hazeState,
+                onDismiss = viewModel::closeSheet,
+                onApplyAugeCorrection = { alertId ->
+                    viewModel.applyAugeCorrection(alertId)
+                    scope.launch {
+                        snackbarHostState.showKpknSnackbar("Ajuste aplicado", SnackbarType.SUCCESS)
+                    }
+                },
+                onAddGhostExercise = { cardId ->
+                    viewModel.addGhostExercise(cardId)
+                    scope.launch {
+                        snackbarHostState.showKpknSnackbar("Ejercicio añadido a la sesión", SnackbarType.SUCCESS)
+                    }
+                },
+                onApplyAssistantSuggestion = { suggestionId ->
+                    viewModel.applyAssistantSuggestion(suggestionId)
+                    scope.launch {
+                        snackbarHostState.showKpknSnackbar("Ajuste aplicado", SnackbarType.SUCCESS)
+                    }
+                },
+                onTemplateSearchChange = viewModel::setTemplateSearchQuery,
+                onSelectTemplate = viewModel::selectTemplate,
+                onConfirmApplyTemplate = viewModel::confirmTemplateApply,
+                onCancelTemplateApply = viewModel::cancelTemplateApply,
             )
         }
     }

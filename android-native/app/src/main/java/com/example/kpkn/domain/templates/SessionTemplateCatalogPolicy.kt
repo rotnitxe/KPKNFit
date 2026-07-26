@@ -238,7 +238,21 @@ object SessionTemplateCatalogPolicy {
         if (normalized.contains("full") || normalized.contains("cuerpo completo") || normalized.contains("volumen") || normalized.contains("recuperación") || normalized.contains("recuperacion")) categories += SessionTemplateFocusCategory.FULL_BODY
         if (normalized.contains("sbd") || normalized.contains("sentadilla") || normalized.contains("banca") || normalized.contains("peso muerto") || normalized.contains("t1") || normalized.contains("max effort") || normalized.contains("dynamic effort")) categories += SessionTemplateFocusCategory.POWERLIFTING
         if (normalized.contains("minimalista")) categories += SessionTemplateFocusCategory.MINIMALISTA
-        if (normalized.contains("anterior") || normalized.contains("posterior") || normalized.contains("sesion")) categories += SessionTemplateFocusCategory.FULL_BODY
+        if (normalized.contains("anterior")) categories += SessionTemplateFocusCategory.CADENA_ANTERIOR
+        if (normalized.contains("posterior")) categories += SessionTemplateFocusCategory.CADENA_POSTERIOR
+        if (normalized.contains("pantorr") || normalized.contains("gemelo") || normalized.contains("calf")) {
+            categories += SessionTemplateFocusCategory.PANTORRILLAS
+        }
+        if (normalized.contains("core") || normalized.contains("abdom") || normalized.contains("abs")) {
+            categories += SessionTemplateFocusCategory.CORE
+        }
+        if (normalized.contains("antebrazo") || normalized.contains("forearm") || normalized.contains("grip")) {
+            categories += SessionTemplateFocusCategory.ANTEBRAZOS
+        }
+        if (normalized.contains("aductor") || normalized.contains("adductor")) {
+            categories += SessionTemplateFocusCategory.ADUCTORES
+        }
+        if (normalized.contains("sesion")) categories += SessionTemplateFocusCategory.FULL_BODY
         if (normalized.contains("recuperación") || normalized.contains("recuperacion") || normalized.contains("light")) categories += SessionTemplateFocusCategory.RECUPERACION
         return categories
     }
