@@ -155,11 +155,20 @@ object ProgramMigrationEngine {
     }
 
     /**
+     * Reaplica migraciones temporales (p. ej. calendarización expirada) sin reiniciar el proceso.
+     * Idempotente: solo persiste cuando el programa cambia.
+     */
+    fun reconcileExpiredCalendarization(
+        program: Program,
+        clock: AppClock = SystemAppClock,
+    ): MigrationResult = migrateIfNeeded(program, clock)
+
+    /**
      * Solo archiva calendarizaciones **expiradas**.
      * Las calendarizaciones activas (fecha final >= hoy) permanecen CALENDARIZED
      * tras reiniciar; no se confunden con legacy.
      */
-    private fun migrateExpiredSimpleDatedIfNeeded(
+    internal fun migrateExpiredSimpleDatedIfNeeded(
         program: Program,
         clock: AppClock,
     ): Program? {

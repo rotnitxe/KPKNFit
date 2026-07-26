@@ -278,34 +278,75 @@ class ProgramRepository private constructor(
 
     /**
      * Atomically persists the finished log, clears ongoing, and commits simple-program
-     * progress + active state in one Room transaction. Safe to retry: progress engine
-     * is idempotent once the cursor has moved past the completed instance.
+     * progress + active state in one Room transaction.
+     *
+     * Idempotent: if [log.id] already exists, identity fields are frozen from the first
+     * write and progress is not reapplied.
      */
     suspend fun finalizeWorkout(log: WorkoutLog) {
         withContext(Dispatchers.IO + NonCancellable) {
             ongoingWorkoutMutex.withLock {
+                val prior = _history.value.firstOrNull { it.id == log.id }
+                    ?: db.workoutLogDao().getById(log.id)?.toWorkoutLog()?.normalizedIdentityFields()
+
+                if (prior != null) {
+                    // Retry path: never reinterpret identity against the current cursor.
+                    db.withTransaction {
+                        db.workoutLogDao().insert(prior.toEntity())
+                        db.stateDao().clearOngoingWorkout()
+                    }
+                    _history.value = listOf(prior) + _history.value.filterNot { it.id == prior.id }
+                    _ongoingWorkout.value = null
+                    return@withLock
+                }
+
                 val program = getProgramById(log.programId)
                 val active = _activeProgramState.value
-                val cycleNumber = log.cycleNumber
-                    ?: program?.runState?.cycleNumber
-                    ?: active?.currentCycleNumber
-                    ?: 1
-                val templateWeekId = log.weekId?.let {
-                    ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
+                val isCalendarized = program?.isSimpleCalendarizedProgram == true
+                val breakId = program?.activeCalendarBreakId
+
+                val enriched = if (isCalendarized) {
+                    val templateWeekId = log.weekId?.let {
+                        ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
+                    } ?: log.weekId
+                    log.copy(
+                        programRunId = log.programRunId
+                            ?: program?.runState?.runId
+                            ?: "run_cal_${program?.id ?: log.programId}",
+                        // Do not stamp paused cyclic cycle/instance onto break logs.
+                        cycleNumber = null,
+                        weekInstanceId = log.weekInstanceId ?: templateWeekId,
+                        weekId = templateWeekId,
+                        calendarBreakId = log.calendarBreakId ?: breakId,
+                    ).normalizedIdentityFields()
+                } else {
+                    val cycleNumber = log.cycleNumber
+                        ?: program?.runState?.cycleNumber
+                        ?: active?.currentCycleNumber
+                        ?: 1
+                    val templateWeekId = log.weekId?.let {
+                        ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
+                    }
+                    val resolvedInstanceId = log.weekInstanceId
+                        ?: active?.currentWeekInstanceId
+                        ?: templateWeekId?.let { ProgramProgressEngine.instanceIdFor(cycleNumber, it) }
+                        ?: log.weekId
+                    log.copy(
+                        programRunId = log.programRunId ?: program?.runState?.runId ?: active?.programRunId,
+                        cycleNumber = cycleNumber,
+                        weekInstanceId = resolvedInstanceId,
+                        weekId = templateWeekId ?: log.weekId,
+                        calendarBreakId = null,
+                    ).normalizedIdentityFields()
                 }
-                val resolvedInstanceId = log.weekInstanceId
-                    ?: active?.currentWeekInstanceId
-                    ?: templateWeekId?.let { ProgramProgressEngine.instanceIdFor(cycleNumber, it) }
-                    ?: log.weekId
-                val enriched = log.copy(
-                    programRunId = log.programRunId ?: program?.runState?.runId ?: active?.programRunId,
-                    cycleNumber = cycleNumber,
-                    weekInstanceId = resolvedInstanceId,
-                    weekId = templateWeekId ?: log.weekId,
-                ).normalizedIdentityFields()
 
                 val historyForProgress = listOf(enriched) + _history.value.filterNot { it.id == enriched.id }
-                val progress = if (program != null && program.isSimpleProgram && !program.isSimpleCalendarizedProgram) {
+                val progress = if (
+                    program != null &&
+                    program.isSimpleProgram &&
+                    !program.isSimpleCalendarizedProgram &&
+                    enriched.calendarBreakId.isNullOrBlank()
+                ) {
                     ProgramProgressEngine.advanceAfterSessionComplete(
                         program = program,
                         activeState = active,
@@ -561,6 +602,14 @@ class ProgramRepository private constructor(
                 }
                 val settingsEntity = db.settingsDao().get()
                 var settings = settingsEntity?.toSettings() ?: Settings()
+                val previouslyQuarantined = settings.quarantinedProgramIds.toSet()
+                // Drop rows already quarantined so decode failures are not retried forever.
+                previouslyQuarantined.forEach { id ->
+                    if (programEntities.any { it.id == id }) {
+                        db.programDao().delete(id)
+                    }
+                }
+                val freshCorrupted = migrationLoad.corruptedIds.filterNot { it in previouslyQuarantined }
                 if (migrationLoad.corruptedIds.isNotEmpty()) {
                     val backups = settings.quarantinedProgramBackups.toMutableMap()
                     migrationLoad.corruptedIds.forEach { id ->
@@ -568,12 +617,20 @@ class ProgramRepository private constructor(
                         if (entity != null) backups[id] = entity.data
                     }
                     val quarantined = (settings.quarantinedProgramIds + migrationLoad.corruptedIds).distinct()
-                    if (quarantined != settings.quarantinedProgramIds || backups != settings.quarantinedProgramBackups) {
-                        settings = settings.copy(
-                            quarantinedProgramIds = quarantined,
-                            quarantinedProgramBackups = backups,
+                    settings = settings.copy(
+                        quarantinedProgramIds = quarantined,
+                        quarantinedProgramBackups = backups,
+                    )
+                    db.settingsDao().upsert(settings.toEntity())
+                    // Remove corrupt rows after backup — quarantine must not leave failing JSON in Room.
+                    migrationLoad.corruptedIds.forEach { id ->
+                        db.programDao().delete(id)
+                    }
+                    if (freshCorrupted.isNotEmpty()) {
+                        android.util.Log.w(
+                            "ProgramRepository",
+                            "Quarantined and removed corrupted programs: $freshCorrupted",
                         )
-                        db.settingsDao().upsert(settings.toEntity())
                     }
                 }
                 val activeProgram = db.stateDao().getActiveProgram()?.toActiveProgramState()
@@ -808,6 +865,34 @@ class ProgramRepository private constructor(
     }
     fun refreshData() {
         loadFromDb()
+    }
+
+    /**
+     * Reconciles expired simple calendarizations and other temporal migrations while the
+     * process is alive (e.g. after crossing the end date without restarting).
+     */
+    fun reconcileTemporalState(clock: com.example.kpkn.domain.training.AppClock = com.example.kpkn.domain.training.SystemAppClock) {
+        scope.launch {
+            val snapshot = _programs.value
+            if (snapshot.isEmpty()) return@launch
+            var changed = false
+            val next = snapshot.map { program ->
+                val migrated = ProgramMigrationEngine.reconcileExpiredCalendarization(program, clock).program
+                    .normalizedIdentityFields()
+                if (migrated != program) {
+                    changed = true
+                    db.programDao().upsert(migrated.toEntity())
+                    migrated
+                } else {
+                    program
+                }
+            }
+            if (!changed) return@launch
+            withContext(Dispatchers.Main) {
+                _programs.value = next
+                next.forEach { repairActiveStateIfNeeded(it) }
+            }
+        }
     }
 
     // ─── Singleton ────────────────────────────────────────────────────────────

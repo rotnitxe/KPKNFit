@@ -193,7 +193,8 @@ object LoopEngine {
             .filter {
                 it.loopId == loopId &&
                     it.status != LoopStatus.CANCELLED &&
-                    it.status != LoopStatus.COMPLETED
+                    it.status != LoopStatus.COMPLETED &&
+                    it.status != LoopStatus.POSTPONED
             }
             .minByOrNull { it.scheduledCycle }
     }
@@ -267,7 +268,7 @@ object LoopEngine {
 
     /**
      * Materializa [LoopOccurrence] como fuente operativa a partir de loops + loopState.
-     * Conserva ocurrencias históricas COMPLETED / pasadas.
+     * Conserva ocurrencias históricas COMPLETED / CANCELLED y el ciclo de origen al posponer.
      */
     fun syncOccurrences(program: Program, lookAheadCycles: Int = 24): Program {
         if (!program.isSimpleProgram || program.loops.isEmpty()) {
@@ -275,38 +276,54 @@ object LoopEngine {
         }
         val current = getCurrentCycle(program).coerceAtLeast(0)
         val projections = projectLoops(program, current, lookAheadCycles)
-        val existingByKey = program.loopOccurrences.associateBy { "${it.loopId}_${it.scheduledCycle}" }
+        val postponed = program.loopState?.postponed ?: emptyList()
+        val existingByOrigin = program.loopOccurrences.associateBy {
+            "${it.loopId}_${it.originCycle}"
+        }
         val synced = projections.map { projection ->
-            val key = "${projection.loop.id}_${projection.cycle}"
+            val originCycle = if (projection.isPostponed) {
+                postponed.find {
+                    it.loopId == projection.loop.id && it.toCycle == projection.cycle
+                }?.fromCycle ?: projection.cycle
+            } else {
+                projection.cycle
+            }
+            val originKey = "${projection.loop.id}_$originCycle"
+            // Deferred slots are the live occurrence after postpone (SCHEDULED/ACTIVE),
+            // not a POSTPONED tombstone — origin is preserved separately.
             val status = when {
                 projection.isCancelled -> LoopStatus.CANCELLED
-                projection.isPostponed -> LoopStatus.POSTPONED
                 projection.daysUntil <= 0 -> LoopStatus.ACTIVE
                 else -> LoopStatus.SCHEDULED
             }
-            existingByKey[key]?.copy(
+            val existing = existingByOrigin[originKey]
+            existing?.copy(
                 status = status,
                 cycleNumber = projection.cycle,
-                postponedToCycle = if (projection.isPostponed) projection.cycle else null,
-                weekInstanceId = existingByKey[key]?.weekInstanceId ?: "loop_week_${projection.loop.id}",
+                scheduledCycle = projection.cycle,
+                originalScheduledCycle = originCycle,
+                postponedToCycle = if (originCycle != projection.cycle) projection.cycle else null,
+                weekInstanceId = existing.weekInstanceId ?: "loop_week_${projection.loop.id}",
             ) ?: LoopOccurrence(
-                id = "occ_${projection.loop.id}_${projection.cycle}",
+                id = "occ_${projection.loop.id}_$originCycle",
                 loopId = projection.loop.id,
                 cycleNumber = projection.cycle,
                 scheduledCycle = projection.cycle,
                 status = status,
                 weekInstanceId = "loop_week_${projection.loop.id}",
-                postponedToCycle = if (projection.isPostponed) projection.cycle else null,
+                originalScheduledCycle = originCycle,
+                postponedToCycle = if (originCycle != projection.cycle) projection.cycle else null,
             )
         }
         val historical = program.loopOccurrences.filter { occ ->
             occ.status == LoopStatus.COMPLETED ||
                 occ.status == LoopStatus.CANCELLED ||
-                (occ.scheduledCycle < current && synced.none { it.id == occ.id })
+                occ.status == LoopStatus.POSTPONED ||
+                (occ.originCycle < current && synced.none { it.id == occ.id })
         }
         return program.copy(
             loopOccurrences = (historical + synced)
-                .distinctBy { "${it.loopId}_${it.scheduledCycle}" }
+                .distinctBy { "${it.loopId}_${it.originCycle}" }
                 .sortedWith(compareBy({ it.scheduledCycle }, { it.loopId })),
         )
     }

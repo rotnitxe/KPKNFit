@@ -37,6 +37,11 @@ data class WorkoutLog(
     val programRunId: String? = null,
     val cycleNumber: Int? = null,
     val weekInstanceId: String? = null,
+    /**
+     * Si no es null, el log pertenece a un break calendarizado y no debe contar
+     * para completar semanas/ciclos del run cíclico restaurado.
+     */
+    val calendarBreakId: String? = null,
 )
 
 @Serializable

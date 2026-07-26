@@ -265,6 +265,15 @@ val Program.isSimpleTemporalProgram: Boolean
 val Program.isSimpleCalendarizedProgram: Boolean
     get() = isSimpleProgram && simpleProgramKind == SimpleProgramKind.CALENDARIZED
 
+/** Identidad del break calendarizado activo; aisla logs del run cíclico pausado. */
+val Program.activeCalendarBreakId: String?
+    get() {
+        if (!isSimpleCalendarizedProgram) return null
+        return calendarBreaks.lastOrNull()?.id
+            ?: timelineStartDate?.let { "cal_${id}_$it" }
+            ?: "cal_$id"
+    }
+
 val Program.simpleCycleWeeks: Int?
     get() = if (isSimpleProgram) {
         macrocycles.firstOrNull()?.blocks?.firstOrNull()
@@ -415,6 +424,8 @@ fun Program.startSimpleCalendarizedBreak(
     val weekCount = inclusiveCalendarWeekCount(startDate, calculatedEndDate)
 
     val weeks = buildSimpleCalendarWeeks(startDate, weekCount, startDayOfWeek, safeDays, idProvider)
+    val breakId = "break_${id}_${startDate}"
+    val breakRunId = "run_cal_${idProvider.newId()}"
     val datedPlan = (schedulePlan ?: resolvedSchedulePlan()).copy(
         anchorDate = startDate.toString(),
         weekStartDay = startDayOfWeek,
@@ -435,11 +446,16 @@ fun Program.startSimpleCalendarizedBreak(
         loopState = null,
         events = emptyList(),
         loopOccurrences = emptyList(),
-        runState = runState?.copy(status = ProgramRunStatus.BREAK) ?: snapshot.runState?.copy(status = ProgramRunStatus.BREAK),
+        // Dedicated break run — never reuse the paused cyclic runId/cycle on workout logs.
+        runState = ProgramRunState(
+            runId = breakRunId,
+            cycleNumber = 1,
+            status = ProgramRunStatus.BREAK,
+        ),
         startDay = startDayOfWeek,
         schedulePlan = datedPlan,
         calendarBreaks = calendarBreaks + CalendarBreak(
-            id = "break_${id}_${startDate}",
+            id = breakId,
             title = "Break calendarizado",
             startDate = startDate.toString(),
             endDate = calculatedEndDate.toString(),
@@ -527,6 +543,8 @@ fun Program.calendarizeSimpleCycle(
         .flatMap { it.weeks }
         .mapNotNull { it.endDate }
         .maxOrNull()
+    val breakId = "cal_${id}_$startDate"
+    val breakRunId = "run_cal_${idProvider.newId()}"
     return copy(
         structure = ProgramStructure.SIMPLE,
         timelineStartDate = startDate.toString(),
@@ -539,7 +557,11 @@ fun Program.calendarizeSimpleCycle(
         loopState = null,
         events = emptyList(),
         loopOccurrences = emptyList(),
-        runState = runState?.copy(status = ProgramRunStatus.BREAK) ?: snapshot.runState?.copy(status = ProgramRunStatus.BREAK),
+        runState = ProgramRunState(
+            runId = breakRunId,
+            cycleNumber = 1,
+            status = ProgramRunStatus.BREAK,
+        ),
         startDay = startDayOfWeek,
         schedulePlan = (schedulePlan ?: resolvedSchedulePlan()).copy(
             anchorDate = startDate.toString(),
@@ -548,6 +570,19 @@ fun Program.calendarizeSimpleCycle(
             mode = ScheduleMode.DATED,
             targetEndDate = projectedEnd,
         ),
+        calendarBreaks = if (calendarBreaks.any { it.id == breakId }) {
+            calendarBreaks
+        } else {
+            calendarBreaks + CalendarBreak(
+                id = breakId,
+                title = "Ciclo calendarizado",
+                startDate = startDate.toString(),
+                endDate = projectedEnd ?: startDate.toString(),
+                weeks = datedMacrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks },
+                pausedRunState = snapshot.runState,
+                pausedCyclicSnapshot = snapshot,
+            )
+        },
         macrocycles = datedMacrocycles,
     )
 }
@@ -591,6 +626,7 @@ fun Program.restorePausedCyclicProgram(): Program {
 fun Program.startFreshSimpleCycle(
     idProvider: IdProvider = UuidIdProvider,
 ): Program {
+    val freshRunId = "run_${idProvider.newId()}"
     return copy(
         structure = ProgramStructure.SIMPLE,
         calendarization = null,
@@ -600,6 +636,17 @@ fun Program.startFreshSimpleCycle(
         loops = emptyList(),
         loopState = null,
         events = emptyList(),
+        loopOccurrences = emptyList(),
+        calendarBreaks = emptyList(),
+        runState = ProgramRunState(
+            runId = freshRunId,
+            cycleNumber = 1,
+            status = ProgramRunStatus.ACTIVE,
+        ),
+        schedulePlan = ProgramSchedulePlan(
+            weekStartDay = startDay,
+            mode = ScheduleMode.FLOATING,
+        ),
         macrocycles = listOf(
             Macrocycle(
                 id = idProvider.newId(),

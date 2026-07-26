@@ -90,6 +90,7 @@ import com.example.kpkn.data.programs.ProgramTemplateOption
 import com.example.kpkn.data.programs.buildProgramDraft
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.Protocol
+import com.example.kpkn.domain.training.ProgramProtocolEngine
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramEndDateStatus
@@ -635,7 +636,7 @@ fun MacrocycleEditor(
                     } else {
                         program
                     }
-                    val updated = buildProgramFromProtocol(base, protocol).alignTemporalMetadata()
+                    val updated = ProgramProtocolEngine.applyProtocol(base, protocol)
                     if (base.id != program.id) onAddProgramCopy(updated) else onUpdateProgram(updated)
                     pendingProtocol = null
                     showLibrarySheet = false
@@ -2764,84 +2765,6 @@ private fun rotatedWeekDays(startDayOfWeek: Int): List<Int> {
 private fun inclusiveCalendarWeekCount(startDate: LocalDate, endDate: LocalDate): Int {
     val inclusiveDays = ChronoUnit.DAYS.between(startDate, endDate).coerceAtLeast(0) + 1
     return ((inclusiveDays + 6) / 7).toInt().coerceAtLeast(1)
-}
-
-private fun buildProgramFromProtocol(program: Program, protocol: Protocol): Program {
-    val splitPattern = SPLIT_TEMPLATES.firstOrNull { it.id == protocol.defaultSplit }?.pattern.orEmpty()
-    val sessionParts = protocol.sessionCategories.ifEmpty {
-        listOf("Parte principal", "Suplementario", "Accesorios")
-    }
-
-    val blocks = protocol.blocks.map { protocolBlock ->
-        val goal = when (protocolBlock.goal.lowercase()) {
-            "acumulación" -> MesocycleGoal.ACCUMULATION
-            "intensificación" -> MesocycleGoal.INTENSIFICATION
-            "realización" -> MesocycleGoal.REALIZATION
-            "descarga" -> MesocycleGoal.DELOAD
-            else -> MesocycleGoal.CUSTOM
-        }
-        Block(
-            id = "block_${System.nanoTime()}_${protocolBlock.name}",
-            name = protocolBlock.name,
-            description = buildString {
-                append("Intensidad ${protocolBlock.intensityMin}-${protocolBlock.intensityMax}%")
-                protocolBlock.volumeModifier?.let { append(" · Volumen ×${"%.2f".format(it)}") }
-            },
-            mesocycles = listOf(
-                Mesocycle(
-                    id = "meso_${System.nanoTime()}_${protocolBlock.name}",
-                    name = protocolBlock.name,
-                    goal = goal,
-                    weeks = (1..protocolBlock.weeks).map { weekNumber ->
-                        ProgramWeek(
-                            id = "week_${System.nanoTime()}_${weekNumber}",
-                            name = "Semana $weekNumber",
-                            sessions = buildProtocolSessions(splitPattern, sessionParts, protocol),
-                        )
-                    },
-                )
-            ),
-        )
-    }
-
-    return program.copy(
-        structure = ProgramStructure.COMPLEX,
-        structureTemplateId = protocol.id,
-        macrocycles = listOf(
-            Macrocycle(
-                id = "macro_${System.nanoTime()}",
-                name = protocol.name,
-                blocks = blocks,
-            )
-        ),
-    )
-}
-
-private fun buildProtocolSessions(
-    splitPattern: List<String>,
-    parts: List<String>,
-    protocol: Protocol,
-): List<Session> {
-    val effectivePattern = splitPattern
-        .mapIndexedNotNull { index, label ->
-            if (label.equals("Descanso", ignoreCase = true)) null else (index + 1) to label
-        }
-        .ifEmpty { listOf(1 to protocol.name) }
-
-    return effectivePattern.mapIndexed { sessionIndex, day ->
-        Session(
-            id = "session_${System.nanoTime()}_${sessionIndex}",
-            name = day.second,
-            dayOfWeek = day.first,
-            assignedDays = listOf(day.first),
-            parts = parts.mapIndexed { partIndex, partName ->
-                SessionPart(
-                    id = "part_${System.nanoTime()}_${partIndex}",
-                    name = partName,
-                )
-            },
-        )
-    }
 }
 
 private fun dayLabelShort(dayOfWeek: Int): String = when (dayOfWeek) {

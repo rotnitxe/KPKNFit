@@ -84,7 +84,7 @@ data class Settings(
     val appLanguage: String = "system",
     val programQueueIds: List<String> = emptyList(),
     val archivedProgramIds: List<String> = emptyList(),
-    /** IDs de programas con JSON corrupto aislados en carga; se conservan en Room sin hidratar. */
+    /** IDs de programas con JSON corrupto aislados; el JSON vive en backups, no en Room. */
     val quarantinedProgramIds: List<String> = emptyList(),
     /** Respaldo del JSON crudo de filas corruptas (id → data). */
     val quarantinedProgramBackups: Map<String, String> = emptyMap(),

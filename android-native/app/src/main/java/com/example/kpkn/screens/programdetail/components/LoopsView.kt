@@ -227,7 +227,16 @@ fun LoopsView(
                                     fontWeight = FontWeight.Bold,
                                 )
                                 Text(
-                                    "${occurrence.weekLabel} · ciclo ${occurrence.projection.cycle} · ${occurrence.dayLabel} · cada ${occurrence.loop.repeatEveryXLoops} ciclos",
+                                    buildString {
+                                        append(occurrence.weekLabel)
+                                        append(" · ciclo ${occurrence.projection.cycle}")
+                                        val origin = occurrence.originCycle
+                                        if (origin != null && origin != occurrence.projection.cycle) {
+                                            append(" (origen $origin)")
+                                        }
+                                        append(" · ${occurrence.dayLabel}")
+                                        append(" · cada ${occurrence.loop.repeatEveryXLoops} ciclos")
+                                    },
                                     fontSize = 10.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -309,6 +318,7 @@ private data class LoopActionOccurrence(
     val weekLabel: String,
     val dayLabel: String,
     val existingSession: Session?,
+    val originCycle: Int? = null,
 ) {
     val statusLabel: String
         get() = if (existingSession != null) {
@@ -332,7 +342,11 @@ private fun buildLoopOccurrences(program: Program, currentCycle: Int): List<Loop
         program
     }
     val occurrencesByLoop = synced.loopOccurrences
-        .filter { it.status != LoopStatus.CANCELLED && it.status != LoopStatus.COMPLETED }
+        .filter {
+            it.status != LoopStatus.CANCELLED &&
+                it.status != LoopStatus.COMPLETED &&
+                it.status != LoopStatus.POSTPONED
+        }
         .groupBy { it.loopId }
     val projections = LoopEngine.projectLoops(program, fromCycle = currentCycle.coerceAtLeast(0), lookAheadCycles = 24)
     val projectionByLoopId = projections.groupBy { it.loop.id }
@@ -344,7 +358,7 @@ private fun buildLoopOccurrences(program: Program, currentCycle: Int): List<Loop
             ?: LoopProjection(
                 loop = loop,
                 cycle = nextOcc?.scheduledCycle ?: currentCycle.coerceAtLeast(1),
-                isPostponed = nextOcc?.status == LoopStatus.POSTPONED,
+                isPostponed = (nextOcc?.originCycle ?: nextOcc?.scheduledCycle) != nextOcc?.scheduledCycle,
                 isCancelled = nextOcc?.status == LoopStatus.CANCELLED ||
                     loop.id in (program.loopState?.cancelled ?: emptyList()),
                 daysUntil = 0,
@@ -356,7 +370,7 @@ private fun buildLoopOccurrences(program: Program, currentCycle: Int): List<Loop
             loop = loop,
             projection = projection.copy(
                 cycle = nextOcc?.scheduledCycle ?: projection.cycle,
-                isPostponed = nextOcc?.status == LoopStatus.POSTPONED || projection.isPostponed,
+                isPostponed = nextOcc?.let { it.originCycle != it.scheduledCycle } == true || projection.isPostponed,
                 isCancelled = nextOcc?.status == LoopStatus.CANCELLED || projection.isCancelled,
             ),
             blockId = baseBlock.id,
@@ -364,6 +378,7 @@ private fun buildLoopOccurrences(program: Program, currentCycle: Int): List<Loop
             weekLabel = targetWeek.name,
             dayLabel = dayLabel(preferredDay),
             existingSession = existingSession,
+            originCycle = nextOcc?.originCycle,
         )
     }
 }

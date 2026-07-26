@@ -380,6 +380,13 @@ class ProgramDetailViewModelTest {
         assertEquals(1, restoredWeeks.size)
         assertEquals(restoredWeeks.first().id, vm.uiState.value.selectedWeekId)
         assertNotNull(vm.uiState.value.selectedBlockId)
+        assertEquals(null, restored.calendarization)
+        assertEquals(null, restored.timelineStartDate)
+        assertEquals(ScheduleMode.FLOATING, restored.schedulePlan?.mode)
+        assertEquals(ProgramRunStatus.ACTIVE, restored.runState?.status)
+        assertEquals(1, restored.runState?.cycleNumber)
+        assertTrue(restored.loopOccurrences.isEmpty())
+        assertTrue(restored.calendarBreaks.isEmpty())
 
         vm.addWeekToSimpleProgram()
 

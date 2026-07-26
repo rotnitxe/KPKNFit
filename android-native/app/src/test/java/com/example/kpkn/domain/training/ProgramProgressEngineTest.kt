@@ -205,10 +205,8 @@ class ProgramProgressEngineTest {
             simpleProgramKind = SimpleProgramKind.CALENDARIZED,
             calendarization = ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
             runState = com.example.kpkn.data.models.ProgramRunState(
-                runId = "run_prog",
-                cycleNumber = 2,
-                weekInstanceId = ProgramProgressEngine.instanceIdFor(2, "w1"),
-                weekId = "w1",
+                runId = "run_cal_break",
+                cycleNumber = 1,
                 status = com.example.kpkn.data.models.ProgramRunStatus.BREAK,
             ),
             pausedCyclicSnapshot = com.example.kpkn.data.models.SimpleProgramSnapshot(
@@ -230,6 +228,8 @@ class ProgramProgressEngineTest {
             weekId = "w1",
             cycleNumber = 2,
             weekInstanceId = ProgramProgressEngine.instanceIdFor(2, "w1"),
+            calendarBreakId = "break_prog",
+            programRunId = "run_cal_break",
         )
         val result = ProgramProgressEngine.advanceAfterSessionComplete(
             program = program,
@@ -240,7 +240,48 @@ class ProgramProgressEngineTest {
         )
         assertTrue(!result.advancedWeek)
         assertTrue(!result.advancedCycle)
-        assertEquals(2, result.program.runState?.cycleNumber)
+    }
+
+    @Test
+    fun `calendarized break logs do not complete restored cyclic week instances`() {
+        val program = simpleTwoWeekProgram().copy(
+            runState = com.example.kpkn.data.models.ProgramRunState(
+                runId = "run_prog",
+                cycleNumber = 2,
+                weekInstanceId = ProgramProgressEngine.instanceIdFor(2, "w1"),
+                weekId = "w1",
+            ),
+        )
+        val breakLog = WorkoutLog(
+            id = "break-log",
+            programId = "prog",
+            programRunId = "run_cal_old",
+            sessionId = "s1",
+            sessionName = "Día 1",
+            date = "2026-07-20T10:00:00.000Z",
+            durationMinutes = 45,
+            weekId = "w1",
+            cycleNumber = 2,
+            weekInstanceId = ProgramProgressEngine.instanceIdFor(2, "w1"),
+            calendarBreakId = "break_prog_2026-07-01",
+        )
+        val instanceLogs = ProgramProgressEngine.logsForInstance(
+            logs = listOf(breakLog),
+            programId = "prog",
+            instanceId = ProgramProgressEngine.instanceIdFor(2, "w1"),
+            cycleNumber = 2,
+            programRunId = "run_prog",
+        )
+        assertTrue(instanceLogs.isEmpty())
+
+        val result = ProgramProgressEngine.advanceAfterSessionComplete(
+            program = program,
+            activeState = null,
+            completedSession = Session(id = "s1", name = "Día 1", isMainSession = true),
+            weekInstanceId = ProgramProgressEngine.instanceIdFor(2, "w1"),
+            logs = listOf(breakLog),
+        )
+        assertTrue(!result.advancedWeek)
         assertEquals(ProgramProgressEngine.instanceIdFor(2, "w1"), result.program.runState?.weekInstanceId)
     }
 

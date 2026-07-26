@@ -40,6 +40,9 @@ interface WorkoutLogDao {
     @Query("SELECT * FROM workout_logs WHERE sessionId = :sessionId ORDER BY date DESC LIMIT 5")
     suspend fun getBySession(sessionId: String): List<WorkoutLogEntity>
 
+    @Query("SELECT * FROM workout_logs WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): WorkoutLogEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: WorkoutLogEntity)
 

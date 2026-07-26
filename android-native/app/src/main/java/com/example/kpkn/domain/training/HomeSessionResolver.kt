@@ -45,6 +45,10 @@ object HomeSessionResolver {
         expectedRunId: String? = null,
     ): Boolean {
         if (log.sessionId != sessionId) return false
+        if (!log.calendarBreakId.isNullOrBlank()) {
+            // Break logs only match when the expected run is the calendarized break run.
+            if (expectedRunId == null || log.programRunId != expectedRunId) return false
+        }
         if (expectedRunId != null && log.programRunId != null && log.programRunId != expectedRunId) {
             return false
         }

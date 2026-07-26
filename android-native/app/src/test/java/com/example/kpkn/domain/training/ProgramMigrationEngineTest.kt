@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.ScheduleMode
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.calendarizeSimpleCycle
+import com.example.kpkn.data.models.startFreshSimpleCycle
 import com.example.kpkn.data.models.toSimpleProgramSnapshot
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -80,6 +81,8 @@ class ProgramMigrationEngineTest {
         assertEquals(ProgramCalendarizationMode.SIMPLE_DATED, migrated.program.calendarization?.mode)
         assertEquals(3, migrated.program.pausedCyclicSnapshot?.runState?.cycleNumber)
         assertEquals("2026-07-14", migrated.program.timelineStartDate)
+        assertEquals(ProgramRunStatus.BREAK, migrated.program.runState?.status)
+        assertTrue(migrated.program.runState?.runId != migrated.program.pausedCyclicSnapshot?.runState?.runId)
     }
 
     @Test
@@ -143,5 +146,51 @@ class ProgramMigrationEngineTest {
         assertEquals("run_prog", snapshot.runState?.runId)
         assertEquals(ScheduleMode.FLOATING, snapshot.schedulePlan?.mode)
         assertEquals("inst_c3_w1", snapshot.activeWeekInstanceId)
+    }
+
+    @Test
+    fun `startFreshSimpleCycle resets run schedule and occurrences`() {
+        val calendarized = cyclicBase().calendarizeSimpleCycle(
+            startDate = LocalDate.of(2026, 7, 14),
+            startDayOfWeek = 1,
+            trainingDays = setOf(1, 3, 5),
+        )
+        val fresh = calendarized.startFreshSimpleCycle()
+        assertEquals(SimpleProgramKind.CYCLIC, fresh.simpleProgramKind)
+        assertEquals(null, fresh.calendarization)
+        assertEquals(null, fresh.pausedCyclicSnapshot)
+        assertEquals(null, fresh.timelineStartDate)
+        assertTrue(fresh.loopOccurrences.isEmpty())
+        assertTrue(fresh.calendarBreaks.isEmpty())
+        assertEquals(ScheduleMode.FLOATING, fresh.schedulePlan?.mode)
+        assertEquals(null, fresh.schedulePlan?.anchorDate)
+        assertEquals(ProgramRunStatus.ACTIVE, fresh.runState?.status)
+        assertEquals(1, fresh.runState?.cycleNumber)
+        assertTrue(fresh.runState?.runId != calendarized.runState?.runId)
+        assertTrue(fresh.runState?.runId != "run_prog")
+    }
+
+    @Test
+    fun `expired calendarization reconciles when clock advances without reload`() {
+        val startClock = FixedClock(LocalDate.of(2026, 7, 20))
+        val calendarized = cyclicBase().calendarizeSimpleCycle(
+            startDate = LocalDate.of(2026, 7, 14),
+            startDayOfWeek = 1,
+            trainingDays = setOf(1, 3, 5),
+        )
+        assertEquals(SimpleProgramKind.CALENDARIZED, calendarized.simpleProgramKind)
+
+        val stillActive = ProgramMigrationEngine.reconcileExpiredCalendarization(calendarized, startClock)
+        assertEquals(SimpleProgramKind.CALENDARIZED, stillActive.program.simpleProgramKind)
+
+        val endDate = LocalDate.parse(calendarized.schedulePlan?.targetEndDate ?: calendarized.calendarization?.manualEndDate!!)
+        val afterEnd = ProgramMigrationEngine.reconcileExpiredCalendarization(
+            calendarized,
+            FixedClock(endDate.plusDays(1)),
+        )
+        assertTrue(afterEnd.migrated)
+        assertEquals(SimpleProgramKind.CYCLIC, afterEnd.program.simpleProgramKind)
+        assertEquals(null, afterEnd.program.calendarization)
+        assertEquals(3, afterEnd.program.runState?.cycleNumber)
     }
 }

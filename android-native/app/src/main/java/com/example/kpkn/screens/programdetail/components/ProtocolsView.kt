@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.Protocol
+import com.example.kpkn.domain.training.ProgramProtocolEngine
 
 @Composable
 fun ProtocolsView(
@@ -100,7 +101,7 @@ fun ProtocolsView(
             confirmButton = {
                 Button(onClick = {
                     protocolToApply?.let { protocol ->
-                        val newProgram = buildProgramFromProtocol(program, protocol)
+                        val newProgram = ProgramProtocolEngine.applyProtocol(program, protocol)
                         onUpdateProgram(newProgram)
                     }
                     showApplyDialog = false
@@ -112,40 +113,6 @@ fun ProtocolsView(
             },
         )
     }
-}
-
-// ─── Build Program from Protocol ────────────────────────────────────────────
-
-private fun buildProgramFromProtocol(program: Program, protocol: Protocol): Program {
-    val newBlocks = protocol.blocks.mapIndexed { idx, pBlock ->
-        val goal = try { MesocycleGoal.valueOf(pBlock.goal.uppercase()) } catch (_: Exception) { MesocycleGoal.ACCUMULATION }
-        Block(
-            id = java.util.UUID.randomUUID().toString(),
-            name = pBlock.name,
-            mesocycles = listOf(
-                Mesocycle(
-                    id = java.util.UUID.randomUUID().toString(),
-                    name = pBlock.name,
-                    goal = goal,
-                    weeks = (1..pBlock.weeks).map { weekNum ->
-                        ProgramWeek(
-                            id = java.util.UUID.randomUUID().toString(),
-                            name = "Semana $weekNum",
-                        )
-                    },
-                )
-            ),
-        )
-    }
-    val newMacro = Macrocycle(
-        id = java.util.UUID.randomUUID().toString(),
-        name = protocol.name,
-        blocks = newBlocks,
-    )
-    return program.copy(
-        macrocycles = listOf(newMacro),
-        structure = if (newBlocks.size > 1) ProgramStructure.COMPLEX else ProgramStructure.SIMPLE,
-    )
 }
 
 // ─── Protocol Card ──────────────────────────────────────────────────────────

@@ -56,7 +56,11 @@ data class LoopOccurrence(
     val status: LoopStatus = LoopStatus.SCHEDULED,
     val weekInstanceId: String? = null,
     val postponedToCycle: Int? = null,
-)
+    /** Ciclo original antes de posponer; null = coincide con [scheduledCycle]. */
+    val originalScheduledCycle: Int? = null,
+) {
+    val originCycle: Int get() = originalScheduledCycle ?: scheduledCycle
+}
 
 /** Incompatibilidades de estructura temporal sin reclasificación automática. */
 enum class TemporalStructureIssueType {

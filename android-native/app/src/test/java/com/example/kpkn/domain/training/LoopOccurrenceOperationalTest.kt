@@ -62,9 +62,12 @@ class LoopOccurrenceOperationalTest {
         val fromFour = postponed.loopState?.postponed?.firstOrNull { it.loopId == "l1" }
         assertEquals(4, fromFour?.fromCycle)
         assertEquals(5, fromFour?.toCycle)
-        val occ = postponed.loopOccurrences.firstOrNull { it.loopId == "l1" && it.scheduledCycle == 5 }
-            ?: postponed.loopOccurrences.firstOrNull { it.loopId == "l1" && it.status == LoopStatus.POSTPONED }
+        val occ = postponed.loopOccurrences.firstOrNull { it.loopId == "l1" && it.originCycle == 4 }
         assertTrue(occ != null)
+        assertEquals(5, occ?.scheduledCycle)
+        assertEquals(4, occ?.originalScheduledCycle)
+        assertEquals(5, occ?.postponedToCycle)
+        assertEquals("occ_l1_4", occ?.id)
     }
 
     @Test

@@ -103,15 +103,21 @@ object ProgramProgressEngine {
         val templateWeekId = templateWeekIdFromInstance(instanceId) ?: return emptyList()
         return logs.filter { log ->
             if (log.programId != programId) return@filter false
-            if (programRunId != null && log.programRunId != null && log.programRunId != programRunId) {
-                return@filter false
+            // Calendarized-break logs never complete cyclic week instances.
+            if (!log.calendarBreakId.isNullOrBlank()) return@filter false
+            if (programRunId != null) {
+                when {
+                    log.programRunId == programRunId -> Unit
+                    // Legacy cyclic logs without run id only count for cycle 1 of the current run.
+                    log.programRunId == null && cycleNumber == 1 -> Unit
+                    else -> return@filter false
+                }
             }
             when {
                 log.weekInstanceId == instanceId -> true
                 log.weekId == instanceId -> true
                 log.cycleNumber == cycleNumber &&
                     (log.weekId == templateWeekId || log.weekInstanceId == instanceId) -> true
-                // Legacy logs without cycle: only count for cycle 1
                 log.cycleNumber == null && cycleNumber == 1 &&
                     (log.weekId == templateWeekId || log.weekId == instanceId) -> true
                 else -> false
