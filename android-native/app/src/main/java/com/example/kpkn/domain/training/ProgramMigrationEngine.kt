@@ -216,6 +216,7 @@ object ProgramMigrationEngine {
             customSplitName = snapshot.customSplitName,
             customSplitDescription = snapshot.customSplitDescription,
             blockSplitSelections = snapshot.blockSplitSelections,
+            weekSplitSelections = snapshot.weekSplitSelections,
             runState = (snapshot.runState ?: program.runState)?.copy(status = ProgramRunStatus.ACTIVE),
             schedulePlan = snapshot.schedulePlan?.copy(
                 mode = ScheduleMode.FLOATING,

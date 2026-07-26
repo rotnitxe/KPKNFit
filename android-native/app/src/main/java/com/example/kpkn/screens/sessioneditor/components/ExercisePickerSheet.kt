@@ -68,6 +68,7 @@ import com.example.kpkn.screens.sessioneditor.VariantFlowResultCache
 import com.example.kpkn.screens.sessioneditor.getMuscleEmphasisEducationalText
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -292,7 +293,7 @@ internal fun ExercisePickerSheet(
                         Spacer(Modifier.width(4.dp))
                         Text(sortMode.label, style = MaterialTheme.typography.labelSmall)
                     }
-                    DropdownMenu(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
+                    KpknDropdownMenu(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
                         filteredSortModes.forEach { option ->
                             DropdownMenuItem(
                                 text = { Text(option.label) },
@@ -334,7 +335,7 @@ internal fun ExercisePickerSheet(
                      Spacer(Modifier.width(2.dp))
                      Icon(Icons.Default.KeyboardArrowDown, null, modifier = Modifier.size(14.dp))
                  }
-                 DropdownMenu(expanded = showRegionMenu, onDismissRequest = { showRegionMenu = false }) {
+                 KpknDropdownMenu(expanded = showRegionMenu, onDismissRequest = { showRegionMenu = false }) {
                      filteredRegions.forEach { region ->
                          DropdownMenuItem(
                              text = { Text(region.label) },
@@ -356,7 +357,7 @@ internal fun ExercisePickerSheet(
                      Spacer(Modifier.width(2.dp))
                      Icon(Icons.Default.KeyboardArrowDown, null, modifier = Modifier.size(14.dp))
                  }
-                 DropdownMenu(expanded = showMuscleMenu, onDismissRequest = { showMuscleMenu = false }) {
+                 KpknDropdownMenu(expanded = showMuscleMenu, onDismissRequest = { showMuscleMenu = false }) {
                      DropdownMenuItem(text = { Text("Todos") }, onClick = { selectedMuscle = null; showMuscleMenu = false })
                      filteredMuscles.forEach { muscle ->
                          DropdownMenuItem(
@@ -380,7 +381,7 @@ internal fun ExercisePickerSheet(
                          Spacer(Modifier.width(2.dp))
                          Icon(Icons.Default.KeyboardArrowDown, null, modifier = Modifier.size(14.dp))
                      }
-                     DropdownMenu(expanded = showHeadMenu, onDismissRequest = { showHeadMenu = false }) {
+                     KpknDropdownMenu(expanded = showHeadMenu, onDismissRequest = { showHeadMenu = false }) {
                          DropdownMenuItem(text = { Text("Completo") }, onClick = { selectedHeadName = null; showHeadMenu = false })
                          currentHeadMuscle!!.heads.forEach { head ->
                              DropdownMenuItem(

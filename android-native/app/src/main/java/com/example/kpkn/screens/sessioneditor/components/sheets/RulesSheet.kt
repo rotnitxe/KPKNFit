@@ -66,6 +66,7 @@ import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @Composable
 internal fun RestTimeField(
@@ -117,7 +118,7 @@ onDismiss: () -> Unit
 var minInput by remember { mutableStateOf((initialSeconds / 60).toString()) }
 var secInput by remember { mutableStateOf((initialSeconds % 60).toString()) }
 
-AlertDialog(
+KpknAlertDialog(
 onDismissRequest = onDismiss,
 title = { Text(title, fontWeight = FontWeight.Bold) },
 text = {

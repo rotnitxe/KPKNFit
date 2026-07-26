@@ -49,7 +49,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -98,9 +98,6 @@ import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.screens.workout.components.AdjustableRingCompact
 import com.example.kpkn.screens.workout.components.MinimalMuscleSlider
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
 import kotlin.math.roundToInt
 
 internal const val FINISH_ROLE_STABILIZER_MULT = 0.4
@@ -346,50 +343,20 @@ internal fun FinishWorkoutSheet(
     // Explicit back / scrim / drag closes finish sheet (does not abandon the workout).
     BackHandler(enabled = true) { onDismiss() }
 
-    ModalBottomSheet(
+    KpknSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = Color.Transparent,
-        tonalElevation = 0.dp,
-        dragHandle = null,
+        hazeState = hazeState,
     ) {
-        Box(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .hazeEffect(
-                        state = hazeState,
-                        style = HazeStyle(
-                            blurRadius = 24.dp,
-                            tint = HazeTint(Color.Black.copy(alpha = 0.45f)),
-                            backgroundColor = Color(0xFF0A0A0A).copy(alpha = 0.75f),
-                            noiseFactor = 0.03f,
-                        ),
-                    )
-                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)),
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .navigationBarsPadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                // Visual handle — sheet can also be dismissed by drag / back / scrim.
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .width(42.dp)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(Color.White.copy(alpha = 0.2f))
-                )
-
-                Text(
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
                     text = "RESUMEN DE ENTRENAMIENTO",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
@@ -1014,7 +981,6 @@ internal fun FinishWorkoutSheet(
 
                 Spacer(Modifier.height(8.dp))
             }
-        }
     }
 }
 

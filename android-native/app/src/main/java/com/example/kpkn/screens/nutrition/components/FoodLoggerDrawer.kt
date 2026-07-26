@@ -50,6 +50,7 @@ import com.example.kpkn.domain.nutrition.getContextualDefaultServingSize
 import com.example.kpkn.domain.nutrition.COOKING_FACTORS
 import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
 import com.example.kpkn.domain.nutrition.MacroValidator
+import com.example.kpkn.ui.components.KpknSheet
 import java.util.UUID
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +59,9 @@ import kotlinx.coroutines.withContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.components.KpknSnackbarBanner
+import com.example.kpkn.ui.components.SnackbarType
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -1238,7 +1242,7 @@ fun FoodLoggerDrawer(
     }
 
     if (showApiConfigDialog) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showApiConfigDialog = false },
             title = {
                 Text(
@@ -1356,20 +1360,9 @@ fun FoodLoggerDrawer(
 
     // ─── Sheet ───────────────────────────────────────────────────────────────
 
-    ModalBottomSheet(
+    KpknSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        dragHandle = {
-            Box(
-                modifier = Modifier
-                    .padding(top = 12.dp)
-                    .width(32.dp)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f))
-            )
-        },
     ) {
         LazyColumn(
             state = listState,
@@ -1703,18 +1696,10 @@ fun FoodLoggerDrawer(
             onDismiss()
         }
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-            Snackbar(
-                modifier = Modifier.padding(16.dp),
-                shape = RoundedCornerShape(16.dp),
-                containerColor = Color(0xFF4CAF50),
-                contentColor = Color.White,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CheckCircle, null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("¡Comida registrada!", fontWeight = FontWeight.Bold)
-                }
-            }
+            KpknSnackbarBanner(
+                message = "¡Comida registrada!",
+                type = SnackbarType.SUCCESS,
+            )
         }
     }
 }

@@ -33,7 +33,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedButton
@@ -95,15 +95,13 @@ import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramEndDateStatus
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.Locale
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -189,14 +187,6 @@ fun MacrocycleEditor(
     val stats = remember(program) { program.toProgramStats() }
     val advancedRoadmap = remember(program) { buildAdvancedRoadmap(program) }
     val simpleCalendarizationHazeState = remember { HazeState() }
-    val simpleCalendarizationHazeStyle = remember {
-        HazeStyle(
-            blurRadius = 32.dp,
-            tint = HazeTint(Color.Black.copy(alpha = 0.58f)),
-            backgroundColor = Color.Black.copy(alpha = 0.62f),
-            noiseFactor = 0.04f,
-        )
-    }
 
     Column(
         modifier = modifier
@@ -419,7 +409,7 @@ fun MacrocycleEditor(
     }
 
     pendingDelete?.let { target ->
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingDelete = null },
             title = { Text("Eliminar", fontWeight = FontWeight.Bold) },
             text = {
@@ -450,7 +440,7 @@ fun MacrocycleEditor(
 
     pendingCompetitionKeyDateDelete?.let { keyDateId ->
         val linkedSessions = ProgramKeyDateEngine.linkedCompetitionSessionCount(program, keyDateId)
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingCompetitionKeyDateDelete = null },
             title = { Text("Eliminar competición", fontWeight = FontWeight.Black) },
             text = {
@@ -498,7 +488,7 @@ fun MacrocycleEditor(
     }
 
     if (pendingSimpleToAdvanced) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingSimpleToAdvanced = false },
             title = { Text("Convertir a programa avanzado", fontWeight = FontWeight.Black) },
             text = {
@@ -605,7 +595,7 @@ fun MacrocycleEditor(
     }
 
     pendingProtocol?.let { protocol ->
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingProtocol = null },
             title = { Text(protocol.name, fontWeight = FontWeight.Black) },
             text = {
@@ -647,7 +637,7 @@ fun MacrocycleEditor(
     }
 
     pendingTemplate?.let { template ->
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingTemplate = null },
             title = { Text(template.name, fontWeight = FontWeight.Black) },
             text = {
@@ -684,7 +674,7 @@ fun MacrocycleEditor(
     }
 
     if (temporalInsight.isSimple && program.simpleProgramKind == SimpleProgramKind.CYCLIC && showLoopsSheet) {
-        ModalBottomSheet(
+        KpknSheet(
             onDismissRequest = { showLoopsSheet = false },
         ) {
             Column(
@@ -730,7 +720,6 @@ fun MacrocycleEditor(
             onRecoverCycle = onRecoverCyclicProgram,
             onStartFreshCycle = onStartFreshCyclicProgram,
             hazeState = simpleCalendarizationHazeState,
-            hazeStyle = simpleCalendarizationHazeStyle,
         )
     }
 }
@@ -843,7 +832,6 @@ private fun SimpleCalendarizationSheet(
     onRecoverCycle: () -> Unit,
     onStartFreshCycle: () -> Unit,
     hazeState: HazeState,
-    hazeStyle: HazeStyle,
 ) {
     val isCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
         program.calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
@@ -865,16 +853,11 @@ private fun SimpleCalendarizationSheet(
         0
     }
 
-    ModalBottomSheet(
-        onDismissRequest = {},
+    KpknSheet(
+        onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = Color.Black.copy(alpha = 0.72f),
-        contentColor = Color.White,
-        scrimColor = Color.Black.copy(alpha = 0.72f),
-        tonalElevation = 0.dp,
-        dragHandle = null,
-        modifier = Modifier.hazeEffect(state = hazeState, style = hazeStyle),
+        hazeState = hazeState,
+        dismissible = false,
     ) {
         val sheetPrimary = Color.White
         val sheetSecondary = Color.White.copy(alpha = 0.74f)
@@ -884,7 +867,6 @@ private fun SimpleCalendarizationSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding()
                     .padding(horizontal = 20.dp, vertical = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
@@ -934,7 +916,6 @@ private fun SimpleCalendarizationSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding()
                     .padding(horizontal = 20.dp, vertical = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
@@ -1146,7 +1127,7 @@ private fun KeyDatesManagementSheet(
     val canSaveManualEnd = manualEndDate.isBlank() || parseProgramDate(manualEndDate) != null
     val hasRequiredStart = competitionDate.isBlank() || timelineStartDate.isNotBlank()
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    KpknSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1304,7 +1285,7 @@ private fun WeekStartDatePickerDialog(
         DateTimeFormatter.ofPattern("MMMM yyyy", Locale.forLanguageTag("es-CL"))
     }
 
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Seleccionar fecha", fontWeight = FontWeight.Bold) },
         text = {
@@ -1657,7 +1638,7 @@ private fun KeyDateEditSheet(
     var notes by remember(keyDate.id) { mutableStateOf(keyDate.notes ?: "") }
     var type by remember(keyDate.id) { mutableStateOf(keyDate.type) }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    KpknSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1720,7 +1701,7 @@ private fun TemplatesProtocolsSheet(
     val simpleTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.SIMPLE } }
     val advancedTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.COMPLEX } }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    KpknSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1957,7 +1938,7 @@ private fun BlockEditDialog(
     onDismiss: () -> Unit,
 ) {
     var name by remember { mutableStateOf(block?.name ?: "Nuevo bloque") }
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (block != null) "Editar bloque" else "Nuevo bloque", fontWeight = FontWeight.Bold) },
         text = {
@@ -1983,7 +1964,7 @@ private fun MesoEditDialog(
 ) {
     var name by remember { mutableStateOf(meso?.name ?: "Nuevo mesociclo") }
     var goal by remember { mutableStateOf(meso?.goal ?: MesocycleGoal.ACCUMULATION) }
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Mesociclo", fontWeight = FontWeight.Bold) },
         text = {
@@ -2028,7 +2009,7 @@ private fun WeekEditDialog(
     onDismiss: () -> Unit,
 ) {
     var name by remember { mutableStateOf("Nueva semana") }
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Semana", fontWeight = FontWeight.Bold) },
         text = {
@@ -2055,7 +2036,7 @@ private fun WeekMetadataDialog(
     var name by remember(week.id) { mutableStateOf(week.name) }
     var description by remember(week.id) { mutableStateOf(week.description.orEmpty()) }
 
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Editar semana", fontWeight = FontWeight.Bold) },
         text = {

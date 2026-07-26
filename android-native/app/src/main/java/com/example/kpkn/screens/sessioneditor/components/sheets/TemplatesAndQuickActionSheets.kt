@@ -37,7 +37,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -72,6 +72,7 @@ import com.example.kpkn.screens.sessioneditor.components.ExerciseCatalogInfoDial
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,28 +87,16 @@ internal fun TemplatesSheet(
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ModalBottomSheet(
+    KpknSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         modifier = Modifier.fillMaxHeight(),
-        scrimColor = Color.Black.copy(alpha = 0.32f),
-        dragHandle = null,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight()
-                .navigationBarsPadding(),
+                .fillMaxHeight(),
         ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 8.dp, bottom = 4.dp)
-                    .width(32.dp)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(MaterialTheme.colorScheme.outlineVariant),
-            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -169,7 +158,7 @@ internal fun TemplatesSheet(
         }
     }
     if (applyDecision != null) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = onCancelApply,
             title = { Text("Aplicar plantilla", fontWeight = FontWeight.Black) },
             text = {
@@ -337,7 +326,7 @@ internal fun ExerciseQuickActionsSheet(
     }
 
     if (showDeleteConfirm) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             title = { Text("Eliminar ejercicio", fontWeight = FontWeight.Black) },
             text = { Text("¿Quieres borrar este ejercicio de la sesión?") },

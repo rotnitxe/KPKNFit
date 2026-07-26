@@ -36,14 +36,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
 import kotlin.math.roundToInt
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.screens.workout.*
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 private data class DropSetEntry(
     val weight: Double,
@@ -52,7 +51,6 @@ private data class DropSetEntry(
 
 // ─── AMRAP Config Sheet ────────────────────────────────────────────────
 
-@Suppress("UNUSED_PARAMETER")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AmrapConfigSheet(
@@ -62,8 +60,6 @@ private fun AmrapConfigSheet(
     initialReserveReps: Int?,
     onApply: (minReps: Int?, reachFailure: Boolean, reserveReps: Int?) -> Unit,
     onDismiss: () -> Unit,
-    _hazeState: HazeState = HazeState(),
-    _glassStyle: HazeStyle = HazeStyle(blurRadius = 8.dp, tint = HazeTint(Color.Black.copy(alpha = 0.0f)), backgroundColor = Color.Black.copy(alpha = 0.0f)),
 ) {
     var minReps by remember { mutableStateOf(plannedMinReps?.toString() ?: "") }
     var reachFailure by remember { mutableStateOf(initialReachFailure) }
@@ -72,8 +68,8 @@ private fun AmrapConfigSheet(
         skipPartiallyExpanded = true,
         confirmValueChange = { it != SheetValue.Hidden },
     )
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, containerColor = Color(0xFF2A2A2A)) {
-        Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    KpknSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("Configurar serie AMRAP", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text("Reps mínimas", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
@@ -601,8 +597,6 @@ internal fun SetInputCardV2(
     sideLocked: Boolean = false,
     rmSuggestedWeight: Double? = null,
     onRmWeightConsumed: (() -> Unit)? = null,
-    sheetHazeState: HazeState = HazeState(),
-    sheetGlassStyle: HazeStyle = HazeStyle(blurRadius = 8.dp, tint = HazeTint(Color.Black.copy(alpha = 0.0f)), backgroundColor = Color.Black.copy(alpha = 0.0f)),
     onGoToPrevSet: (() -> Unit)? = null,
     onGoToNextSet: (() -> Unit)? = null,
     onRecordV2: (
@@ -1496,7 +1490,7 @@ internal fun SetInputCardV2(
                             accentColor = sessionAccentColor,
                             loadMode = loadMode,
                         )
-                        DropdownMenu(
+                        KpknDropdownMenu(
                             expanded = loadModeMenuExpanded,
                             onDismissRequest = { loadModeMenuExpanded = false },
                         ) {

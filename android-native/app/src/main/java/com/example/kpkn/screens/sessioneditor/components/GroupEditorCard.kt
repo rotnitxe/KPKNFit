@@ -330,6 +330,7 @@ import com.example.kpkn.screens.sessioneditor.components.SupersetRestPickerDialo
 import com.example.kpkn.screens.sessioneditor.components.SupersetRestWheelRow
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
 import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @Composable
 internal fun GroupEditorCard(
@@ -541,7 +542,7 @@ internal fun GroupEditorCard(
         }
 
     if (showDeleteConfirm) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             title = { Text("Eliminar grupo", fontWeight = FontWeight.Black) },
             text = { Text("¿Eliminar este grupo?") },
@@ -560,7 +561,7 @@ internal fun GroupEditorCard(
     }
 
     if (showDeleteModeConfirm) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showDeleteModeConfirm = false },
             title = { Text("¿Qué hacemos con los ejercicios?", fontWeight = FontWeight.Black) },
             text = {

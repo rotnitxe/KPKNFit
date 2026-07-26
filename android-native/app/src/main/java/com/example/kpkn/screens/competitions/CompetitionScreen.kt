@@ -49,7 +49,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -360,14 +360,13 @@ private fun CreateCompetitionSheet(
     var mode by remember { mutableStateOf(CompetitionRecordMode.HYBRID) }
     var sport by remember { mutableStateOf(CompetitionTemplateType.POWERLIFTING) }
 
-    ModalBottomSheet(
+    KpknSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .navigationBarsPadding()
                 .padding(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -408,14 +407,13 @@ private fun EditCompetitionSheet(
         record = record.copy(photos = record.photos + newPhotos)
     }
 
-    ModalBottomSheet(
+    KpknSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .navigationBarsPadding()
                 .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 18.dp, vertical = 12.dp),

@@ -30,13 +30,12 @@ import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 internal data class WorkoutStageTransitionTarget(
     val exerciseId: String,
@@ -84,14 +83,6 @@ internal fun WorkoutV2Body(
     val scroll = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     var pendingUpdateAction by remember { mutableStateOf<(() -> Unit)?>(null) }
-    val cardsGlassStyle = remember {
-        HazeStyle(
-            blurRadius = 28.dp,
-            tint = HazeTint(Color.Black.copy(alpha = 0.15f)),
-            backgroundColor = Color.Black.copy(alpha = 0.20f),
-            noiseFactor = 0.02f,
-        )
-    }
     var tagManagerTagId by remember { mutableStateOf<String?>(null) }
     var showCreateTagDialog by remember { mutableStateOf(false) }
     val currentExerciseKey = remember(currentExercise?.id) {
@@ -189,7 +180,7 @@ internal fun WorkoutV2Body(
             // ─── Create tag dialog ────────────────────────────────────────────
             if (showCreateTagDialog && currentExercise != null) {
                 var newTagName by remember { mutableStateOf("") }
-                AlertDialog(
+                KpknAlertDialog(
                     onDismissRequest = { showCreateTagDialog = false },
                     title = { Text("Nueva etiqueta", fontWeight = FontWeight.Black) },
                     text = {
@@ -831,8 +822,6 @@ internal fun WorkoutV2Body(
                                     sideLocked = isUnilateral && cardSide != null,
                                     rmSuggestedWeight = rmSelectedWeight,
                                     onRmWeightConsumed = onRmWeightConsumed,
-                                    sheetHazeState = cardsHazeState,
-                                    sheetGlassStyle = cardsGlassStyle,
                                     onShowHistory = {
                                         val dbId = currentExercise.exerciseDbId ?: currentExercise.exerciseId ?: return@SetInputCardV2
                                         viewModel.showHistoryFor(dbId)
@@ -941,7 +930,7 @@ internal fun WorkoutV2Body(
     }
 
     if (pendingUpdateAction != null) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingUpdateAction = null },
             title = { Text("Actualizar serie") },
             text = { Text("Esta serie ya estaba registrada. ¿Quieres actualizarla?") },

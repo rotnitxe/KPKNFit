@@ -36,6 +36,7 @@ data class Program(
     val customSplitName: String? = null,
     val customSplitDescription: String? = null,
     val blockSplitSelections: Map<String, String> = emptyMap(),
+    val weekSplitSelections: Map<String, String> = emptyMap(),
     val structureTemplateId: String? = null,
     val timelineStartDate: String? = null,
     val calendarization: ProgramCalendarization? = null,
@@ -80,6 +81,7 @@ data class SimpleProgramSnapshot(
     val customSplitName: String? = null,
     val customSplitDescription: String? = null,
     val blockSplitSelections: Map<String, String> = emptyMap(),
+    val weekSplitSelections: Map<String, String> = emptyMap(),
     val savedAtMs: Long = 0L,
     /** Congela el cursor cíclico para restaurarlo al salir del break. */
     val runState: ProgramRunState? = null,
@@ -400,6 +402,7 @@ fun Program.toSimpleProgramSnapshot(
         customSplitName = customSplitName,
         customSplitDescription = customSplitDescription,
         blockSplitSelections = blockSplitSelections,
+        weekSplitSelections = weekSplitSelections,
         savedAtMs = clock.now().toEpochMilli(),
         runState = runState,
         schedulePlan = schedulePlan ?: resolvedSchedulePlan().copy(mode = ScheduleMode.FLOATING),
@@ -615,6 +618,7 @@ fun Program.restorePausedCyclicProgram(): Program {
         customSplitName = snapshot.customSplitName,
         customSplitDescription = snapshot.customSplitDescription,
         blockSplitSelections = snapshot.blockSplitSelections,
+        weekSplitSelections = snapshot.weekSplitSelections,
         runState = restoredRun,
         schedulePlan = snapshot.schedulePlan?.copy(mode = ScheduleMode.FLOATING, anchorDate = null, targetEndDate = null)
             ?: schedulePlan?.copy(mode = ScheduleMode.FLOATING, anchorDate = null, targetEndDate = null),

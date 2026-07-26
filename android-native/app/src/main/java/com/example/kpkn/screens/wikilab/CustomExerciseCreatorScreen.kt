@@ -68,6 +68,7 @@ import com.example.kpkn.domain.exercises.ExerciseMatchResult
 import com.example.kpkn.domain.exercises.InferredSuggestions
 import com.example.kpkn.domain.exercises.findBestMatches
 import com.example.kpkn.domain.exercises.inferFromMatches
+import com.example.kpkn.ui.components.KpknExposedDropdownMenu
 import java.util.UUID
 
 private data class EditableMuscle(
@@ -632,9 +633,10 @@ private fun CreatorDropdown(
                 .fillMaxWidth(),
             singleLine = true,
         )
-        ExposedDropdownMenu(
+        KpknExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
+            modifier = Modifier.exposedDropdownSize(),
         ) {
             options.forEach { option ->
                 DropdownMenuItem(

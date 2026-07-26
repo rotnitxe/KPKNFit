@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.domain.training.RoadmapBlock
 import com.example.kpkn.domain.training.RoadmapLoopMarker
 import com.example.kpkn.domain.training.WeekWithMeta
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @Composable
 fun BlockRoadmap(
@@ -637,7 +638,7 @@ private fun WeekRoadmapActionDialog(
     onEdit: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(week.name, fontWeight = FontWeight.Black) },
         text = {
@@ -683,7 +684,7 @@ private fun MetadataDialog(
     var name by remember(initialName) { mutableStateOf(initialName) }
     var description by remember(initialDescription) { mutableStateOf(initialDescription.orEmpty()) }
 
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title, fontWeight = FontWeight.Black) },
         text = {

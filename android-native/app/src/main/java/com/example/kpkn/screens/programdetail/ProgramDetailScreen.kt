@@ -48,6 +48,8 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.ProgramAnalyticsEngine
 import com.example.kpkn.screens.auge.AugeViewModel
+import com.example.kpkn.ui.components.KpknGlass
+import com.example.kpkn.ui.components.kpknWindowGlass
 import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.programdetail.components.*
 import com.example.kpkn.services.workout.LoopNotificationManager
@@ -58,6 +60,7 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -301,7 +304,7 @@ fun ProgramDetailScreen(
     }
 
     if (showVolumeSetupNotice) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showVolumeSetupNotice = false },
             title = { Text("Calibrar volumen del programa", fontWeight = FontWeight.Black) },
             text = {
@@ -337,8 +340,8 @@ private fun CompactSubTabs(
     val items = if (activeMainTab == MainTab.TRAINING) {
         listOf(
             "Semana" to StructureSubTab.SEMANA,
+            "Estructura" to StructureSubTab.MACROCICLO,
             "Split" to StructureSubTab.SPLIT,
-            "Macrociclo" to StructureSubTab.MACROCICLO,
         )
     } else {
         listOf(
@@ -542,39 +545,41 @@ private fun TrainingPanel(
     Column {
         Spacer(Modifier.height(4.dp))
 
-        BlockRoadmap(
-            roadmapBlocks = roadmapBlocks,
-            currentWeeks = currentWeeks,
-            selectedBlockId = selectedBlockId,
-            selectedWeekId = selectedWeekId,
-            currentWeekId = currentWeekId?.currentWeekId,
-            isSimpleProgram = program.isSimpleTemporalProgram,
-            isSimpleCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED,
-            simpleLoopMarkers = simpleRoadmapLoopMarkers,
-            currentCycle = program.loopState?.currentCycle ?: 0,
-            onSelectBlock = { viewModel.selectBlock(it) },
-            onSelectWeek = { viewModel.selectWeek(it) },
-            onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },
-            onAddAdvancedWeek = { name, description -> viewModel.addWeekToSelectedAdvancedBlock(name, description) },
-            onAddAdvancedBlock = { name, description -> viewModel.addAdvancedBlockFromRoadmap(name, description) },
-            onUpdateWeek = { weekId, name, description -> viewModel.updateWeekMetadata(weekId, name, description) },
-            onDeleteWeek = { weekId -> viewModel.deleteWeekFromRoadmap(weekId) },
-            onUpdateBlock = { blockId, name, description -> viewModel.updateBlockMetadata(blockId, name, description) },
-            onDeleteBlock = { blockId -> viewModel.deleteBlockFromRoadmap(blockId) },
-            copiedWeekId = copiedRoadmapWeekId,
-            onCopyWeek = { copiedRoadmapWeekId = it },
-            onPasteWeek = { targetWeekId ->
-                copiedRoadmapWeekId?.let { sourceWeekId ->
-                    viewModel.copyWeekSessions(
-                        sourceWeekId = sourceWeekId,
-                        targetWeekIds = setOf(targetWeekId),
-                        replaceWeekIds = setOf(targetWeekId),
-                    )
-                }
-            },
-        )
+        if (structureSubTab != StructureSubTab.SPLIT) {
+            BlockRoadmap(
+                roadmapBlocks = roadmapBlocks,
+                currentWeeks = currentWeeks,
+                selectedBlockId = selectedBlockId,
+                selectedWeekId = selectedWeekId,
+                currentWeekId = currentWeekId?.currentWeekId,
+                isSimpleProgram = program.isSimpleTemporalProgram,
+                isSimpleCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED,
+                simpleLoopMarkers = simpleRoadmapLoopMarkers,
+                currentCycle = program.loopState?.currentCycle ?: 0,
+                onSelectBlock = { viewModel.selectBlock(it) },
+                onSelectWeek = { viewModel.selectWeek(it) },
+                onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },
+                onAddAdvancedWeek = { name, description -> viewModel.addWeekToSelectedAdvancedBlock(name, description) },
+                onAddAdvancedBlock = { name, description -> viewModel.addAdvancedBlockFromRoadmap(name, description) },
+                onUpdateWeek = { weekId, name, description -> viewModel.updateWeekMetadata(weekId, name, description) },
+                onDeleteWeek = { weekId -> viewModel.deleteWeekFromRoadmap(weekId) },
+                onUpdateBlock = { blockId, name, description -> viewModel.updateBlockMetadata(blockId, name, description) },
+                onDeleteBlock = { blockId -> viewModel.deleteBlockFromRoadmap(blockId) },
+                copiedWeekId = copiedRoadmapWeekId,
+                onCopyWeek = { copiedRoadmapWeekId = it },
+                onPasteWeek = { targetWeekId ->
+                    copiedRoadmapWeekId?.let { sourceWeekId ->
+                        viewModel.copyWeekSessions(
+                            sourceWeekId = sourceWeekId,
+                            targetWeekIds = setOf(targetWeekId),
+                            replaceWeekIds = setOf(targetWeekId),
+                        )
+                    }
+                },
+            )
 
-        Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(8.dp))
+        }
 
         when (structureSubTab) {
             StructureSubTab.SEMANA -> {
@@ -691,7 +696,7 @@ private fun TrainingPanel(
     }
 
     pendingCompetitionCreation?.let { pending ->
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingCompetitionCreation = null },
             title = { Text("Configurar competición", fontWeight = FontWeight.Black) },
             text = {
@@ -715,7 +720,7 @@ private fun TrainingPanel(
 
     pendingDeleteSession?.let { sessionToDelete ->
         val isCompetition = sessionToDelete.isMeetDay || sessionToDelete.isCompetitionSession
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingDeleteSession = null },
             title = { Text("Confirmar eliminación", fontWeight = FontWeight.Black) },
             text = {
@@ -741,7 +746,7 @@ private fun TrainingPanel(
     }
 
     if (showCompetitionDeleteFollowup) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showCompetitionDeleteFollowup = false },
             title = { Text("Fecha de competición", fontWeight = FontWeight.Black) },
             text = {
@@ -767,7 +772,7 @@ private fun TrainingPanel(
     }
 
     pendingCompetitionModeSelection?.let { pending ->
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingCompetitionModeSelection = null },
             title = { Text("Tipo de sesión de competición", fontWeight = FontWeight.Black) },
             text = {
@@ -803,7 +808,7 @@ private fun TrainingPanel(
     }
 
     if (showCompetitionEligibilityNotice) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showCompetitionEligibilityNotice = false },
             title = { Text("Sesión de competición no disponible", fontWeight = FontWeight.Black) },
             text = {
@@ -835,7 +840,7 @@ private fun CopyWeekDialog(
     }
     val sourceHasSessions = weeks.firstOrNull { it.id == sourceWeekId }?.sessions?.isNotEmpty() == true
 
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Copiar sesiones de semana", fontWeight = FontWeight.Black) },
         text = {
@@ -959,7 +964,7 @@ private fun CalendarWeeksDialog(
     var showDatePicker by remember { mutableStateOf(false) }
     val count = weekCountText.toIntOrNull()?.coerceIn(1, 52) ?: 0
 
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Crear semanas desde calendario", fontWeight = FontWeight.Black) },
         text = {
@@ -1008,8 +1013,13 @@ private fun CalendarWeeksDialog(
             }.getOrDefault(System.currentTimeMillis())
         }
         val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
+        val datePickerShape = RoundedCornerShape(KpknGlass.DialogCornerRadius)
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
+            modifier = Modifier.kpknWindowGlass(datePickerShape),
+            shape = datePickerShape,
+            colors = DatePickerDefaults.colors(containerColor = Color.Transparent),
+            tonalElevation = 0.dp,
             confirmButton = {
                 TextButton(
                     onClick = {

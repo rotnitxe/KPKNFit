@@ -497,6 +497,7 @@ class ProgramDetailViewModel(
                     customSplitName = snapshot.customSplitName,
                     customSplitDescription = snapshot.customSplitDescription,
                     blockSplitSelections = snapshot.blockSplitSelections,
+                    weekSplitSelections = snapshot.weekSplitSelections,
                     runState = snapshot.runState ?: current.runState,
                     schedulePlan = snapshot.schedulePlan ?: current.schedulePlan,
                     loopOccurrences = snapshot.loopOccurrences,
@@ -806,6 +807,7 @@ class ProgramDetailViewModel(
         if (ProgramDetailHelpers.getTotalWeeks(current) <= 1) return
 
         val updated = current.copy(
+            weekSplitSelections = current.weekSplitSelections - weekId,
             macrocycles = current.macrocycles.map { macro ->
                 macro.copy(
                     blocks = macro.blocks.map { block ->
@@ -837,7 +839,13 @@ class ProgramDetailViewModel(
         val blocksBefore = ProgramDetailHelpers.buildRoadmapBlocks(current)
         if (blocksBefore.size <= 1) return
 
+        val removedWeekIds = SplitApplicationEngine.buildWeekOptions(current)
+            .filter { it.blockId == blockId }
+            .mapTo(mutableSetOf()) { it.id }
+
         val updated = current.copy(
+            blockSplitSelections = current.blockSplitSelections - blockId,
+            weekSplitSelections = current.weekSplitSelections - removedWeekIds,
             macrocycles = current.macrocycles.map { macro ->
                 macro.copy(blocks = macro.blocks.filterNot { it.id == blockId })
             }.filter { it.blocks.isNotEmpty() }

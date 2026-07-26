@@ -83,6 +83,7 @@ import com.example.kpkn.screens.sessioneditor.buildMuscleVolumeRows
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 private val EnergyRingColor = com.example.kpkn.ui.theme.RingBlue
 private val SpineRingColor = com.example.kpkn.ui.theme.RingYellow
@@ -204,11 +205,6 @@ internal fun AssistantGlassOverlay(
                     onClick = {},
                 ),
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.58f)),
-            )
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -671,7 +667,7 @@ internal fun AssistantTemplatesTab(
         glassDark = true,
     )
     if (applyDecision != null) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = onCancelApply,
             title = { Text("Aplicar plantilla", fontWeight = FontWeight.Black) },
             text = {

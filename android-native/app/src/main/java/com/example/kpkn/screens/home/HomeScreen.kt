@@ -57,6 +57,12 @@ import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
 
+typealias HomeGlassOverlay = @Composable (HazeState) -> Unit
+typealias HomeGlassOverlayChange = (
+    overlay: HomeGlassOverlay?,
+    expectedCurrent: HomeGlassOverlay?,
+) -> Unit
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -71,8 +77,8 @@ fun HomeScreen(
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToCard: (String) -> Unit = {},
     onNavigate: (String) -> Unit = {},
-    onHeaderOverlayChange: ((@Composable (HazeState) -> Unit)?) -> Unit = {},
-    onNutritionOverlayChange: ((@Composable (HazeState) -> Unit)?) -> Unit = {},
+    onHeaderOverlayChange: HomeGlassOverlayChange = { _, _ -> },
+    onNutritionOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     viewModel: HomeViewModel = rememberHomeViewModel(),
     @Suppress("UNUSED_PARAMETER") nutritionViewModel: NutritionViewModel? = null,
 ) {
@@ -114,8 +120,15 @@ fun HomeScreen(
         nutritionLogs.filter { it.date.startsWith(today) && it.status != NutritionStatus.PLANNED }
     }
 
+    val latestNutritionOverlayChange by rememberUpdatedState(onNutritionOverlayChange)
+    // Mutable holder so dispose can see the latest registered content identity.
+    val nutritionRegistration = remember {
+        object {
+            var active: HomeGlassOverlay? = null
+        }
+    }
     LaunchedEffect(showNutritionOverlay, todayMeals) {
-        onNutritionOverlayChange(
+        val content: HomeGlassOverlay? =
             if (showNutritionOverlay) {
                 { rootHazeState ->
                     NutritionTodayGlassOverlay(
@@ -128,11 +141,19 @@ fun HomeScreen(
                         },
                     )
                 }
-            } else null,
-        )
+            } else {
+                null
+            }
+        val previous = nutritionRegistration.active
+        latestNutritionOverlayChange(content, previous)
+        nutritionRegistration.active = content
     }
-    DisposableEffect(onNutritionOverlayChange) {
-        onDispose { onNutritionOverlayChange(null) }
+    DisposableEffect(Unit) {
+        onDispose {
+            // Parent retains this registration for its 150 ms route exit animation and clears it
+            // with compare-and-set afterwards. A remounted Home replaces it immediately.
+            nutritionRegistration.active = null
+        }
     }
     val listState = rememberLazyListState()
     val density = LocalDensity.current
@@ -181,9 +202,16 @@ fun HomeScreen(
             onBottomPositionChanged = { headerBottomY = it },
         )
     }
-    DisposableEffect(onHeaderOverlayChange) {
-        onHeaderOverlayChange { rootHazeState -> latestHeaderContent(rootHazeState) }
-        onDispose { onHeaderOverlayChange(null) }
+    val latestHeaderOverlayChange by rememberUpdatedState(onHeaderOverlayChange)
+    // Stable registration: key Unit so recompositions don't dispose→null race.
+    DisposableEffect(Unit) {
+        val registered: HomeGlassOverlay = { rootHazeState ->
+            latestHeaderContent(rootHazeState)
+        }
+        latestHeaderOverlayChange(registered, null)
+        onDispose {
+            // MainActivity owns the exit animation and delayed compare-and-set cleanup.
+        }
     }
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             HomeWithProgram(

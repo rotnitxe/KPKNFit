@@ -99,6 +99,9 @@ import com.example.kpkn.domain.nutrition.weeklyChangeFromCalories
 import java.time.Instant
 import java.util.UUID
 import kotlin.math.roundToInt
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknGlass
+import com.example.kpkn.ui.components.kpknWindowGlass
 
 private val OVERLAY_BG = Color(0xE60A0C10)
 private val PANEL_BG = Color(0xF214171C)
@@ -386,7 +389,7 @@ fun NutritionPlanEditorModal(
     }
 
     if (showDiscardConfirm) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showDiscardConfirm = false },
             title = { Text("Descartar cambios") },
             text = { Text("Hay cambios sin guardar en tu plan nutricional.") },
@@ -405,7 +408,7 @@ fun NutritionPlanEditorModal(
     }
 
     if (showDeleteConfirm) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             title = { Text("¿Eliminar plan actual?") },
             text = { Text("Esta acción eliminará de forma permanente tu plan de alimentación y todas tus metas configuradas. Tendrás que crear un plan desde cero. Esta acción no se puede deshacer.") },
@@ -435,12 +438,14 @@ fun NutritionPlanEditorModal(
             dismissOnBackPress = false,
         ),
     ) {
+        val editorDialogShape = RoundedCornerShape(KpknGlass.DialogCornerRadius)
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.94f),
-            shape = RoundedCornerShape(28.dp),
-            color = PANEL_BG,
+                .fillMaxHeight(0.94f)
+                .kpknWindowGlass(editorDialogShape),
+            shape = editorDialogShape,
+            color = Color.Transparent,
             tonalElevation = 0.dp,
             shadowElevation = 16.dp,
         ) {

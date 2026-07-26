@@ -50,6 +50,7 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.SubTagCategory
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.WorkoutTag
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -233,7 +234,7 @@ internal fun WorkoutTagManagerModal(
     var newSubTagName by remember { mutableStateOf("") }
     var newSubTagCategory by remember { mutableStateOf(SubTagCategory.LIBRE) }
 
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Editar etiqueta", fontWeight = FontWeight.Black) },
         text = {

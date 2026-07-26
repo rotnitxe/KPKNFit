@@ -21,6 +21,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.domain.training.ProgramProtocolEngine
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @Composable
 fun ProtocolsView(
@@ -88,7 +89,7 @@ fun ProtocolsView(
 
     // Apply warning dialog
     if (showApplyDialog && protocolToApply != null) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showApplyDialog = false; protocolToApply = null },
             title = { Text("Aplicar Protocolo", fontWeight = FontWeight.Bold) },
             text = {
@@ -156,7 +157,7 @@ private fun ProtocolCard(protocol: Protocol, onClick: () -> Unit) {
 
 @Composable
 private fun ProtocolDetailModal(protocol: Protocol, onApply: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {

@@ -32,6 +32,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.calculations.calculateFFMI
+import com.example.kpkn.ui.components.KpknSheet
 import java.util.UUID
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1712,10 +1713,9 @@ private fun AddMeasurementSheet(
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ModalBottomSheet(
+    KpknSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
     ) {
         LazyColumn(
             modifier = Modifier

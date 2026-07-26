@@ -6,14 +6,19 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.resolvedSchedulePlan
+import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
+import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTemplate
 import com.example.kpkn.domain.auge.SessionMuscleFilter
+import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
+import com.example.kpkn.domain.templates.SessionTemplateEngine
 import java.util.UUID
 
 enum class SplitTemporalScope { CURRENT_WEEK, SELECTED_WEEKS, CURRENT_BLOCK, WHOLE_PROGRAM }
 enum class AdvancedSplitMode { GLOBAL, PER_BLOCK }
-enum class SessionMigrationMode { MIGRATE, CLEAN }
+enum class SessionMigrationMode { MIGRATE, CLEAN, PREBUILT }
 enum class StartDaySessionMode { KEEP_DAYS, KEEP_SPLIT_ORDER }
 enum class StartDayTemporalScope { ALL_WEEKS, FROM_SELECTED_WEEK }
 
@@ -37,6 +42,14 @@ data class SplitPatternDay(
     val dayOfWeek: Int,
 )
 
+data class SplitTemplateSessionPreview(
+    val dayLabel: String,
+    val templateId: String?,
+    val templateName: String?,
+    val exerciseCount: Int,
+) {
+    val isAvailable: Boolean get() = templateId != null
+}
 data class SplitImpactSummary(
     val affectedWeeks: Int,
     val affectedSessions: Int,
@@ -98,7 +111,7 @@ object SplitApplicationEngine {
         return SplitImpactSummary(
             affectedWeeks = affectedWeeks,
             affectedSessions = affectedSessions,
-            willReplaceSessions = request.migrationMode == SessionMigrationMode.CLEAN && affectedSessions > 0,
+            willReplaceSessions = request.migrationMode != SessionMigrationMode.MIGRATE && affectedSessions > 0,
         )
     }
 
@@ -109,48 +122,72 @@ object SplitApplicationEngine {
     fun apply(request: SplitApplicationRequest): Program {
         val blockAssignments = if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) request.perBlockSelections else emptyMap()
         val selectedSplit = request.selectedSplit
+        val effectiveStartDay = if (ProgramCalendarEngine.isCalendarized(request.program)) {
+            request.program.resolvedSchedulePlan().weekStartDay ?: request.program.startDay ?: request.startDay
+        } else {
+            request.startDay
+        }
+        val weekOptions = buildWeekOptions(request.program)
+        val targetWeekIds = weekOptions
+            .filter { shouldApplyToWeek(request, it.blockId, it.id) }
+            .mapTo(mutableSetOf()) { it.id }
+        val targetBlockIds = weekOptions
+            .filter { it.id in targetWeekIds }
+            .mapTo(mutableSetOf()) { it.blockId }
+
+        val blockSelections = request.program.blockSplitSelections.toMutableMap()
+        val weekSelections = request.program.weekSplitSelections.toMutableMap()
+        var globalSplitId = request.program.selectedSplitId
+        when {
+            request.advancedMode == AdvancedSplitMode.PER_BLOCK -> {
+                blockAssignments.forEach { (blockId, splitId) -> blockSelections[blockId] = splitId }
+                weekOptions.filter { it.blockId in blockAssignments.keys }.forEach { weekSelections.remove(it.id) }
+            }
+            request.temporalScope == SplitTemporalScope.WHOLE_PROGRAM -> {
+                globalSplitId = selectedSplit.id
+                blockSelections.clear()
+                weekSelections.clear()
+            }
+            request.temporalScope == SplitTemporalScope.CURRENT_BLOCK -> {
+                targetBlockIds.forEach { blockSelections[it] = selectedSplit.id }
+                targetWeekIds.forEach { weekSelections.remove(it) }
+            }
+            else -> targetWeekIds.forEach { weekSelections[it] = selectedSplit.id }
+        }
 
         return request.program.copy(
-            startDay = if (ProgramCalendarEngine.isCalendarized(request.program)) {
-                request.program.startDay ?: request.startDay
-            } else {
-                request.startDay
-            },
-            selectedSplitId = if (request.advancedMode == AdvancedSplitMode.GLOBAL) selectedSplit.id else request.program.selectedSplitId,
-            customSplitPattern = if (request.advancedMode == AdvancedSplitMode.GLOBAL) selectedSplit.pattern else request.program.customSplitPattern,
+            startDay = effectiveStartDay,
+            selectedSplitId = globalSplitId,
+            customSplitPattern = if (selectedSplit.id == "custom") selectedSplit.pattern else request.program.customSplitPattern,
             customSplitName = if (selectedSplit.id == "custom") selectedSplit.name else request.program.customSplitName,
             customSplitDescription = if (selectedSplit.id == "custom") selectedSplit.description else request.program.customSplitDescription,
-            blockSplitSelections = if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) blockAssignments else emptyMap(),
+            blockSplitSelections = blockSelections,
+            weekSplitSelections = weekSelections,
             splitTrialSeen = false,
             schedulePlan = request.program.schedulePlan?.let { plan ->
-                if (ProgramCalendarEngine.isCalendarized(request.program)) plan
-                else plan.copy(weekStartDay = request.startDay)
+                if (ProgramCalendarEngine.isCalendarized(request.program)) plan else plan.copy(weekStartDay = effectiveStartDay)
             },
             macrocycles = request.program.macrocycles.map { macro ->
                 macro.copy(
                     blocks = macro.blocks.map { block ->
                         val blockSplit = if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) {
                             SPLIT_TEMPLATES.firstOrNull { it.id == blockAssignments[block.id] } ?: selectedSplit
-                        } else {
-                            selectedSplit
-                        }
+                        } else selectedSplit
                         block.copy(
                             mesocycles = block.mesocycles.map { meso ->
                                 meso.copy(
                                     weeks = meso.weeks.map { week ->
-                                        if (!shouldApplyToWeek(request, block.id, week.id)) {
-                                            week
-                                        } else {
-                                            week.copy(
-                                                sessions = buildSessionsForSplit(
-                                                    pattern = blockSplit.pattern,
-                                                    sessionDescriptions = blockSplit.sessionDescriptions,
-                                                    startDay = request.startDay,
-                                                    existingSessions = week.sessions,
-                                                    migrationMode = request.migrationMode,
-                                                )
+                                        if (!shouldApplyToWeek(request, block.id, week.id)) week
+                                        else week.copy(
+                                            sessions = buildSessionsForSplit(
+                                                splitId = blockSplit.id,
+                                                pattern = blockSplit.pattern,
+                                                sessionDescriptions = blockSplit.sessionDescriptions,
+                                                startDay = effectiveStartDay,
+                                                existingSessions = week.sessions,
+                                                migrationMode = request.migrationMode,
                                             )
-                                        }
+                                        )
                                     }
                                 )
                             }
@@ -160,8 +197,26 @@ object SplitApplicationEngine {
             }
         )
     }
+    fun prebuiltSessionPreview(split: SplitTemplate): List<SplitTemplateSessionPreview> {
+        return split.pattern
+            .filterNot { it.equals("Descanso", ignoreCase = true) }
+            .map { dayLabel ->
+                val template = SessionTemplateCatalogPolicy.templatesForSplitDay(
+                    splitId = split.id,
+                    dayLabel = dayLabel,
+                    templates = SESSION_TEMPLATES_SYSTEM,
+                ).firstOrNull()
+                SplitTemplateSessionPreview(
+                    dayLabel = dayLabel,
+                    templateId = template?.id,
+                    templateName = template?.name,
+                    exerciseCount = template?.exerciseCount ?: 0,
+                )
+            }
+    }
 
     fun buildSessionsForSplit(
+        splitId: String? = null,
         pattern: List<String>,
         sessionDescriptions: Map<String, String> = emptyMap(),
         startDay: Int,
@@ -171,15 +226,32 @@ object SplitApplicationEngine {
         val trainingDays = patternToTrainingDays(pattern, startDay)
         if (trainingDays.isEmpty()) return emptyList()
 
-        if (existingSessions.isEmpty() || migrationMode == SessionMigrationMode.CLEAN) {
+        fun blankSession(day: SplitPatternDay) = Session(
+            id = UUID.randomUUID().toString(),
+            name = day.label,
+            description = splitSessionDescription(day.label, sessionDescriptions),
+            exercises = emptyList(),
+            parts = emptyList(),
+            dayOfWeek = day.dayOfWeek,
+            assignedDays = listOf(day.dayOfWeek),
+            scheduleLabel = day.label,
+            isMainSession = true,
+        )
+
+        if (migrationMode == SessionMigrationMode.PREBUILT) {
             return normalizeMainSessions(
                 trainingDays.map { day ->
-                    Session(
-                        id = UUID.randomUUID().toString(),
+                    val base = blankSession(day)
+                    val template = splitId?.let {
+                        SessionTemplateCatalogPolicy.templatesForSplitDay(
+                            splitId = it,
+                            dayLabel = day.label,
+                            templates = SESSION_TEMPLATES_SYSTEM,
+                        ).firstOrNull()
+                    }
+                    if (template == null) base
+                    else SessionTemplateEngine.applyTemplate(template, base, SessionTemplateApplyMode.REPLACE).copy(
                         name = day.label,
-                        description = splitSessionDescription(day.label, sessionDescriptions),
-                        exercises = emptyList(),
-                        parts = emptyList(),
                         dayOfWeek = day.dayOfWeek,
                         assignedDays = listOf(day.dayOfWeek),
                         scheduleLabel = day.label,
@@ -187,6 +259,10 @@ object SplitApplicationEngine {
                     )
                 }
             )
+        }
+
+        if (existingSessions.isEmpty() || migrationMode == SessionMigrationMode.CLEAN) {
+            return normalizeMainSessions(trainingDays.map(::blankSession))
         }
 
         val unassignedDays = trainingDays.toMutableList()
@@ -203,24 +279,11 @@ object SplitApplicationEngine {
 
         val coveredDays = reassigned.mapNotNull { it.dayOfWeek }.toSet()
         trainingDays.filterNot { it.dayOfWeek in coveredDays }.forEach { missingDay ->
-            reassigned.add(
-                Session(
-                    id = UUID.randomUUID().toString(),
-                    name = missingDay.label,
-                    description = splitSessionDescription(missingDay.label, sessionDescriptions),
-                    exercises = emptyList(),
-                    parts = emptyList(),
-                    dayOfWeek = missingDay.dayOfWeek,
-                    assignedDays = listOf(missingDay.dayOfWeek),
-                    scheduleLabel = missingDay.label,
-                    isMainSession = false,
-                )
-            )
+            reassigned.add(blankSession(missingDay).copy(isMainSession = false))
         }
 
         return normalizeMainSessions(reassigned)
     }
-
     fun copySessionsWithNewIds(sessions: List<Session>): List<Session> {
         return normalizeMainSessions(sessions.map { it.deepCopyWithNewIds() })
     }
@@ -298,6 +361,9 @@ object SplitApplicationEngine {
     }
 
     private fun shouldApplyToWeek(request: SplitApplicationRequest, blockId: String, weekId: String): Boolean {
+        if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) {
+            return blockId in request.perBlockSelections
+        }
         return when (request.temporalScope) {
             SplitTemporalScope.CURRENT_WEEK -> weekId == request.selectedWeekId
             SplitTemporalScope.SELECTED_WEEKS -> weekId in request.selectedWeekIds

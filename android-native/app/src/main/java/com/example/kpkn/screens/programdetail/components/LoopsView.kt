@@ -34,6 +34,7 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.LoopProjection
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 private data class LoopTemplate(
     val id: String,
@@ -294,7 +295,7 @@ fun LoopsView(
     }
 
     if (showInfo) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showInfo = false },
             title = { Text("Para qué sirven los loops", fontWeight = FontWeight.Black) },
             text = {
@@ -472,7 +473,7 @@ private fun LoopEditorModal(
         candidate.id != loop?.id && candidate.repeatEveryXLoops.coerceAtLeast(1) == repeatValue
     }
 
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (loop != null) "Editar Loop" else "Nuevo Loop", fontWeight = FontWeight.Bold) },
         text = {

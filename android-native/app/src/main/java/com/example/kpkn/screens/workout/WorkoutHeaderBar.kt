@@ -33,6 +33,7 @@ import com.example.kpkn.data.models.WorkoutSubTag
 import com.example.kpkn.data.models.WorkoutTag
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 internal fun resolveSessionAccentColor(background: SessionBackground?): Color {
     return when {
@@ -104,7 +105,7 @@ internal fun WorkoutChronometer(
     )
 
     if (showAdjustDialog) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showAdjustDialog = false },
             title = { Text("Límite de Tiempo de Sesión", style = MaterialTheme.typography.titleMedium) },
             text = {

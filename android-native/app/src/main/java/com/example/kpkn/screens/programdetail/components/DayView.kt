@@ -72,6 +72,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeParseException
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 data class DayInfo(
     val id: Int,
@@ -332,7 +334,7 @@ fun DayView(
     }
 
     pendingOffScheduleSession?.let { (session, _) ->
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingOffScheduleSession = null },
             title = { Text("Aviso", fontWeight = FontWeight.Black) },
             text = { Text("La sesión que quieres iniciar no corresponde a la fecha de hoy. ¿Quieres continuar?") },
@@ -382,7 +384,7 @@ private fun StartDayConfirmDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Cambiar inicio de semana", fontWeight = FontWeight.Black) },
         text = {
@@ -657,7 +659,7 @@ private fun DayColumn(
             }
 
             if (!isStartDay) {
-                DropdownMenu(
+                KpknDropdownMenu(
                     expanded = dayMenuExpanded,
                     onDismissRequest = { dayMenuExpanded = false },
                 ) {

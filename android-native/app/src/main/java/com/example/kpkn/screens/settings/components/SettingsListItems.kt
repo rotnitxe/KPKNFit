@@ -42,6 +42,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 @Composable
 fun SettingsSectionCard(content: @Composable ColumnScope.() -> Unit) {
@@ -146,7 +148,7 @@ fun <T> SettingsDropdownItem(
                         color = MaterialTheme.colorScheme.secondary,
                     )
                 }
-                DropdownMenu(
+                KpknDropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
                 ) {
@@ -331,7 +333,7 @@ fun SettingsTimePickerItem(
             initialMinute = initialMinute,
             is24Hour = true,
         )
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showDialog = false },
             title = { Text(title) },
             text = {

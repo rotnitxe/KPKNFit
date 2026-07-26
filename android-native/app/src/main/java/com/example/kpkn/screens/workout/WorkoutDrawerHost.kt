@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,7 +40,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -62,11 +63,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
+import com.example.kpkn.ui.components.KpknGlass
+import com.example.kpkn.ui.components.LocalHazeState
+import com.example.kpkn.ui.components.kpknGlassStyle
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import java.util.Locale
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,20 +78,11 @@ internal fun WorkoutDrawer(
     onDismiss: () -> Unit,
     dismissible: Boolean = true,
     showCloseButton: Boolean = true,
-    hazeState: HazeState? = null,
+    hazeState: HazeState? = LocalHazeState.current,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var showContent by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { showContent = true }
-
-    val sheetGlassStyle = remember {
-        HazeStyle(
-            blurRadius = 20.dp,
-            tint = HazeTint(Color.Black.copy(alpha = 0.50f)),
-            backgroundColor = Color.Black.copy(alpha = 0.0f),
-            noiseFactor = 0.03f,
-        )
-    }
 
     fun handleDismiss() {
         showContent = false
@@ -105,8 +99,11 @@ internal fun WorkoutDrawer(
                 modifier = Modifier
                     .fillMaxSize()
                     .then(
-                        if (hazeState != null) Modifier.hazeEffect(state = hazeState, style = sheetGlassStyle)
-                        else Modifier
+                        if (hazeState != null) {
+                            Modifier.hazeEffect(state = hazeState, style = kpknGlassStyle())
+                        } else {
+                            Modifier.background(KpknGlass.FallbackScrim)
+                        }
                     )
                     .clickable(
                         onClick = { handleDismiss() }
@@ -181,8 +178,6 @@ internal fun QuickExecutionErrorDiscomfortSheet(
     exerciseName: String,
     onSave: (discomfortIds: List<String>) -> Unit,
     onDismiss: () -> Unit,
-    hazeState: HazeState = HazeState(),
-    glassStyle: HazeStyle = HazeStyle(blurRadius = 8.dp, tint = HazeTint(Color.Black.copy(alpha = 0.0f)), backgroundColor = Color.Black.copy(alpha = 0.0f)),
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var infoEntry by remember { mutableStateOf<DiscomfortCatalogEntry?>(null) }
@@ -196,13 +191,12 @@ internal fun QuickExecutionErrorDiscomfortSheet(
         skipPartiallyExpanded = true,
         confirmValueChange = { target -> target != SheetValue.Hidden }
     )
-    ModalBottomSheet(
+    KpknSheet(
         onDismissRequest = {},
         sheetState = sheetState,
-        containerColor = Color(0xFF2A2A2A),
-        modifier = Modifier.hazeEffect(state = hazeState, style = glassStyle)
+        dismissible = false,
     ) {
-        Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             Text("Reportar molestias", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White)
             Text(exerciseName, style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = 0.6f), modifier = Modifier.padding(top = 2.dp, bottom = 16.dp))
             Column(modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -246,6 +240,6 @@ internal fun QuickExecutionErrorDiscomfortSheet(
         }
     }
     infoEntry?.let { entry ->
-        AlertDialog(onDismissRequest = { infoEntry = null }, title = { Text(entry.label, fontWeight = FontWeight.Black) }, text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { Text(entry.description, style = MaterialTheme.typography.bodySmall); Text("Sección: ${entry.section.label}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) } }, confirmButton = { TextButton(onClick = { infoEntry = null }) { Text("Entendido") } })
+        KpknAlertDialog(onDismissRequest = { infoEntry = null }, title = { Text(entry.label, fontWeight = FontWeight.Black) }, text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { Text(entry.description, style = MaterialTheme.typography.bodySmall); Text("Sección: ${entry.section.label}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) } }, confirmButton = { TextButton(onClick = { infoEntry = null }) { Text("Entendido") } })
     }
 }

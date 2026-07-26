@@ -192,10 +192,8 @@ import androidx.compose.ui.zIndex
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.viewinterop.AndroidView
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.Lifecycle
@@ -330,6 +328,8 @@ import com.example.kpkn.screens.sessioneditor.components.SupersetRestPickerDialo
 import com.example.kpkn.screens.sessioneditor.components.SupersetRestWheelRow
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
 import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 @Composable
 internal fun SessionContextNavigator(
@@ -347,7 +347,6 @@ internal fun SessionContextNavigator(
     isSimpleProgram: Boolean,
     hasActiveLoops: Boolean,
     hazeState: HazeState?,
-    hazeStyle: HazeStyle,
     onSetMainSessionForDay: (String) -> Unit,
     currentSessionId: String,
     currentDayOfWeek: Int?,
@@ -385,29 +384,11 @@ internal fun SessionContextNavigator(
     var showCreateSessionDialog by remember { mutableStateOf(false) }
     var pendingCreateDay by remember { mutableIntStateOf(-1) }
 
-    val navModifier = if (hazeState != null) {
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .hazeEffect(state = hazeState, style = hazeStyle)
-            .border(
-                width = 1.dp,
-                color = Color.White.copy(alpha = 0.16f),
-                shape = RoundedCornerShape(28.dp),
-            )
-    } else {
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .background(Color.Black.copy(alpha = 0.55f))
-            .border(
-                width = 1.dp,
-                color = Color.White.copy(alpha = 0.16f),
-                shape = RoundedCornerShape(28.dp),
-            )
-    }
+    val navShape = RoundedCornerShape(28.dp)
+    val navModifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 14.dp, vertical = 8.dp)
+        .kpknGlassOrFallback(hazeState, navShape)
     Box(modifier = navModifier) {
         Column(
             modifier = Modifier
@@ -597,7 +578,7 @@ internal fun SessionContextNavigator(
                                     contentDescription = "Cambiar roadmap",
                                     tint = Color.White.copy(alpha = 0.7f),
                                 )
-                                DropdownMenu(
+                                KpknDropdownMenu(
                                     expanded = showRoadmapMenu,
                                     onDismissRequest = { showRoadmapMenu = false },
                                 ) {
@@ -679,7 +660,7 @@ internal fun SessionContextNavigator(
     // Create session dialog
     if (showCreateSessionDialog && pendingCreateDay > 0) {
         val isCompetitionDay = pendingCreateDay in competitionKeyDaysInWeek
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showCreateSessionDialog = false },
             icon = { Icon(Icons.Default.Add, null, tint = MaterialTheme.colorScheme.primary) },
             title = { Text("¿Crear sesión para ${sessionEditorDayLabel(pendingCreateDay)}?") },

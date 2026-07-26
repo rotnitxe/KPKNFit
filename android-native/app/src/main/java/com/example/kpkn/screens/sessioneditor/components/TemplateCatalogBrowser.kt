@@ -60,6 +60,7 @@ import com.example.kpkn.domain.templates.TemplateSessionGoal
 import com.example.kpkn.domain.templates.TemplateSessionType
 import com.example.kpkn.domain.templates.TemplateSessionZone
 import com.example.kpkn.screens.sessioneditor.CompactCatalogFilterChip
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 // Chips de acceso rápido por tipo de sesión (día de entreno).
 private val SimpleSessionTypeChips = listOf(
@@ -597,7 +598,7 @@ private fun CatalogDropdownButton(
                 modifier = Modifier.size(16.dp),
             )
         }
-        DropdownMenu(
+        KpknDropdownMenu(
             expanded = expanded,
             onDismissRequest = { onExpandedChange(false) },
         ) {

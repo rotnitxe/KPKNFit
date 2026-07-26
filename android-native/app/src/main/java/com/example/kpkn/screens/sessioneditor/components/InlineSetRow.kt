@@ -55,6 +55,7 @@ import com.example.kpkn.screens.sessioneditor.formatEstimatedMetric
 import com.example.kpkn.screens.sessioneditor.DarkEditorChip
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 @Composable
 internal fun InlineSetRow(
@@ -255,7 +256,7 @@ internal fun InlineSetRow(
                         Spacer(Modifier.width(3.dp))
                         Icon(Icons.Default.KeyboardArrowDown, null, modifier = Modifier.size(14.dp))
                     }
-                    DropdownMenu(expanded = showLoadModeMenu, onDismissRequest = { showLoadModeMenu = false }) {
+                    KpknDropdownMenu(expanded = showLoadModeMenu, onDismissRequest = { showLoadModeMenu = false }) {
                         listOf(
                             LoadModeV2.LOAD to "Carga externa",
                             LoadModeV2.BODYWEIGHT to "Peso corporal",
@@ -403,7 +404,7 @@ internal fun InlineSetRow(
                                 Spacer(Modifier.width(if (isNarrowScreen) 4.dp else 6.dp))
                                 Icon(Icons.Default.KeyboardArrowDown, null)
                             }
-                            DropdownMenu(expanded = showIntensityMenu, onDismissRequest = { showIntensityMenu = false }) {
+                            KpknDropdownMenu(expanded = showIntensityMenu, onDismissRequest = { showIntensityMenu = false }) {
                                 listOfNotNull(
                                     IntensityMode.RPE to "RPE",
                                     IntensityMode.RIR to "RIR",

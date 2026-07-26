@@ -34,6 +34,7 @@ import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.ui.components.EmptyStateView
 import com.example.kpkn.ui.components.SwipeToDeleteCard
 import com.example.kpkn.ui.components.icons.DumbbellIcon
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 /**
  * ProgramsScreen — List of training programs (active + inactive).
@@ -176,7 +177,7 @@ fun ProgramsScreen(
     }
 
     menuProgram?.let { program ->
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { menuProgram = null },
             title = { Text(program.name, fontWeight = FontWeight.Black) },
             text = { Text("Gestiona este programa.") },

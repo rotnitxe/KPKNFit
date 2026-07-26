@@ -24,7 +24,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
+import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -502,7 +502,7 @@ private fun GoalEditorSheet(
 ) {
     var value by rememberSaveable(initialGoal) { mutableStateOf(initialGoal?.toString().orEmpty()) }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    KpknSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

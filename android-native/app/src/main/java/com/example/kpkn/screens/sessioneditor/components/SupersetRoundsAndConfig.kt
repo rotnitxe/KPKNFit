@@ -70,6 +70,7 @@ import com.example.kpkn.screens.sessioneditor.UnilateralAddGhostCard
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @Composable
 internal fun SupersetExerciseConfigOverlay(
@@ -174,7 +175,7 @@ internal fun SupersetSmartLoadDialog(
     var directRmInput by rememberSaveable(exercise.id, exercise.reference1RM) { mutableStateOf(formatEditableNumber(exercise.reference1RM)) }
     var prWeightInput by rememberSaveable(exercise.id, exercise.prFor1RM) { mutableStateOf(formatEditableNumber(exercise.prFor1RM?.weight)) }
     var prRepsInput by rememberSaveable(exercise.id, exercise.prFor1RM) { mutableStateOf(exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toString().orEmpty()) }
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Carga inteligente", fontWeight = FontWeight.Black) },
         text = {
@@ -223,7 +224,7 @@ internal fun SupersetGoalDialog(
     onDismiss: () -> Unit,
 ) {
     var goalRmInput by rememberSaveable(exercise.id, exercise.goal1RM) { mutableStateOf(formatEditableNumber(exercise.goal1RM)) }
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Meta / PR", fontWeight = FontWeight.Black) },
         text = {
@@ -451,7 +452,7 @@ internal fun SupersetRestPickerDialog(
     var afterMinutes by rememberSaveable(initialRestAfterSeconds) { mutableStateOf((initialRestAfterSeconds / 60).coerceIn(0, 59)) }
     var afterSeconds by rememberSaveable(initialRestAfterSeconds) { mutableStateOf((initialRestAfterSeconds % 60).coerceIn(0, 59)) }
 
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Descansos de superserie", fontWeight = FontWeight.Black) },
         text = {

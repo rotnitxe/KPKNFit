@@ -36,7 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -71,6 +71,8 @@ import coil.request.ImageRequest
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.VolumeRecommendation
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 private data class CoverGradient(
     val id: String,
@@ -298,7 +300,7 @@ fun CompactHeroBanner(
     }
 
     if (showCoverSheet) {
-        ModalBottomSheet(
+        KpknSheet(
             onDismissRequest = { showCoverSheet = false },
         ) {
             Column(
@@ -382,7 +384,7 @@ fun CompactHeroBanner(
     }
 
     if (showFocusRecalibrationDialog && pendingFocusMode != null) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = {
                 showFocusRecalibrationDialog = false
                 pendingFocusMode = null
@@ -470,7 +472,7 @@ private fun FocusDropdownMenu(
     onDismiss: () -> Unit,
     onSelect: (FocusOption) -> Unit,
 ) {
-    DropdownMenu(
+    KpknDropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismiss,
     ) {

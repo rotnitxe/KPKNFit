@@ -49,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.graphics.lerp
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @Composable
 internal fun EditorMiniField(
@@ -160,7 +161,7 @@ internal fun DurationPickerDialog(
     var minutes by rememberSaveable(initialTotalSeconds) { mutableStateOf((initialTotalSeconds / 60).coerceIn(0, 59)) }
     var seconds by rememberSaveable(initialTotalSeconds) { mutableStateOf((initialTotalSeconds % 60).coerceIn(0, 59)) }
 
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Elegir descanso", fontWeight = FontWeight.Black) },
         text = {

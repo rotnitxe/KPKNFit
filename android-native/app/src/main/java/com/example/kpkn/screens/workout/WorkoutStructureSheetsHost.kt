@@ -33,7 +33,7 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomSheetDefaults
+import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -42,13 +42,11 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -87,6 +85,7 @@ import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import dev.chrisbanes.haze.HazeState
 import java.util.UUID
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @Stable
 internal class WorkoutStructureSheetsState {
@@ -279,7 +278,7 @@ internal fun WorkoutStructureSheetsHost(
             var restAfterText by remember(groupId, group.restAfterSuperset) {
                 mutableStateOf(group.restAfterSuperset.toString())
             }
-            AlertDialog(
+            KpknAlertDialog(
                 onDismissRequest = { state.supersetSettingsGroupId = null },
                 title = { Text("Rondas y descansos", fontWeight = FontWeight.Black) },
                 text = {
@@ -382,7 +381,7 @@ internal fun WorkoutStructureSheetsHost(
             return messages
         }
 
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { closeReorderSheet() },
             title = { Text("Reordenar ejercicios", fontWeight = FontWeight.Black) },
             text = {
@@ -467,7 +466,7 @@ internal fun WorkoutStructureSheetsHost(
     }
 
     if (state.showReorderCrossBoundaryConfirm) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = {
                 state.showReorderCrossBoundaryConfirm = false
                 state.reorderCrossBoundaryMessages = emptyList()
@@ -558,7 +557,7 @@ internal fun WorkoutStructureSheetsHost(
             state.showWorkoutSupersetCreator = false
             state.workoutSupersetSelectedExerciseId = null
         }
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { closeWorkoutSupersetCreator() },
             title = { Text(if (supersetAnchorGroupId == null) "Crear superserie" else "Agregar a superserie", fontWeight = FontWeight.Black) },
             text = {
@@ -851,66 +850,30 @@ internal fun WorkoutStructureSheetsHost(
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
         val addCatalogSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-        ModalBottomSheet(
+        KpknSheet(
             onDismissRequest = { state.addCatalogToSupersetGroupId = null },
             sheetState = addCatalogSheetState,
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-            containerColor = Color(0xFF1E1E1E),
-            contentColor = Color.White,
-            tonalElevation = 0.dp,
-            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.2f)) },
         ) {
-            MaterialTheme(
-                colorScheme = darkColorScheme(
-                    primary = Color(0xFFFFD600),
-                    onPrimary = Color.Black,
-                    primaryContainer = Color(0xFF333333),
-                    onPrimaryContainer = Color.White,
-                    secondary = Color(0xFF3B82F6),
-                    onSecondary = Color.White,
-                    secondaryContainer = Color(0xFF222222),
-                    onSecondaryContainer = Color.White,
-                    tertiary = Color(0xFFFFD600),
-                    onTertiary = Color.Black,
-                    surface = Color(0xFF1E1E1E),
-                    onSurface = Color.White,
-                    surfaceVariant = Color(0xFF2C2C2C),
-                    onSurfaceVariant = Color.White,
-                    background = Color(0xFF1E1E1E),
-                    onBackground = Color.White,
-                    outline = Color.White.copy(alpha = 0.5f),
-                    outlineVariant = Color.White.copy(alpha = 0.3f),
+            Column(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+                ExercisePickerSheet(
+                    query = state.addCatalogSearchQuery,
+                    catalog = EXERCISE_DATABASE,
+                    workoutLogs = workoutLogs,
+                    editingExisting = false,
+                    onSearch = { state.addCatalogSearchQuery = it },
+                    onSelect = { info ->
+                        viewModel.addCatalogExerciseToLiveSuperset(targetGroupId, info)
+                        state.addCatalogToSupersetGroupId = null
+                        state.addCatalogSearchQuery = ""
+                    },
+                    onMultiSelect = { emptyList() },
+                    onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
+                    onOpenExerciseCreator = { },
+                    onDismiss = {
+                        state.addCatalogToSupersetGroupId = null
+                        state.addCatalogSearchQuery = ""
+                    },
                 )
-            ) {
-                androidx.compose.runtime.CompositionLocalProvider(
-                    androidx.compose.material3.LocalContentColor provides Color.White
-                ) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                        color = Color(0xFF1E1E1E),
-                        contentColor = Color.White
-                    ) {
-                        ExercisePickerSheet(
-                            query = state.addCatalogSearchQuery,
-                            catalog = EXERCISE_DATABASE,
-                            workoutLogs = workoutLogs,
-                            editingExisting = false,
-                            onSearch = { state.addCatalogSearchQuery = it },
-                            onSelect = { info ->
-                                viewModel.addCatalogExerciseToLiveSuperset(targetGroupId, info)
-                                state.addCatalogToSupersetGroupId = null
-                                state.addCatalogSearchQuery = ""
-                            },
-                            onMultiSelect = { emptyList() },
-                            onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
-                            onOpenExerciseCreator = { },
-                            onDismiss = {
-                                state.addCatalogToSupersetGroupId = null
-                                state.addCatalogSearchQuery = ""
-                            },
-                        )
-                    }
-                }
             }
         }
     }
@@ -921,69 +884,33 @@ internal fun WorkoutStructureSheetsHost(
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
         val addExerciseSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-        ModalBottomSheet(
+        KpknSheet(
             onDismissRequest = {
                 state.addExerciseAfterId = null
                 state.addExerciseSearchQuery = ""
             },
             sheetState = addExerciseSheetState,
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-            containerColor = Color(0xFF1E1E1E),
-            contentColor = Color.White,
-            tonalElevation = 0.dp,
-            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.2f)) },
         ) {
-            MaterialTheme(
-                colorScheme = darkColorScheme(
-                    primary = Color(0xFFFFD600),
-                    onPrimary = Color.Black,
-                    primaryContainer = Color(0xFF333333),
-                    onPrimaryContainer = Color.White,
-                    secondary = Color(0xFF3B82F6),
-                    onSecondary = Color.White,
-                    secondaryContainer = Color(0xFF222222),
-                    onSecondaryContainer = Color.White,
-                    tertiary = Color(0xFFFFD600),
-                    onTertiary = Color.Black,
-                    surface = Color(0xFF1E1E1E),
-                    onSurface = Color.White,
-                    surfaceVariant = Color(0xFF2C2C2C),
-                    onSurfaceVariant = Color.White,
-                    background = Color(0xFF1E1E1E),
-                    onBackground = Color.White,
-                    outline = Color.White.copy(alpha = 0.5f),
-                    outlineVariant = Color.White.copy(alpha = 0.3f),
+            Column(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+                ExercisePickerSheet(
+                    query = state.addExerciseSearchQuery,
+                    catalog = EXERCISE_DATABASE,
+                    workoutLogs = workoutLogs,
+                    editingExisting = false,
+                    onSearch = { state.addExerciseSearchQuery = it },
+                    onSelect = { info ->
+                        viewModel.addExerciseAfter(targetExerciseId, info)
+                        state.addExerciseAfterId = null
+                        state.addExerciseSearchQuery = ""
+                    },
+                    onMultiSelect = { emptyList() },
+                    onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
+                    onOpenExerciseCreator = { },
+                    onDismiss = {
+                        state.addExerciseAfterId = null
+                        state.addExerciseSearchQuery = ""
+                    },
                 )
-            ) {
-                androidx.compose.runtime.CompositionLocalProvider(
-                    androidx.compose.material3.LocalContentColor provides Color.White
-                ) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                        color = Color(0xFF1E1E1E),
-                        contentColor = Color.White
-                    ) {
-                        ExercisePickerSheet(
-                            query = state.addExerciseSearchQuery,
-                            catalog = EXERCISE_DATABASE,
-                            workoutLogs = workoutLogs,
-                            editingExisting = false,
-                            onSearch = { state.addExerciseSearchQuery = it },
-                            onSelect = { info ->
-                                viewModel.addExerciseAfter(targetExerciseId, info)
-                                state.addExerciseAfterId = null
-                                state.addExerciseSearchQuery = ""
-                            },
-                            onMultiSelect = { emptyList() },
-                            onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
-                            onOpenExerciseCreator = { },
-                            onDismiss = {
-                                state.addExerciseAfterId = null
-                                state.addExerciseSearchQuery = ""
-                            },
-                        )
-                    }
-                }
             }
         }
     }
@@ -996,50 +923,14 @@ internal fun WorkoutStructureSheetsHost(
             skipPartiallyExpanded = true,
         )
 
-        ModalBottomSheet(
+        KpknSheet(
             onDismissRequest = {
                 state.showReplaceExercisePicker = false
                 state.replaceTargetExerciseId = null
             },
             sheetState = replaceSheetState,
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-            containerColor = Color(0xFF1E1E1E),
-            contentColor = Color.White,
-            tonalElevation = 0.dp,
-            dragHandle = {
-                BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.2f))
-            },
         ) {
-            MaterialTheme(
-                colorScheme = darkColorScheme(
-                    primary = Color(0xFFFFD600),
-                    onPrimary = Color.Black,
-                    primaryContainer = Color(0xFF333333),
-                    onPrimaryContainer = Color.White,
-                    secondary = Color(0xFF3B82F6),
-                    onSecondary = Color.White,
-                    secondaryContainer = Color(0xFF222222),
-                    onSecondaryContainer = Color.White,
-                    tertiary = Color(0xFFFFD600),
-                    onTertiary = Color.Black,
-                    surface = Color(0xFF1E1E1E),
-                    onSurface = Color.White,
-                    surfaceVariant = Color(0xFF2C2C2C),
-                    onSurfaceVariant = Color.White,
-                    background = Color(0xFF1E1E1E),
-                    onBackground = Color.White,
-                    outline = Color.White.copy(alpha = 0.5f),
-                    outlineVariant = Color.White.copy(alpha = 0.3f),
-                )
-            ) {
-                androidx.compose.runtime.CompositionLocalProvider(
-                    androidx.compose.material3.LocalContentColor provides Color.White
-                ) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                    color = Color(0xFF1E1E1E),
-                    contentColor = Color.White
-                ) {
+            Column(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
                 ExercisePickerSheet(
                     query = state.replaceSearchQuery,
                     catalog = EXERCISE_DATABASE,
@@ -1066,15 +957,13 @@ internal fun WorkoutStructureSheetsHost(
                         state.replaceTargetExerciseId = null
                     }
                 )
-                }
-                } // CompositionLocalProvider
             }
         }
     }
 
     uiState.pendingReplacementPersistencePrompt?.let {
         val options = viewModel.replacementScopeOptions()
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = {
                 viewModel.dismissPendingReplacementPersistencePrompt()
             },
@@ -1124,7 +1013,7 @@ internal fun WorkoutStructureSheetsHost(
             is PendingStructuralChange.AddExercise -> "Agregar ejercicio"
             is PendingStructuralChange.ReorderExercises -> "Reordenar ejercicios"
         }
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = {
                 viewModel.clearPendingStructuralPersistence()
             },

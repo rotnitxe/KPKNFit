@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.screens.workout.*
+import com.example.kpkn.ui.components.KpknSheet
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,11 +93,10 @@ internal fun SetAdjustmentOverlay(
         skipPartiallyExpanded = true,
         confirmValueChange = { target -> target != SheetValue.Hidden }
     )
-    ModalBottomSheet(
+    KpknSheet(
         onDismissRequest = {},
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 0.dp,
+        dismissible = false,
     ) {
         Column(
             modifier = Modifier

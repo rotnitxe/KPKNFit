@@ -32,7 +32,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -59,6 +59,7 @@ import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 data class VolumeCalibrationResult(
     val mode: ProgramMode,
@@ -171,7 +172,7 @@ fun HeroWidgetsSection(
 
     pendingRemoveWidget?.let { widgetName ->
         val widget = HeroWidgetType.entries.firstOrNull { it.name == widgetName }
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { pendingRemoveWidget = null },
             title = { Text("Quitar widget", fontWeight = FontWeight.Black) },
             text = {
@@ -198,7 +199,7 @@ fun HeroWidgetsSection(
     }
 
     if (pickerOpen) {
-        ModalBottomSheet(onDismissRequest = { pickerOpen = false }) {
+        KpknSheet(onDismissRequest = { pickerOpen = false }) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -293,7 +294,7 @@ fun HeroWidgetsSection(
     infoWidget?.let { widgetName ->
         val widget = HeroWidgetType.entries.firstOrNull { it.name == widgetName }
         if (widget != null) {
-            AlertDialog(
+            KpknAlertDialog(
                 onDismissRequest = { infoWidget = null },
                 title = { Text(widget.title, fontWeight = FontWeight.Black) },
                 text = { Text(widget.subtitle) },
@@ -305,7 +306,7 @@ fun HeroWidgetsSection(
     }
 
     if (showCalibrationRequiredDialog) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showCalibrationRequiredDialog = false },
             title = { Text("Primero calibra el volumen", fontWeight = FontWeight.Black) },
             text = {
@@ -326,7 +327,7 @@ fun HeroWidgetsSection(
     }
 
     if (showIncreaseConfirmDialog) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showIncreaseConfirmDialog = false },
             title = { Text("Aumentar volumen semanal", fontWeight = FontWeight.Black) },
             text = { Text("Esto aumentará en 20% el volumen de la semana actual, músculo por músculo. ¿Deseas continuar?") },
@@ -348,7 +349,7 @@ fun HeroWidgetsSection(
     }
 
     if (showReduceConfirmDialog) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showReduceConfirmDialog = false },
             title = { Text("Disminuir volumen semanal", fontWeight = FontWeight.Black) },
             text = { Text("Esto reducirá en 20% el volumen de la semana actual, músculo por músculo. ¿Deseas continuar?") },
@@ -504,7 +505,7 @@ fun VolumeCalibrationSheet(
         )
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    KpknSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

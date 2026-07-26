@@ -29,6 +29,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import kotlin.math.*
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 // ─── Ring Constants ──────────────────────────────────────────────────────────
 
@@ -242,7 +243,7 @@ internal fun batteryColor(score: Int): Color = when {
 
 @Composable
 private fun RingsInfoDialog(onDismiss: () -> Unit) {
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(

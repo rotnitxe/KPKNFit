@@ -178,9 +178,6 @@ import com.example.kpkn.data.repository.AugeRepository
 import java.time.LocalDate
 import java.util.UUID
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import kotlin.math.roundToInt
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
@@ -239,17 +236,8 @@ fun WorkoutScreen(
 
     // ─── Readiness sheet state ─────────────────────────────────────────────────
     val isMeetOrComp = session?.isMeetDay == true || session?.isCompetitionSession == true
-    val readinessHaze = remember { HazeState() }
-    val restHazeState = remember { HazeState() }
-    val bottomHazeState = remember { HazeState() }
-    val glassStyle = remember {
-        HazeStyle(
-            blurRadius = 20.dp,
-            tint = HazeTint(Color.Black.copy(alpha = 0.30f)),
-            backgroundColor = Color.Black.copy(alpha = 0.34f),
-            noiseFactor = 0.03f,
-        )
-    }
+    // Local source keeps workout overlays as true siblings; the activity source is an ancestor.
+    val overlayHazeState = remember { HazeState() }
     var readinessSheetDismissed by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
     val showReadinessSheet = !readinessSheetDismissed && !isMeetOrComp && uiState.readinessNeuralOverride == null
 
@@ -544,10 +532,9 @@ fun WorkoutScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
-        modifier = Modifier.fillMaxSize()
-            .hazeSource(state = readinessHaze)
-            .hazeSource(state = restHazeState)
-            .hazeSource(state = bottomHazeState),
+        modifier = Modifier
+            .fillMaxSize()
+            .hazeSource(state = overlayHazeState),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
     ) { padding ->
@@ -636,7 +623,7 @@ fun WorkoutScreen(
             onOpenContext = { exId -> structureSheets.exerciseContextExerciseId = exId },
             enableLongPress = true,
             sessionAccentColor = sessionAccentColor,
-            hazeState = bottomHazeState,
+            hazeState = overlayHazeState,
             mode = roadmapMode,
             onModeChange = { roadmapMode = it },
         )
@@ -737,7 +724,7 @@ fun WorkoutScreen(
             lastCompletedSet = uiState.setJustLoggedKey?.let { uiState.completedSets[it] },
             lastCompletedSets = currentRoundCompletedSets,
             sessionAccentColor = sessionAccentColor,
-            hazeState = restHazeState,
+            hazeState = overlayHazeState,
             skipExerciseLabel = if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
                 "Saltar ronda"
             } else {
@@ -778,8 +765,8 @@ fun WorkoutScreen(
         session = session,
         visibleExercises = visibleExercises,
         showReadinessSheet = showReadinessSheet,
-        readinessHaze = readinessHaze,
-        bottomHazeState = bottomHazeState,
+        readinessHaze = overlayHazeState,
+        bottomHazeState = overlayHazeState,
         gender = settings.userVitals.gender,
         sessionMuscleStartingBatteries = sessionMuscleStartingBatteries,
         readinessNeuralStart = readinessNeuralStart,
@@ -803,7 +790,7 @@ fun WorkoutScreen(
         renderedParts = renderedParts,
         originalExercisePartMap = originalExercisePartMap,
         sessionAccentColor = sessionAccentColor,
-        bottomHazeState = bottomHazeState,
+        bottomHazeState = overlayHazeState,
         allUserTags = allUserTags,
         context = context,
         onNavigateToWikiLab = onNavigateToWikiLab,
@@ -815,7 +802,6 @@ fun WorkoutScreen(
             exerciseName = currentExercise.name,
             onSave = { discomfortIds -> viewModel.dismissExecutionErrorDiscomfortSheet(discomfortIds) },
             onDismiss = { viewModel.dismissExecutionErrorDiscomfortSheet(emptyList()) },
-            hazeState = bottomHazeState,
         )
     }
 
@@ -855,7 +841,7 @@ fun WorkoutScreen(
             voiceFinalNeural = uiState.voiceFinalNeural,
             voiceFinalSpinal = uiState.voiceFinalSpinal,
             voiceFinalConfirmTriggered = uiState.voiceFinalConfirmTriggered,
-            hazeState = bottomHazeState,
+            hazeState = overlayHazeState,
             onConfirm = { notes, fatigue, closingFeedback, shareToStory ->
                 val share = shareToStory
                 val sessionName = session.name

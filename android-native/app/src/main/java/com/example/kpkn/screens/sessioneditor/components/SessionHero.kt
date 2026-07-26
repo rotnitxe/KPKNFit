@@ -69,6 +69,8 @@ import com.example.kpkn.screens.sessioneditor.formatEditorOneDecimal
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 @Composable
 internal fun SessionHero(
@@ -182,7 +184,7 @@ internal fun SessionHero(
                                                   Icons.Default.MoreVert, null,
                                                   Modifier.size(13.dp).clickable { showVariantMenu = true },
                                               )
-                                              DropdownMenu(expanded = showVariantMenu, onDismissRequest = { showVariantMenu = false }) {
+                                              KpknDropdownMenu(expanded = showVariantMenu, onDismissRequest = { showVariantMenu = false }) {
                                                   DropdownMenuItem(
                                                       text = { Text("Eliminar variante") },
                                                       onClick = { showVariantMenu = false; onDeleteVariant(variant) },
@@ -316,7 +318,7 @@ internal fun SessionHero(
                           SessionHeroActionChip("Reglas y tiempo", Icons.Default.Settings, onOpenRules)
                           Box {
                               SessionHeroActionChip("Más", Icons.Default.MoreVert) { showSecondaryMenu = true }
-                              DropdownMenu(
+                              KpknDropdownMenu(
                                   expanded = showSecondaryMenu,
                                   onDismissRequest = { showSecondaryMenu = false },
                               ) {
@@ -439,7 +441,7 @@ internal fun SessionHero(
 
                 // Dialog para nombrar la variante al crearla
                 if (showCreateVariantDialog && nextVariant != null) {
-                    AlertDialog(
+                    KpknAlertDialog(
                         onDismissRequest = { showCreateVariantDialog = false },
                         title = { Text("Nueva variante") },
                         text = {

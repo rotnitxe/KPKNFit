@@ -54,10 +54,8 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.MovementPatternReadiness
+import com.example.kpkn.ui.components.KpknSheet
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
 
@@ -143,13 +141,11 @@ fun WorkoutReadinessSheet(
         skipPartiallyExpanded = true,
         confirmValueChange = { target -> target != SheetValue.Hidden }
     )
-    ModalBottomSheet(
+    KpknSheet(
         onDismissRequest = {},
         sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = Color.Transparent,
-        tonalElevation = 0.dp,
-        dragHandle = null,
+        dismissible = false,
+        hazeState = hazeState,
     ) {
         val hasMuscles = muscleAdjustments.isNotEmpty()
         val preparedWord = when (gender) {
@@ -158,42 +154,15 @@ fun WorkoutReadinessSheet(
             else -> "preparado(a)"
         }
 
-        Box(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .hazeEffect(
-                        state = hazeState,
-                        style = HazeStyle(
-                            blurRadius = 24.dp,
-                            tint = HazeTint(Color.Black.copy(alpha = 0.45f)),
-                            backgroundColor = Color(0xFF0A0A0A).copy(alpha = 0.75f),
-                            noiseFactor = 0.03f,
-                        ),
-                    )
-                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)),
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .navigationBarsPadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                // Drag handle visual indicator
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .width(42.dp)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(Color.White.copy(alpha = 0.2f))
-                )
-
-                Text(
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
                     text = "Reporta tu estado antes de entrenar",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
@@ -598,7 +567,6 @@ fun WorkoutReadinessSheet(
                     Text("Omitir y Entrenar", fontWeight = FontWeight.Bold)
                 }
             }
-        }
     }
 }
 

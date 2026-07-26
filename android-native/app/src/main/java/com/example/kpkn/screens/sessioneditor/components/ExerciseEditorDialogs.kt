@@ -33,6 +33,7 @@ import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.smartReferenceMetricLabel
 import com.example.kpkn.screens.sessioneditor.DarkEditorChip
 import com.example.kpkn.screens.sessioneditor.ToggleToken
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @Composable
 internal fun ExerciseSmartLoadDialog(
@@ -51,7 +52,7 @@ internal fun ExerciseSmartLoadDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
-AlertDialog(
+KpknAlertDialog(
     onDismissRequest = { onDismiss() },
     title = { Text("Carga inteligente", fontWeight = FontWeight.Black) },
     text = {
@@ -191,7 +192,7 @@ internal fun ExerciseGoalDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
-AlertDialog(
+KpknAlertDialog(
     onDismissRequest = { onDismiss() },
     title = { Text("Meta / PR", fontWeight = FontWeight.Black) },
     text = {
@@ -239,7 +240,7 @@ internal fun ExerciseCustomUnitDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
-AlertDialog(
+KpknAlertDialog(
     onDismissRequest = { onDismiss() },
     title = { Text("Unidad Personalizada", fontWeight = FontWeight.Black) },
     text = {

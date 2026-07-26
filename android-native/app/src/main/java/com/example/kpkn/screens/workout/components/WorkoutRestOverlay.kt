@@ -24,9 +24,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.kpkn.ui.components.kpknGlassStyle
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import java.util.Locale
 
@@ -64,15 +63,7 @@ fun RestTimerOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .hazeEffect(
-                state = hazeState,
-                style = HazeStyle(
-                    blurRadius = 28.dp,
-                    tint = HazeTint(Color.Black.copy(alpha = 0.58f)),
-                    backgroundColor = Color(0xFF070707).copy(alpha = 0.70f),
-                    noiseFactor = 0.03f,
-                ),
-            )
+            .hazeEffect(state = hazeState, style = kpknGlassStyle())
             .zIndex(6f),
     ) {
         AnimatedContent(
@@ -109,6 +100,7 @@ fun RestTimerOverlay(
                     remainingSeconds = remainingSeconds,
                     timerProgress = timerProgress,
                     sessionAccentColor = sessionAccentColor,
+                    hazeState = hazeState,
                     pendingRestSuggestion = pendingRestSuggestion,
                     lastSetOutcome = lastSetOutcome,
                     lastCompletedSet = lastCompletedSet,
@@ -263,6 +255,7 @@ private fun NormalRestContent(
     remainingSeconds: Int,
     timerProgress: Float,
     sessionAccentColor: Color,
+    hazeState: HazeState,
     pendingRestSuggestion: PendingRestSuggestion?,
     lastSetOutcome: SetOutcomeV2?,
     lastCompletedSet: CompletedSet?,
@@ -439,6 +432,8 @@ private fun NormalRestContent(
             lastCompletedSets.forEach { (exerciseName, set) ->
                 WorkoutGlassSurface(
                     modifier = Modifier.fillMaxWidth(),
+                    // Nested inside the full-screen glass; use the solid frosted fallback.
+                    hazeState = null,
                     shape = WorkoutUiTokens.InnerCardShape,
                     border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
                 ) {
@@ -498,6 +493,8 @@ private fun NormalRestContent(
             if (referenceSet != null) {
                 WorkoutGlassSurface(
                     modifier = Modifier.fillMaxWidth(),
+                    // Nested inside the full-screen glass; use the solid frosted fallback.
+                    hazeState = null,
                     shape = WorkoutUiTokens.InnerCardShape,
                     border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
                 ) {

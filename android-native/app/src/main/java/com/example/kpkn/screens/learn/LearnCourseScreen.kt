@@ -56,6 +56,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.learn.LearnModule
 import com.example.kpkn.data.repository.LearnRepository
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,9 +84,8 @@ fun LearnCourseScreen(
     }
 
     if (showDisclaimer) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showDisclaimer = false },
-            containerColor = Color(0xFF161616),
             title = {
                 Text(
                     "Aviso importante",

@@ -72,6 +72,8 @@ import com.example.kpkn.screens.sessioneditor.components.InlineSetRow
 import com.example.kpkn.screens.sessioneditor.components.SupersetRestWheelRow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 @Composable
 internal fun CompactRestBundleButton(
@@ -135,7 +137,7 @@ internal fun RestBundleDialog(
     var sideMinutes by rememberSaveable(initialSideSeconds) { mutableStateOf(((initialSideSeconds ?: 0) / 60).coerceIn(0, 59)) }
     var sideSeconds by rememberSaveable(initialSideSeconds) { mutableStateOf(((initialSideSeconds ?: 0) % 60).coerceIn(0, 59)) }
 
-    AlertDialog(
+    KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Descansos", fontWeight = FontWeight.Black) },
         text = {
@@ -255,7 +257,7 @@ internal fun CompactModeSelector(
             }
         }
         
-        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+        KpknDropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
             listOf(
                 TrainingMode.REPS to "Reps",
                 TrainingMode.AMRAP to "AMRAP",
@@ -354,7 +356,7 @@ internal fun UnilateralModeSelector(
                 Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = if (isUnilateral) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
             }
         }
-        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+        KpknDropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
             DropdownMenuItem(text = { Text("Bilateral") }, onClick = {
                 showMenu = false
                 if (isUnilateral) onToggleUnilateral()

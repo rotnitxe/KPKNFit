@@ -48,6 +48,8 @@ import com.example.kpkn.data.models.MobilityExerciseCatalog
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
+import com.example.kpkn.ui.components.KpknGlass
+import com.example.kpkn.ui.components.kpknWindowGlass
 import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
@@ -181,8 +183,14 @@ internal fun WorkoutSessionOverlaysHost(
             if (mobilitySearchQuery.isBlank()) mobilityExercisesForSession
             else MobilityExerciseCatalog.searchMobilityByName(mobilitySearchQuery)
         }
+        val mobilityDialogShape = RoundedCornerShape(20.dp)
         Dialog(onDismissRequest = { showMobilityPicker = false }) {
-            Surface(shape = RoundedCornerShape(20.dp), color = Color(0xFF2A2A2A), tonalElevation = 6.dp) {
+            Surface(
+                modifier = Modifier.kpknWindowGlass(mobilityDialogShape),
+                shape = mobilityDialogShape,
+                color = Color.Transparent,
+                tonalElevation = 0.dp,
+            ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Agregar movilidad", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White)
                     OutlinedTextField(
@@ -291,13 +299,16 @@ internal fun WorkoutSessionOverlaysHost(
     }
 
     if (showExitDialog) {
+        val exitDialogShape = RoundedCornerShape(KpknGlass.DialogCornerRadius)
         Dialog(onDismissRequest = { onShowExitDialogChange(false) }) {
             Surface(
                 modifier = Modifier
                     .widthIn(min = 280.dp, max = 560.dp)
-                    .wrapContentHeight(),
-                shape = MaterialTheme.shapes.extraLarge,
-                tonalElevation = 6.dp,
+                    .wrapContentHeight()
+                    .kpknWindowGlass(exitDialogShape),
+                shape = exitDialogShape,
+                color = Color.Transparent,
+                tonalElevation = 0.dp,
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),

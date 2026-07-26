@@ -21,10 +21,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.components.KpknGlass
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
 
 object WorkoutUiTokens {
     val ScreenHorizontalPadding = 12.dp
@@ -76,23 +75,13 @@ object WorkoutUiTokens {
 fun WorkoutGlassSurface(
     modifier: Modifier = Modifier,
     hazeState: HazeState? = null,
-    glassStyle: HazeStyle = HazeStyle(
-        blurRadius = 24.dp,
-        tint = HazeTint(Color.Black.copy(alpha = 0.42f)),
-        backgroundColor = Color(0xFF0F0F0F).copy(alpha = 0.50f),
-        noiseFactor = 0.02f
-    ),
     shape: Shape = WorkoutUiTokens.CardShape,
-    border: BorderStroke? = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+    border: BorderStroke? = BorderStroke(1.dp, KpknGlass.BorderColor),
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
         modifier = modifier
-            .clip(shape)
-            .then(
-                if (hazeState != null) Modifier.hazeEffect(state = hazeState, style = glassStyle)
-                else Modifier.background(MaterialTheme.colorScheme.surfaceContainer)
-            )
+            .kpknGlassOrFallback(hazeState, shape, withBorder = false)
             .then(
                 if (border != null) Modifier.border(border, shape)
                 else Modifier

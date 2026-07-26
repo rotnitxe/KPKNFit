@@ -35,10 +35,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import com.example.kpkn.data.models.*
 import com.example.kpkn.screens.workout.*
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
 
 enum class RoadmapMode {
     COMPACT,
@@ -132,12 +130,6 @@ fun WorkoutRoadmapBar(
         }
     }
 
-    val roadmapGlassStyle = HazeStyle(
-        blurRadius = 64.dp,
-        tint = HazeTint(Color.Black.copy(alpha = 0.34f)),
-        backgroundColor = Color.Black.copy(alpha = 0.38f),
-        noiseFactor = 0.025f,
-    )
     val roadmapShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
 
     Surface(
@@ -153,14 +145,7 @@ fun WorkoutRoadmapBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(roadmapShape)
-                .then(
-                    if (hazeState != null) {
-                        Modifier.hazeEffect(state = hazeState, style = roadmapGlassStyle)
-                    } else {
-                        Modifier.background(Color.Black.copy(alpha = 0.38f))
-                    }
-                )
+                .kpknGlassOrFallback(hazeState, roadmapShape, withBorder = false)
                 .clickable(enabled = activeMode == RoadmapMode.COMPACT) {
                     onModeChange(RoadmapMode.EXPANDED)
                 }

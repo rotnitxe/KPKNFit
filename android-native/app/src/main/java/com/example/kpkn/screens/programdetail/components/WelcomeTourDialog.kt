@@ -27,6 +27,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.example.kpkn.ui.components.KpknGlass
+import com.example.kpkn.ui.components.kpknWindowGlass
 
 private data class TourStep(
     val icon: ImageVector,
@@ -122,14 +124,16 @@ fun WelcomeTourDialog(
                 ),
             contentAlignment = Alignment.Center,
         ) {
+            val tourCardShape = RoundedCornerShape(40.dp)
             Card(
                 modifier = modifier
                     .padding(32.dp)
                     .fillMaxWidth()
-                    .clickable(enabled = false) {},
-                shape = RoundedCornerShape(40.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(16.dp),
+                    .clickable(enabled = false) {}
+                    .kpknWindowGlass(tourCardShape),
+                shape = tourCardShape,
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                elevation = CardDefaults.cardElevation(0.dp),
             ) {
                 // Top blue bar
                 Box(

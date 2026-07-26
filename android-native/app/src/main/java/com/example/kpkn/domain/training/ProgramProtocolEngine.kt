@@ -59,6 +59,8 @@ object ProgramProtocolEngine {
                 },
             ),
             selectedSplitId = protocol.defaultSplit?.let { resolveSplitId(it) } ?: program.selectedSplitId,
+            blockSplitSelections = emptyMap(),
+            weekSplitSelections = emptyMap(),
             macrocycles = listOf(
                 Macrocycle(
                     id = idProvider.newId(),

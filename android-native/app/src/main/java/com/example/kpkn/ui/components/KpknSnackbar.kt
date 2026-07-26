@@ -1,8 +1,19 @@
 package com.example.kpkn.ui.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarData
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,7 +32,7 @@ private fun SnackbarType.containerColor(): Color = when (this) {
 private fun SnackbarType.contentColor(): Color = when (this) {
     SnackbarType.SUCCESS -> Color.White
     SnackbarType.DANGER -> Color.White
-    SnackbarType.ACHIEVEMENT -> Color(0xFF92400E)
+    SnackbarType.ACHIEVEMENT -> Color.White
     SnackbarType.SUGGESTION -> Color.White
 }
 
@@ -30,6 +41,14 @@ private fun SnackbarType.emoji(): String = when (this) {
     SnackbarType.DANGER -> "\u274C"
     SnackbarType.ACHIEVEMENT -> "\uD83C\uDFC6"
     SnackbarType.SUGGESTION -> "\uD83D\uDCA1"
+}
+
+private fun inferSnackbarType(message: String): SnackbarType = when {
+    message.startsWith(SnackbarType.SUCCESS.emoji()) -> SnackbarType.SUCCESS
+    message.startsWith(SnackbarType.DANGER.emoji()) -> SnackbarType.DANGER
+    message.startsWith(SnackbarType.ACHIEVEMENT.emoji()) -> SnackbarType.ACHIEVEMENT
+    message.startsWith(SnackbarType.SUGGESTION.emoji()) -> SnackbarType.SUGGESTION
+    else -> SnackbarType.SUCCESS
 }
 
 suspend fun SnackbarHostState.showKpknSnackbar(
@@ -48,16 +67,65 @@ suspend fun SnackbarHostState.showKpknSnackbar(
 
 @Composable
 fun KpknSnackbar(data: SnackbarData) {
+    val type = inferSnackbarType(data.visuals.message)
+    val shape = RoundedCornerShape(12.dp)
+    val accentColor = type.containerColor()
+
     Snackbar(
-        modifier = Modifier.padding(12.dp),
-        shape = RoundedCornerShape(12.dp),
-        containerColor = Color(0xFF323232),
-        contentColor = Color.White,
-        actionContentColor = Color.White,
-        dismissActionContentColor = Color.White.copy(alpha = 0.6f),
+        modifier = Modifier
+            .padding(12.dp)
+            .kpknWindowGlass(shape, withBorder = false)
+            .border(width = 1.dp, color = accentColor.copy(alpha = 0.55f), shape = shape),
+        shape = shape,
+        containerColor = Color.Transparent,
+        contentColor = type.contentColor(),
+        actionContentColor = type.contentColor(),
+        dismissActionContentColor = type.contentColor().copy(alpha = 0.6f),
+        action = {
+            data.visuals.actionLabel?.let { label ->
+                TextButton(onClick = { data.performAction() }) {
+                    Text(label, fontWeight = FontWeight.Bold)
+                }
+            }
+        },
+        dismissAction = {
+            if (data.visuals.withDismissAction) {
+                IconButton(onClick = { data.dismiss() }) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                    )
+                }
+            }
+        },
     ) {
         Text(
             text = data.visuals.message,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+@Composable
+fun KpknSnackbarBanner(
+    message: String,
+    type: SnackbarType = SnackbarType.SUCCESS,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(12.dp)
+    val accentColor = type.containerColor()
+
+    Snackbar(
+        modifier = modifier
+            .padding(12.dp)
+            .kpknWindowGlass(shape, withBorder = false)
+            .border(width = 1.dp, color = accentColor.copy(alpha = 0.55f), shape = shape),
+        shape = shape,
+        containerColor = Color.Transparent,
+        contentColor = type.contentColor(),
+    ) {
+        Text(
+            text = "${type.emoji()} $message",
             fontWeight = FontWeight.Bold,
         )
     }

@@ -51,6 +51,7 @@ import com.example.kpkn.screens.settings.components.SettingsSectionHeader
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -235,7 +236,7 @@ fun SettingsDataScreen(
     }
 
     if (showClearDataDialog) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showClearDataDialog = false },
             title = { Text("¿Restablecer aplicación de cero?") },
             text = {
@@ -269,7 +270,7 @@ fun SettingsDataScreen(
     }
 
     if (snapshotToRestore != null) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { snapshotToRestore = null },
             title = { Text("¿Restaurar snapshot?") },
             text = {
@@ -305,7 +306,7 @@ fun SettingsDataScreen(
     }
 
     if (snapshotToDelete != null) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { snapshotToDelete = null },
             title = { Text("¿Eliminar snapshot?") },
             text = {
@@ -336,7 +337,7 @@ fun SettingsDataScreen(
     }
 
     if (showLicensesDialog) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showLicensesDialog = false },
             title = { Text("Licencias de código abierto") },
             text = {

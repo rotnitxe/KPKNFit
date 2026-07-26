@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 enum class SetCardDensity { Comfortable, Compact, SupersetCompact }
 enum class SetSideMode { BILATERAL, LEFT, RIGHT }
@@ -253,7 +254,7 @@ fun SetCardHeader(
                     Icon(Icons.Default.KeyboardArrowDown, null, modifier = Modifier.size(14.dp))
                 }
                 
-                DropdownMenu(expanded = showLoadModeMenu, onDismissRequest = { showLoadModeMenu = false }) {
+                KpknDropdownMenu(expanded = showLoadModeMenu, onDismissRequest = { showLoadModeMenu = false }) {
                     listOf(
                         LoadModeV2.LOAD to "Carga externa",
                         LoadModeV2.BODYWEIGHT to "Peso corporal",
@@ -281,7 +282,7 @@ fun SetCardHeader(
                     )
                 }
                 
-                DropdownMenu(expanded = showMoreMenu, onDismissRequest = { showMoreMenu = false }) {
+                KpknDropdownMenu(expanded = showMoreMenu, onDismissRequest = { showMoreMenu = false }) {
                     DropdownMenuItem(
                         text = { Text("Duplicar serie") },
                         leadingIcon = { Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp)) },
@@ -456,7 +457,7 @@ fun SetIntensityBlock(
                 }
             }
             
-            DropdownMenu(expanded = showIntensityMenu, onDismissRequest = { showIntensityMenu = false }) {
+            KpknDropdownMenu(expanded = showIntensityMenu, onDismissRequest = { showIntensityMenu = false }) {
                 listOf(
                     IntensityMode.RPE to "RPE",
                     IntensityMode.RIR to "RIR",

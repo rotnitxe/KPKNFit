@@ -62,6 +62,7 @@ import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.auge.AugeTtcEngine
 import java.util.Locale
 import kotlin.math.roundToInt
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 internal fun buildFeedbackExercisesForTarget(
     postExerciseTarget: Exercise?,
@@ -492,7 +493,7 @@ internal fun WorkoutPostExerciseFeedbackContent(
     }
 
     infoDiscomfortEntry?.let { entry ->
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { infoDiscomfortEntry = null },
             title = { Text(entry.label, fontWeight = FontWeight.Black) },
             text = {

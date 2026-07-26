@@ -79,7 +79,6 @@ import com.example.kpkn.screens.sessioneditor.components.rememberSessionEditorSp
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
-import com.example.kpkn.ui.components.kpknGlassStyle
 import kotlinx.coroutines.launch
 
 import com.example.kpkn.screens.sessioneditor.components.SessionHero
@@ -108,6 +107,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.ui.text.style.TextOverflow
 import kotlin.math.roundToInt
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 
 @Composable
@@ -175,8 +175,6 @@ fun SessionEditorScreen(
     }
 
     val hazeState = remember { HazeState() }
-    // Canonical KPKN glass (see docs "Blur KPKN.md"). Shared by the roadmap dock and the assistant FAB.
-    val roadmapGlassStyle = remember { kpknGlassStyle() }
 
     // Snackbar for auto-save and navigation messages from ViewModel
     LaunchedEffect(uiState.snackbarMessage) {
@@ -521,7 +519,6 @@ fun SessionEditorScreen(
                 isSimpleProgram = uiState.isSimpleProgram,
                 hasActiveLoops = uiState.hasActiveLoops,
                 hazeState = hazeState,
-                hazeStyle = roadmapGlassStyle,
                 onSetMainSessionForDay = viewModel::setMainSessionForDay,
                 currentSessionId = session.id,
                 currentDayOfWeek = uiState.dayOfWeek,
@@ -741,7 +738,7 @@ fun SessionEditorScreen(
     )
 
     if (showDiscardDialog) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showDiscardDialog = false },
             title = { Text("Salir del editor", fontWeight = FontWeight.Black) },
             text = {

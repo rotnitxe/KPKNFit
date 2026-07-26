@@ -65,6 +65,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
 import kotlin.math.max
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 internal data class CanonicalMuscleVolumeUi(
     val muscleId: String,
@@ -340,7 +341,7 @@ private fun VolumeScopeSelector(
             }
             Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
         }
-        DropdownMenu(
+        KpknDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier.fillMaxWidth(0.92f),

@@ -36,6 +36,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.screens.nutrition.components.NutritionPlanEditorModal
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 // ═══════════════════════════════════════════════════════════════════════
 // COLORS
@@ -272,7 +273,7 @@ fun NutritionScreen(
     )
 
     if (showPlanRequiredDialog) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showPlanRequiredDialog = false },
             title = { Text("Crea un plan de alimentación") },
             text = { Text("Primero necesitas crear un plan de alimentación para registrar comidas o mediciones.") },

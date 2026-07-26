@@ -15,6 +15,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -64,6 +65,8 @@ import com.example.kpkn.navigation.KpknRoute
 import com.example.kpkn.navigation.addHealthConnectRoute
 import com.example.kpkn.navigation.NavigationBus
 import com.example.kpkn.screens.home.HomeScreen
+import com.example.kpkn.screens.home.HomeGlassOverlay
+import com.example.kpkn.screens.home.HomeGlassOverlayChange
 import com.example.kpkn.screens.competitions.CompetitionScreen
 import com.example.kpkn.screens.nutrition.BodyProgressScreen
 import com.example.kpkn.screens.nutrition.MealHistoryScreen
@@ -91,6 +94,7 @@ import com.example.kpkn.telemetry.TelemetryHelper
 import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.icons.NutritionIcon
 import com.example.kpkn.ui.components.icons.WikiIcon
+import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlass
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
@@ -103,8 +107,10 @@ import com.example.kpkn.ui.locale.LocaleManager
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.theme.KPKNTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 private enum class NutritionContextTab {
     NUTRITION,
@@ -475,25 +481,57 @@ fun KPKNApp(
     val showContextualSubtabbar = showTrainingSubtabbar || showNutritionSubtabbar || showWikiSearchSubtabbar
 
     val hazeState = remember { HazeState() }
-    var homeGlassOverlay by remember { mutableStateOf<(@Composable (HazeState) -> Unit)?>(null) }
-    var homeModalOverlay by remember { mutableStateOf<(@Composable (HazeState) -> Unit)?>(null) }
+    var homeGlassOverlay by remember { mutableStateOf<HomeGlassOverlay?>(null) }
+    var homeModalOverlay by remember { mutableStateOf<HomeGlassOverlay?>(null) }
+    // Stable callbacks — unstable lambdas keyed DisposableEffect in Home and raced dispose→null.
+    val onHomeGlassOverlayChange = remember<HomeGlassOverlayChange> {
+        { overlay, expectedCurrent ->
+            if (expectedCurrent == null || homeGlassOverlay === expectedCurrent) {
+                homeGlassOverlay = overlay
+            }
+        }
+    }
+    val onHomeModalOverlayChange = remember<HomeGlassOverlayChange> {
+        { overlay, expectedCurrent ->
+            if (expectedCurrent == null || homeModalOverlay === expectedCurrent) {
+                homeModalOverlay = overlay
+            }
+        }
+    }
+    val showHomeGlassOverlays = currentRoute == KpknRoute.Home.route
+    LaunchedEffect(showHomeGlassOverlays) {
+        if (!showHomeGlassOverlays) {
+            // Keep the last composable alive exactly through the synchronized exit fade.
+            delay(160)
+            onHomeGlassOverlayChange(null, homeGlassOverlay)
+            onHomeModalOverlayChange(null, homeModalOverlay)
+        }
+    }
+    CompositionLocalProvider(LocalHazeState provides hazeState) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (isFullscreenWizard) {
-            KPKNNavGraph(
-                navController = navController,
-                themeMode = themeMode,
-                onThemeChange = onThemeChange,
-                primaryProgramId = primaryProgramId,
-                nutritionViewModel = nutritionViewModel,
-                onProgramContextTabStateChange = { activeTab, onChange ->
-                    programContextTab = activeTab
-                    onProgramContextTabChange = onChange
-                },
-                wikiSearchQuery = wikiSearchQuery,
-                onWikiSearchQueryChange = { wikiSearchQuery = it },
-                onHomeGlassOverlayChange = { homeGlassOverlay = it },
-                onHomeModalOverlayChange = { homeModalOverlay = it },
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .hazeSource(state = hazeState),
+            ) {
+                KPKNNavGraph(
+                    navController = navController,
+                    themeMode = themeMode,
+                    onThemeChange = onThemeChange,
+                    primaryProgramId = primaryProgramId,
+                    nutritionViewModel = nutritionViewModel,
+                    onProgramContextTabStateChange = { activeTab, onChange ->
+                        programContextTab = activeTab
+                        onProgramContextTabChange = onChange
+                    },
+                    wikiSearchQuery = wikiSearchQuery,
+                    onWikiSearchQueryChange = { wikiSearchQuery = it },
+                    onHomeGlassOverlayChange = onHomeGlassOverlayChange,
+                    onHomeModalOverlayChange = onHomeModalOverlayChange,
+                )
+            }
         } else {
             Box(
                 modifier = Modifier
@@ -517,21 +555,11 @@ fun KPKNApp(
                     },
                     wikiSearchQuery = wikiSearchQuery,
                     onWikiSearchQueryChange = { wikiSearchQuery = it },
-                    onHomeGlassOverlayChange = { homeGlassOverlay = it },
-                onHomeModalOverlayChange = { homeModalOverlay = it },
+                    onHomeGlassOverlayChange = onHomeGlassOverlayChange,
+                    onHomeModalOverlayChange = onHomeModalOverlayChange,
                 )
                 }
 
-            }
-
-            if (currentTab == KpknRoute.Home.route) {
-                Box(Modifier.align(Alignment.TopCenter)) {
-                    homeGlassOverlay?.invoke(hazeState)
-                }
-            }
-
-            if (currentTab == KpknRoute.Home.route) {
-                homeModalOverlay?.invoke(hazeState)
             }
 
             // ─── Session in progress banner ─────────────────────────────────
@@ -763,10 +791,29 @@ fun KPKNApp(
                 }
             }
         }
+
+        // Kept outside the fullscreen/non-fullscreen branch so every destination transition,
+        // including Workout and Session Editor, executes the same synchronized fade.
+        AnimatedVisibility(
+            visible = showHomeGlassOverlays && homeGlassOverlay != null,
+            modifier = Modifier.align(Alignment.TopCenter),
+            enter = fadeIn(animationSpec = tween(120)),
+            exit = fadeOut(animationSpec = tween(150)),
+        ) {
+            homeGlassOverlay?.invoke(hazeState)
+        }
+
+        AnimatedVisibility(
+            visible = showHomeGlassOverlays && homeModalOverlay != null,
+            enter = fadeIn(animationSpec = tween(120)),
+            exit = fadeOut(animationSpec = tween(150)),
+        ) {
+            homeModalOverlay?.invoke(hazeState)
+        }
     }
 
     if (showPermissionAlert) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { /* No se cierra al tocar fuera */ },
             icon = {
                 Icon(
@@ -859,6 +906,7 @@ fun KPKNApp(
             }
         )
     }
+    } // CompositionLocalProvider(LocalHazeState)
 }
 
 @Composable
@@ -986,8 +1034,8 @@ private fun KPKNNavGraph(
     onProgramContextTabStateChange: (MainTab, (MainTab) -> Unit) -> Unit,
     wikiSearchQuery: String = "",
     onWikiSearchQueryChange: (String) -> Unit = {},
-    onHomeGlassOverlayChange: ((@Composable (HazeState) -> Unit)?) -> Unit = {},
-    onHomeModalOverlayChange: ((@Composable (HazeState) -> Unit)?) -> Unit = {},
+    onHomeGlassOverlayChange: HomeGlassOverlayChange = { _, _ -> },
+    onHomeModalOverlayChange: HomeGlassOverlayChange = { _, _ -> },
 ) {
     NavHost(navController = navController, startDestination = KpknRoute.Home.route) {
         composable(KpknRoute.Home.route) {

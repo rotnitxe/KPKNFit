@@ -36,6 +36,7 @@ import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.screens.wikilab.wikilabMuscleColor
 import java.util.Locale
 import kotlin.math.roundToInt
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 internal enum class WorkoutExerciseContextTab {
     HISTORY,
@@ -854,7 +855,7 @@ internal fun WorkoutExerciseSetupContent(
 
     if (showNewProfileDialog) {
         var newLabel by remember { mutableStateOf("") }
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { showNewProfileDialog = false },
             title = { Text("Nuevo Setup", fontWeight = FontWeight.Black) },
             text = {

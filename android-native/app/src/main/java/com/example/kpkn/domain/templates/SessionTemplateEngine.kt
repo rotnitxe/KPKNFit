@@ -89,6 +89,7 @@ object SessionTemplateEngine {
             exercises = cloned.exercises,
             parts = cloned.parts,
             warmup = cloned.warmup,
+            supersetGroups = cloned.supersetGroups,
         )
     }
 
@@ -100,6 +101,7 @@ object SessionTemplateEngine {
             parts = target.parts + cloned.parts,
             exercises = target.exercises + cloned.exercises,
             warmup = target.warmup + cloned.warmup,
+            supersetGroups = target.allSupersetGroups() + cloned.supersetGroups,
         )
     }
 

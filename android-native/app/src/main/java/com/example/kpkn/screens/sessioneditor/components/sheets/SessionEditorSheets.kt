@@ -119,7 +119,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -193,10 +193,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.viewinterop.AndroidView
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -343,6 +340,7 @@ import com.example.kpkn.screens.sessioneditor.components.SupersetRestPickerButto
 import com.example.kpkn.screens.sessioneditor.components.SupersetRestPickerDialog
 import com.example.kpkn.screens.sessioneditor.components.SupersetRestWheelRow
 import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -409,7 +407,7 @@ internal fun SessionEditorSheets(
     if (uiState.sheet == SessionEditorSheet.NONE) return
 
     // AUGE is rendered as an in-composition Liquid Glass overlay in SessionEditorScreen
-    // (sibling of hazeSource). Do NOT put it in ModalBottomSheet — blur would die.
+    // (sibling of hazeSource). Do NOT put it in KpknSheet — blur would die.
     if (uiState.sheet == SessionEditorSheet.AUGE) return
 
     val warmupExercise = session.allExercises().find { it.id == uiState.warmupExerciseId }
@@ -446,30 +444,16 @@ internal fun SessionEditorSheets(
                  }
              },
          )
-         ModalBottomSheet(
+         KpknSheet(
               onDismissRequest = requestPickerDismiss,
               sheetState = sheetState,
               modifier = Modifier.fillMaxHeight(),
-              scrimColor = Color.Black.copy(alpha = 0.32f),
-              dragHandle = null,
           ) {
               Column(
                   modifier = Modifier
                       .fillMaxWidth()
-                      .fillMaxHeight()
-                      .navigationBarsPadding(),
+                      .fillMaxHeight(),
               ) {
-                 // Drag handle indicator
-                 Box(
-                     modifier = Modifier
-                         .align(Alignment.CenterHorizontally)
-                         .padding(top = 8.dp, bottom = 4.dp)
-                         .width(32.dp)
-                         .height(4.dp)
-                         .clip(RoundedCornerShape(2.dp))
-                         .background(MaterialTheme.colorScheme.outlineVariant),
-                 )
-                 
                   if (showInlineCreator) {
                       Row(
                           modifier = Modifier
@@ -528,7 +512,7 @@ internal fun SessionEditorSheets(
              }
          }
          if (showPickerExitConfirm) {
-             AlertDialog(
+             KpknAlertDialog(
                  onDismissRequest = { showPickerExitConfirm = false },
                  title = { Text("Ejercicios seleccionados") },
                  text = {
@@ -589,7 +573,7 @@ internal fun SessionEditorSheets(
          return
      }
 
-    ModalBottomSheet(
+    KpknSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
@@ -658,7 +642,7 @@ internal fun SessionEditorSheets(
                 )
             }
             SessionEditorSheet.SUPERSET_CREATOR -> {
-                val draft = uiState.supersetDraft ?: return@ModalBottomSheet
+                val draft = uiState.supersetDraft ?: return@KpknSheet
                 SupersetMemberPickerSheet(
                     draft = draft,
                     sessionExercises = session.allExercises(),
