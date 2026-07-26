@@ -62,7 +62,7 @@ private fun ThreeRingsHeaderIcon(modifier: Modifier = Modifier) {
         val cy = size.height / 2f
         val cx = size.width / 2f
 
-        val colors = listOf(Color(0xFFFF5252), Color(0xFF448AFF), Color(0xFFFFD740))
+        val colors = listOf(com.example.kpkn.ui.theme.RingRed, com.example.kpkn.ui.theme.RingBlue, com.example.kpkn.ui.theme.RingYellow)
         val positions = listOf(
             Offset(cx - s, cy),
             Offset(cx, cy),
@@ -88,7 +88,7 @@ private fun SingleRingHeaderIcon(modifier: Modifier = Modifier) {
         val center = Offset(size.width / 2f, size.height / 2f)
 
         drawCircle(
-            Color(0xFF448AFF),
+            com.example.kpkn.ui.theme.RingBlue,
             r,
             center,
             style = Stroke(1.2f),

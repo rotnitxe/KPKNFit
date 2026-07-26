@@ -111,13 +111,21 @@ object SplitApplicationEngine {
         val selectedSplit = request.selectedSplit
 
         return request.program.copy(
-            startDay = request.startDay,
+            startDay = if (ProgramCalendarEngine.isCalendarized(request.program)) {
+                request.program.startDay ?: request.startDay
+            } else {
+                request.startDay
+            },
             selectedSplitId = if (request.advancedMode == AdvancedSplitMode.GLOBAL) selectedSplit.id else request.program.selectedSplitId,
             customSplitPattern = if (request.advancedMode == AdvancedSplitMode.GLOBAL) selectedSplit.pattern else request.program.customSplitPattern,
             customSplitName = if (selectedSplit.id == "custom") selectedSplit.name else request.program.customSplitName,
             customSplitDescription = if (selectedSplit.id == "custom") selectedSplit.description else request.program.customSplitDescription,
             blockSplitSelections = if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) blockAssignments else emptyMap(),
             splitTrialSeen = false,
+            schedulePlan = request.program.schedulePlan?.let { plan ->
+                if (ProgramCalendarEngine.isCalendarized(request.program)) plan
+                else plan.copy(weekStartDay = request.startDay)
+            },
             macrocycles = request.program.macrocycles.map { macro ->
                 macro.copy(
                     blocks = macro.blocks.map { block ->

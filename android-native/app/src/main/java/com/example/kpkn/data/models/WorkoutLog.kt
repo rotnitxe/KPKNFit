@@ -34,6 +34,9 @@ data class WorkoutLog(
     val scheduledDate: String? = null,
     val actualDate: String? = null,
     val scheduleDeltaDays: Int? = null,
+    val programRunId: String? = null,
+    val cycleNumber: Int? = null,
+    val weekInstanceId: String? = null,
 )
 
 @Serializable
@@ -213,6 +216,12 @@ data class ActiveProgramState(
     val currentBlockIndex: Int = 0,
     val currentMesocycleIndex: Int = 0,
     val currentWeekId: String = "",
+    val currentMacrocycleId: String? = null,
+    val currentBlockId: String? = null,
+    val currentMesocycleId: String? = null,
+    val currentWeekInstanceId: String? = null,
+    val currentCycleNumber: Int? = null,
+    val programRunId: String? = null,
 )
 
 @Suppress("unused")

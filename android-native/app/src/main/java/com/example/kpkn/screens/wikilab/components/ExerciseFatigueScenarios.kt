@@ -26,7 +26,7 @@ import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.roundToInt
 
-private val RingMuscular = Color(0xFFFF5252)
+private val RingMuscular = com.example.kpkn.ui.theme.RingRed
 private val RingSystem = Color(0xFFFFB74D)
 private val RingSpinal = Color(0xFFB39DDB)
 

@@ -33,7 +33,7 @@ fun SectionHeader(
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.Black,
         letterSpacing = 1.sp,
-        modifier = modifier.padding(bottom = 8.dp),
+        modifier = modifier.padding(bottom = 16.dp),
     )
 }
 

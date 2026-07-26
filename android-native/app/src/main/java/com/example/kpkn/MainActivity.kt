@@ -474,6 +474,8 @@ fun KPKNApp(
     val showContextualSubtabbar = showTrainingSubtabbar || showNutritionSubtabbar || showWikiSearchSubtabbar
 
     val hazeState = remember { HazeState() }
+    var homeGlassOverlay by remember { mutableStateOf<(@Composable (HazeState) -> Unit)?>(null) }
+    var homeModalOverlay by remember { mutableStateOf<(@Composable (HazeState) -> Unit)?>(null) }
     Box(modifier = Modifier.fillMaxSize()) {
         if (isFullscreenWizard) {
             KPKNNavGraph(
@@ -488,6 +490,8 @@ fun KPKNApp(
                 },
                 wikiSearchQuery = wikiSearchQuery,
                 onWikiSearchQueryChange = { wikiSearchQuery = it },
+                onHomeGlassOverlayChange = { homeGlassOverlay = it },
+                onHomeModalOverlayChange = { homeModalOverlay = it },
             )
         } else {
             Box(
@@ -512,9 +516,21 @@ fun KPKNApp(
                     },
                     wikiSearchQuery = wikiSearchQuery,
                     onWikiSearchQueryChange = { wikiSearchQuery = it },
+                    onHomeGlassOverlayChange = { homeGlassOverlay = it },
+                onHomeModalOverlayChange = { homeModalOverlay = it },
                 )
                 }
 
+            }
+
+            if (currentTab == KpknRoute.Home.route) {
+                Box(Modifier.align(Alignment.TopCenter)) {
+                    homeGlassOverlay?.invoke(hazeState)
+                }
+            }
+
+            if (currentTab == KpknRoute.Home.route) {
+                homeModalOverlay?.invoke(hazeState)
             }
 
             // ─── Session in progress banner ─────────────────────────────────
@@ -969,6 +985,8 @@ private fun KPKNNavGraph(
     onProgramContextTabStateChange: (MainTab, (MainTab) -> Unit) -> Unit,
     wikiSearchQuery: String = "",
     onWikiSearchQueryChange: (String) -> Unit = {},
+    onHomeGlassOverlayChange: ((@Composable (HazeState) -> Unit)?) -> Unit = {},
+    onHomeModalOverlayChange: ((@Composable (HazeState) -> Unit)?) -> Unit = {},
 ) {
     NavHost(navController = navController, startDestination = KpknRoute.Home.route) {
         composable(KpknRoute.Home.route) {
@@ -1011,6 +1029,8 @@ private fun KPKNNavGraph(
                         }
                     }
                 },
+                onHeaderOverlayChange = onHomeGlassOverlayChange,
+                onNutritionOverlayChange = onHomeModalOverlayChange,
                 onNavigate = { destination ->
                     when (destination) {
                         "wiki-home" -> navController.navigate(KpknRoute.WikiLab.route)
@@ -1409,6 +1429,11 @@ private fun KPKNNavGraph(
                             configureCompetition = configureCompetition,
                         )
                     )
+                },
+                onOpenProgram = { newProgramId ->
+                    navController.navigate(KpknRoute.ProgramDetail.create(newProgramId)) {
+                        launchSingleTop = true
+                    }
                 },
                 onContextTabStateChange = { activeTab, onChange ->
                     onProgramContextTabStateChange(activeTab, onChange)

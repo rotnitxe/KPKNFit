@@ -417,19 +417,19 @@ internal fun FinishWorkoutSheet(
                         modifier = Modifier.weight(1f),
                         title = "Músculos",
                         value = derivedMuscularFinal,
-                        color = Color(0xFFFF5252)
+                        color = com.example.kpkn.ui.theme.RingRed
                     )
                     FinishSummaryCard(
                         modifier = Modifier.weight(1f),
                         title = "Energía",
                         value = neuralFinal,
-                        color = Color(0xFF448AFF)
+                        color = com.example.kpkn.ui.theme.RingBlue
                     )
                     FinishSummaryCard(
                         modifier = Modifier.weight(1f),
                         title = "Columna",
                         value = spinalFinal,
-                        color = Color(0xFFFFD740)
+                        color = com.example.kpkn.ui.theme.RingYellow
                     )
                 }
 
@@ -516,7 +516,7 @@ internal fun FinishWorkoutSheet(
                                 modifier = Modifier.weight(1f),
                                 title = "Energía",
                                 value = neuralFinal,
-                                ringColor = Color(0xFF448AFF),
+                                ringColor = com.example.kpkn.ui.theme.RingBlue,
                                 ringSize = 120,
                                 onValueChange = { neuralFinal = it },
                             )
@@ -524,7 +524,7 @@ internal fun FinishWorkoutSheet(
                                 modifier = Modifier.weight(1f),
                                 title = "Columna",
                                 value = spinalFinal,
-                                ringColor = Color(0xFFFFD740),
+                                ringColor = com.example.kpkn.ui.theme.RingYellow,
                                 ringSize = 120,
                                 onValueChange = { spinalFinal = it },
                             )

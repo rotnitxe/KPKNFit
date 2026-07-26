@@ -17,9 +17,9 @@ val SecondaryDark = Color(0xFFCCC2DC)
 val TertiaryDark = Color(0xFFEFB8C8)
 
 // ─── Ring Colors (Consistentes) ─────────────────────────────────────────────
-val RingRed = Color(0xFFFF5252)
-val RingBlue = Color(0xFF448AFF)
-val RingYellow = Color(0xFFFFD740)
+val RingRed = Color(0xFFC96B5C)
+val RingBlue = Color(0xFF4FA3A5)
+val RingYellow = Color(0xFF9A86C8)
 
 // ─── Home card surfaces ───────────────────────────────────────────────────
 val HomeCardSurface = Color(0xFF1C1C1E)

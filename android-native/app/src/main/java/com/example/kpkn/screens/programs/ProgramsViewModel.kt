@@ -3,10 +3,15 @@ package com.example.kpkn.screens.programs
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStatus
+import com.example.kpkn.data.models.ProgramStructure
+import com.example.kpkn.data.programs.resolveProgramTemplate
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.calculations.getTotalWeeks
 import com.example.kpkn.domain.calculations.getSessionExerciseCount
+import com.example.kpkn.domain.training.ProgramTemplateEngine
+import java.util.UUID
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -33,7 +38,19 @@ class ProgramsViewModel : ViewModel() {
      * All programs from repository.
      * Reactive updates when repository state changes.
      */
-    val programs: StateFlow<List<Program>> = repository.programs
+    val programs: StateFlow<List<Program>> = combine(
+        repository.programs,
+        repository.settings,
+    ) { all, settings ->
+        all.filter { it.id !in settings.archivedProgramIds }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    val archivedPrograms: StateFlow<List<Program>> = combine(
+        repository.programs,
+        repository.settings,
+    ) { all, settings ->
+        settings.archivedProgramIds.mapNotNull { id -> all.find { it.id == id } }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     /**
      * Currently active program state (with programId, status, currentWeekId, etc).
@@ -111,6 +128,75 @@ class ProgramsViewModel : ViewModel() {
      */
     fun deleteProgram(programId: String) {
         repository.deleteProgram(programId)
+    }
+
+    fun archiveProgram(programId: String) {
+        repository.archiveProgram(programId)
+    }
+
+    fun restoreArchivedProgram(programId: String) {
+        repository.restoreArchivedProgram(programId)
+    }
+
+    fun permanentlyDeleteProgram(programId: String) {
+        repository.permanentlyDeleteProgram(programId)
+    }
+
+    fun createBlankProgram(): String {
+        val programId = UUID.randomUUID().toString()
+        val nextNumber = repository.programs.value.count { it.name.startsWith("Nuevo programa") } + 1
+        repository.addProgram(
+            Program(
+                id = programId,
+                name = "Nuevo programa $nextNumber",
+                coverImage = "gradient://ember",
+                structure = ProgramStructure.SIMPLE,
+                macrocycles = listOf(
+                    com.example.kpkn.data.models.Macrocycle(
+                        id = UUID.randomUUID().toString(),
+                        name = "Macrociclo base",
+                        blocks = listOf(
+                            com.example.kpkn.data.models.Block(
+                                id = UUID.randomUUID().toString(),
+                                name = "Ciclo base",
+                                mesocycles = listOf(
+                                    com.example.kpkn.data.models.Mesocycle(
+                                        id = UUID.randomUUID().toString(),
+                                        name = "Mesociclo 1",
+                                        weeks = listOf(
+                                            com.example.kpkn.data.models.ProgramWeek(
+                                                id = UUID.randomUUID().toString(),
+                                                name = "Semana 1",
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        return programId
+    }
+
+    fun createProgramFromTemplate(templateId: String): String {
+        val template = resolveProgramTemplate(templateId)
+        val programId = UUID.randomUUID().toString()
+        val base = Program(
+            id = programId,
+            name = template.name,
+            coverImage = "gradient://ember",
+            structure = template.type,
+            mode = when (template.trackLabel) {
+                "Powerlifting" -> ProgramMode.POWERLIFTING
+                "Powerbuilding" -> ProgramMode.POWERBUILDING
+                else -> ProgramMode.HYPERTROPHY
+            },
+        )
+        val result = ProgramTemplateEngine.applyTemplate(base, template)
+        repository.addProgram(result.program)
+        return programId
     }
 
     fun addToQueue(programId: String) {

@@ -52,7 +52,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         AugeAdaptiveCacheEntity::class,
     ],
     version = 20,
-    exportSchema = false,
+    exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
 
@@ -549,5 +549,14 @@ abstract class KpknDatabase : RoomDatabase() {
                 INSTANCE = null
             }
         }
+
+        /** In-memory Room for unit tests — avoids Robolectric SQLite file races on Windows. */
+        fun createInMemory(context: Context): KpknDatabase =
+            Room.inMemoryDatabaseBuilder(
+                context.applicationContext,
+                KpknDatabase::class.java,
+            )
+                .allowMainThreadQueries()
+                .build()
     }
 }

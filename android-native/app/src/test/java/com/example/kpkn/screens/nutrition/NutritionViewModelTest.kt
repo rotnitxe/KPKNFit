@@ -36,8 +36,8 @@ class NutritionViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         val context = ApplicationProvider.getApplicationContext<Context>()
-        NutritionRepository.init(context)
-        ProgramRepository.init(context)
+        NutritionRepository.initForTests(context)
+        ProgramRepository.initForTests(context)
         nutritionRepo = NutritionRepository.getInstance()
         programRepo = ProgramRepository.getInstance()
 
@@ -61,6 +61,8 @@ class NutritionViewModelTest {
     fun tearDown() {
         collectors.forEach { it.cancel() }
         collectors.clear()
+        NutritionRepository.closeInstance()
+        ProgramRepository.closeInstance()
         Dispatchers.resetMain()
     }
 

@@ -14,7 +14,7 @@ data class LoopProjection(
 object LoopEngine {
 
     fun materializeLoopWeeks(program: Program): Program {
-        if (!program.isSimpleTemporalProgram || program.loops.isEmpty()) return program
+        if (!program.isSimpleProgram || program.loops.isEmpty()) return program
         val firstMacro = program.macrocycles.firstOrNull() ?: return program
         val firstBlock = firstMacro.blocks.firstOrNull() ?: return program
         val firstMeso = firstBlock.mesocycles.firstOrNull() ?: return program
@@ -36,25 +36,27 @@ object LoopEngine {
             )
         }
 
-        return program.copy(
-            macrocycles = program.macrocycles.mapIndexed { macroIndex, macro ->
-                if (macroIndex != 0) macro
-                else macro.copy(
-                    blocks = macro.blocks.mapIndexed { blockIndex, block ->
-                        if (blockIndex != 0) block
-                        else block.copy(
-                            mesocycles = block.mesocycles.mapIndexed { mesoIndex, meso ->
-                                if (mesoIndex != 0) {
-                                    meso.copy(weeks = meso.weeks.filterNot { it.isLoopWeek && it.loopId !in existingLoopIds })
-                                } else {
-                                    val normalWeeks = meso.weeks.filterNot { it.isLoopWeek }
-                                    meso.copy(weeks = normalWeeks + loopWeeks)
+        return syncOccurrences(
+            program.copy(
+                macrocycles = program.macrocycles.mapIndexed { macroIndex, macro ->
+                    if (macroIndex != 0) macro
+                    else macro.copy(
+                        blocks = macro.blocks.mapIndexed { blockIndex, block ->
+                            if (blockIndex != 0) block
+                            else block.copy(
+                                mesocycles = block.mesocycles.mapIndexed { mesoIndex, meso ->
+                                    if (mesoIndex != 0) {
+                                        meso.copy(weeks = meso.weeks.filterNot { it.isLoopWeek && it.loopId !in existingLoopIds })
+                                    } else {
+                                        val normalWeeks = meso.weeks.filterNot { it.isLoopWeek }
+                                        meso.copy(weeks = normalWeeks + loopWeeks)
+                                    }
                                 }
-                            }
-                        )
-                    }
-                )
-            }
+                            )
+                        }
+                    )
+                }
+            )
         )
     }
 
@@ -68,21 +70,27 @@ object LoopEngine {
         val nextState = program.loopState?.copy(
             cancelled = program.loopState.cancelled.filterNot { it == loopId },
             postponed = program.loopState.postponed.filterNot { it.loopId == loopId },
-        )
-        return program.copy(
-            loops = program.loops.filterNot { it.id == loopId },
-            loopState = nextState,
-            macrocycles = program.macrocycles.map { macro ->
-                macro.copy(
-                    blocks = macro.blocks.map { block ->
-                        block.copy(
-                            mesocycles = block.mesocycles.map { meso ->
-                                meso.copy(weeks = meso.weeks.filterNot { it.isLoopWeek && it.loopId == loopId })
-                            }
-                        )
-                    }
-                )
+            cancelledOccurrences = program.loopState.cancelledOccurrences.filterNot {
+                it.startsWith("$loopId:")
             },
+        )
+        return syncOccurrences(
+            program.copy(
+                loops = program.loops.filterNot { it.id == loopId },
+                loopState = nextState,
+                loopOccurrences = program.loopOccurrences.filterNot { it.loopId == loopId },
+                macrocycles = program.macrocycles.map { macro ->
+                    macro.copy(
+                        blocks = macro.blocks.map { block ->
+                            block.copy(
+                                mesocycles = block.mesocycles.map { meso ->
+                                    meso.copy(weeks = meso.weeks.filterNot { it.isLoopWeek && it.loopId == loopId })
+                                }
+                            )
+                        }
+                    )
+                },
+            )
         )
     }
 
@@ -113,16 +121,18 @@ object LoopEngine {
         val cycleDays = cycleLength * (program.weekDays ?: 7)
         val postponed = program.loopState?.postponed ?: emptyList()
         val cancelled = (program.loopState?.cancelled ?: emptyList()).toSet()
+        val cancelledOccurrences = (program.loopState?.cancelledOccurrences ?: emptyList()).toSet()
         val projections = mutableListOf<LoopProjection>()
 
         for (cycle in fromCycle until fromCycle + lookAheadCycles) {
             for (loop in loops) {
                 if (loop.id in cancelled) continue
 
+                val occurrenceKey = occurrenceKey(loop.id, cycle)
                 val isActive = cycle > 0 && cycle % loop.repeatEveryXLoops == 0
                 val postponement = postponed.find { it.loopId == loop.id && it.fromCycle == cycle }
 
-                if (isActive && postponement == null) {
+                if (isActive && postponement == null && occurrenceKey !in cancelledOccurrences) {
                     projections.add(
                         LoopProjection(
                             loop = loop,
@@ -136,7 +146,7 @@ object LoopEngine {
                 }
 
                 val deferredHere = postponed.find { it.loopId == loop.id && it.toCycle == cycle }
-                if (deferredHere != null) {
+                if (deferredHere != null && occurrenceKey !in cancelledOccurrences) {
                     projections.add(
                         LoopProjection(
                             loop = loop,
@@ -165,8 +175,7 @@ object LoopEngine {
 
     fun postponeLoop(program: Program, loopId: String, fromCycle: Int): Program {
         val state = program.loopState ?: LoopState()
-
-        return program.copy(
+        val updated = program.copy(
             loopState = state.copy(
                 postponed = state.postponed + PostponedLoop(
                     loopId = loopId,
@@ -175,37 +184,130 @@ object LoopEngine {
                 )
             )
         )
+        return syncOccurrences(updated)
+    }
+
+    fun nextActionableOccurrence(program: Program, loopId: String): LoopOccurrence? {
+        val synced = if (program.loopOccurrences.any { it.loopId == loopId }) program else syncOccurrences(program)
+        return synced.loopOccurrences
+            .filter {
+                it.loopId == loopId &&
+                    it.status != LoopStatus.CANCELLED &&
+                    it.status != LoopStatus.COMPLETED
+            }
+            .minByOrNull { it.scheduledCycle }
+    }
+
+    fun nextScheduledCycle(program: Program, loopId: String): Int? {
+        val loop = program.loops.firstOrNull { it.id == loopId } ?: return null
+        val cadence = loop.repeatEveryXLoops.coerceAtLeast(1)
+        nextActionableOccurrence(program, loopId)?.scheduledCycle?.let { return it }
+        val current = getCurrentCycle(program).coerceAtLeast(0)
+        val next = ((current / cadence) + 1) * cadence
+        return next.coerceAtLeast(cadence)
+    }
+
+    fun postponeOccurrence(program: Program, occurrenceId: String): Program {
+        val occ = program.loopOccurrences.firstOrNull { it.id == occurrenceId }
+            ?: return program
+        return postponeLoop(program, occ.loopId, occ.scheduledCycle)
+    }
+
+    fun postponeNextOccurrence(program: Program, loopId: String): Program {
+        val fromCycle = nextScheduledCycle(program, loopId) ?: return program
+        return postponeLoop(program, loopId, fromCycle)
+    }
+
+    fun cancelOccurrence(program: Program, occurrenceId: String): Program {
+        val occ = program.loopOccurrences.firstOrNull { it.id == occurrenceId } ?: return program
+        val state = program.loopState ?: LoopState()
+        val key = occurrenceKey(occ.loopId, occ.scheduledCycle)
+        if (key in state.cancelledOccurrences) return program
+        val updated = program.copy(
+            loopState = state.copy(cancelledOccurrences = state.cancelledOccurrences + key),
+            loopOccurrences = program.loopOccurrences.map {
+                if (it.id == occurrenceId) it.copy(status = LoopStatus.CANCELLED) else it
+            },
+        )
+        return syncOccurrences(updated)
     }
 
     fun cancelLoop(program: Program, loopId: String): Program {
         val state = program.loopState ?: LoopState()
         if (loopId in state.cancelled) return program
-
-        return program.copy(
+        val updated = program.copy(
             loopState = state.copy(
                 cancelled = state.cancelled + loopId
             )
         )
+        return syncOccurrences(updated)
     }
 
     fun reactivateLoop(program: Program, loopId: String): Program {
         val state = program.loopState ?: return program
-        return program.copy(
+        val updated = program.copy(
             loopState = state.copy(
                 cancelled = state.cancelled.filter { it != loopId }
             )
         )
+        return syncOccurrences(updated)
     }
 
     fun advanceCycle(program: Program): Program {
         val state = program.loopState ?: LoopState()
         val newCycle = state.currentCycle + 1
-
-        return program.copy(
+        val updated = program.copy(
             loopState = state.copy(
                 currentCycle = newCycle,
                 postponed = state.postponed.filter { it.toCycle > newCycle }
             )
+        )
+        return syncOccurrences(updated)
+    }
+
+    /**
+     * Materializa [LoopOccurrence] como fuente operativa a partir de loops + loopState.
+     * Conserva ocurrencias históricas COMPLETED / pasadas.
+     */
+    fun syncOccurrences(program: Program, lookAheadCycles: Int = 24): Program {
+        if (!program.isSimpleProgram || program.loops.isEmpty()) {
+            return if (program.loopOccurrences.isEmpty()) program else program.copy(loopOccurrences = emptyList())
+        }
+        val current = getCurrentCycle(program).coerceAtLeast(0)
+        val projections = projectLoops(program, current, lookAheadCycles)
+        val existingByKey = program.loopOccurrences.associateBy { "${it.loopId}_${it.scheduledCycle}" }
+        val synced = projections.map { projection ->
+            val key = "${projection.loop.id}_${projection.cycle}"
+            val status = when {
+                projection.isCancelled -> LoopStatus.CANCELLED
+                projection.isPostponed -> LoopStatus.POSTPONED
+                projection.daysUntil <= 0 -> LoopStatus.ACTIVE
+                else -> LoopStatus.SCHEDULED
+            }
+            existingByKey[key]?.copy(
+                status = status,
+                cycleNumber = projection.cycle,
+                postponedToCycle = if (projection.isPostponed) projection.cycle else null,
+                weekInstanceId = existingByKey[key]?.weekInstanceId ?: "loop_week_${projection.loop.id}",
+            ) ?: LoopOccurrence(
+                id = "occ_${projection.loop.id}_${projection.cycle}",
+                loopId = projection.loop.id,
+                cycleNumber = projection.cycle,
+                scheduledCycle = projection.cycle,
+                status = status,
+                weekInstanceId = "loop_week_${projection.loop.id}",
+                postponedToCycle = if (projection.isPostponed) projection.cycle else null,
+            )
+        }
+        val historical = program.loopOccurrences.filter { occ ->
+            occ.status == LoopStatus.COMPLETED ||
+                occ.status == LoopStatus.CANCELLED ||
+                (occ.scheduledCycle < current && synced.none { it.id == occ.id })
+        }
+        return program.copy(
+            loopOccurrences = (historical + synced)
+                .distinctBy { "${it.loopId}_${it.scheduledCycle}" }
+                .sortedWith(compareBy({ it.scheduledCycle }, { it.loopId })),
         )
     }
 
@@ -262,4 +364,6 @@ object LoopEngine {
         LoopType.COMPETITION -> "Competición"
         LoopType.CUSTOM -> "Personalizado"
     }
+
+    fun occurrenceKey(loopId: String, scheduledCycle: Int): String = "$loopId:$scheduledCycle"
 }

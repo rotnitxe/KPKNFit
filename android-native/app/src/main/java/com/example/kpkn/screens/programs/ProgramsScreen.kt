@@ -46,17 +46,33 @@ fun ProgramsScreen(
     viewModel: ProgramsViewModel = viewModel { ProgramsViewModel() },
 ) {
     val programs by viewModel.programs.collectAsState()
+    val archivedPrograms by viewModel.archivedPrograms.collectAsState()
     val activeProgram by viewModel.activeProgram.collectAsState()
     val inactivePrograms by viewModel.inactivePrograms.collectAsState()
     val programQueue by viewModel.programQueue.collectAsState()
     var menuProgram by remember { mutableStateOf<Program?>(null) }
+    var showCreateSheet by remember { mutableStateOf(false) }
+
+    if (showCreateSheet) {
+        CreateProgramTemplateSheet(
+            onDismiss = { showCreateSheet = false },
+            onCreateBlank = {
+                showCreateSheet = false
+                onNavigateToProgram(viewModel.createBlankProgram())
+            },
+            onCreateFromTemplate = { template ->
+                showCreateSheet = false
+                onNavigateToProgram(viewModel.createProgramFromTemplate(template.id))
+            },
+        )
+    }
 
     if (programs.isEmpty()) {
         EmptyStateView(
             title = "Comienza Hoy",
             subtitle = "Aún no tienes programas configurados",
             actionLabel = "Crear primer programa",
-            onAction = onCreateProgram,
+            onAction = { showCreateSheet = true },
             modifier = Modifier.fillMaxSize().statusBarsPadding(),
         )
     } else {
@@ -86,7 +102,7 @@ fun ProgramsScreen(
                         )
                     }
                     Button(
-                        onClick = onCreateProgram,
+                        onClick = { showCreateSheet = true },
                         modifier = Modifier.wrapContentWidth(),
                         shape = MaterialTheme.shapes.extraLarge,
                         colors = ButtonDefaults.buttonColors(
@@ -136,6 +152,25 @@ fun ProgramsScreen(
                 }
             }
 
+            if (archivedPrograms.isNotEmpty()) {
+                item {
+                    Text(
+                        "Archivados",
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                        fontWeight = FontWeight.Black,
+                        fontSize = 12.sp,
+                    )
+                }
+                items(archivedPrograms) { program ->
+                    ArchivedProgramCard(
+                        program = program,
+                        onNavigate = onNavigateToProgram,
+                        onRestore = { viewModel.restoreArchivedProgram(program.id) },
+                        onDeleteForever = { viewModel.permanentlyDeleteProgram(program.id) },
+                    )
+                }
+            }
+
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
@@ -153,7 +188,15 @@ fun ProgramsScreen(
                     },
                 ) { Text("Añadir a la cola") }
             },
-            dismissButton = { TextButton(onClick = { menuProgram = null }) { Text("Cancelar") } },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = {
+                        viewModel.archiveProgram(program.id)
+                        menuProgram = null
+                    }) { Text("Archivar") }
+                    TextButton(onClick = { menuProgram = null }) { Text("Cancelar") }
+                }
+            },
         )
     }
 }
@@ -178,7 +221,7 @@ private fun ActiveProgramCard(
     )
 
     SwipeToDeleteCard(
-        onDelete = { viewModel.deleteProgram(program.id) },
+        onDelete = { viewModel.archiveProgram(program.id) },
     ) {
         Card(
             modifier = Modifier
@@ -258,7 +301,7 @@ private fun InactiveProgramCard(
     val stats = viewModel.getProgramStats(program)
 
     SwipeToDeleteCard(
-        onDelete = { viewModel.deleteProgram(program.id) },
+        onDelete = { viewModel.archiveProgram(program.id) },
     ) {
         Card(
             modifier = Modifier
@@ -302,6 +345,40 @@ private fun InactiveProgramCard(
                     contentDescription = "Ver detalles",
                     tint = Color.White.copy(alpha = 0.78f),
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ArchivedProgramCard(
+    program: Program,
+    onNavigate: (String) -> Unit,
+    onRestore: () -> Unit,
+    onDeleteForever: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .clickable { onNavigate(program.id) },
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(program.name, fontWeight = FontWeight.Bold)
+                Text("Archivado", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                TextButton(onClick = onRestore) { Text("Restaurar") }
+                TextButton(onClick = onDeleteForever) { Text("Borrar") }
             }
         }
     }

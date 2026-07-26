@@ -33,6 +33,7 @@ class HomeSessionResolverTest {
         return Program(
             id = "p1",
             name = "Plan",
+            structure = com.example.kpkn.data.models.ProgramStructure.SIMPLE,
             macrocycles = listOf(
                 Macrocycle(
                     id = "macro",
@@ -98,6 +99,45 @@ class HomeSessionResolverTest {
         )
         assertTrue(HomeSessionResolver.logMatchesSession(sameWeek, "mon", "w1", LocalDate.of(2026, 7, 27)))
         assertFalse(HomeSessionResolver.logMatchesSession(otherWeekSameDay, "mon", "w1", LocalDate.of(2026, 7, 27)))
+    }
+
+    @Test
+    fun `logMatchesSession rejects previous cycle template logs for cycle 2 instance`() {
+        val cycle1Log = WorkoutLog(
+            id = "l1",
+            date = "2026-07-20T10:00:00",
+            sessionId = "mon",
+            sessionName = "Lunes",
+            programId = "p1",
+            durationMinutes = 55,
+            weekId = "w1",
+            cycleNumber = 1,
+            weekInstanceId = ProgramProgressEngine.instanceIdFor(1, "w1"),
+        )
+        val cycle2Instance = ProgramProgressEngine.instanceIdFor(2, "w1")
+        assertFalse(
+            HomeSessionResolver.logMatchesSession(
+                log = cycle1Log,
+                sessionId = "mon",
+                weekId = cycle2Instance,
+                today = LocalDate.of(2026, 7, 27),
+                expectedCycle = 2,
+            ),
+        )
+        val cycle2Log = cycle1Log.copy(
+            id = "l2",
+            cycleNumber = 2,
+            weekInstanceId = cycle2Instance,
+        )
+        assertTrue(
+            HomeSessionResolver.logMatchesSession(
+                log = cycle2Log,
+                sessionId = "mon",
+                weekId = cycle2Instance,
+                today = LocalDate.of(2026, 7, 27),
+                expectedCycle = 2,
+            ),
+        )
     }
 
     @Test

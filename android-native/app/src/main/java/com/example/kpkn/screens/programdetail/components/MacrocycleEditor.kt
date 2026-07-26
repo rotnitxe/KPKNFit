@@ -74,7 +74,10 @@ import com.example.kpkn.data.models.SimpleProgramSnapshot
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.models.buildSimpleCalendarWeeks
 import com.example.kpkn.data.models.nextSimpleCalendarStart
-import com.example.kpkn.data.models.normalizedTemporalStructure
+import com.example.kpkn.data.repository.CompetitionRepository
+import com.example.kpkn.domain.training.ProgramKeyDateEngine
+import com.example.kpkn.domain.training.ProgramTemplateEngine
+import com.example.kpkn.data.models.alignTemporalMetadata
 import com.example.kpkn.data.models.primaryLoopCadenceCycles
 import com.example.kpkn.data.models.primaryLoopLengthWeeks
 import com.example.kpkn.data.models.simpleCycleWeeks
@@ -106,6 +109,7 @@ import java.util.Locale
 fun MacrocycleEditor(
     program: Program,
     onUpdateProgram: (Program) -> Unit,
+    onAddProgramCopy: (Program) -> Unit = {},
     onCompetitionKeyDateSaved: (updatedProgram: Program, keyDate: ProgramKeyDate) -> Unit = { _, _ -> },
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
     onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int, keyDateId: String?) -> Unit = { _, _, _ -> },
@@ -120,6 +124,7 @@ fun MacrocycleEditor(
     calendarizationTrainingDays: Set<Int> = emptySet(),
     onCalendarizationTrainingDaysChange: (Set<Int>) -> Unit = {},
     onApplySimpleCalendarizedBreak: () -> Unit = {},
+    onCalendarizeSimpleCycle: () -> Unit = {},
     onRecoverCyclicProgram: () -> Unit = {},
     onStartFreshCyclicProgram: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -141,6 +146,43 @@ fun MacrocycleEditor(
     var showAdvancedRoadmap by remember { mutableStateOf(false) }
     var showLibrarySheet by remember { mutableStateOf(false) }
     var showLoopsSheet by remember { mutableStateOf(false) }
+    var editingMeso by remember { mutableStateOf<EditingMesoTarget?>(null) }
+    var pendingTemplate by remember { mutableStateOf<ProgramTemplateOption?>(null) }
+    var pendingProtocol by remember { mutableStateOf<Protocol?>(null) }
+    var pendingCompetitionKeyDateDelete by remember { mutableStateOf<String?>(null) }
+
+    fun applyAdvancedCalendarSave() {
+        val result = ProgramKeyDateEngine.applyAdvancedCalendarSave(
+            program = program,
+            timelineStartDate = editingTimelineStartDate,
+            competitionDate = editingCompetitionDate,
+            manualEndDate = editingManualEndDate,
+            competitionRepository = CompetitionRepository.getInstance(),
+        )
+        onUpdateProgram(result.program)
+        result.competitionKeyDate?.let { onCompetitionKeyDateSaved(result.program, it) }
+        showKeyDatesSheet = false
+    }
+
+    fun removeCompetitionKeyDate(keyDateId: String, mode: ProgramKeyDateEngine.KeyDateDeleteMode) {
+        val updated = ProgramKeyDateEngine.deleteKeyDate(
+            program = program,
+            keyDateId = keyDateId,
+            mode = mode,
+            competitionRepository = CompetitionRepository.getInstance(),
+        )
+        val result = ProgramKeyDateEngine.applyAdvancedCalendarSave(
+            program = updated,
+            timelineStartDate = editingTimelineStartDate,
+            competitionDate = "",
+            manualEndDate = editingManualEndDate,
+            competitionRepository = CompetitionRepository.getInstance(),
+        )
+        onUpdateProgram(result.program)
+        editingCompetitionDate = ""
+        showKeyDatesSheet = false
+        editingKeyDate = null
+    }
 
     val temporalInsight = remember(program) { program.toTemporalInsight() }
     val stats = remember(program) { program.toProgramStats() }
@@ -209,11 +251,17 @@ fun MacrocycleEditor(
                     onDeleteBlock = { pendingDelete = DeleteTarget.Block(macroIdx, blockIdx) },
                     onAddWeek = {
                         val weekName = "Semana ${program.countWeeksBeforeAppendingToBlock(macroIdx, blockIdx) + 1}"
-                        onUpdateProgram(program.addWeekToBlock(macroIdx, blockIdx, weekName).normalizedTemporalStructure())
+                        onUpdateProgram(program.addWeekToBlock(macroIdx, blockIdx, weekName).alignTemporalMetadata())
                     },
                     onSelectWeek = { weekId -> onFocusWeek(block.id, weekId) },
                     onEditWeek = { mesoIdx, weekIdx, week ->
                         editingExistingWeek = EditingWeekTarget(macroIdx, blockIdx, mesoIdx, weekIdx, week)
+                    },
+                    onAddMesocycle = {
+                        editingMeso = EditingMesoTarget(macroIdx, blockIdx, null, null, isAdd = true)
+                    },
+                    onEditMesocycle = { mesoIdx, meso ->
+                        editingMeso = EditingMesoTarget(macroIdx, blockIdx, mesoIdx, meso, isAdd = false)
                     },
                 )
             }
@@ -245,7 +293,7 @@ fun MacrocycleEditor(
                 } else {
                     program.renameBlock(item.macroIndex ?: 0, item.blockIndex ?: 0, name)
                 }
-                onUpdateProgram(updated.normalizedTemporalStructure())
+                onUpdateProgram(updated.alignTemporalMetadata())
                 editingBlock = null
             },
             onDismiss = { editingBlock = null },
@@ -256,7 +304,7 @@ fun MacrocycleEditor(
         WeekEditDialog(
             onSave = { name ->
                 val updated = program.addWeekToBlock(item.macroIndex ?: 0, item.blockIndex ?: 0, name)
-                onUpdateProgram(updated.normalizedTemporalStructure())
+                onUpdateProgram(updated.alignTemporalMetadata())
                 editingWeek = null
             },
             onDismiss = { editingWeek = null },
@@ -279,7 +327,7 @@ fun MacrocycleEditor(
                         description = description?.trim()?.takeIf { it.isNotBlank() },
                     )
                 }
-                onUpdateProgram(updated.normalizedTemporalStructure())
+                onUpdateProgram(updated.alignTemporalMetadata())
                 editingExistingWeek = null
             },
             onDelete = {
@@ -290,17 +338,80 @@ fun MacrocycleEditor(
         )
     }
 
+    editingMeso?.let { target ->
+        val mesoCount = program.macrocycles
+            .getOrNull(target.macroIndex)
+            ?.blocks?.getOrNull(target.blockIndex)
+            ?.mesocycles?.size ?: 0
+        MesoEditDialog(
+            meso = if (target.isAdd) null else target.meso,
+            canDelete = !target.isAdd && mesoCount > 1,
+            onSave = { name, goal ->
+                val updated = if (target.isAdd) {
+                    program.addMesocycle(target.macroIndex, target.blockIndex, name, goal)
+                } else {
+                    program.renameMesocycle(
+                        target.macroIndex,
+                        target.blockIndex,
+                        target.mesoIndex ?: 0,
+                        name,
+                        goal,
+                    )
+                }.alignTemporalMetadata()
+                onUpdateProgram(updated)
+                editingMeso = null
+            },
+            onDelete = {
+                pendingDelete = DeleteTarget.Meso(
+                    target.macroIndex,
+                    target.blockIndex,
+                    target.mesoIndex ?: 0,
+                )
+                editingMeso = null
+            },
+            onDismiss = { editingMeso = null },
+        )
+    }
+
     editingKeyDate?.let { keyDate ->
         KeyDateEditSheet(
             keyDate = keyDate,
             onSave = { updatedKeyDate ->
-                val updatedDates = program.keyDates
-                    .filterNot { it.id == updatedKeyDate.id }
-                    .plus(updatedKeyDate)
-                    .sortedBy { it.startDate }
-                onUpdateProgram(program.copy(keyDates = updatedDates))
+                var updated = ProgramKeyDateEngine.upsertKeyDate(program, updatedKeyDate)
+                if (updatedKeyDate.type == KeyDateType.COMPETITION) {
+                    updated = ProgramKeyDateEngine.syncCompetitionLinkedEntities(
+                        program = updated,
+                        keyDate = updatedKeyDate,
+                        competitionRepository = CompetitionRepository.getInstance(),
+                    )
+                }
+                onUpdateProgram(updated)
                 editingKeyDate = null
                 showKeyDatesSheet = true
+            },
+            onDelete = {
+                if (keyDate.type == KeyDateType.COMPETITION &&
+                    ProgramKeyDateEngine.hasLinkedCompetitionEntities(
+                        program,
+                        keyDate.id,
+                        CompetitionRepository.getInstance(),
+                    )
+                ) {
+                    pendingCompetitionKeyDateDelete = keyDate.id
+                    editingKeyDate = null
+                } else {
+                    val updated = ProgramKeyDateEngine.deleteKeyDate(
+                        program = program,
+                        keyDateId = keyDate.id,
+                        competitionRepository = CompetitionRepository.getInstance(),
+                    )
+                    onUpdateProgram(updated)
+                    if (keyDate.type == KeyDateType.COMPETITION) {
+                        editingCompetitionDate = ""
+                    }
+                    editingKeyDate = null
+                    showKeyDatesSheet = true
+                }
             },
             onDismiss = { editingKeyDate = null },
         )
@@ -314,6 +425,7 @@ fun MacrocycleEditor(
                 Text(
                     when (target) {
                         is DeleteTarget.Block -> "Eliminar este bloque puede cambiar la lógica temporal del programa."
+                        is DeleteTarget.Meso -> "Eliminar este mesociclo quitará sus semanas y sesiones."
                         is DeleteTarget.Week -> "Eliminar esta semana quitará sus sesiones."
                     }
                 )
@@ -323,14 +435,64 @@ fun MacrocycleEditor(
                     onClick = {
                         val updated = when (target) {
                             is DeleteTarget.Block -> program.removeBlock(target.macroIndex, target.blockIndex)
+                            is DeleteTarget.Meso -> program.removeMesocycle(target.macroIndex, target.blockIndex, target.mesoIndex)
                             is DeleteTarget.Week -> program.removeWeek(target.macroIndex, target.blockIndex, target.mesoIndex, target.weekIndex)
-                        }.normalizedTemporalStructure()
+                        }.alignTemporalMetadata()
                         onUpdateProgram(updated)
                         pendingDelete = null
                     },
                 ) { Text("Eliminar") }
             },
             dismissButton = { TextButton(onClick = { pendingDelete = null }) { Text("Cancelar") } },
+        )
+    }
+
+    pendingCompetitionKeyDateDelete?.let { keyDateId ->
+        val linkedSessions = ProgramKeyDateEngine.linkedCompetitionSessionCount(program, keyDateId)
+        AlertDialog(
+            onDismissRequest = { pendingCompetitionKeyDateDelete = null },
+            title = { Text("Eliminar competición", fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        if (linkedSessions > 0) {
+                            "Hay $linkedSessions sesión(es) vinculada(s). Elige si desvincularlas (quedan como sesiones normales) o archivarlas junto con su registro de competición."
+                        } else {
+                            "Se eliminará la fecha clave de competición del calendario del programa."
+                        },
+                    )
+                    if (linkedSessions > 0) {
+                        OutlinedButton(
+                            onClick = {
+                                removeCompetitionKeyDate(
+                                    keyDateId,
+                                    ProgramKeyDateEngine.KeyDateDeleteMode.ARCHIVE_SESSION_AND_RECORD,
+                                )
+                                pendingCompetitionKeyDateDelete = null
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("Archivar sesión y registro")
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        removeCompetitionKeyDate(
+                            keyDateId,
+                            ProgramKeyDateEngine.KeyDateDeleteMode.UNLINK_SESSION,
+                        )
+                        pendingCompetitionKeyDateDelete = null
+                    },
+                ) {
+                    Text(if (linkedSessions > 0) "Desvincular sesiones" else "Eliminar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingCompetitionKeyDateDelete = null }) { Text("Cancelar") }
+            },
         )
     }
 
@@ -351,7 +513,7 @@ fun MacrocycleEditor(
                             .ensureMacrocycle()
                             .addBlockToMacro(0, "Bloque 2")
                             .copy(structure = ProgramStructure.COMPLEX)
-                            .normalizedTemporalStructure()
+                            .alignTemporalMetadata()
                         onUpdateProgram(updated)
                         pendingSimpleToAdvanced = false
                     },
@@ -370,43 +532,59 @@ fun MacrocycleEditor(
             onTimelineStartDateChange = { editingTimelineStartDate = it },
             onCompetitionDateChange = { editingCompetitionDate = it },
             onManualEndDateChange = { editingManualEndDate = it },
-            onSave = {
-                val competition = editingCompetitionDate.trim().takeIf { it.isNotBlank() }?.let { date ->
-                    val calendarProgram = program.copy(
-                        timelineStartDate = editingTimelineStartDate.trim().ifBlank { null },
-                        calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization().copy(
-                            manualEndDate = editingManualEndDate.trim().ifBlank { null },
-                        ),
-                        keyDates = program.keyDates.filterNot { it.type == KeyDateType.COMPETITION },
-                    )
-                    val competitionDay = parseProgramDate(date)
-                    val assignedWeek = competitionDay?.let { findProgramWeekRange(calendarProgram, it) }
-                    ProgramKeyDate(
-                        id = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }?.id ?: "competition_${System.nanoTime()}",
-                        title = "Competición",
-                        type = KeyDateType.COMPETITION,
-                        startDate = assignedWeek?.first?.toString() ?: date,
-                        endDate = assignedWeek?.second?.toString(),
-                        eventDate = date,
-                    )
-                }
-                val calendarization = if (competition != null) {
-                    ProgramCalendarEngine.defaultCompetitionCalendarization().copy(
-                        manualEndDate = editingManualEndDate.trim().ifBlank { null },
-                    )
-                } else {
-                    program.calendarization?.copy(manualEndDate = editingManualEndDate.trim().ifBlank { null })
-                }
-                val updated = ProgramCalendarEngine.materializeWeekDates(
-                    program.copy(
-                        timelineStartDate = editingTimelineStartDate.trim().ifBlank { null },
-                        calendarization = calendarization,
-                        keyDates = program.keyDates.filterNot { it.type == KeyDateType.COMPETITION } + listOfNotNull(competition),
-                    )
+            otherKeyDates = program.keyDates.filter { it.type != KeyDateType.COMPETITION },
+            onAddOtherKeyDate = {
+                editingKeyDate = ProgramKeyDate(
+                    id = "key_${System.nanoTime()}",
+                    title = "",
+                    type = KeyDateType.EXAMS,
+                    startDate = LocalDate.now().toString(),
                 )
-                onUpdateProgram(updated)
-                competition?.let { onCompetitionKeyDateSaved(updated, it) }
                 showKeyDatesSheet = false
+            },
+            onEditOtherKeyDate = { keyDate ->
+                editingKeyDate = keyDate
+                showKeyDatesSheet = false
+            },
+            onDeleteOtherKeyDate = { keyDateId ->
+                val keyDate = program.keyDates.firstOrNull { it.id == keyDateId }
+                if (keyDate?.type == KeyDateType.COMPETITION &&
+                    ProgramKeyDateEngine.hasLinkedCompetitionEntities(
+                        program,
+                        keyDateId,
+                        CompetitionRepository.getInstance(),
+                    )
+                ) {
+                    pendingCompetitionKeyDateDelete = keyDateId
+                } else {
+                    val updated = ProgramKeyDateEngine.deleteKeyDate(
+                        program = program,
+                        keyDateId = keyDateId,
+                        mode = ProgramKeyDateEngine.KeyDateDeleteMode.UNLINK_SESSION,
+                        competitionRepository = CompetitionRepository.getInstance(),
+                    )
+                    onUpdateProgram(updated)
+                }
+            },
+            onSave = {
+                val existingCompetition = ProgramKeyDateEngine.competitionKeyDate(program)
+                if (existingCompetition != null && editingCompetitionDate.isBlank()) {
+                    if (ProgramKeyDateEngine.hasLinkedCompetitionEntities(
+                            program,
+                            existingCompetition.id,
+                            CompetitionRepository.getInstance(),
+                        )
+                    ) {
+                        pendingCompetitionKeyDateDelete = existingCompetition.id
+                    } else {
+                        removeCompetitionKeyDate(
+                            existingCompetition.id,
+                            ProgramKeyDateEngine.KeyDateDeleteMode.UNLINK_SESSION,
+                        )
+                    }
+                } else {
+                    applyAdvancedCalendarSave()
+                }
             },
             onDismiss = { showKeyDatesSheet = false },
         )
@@ -416,19 +594,91 @@ fun MacrocycleEditor(
         TemplatesProtocolsSheet(
             currentProgram = program,
             onApplyTemplate = { template ->
-                val updated = template
-                    .buildProgramDraft(program)
-                    .copy(structureTemplateId = template.id)
-                    .normalizedTemporalStructure()
-                onUpdateProgram(updated)
-                showLibrarySheet = false
+                pendingTemplate = template
             },
             onApplyProtocol = { protocol ->
-                val updated = buildProgramFromProtocol(program, protocol).normalizedTemporalStructure()
-                onUpdateProgram(updated)
-                showLibrarySheet = false
+                pendingProtocol = protocol
             },
             onDismiss = { showLibrarySheet = false },
+        )
+    }
+
+    pendingProtocol?.let { protocol ->
+        AlertDialog(
+            onDismissRequest = { pendingProtocol = null },
+            title = { Text(protocol.name, fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(protocol.description)
+                    Text(
+                        "${protocol.blocks.size} bloques · ${protocol.blocks.sumOf { it.weeks }} semanas",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    if (ProgramTemplateEngine.hasSessionContent(program)) {
+                        Text(
+                            "Este programa ya tiene sesiones. Se creará una copia borrador para no perder el original.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val base = if (ProgramTemplateEngine.hasSessionContent(program)) {
+                        program.copy(
+                            id = "${program.id}_protocol_${System.nanoTime()}",
+                            name = "${program.name} · ${protocol.name}",
+                            isDraft = true,
+                        )
+                    } else {
+                        program
+                    }
+                    val updated = buildProgramFromProtocol(base, protocol).alignTemporalMetadata()
+                    if (base.id != program.id) onAddProgramCopy(updated) else onUpdateProgram(updated)
+                    pendingProtocol = null
+                    showLibrarySheet = false
+                }) { Text("Aplicar protocolo") }
+            },
+            dismissButton = { TextButton(onClick = { pendingProtocol = null }) { Text("Cancelar") } },
+        )
+    }
+
+    pendingTemplate?.let { template ->
+        AlertDialog(
+            onDismissRequest = { pendingTemplate = null },
+            title = { Text(template.name, fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(template.description)
+                    Text(
+                        "${template.trackLabel ?: "Programa"} · ${template.blockNames.size} bloques · ${template.weeks} semanas",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    if (ProgramTemplateEngine.hasSessionContent(program)) {
+                        Text(
+                            "Este programa ya tiene sesiones. Se creará una copia borrador para no perder el original.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val result = ProgramTemplateEngine.applyTemplate(program, template)
+                    if (result.createdCopy) {
+                        onAddProgramCopy(result.program)
+                    } else {
+                        onUpdateProgram(result.program)
+                    }
+                    pendingTemplate = null
+                    showLibrarySheet = false
+                }) { Text("Aplicar plantilla") }
+            },
+            dismissButton = { TextButton(onClick = { pendingTemplate = null }) { Text("Cancelar") } },
         )
     }
 
@@ -475,6 +725,7 @@ fun MacrocycleEditor(
             trainingDays = calendarizationTrainingDays,
             onTrainingDaysChange = onCalendarizationTrainingDaysChange,
             onStartBreak = onApplySimpleCalendarizedBreak,
+            onCalendarizeCycle = onCalendarizeSimpleCycle,
             onRecoverCycle = onRecoverCyclicProgram,
             onStartFreshCycle = onStartFreshCyclicProgram,
             hazeState = simpleCalendarizationHazeState,
@@ -587,6 +838,7 @@ private fun SimpleCalendarizationSheet(
     trainingDays: Set<Int>,
     onTrainingDaysChange: (Set<Int>) -> Unit,
     onStartBreak: () -> Unit,
+    onCalendarizeCycle: () -> Unit,
     onRecoverCycle: () -> Unit,
     onStartFreshCycle: () -> Unit,
     hazeState: HazeState,
@@ -757,12 +1009,24 @@ private fun SimpleCalendarizationSheet(
                 }
 
                 Button(
+                    onClick = onCalendarizeCycle,
+                    enabled = parsedStartDate != null && trainingDays.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Calendarizar ciclo actual")
+                }
+                OutlinedButton(
                     onClick = onStartBreak,
                     enabled = parsedStartDate != null && parsedEndDate != null && parsedEndDate.isAfter(parsedStartDate) && trainingDays.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("Crear break calendarizado")
                 }
+                Text(
+                    "Calendarizar ciclo fija fechas reales a tus semanas actuales. El break pausa el ciclo y crea semanas temporales.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = sheetSecondary,
+                )
                 TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                     Text("Cerrar", color = sheetSecondary)
                 }
@@ -863,9 +1127,13 @@ private fun KeyDatesManagementSheet(
     timelineStartDate: String,
     competitionDate: String,
     manualEndDate: String,
+    otherKeyDates: List<ProgramKeyDate>,
     onTimelineStartDateChange: (String) -> Unit,
     onCompetitionDateChange: (String) -> Unit,
     onManualEndDateChange: (String) -> Unit,
+    onAddOtherKeyDate: () -> Unit,
+    onEditOtherKeyDate: (ProgramKeyDate) -> Unit,
+    onDeleteOtherKeyDate: (String) -> Unit,
     onSave: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -911,6 +1179,42 @@ private fun KeyDatesManagementSheet(
             )
 
             CalendarPreviewCard(preview = preview)
+
+            if (otherKeyDates.isNotEmpty()) {
+                Text("Otras fechas clave", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                otherKeyDates.forEach { keyDate ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onEditOtherKeyDate(keyDate) },
+                        shape = RoundedCornerShape(12.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(keyDate.title, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                Text(
+                                    "${keyDate.startDate}${keyDate.endDate?.let { " → $it" } ?: ""}",
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            KeyDateTypeBadge(keyDate.type)
+                            IconButton(onClick = { onDeleteOtherKeyDate(keyDate.id) }) {
+                                Icon(Icons.Default.Delete, "Eliminar", tint = Color(0xFFEF4444))
+                            }
+                        }
+                    }
+                }
+            }
+            OutlinedButton(onClick = onAddOtherKeyDate, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.Add, null)
+                Spacer(Modifier.width(6.dp))
+                Text("Agregar fecha clave (exámenes, vacaciones, viaje…)")
+            }
 
             Button(
                 onClick = onSave,
@@ -1343,6 +1647,7 @@ private fun KeyDateTypeBadge(type: KeyDateType) {
 private fun KeyDateEditSheet(
     keyDate: ProgramKeyDate,
     onSave: (ProgramKeyDate) -> Unit,
+    onDelete: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var title by remember(keyDate.id) { mutableStateOf(keyDate.title) }
@@ -1370,23 +1675,32 @@ private fun KeyDateEditSheet(
                     }
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = {
-                        onSave(
-                            keyDate.copy(
-                                title = title.trim(),
-                                type = type,
-                                startDate = startDate.trim(),
-                                endDate = endDate.trim().ifBlank { null },
-                                eventDate = if (type == KeyDateType.COMPETITION) startDate.trim() else keyDate.eventDate,
-                                notes = notes.trim().ifBlank { null },
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = onDelete) {
+                    Text("Eliminar", color = Color(0xFFEF4444))
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = onDismiss) { Text("Cancelar") }
+                    Button(
+                        onClick = {
+                            onSave(
+                                keyDate.copy(
+                                    title = title.trim(),
+                                    type = type,
+                                    startDate = startDate.trim(),
+                                    endDate = endDate.trim().ifBlank { null },
+                                    eventDate = if (type == KeyDateType.COMPETITION) startDate.trim() else keyDate.eventDate,
+                                    notes = notes.trim().ifBlank { null },
+                                )
                             )
-                        )
-                    },
-                    enabled = title.isNotBlank() && startDate.isNotBlank(),
-                ) { Text("Guardar") }
-                TextButton(onClick = onDismiss) { Text("Cancelar") }
+                        },
+                        enabled = title.isNotBlank() && startDate.isNotBlank(),
+                    ) { Text("Guardar") }
+                }
             }
             Spacer(Modifier.height(16.dp))
         }
@@ -1402,6 +1716,7 @@ private fun TemplatesProtocolsSheet(
     onDismiss: () -> Unit,
 ) {
     var selectedTab by remember { mutableStateOf(0) }
+    val simpleTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.SIMPLE } }
     val advancedTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.COMPLEX } }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -1413,30 +1728,18 @@ private fun TemplatesProtocolsSheet(
         ) {
             Text("Plantillas / protocolos", fontWeight = FontWeight.Black, fontSize = 20.sp)
             TabRow(selectedTabIndex = selectedTab) {
-                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Plantillas de programa") })
-                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Protocolos de entrenamiento") })
+                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Simple") })
+                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Avanzado") })
+                Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text("Protocolos") })
             }
-            if (selectedTab == 0) {
-                advancedTemplates.forEach { template ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onApplyTemplate(template) },
-                        shape = RoundedCornerShape(18.dp),
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(template.name, fontWeight = FontWeight.Black)
-                            Text(template.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(
-                                "${template.trackLabel ?: "Programa"} · ${template.blockNames.size} bloques · ${template.weeks} semanas",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    }
+            when (selectedTab) {
+                0 -> simpleTemplates.forEach { template ->
+                    TemplatePreviewCard(template = template, onClick = { onApplyTemplate(template) })
                 }
-            } else {
-                PROTOCOL_LIBRARY.forEach { protocol ->
+                1 -> advancedTemplates.forEach { template ->
+                    TemplatePreviewCard(template = template, onClick = { onApplyTemplate(template) })
+                }
+                2 -> PROTOCOL_LIBRARY.forEach { protocol ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1463,6 +1766,29 @@ private fun TemplatesProtocolsSheet(
                 }
             }
             Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun TemplatePreviewCard(
+    template: ProgramTemplateOption,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("${template.emoji} ${template.name}", fontWeight = FontWeight.Black)
+            Text(template.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "${template.trackLabel ?: "Programa"} · ${template.blockNames.size} bloques · ${template.weeks} semanas",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }
@@ -1508,6 +1834,8 @@ private fun BlockNode(
     onAddWeek: () -> Unit,
     onSelectWeek: (String) -> Unit,
     onEditWeek: (Int, Int, ProgramWeek) -> Unit,
+    onAddMesocycle: () -> Unit,
+    onEditMesocycle: (Int, Mesocycle) -> Unit,
 ) {
     val flatWeeks = block.mesocycles.flatMapIndexed { mesoIndex, meso ->
         meso.weeks.mapIndexed { weekIndex, week -> Triple(mesoIndex, weekIndex, week) }
@@ -1541,6 +1869,29 @@ private fun BlockNode(
 
             AnimatedVisibility(visible = isExpanded, enter = expandVertically(), exit = shrinkVertically()) {
                 Column(modifier = Modifier.padding(start = 24.dp, end = 14.dp, bottom = 14.dp)) {
+                    Text("Mesociclos", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    block.mesocycles.forEachIndexed { mesoIdx, meso ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onEditMesocycle(mesoIdx, meso) }
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(meso.name, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                Text(meso.goal.label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Icon(Icons.Default.Edit, null, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                    OutlinedButton(onClick = onAddMesocycle, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Add, null)
+                        Spacer(Modifier.width(6.dp))
+                        Text("Agregar mesociclo")
+                    }
+                    Spacer(Modifier.height(8.dp))
                     WeekPillGrid(
                         weeks = flatWeeks,
                         onSelectWeek = onSelectWeek,
@@ -1624,7 +1975,9 @@ private fun BlockEditDialog(
 @Composable
 private fun MesoEditDialog(
     meso: Mesocycle?,
+    canDelete: Boolean = false,
     onSave: (String, MesocycleGoal) -> Unit,
+    onDelete: () -> Unit = {},
     onDismiss: () -> Unit,
 ) {
     var name by remember { mutableStateOf(meso?.name ?: "Nuevo mesociclo") }
@@ -1652,8 +2005,19 @@ private fun MesoEditDialog(
                 }
             }
         },
-        confirmButton = { Button(onClick = { onSave(name.trim(), goal) }, enabled = name.isNotBlank()) { Text("Guardar") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        confirmButton = {
+            Button(onClick = { onSave(name.trim(), goal) }, enabled = name.isNotBlank()) { Text("Guardar") }
+        },
+        dismissButton = {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (canDelete) {
+                    TextButton(onClick = onDelete) {
+                        Text("Eliminar", color = Color(0xFFEF4444))
+                    }
+                }
+                TextButton(onClick = onDismiss) { Text("Cancelar") }
+            }
+        },
     )
 }
 
@@ -1794,8 +2158,17 @@ private data class EditingWeekTarget(
     val week: ProgramWeek,
 )
 
+private data class EditingMesoTarget(
+    val macroIndex: Int,
+    val blockIndex: Int,
+    val mesoIndex: Int?,
+    val meso: Mesocycle?,
+    val isAdd: Boolean,
+)
+
 private sealed class DeleteTarget {
     data class Block(val macroIndex: Int, val blockIndex: Int) : DeleteTarget()
+    data class Meso(val macroIndex: Int, val blockIndex: Int, val mesoIndex: Int) : DeleteTarget()
     data class Week(val macroIndex: Int, val blockIndex: Int, val mesoIndex: Int, val weekIndex: Int) : DeleteTarget()
 }
 
@@ -2410,6 +2783,10 @@ private fun buildProgramFromProtocol(program: Program, protocol: Protocol): Prog
         Block(
             id = "block_${System.nanoTime()}_${protocolBlock.name}",
             name = protocolBlock.name,
+            description = buildString {
+                append("Intensidad ${protocolBlock.intensityMin}-${protocolBlock.intensityMax}%")
+                protocolBlock.volumeModifier?.let { append(" · Volumen ×${"%.2f".format(it)}") }
+            },
             mesocycles = listOf(
                 Mesocycle(
                     id = "meso_${System.nanoTime()}_${protocolBlock.name}",

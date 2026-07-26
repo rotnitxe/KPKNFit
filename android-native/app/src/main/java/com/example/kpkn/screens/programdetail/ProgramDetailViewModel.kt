@@ -17,7 +17,6 @@ import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
-import com.example.kpkn.data.models.SimpleProgramSnapshot
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.models.nextSimpleCalendarStart
@@ -26,10 +25,18 @@ import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.data.models.restorePausedCyclicProgram
 import com.example.kpkn.data.models.startFreshSimpleCycle
 import com.example.kpkn.data.models.startSimpleCalendarizedBreak
+import com.example.kpkn.data.models.calendarizeSimpleCycle
 import com.example.kpkn.data.models.suggestCalendarTrainingDays
+import com.example.kpkn.data.models.toSimpleProgramSnapshot
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ProgramDetailHelpers
+import com.example.kpkn.domain.training.AppClock
+import com.example.kpkn.domain.training.IdProvider
+import com.example.kpkn.domain.training.SystemAppClock
+import com.example.kpkn.domain.training.UuidIdProvider
 import com.example.kpkn.domain.training.ProgramCalendarEngine
+import com.example.kpkn.domain.training.ProgramKeyDateEngine
+import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.RoadmapBlock
 import com.example.kpkn.domain.training.RoadmapLoopMarker
 import com.example.kpkn.domain.training.SplitApplicationEngine
@@ -91,7 +98,11 @@ data class MuscleOvertrainingStatus(
     val explanation: String,
 )
 
-class ProgramDetailViewModel(private val programId: String) : ViewModel() {
+class ProgramDetailViewModel(
+    private val programId: String,
+    private val idProvider: IdProvider = UuidIdProvider,
+    private val appClock: AppClock = SystemAppClock,
+) : ViewModel() {
 
     private val repository = ProgramRepository.getInstance()
 
@@ -381,10 +392,10 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             combine(activeProgramState, program, currentWeeks) { active, p, weeks ->
                 if (p == null || weeks.isEmpty()) return@combine
                 if (active != null && active.programId == programId && active.status == ProgramStatus.ACTIVE) {
-                    val activeWeek = active.currentWeekId
-                    if (activeWeek != null && weeks.any { it.id == activeWeek }) {
-                        if (_uiState.value.selectedWeekId != activeWeek) {
-                            _uiState.update { it.copy(selectedWeekId = activeWeek) }
+                    val matchedWeekId = resolveActiveWeekSelection(active, weeks.map { it.id })
+                    if (matchedWeekId != null) {
+                        if (_uiState.value.selectedWeekId != matchedWeekId) {
+                            _uiState.update { it.copy(selectedWeekId = matchedWeekId) }
                         }
                         return@combine
                     }
@@ -435,15 +446,38 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         repository.updateProgram(ProgramCalendarEngine.materializeWeekDates(updated))
     }
 
+    fun clearCompetitionKeyDate() {
+        val current = program.value ?: return
+        val competition = ProgramKeyDateEngine.competitionKeyDate(current) ?: return
+        val updated = ProgramKeyDateEngine.deleteKeyDate(
+            program = current,
+            keyDateId = competition.id,
+            mode = ProgramKeyDateEngine.KeyDateDeleteMode.UNLINK_SESSION,
+            competitionRepository = com.example.kpkn.data.repository.CompetitionRepository.getInstance(),
+        )
+        val cleared = if (updated.calendarization?.activatedByCompetition == true) {
+            updated.copy(
+                calendarization = updated.calendarization.copy(activatedByCompetition = false),
+            )
+        } else {
+            updated
+        }
+        updateProgram(cleared)
+    }
+
+    fun addProgramCopy(copy: Program) {
+        repository.addProgram(ProgramCalendarEngine.materializeWeekDates(copy))
+    }
+
     fun setSimpleDatedCalendarization(enabled: Boolean) {
         val current = program.value ?: return
         if (!current.isSimpleTemporalProgram && current.structure != ProgramStructure.SIMPLE) return
         val updated = if (enabled) {
             current.copy(
-                timelineStartDate = current.timelineStartDate ?: LocalDate.now().toString(),
+                timelineStartDate = current.timelineStartDate ?: appClock.today(java.time.ZoneId.systemDefault()).toString(),
                 calendarization = current.calendarization ?: ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
                 simpleProgramKind = SimpleProgramKind.CALENDARIZED,
-                pausedCyclicSnapshot = current.pausedCyclicSnapshot ?: current.toSimpleProgramSnapshot(),
+                pausedCyclicSnapshot = current.pausedCyclicSnapshot ?: current.toSimpleProgramSnapshot(appClock),
                 loops = emptyList(),
                 loopState = null,
                 events = emptyList(),
@@ -463,6 +497,9 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
                     customSplitName = snapshot.customSplitName,
                     customSplitDescription = snapshot.customSplitDescription,
                     blockSplitSelections = snapshot.blockSplitSelections,
+                    runState = snapshot.runState ?: current.runState,
+                    schedulePlan = snapshot.schedulePlan ?: current.schedulePlan,
+                    loopOccurrences = snapshot.loopOccurrences,
                     pausedCyclicSnapshot = null,
                 )
             } ?: current.copy(
@@ -515,7 +552,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             val start = nextCalendarWeekStart(current)
             val trainingDays = current.suggestCalendarTrainingDays()
             ProgramWeek(
-                id = UUID.randomUUID().toString(),
+                id = idProvider.newId(),
                 name = calendarWeekTitle(start),
                 description = description?.trim()?.takeIf { it.isNotEmpty() },
                 sessions = copiedSessions,
@@ -530,7 +567,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             )
         } else {
             ProgramWeek(
-                id = UUID.randomUUID().toString(),
+                id = idProvider.newId(),
                 name = name?.trim()?.takeIf { it.isNotEmpty() } ?: "Semana ${ProgramDetailHelpers.getTotalWeeks(current) + 1}",
                 description = description?.trim()?.takeIf { it.isNotEmpty() },
                 sessions = copiedSessions,
@@ -540,12 +577,12 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         if (current.macrocycles.isEmpty() || current.macrocycles.firstOrNull()?.blocks.isNullOrEmpty()) {
             val fallbackMeso = defaultRoadmapMesocycle(newWeek)
             val fallbackBlock = Block(
-                id = "block_simple_${System.nanoTime()}",
+                id = idProvider.newId(),
                 name = "Ciclo base",
                 mesocycles = listOf(fallbackMeso),
             )
             val fallbackMacro = com.example.kpkn.data.models.Macrocycle(
-                id = "macro_simple_${System.nanoTime()}",
+                id = idProvider.newId(),
                 name = "Macrociclo base",
                 blocks = listOf(fallbackBlock),
             )
@@ -669,7 +706,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     private fun defaultRoadmapWeek(name: String, description: String? = null): ProgramWeek {
         return ProgramWeek(
-            id = UUID.randomUUID().toString(),
+            id = idProvider.newId(),
             name = name,
             description = description?.trim()?.takeIf { it.isNotEmpty() },
         )
@@ -677,7 +714,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     private fun defaultRoadmapMesocycle(firstWeek: ProgramWeek): Mesocycle {
         return Mesocycle(
-            id = UUID.randomUUID().toString(),
+            id = idProvider.newId(),
             name = "Mesociclo 1",
             goal = MesocycleGoal.ACCUMULATION,
             weeks = listOf(firstWeek),
@@ -686,7 +723,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     private fun defaultRoadmapBlock(name: String, description: String?, firstWeek: ProgramWeek): Block {
         return Block(
-            id = UUID.randomUUID().toString(),
+            id = idProvider.newId(),
             name = name,
             description = description?.trim()?.takeIf { it.isNotEmpty() },
             mesocycles = listOf(defaultRoadmapMesocycle(firstWeek)),
@@ -878,31 +915,40 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     fun deleteSession(sessionId: String, macroIndex: Int, mesoIndex: Int, weekId: String) {
         val current = program.value ?: return
+        var changed = false
         val updated = current.copy(
             macrocycles = current.macrocycles.mapIndexed { mi, macro ->
                 if (mi != macroIndex) macro
-                else macro.copy(
-                    blocks = macro.blocks.map { block ->
-                        block.copy(
-                            mesocycles = block.mesocycles.mapIndexed { mesoI, meso ->
-                                if (mesoI != mesoIndex) meso
-                                else meso.copy(
-                                    weeks = meso.weeks.map { week ->
-                                        if (week.id != weekId) week
-                                        else week.copy(
-                                            sessions = normalizeMainSessions(
-                                                week.sessions.filter { it.id != sessionId }
-                                            )
-                                        )
-                                    }
-                                )
-                            }
-                        )
-                    }
-                )
+                else {
+                    var globalMesoIndex = 0
+                    macro.copy(
+                        blocks = macro.blocks.map { block ->
+                            block.copy(
+                                mesocycles = block.mesocycles.map { meso ->
+                                    val currentGlobal = globalMesoIndex
+                                    globalMesoIndex++
+                                    if (currentGlobal != mesoIndex) meso
+                                    else meso.copy(
+                                        weeks = meso.weeks.map { week ->
+                                            if (week.id != weekId) week
+                                            else {
+                                                changed = true
+                                                week.copy(
+                                                    sessions = normalizeMainSessions(
+                                                        week.sessions.filter { it.id != sessionId }
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                    )
+                }
             }
         )
-        repository.updateProgram(updated)
+        if (changed) repository.updateProgram(updated)
     }
 
     fun addSession(macroIndex: Int, mesoIndex: Int, weekId: String, session: Session) {
@@ -1047,7 +1093,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             timelineStartDate = current.timelineStartDate ?: startDate.toString(),
             calendarization = current.calendarization ?: ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
             simpleProgramKind = SimpleProgramKind.CALENDARIZED,
-            pausedCyclicSnapshot = current.pausedCyclicSnapshot ?: current.toSimpleProgramSnapshot(),
+            pausedCyclicSnapshot = current.pausedCyclicSnapshot ?: current.toSimpleProgramSnapshot(appClock),
             loops = emptyList(),
             loopState = null,
             events = emptyList(),
@@ -1095,29 +1141,15 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         _uiState.update { it.copy(selectedBlockId = target.id, selectedWeekId = newWeeks.lastOrNull()?.id, structureSubTab = StructureSubTab.SEMANA) }
     }
 
-    private fun Program.toSimpleProgramSnapshot(): SimpleProgramSnapshot =
-        SimpleProgramSnapshot(
-            macrocycles = macrocycles,
-            loops = loops,
-            loopState = loopState,
-            events = events,
-            selectedSplitId = selectedSplitId,
-            customSplitPattern = customSplitPattern,
-            customSplitName = customSplitName,
-            customSplitDescription = customSplitDescription,
-            blockSplitSelections = blockSplitSelections,
-            savedAtMs = System.currentTimeMillis(),
-        )
-
     private fun buildCalendarWeeks(startDate: LocalDate, weekCount: Int, trainingDays: Set<Int>, weekOffset: Int, startDayOfWeek: Int = 1): List<ProgramWeek> {
         val startDayIsoValue = startDayOfWeek.coerceIn(1, 7)
         return (0 until weekCount).map { index ->
             val weekStart = startDate.plusWeeks(index.toLong())
             val weekEnd = weekStart.plusDays(6)
             ProgramWeek(
-                id = UUID.randomUUID().toString(),
-            name = calendarWeekTitle(weekStart),
-            startDate = weekStart.toString(),
+                id = idProvider.newId(),
+                name = calendarWeekTitle(weekStart),
+                startDate = weekStart.toString(),
                 endDate = weekEnd.toString(),
                 trainingDayDates = trainingDays.associate { dayOfWeek ->
                     val targetDayIsoValue = dayOfWeekToJava(dayOfWeek).value
@@ -1167,7 +1199,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             .maxOrNull()
         return lastEnd?.plusDays(1)
             ?: program.timelineStartDate?.let(::parseIsoDate)
-            ?: LocalDate.now()
+            ?: appClock.today(java.time.ZoneId.systemDefault())
     }
 
     private fun calendarWeekTitle(startDate: LocalDate): String =
@@ -1363,7 +1395,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         } else {
             val template = currentSets.last()
             val extraSets = List(safeTarget - currentSets.size) {
-                template.copy(id = UUID.randomUUID().toString())
+                template.copy(id = idProvider.newId())
             }
             exercise.copy(sets = currentSets + extraSets)
         }
@@ -1441,6 +1473,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
                 endDate = endDate,
                 startDayOfWeek = startDayOfWeek,
                 trainingDays = trainingDays,
+                idProvider = idProvider,
             )
         ).normalizedTemporalStructure()
         repository.updateProgram(updated)
@@ -1452,6 +1485,26 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         if (newBlockId != null) {
             _uiState.update { it.copy(selectedBlockId = newBlockId, selectedWeekId = newWeekId) }
         }
+        setShowSimpleCalendarizationSheet(false)
+    }
+
+    fun calendarizeSimpleCycle() {
+        val current = program.value ?: return
+        val startDate = parseIsoDate(_calendarizationStartDate.value) ?: return
+        val startDayOfWeek = _calendarizationStartDayOfWeek.value.coerceIn(1, 7)
+        val trainingDays = _calendarizationTrainingDays.value
+        if (trainingDays.isEmpty()) return
+
+        val updated = ProgramCalendarEngine.materializeWeekDates(
+            current.calendarizeSimpleCycle(
+                startDate = startDate,
+                startDayOfWeek = startDayOfWeek,
+                trainingDays = trainingDays,
+                idProvider = idProvider,
+            )
+        ).normalizedTemporalStructure()
+        repository.updateProgram(updated)
+        selectFirstRoadmapPosition(updated)
         setShowSimpleCalendarizationSheet(false)
     }
 
@@ -1467,7 +1520,7 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
 
     fun startFreshCyclicProgram() {
         val current = program.value ?: return
-        val updated = current.startFreshSimpleCycle()
+        val updated = current.startFreshSimpleCycle(idProvider)
             .withFallbackSimpleWeekIfEmpty()
             .normalizedTemporalStructure()
         repository.updateProgram(updated)
@@ -1479,22 +1532,22 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
         if (ProgramDetailHelpers.getTotalWeeks(this) > 0) return this
         if (!isSimpleTemporalProgram && structure != ProgramStructure.SIMPLE && macrocycles.isNotEmpty()) return this
         val fallbackWeek = ProgramWeek(
-            id = "week_simple_${System.nanoTime()}",
+            id = idProvider.newId(),
             name = "Semana 1",
         )
         val fallbackMeso = Mesocycle(
-            id = "meso_simple_${System.nanoTime()}",
+            id = idProvider.newId(),
             name = "Mesociclo 1",
             goal = MesocycleGoal.ACCUMULATION,
             weeks = listOf(fallbackWeek),
         )
         val fallbackBlock = Block(
-            id = "block_simple_${System.nanoTime()}",
+            id = idProvider.newId(),
             name = "Ciclo base",
             mesocycles = listOf(fallbackMeso),
         )
         val fallbackMacro = com.example.kpkn.data.models.Macrocycle(
-            id = "macro_simple_${System.nanoTime()}",
+            id = idProvider.newId(),
             name = "Macrociclo base",
             blocks = listOf(fallbackBlock),
         )
@@ -1561,6 +1614,22 @@ class ProgramDetailViewModel(private val programId: String) : ViewModel() {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return ProgramDetailViewModel(programId) as T
             }
+        }
+
+        internal fun resolveActiveWeekSelection(
+            active: ActiveProgramState,
+            weekIds: Collection<String>,
+        ): String? {
+            val idSet = weekIds.toSet()
+            val candidates = listOfNotNull(
+                active.currentWeekId.takeIf { it.isNotBlank() },
+                active.currentWeekInstanceId?.takeIf { it.isNotBlank() },
+                active.currentWeekId.takeIf { it.isNotBlank() }
+                    ?.let { ProgramProgressEngine.templateWeekIdFromInstance(it) },
+                active.currentWeekInstanceId?.takeIf { it.isNotBlank() }
+                    ?.let { ProgramProgressEngine.templateWeekIdFromInstance(it) },
+            ).distinct()
+            return candidates.firstOrNull { it in idSet }
         }
     }
 }

@@ -702,9 +702,9 @@ internal fun SessionEstimatedRings(
     val muscleProgress = muscleDrain.coerceIn(0, 100) / 100f
     val energyProgress = energyDrain.coerceIn(0, 100) / 100f
     val spineProgress = spineDrain.coerceIn(0, 100) / 100f
-    val muscleColor = Color(0xFFFF5252)
-    val energyColor = Color(0xFF448AFF)
-    val spineColor = Color(0xFFFFD740)
+    val muscleColor = com.example.kpkn.ui.theme.RingRed
+    val energyColor = com.example.kpkn.ui.theme.RingBlue
+    val spineColor = com.example.kpkn.ui.theme.RingYellow
 
     val muscleAnim by animateFloatAsState(muscleProgress, label = "muscleRing")
     val energyAnim by animateFloatAsState(energyProgress, label = "energyRing")

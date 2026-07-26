@@ -433,11 +433,32 @@ object ProgramAnalyticsEngine {
     }
 
     private fun buildAdherence(rows: List<PlannedExerciseRow>, logs: List<WorkoutLog>): AdherenceAnalytics {
-        val plannedSessions = rows.map { it.sessionId }.distinct().size.coerceAtLeast(1)
-        val completedSessions = logs.map { it.sessionId }.distinct().size
-        val plannedExercises = rows.size.coerceAtLeast(1)
-        val completedExercises = logs.flatMap { it.completedExercises }.map { it.exerciseId }.distinct().size
-        val omissions = logs.flatMap { it.omittedExercises }
+        val targetCycle = logs.mapNotNull { it.cycleNumber }.maxOrNull()
+            ?: rows.firstOrNull()?.let { 0 }
+            ?: 0
+        val scopedLogs = if (targetCycle > 0) {
+            logs.filter { log ->
+                when {
+                    log.cycleNumber == targetCycle -> true
+                    // Legacy without cycle only counts toward cycle 1
+                    log.cycleNumber == null && targetCycle == 1 -> true
+                    else -> false
+                }
+            }
+        } else {
+            logs
+        }
+        val cycleScopedRows = if (targetCycle > 0) {
+            // Planned rows are template sessions; denominator is unique planned sessions once per cycle.
+            rows
+        } else {
+            rows
+        }
+        val plannedSessions = cycleScopedRows.map { it.sessionId }.distinct().size.coerceAtLeast(1)
+        val completedSessions = scopedLogs.map { it.sessionId }.distinct().size
+        val plannedExercises = cycleScopedRows.size.coerceAtLeast(1)
+        val completedExercises = scopedLogs.flatMap { it.completedExercises }.map { it.exerciseId }.distinct().size
+        val omissions = scopedLogs.flatMap { it.omittedExercises }
             .groupingBy { it.exerciseName.ifBlank { it.exerciseId } }
             .eachCount()
             .map { (name, count) -> NamedMetric(name.normalizeId(), name, count.toDouble(), "Omitido en logs reales.") }
@@ -454,7 +475,7 @@ object ProgramAnalyticsEngine {
             completedSessionRatio = ratioSessions.coerceIn(0.0, 1.0).round2(),
             completedExerciseRatio = ratioExercises.coerceIn(0.0, 1.0).round2(),
             omittedExercises = omissions,
-            skippedExerciseCount = logs.flatMap { it.completedExercises }.sumOf { ex -> ex.sets.count { it.skipped } },
+            skippedExerciseCount = scopedLogs.flatMap { it.completedExercises }.sumOf { ex -> ex.sets.count { it.skipped } },
             diagnosis = diagnosis,
         )
     }

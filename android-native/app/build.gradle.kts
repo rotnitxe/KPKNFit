@@ -86,6 +86,10 @@ android {
     }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 val verifyDatasetKnowledge by tasks.registering(Exec::class) {
     group = "verification"
     description = "Verifies that the compiled nutrition dataset matches its master JSON."

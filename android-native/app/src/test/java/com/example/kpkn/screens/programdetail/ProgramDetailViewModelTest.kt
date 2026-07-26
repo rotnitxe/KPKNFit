@@ -2,11 +2,17 @@ package com.example.kpkn.screens.programdetail
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -14,7 +20,6 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -23,7 +28,7 @@ import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE, sdk = [34])
+@Config(manifest = Config.NONE, sdk = [28])
 class ProgramDetailViewModelTest {
 
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
@@ -34,6 +39,7 @@ class ProgramDetailViewModelTest {
     private fun makeProgram(id: String) = Program(
         id = id,
         name = "Test $id",
+        structure = ProgramStructure.COMPLEX,
         macrocycles = listOf(
             Macrocycle(
                 id = "${id}_mc1", name = "Macro",
@@ -93,18 +99,23 @@ class ProgramDetailViewModelTest {
     )
 
     @Before
-    fun setup() {
+    fun setup() = runBlocking {
         Dispatchers.setMain(testDispatcher)
         val context = ApplicationProvider.getApplicationContext<Context>()
-        ProgramRepository.init(context)
+        ProgramRepository.initForTests(context)
         repository = ProgramRepository.getInstance()
-        repository.clearPrograms()
-        repository.clearActiveProgram()
-        repository.clearOngoingWorkout()
+        withTimeout(10_000) {
+            while (!repository.isReady.value) {
+                delay(25)
+            }
+        }
+        repository.resetAllStateSync()
     }
 
     @After
     fun tearDown() {
+        ProgramRepository.closeInstance()
+        KpknDatabase.closeInstance()
         Dispatchers.resetMain()
     }
 
@@ -201,23 +212,19 @@ class ProgramDetailViewModelTest {
     }
 
     @Test
-    @Ignore("StateFlow combine timing issue with singleton repository")
-    fun totalWeeks_computed() {
+    fun totalWeeks_computed() = runBlocking {
         val id = nextId()
         repository.addProgram(makeProgram(id))
         val vm = ProgramDetailViewModel(id)
-
-        assertEquals(3, vm.totalWeeks.value)
+        assertEquals(3, withTimeout(5_000) { vm.totalWeeks.filter { it > 0 }.first() })
     }
 
     @Test
-    @Ignore("StateFlow combine timing issue with singleton repository")
-    fun isSimpleProgram_false_for_multi_block() {
+    fun isSimpleProgram_false_for_multi_block() = runBlocking {
         val id = nextId()
         repository.addProgram(makeProgram(id))
         val vm = ProgramDetailViewModel(id)
-
-        assertFalse(vm.isSimpleProgram.value)
+        assertFalse(withTimeout(5_000) { vm.isSimpleProgram.filter { !it }.first() })
     }
 
     @Test
@@ -425,6 +432,25 @@ class ProgramDetailViewModelTest {
         assertEquals("Semana 1", weeks.first().name)
         assertEquals(blocks.first().id, vm.uiState.value.selectedBlockId)
         assertEquals(weeks.first().id, vm.uiState.value.selectedWeekId)
+    }
+
+    @Test
+    fun resolveActiveWeekSelection_maps_instance_id_to_template_week() {
+        val weeks = listOf(
+            ProgramWeek(id = "w1", name = "Semana 1"),
+            ProgramWeek(id = "w2", name = "Semana 2"),
+        )
+        val active = ActiveProgramState(
+            programId = "p",
+            status = ProgramStatus.ACTIVE,
+            currentWeekId = "inst_c3_w2",
+            currentWeekInstanceId = "inst_c3_w2",
+            currentCycleNumber = 3,
+        )
+        assertEquals(
+            "w2",
+            ProgramDetailViewModel.resolveActiveWeekSelection(active, weeks.map { it.id }),
+        )
     }
 
     @Test

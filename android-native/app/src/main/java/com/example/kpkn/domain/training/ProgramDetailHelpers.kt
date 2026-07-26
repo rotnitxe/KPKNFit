@@ -2,6 +2,7 @@ package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.KeyDateType
+import com.example.kpkn.data.models.LoopStatus
 import com.example.kpkn.data.models.LoopType
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.MesocycleGoal
@@ -10,7 +11,7 @@ import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.domain.calculations.getTotalWeeks
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -66,12 +67,14 @@ data class RoadmapLoopMarker(
     val label: String,
     val title: String,
     val repeatEveryCycles: Int,
+    val nextCycle: Int? = null,
+    val occurrenceStatus: String? = null,
 )
 
 object ProgramDetailHelpers {
 
     fun isSimpleProgram(program: Program): Boolean {
-        return program.isSimpleTemporalProgram
+        return program.isSimpleProgram
     }
 
     fun buildRoadmapBlocks(program: Program): List<RoadmapBlock> {
@@ -153,14 +156,27 @@ object ProgramDetailHelpers {
     }
 
     fun buildSimpleRoadmapLoopMarkers(program: Program): List<RoadmapLoopMarker> {
-        if (!program.isSimpleTemporalProgram) return emptyList()
+        if (!program.isSimpleProgram) return emptyList()
+
+        val occurrences = if (program.loopOccurrences.isNotEmpty()) {
+            program.loopOccurrences
+        } else {
+            LoopEngine.syncOccurrences(program).loopOccurrences
+        }
+        val nextByLoop = occurrences
+            .filter { it.status != LoopStatus.CANCELLED && it.status != LoopStatus.COMPLETED }
+            .groupBy { it.loopId }
+            .mapValues { (_, occs) -> occs.minByOrNull { it.scheduledCycle } }
 
         val loopMarkers = program.loops.map { loop ->
+            val next = nextByLoop[loop.id]
             RoadmapLoopMarker(
                 id = loop.id,
                 label = loopTypeLabel(loop.type),
                 title = loop.title,
                 repeatEveryCycles = loop.repeatEveryXLoops.coerceAtLeast(1),
+                nextCycle = next?.scheduledCycle,
+                occurrenceStatus = next?.status?.name,
             )
         }
 

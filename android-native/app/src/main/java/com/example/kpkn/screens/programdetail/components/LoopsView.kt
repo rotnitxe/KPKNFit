@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Loop
 import com.example.kpkn.data.models.LoopState
+import com.example.kpkn.data.models.LoopStatus
 import com.example.kpkn.data.models.LoopType
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
@@ -39,14 +40,20 @@ private data class LoopTemplate(
     val name: String,
     val emoji: String,
     val desc: String,
-    val loops: List<Pair<String, LoopType>>,
+    val loops: List<LoopTemplateEntry>,
+)
+
+private data class LoopTemplateEntry(
+    val title: String,
+    val type: LoopType,
+    val cadence: Int,
 )
 
 private val LOOP_TEMPLATES = listOf(
-    LoopTemplate("deload-4", "Descarga cada 4", "\uD83E\uDDD8", "Semana de descarga automática cada 4 ciclos.", listOf("Descarga" to LoopType.DELOAD)),
-    LoopTemplate("1rm-8", "Test 1RM cada 8", "\uD83C\uDFCB\uFE0F", "Semana de pruebas de fuerza cada 8 ciclos.", listOf("Test 1RM" to LoopType.ONE_RM_TEST)),
-    LoopTemplate("deload-1rm", "Descarga + Test 1RM", "\u26A1", "Descarga cada 4 y Test 1RM cada 8 ciclos.", listOf("Descarga" to LoopType.DELOAD, "Test 1RM" to LoopType.ONE_RM_TEST)),
-    LoopTemplate("competition-12", "Competición cada 12", "\uD83C\uDFC6", "Competición cada 12 ciclos con descarga cada 4.", listOf("Descarga" to LoopType.DELOAD, "Competición" to LoopType.COMPETITION)),
+    LoopTemplate("deload-4", "Descarga cada 4", "\uD83E\uDDD8", "Semana de descarga automática cada 4 ciclos.", listOf(LoopTemplateEntry("Descarga", LoopType.DELOAD, 4))),
+    LoopTemplate("1rm-8", "Test 1RM cada 8", "\uD83C\uDFCB\uFE0F", "Semana de pruebas de fuerza cada 8 ciclos.", listOf(LoopTemplateEntry("Test 1RM", LoopType.ONE_RM_TEST, 8))),
+    LoopTemplate("deload-1rm", "Descarga + Test 1RM", "\u26A1", "Descarga cada 4 y Test 1RM cada 8 ciclos.", listOf(LoopTemplateEntry("Descarga", LoopType.DELOAD, 4), LoopTemplateEntry("Test 1RM", LoopType.ONE_RM_TEST, 8))),
+    LoopTemplate("competition-12", "Competición cada 12", "\uD83C\uDFC6", "Competición cada 12 ciclos con descarga cada 4.", listOf(LoopTemplateEntry("Descarga", LoopType.DELOAD, 4), LoopTemplateEntry("Competición", LoopType.COMPETITION, 12))),
 )
 
 @Composable
@@ -137,13 +144,13 @@ fun LoopsView(
                             Card(
                                 modifier = Modifier.width(200.dp).clickable {
                                     val usedCadences = program.loops.map { it.repeatEveryXLoops.coerceAtLeast(1) }.toSet()
-                                    val newLoops = template.loops.mapIndexedNotNull { i, (title, type) ->
-                                        val cadence = if (type == LoopType.ONE_RM_TEST || type == LoopType.COMPETITION) 8 else 4
+                                    val newLoops = template.loops.mapIndexedNotNull { i, entry ->
+                                        val cadence = entry.cadence.coerceAtLeast(1)
                                         if (cadence in usedCadences) return@mapIndexedNotNull null
                                         Loop(
                                             id = "loop_${System.nanoTime()}_$i",
-                                            title = title,
-                                            type = type,
+                                            title = entry.title,
+                                            type = entry.type,
                                             repeatEveryXLoops = cadence,
                                             durationType = com.example.kpkn.data.models.DurationType.WEEK,
                                         )
@@ -183,6 +190,9 @@ fun LoopsView(
                     onReactivate = {
                         onUpdateProgram(LoopEngine.reactivateLoop(program, loop.id))
                     },
+                    onPostpone = {
+                        onUpdateProgram(LoopEngine.postponeNextOccurrence(program, loop.id))
+                    },
                 )
                 Spacer(Modifier.height(6.dp))
             }
@@ -193,6 +203,12 @@ fun LoopsView(
             Text("Semanas de loop", fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
             Spacer(Modifier.height(6.dp))
             actionableOccurrences.forEach { occurrence ->
+                val occurrenceId = program.loopOccurrences
+                    .firstOrNull {
+                        it.loopId == occurrence.loop.id &&
+                            it.scheduledCycle == occurrence.projection.cycle
+                    }?.id
+                    ?: "occ_${occurrence.loop.id}_${occurrence.projection.cycle}"
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -211,7 +227,7 @@ fun LoopsView(
                                     fontWeight = FontWeight.Bold,
                                 )
                                 Text(
-                                    "${occurrence.weekLabel} · ${occurrence.dayLabel} · cada ${occurrence.loop.repeatEveryXLoops} ciclos",
+                                    "${occurrence.weekLabel} · ciclo ${occurrence.projection.cycle} · ${occurrence.dayLabel} · cada ${occurrence.loop.repeatEveryXLoops} ciclos",
                                     fontSize = 10.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -223,10 +239,26 @@ fun LoopsView(
                                 label = { Text(occurrence.countdownLabel, fontSize = 9.sp) },
                             )
                         }
-                        OutlinedButton(onClick = { onFocusWeek(occurrence.blockId, occurrence.weekId) }) {
-                            Icon(Icons.Default.CalendarMonth, contentDescription = null)
-                            Spacer(Modifier.width(6.dp))
-                            Text("Ver semana")
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = { onFocusWeek(occurrence.blockId, occurrence.weekId) }) {
+                                Icon(Icons.Default.CalendarMonth, contentDescription = null)
+                                Spacer(Modifier.width(6.dp))
+                                Text("Ver semana")
+                            }
+                            OutlinedButton(
+                                onClick = {
+                                    onUpdateProgram(LoopEngine.postponeOccurrence(program, occurrenceId))
+                                },
+                            ) {
+                                Text("Posponer")
+                            }
+                            TextButton(
+                                onClick = {
+                                    onUpdateProgram(LoopEngine.cancelOccurrence(program, occurrenceId))
+                                },
+                            ) {
+                                Text("Cancelar")
+                            }
                         }
                     }
                 }
@@ -294,22 +326,41 @@ private fun buildLoopOccurrences(program: Program, currentCycle: Int): List<Loop
     val loopWeeks = baseBlock.mesocycles.flatMap { it.weeks }.filter { it.isLoopWeek && it.loopId != null }
     if (loopWeeks.isEmpty()) return emptyList()
 
+    val synced = if (program.loopOccurrences.isEmpty()) {
+        LoopEngine.syncOccurrences(program)
+    } else {
+        program
+    }
+    val occurrencesByLoop = synced.loopOccurrences
+        .filter { it.status != LoopStatus.CANCELLED && it.status != LoopStatus.COMPLETED }
+        .groupBy { it.loopId }
+    val projections = LoopEngine.projectLoops(program, fromCycle = currentCycle.coerceAtLeast(0), lookAheadCycles = 24)
+    val projectionByLoopId = projections.groupBy { it.loop.id }
+
     return loopWeeks.mapNotNull { targetWeek ->
         val loop = program.loops.firstOrNull { it.id == targetWeek.loopId } ?: return@mapNotNull null
+        val nextOcc = occurrencesByLoop[loop.id]?.minByOrNull { it.scheduledCycle }
+        val projection = projectionByLoopId[loop.id]?.firstOrNull()
+            ?: LoopProjection(
+                loop = loop,
+                cycle = nextOcc?.scheduledCycle ?: currentCycle.coerceAtLeast(1),
+                isPostponed = nextOcc?.status == LoopStatus.POSTPONED,
+                isCancelled = nextOcc?.status == LoopStatus.CANCELLED ||
+                    loop.id in (program.loopState?.cancelled ?: emptyList()),
+                daysUntil = 0,
+                weekInCycle = LoopEngine.getCycleLength(program),
+            )
         val preferredDay = preferredLoopDay(loop, program.startDay ?: 1)
         val existingSession = targetWeek.sessions.firstOrNull { it.dayOfWeek == preferredDay }
         LoopActionOccurrence(
             loop = loop,
-            projection = LoopProjection(
-                loop = loop,
-                cycle = loop.repeatEveryXLoops.coerceAtLeast(1),
-                isPostponed = false,
-                isCancelled = false,
-                daysUntil = 0,
-                weekInCycle = 1,
+            projection = projection.copy(
+                cycle = nextOcc?.scheduledCycle ?: projection.cycle,
+                isPostponed = nextOcc?.status == LoopStatus.POSTPONED || projection.isPostponed,
+                isCancelled = nextOcc?.status == LoopStatus.CANCELLED || projection.isCancelled,
             ),
             blockId = baseBlock.id,
-            weekId = targetWeek.id,
+            weekId = nextOcc?.weekInstanceId ?: targetWeek.id,
             weekLabel = targetWeek.name,
             dayLabel = dayLabel(preferredDay),
             existingSession = existingSession,
@@ -347,6 +398,7 @@ private fun LoopCard(
     onDelete: () -> Unit,
     onCancel: () -> Unit,
     onReactivate: () -> Unit,
+    onPostpone: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -372,6 +424,9 @@ private fun LoopCard(
                         Icon(Icons.Default.PlayArrow, "Reactivar", modifier = Modifier.size(14.dp), tint = Color(0xFF10B981))
                     }
                 } else {
+                    IconButton(onClick = onPostpone, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Default.CalendarMonth, "Postergar", modifier = Modifier.size(14.dp), tint = Color(0xFF60A5FA))
+                    }
                     IconButton(onClick = onCancel, modifier = Modifier.size(28.dp)) {
                         Icon(Icons.Default.Close, "Cancelar", modifier = Modifier.size(14.dp), tint = Color(0xFFFBBF24))
                     }

@@ -1,15 +1,20 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.OngoingWorkoutState
+import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SetDrain
+import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.WorkoutHeaderWidgets
+import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
+import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine
 import com.example.kpkn.services.workout.ActiveWorkoutHolder
 
@@ -102,6 +107,13 @@ class WorkoutSessionHydrator(
         val session = foundSession ?: return false
         val resumedState = repository.ongoingWorkout.value
             ?.takeIf { it.programId == programId && it.session.id == sessionId }
+
+        val active = repository.activeProgramState.value?.takeIf { it.programId == programId }
+        val resolvedWeekId = resolveWorkoutWeekId(
+            program = program,
+            templateOrInstanceWeekId = resumedState?.weekId ?: foundWeekId,
+            active = active,
+        )
 
         val restoredSession = (resumedState?.session ?: session)
             .let(ports::normalizeSupersetsForWorkout)
@@ -213,7 +225,7 @@ class WorkoutSessionHydrator(
             it.copy(
                 session = restoredSession.normalizedIdentityFields().let(ports::normalizeSupersetsForWorkout),
                 activeMode = restoredMode,
-                weekId = foundWeekId,
+                weekId = resolvedWeekId,
                 macroIndex = foundMacroIdx,
                 mesoIndex = foundMesoIdx,
                 currentExerciseIdx = restoredExerciseIdx,
@@ -300,7 +312,7 @@ class WorkoutSessionHydrator(
                     activeStepKey = getState().activeStepKey,
                     macroIndex = foundMacroIdx,
                     mesoIndex = foundMesoIdx,
-                    weekId = foundWeekId,
+                    weekId = resolvedWeekId,
                     activeMode = restoredMode,
                     exerciseTags = restoredTags,
                     activeTags = restoredActiveTags,
@@ -351,5 +363,29 @@ class WorkoutSessionHydrator(
             ports.startSessionTimer(remainingSeconds)
         }
         return true
+    }
+
+    private fun resolveWorkoutWeekId(
+        program: Program,
+        templateOrInstanceWeekId: String,
+        active: ActiveProgramState?,
+    ): String {
+        if (templateOrInstanceWeekId.isBlank()) return templateOrInstanceWeekId
+        if (!(program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC)) {
+            return templateOrInstanceWeekId
+        }
+        val cycle = program.runState?.cycleNumber
+            ?: active?.currentCycleNumber
+            ?: program.loopState?.currentCycle?.coerceAtLeast(1)
+            ?: 1
+        val templateWeekId = ProgramProgressEngine.templateWeekIdFromInstance(templateOrInstanceWeekId)
+            ?: templateOrInstanceWeekId
+        val activeInstance = active?.currentWeekInstanceId
+        if (activeInstance != null &&
+            ProgramProgressEngine.templateWeekIdFromInstance(activeInstance) == templateWeekId
+        ) {
+            return activeInstance
+        }
+        return ProgramProgressEngine.instanceIdFor(cycle, templateWeekId)
     }
 }

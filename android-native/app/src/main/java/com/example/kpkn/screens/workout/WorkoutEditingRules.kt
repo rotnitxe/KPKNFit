@@ -12,7 +12,7 @@ import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.isEffectivelyUnilateral
-import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.data.models.isSimpleProgram
 import kotlin.math.roundToInt
 
 enum class WorkoutLiveEditPersistenceScope {
@@ -61,7 +61,7 @@ object WorkoutEditingRules {
     }
 
     fun liveEditPersistenceScope(program: Program): WorkoutLiveEditPersistenceScope {
-        val isSimpleCyclic = program.isSimpleTemporalProgram &&
+        val isSimpleCyclic = program.isSimpleProgram &&
             program.simpleProgramKind == SimpleProgramKind.CYCLIC &&
             program.calendarization?.mode != ProgramCalendarizationMode.SIMPLE_DATED
         return if (isSimpleCyclic) {
@@ -81,10 +81,7 @@ object WorkoutEditingRules {
                 ReplacementPersistenceScopeV2.PERMANENT,
             )
         } else {
-            listOf(
-                ReplacementPersistenceScopeV2.SESSION_ONLY,
-                ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING,
-            )
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY)
         }
     }
 

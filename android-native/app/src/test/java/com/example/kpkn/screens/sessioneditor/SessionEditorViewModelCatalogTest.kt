@@ -42,7 +42,7 @@ class SessionEditorViewModelCatalogTest {
     fun setup() = runBlocking {
         Dispatchers.setMain(dispatcher)
         val context = ApplicationProvider.getApplicationContext<Context>()
-        ProgramRepository.init(context)
+        ProgramRepository.initForTests(context)
         repository = ProgramRepository.getInstance()
         repository.clearPrograms()
         repository.clearActiveProgram()
@@ -56,6 +56,7 @@ class SessionEditorViewModelCatalogTest {
 
     @After
     fun tearDown() {
+        ProgramRepository.closeInstance()
         Dispatchers.resetMain()
     }
 

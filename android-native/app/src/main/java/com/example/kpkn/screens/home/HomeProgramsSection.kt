@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -151,33 +152,31 @@ private fun programCardCoverColors(coverValue: String?): List<Color> = when (cov
 
 @Composable
 private fun CreateProgramChip(onClick: () -> Unit) {
-    Card(
-        onClick = onClick,
+    Box(
         modifier = Modifier
             .width(140.dp)
-            .height(112.dp),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
-        ),
+            .height(112.dp)
+            .clip(RoundedCornerShape(22.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.09f))
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Column(
-            Modifier.fillMaxSize().padding(14.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Nuevo programa",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+            }
+            Text("Nuevo programa", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = Color.White)
+            Text("Diseñar rutina", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.52f))
         }
     }
 }
-
 @Composable
 private fun EmptyProgramsCard(modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(

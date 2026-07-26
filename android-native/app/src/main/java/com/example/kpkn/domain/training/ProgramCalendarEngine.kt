@@ -4,10 +4,13 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarization
 import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramKeyDate
+import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
-import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.data.models.resolvedSchedulePlan
+import com.example.kpkn.data.models.suggestCalendarTrainingDays
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -77,9 +80,9 @@ object ProgramCalendarEngine {
         val calendar = program.calendarization ?: return false
         return when (calendar.mode) {
             ProgramCalendarizationMode.ADVANCED_COMPETITION ->
-                !program.isSimpleTemporalProgram && !program.timelineStartDate.isNullOrBlank()
+                !program.isSimpleProgram && !program.timelineStartDate.isNullOrBlank()
             ProgramCalendarizationMode.SIMPLE_DATED ->
-                program.isSimpleTemporalProgram &&
+                program.isSimpleProgram &&
                     program.simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
                     !program.timelineStartDate.isNullOrBlank()
         }
@@ -92,6 +95,14 @@ object ProgramCalendarEngine {
             activatedByCompetition = true,
         )
 
+    /** Advanced dated calendar without requiring a competition key date. */
+    fun defaultAdvancedDatedCalendarization(): ProgramCalendarization =
+        ProgramCalendarization(
+            mode = ProgramCalendarizationMode.ADVANCED_COMPETITION,
+            strictStart = true,
+            activatedByCompetition = false,
+        )
+
     fun defaultSimpleDatedCalendarization(): ProgramCalendarization =
         ProgramCalendarization(
             mode = ProgramCalendarizationMode.SIMPLE_DATED,
@@ -101,22 +112,23 @@ object ProgramCalendarEngine {
 
     fun project(program: Program): ProgramCalendarProjection {
         val calendar = program.calendarization
-        val start = parseIsoDate(program.timelineStartDate)
-        if (calendar == null || start == null) {
+        val plan = program.resolvedSchedulePlan()
+        val anchorDate = parseIsoDate(program.timelineStartDate) ?: parseIsoDate(plan.anchorDate)
+        if (calendar == null || anchorDate == null) {
             return ProgramCalendarProjection(
                 enabled = false,
                 mode = calendar?.mode,
                 strictStart = calendar?.strictStart == true,
                 activatedByCompetition = calendar?.activatedByCompetition == true,
-                startDate = start,
+                startDate = anchorDate,
                 projectedEndDate = null,
                 manualEndDate = parseIsoDate(calendar?.manualEndDate),
                 endDateStatus = ProgramEndDateStatus.NONE,
                 weeks = emptyList(),
             )
         }
-        val startDate: LocalDate = start
-        var cursor = startDate
+        val start: LocalDate = anchorDate
+        var cursor = start
         var globalWeekIndex = 0
         val weeks = mutableListOf<CalendarWeekProjection>()
 
@@ -126,10 +138,16 @@ object ProgramCalendarEngine {
                 block.mesocycles.forEach { meso ->
                     val mesoIndex = globalMesoIndex++
                     meso.weeks.forEach { week ->
-                        val weekStart = parseIsoDate(week.startDate) ?: cursor
-                        val weekEnd = parseIsoDate(week.endDate) ?: projectedWeekEnd(weekStart)
-                        val outsideDays = outsideDaysFor()
-                        val dayDates = trainingDatesFor(weekStart, weekEnd, outsideDays, week.trainingDayDates)
+                        if (week.isLoopWeek) return@forEach
+                        val weekStart = cursor
+                        val weekEnd = weekStart.plusDays(6)
+                        val trainingDays = resolveTrainingDays(program, week)
+                        val dayDates = trainingDatesFor(
+                            weekStart = weekStart,
+                            weekEnd = weekEnd,
+                            trainingDays = trainingDays,
+                            explicit = week.trainingDayDates,
+                        )
                         val marks = program.keyDates.filter { keyDateIntersects(it, weekStart, weekEnd) }
                         weeks += CalendarWeekProjection(
                             weekId = week.id,
@@ -142,7 +160,7 @@ object ProgramCalendarEngine {
                             blockName = block.name,
                             startDate = weekStart,
                             endDate = weekEnd,
-                            outsideProgramDays = outsideDays,
+                            outsideProgramDays = emptySet(),
                             trainingDayDates = dayDates,
                             keyDates = marks,
                         )
@@ -154,8 +172,8 @@ object ProgramCalendarEngine {
         }
 
         val projectedEnd = weeks.lastOrNull()?.endDate
-        val manualEnd = parseIsoDate(calendar.manualEndDate)
-        val status = endDateStatus(manualEnd, projectedEnd, calendar.manualEndDate)
+        val manualEnd = parseIsoDate(calendar.manualEndDate) ?: parseIsoDate(plan.targetEndDate)
+        val status = endDateStatus(manualEnd, projectedEnd, calendar.manualEndDate ?: plan.targetEndDate)
         return ProgramCalendarProjection(
             enabled = true,
             mode = calendar.mode,
@@ -181,11 +199,16 @@ object ProgramCalendarEngine {
                             mesocycles = block.mesocycles.map { meso ->
                                 meso.copy(
                                     weeks = meso.weeks.map { week ->
+                                        if (week.isLoopWeek) return@map week
                                         val projected = byId[week.id] ?: return@map week
+                                        val preservedTrainingDays = resolveTrainingDays(program, week)
+                                        val mergedTrainingDates = projected.trainingDayDates
+                                            .filterKeys { day -> day in preservedTrainingDays }
+                                            .mapValues { it.value.toString() }
                                         week.copy(
                                             startDate = projected.startDate.toString(),
                                             endDate = projected.endDate.toString(),
-                                            trainingDayDates = projected.trainingDayDates.mapValues { it.value.toString() },
+                                            trainingDayDates = mergedTrainingDates,
                                         )
                                     }
                                 )
@@ -197,7 +220,7 @@ object ProgramCalendarEngine {
         )
     }
 
-    fun scheduleIssueFor(program: Program, weekId: String?, session: Session, actualDate: LocalDate = LocalDate.now()): ScheduleIssue? {
+    fun scheduleIssueFor(program: Program, weekId: String?, session: Session, actualDate: LocalDate = SystemAppClock.today(java.time.ZoneId.systemDefault())): ScheduleIssue? {
         val projection = project(program)
         if (!projection.enabled) return null
         val planned = weekId?.let { projection.scheduledDateFor(session, it) }
@@ -210,25 +233,37 @@ object ProgramCalendarEngine {
         }
     }
 
-    private fun projectedWeekEnd(start: LocalDate): LocalDate {
-        return start.plusDays(6)
+    fun resolveTrainingDays(program: Program, week: ProgramWeek): Set<Int> {
+        val fromPlan = program.resolvedSchedulePlan().trainingDays.filter { it in 1..7 }
+        if (fromPlan.isNotEmpty()) return fromPlan.toSet()
+        val fromWeek = week.trainingDayDates.keys.filter { it in 1..7 }
+        if (fromWeek.isNotEmpty()) return fromWeek.toSet()
+        if (program.isSimpleProgram) {
+            val fromSessions = week.sessions.mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+            if (fromSessions.isNotEmpty()) return fromSessions.toSet()
+            return program.suggestCalendarTrainingDays()
+        }
+        return (1..7).toSet()
     }
 
-    private fun outsideDaysFor(): Set<Int> {
-        return emptySet()
+    @Suppress("unused")
+    private fun alignToWeekStart(date: LocalDate, weekStartDay: Int?): LocalDate {
+        val target = weekStartDay?.coerceIn(1, 7) ?: date.dayOfWeek.value
+        val current = date.dayOfWeek.value
+        val delta = (current - target + 7) % 7
+        return if (delta == 0) date else date.minusDays(delta.toLong())
     }
 
     private fun trainingDatesFor(
-        start: LocalDate,
-        end: LocalDate,
-        outsideDays: Set<Int>,
+        weekStart: LocalDate,
+        weekEnd: LocalDate,
+        trainingDays: Set<Int>,
         explicit: Map<Int, String>,
     ): Map<Int, LocalDate> {
-        return (1..7).mapNotNull { day ->
-            if (day in outsideDays) return@mapNotNull null
+        return trainingDays.mapNotNull { day ->
             val explicitDate = parseIsoDate(explicit[day])
-            val resolved = explicitDate ?: dateForDay(start, end, day) ?: return@mapNotNull null
-            if (resolved.isBefore(start) || resolved.isAfter(end)) null else day to resolved
+            val resolved = explicitDate ?: dateForDay(weekStart, weekEnd, day) ?: return@mapNotNull null
+            if (resolved.isBefore(weekStart) || resolved.isAfter(weekEnd)) null else day to resolved
         }.toMap()
     }
 

@@ -84,9 +84,9 @@ import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
 
-private val EnergyRingColor = Color(0xFF448AFF)
-private val SpineRingColor = Color(0xFFFFD740)
-private val MuscleRingColor = Color(0xFFFF5252)
+private val EnergyRingColor = com.example.kpkn.ui.theme.RingBlue
+private val SpineRingColor = com.example.kpkn.ui.theme.RingYellow
+private val MuscleRingColor = com.example.kpkn.ui.theme.RingRed
 private val DirectBarColor = Color(0xFF22C55E)
 private val IndirectBarColor = Color(0xFF64748B)
 

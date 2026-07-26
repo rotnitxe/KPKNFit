@@ -82,6 +82,12 @@ data class Settings(
 
     /** Código BCP-47 del idioma seleccionado, o "system" para respetar el locale del SO. */
     val appLanguage: String = "system",
+    val programQueueIds: List<String> = emptyList(),
+    val archivedProgramIds: List<String> = emptyList(),
+    /** IDs de programas con JSON corrupto aislados en carga; se conservan en Room sin hidratar. */
+    val quarantinedProgramIds: List<String> = emptyList(),
+    /** Respaldo del JSON crudo de filas corruptas (id → data). */
+    val quarantinedProgramBackups: Map<String, String> = emptyMap(),
 )
 
 enum class CalorieGoalObjective { DEFICIT, MAINTENANCE, SURPLUS }

@@ -14,6 +14,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +25,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.text.Normalizer
 import java.time.Instant
@@ -33,11 +35,15 @@ import java.util.UUID
 /**
  * NutritionRepository — Write-through cache para estado nutricional.
  */
-class NutritionRepository private constructor(context: Context) {
+class NutritionRepository private constructor(
+    context: Context,
+    private val db: KpknDatabase = KpknDatabase.getInstance(context),
+    private val ownsDatabase: Boolean = false,
+) {
 
-    private val db = KpknDatabase.getInstance(context)
     private val appContext = context.applicationContext
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val repositoryJob = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.IO + repositoryJob)
     private val foodPrefs by lazy { appContext.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE) }
 
     @Serializable
@@ -857,6 +863,19 @@ class NutritionRepository private constructor(context: Context) {
         fun init(context: Context): NutritionRepository = INSTANCE ?: synchronized(this) {
             INSTANCE ?: NutritionRepository(context.applicationContext).also { INSTANCE = it; it.loadFromDb(context.applicationContext) }
         }
+        fun initForTests(context: Context): NutritionRepository = synchronized(this) {
+            closeInstance()
+            NutritionRepository(
+                context = context.applicationContext,
+                db = KpknDatabase.createInMemory(context.applicationContext),
+                ownsDatabase = true,
+            ).also { INSTANCE = it; it.loadFromDb(context.applicationContext) }
+        }
         fun getInstance(): NutritionRepository = INSTANCE ?: error("Not initialized")
+        internal fun closeInstance() {
+            INSTANCE?.let { runBlocking { it.repositoryJob.cancelAndJoin() } }
+            INSTANCE?.takeIf { it.ownsDatabase }?.db?.close()
+            INSTANCE = null
+        }
     }
 }

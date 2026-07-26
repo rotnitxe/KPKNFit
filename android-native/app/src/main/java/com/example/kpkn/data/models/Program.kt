@@ -3,6 +3,10 @@ package com.example.kpkn.data.models
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import com.example.kpkn.domain.training.ProgramCalendarEngine
+import com.example.kpkn.domain.training.AppClock
+import com.example.kpkn.domain.training.IdProvider
+import com.example.kpkn.domain.training.SystemAppClock
+import com.example.kpkn.domain.training.UuidIdProvider
 
 @Serializable
 data class Program(
@@ -44,6 +48,10 @@ data class Program(
     val volumeSetupPromptSeen: Boolean = false,
     val splitTrialSeen: Boolean = false,
     val isDraft: Boolean = false,
+    val schedulePlan: ProgramSchedulePlan? = null,
+    val calendarBreaks: List<CalendarBreak> = emptyList(),
+    val runState: ProgramRunState? = null,
+    val loopOccurrences: List<LoopOccurrence> = emptyList(),
 )
 
 enum class ProgramMode { POWERLIFTING, HYPERTROPHY, POWERBUILDING }
@@ -73,6 +81,14 @@ data class SimpleProgramSnapshot(
     val customSplitDescription: String? = null,
     val blockSplitSelections: Map<String, String> = emptyMap(),
     val savedAtMs: Long = 0L,
+    /** Congela el cursor cíclico para restaurarlo al salir del break. */
+    val runState: ProgramRunState? = null,
+    val schedulePlan: ProgramSchedulePlan? = null,
+    val loopOccurrences: List<LoopOccurrence> = emptyList(),
+    val activeWeekId: String? = null,
+    val activeWeekInstanceId: String? = null,
+    val activeCycleNumber: Int? = null,
+    val programRunId: String? = null,
 )
 
 @Serializable
@@ -110,6 +126,8 @@ data class LoopState(
     val currentCycle: Int = 0,
     val postponed: List<PostponedLoop> = emptyList(),
     val cancelled: List<String> = emptyList(),
+    /** Claves `loopId:scheduledCycle` de ocurrencias canceladas sin anular la regla. */
+    val cancelledOccurrences: List<String> = emptyList(),
 )
 
 @Serializable
@@ -236,14 +254,23 @@ val Program.totalMesocycleCount: Int
 val Program.totalProgramWeeks: Int
     get() = macrocycles.sumOf { macro -> macro.blocks.sumOf { block -> block.mesocycles.sumOf { it.weeks.size } } }
 
+/** Simple explícito por contrato serializado; no infiere por cantidad de bloques. */
+val Program.isSimpleProgram: Boolean
+    get() = structure == ProgramStructure.SIMPLE
+
+/** Alias histórico — usa structure, no el conteo de bloques. */
 val Program.isSimpleTemporalProgram: Boolean
-    get() = macrocycles.size == 1 && totalBlockCount == 1
+    get() = isSimpleProgram
 
 val Program.isSimpleCalendarizedProgram: Boolean
-    get() = isSimpleTemporalProgram && simpleProgramKind == SimpleProgramKind.CALENDARIZED
+    get() = isSimpleProgram && simpleProgramKind == SimpleProgramKind.CALENDARIZED
 
 val Program.simpleCycleWeeks: Int?
-    get() = if (isSimpleTemporalProgram) totalProgramWeeks else null
+    get() = if (isSimpleProgram) {
+        macrocycles.firstOrNull()?.blocks?.firstOrNull()
+            ?.mesocycles?.sumOf { meso -> meso.weeks.count { !it.isLoopWeek } }
+            ?.takeIf { it > 0 }
+    } else null
 
 val Program.primaryLoopCadenceCycles: Int?
     get() = when {
@@ -257,10 +284,66 @@ val Program.primaryLoopLengthWeeks: Int?
         primaryLoopCadenceCycles?.let { cadence -> cycleWeeks * cadence }
     }
 
-fun Program.normalizedTemporalStructure(): Program {
-    val shouldBeSimple = isSimpleTemporalProgram
+fun Program.resolvedSchedulePlan(): ProgramSchedulePlan {
+    if (schedulePlan != null) return schedulePlan
+    return ProgramSchedulePlan(
+        anchorDate = timelineStartDate,
+        weekStartDay = startDay,
+        trainingDays = emptySet(),
+        targetEndDate = calendarization?.manualEndDate,
+        mode = when {
+            calendarization != null && !timelineStartDate.isNullOrBlank() -> ScheduleMode.DATED
+            else -> ScheduleMode.FLOATING
+        },
+    )
+}
+
+fun Program.validateTemporalStructure(): List<TemporalStructureIssue> {
+    val issues = mutableListOf<TemporalStructureIssue>()
+    if (isSimpleProgram) {
+        if (macrocycles.size > 1) {
+            issues += TemporalStructureIssue(
+                TemporalStructureIssueType.SIMPLE_MULTIPLE_MACROCYCLES,
+                "Programa Simple con ${macrocycles.size} macrociclos; se requiere un solo macrociclo.",
+            )
+        }
+        if (totalBlockCount > 1) {
+            issues += TemporalStructureIssue(
+                TemporalStructureIssueType.SIMPLE_MULTIPLE_BLOCKS,
+                "Programa Simple con $totalBlockCount bloques; agregar bloques requiere conversión explícita a Avanzado.",
+            )
+        }
+        if (simpleProgramKind == SimpleProgramKind.CALENDARIZED && loops.isNotEmpty()) {
+            issues += TemporalStructureIssue(
+                TemporalStructureIssueType.CALENDARIZED_WITH_LOOPS,
+                "Programa calendarizado con loops activos; los loops deben pausarse durante el break.",
+            )
+        }
+    }
+    if (structure == ProgramStructure.COMPLEX && macrocycles.isEmpty()) {
+        issues += TemporalStructureIssue(
+            TemporalStructureIssueType.COMPLEX_MISSING_STRUCTURE,
+            "Programa Avanzado sin macrociclos.",
+        )
+    }
+    val invalidDays = resolvedSchedulePlan().trainingDays.filterNot { it in 1..7 }
+    if (invalidDays.isNotEmpty()) {
+        issues += TemporalStructureIssue(
+            TemporalStructureIssueType.INVALID_TRAINING_DAYS,
+            "Días de entrenamiento inválidos: $invalidDays",
+        )
+    }
+    return issues
+}
+
+/**
+ * Alinea metadatos temporales sin reclasificar structure Simple/Avanzado.
+ * Reemplaza normalizedTemporalStructure() que cambiaba el tipo silenciosamente.
+ */
+fun Program.alignTemporalMetadata(): Program {
+    val isSimple = isSimpleProgram
     val normalizedSimpleKind = when {
-        !shouldBeSimple -> SimpleProgramKind.CYCLIC
+        !isSimple -> SimpleProgramKind.CYCLIC
         calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED && !timelineStartDate.isNullOrBlank() ->
             SimpleProgramKind.CALENDARIZED
         else -> simpleProgramKind
@@ -272,7 +355,7 @@ fun Program.normalizedTemporalStructure(): Program {
                     mesocycles = block.mesocycles.map { meso ->
                         meso.copy(
                             weeks = meso.weeks.map { week ->
-                                if (week.isLoopWeek && !shouldBeSimple) week.copy(isLoopWeek = false, loopId = null)
+                                if (week.isLoopWeek && !isSimple) week.copy(isLoopWeek = false, loopId = null)
                                 else week
                             }
                         )
@@ -282,17 +365,22 @@ fun Program.normalizedTemporalStructure(): Program {
         )
     }
     return copy(
-        structure = if (shouldBeSimple) ProgramStructure.SIMPLE else ProgramStructure.COMPLEX,
         simpleProgramKind = normalizedSimpleKind,
-        loops = if (shouldBeSimple && normalizedSimpleKind == SimpleProgramKind.CYCLIC) loops else emptyList(),
-        loopState = if (shouldBeSimple && normalizedSimpleKind == SimpleProgramKind.CYCLIC) loopState else null,
-        events = if (shouldBeSimple && normalizedSimpleKind == SimpleProgramKind.CYCLIC) events else emptyList(),
-        pausedCyclicSnapshot = if (shouldBeSimple) pausedCyclicSnapshot else null,
+        loops = if (isSimple && normalizedSimpleKind == SimpleProgramKind.CYCLIC) loops else emptyList(),
+        loopState = if (isSimple && normalizedSimpleKind == SimpleProgramKind.CYCLIC) loopState else null,
+        events = if (isSimple && normalizedSimpleKind == SimpleProgramKind.CYCLIC) events else emptyList(),
+        pausedCyclicSnapshot = if (isSimple) pausedCyclicSnapshot else null,
         macrocycles = cleanMacrocycles,
     )
 }
 
-fun Program.toSimpleProgramSnapshot(): SimpleProgramSnapshot =
+/** @deprecated Usar alignTemporalMetadata() — nunca cambia structure automáticamente. */
+fun Program.normalizedTemporalStructure(): Program = alignTemporalMetadata()
+
+fun Program.toSimpleProgramSnapshot(
+    clock: AppClock = SystemAppClock,
+    activeState: ActiveProgramState? = null,
+): SimpleProgramSnapshot =
     SimpleProgramSnapshot(
         macrocycles = macrocycles,
         loops = loops,
@@ -303,7 +391,14 @@ fun Program.toSimpleProgramSnapshot(): SimpleProgramSnapshot =
         customSplitName = customSplitName,
         customSplitDescription = customSplitDescription,
         blockSplitSelections = blockSplitSelections,
-        savedAtMs = System.currentTimeMillis(),
+        savedAtMs = clock.now().toEpochMilli(),
+        runState = runState,
+        schedulePlan = schedulePlan ?: resolvedSchedulePlan().copy(mode = ScheduleMode.FLOATING),
+        loopOccurrences = loopOccurrences,
+        activeWeekId = activeState?.currentWeekId ?: runState?.weekId,
+        activeWeekInstanceId = activeState?.currentWeekInstanceId ?: runState?.weekInstanceId,
+        activeCycleNumber = activeState?.currentCycleNumber ?: runState?.cycleNumber,
+        programRunId = activeState?.programRunId ?: runState?.runId,
     )
 
 fun Program.startSimpleCalendarizedBreak(
@@ -311,6 +406,7 @@ fun Program.startSimpleCalendarizedBreak(
     endDate: LocalDate?,
     startDayOfWeek: Int,
     trainingDays: Set<Int>,
+    idProvider: IdProvider = UuidIdProvider,
 ): Program {
     val safeDays = trainingDays.filter { it in 1..7 }.toSet().ifEmpty { suggestCalendarTrainingDays() }
     val snapshot = pausedCyclicSnapshot ?: toSimpleProgramSnapshot()
@@ -318,29 +414,50 @@ fun Program.startSimpleCalendarizedBreak(
     val calculatedEndDate = endDate ?: startDate.plusWeeks(3).plusDays(6)
     val weekCount = inclusiveCalendarWeekCount(startDate, calculatedEndDate)
 
-    val weeks = buildSimpleCalendarWeeks(startDate, weekCount, startDayOfWeek, safeDays)
+    val weeks = buildSimpleCalendarWeeks(startDate, weekCount, startDayOfWeek, safeDays, idProvider)
+    val datedPlan = (schedulePlan ?: resolvedSchedulePlan()).copy(
+        anchorDate = startDate.toString(),
+        weekStartDay = startDayOfWeek,
+        trainingDays = safeDays,
+        mode = ScheduleMode.DATED,
+        targetEndDate = calculatedEndDate.toString(),
+    )
 
     return copy(
         structure = ProgramStructure.SIMPLE,
         timelineStartDate = startDate.toString(),
-        calendarization = ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
+        calendarization = ProgramCalendarEngine.defaultSimpleDatedCalendarization().copy(
+            manualEndDate = calculatedEndDate.toString(),
+        ),
         simpleProgramKind = SimpleProgramKind.CALENDARIZED,
         pausedCyclicSnapshot = snapshot,
         loops = emptyList(),
         loopState = null,
         events = emptyList(),
+        loopOccurrences = emptyList(),
+        runState = runState?.copy(status = ProgramRunStatus.BREAK) ?: snapshot.runState?.copy(status = ProgramRunStatus.BREAK),
         startDay = startDayOfWeek,
+        schedulePlan = datedPlan,
+        calendarBreaks = calendarBreaks + CalendarBreak(
+            id = "break_${id}_${startDate}",
+            title = "Break calendarizado",
+            startDate = startDate.toString(),
+            endDate = calculatedEndDate.toString(),
+            weeks = weeks,
+            pausedRunState = snapshot.runState,
+            pausedCyclicSnapshot = snapshot,
+        ),
         macrocycles = listOf(
             Macrocycle(
-                id = "macro_calendarized_${System.nanoTime()}",
+                id = idProvider.newId(),
                 name = "Break calendarizado",
                 blocks = listOf(
                     Block(
-                        id = "block_calendarized_${System.nanoTime()}",
+                        id = idProvider.newId(),
                         name = "Semanas calendarizadas",
                         mesocycles = listOf(
                             Mesocycle(
-                                id = "meso_calendarized_${System.nanoTime()}",
+                                id = idProvider.newId(),
                                 name = "Calendarizado",
                                 goal = MesocycleGoal.ACCUMULATION,
                                 weeks = weeks,
@@ -353,16 +470,107 @@ fun Program.startSimpleCalendarizedBreak(
     )
 }
 
+/**
+ * Calendariza el ciclo simple existente (mismas semanas/sesiones) sin crear un break.
+ */
+fun Program.calendarizeSimpleCycle(
+    startDate: LocalDate,
+    startDayOfWeek: Int,
+    trainingDays: Set<Int>,
+    idProvider: IdProvider = UuidIdProvider,
+): Program {
+    val safeDays = trainingDays.filter { it in 1..7 }.toSet().ifEmpty { suggestCalendarTrainingDays() }
+    val weeks = macrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .filter { !it.isLoopWeek }
+    if (weeks.isEmpty()) {
+        return startSimpleCalendarizedBreak(startDate, null, startDayOfWeek, safeDays, idProvider)
+    }
+
+    var cursor = startDate
+    val datedMacrocycles = macrocycles.map { macro ->
+        macro.copy(
+            blocks = macro.blocks.map { block ->
+                block.copy(
+                    mesocycles = block.mesocycles.map { meso ->
+                        meso.copy(
+                            weeks = meso.weeks.map { week ->
+                                if (week.isLoopWeek) week
+                                else {
+                                    val weekStart = cursor
+                                    val weekEnd = weekStart.plusDays(6)
+                                    val trainingDayDates = safeDays.associateWith { day ->
+                                        val delta = ((day - startDayOfWeek) + 7) % 7
+                                        weekStart.plusDays(delta.toLong()).toString()
+                                    }
+                                    cursor = weekEnd.plusDays(1)
+                                    week.copy(
+                                        startDate = weekStart.toString(),
+                                        endDate = weekEnd.toString(),
+                                        trainingDayDates = trainingDayDates,
+                                    )
+                                }
+                            },
+                        )
+                    },
+                )
+            },
+        )
+    }
+
+    val snapshot = pausedCyclicSnapshot ?: toSimpleProgramSnapshot()
+    val projectedEnd = datedMacrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .mapNotNull { it.endDate }
+        .maxOrNull()
+    return copy(
+        structure = ProgramStructure.SIMPLE,
+        timelineStartDate = startDate.toString(),
+        calendarization = ProgramCalendarEngine.defaultSimpleDatedCalendarization().copy(
+            manualEndDate = projectedEnd,
+        ),
+        simpleProgramKind = SimpleProgramKind.CALENDARIZED,
+        pausedCyclicSnapshot = snapshot,
+        loops = emptyList(),
+        loopState = null,
+        events = emptyList(),
+        loopOccurrences = emptyList(),
+        runState = runState?.copy(status = ProgramRunStatus.BREAK) ?: snapshot.runState?.copy(status = ProgramRunStatus.BREAK),
+        startDay = startDayOfWeek,
+        schedulePlan = (schedulePlan ?: resolvedSchedulePlan()).copy(
+            anchorDate = startDate.toString(),
+            weekStartDay = startDayOfWeek,
+            trainingDays = safeDays,
+            mode = ScheduleMode.DATED,
+            targetEndDate = projectedEnd,
+        ),
+        macrocycles = datedMacrocycles,
+    )
+}
+
 fun Program.restorePausedCyclicProgram(): Program {
     val snapshot = pausedCyclicSnapshot ?: return copy(
         calendarization = null,
         simpleProgramKind = SimpleProgramKind.CYCLIC,
         pausedCyclicSnapshot = null,
+        timelineStartDate = null,
+        runState = runState?.copy(status = ProgramRunStatus.ACTIVE),
+        schedulePlan = schedulePlan?.copy(
+            mode = ScheduleMode.FLOATING,
+            anchorDate = null,
+            targetEndDate = null,
+        ),
     )
+    val restoredRun = (snapshot.runState ?: runState)?.copy(status = ProgramRunStatus.ACTIVE)
     return copy(
         structure = ProgramStructure.SIMPLE,
         calendarization = null,
         simpleProgramKind = SimpleProgramKind.CYCLIC,
+        timelineStartDate = null,
         macrocycles = snapshot.macrocycles,
         loops = snapshot.loops,
         loopState = snapshot.loopState,
@@ -372,35 +580,42 @@ fun Program.restorePausedCyclicProgram(): Program {
         customSplitName = snapshot.customSplitName,
         customSplitDescription = snapshot.customSplitDescription,
         blockSplitSelections = snapshot.blockSplitSelections,
+        runState = restoredRun,
+        schedulePlan = snapshot.schedulePlan?.copy(mode = ScheduleMode.FLOATING, anchorDate = null, targetEndDate = null)
+            ?: schedulePlan?.copy(mode = ScheduleMode.FLOATING, anchorDate = null, targetEndDate = null),
+        loopOccurrences = snapshot.loopOccurrences,
         pausedCyclicSnapshot = null,
     )
 }
 
-fun Program.startFreshSimpleCycle(): Program {
+fun Program.startFreshSimpleCycle(
+    idProvider: IdProvider = UuidIdProvider,
+): Program {
     return copy(
         structure = ProgramStructure.SIMPLE,
         calendarization = null,
         simpleProgramKind = SimpleProgramKind.CYCLIC,
         pausedCyclicSnapshot = null,
+        timelineStartDate = null,
         loops = emptyList(),
         loopState = null,
         events = emptyList(),
         macrocycles = listOf(
             Macrocycle(
-                id = "macro_simple_${System.nanoTime()}",
+                id = idProvider.newId(),
                 name = "Macrociclo base",
                 blocks = listOf(
                     Block(
-                        id = "block_simple_${System.nanoTime()}",
+                        id = idProvider.newId(),
                         name = "Ciclo base",
                         mesocycles = listOf(
                             Mesocycle(
-                                id = "meso_simple_${System.nanoTime()}",
+                                id = idProvider.newId(),
                                 name = "Mesociclo 1",
                                 goal = MesocycleGoal.ACCUMULATION,
                                 weeks = listOf(
                                     ProgramWeek(
-                                        id = "week_simple_${System.nanoTime()}",
+                                        id = idProvider.newId(),
                                         name = "Semana 1",
                                     )
                                 ),
@@ -413,14 +628,16 @@ fun Program.startFreshSimpleCycle(): Program {
     )
 }
 
-fun Program.nextSimpleCalendarStart(): LocalDate {
+fun Program.nextSimpleCalendarStart(
+    today: LocalDate = SystemAppClock.today(java.time.ZoneId.systemDefault()),
+): LocalDate {
     val lastEnd = macrocycles
         .flatMap { it.blocks }
         .flatMap { it.mesocycles }
         .flatMap { it.weeks }
         .mapNotNull { week -> week.endDate?.let { java.time.LocalDate.parse(it) } }
         .maxOrNull()
-    return lastEnd?.plusDays(1) ?: timelineStartDate?.let { java.time.LocalDate.parse(it) } ?: LocalDate.now()
+    return lastEnd?.plusDays(1) ?: timelineStartDate?.let { java.time.LocalDate.parse(it) } ?: today
 }
 
 fun Program.suggestCalendarTrainingDays(): Set<Int> {
@@ -448,6 +665,7 @@ internal fun buildSimpleCalendarWeeks(
     weekCount: Int,
     startDayOfWeek: Int,
     trainingDays: Set<Int>,
+    idProvider: IdProvider = UuidIdProvider,
 ): List<ProgramWeek> {
     val startDayIsoValue = startDayOfWeek.coerceIn(1, 7)
     return (0 until weekCount).map { index ->
@@ -460,7 +678,7 @@ internal fun buildSimpleCalendarWeeks(
             dayOfWeek to actualDate.toString()
         }
         ProgramWeek(
-            id = java.util.UUID.randomUUID().toString(),
+            id = idProvider.newId(),
             name = "Semana: ${weekStart.format(java.time.format.DateTimeFormatter.ofPattern("MM/dd", java.util.Locale.US))}",
             startDate = weekStart.toString(),
             endDate = weekEnd.toString(),

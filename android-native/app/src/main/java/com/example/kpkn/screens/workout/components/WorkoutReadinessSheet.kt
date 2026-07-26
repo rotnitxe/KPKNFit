@@ -221,19 +221,19 @@ fun WorkoutReadinessSheet(
                         modifier = Modifier.weight(1f),
                         title = "Músculos",
                         value = derivedMuscular,
-                        color = Color(0xFFFF5252)
+                        color = com.example.kpkn.ui.theme.RingRed
                     )
                     ReadinessSummaryCard(
                         modifier = Modifier.weight(1f),
                         title = "Energía",
                         value = neural,
-                        color = Color(0xFF448AFF)
+                        color = com.example.kpkn.ui.theme.RingBlue
                     )
                     ReadinessSummaryCard(
                         modifier = Modifier.weight(1f),
                         title = "Columna",
                         value = spinal,
-                        color = Color(0xFFFFD740)
+                        color = com.example.kpkn.ui.theme.RingYellow
                     )
                 }
 
@@ -321,7 +321,7 @@ fun WorkoutReadinessSheet(
                                 modifier = Modifier.weight(1f),
                                 title = "Energía",
                                 value = neural,
-                                ringColor = Color(0xFF448AFF),
+                                ringColor = com.example.kpkn.ui.theme.RingBlue,
                                 ringSize = 120,
                                 onValueChange = { neural = it; userEditedNeural = true },
                             )
@@ -329,7 +329,7 @@ fun WorkoutReadinessSheet(
                                 modifier = Modifier.weight(1f),
                                 title = "Columna",
                                 value = spinal,
-                                ringColor = Color(0xFFFFD740),
+                                ringColor = com.example.kpkn.ui.theme.RingYellow,
                                 ringSize = 120,
                                 onValueChange = { spinal = it; userEditedSpinal = true },
                             )

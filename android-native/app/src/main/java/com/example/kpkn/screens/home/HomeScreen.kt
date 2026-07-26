@@ -24,6 +24,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
@@ -41,6 +43,8 @@ import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.domain.calculations.getCurrentDayOfWeek
 import com.example.kpkn.data.models.MealType
+import com.example.kpkn.data.models.NutritionLog
+import com.example.kpkn.data.models.NutritionStatus
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.nutrition.NutritionViewModel
@@ -49,11 +53,8 @@ import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.theme.RingBlue
 import com.example.kpkn.ui.theme.RingRed
 import com.example.kpkn.ui.theme.RingYellow
+import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,6 +71,8 @@ fun HomeScreen(
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToCard: (String) -> Unit = {},
     onNavigate: (String) -> Unit = {},
+    onHeaderOverlayChange: ((@Composable (HazeState) -> Unit)?) -> Unit = {},
+    onNutritionOverlayChange: ((@Composable (HazeState) -> Unit)?) -> Unit = {},
     viewModel: HomeViewModel = rememberHomeViewModel(),
     @Suppress("UNUSED_PARAMETER") nutritionViewModel: NutritionViewModel? = null,
 ) {
@@ -89,6 +92,8 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val nutritionRepo = remember { NutritionRepository.getInstance() }
     var showFoodLogger by remember { mutableStateOf(false) }
+    var showNutritionOverlay by remember { mutableStateOf(false) }
+    val nutritionLogs by nutritionRepo.nutritionLogs.collectAsState()
     var selectedMealForLogger by remember {
         mutableStateOf(
             when (java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)) {
@@ -104,71 +109,83 @@ fun HomeScreen(
         viewModel.loadFeedbacks(context)
     }
 
+    val todayMeals = remember(nutritionLogs) {
+        val today = LocalDate.now().toString()
+        nutritionLogs.filter { it.date.startsWith(today) && it.status != NutritionStatus.PLANNED }
+    }
+
+    LaunchedEffect(showNutritionOverlay, todayMeals) {
+        onNutritionOverlayChange(
+            if (showNutritionOverlay) {
+                { rootHazeState ->
+                    NutritionTodayGlassOverlay(
+                        hazeState = rootHazeState,
+                        meals = todayMeals,
+                        onDismiss = { showNutritionOverlay = false },
+                        onAddMeal = {
+                            showNutritionOverlay = false
+                            showFoodLogger = true
+                        },
+                    )
+                }
+            } else null,
+        )
+    }
+    DisposableEffect(onNutritionOverlayChange) {
+        onDispose { onNutritionOverlayChange(null) }
+    }
     val listState = rememberLazyListState()
     val density = LocalDensity.current
 
-    val hazeState = remember { HazeState() }
-    val hazeStyle = remember {
-        HazeStyle(
-            blurRadius = 8.dp,
-            tint = HazeTint(Color.Black.copy(alpha = 0.35f)),
-            backgroundColor = Color.Black.copy(alpha = 0.55f),
-            noiseFactor = 0f,
+    // Each mini-card is anchored to the actual element it summarizes, in root
+    // coordinates. This avoids switching early when list items have internal
+    // headers, spacers, or conditional cards above them.
+    val handoffDistancePx = with(density) { 48.dp.toPx() }
+    var headerBottomY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
+    var sessionAnchorY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
+    var ringsAnchorY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
+    var nutritionAnchorY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
+
+    fun anchorProgress(anchorY: Float): Float =
+        if (headerBottomY.isFinite() && anchorY.isFinite()) {
+            ((headerBottomY - anchorY) / handoffDistancePx).coerceIn(0f, 1f)
+        } else 0f
+
+    val greetingProgress = 1f
+    val sessionProgress by remember { derivedStateOf { anchorProgress(sessionAnchorY) } }
+    val ringsProgress by remember { derivedStateOf { anchorProgress(ringsAnchorY) } }
+    val nutritionProgress by remember { derivedStateOf { anchorProgress(nutritionAnchorY) } }
+    val latestHeaderContent by rememberUpdatedState<@Composable (HazeState) -> Unit> { rootHazeState ->
+        HomeTopBar(
+            modifier = Modifier,
+            greeting = "Hola",
+            userName = "Usuario",
+            greetingProgress = greetingProgress,
+            ringsProgress = ringsProgress,
+            sessionProgress = sessionProgress,
+            nutritionProgress = nutritionProgress,
+            hasPrograms = uiState.hasActiveProgram,
+            muscularProgress = muscularProgress,
+            sncProgress = sncProgress,
+            columnaProgress = columnaProgress,
+            primarySession = uiState.primarySession,
+            isRestDay = uiState.primarySession == null && (uiState.isRestDay || uiState.todaySessions.isEmpty()),
+            dailyCalorieGoal = uiState.dailyCalorieGoal,
+            consumedCalories = uiState.todayNutritionTotals.calories.toInt(),
+            onSettingsClick = onNavigateToSettings,
+            onStartWorkout = onStartWorkout,
+            onCreateProgram = onCreateProgram,
+            onAddMeal = { showFoodLogger = true },
+            onNavigateToProfile = onNavigateToProfile,
+            hazeState = rootHazeState,
+            onBottomPositionChanged = { headerBottomY = it },
         )
     }
-
-    // Stable indices: 0 header, 1 session, 2 rings. The mini cards switch when
-    // their source section reaches the pinned header, not after it has scrolled away.
-    val headerBottomPx = WindowInsets.statusBars.getTop(density) + with(density) { 64.dp.roundToPx() }
-    val handoffDistancePx = with(density) { 48.dp.roundToPx() }.toFloat()
-    val greetingHandoffStartPx = with(density) { 72.dp.roundToPx() }
-
-    val greetingProgress by remember(headerBottomPx, greetingHandoffStartPx, handoffDistancePx) {
-        derivedStateOf {
-            val header = listState.layoutInfo.visibleItemsInfo.find { it.index == 0 }
-            if (header == null) {
-                1f
-            } else {
-                ((-header.offset - greetingHandoffStartPx) / handoffDistancePx).coerceIn(0f, 1f)
-            }
-        }
+    DisposableEffect(onHeaderOverlayChange) {
+        onHeaderOverlayChange { rootHazeState -> latestHeaderContent(rootHazeState) }
+        onDispose { onHeaderOverlayChange(null) }
     }
-
-    val sessionProgress by remember(headerBottomPx, handoffDistancePx) {
-        derivedStateOf {
-            val session = listState.layoutInfo.visibleItemsInfo.find { it.index == 1 }
-            if (session == null) {
-                1f
-            } else {
-                ((headerBottomPx - session.offset) / handoffDistancePx).coerceIn(0f, 1f)
-            }
-        }
-    }
-
-    val ringsProgress by remember(headerBottomPx, handoffDistancePx) {
-        derivedStateOf {
-            val rings = listState.layoutInfo.visibleItemsInfo.find { it.index == 2 }
-            if (rings == null) {
-                1f
-            } else {
-                ((headerBottomPx - rings.offset) / handoffDistancePx).coerceIn(0f, 1f)
-            }
-        }
-    }
-
-    val nutritionProgress by remember {
-        derivedStateOf { if (listState.firstVisibleItemIndex >= 3) 1f else 0f }
-    }
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .hazeSource(state = hazeState)
-        ) {
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             HomeWithProgram(
                 viewModel = viewModel,
                 muscularProgress = muscularProgress,
@@ -182,6 +199,9 @@ fun HomeScreen(
                 activeProgramId = uiState.activeProgramId,
                 programs = uiState.programs,
                 listState = listState,
+                onSessionAnchorPositionChanged = { sessionAnchorY = it },
+                onRingsAnchorPositionChanged = { ringsAnchorY = it },
+                onNutritionAnchorPositionChanged = { nutritionAnchorY = it },
                 userName = uiState.userName,
                 greeting = uiState.greeting,
                 onStartWorkout = onStartWorkout,
@@ -194,36 +214,11 @@ fun HomeScreen(
                 autoDeloadMessage = augeSnapshot.autoDeloadMessage,
                 overtrainedMuscles = uiState.overtrainedMuscles,
                 onAddMeal = { showFoodLogger = true },
+                onOpenNutritionOverlay = { showNutritionOverlay = true },
                 modifier = Modifier
                     .fillMaxSize()
                     .navigationBarsPadding(),
             )
-        }
-
-        HomeTopBar(
-            modifier = Modifier.align(Alignment.TopCenter),
-            greeting = uiState.greeting,
-            userName = uiState.userName,
-            greetingProgress = greetingProgress,
-            ringsProgress = ringsProgress,
-            sessionProgress = sessionProgress,
-            nutritionProgress = nutritionProgress,
-            hasPrograms = uiState.hasActiveProgram,
-            muscularProgress = muscularProgress,
-            sncProgress = sncProgress,
-            columnaProgress = columnaProgress,
-            primarySession = uiState.primarySession,
-            isRestDay = uiState.isRestDay || (uiState.hasActiveProgram && uiState.todaySessions.isEmpty()),
-            dailyCalorieGoal = uiState.dailyCalorieGoal,
-            consumedCalories = uiState.todayNutritionTotals.calories.toInt(),
-            onSettingsClick = onNavigateToSettings,
-            onStartWorkout = onStartWorkout,
-            onCreateProgram = onCreateProgram,
-            onAddMeal = { showFoodLogger = true },
-            onNavigateToProfile = onNavigateToProfile,
-            hazeState = hazeState,
-            glassStyle = hazeStyle,
-        )
 
         if (showFoodLogger) {
             HomeFoodLoggerHost(
@@ -283,6 +278,9 @@ private fun HomeWithProgram(
     activeProgramId: String?,
     programs: List<Program>,
     listState: androidx.compose.foundation.lazy.LazyListState,
+    onSessionAnchorPositionChanged: (Float) -> Unit,
+    onRingsAnchorPositionChanged: (Float) -> Unit,
+    onNutritionAnchorPositionChanged: (Float) -> Unit,
     userName: String,
     greeting: String,
     onStartWorkout: (Session, Program) -> Unit,
@@ -296,18 +294,16 @@ private fun HomeWithProgram(
     autoDeloadMessage: String? = null,
     overtrainedMuscles: List<String> = emptyList(),
     onAddMeal: () -> Unit = {},
+    onOpenNutritionOverlay: () -> Unit = {},
 ) {
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(bottom = 140.dp),
+        // Keep the first Home card visually separate from the floating dock.
+        contentPadding = PaddingValues(top = 176.dp, bottom = 140.dp),
     ) {
-        item(key = "header") {
-            Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-            Spacer(Modifier.height(100.dp))
-            HomeHeaderSection(greeting = greeting, userName = userName)
-        }
+
         item(key = "session") {
             HomeSessionSection(
                 sessions = todaySessions,
@@ -318,6 +314,7 @@ private fun HomeWithProgram(
                 onResumeWorkout = onResumeWorkout,
                 onEditSession = onEditSession,
                 onCreateProgram = onCreateProgram,
+                modifier = Modifier.onGloballyPositioned { onSessionAnchorPositionChanged(it.positionInRoot().y) },
             )
         }
         item(key = "rings") {
@@ -327,6 +324,7 @@ private fun HomeWithProgram(
                 columnaProgress = columnaProgress,
                 hasActiveProgram = hasActiveProgram,
                 isLoading = augeLoading,
+                modifier = Modifier.onGloballyPositioned { onRingsAnchorPositionChanged(it.positionInRoot().y) },
             )
         }
         if (!autoDeloadMessage.isNullOrBlank()) {
@@ -359,7 +357,7 @@ private fun HomeWithProgram(
         }
         item(key = "cards") {
             Spacer(Modifier.height(8.dp))
-            HomeCardsSection(viewModel = viewModel, onNavigateToCard = onNavigateToCard, onAddMeal = onAddMeal)
+            HomeCardsSection(viewModel = viewModel, onNavigateToCard = onNavigateToCard, onAddMeal = onAddMeal, onOpenNutritionOverlay = onOpenNutritionOverlay, onNutritionAnchorPositionChanged = onNutritionAnchorPositionChanged)
         }
         item(key = "programs") {
             Spacer(Modifier.height(8.dp))
@@ -483,23 +481,20 @@ private fun HomeTopBar(
     onAddMeal: () -> Unit,
     onNavigateToProfile: () -> Unit,
     hazeState: HazeState,
-    glassStyle: HazeStyle,
+    onBottomPositionChanged: (Float) -> Unit,
 ) {
-    Surface(
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .wrapContentHeight()
-            .hazeEffect(state = hazeState, style = glassStyle),
-        shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
-        color = Color.Black.copy(alpha = 0.85f),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
+            .statusBarsPadding()
+            .padding(start = 12.dp, top = 10.dp, end = 12.dp)
+            .kpknGlass(hazeState, RoundedCornerShape(32.dp))
+            .onGloballyPositioned { onBottomPositionChanged(it.positionInRoot().y + it.size.height) },
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .statusBarsPadding()
                     .height(64.dp)
                     .padding(horizontal = 16.dp)
                     .padding(top = 4.dp, bottom = 4.dp),
@@ -530,7 +525,8 @@ private fun HomeTopBar(
                     val nutritionAlpha: Float
                     val nutritionSlide: Float
 
-                    // Order after F2: greeting → session → rings → nutrition
+                    // Initially empty. Each mini-card appears only when its matching
+                    // section reaches the pinned header, then hands off to the next one.
                     if (nutritionProgress > 0f) {
                         nutritionAlpha = nutritionProgress
                         nutritionSlide = (1f - nutritionProgress) * boxHeightPx
@@ -559,22 +555,22 @@ private fun HomeTopBar(
                         nutritionAlpha = 0f
                         nutritionSlide = 0f
                     } else {
-                        greetingAlpha = 1f - greetingProgress
-                        greetingSlide = greetingProgress * boxHeightPx
-                        sessionAlpha = greetingProgress
-                        sessionSlide = (greetingProgress - 1f) * boxHeightPx
+                        greetingAlpha = greetingProgress
+                        greetingSlide = (1f - greetingProgress) * boxHeightPx
+                        sessionAlpha = 0f
+                        sessionSlide = 0f
                         ringsAlpha = 0f
                         ringsSlide = 0f
                         nutritionAlpha = 0f
                         nutritionSlide = 0f
                     }
-
-                    Box(modifier = Modifier.height(48.dp).weight(1f), contentAlignment = Alignment.TopStart) {
+                    Box(modifier = Modifier.height(48.dp).weight(1f), contentAlignment = Alignment.CenterStart) {
                         Text(
                             "$greeting, $userName!",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Black,
                             fontSize = 16.sp,
+                            color = Color.White,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.graphicsLayer { alpha = greetingAlpha; translationY = greetingSlide },
@@ -762,6 +758,73 @@ private fun MiniNutritionCard(
         }
         IconButton(onClick = onAddMeal, modifier = Modifier.size(48.dp)) {
             Icon(Icons.Default.Add, "Agregar", modifier = Modifier.size(18.dp))
+        }
+    }
+}
+
+@Composable
+private fun NutritionTodayGlassOverlay(
+    hazeState: HazeState,
+    meals: List<NutritionLog>,
+    onDismiss: () -> Unit,
+    onAddMeal: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.38f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .kpknGlass(hazeState, RoundedCornerShape(28.dp)),
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("REGISTRO DE HOY", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = Color.White.copy(alpha = 0.66f), letterSpacing = 1.3.sp)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Comidas registradas", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = Color.White)
+                    }
+                    TextButton(onClick = onDismiss) { Text("Cerrar", fontWeight = FontWeight.Bold) }
+                }
+                if (meals.isEmpty()) {
+                    Text("Aún no registras comidas hoy.", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.72f))
+                } else {
+                    meals.forEachIndexed { index, meal ->
+                        val mealLabel = when (meal.mealType) {
+                            MealType.BREAKFAST -> "Desayuno"
+                            MealType.LUNCH -> "Almuerzo"
+                            MealType.DINNER -> "Cena"
+                            MealType.SNACK -> "Colación"
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(mealLabel, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black, color = Color.White)
+                                Text(
+                                    meal.foods.take(3).joinToString(" · ") { it.foodName }.ifBlank { "Comida registrada" },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.White.copy(alpha = 0.68f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            Text("${meal.foods.sumOf { it.calories }.toInt()} kcal", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = Color(0xFF8FB7B8))
+                        }
+                        if (index < meals.lastIndex) HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
+                    }
+                }
+                TextButton(onClick = onAddMeal, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Agregar comida", fontWeight = FontWeight.Black)
+                }
+            }
         }
     }
 }

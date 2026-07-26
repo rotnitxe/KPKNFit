@@ -28,14 +28,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import com.example.kpkn.ui.theme.RingBlue
-import com.example.kpkn.ui.theme.RingRed
-import com.example.kpkn.ui.theme.RingYellow
 import kotlin.math.*
 
 // ─── Ring Constants ──────────────────────────────────────────────────────────
 
-private val RingColors = listOf(RingRed, RingBlue, RingYellow)
+private val RingColors = listOf(
+    Color(0xFFC96B5C), // Músculos — terracota
+    Color(0xFF4FA3A5), // Energía — turquesa grisáceo
+    Color(0xFF9A86C8), // Columna — lavanda apagado
+)
 private val RingLabels = listOf("Músculos", "Energía", "Columna")
 
 @Composable
@@ -64,12 +65,12 @@ fun HomeRingsSection(
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.padding(start = 24.dp, bottom = 12.dp),
+            modifier = Modifier.padding(start = 24.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = "MIS RINGS",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 1.sp,
             )
@@ -105,13 +106,13 @@ private fun CombinedRingsView(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
             Box(
                 Modifier
-                    .height(110.dp)
+                    .height(196.dp)
                     .fillMaxWidth()
                     .semantics(mergeDescendants = true) {
                         val desc = if (isLoading) {
@@ -134,26 +135,27 @@ private fun CombinedRingsView(
                 }
             }
 
-            // Labels lineales bajo cada ring
+            // Keep the captions clear of the lowered energy ring.
+            Spacer(Modifier.height(16.dp))
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 progressValues.forEachIndexed { i, progress ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            if (isLoading) "…" else "${(progress * 100).toInt()}%",
+                            RingLabels[i].uppercase(),
                             style = MaterialTheme.typography.labelSmall,
                             color = ringColors[i],
                             fontWeight = FontWeight.Black,
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             maxLines = 1,
                         )
                         Text(
-                            RingLabels[i],
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
-                            fontSize = 10.sp,
+                            if (isLoading) "…" else "${(progress * 100).toInt()}%",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White.copy(alpha = 0.85f),
+                            fontWeight = FontWeight.Bold,
                         )
                     }
                 }
@@ -195,35 +197,41 @@ internal fun SingleRingCanvas(
 
 @Composable
 private fun AugeRingsCanvas(mp: Float, sp: Float, cp: Float, ringColors: List<Color> = RingColors) {
+    val values = listOf(mp, sp, cp)
     Canvas(Modifier.fillMaxSize()) {
-        val r = min(size.width / 5.8f, size.height * 0.42f)
-        val s = r * 1.9f
-        val cy = size.height / 2f
-        val cx = size.width / 2f
-        val strokePx = 8.dp.toPx()
-        val data = ringColors.zip(listOf(mp, sp, cp))
-        val centers = listOf(Offset(cx - s, cy), Offset(cx, cy), Offset(cx + s, cy))
+        val radius = min(size.width / 5f, size.height * 0.38f)
+        val centerX = size.width / 2f
+        val centerY = size.height / 2f
+        val dx = radius * 1.45f
+        val dy = radius * 0.48f
+        val centers = listOf(
+            Offset(centerX - dx, centerY - dy),
+            Offset(centerX, centerY + dy),
+            Offset(centerX + dx, centerY - dy),
+        )
+        val stroke = 5.dp.toPx()
 
-        centers.forEachIndexed { i, c ->
-            drawCircle(
-                data[i].first.copy(alpha = 0.15f),
-                r,
-                c,
-                style = Stroke(strokePx),
-            )
+        centers.forEachIndexed { index, center ->
+            val color = ringColors[index]
+            val progress = values[index].coerceIn(0f, 1f)
+            val topLeft = Offset(center.x - radius, center.y - radius)
+            val arcSize = Size(radius * 2, radius * 2)
+            drawCircle(color.copy(alpha = 0.28f), radius, center, style = Stroke(stroke))
+            listOf(18.dp.toPx() to 0.12f, 12.dp.toPx() to 0.20f, 7.dp.toPx() to 0.32f).forEach { (width, alpha) ->
+                drawArc(
+                    color = color.copy(alpha = alpha), startAngle = -90f, sweepAngle = 360f * progress,
+                    useCenter = false, topLeft = topLeft, size = arcSize,
+                    style = Stroke(width = width, cap = androidx.compose.ui.graphics.StrokeCap.Round),
+                )
+            }
             drawArc(
-                data[i].first,
-                -90f,
-                360f * data[i].second.coerceIn(0f, 1f),
-                false,
-                Offset(c.x - r, c.y - r),
-                Size(r * 2, r * 2),
-                style = Stroke(strokePx),
+                color = color, startAngle = -90f, sweepAngle = 360f * progress,
+                useCenter = false, topLeft = topLeft, size = arcSize,
+                style = Stroke(width = stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round),
             )
         }
     }
 }
-
 internal fun batteryColor(score: Int): Color = when {
     score >= 80 -> Color(0xFF22C55E)
     score >= 50 -> Color(0xFFFACC15)
@@ -260,7 +268,7 @@ private fun RingsInfoDialog(onDismiss: () -> Unit) {
                     "1. RING Músculos:",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Black,
-                    color = Color(0xFFFF5252),
+                    color = com.example.kpkn.ui.theme.RingRed,
                 )
                 Text(
                     "Muestra el promedio del estado de todos tus músculos, puede entenderse de dos formas, qué tan recuperados están o qué tan preparados están para una sesión de entrenamiento. El anillo representa el estado general de todos tus músculos, si deseas corregir el porcentaje porque no representa tu estado real, puedes dirigirte al músculo en específico y corregir.",
@@ -272,7 +280,7 @@ private fun RingsInfoDialog(onDismiss: () -> Unit) {
                     "2. RING Energía:",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Black,
-                    color = Color(0xFF448AFF),
+                    color = com.example.kpkn.ui.theme.RingBlue,
                 )
                 Text(
                     "Representa qué tan fresco y enfocado te sientes en el día, con ello se busca representar cómo te sientes a nivel neural.",
@@ -284,7 +292,7 @@ private fun RingsInfoDialog(onDismiss: () -> Unit) {
                     "3. RING Columna:",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Black,
-                    color = Color(0xFFFFD740),
+                    color = com.example.kpkn.ui.theme.RingYellow,
                 )
                 Text(
                     "Representa qué tan preparada está tu columna para un entrenamiento; especialmente relevante si realizas sentadillas libres o peso muerto.",

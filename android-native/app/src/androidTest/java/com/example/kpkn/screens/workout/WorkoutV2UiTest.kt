@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.longClick
 import com.example.kpkn.data.models.*
+import com.example.kpkn.screens.workout.components.SetInputCardV2
 import org.junit.Rule
 import org.junit.Test
 
@@ -41,7 +42,6 @@ class WorkoutV2UiTest {
                     currentSet = ExerciseSet(id = "set-1", targetReps = 8, targetRPE = 8.0, loadModeV2 = LoadModeV2.LOAD, unitModeV2 = UnitModeV2.REPS),
                     ghostSet = null,
                     weightSuggestion = null,
-                    onTagSet = {},
                     onShowHistory = {},
                     onSetBodyWeight = {},
                     initialBodyWeight = 80.0,
@@ -86,7 +86,6 @@ class WorkoutV2UiTest {
                     ),
                     ghostSet = null,
                     weightSuggestion = null,
-                    onTagSet = {},
                     onShowHistory = {},
                     onSetBodyWeight = {},
                     initialBodyWeight = 82.0,
@@ -129,7 +128,6 @@ class WorkoutV2UiTest {
                     ),
                     ghostSet = null,
                     weightSuggestion = null,
-                    onTagSet = {},
                     onShowHistory = {},
                     onSetBodyWeight = {},
                     initialBodyWeight = 80.0,

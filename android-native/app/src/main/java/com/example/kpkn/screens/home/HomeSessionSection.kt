@@ -6,13 +6,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.expandVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -42,6 +42,7 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.screens.sessioneditor.components.SessionBackgroundLayer
 import com.example.kpkn.ui.components.SectionHeader
 
 @Composable
@@ -89,23 +90,37 @@ fun HomeSessionSection(
         } else {
             val currentItem = sessions.getOrElse(activeIndex) { sessions.first() }
 
-            SessionCard(
-                item = currentItem,
-                currentDayOfWeek = currentDayOfWeek,
-                perMuscle = perMuscle,
-                onStart = { onStartWorkout(currentItem.session, currentItem.program) },
-                onResume = onResumeWorkout,
-                onEdit = { onEditSession(currentItem.session, currentItem.program) },
-                modifier = Modifier.padding(horizontal = 24.dp),
-            )
-
             if (sessions.size > 1) {
-                SessionCarousel(
-                    sessions = sessions,
-                    activeIndex = activeIndex,
+                val pagerState = rememberPagerState(initialPage = activeIndex) { sessions.size }
+                LaunchedEffect(activeIndex) {
+                    if (pagerState.currentPage != activeIndex) pagerState.animateScrollToPage(activeIndex)
+                }
+                LaunchedEffect(pagerState.currentPage) { activeIndex = pagerState.currentPage }
+                HorizontalPager(
+                    state = pagerState,
+                    pageSpacing = 8.dp,
+                    modifier = Modifier.fillMaxWidth(),
+                ) { page ->
+                    val pageItem = sessions[page]
+                    SessionCard(
+                        item = pageItem,
+                        currentDayOfWeek = currentDayOfWeek,
+                        perMuscle = perMuscle,
+                        onStart = { onStartWorkout(pageItem.session, pageItem.program) },
+                        onResume = onResumeWorkout,
+                        onEdit = { onEditSession(pageItem.session, pageItem.program) },
+                        modifier = Modifier.padding(horizontal = 24.dp),
+                    )
+                }
+            } else {
+                SessionCard(
+                    item = currentItem,
+                    currentDayOfWeek = currentDayOfWeek,
                     perMuscle = perMuscle,
-                    onIndexChange = { activeIndex = it },
-                    modifier = Modifier.padding(top = 16.dp)
+                    onStart = { onStartWorkout(currentItem.session, currentItem.program) },
+                    onResume = onResumeWorkout,
+                    onEdit = { onEditSession(currentItem.session, currentItem.program) },
+                    modifier = Modifier.padding(horizontal = 24.dp),
                 )
             }
         }
@@ -143,17 +158,9 @@ private fun SessionCard(
                     .fillMaxWidth()
                     .aspectRatio(16f / 5.5f)
             ) {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.tertiary,
-                                ),
-                            ),
-                        ),
+                SessionBackgroundLayer(
+                    background = item.session.background,
+                    blurDp = (item.session.background?.style?.blur ?: 0f).dp,
                 )
 
                 Box(
@@ -272,7 +279,7 @@ private fun SessionCard(
 
             var musclesExpanded by remember { mutableStateOf(false) }
 
-            if (sessionMuscles.isNotEmpty()) {
+            run {
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -321,106 +328,59 @@ private fun SessionCard(
                         Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f))
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        sessionMuscles.chunked(3).forEach { row ->
+                        if (sessionMuscles.isEmpty()) {
+                            Text(
+                                "Esta sesión no tiene grupos musculares detectados.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            )
+                        } else sessionMuscles.chunked(2).forEach { row ->
                             Row(
                                 Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
                                 row.forEach { muscle ->
                                     val score = perMuscle[muscle]?.recoveryScore ?: 100
-                                    Row(
-                                        Modifier.weight(1f),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    val accent = batteryColor(score)
+                                    Surface(
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = accent.copy(alpha = 0.13f),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.28f)),
                                     ) {
-                                        Box(
-                                            Modifier
-                                                .size(6.dp)
-                                                .clip(CircleShape)
-                                                .background(batteryColor(score))
-                                        )
-                                        Text(
-                                            muscle,
-                                            modifier = Modifier.weight(1f),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontSize = 10.sp,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                            fontWeight = FontWeight.Medium,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                        Text(
-                                            "$score%",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontSize = 10.sp,
-                                            color = batteryColor(score),
-                                            fontWeight = FontWeight.Black,
-                                        )
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        ) {
+                                            Box(Modifier.size(8.dp).clip(CircleShape).background(accent))
+                                            Text(
+                                                muscle,
+                                                modifier = Modifier.weight(1f),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                fontWeight = FontWeight.Bold,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                            Text(
+                                                "$score%",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = accent,
+                                                fontWeight = FontWeight.Black,
+                                            )
+                                        }
                                     }
                                 }
-                                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                                if (row.size == 1) Spacer(Modifier.weight(1f))
                             }
                         }
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun SessionCarousel(
-    sessions: List<TodaySessionItem>,
-    activeIndex: Int,
-    perMuscle: Map<String, MuscleRecoveryStatus>,
-    onIndexChange: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconButton(
-            onClick = { onIndexChange(if (activeIndex > 0) activeIndex - 1 else sessions.size - 1) },
-            modifier = Modifier.size(48.dp),
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Anterior",
-                modifier = Modifier.size(18.dp),
-            )
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            repeat(sessions.size) { i ->
-                val isActive = i == activeIndex
-                Box(
-                    Modifier
-                        .size(if (isActive) 8.dp else 6.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (isActive) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                        ),
-                )
-            }
-        }
-
-        IconButton(
-            onClick = { onIndexChange(if (activeIndex < sessions.size - 1) activeIndex + 1 else 0) },
-            modifier = Modifier.size(48.dp),
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = "Siguiente",
-                modifier = Modifier.size(18.dp),
-            )
         }
     }
 }

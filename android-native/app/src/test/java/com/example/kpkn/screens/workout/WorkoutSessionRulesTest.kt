@@ -162,6 +162,7 @@ class WorkoutSessionRulesTest {
             calendarization = ProgramCalendarization(ProgramCalendarizationMode.SIMPLE_DATED),
         )
         val advanced = simpleProgram().copy(
+            structure = com.example.kpkn.data.models.ProgramStructure.COMPLEX,
             macrocycles = simpleProgram().macrocycles.map { macro ->
                 macro.copy(blocks = macro.blocks + Block(id = "b2", name = "Bloque 2"))
             },
@@ -180,15 +181,15 @@ class WorkoutSessionRulesTest {
             WorkoutEditingRules.replacementPersistenceOptions(simpleCyclic),
         )
         assertEquals(
-            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING),
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
             WorkoutEditingRules.replacementPersistenceOptions(simpleCalendarized),
         )
         assertEquals(
-            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING),
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
             WorkoutEditingRules.replacementPersistenceOptions(advanced),
         )
         assertEquals(
-            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING),
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
             WorkoutEditingRules.replacementPersistenceOptions(advancedCalendarized),
         )
     }

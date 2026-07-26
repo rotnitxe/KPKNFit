@@ -67,6 +67,7 @@ fun ProgramDetailScreen(
     onStartWorkout: (Session, Program) -> Unit,
     onEditSession: (String) -> Unit,
     onCreateSession: (String, String, Int, Int, Int, Boolean) -> Unit,
+    onOpenProgram: (String) -> Unit = {},
     onContextTabStateChange: (MainTab, (MainTab) -> Unit) -> Unit = { _, _ -> },
     initialTab: MainTab? = null,
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
@@ -268,6 +269,7 @@ fun ProgramDetailScreen(
                         onStartWorkout = onStartWorkout,
                         onEditSession = onEditSession,
                         onCreateSession = onCreateSession,
+                        onOpenProgram = onOpenProgram,
                     )
                     MainTab.ANALYTICS -> AnalyticsPanel(
                         viewModel = viewModel,
@@ -420,6 +422,7 @@ private fun TrainingPanel(
     onStartWorkout: (Session, Program) -> Unit,
     onEditSession: (String) -> Unit,
     onCreateSession: (String, String, Int, Int, Int, Boolean) -> Unit,
+    onOpenProgram: (String) -> Unit = {},
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
     val showSimpleCalendarizationSheet by viewModel.showSimpleCalendarizationSheet.collectAsState()
@@ -645,8 +648,13 @@ private fun TrainingPanel(
                 calendarizationTrainingDays = calendarizationTrainingDays,
                 onCalendarizationTrainingDaysChange = { viewModel.setCalendarizationTrainingDays(it) },
                 onApplySimpleCalendarizedBreak = { viewModel.applySimpleCalendarizedBreak() },
+                onCalendarizeSimpleCycle = { viewModel.calendarizeSimpleCycle() },
                 onRecoverCyclicProgram = { viewModel.recoverCyclicProgram() },
                 onStartFreshCyclicProgram = { viewModel.startFreshCyclicProgram() },
+                onAddProgramCopy = { copy ->
+                    viewModel.addProgramCopy(copy)
+                    onOpenProgram(copy.id)
+                },
             )
             StructureSubTab.LOOPS -> MacrocycleEditor(
                 program = program,
@@ -665,8 +673,13 @@ private fun TrainingPanel(
                 calendarizationTrainingDays = calendarizationTrainingDays,
                 onCalendarizationTrainingDaysChange = { viewModel.setCalendarizationTrainingDays(it) },
                 onApplySimpleCalendarizedBreak = { viewModel.applySimpleCalendarizedBreak() },
+                onCalendarizeSimpleCycle = { viewModel.calendarizeSimpleCycle() },
                 onRecoverCyclicProgram = { viewModel.recoverCyclicProgram() },
                 onStartFreshCyclicProgram = { viewModel.startFreshCyclicProgram() },
+                onAddProgramCopy = { copy ->
+                    viewModel.addProgramCopy(copy)
+                    onOpenProgram(copy.id)
+                },
             )
             StructureSubTab.PROTOCOLOS -> ProtocolsView(
                 program = program,
@@ -743,7 +756,12 @@ private fun TrainingPanel(
                 ) { Text("Cambiar fecha") }
             },
             dismissButton = {
-                TextButton(onClick = { showCompetitionDeleteFollowup = false }) { Text("Dejar sin fecha") }
+                TextButton(
+                    onClick = {
+                        viewModel.clearCompetitionKeyDate()
+                        showCompetitionDeleteFollowup = false
+                    },
+                ) { Text("Dejar sin fecha") }
             },
         )
     }
@@ -1133,9 +1151,11 @@ private fun dayLabelFull(dayOfWeek: Int): String = when (dayOfWeek) {
 }
 
 private fun locateWeekForSessionCreation(program: Program, weekId: String): WeekSessionLocation? {
+    var globalMesoIndex = 0
     program.macrocycles.forEachIndexed { macroIndex, macro ->
         macro.blocks.forEach { block ->
-            block.mesocycles.forEachIndexed { mesoIndex, meso ->
+            block.mesocycles.forEach { meso ->
+                val mesoIndex = globalMesoIndex++
                 meso.weeks.forEach { week ->
                     if (week.id == weekId) {
                         return WeekSessionLocation(

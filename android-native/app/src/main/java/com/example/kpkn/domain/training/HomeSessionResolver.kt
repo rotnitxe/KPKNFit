@@ -6,8 +6,10 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionLocation
+import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.isSimpleProgram
 import java.time.LocalDate
 
 /**
@@ -22,33 +24,51 @@ object HomeSessionResolver {
         val week: ProgramWeek,
     )
 
-    fun Program.allWeekLocations(): List<WeekLocation> {
-        val locations = mutableListOf<WeekLocation>()
-        var mesoIndex = 0
-        macrocycles.forEachIndexed { macroIndex, macro ->
-            macro.blocks.forEachIndexed { blockIndex, block ->
-                block.mesocycles.forEach { meso ->
-                    meso.weeks.forEach { week ->
-                        locations += WeekLocation(
-                            macroIndex = macroIndex,
-                            blockIndex = blockIndex,
-                            mesocycleIndex = mesoIndex,
-                            week = week,
-                        )
-                    }
-                    mesoIndex++
-                }
-            }
+    fun Program.allWeekLocations(): List<WeekLocation> =
+        ProgramHierarchyIndex(this).orderedWeeks().map { location ->
+            WeekLocation(
+                macroIndex = location.macroIndex,
+                blockIndex = location.blockIndex,
+                mesocycleIndex = location.globalMesoIndex,
+                week = location.week,
+            )
         }
-        return locations
-    }
-
     fun Session.matchesDay(dayOfWeek: Int): Boolean =
         this.dayOfWeek == dayOfWeek || assignedDays.contains(dayOfWeek)
 
-    fun logMatchesSession(log: WorkoutLog, sessionId: String, weekId: String, today: LocalDate = LocalDate.now()): Boolean {
+    fun logMatchesSession(
+        log: WorkoutLog,
+        sessionId: String,
+        weekId: String,
+        today: LocalDate = SystemAppClock.today(java.time.ZoneId.systemDefault()),
+        expectedCycle: Int? = ProgramProgressEngine.cycleFromInstanceId(weekId),
+        expectedRunId: String? = null,
+    ): Boolean {
         if (log.sessionId != sessionId) return false
-        if (log.weekId == weekId) return true
+        if (expectedRunId != null && log.programRunId != null && log.programRunId != expectedRunId) {
+            return false
+        }
+
+        val instanceCycle = ProgramProgressEngine.cycleFromInstanceId(weekId)
+        val templateWeekId = ProgramProgressEngine.templateWeekIdFromInstance(weekId) ?: weekId
+        val cycle = expectedCycle ?: instanceCycle
+
+        if (cycle != null) {
+            // Never accept a previous cycle's template log for a later cycle instance.
+            when {
+                log.cycleNumber != null && log.cycleNumber != cycle -> return false
+                log.cycleNumber == null && cycle > 1 -> return false
+            }
+            val expectedInstanceId = ProgramProgressEngine.instanceIdFor(cycle, templateWeekId)
+            return when {
+                log.weekInstanceId == weekId || log.weekInstanceId == expectedInstanceId -> true
+                log.weekId == weekId || log.weekId == expectedInstanceId -> true
+                log.weekId == templateWeekId && (log.cycleNumber == cycle || (log.cycleNumber == null && cycle == 1)) -> true
+                else -> false
+            }
+        }
+
+        if (log.weekInstanceId == weekId || log.weekId == weekId) return true
         // Legacy logs without weekId: allow same calendar day only
         return log.weekId.isNullOrBlank() && log.date.startsWith(today.toString())
     }
@@ -57,10 +77,27 @@ object HomeSessionResolver {
         program: Program,
         active: ActiveProgramState?,
         dayOfWeek: Int,
-        today: LocalDate = LocalDate.now(),
+        today: LocalDate = SystemAppClock.today(java.time.ZoneId.systemDefault()),
     ): WeekLocation? {
         val locations = program.allWeekLocations()
         if (locations.isEmpty()) return null
+
+        if (program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC) {
+            val cycle = program.runState?.cycleNumber ?: active?.currentCycleNumber ?: 1
+            val instances = ProgramProgressEngine.resolveCurrentWeekInstances(program, cycle)
+            val activeInstanceId = active?.currentWeekInstanceId ?: active?.currentWeekId
+            val instance = instances.firstOrNull { it.instanceId == activeInstanceId }
+                ?: instances.firstOrNull { it.templateWeekId == active?.currentWeekId }
+                ?: instances.firstOrNull()
+            if (instance != null) {
+                return WeekLocation(
+                    macroIndex = instance.macroIndex,
+                    blockIndex = instance.blockIndex,
+                    mesocycleIndex = instance.mesoIndex,
+                    week = instance.week,
+                )
+            }
+        }
 
         if (ProgramCalendarEngine.isCalendarized(program)) {
             val projection = ProgramCalendarEngine.project(program)
@@ -76,7 +113,7 @@ object HomeSessionResolver {
                 location.macroIndex == state.currentMacrocycleIndex &&
                     location.blockIndex == state.currentBlockIndex &&
                     location.mesocycleIndex == state.currentMesocycleIndex &&
-                    location.week.id == state.currentWeekId
+                    (location.week.id == state.currentWeekId || location.week.id == state.currentWeekInstanceId)
             }
         }
         if (exactMatch != null) return exactMatch
@@ -101,20 +138,36 @@ object HomeSessionResolver {
         currentDayOfWeek: Int,
         history: List<WorkoutLog>,
         ongoing: OngoingWorkoutState?,
-        today: LocalDate = LocalDate.now(),
+        today: LocalDate = SystemAppClock.today(java.time.ZoneId.systemDefault()),
     ): List<TodaySessionItem> {
         val weekLocation = resolveWeekLocation(program, active, currentDayOfWeek, today) ?: return emptyList()
+        val expectedCycle = when {
+            program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC ->
+                program.runState?.cycleNumber ?: active?.currentCycleNumber ?: 1
+            else -> null
+        }
+        val expectedRunId = program.runState?.runId ?: active?.programRunId
         val locations = program.allWeekLocations()
         val currentIndex = locations.indexOfFirst { it.week.id == weekLocation.week.id }
         var resolvedWeekLocation = weekLocation
 
-        if (currentIndex != -1) {
+        // For cyclic simples, skip auto-advance across template weeks — cycle instances own completion.
+        val allowWeekSkip = !(program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC)
+
+        if (allowWeekSkip && currentIndex != -1) {
             var tempIndex = currentIndex
             while (tempIndex < locations.size) {
                 val currentLoc = locations[tempIndex]
                 val allCompleted = currentLoc.week.sessions.all { session ->
                     history.any { log ->
-                        logMatchesSession(log, session.id, currentLoc.week.id, today)
+                        logMatchesSession(
+                            log = log,
+                            sessionId = session.id,
+                            weekId = currentLoc.week.id,
+                            today = today,
+                            expectedCycle = expectedCycle,
+                            expectedRunId = expectedRunId,
+                        )
                     }
                 }
                 if (allCompleted) {
@@ -135,6 +188,14 @@ object HomeSessionResolver {
         } else {
             null
         }
+        val weekIdForMatch = if (program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC) {
+            val cycle = expectedCycle ?: 1
+            ProgramProgressEngine.instanceIdFor(cycle, resolvedWeekLocation.week.id.let {
+                ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
+            })
+        } else {
+            resolvedWeekLocation.week.id
+        }
 
         return sessions.map { session ->
             val isToday = if (projection != null) {
@@ -144,7 +205,14 @@ object HomeSessionResolver {
                 day == currentDayOfWeek
             }
             val matchingLog = history.find { log ->
-                logMatchesSession(log, session.id, resolvedWeekLocation.week.id, today)
+                logMatchesSession(
+                    log = log,
+                    sessionId = session.id,
+                    weekId = weekIdForMatch,
+                    today = today,
+                    expectedCycle = expectedCycle,
+                    expectedRunId = expectedRunId,
+                )
             }
             TodaySessionItem(
                 session = session,

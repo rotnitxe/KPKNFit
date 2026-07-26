@@ -4,10 +4,15 @@ import android.content.Context
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
+import com.example.kpkn.domain.training.ProgramActiveStateEngine
+import com.example.kpkn.domain.training.ProgramCalendarEngine
+import com.example.kpkn.domain.training.ProgramMigrationEngine
+import com.example.kpkn.domain.training.ProgramProgressEngine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,10 +36,13 @@ import java.util.UUID
  * - init() carga Room → StateFlow una vez al arrancar
  * - Ongoing workout mutations write Room before returning (durable)
  */
-class ProgramRepository private constructor(context: Context) {
+class ProgramRepository private constructor(
+    private val db: KpknDatabase,
+    private val ownsDatabase: Boolean = false,
+) {
 
-    private val db = KpknDatabase.getInstance(context)
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val repositoryJob = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.IO + repositoryJob)
 
     // ─── Programs ─────────────────────────────────────────────────────────────
 
@@ -56,13 +64,66 @@ class ProgramRepository private constructor(context: Context) {
     fun updateProgram(program: Program) {
         val normalized = program.normalizedIdentityFields()
         _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
+        repairActiveStateIfNeeded(normalized)
         scope.launch { db.programDao().upsert(normalized.toEntity()) }
     }
 
     suspend fun updateProgramNow(program: Program) {
         val normalized = program.normalizedIdentityFields()
         _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
+        repairActiveStateIfNeeded(normalized)
         withContext(Dispatchers.IO) { db.programDao().upsert(normalized.toEntity()) }
+    }
+
+    private fun repairActiveStateIfNeeded(program: Program) {
+        val active = _activeProgramState.value
+        if (active?.programId != program.id) return
+        val repaired = ProgramActiveStateEngine.repairForProgram(program, active)
+        if (repaired != null && repaired != active) {
+            _activeProgramState.value = repaired
+            scope.launch { db.stateDao().upsertActiveProgram(repaired.toEntity()) }
+        }
+    }
+
+    fun archiveProgram(programId: String) {
+        val archived = _settings.value.archivedProgramIds
+        if (programId in archived) return
+        if (_activeProgramState.value?.programId == programId) {
+            clearActiveProgram()
+        }
+        if (_ongoingWorkout.value?.programId == programId) {
+            clearOngoingWorkout()
+        }
+        val nextArchived = archived + programId
+        val nextQueue = _programQueue.value.filterNot { it == programId }
+        _programQueue.value = nextQueue
+        scope.launch {
+            val updated = _settings.value.copy(
+                archivedProgramIds = nextArchived,
+                programQueueIds = nextQueue,
+            )
+            _settings.value = updated
+            db.settingsDao().upsert(updated.toEntity())
+        }
+    }
+
+    fun restoreArchivedProgram(programId: String) {
+        val nextArchived = _settings.value.archivedProgramIds.filterNot { it == programId }
+        scope.launch {
+            val updated = _settings.value.copy(archivedProgramIds = nextArchived)
+            _settings.value = updated
+            db.settingsDao().upsert(updated.toEntity())
+        }
+    }
+
+    fun permanentlyDeleteProgram(programId: String) {
+        deleteProgram(programId)
+        val nextArchived = _settings.value.archivedProgramIds.filterNot { it == programId }
+        scope.launch {
+            val updated = _settings.value.copy(archivedProgramIds = nextArchived)
+            _settings.value = updated
+            db.settingsDao().upsert(updated.toEntity())
+        }
     }
 
     fun upsertSessionInProgram(
@@ -103,34 +164,70 @@ class ProgramRepository private constructor(context: Context) {
 
     fun deleteProgram(programId: String) {
         _programs.update { list -> list.filter { it.id != programId } }
-        _programQueue.update { queue -> queue.filterNot { it == programId } }
-        scope.launch { db.programDao().delete(programId) }
+        val nextQueue = _programQueue.value.filterNot { it == programId }
+        _programQueue.value = nextQueue
+        if (_activeProgramState.value?.programId == programId) {
+            clearActiveProgram()
+        }
+        if (_ongoingWorkout.value?.programId == programId) {
+            _ongoingWorkout.value = null
+            scope.launch { db.stateDao().clearOngoingWorkout() }
+        }
+        scope.launch {
+            db.programDao().delete(programId)
+            val updatedSettings = _settings.value.copy(programQueueIds = nextQueue)
+            _settings.value = updatedSettings
+            db.settingsDao().upsert(updatedSettings.toEntity())
+        }
     }
 
     fun addProgramToQueue(programId: String) {
         if (_programs.value.none { it.id == programId }) return
-        _programQueue.update { queue -> if (programId in queue) queue else queue + programId }
+        val next = if (programId in _programQueue.value) _programQueue.value else _programQueue.value + programId
+        persistProgramQueue(next)
     }
 
     fun removeProgramFromQueue(programId: String) {
-        _programQueue.update { queue -> queue.filterNot { it == programId } }
+        persistProgramQueue(_programQueue.value.filterNot { it == programId })
     }
 
     fun moveQueuedProgram(programId: String, direction: Int) {
-        _programQueue.update { queue ->
-            val from = queue.indexOf(programId)
-            val to = (from + direction).coerceIn(0, queue.lastIndex)
-            if (from < 0 || from == to) queue
-            else queue.toMutableList().apply {
-                val item = removeAt(from)
-                add(to, item)
-            }
+        val queue = _programQueue.value
+        val from = queue.indexOf(programId)
+        val to = (from + direction).coerceIn(0, queue.lastIndex)
+        if (from < 0 || from == to) return
+        val next = queue.toMutableList().apply {
+            val item = removeAt(from)
+            add(to, item)
+        }
+        persistProgramQueue(next)
+    }
+
+    private fun persistProgramQueue(queue: List<String>) {
+        _programQueue.value = queue
+        scope.launch {
+            val updated = _settings.value.copy(programQueueIds = queue)
+            _settings.value = updated
+            db.settingsDao().upsert(updated.toEntity())
         }
     }
 
     fun clearPrograms() {
         _programs.value = emptyList()
         scope.launch { db.programDao().deleteAll() }
+    }
+
+    /** Synchronous wipe for Robolectric tests — avoids SQLite races between async clears and writes. */
+    internal fun resetAllStateSync() {
+        runBlocking(Dispatchers.IO + NonCancellable) {
+            _programs.value = emptyList()
+            _programQueue.value = emptyList()
+            _activeProgramState.value = null
+            _ongoingWorkout.value = null
+            db.programDao().deleteAll()
+            db.stateDao().clearActiveProgram()
+            db.stateDao().clearOngoingWorkout()
+        }
     }
 
     fun getProgramById(id: String): Program? = _programs.value.find { it.id == id }
@@ -180,18 +277,74 @@ class ProgramRepository private constructor(context: Context) {
     }
 
     /**
-     * Atomically persists the finished log and clears the ongoing session.
-     * Must be awaited before notifying UI completion.
+     * Atomically persists the finished log, clears ongoing, and commits simple-program
+     * progress + active state in one Room transaction. Safe to retry: progress engine
+     * is idempotent once the cursor has moved past the completed instance.
      */
     suspend fun finalizeWorkout(log: WorkoutLog) {
-        val normalized = log.normalizedIdentityFields()
-        _history.update { listOf(normalized) + it.filterNot { existing -> existing.id == normalized.id } }
-        _ongoingWorkout.value = null
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.IO + NonCancellable) {
             ongoingWorkoutMutex.withLock {
+                val program = getProgramById(log.programId)
+                val active = _activeProgramState.value
+                val cycleNumber = log.cycleNumber
+                    ?: program?.runState?.cycleNumber
+                    ?: active?.currentCycleNumber
+                    ?: 1
+                val templateWeekId = log.weekId?.let {
+                    ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
+                }
+                val resolvedInstanceId = log.weekInstanceId
+                    ?: active?.currentWeekInstanceId
+                    ?: templateWeekId?.let { ProgramProgressEngine.instanceIdFor(cycleNumber, it) }
+                    ?: log.weekId
+                val enriched = log.copy(
+                    programRunId = log.programRunId ?: program?.runState?.runId ?: active?.programRunId,
+                    cycleNumber = cycleNumber,
+                    weekInstanceId = resolvedInstanceId,
+                    weekId = templateWeekId ?: log.weekId,
+                ).normalizedIdentityFields()
+
+                val historyForProgress = listOf(enriched) + _history.value.filterNot { it.id == enriched.id }
+                val progress = if (program != null && program.isSimpleProgram && !program.isSimpleCalendarizedProgram) {
+                    ProgramProgressEngine.advanceAfterSessionComplete(
+                        program = program,
+                        activeState = active,
+                        completedSession = Session(id = enriched.sessionId, name = enriched.sessionName),
+                        weekInstanceId = enriched.weekInstanceId ?: enriched.weekId.orEmpty(),
+                        logs = historyForProgress,
+                    )
+                } else {
+                    null
+                }
+                val nextProgram = progress?.program
+                    ?.takeIf { it != program }
+                    ?.let { ProgramCalendarEngine.materializeWeekDates(it).normalizedIdentityFields() }
+                val progressActive = progress?.activeState
+                val repairedActive = when {
+                    progressActive != null && progressActive != active -> progressActive
+                    nextProgram != null -> ProgramActiveStateEngine.repairForProgram(nextProgram, active)
+                        ?.takeIf { it != active }
+                    else -> null
+                }
+
                 db.withTransaction {
-                    db.workoutLogDao().insert(normalized.toEntity())
+                    db.workoutLogDao().insert(enriched.toEntity())
                     db.stateDao().clearOngoingWorkout()
+                    if (nextProgram != null) {
+                        db.programDao().upsert(nextProgram.toEntity())
+                    }
+                    if (repairedActive != null) {
+                        db.stateDao().upsertActiveProgram(repairedActive.toEntity())
+                    }
+                }
+
+                _history.value = historyForProgress
+                _ongoingWorkout.value = null
+                if (nextProgram != null) {
+                    _programs.update { list -> list.map { if (it.id == nextProgram.id) nextProgram else it } }
+                }
+                if (repairedActive != null) {
+                    _activeProgramState.value = repairedActive
                 }
             }
         }
@@ -390,12 +543,39 @@ class ProgramRepository private constructor(context: Context) {
         scope.launch {
             runCatching {
                 val programEntities = db.programDao().getAll()
-                val programs = programEntities.map { entity -> entity.toProgram().normalizedIdentityFields() }
+                val rawPrograms = programEntities.map { entity ->
+                    entity.id to runCatching { entity.toProgram() }.getOrNull()
+                }
+                val migrationLoad = ProgramMigrationEngine.loadProgramsSafely(rawPrograms)
+                val programs = migrationLoad.programs.map { it.normalizedIdentityFields() }
+                val programsById = programs.associateBy { it.id }
+                if (migrationLoad.corruptedIds.isNotEmpty()) {
+                    android.util.Log.w(
+                        "ProgramRepository",
+                        "Skipped corrupted programs: ${migrationLoad.corruptedIds}",
+                    )
+                }
                 val logEntities = db.workoutLogDao().getAll()
                 val logs = logEntities.mapNotNull { entity ->
                     entity.toWorkoutLog()?.normalizedIdentityFields()
                 }
-                val settings = db.settingsDao().get()?.toSettings() ?: Settings()
+                val settingsEntity = db.settingsDao().get()
+                var settings = settingsEntity?.toSettings() ?: Settings()
+                if (migrationLoad.corruptedIds.isNotEmpty()) {
+                    val backups = settings.quarantinedProgramBackups.toMutableMap()
+                    migrationLoad.corruptedIds.forEach { id ->
+                        val entity = programEntities.firstOrNull { it.id == id }
+                        if (entity != null) backups[id] = entity.data
+                    }
+                    val quarantined = (settings.quarantinedProgramIds + migrationLoad.corruptedIds).distinct()
+                    if (quarantined != settings.quarantinedProgramIds || backups != settings.quarantinedProgramBackups) {
+                        settings = settings.copy(
+                            quarantinedProgramIds = quarantined,
+                            quarantinedProgramBackups = backups,
+                        )
+                        db.settingsDao().upsert(settings.toEntity())
+                    }
+                }
                 val activeProgram = db.stateDao().getActiveProgram()?.toActiveProgramState()
                 val ongoingWorkout = db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()?.normalizedIdentityFields()
                 val contextPerformance = db.workoutV2Dao().getAllContextPerformance()
@@ -411,9 +591,13 @@ class ProgramRepository private constructor(context: Context) {
                     .map { it.toExerciseReplacementDecisionV2() }
                 val normalizedActiveProgram = normalizeActiveProgramState(programs, activeProgram)
 
-                programEntities.zip(programs).forEach { (entity, normalized) ->
-                    if (entity.toProgram() != normalized) {
-                        scope.launch { db.programDao().upsert(normalized.toEntity()) }
+                programEntities.forEach { entity ->
+                    val normalized = programsById[entity.id] ?: return@forEach
+                    val migrated = ProgramMigrationEngine.migrateIfNeeded(
+                        runCatching { entity.toProgram() }.getOrNull() ?: normalized,
+                    ).program.normalizedIdentityFields()
+                    if (entity.toProgram() != migrated || migrated != normalized) {
+                        scope.launch { db.programDao().upsert(migrated.toEntity()) }
                     }
                 }
                 logEntities.forEach { entity ->
@@ -433,6 +617,9 @@ class ProgramRepository private constructor(context: Context) {
 
                 withContext(Dispatchers.Main) {
                     _programs.value = programs
+                    _programQueue.value = settings.programQueueIds.filter { id ->
+                        programs.any { it.id == id }
+                    }
                     _history.value = logs
                     _settings.value = settings
                     _activeProgramState.value = normalizedActiveProgram
@@ -524,27 +711,15 @@ class ProgramRepository private constructor(context: Context) {
         val week: ProgramWeek,
     )
 
-    private fun Program.allWeekLocations(): List<ProgramWeekLocation> {
-        val locations = mutableListOf<ProgramWeekLocation>()
-        var mesoIndex = 0
-        macrocycles.forEachIndexed { macroIndex, macro ->
-            macro.blocks.forEachIndexed { blockIndex, block ->
-                block.mesocycles.forEach { meso ->
-                    meso.weeks.forEach { week ->
-                        locations += ProgramWeekLocation(
-                            macroIndex = macroIndex,
-                            blockIndex = blockIndex,
-                            mesocycleIndex = mesoIndex,
-                            week = week,
-                        )
-                    }
-                    mesoIndex++
-                }
-            }
+    private fun Program.allWeekLocations(): List<ProgramWeekLocation> =
+        com.example.kpkn.domain.training.ProgramHierarchyIndex(this).orderedWeeks().map { location ->
+            ProgramWeekLocation(
+                macroIndex = location.macroIndex,
+                blockIndex = location.blockIndex,
+                mesocycleIndex = location.globalMesoIndex,
+                week = location.week,
+            )
         }
-        return locations
-    }
-
     private fun Session.matchesDay(dayOfWeek: Int): Boolean =
         this.dayOfWeek == dayOfWeek || assignedDays.contains(dayOfWeek)
 
@@ -556,18 +731,47 @@ class ProgramRepository private constructor(context: Context) {
     private fun Program.resolveDefaultActiveProgramState(
         programId: String,
     ): ActiveProgramState? {
-        val preferred = resolveDefaultWeekLocation() ?: return null
+        if (isSimpleProgram && simpleProgramKind == SimpleProgramKind.CYCLIC) {
+            val cycle = runState?.cycleNumber ?: loopState?.currentCycle?.coerceAtLeast(1) ?: 1
+            val instances = ProgramProgressEngine.resolveCurrentWeekInstances(this, cycle)
+            val instance = instances.firstOrNull { it.instanceId == runState?.weekInstanceId }
+                ?: instances.firstOrNull { it.templateWeekId == runState?.weekId }
+                ?: instances.firstOrNull()
+            if (instance != null) {
+                val location = com.example.kpkn.domain.training.ProgramHierarchyIndex(this)
+                    .locateWeek(instance.templateWeekId)
+                return ActiveProgramState(
+                    programId = programId,
+                    status = ProgramStatus.ACTIVE,
+                    currentMacrocycleIndex = location?.macroIndex ?: instance.macroIndex,
+                    currentBlockIndex = location?.blockIndex ?: instance.blockIndex,
+                    currentMesocycleIndex = location?.globalMesoIndex ?: instance.mesoIndex,
+                    currentWeekId = instance.instanceId,
+                    currentWeekInstanceId = instance.instanceId,
+                    currentCycleNumber = cycle,
+                    programRunId = runState?.runId ?: ProgramProgressEngine.newRunId(),
+                    currentMacrocycleId = location?.macrocycleId,
+                    currentBlockId = location?.blockId,
+                    currentMesocycleId = location?.mesocycleId,
+                )
+            }
+        }
 
+        val preferred = resolveDefaultWeekLocation() ?: return null
+        val location = com.example.kpkn.domain.training.ProgramHierarchyIndex(this)
+            .locateWeek(preferred.week.id)
         return ActiveProgramState(
             programId = programId,
             status = ProgramStatus.ACTIVE,
-            currentMacrocycleIndex = preferred.macroIndex,
-            currentBlockIndex = preferred.blockIndex,
-            currentMesocycleIndex = preferred.mesocycleIndex,
+            currentMacrocycleIndex = location?.macroIndex ?: preferred.macroIndex,
+            currentBlockIndex = location?.blockIndex ?: preferred.blockIndex,
+            currentMesocycleIndex = location?.globalMesoIndex ?: preferred.mesocycleIndex,
             currentWeekId = preferred.week.id,
+            currentMacrocycleId = location?.macrocycleId,
+            currentBlockId = location?.blockId,
+            currentMesocycleId = location?.mesocycleId,
         )
     }
-
     private fun Program.resolveDefaultWeekLocation(
         dayOfWeek: Int = currentDayOfWeek(),
     ): ProgramWeekLocation? {
@@ -599,57 +803,9 @@ class ProgramRepository private constructor(context: Context) {
         state: ActiveProgramState?,
     ): ActiveProgramState? {
         if (state == null) return null
-        val program = programs.find { it.id == state.programId } ?: return state
-        val locations = program.allWeekLocations()
-        if (locations.isEmpty()) return state
-
-        if (com.example.kpkn.domain.training.ProgramCalendarEngine.isCalendarized(program)) {
-            val projection = com.example.kpkn.domain.training.ProgramCalendarEngine.project(program)
-            val today = java.time.LocalDate.now()
-            val calendarWeek = projection.weekForDate(today)
-            if (calendarWeek != null) {
-                val resolved = locations.firstOrNull { it.week.id == calendarWeek.weekId }
-                if (resolved != null) {
-                    if (state.currentWeekId != resolved.week.id ||
-                        state.currentMacrocycleIndex != resolved.macroIndex ||
-                        state.currentBlockIndex != resolved.blockIndex ||
-                        state.currentMesocycleIndex != resolved.mesocycleIndex
-                    ) {
-                        return state.copy(
-                            currentMacrocycleIndex = resolved.macroIndex,
-                            currentBlockIndex = resolved.blockIndex,
-                            currentMesocycleIndex = resolved.mesocycleIndex,
-                            currentWeekId = resolved.week.id,
-                        )
-                    }
-                    return state
-                }
-            }
-        }
-
-        val exact = locations.firstOrNull { location ->
-            location.macroIndex == state.currentMacrocycleIndex &&
-                location.blockIndex == state.currentBlockIndex &&
-                location.mesocycleIndex == state.currentMesocycleIndex &&
-                location.week.id == state.currentWeekId
-        }
-        if (exact != null) return state
-
-        val sameContainer = locations.firstOrNull { location ->
-            location.macroIndex == state.currentMacrocycleIndex &&
-                location.blockIndex == state.currentBlockIndex &&
-                location.mesocycleIndex == state.currentMesocycleIndex
-        } ?: program.resolveDefaultWeekLocation()
-            ?: locations.first()
-
-        return state.copy(
-            currentMacrocycleIndex = sameContainer.macroIndex,
-            currentBlockIndex = sameContainer.blockIndex,
-            currentMesocycleIndex = sameContainer.mesocycleIndex,
-            currentWeekId = sameContainer.week.id,
-        )
+        val program = programs.find { it.id == state.programId } ?: return null
+        return ProgramActiveStateEngine.repairForProgram(program, state)
     }
-
     fun refreshData() {
         loadFromDb()
     }
@@ -665,12 +821,29 @@ class ProgramRepository private constructor(context: Context) {
          */
         fun init(context: Context): ProgramRepository =
             INSTANCE ?: synchronized(this) {
-                INSTANCE ?: ProgramRepository(context.applicationContext)
-                    .also { INSTANCE = it; it.loadFromDb() }
+                INSTANCE ?: ProgramRepository(
+                    KpknDatabase.getInstance(context.applicationContext),
+                ).also { INSTANCE = it; it.loadFromDb() }
             }
+
+        /** Robolectric-friendly init with in-memory Room and isolated singleton. */
+        fun initForTests(context: Context): ProgramRepository = synchronized(this) {
+            closeInstance()
+            KpknDatabase.closeInstance()
+            ProgramRepository(
+                KpknDatabase.createInMemory(context.applicationContext),
+                ownsDatabase = true,
+            ).also { INSTANCE = it; it.loadFromDb() }
+        }
 
         /** Acceso rápido después de init(). */
         fun getInstance(): ProgramRepository =
             INSTANCE ?: error("ProgramRepository not initialized — call init(context) first.")
+
+        internal fun closeInstance() {
+            INSTANCE?.let { runBlocking { it.repositoryJob.cancelAndJoin() } }
+            INSTANCE?.takeIf { it.ownsDatabase }?.db?.close()
+            INSTANCE = null
+        }
     }
 }

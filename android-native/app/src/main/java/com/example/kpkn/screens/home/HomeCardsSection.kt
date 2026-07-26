@@ -3,7 +3,9 @@ package com.example.kpkn.screens.home
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -12,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,79 +32,116 @@ fun HomeCardsSection(
     onNavigateToCard: (String) -> Unit,
     modifier: Modifier = Modifier,
     onAddMeal: () -> Unit = {},
+    onOpenNutritionOverlay: () -> Unit = {},
+    onNutritionAnchorPositionChanged: (Float) -> Unit = {},
 ) {
     val cards by viewModel.cardsState.collectAsState()
 
     Column(modifier.fillMaxWidth()) {
         SectionHeader("Progreso físico y alimentación", Modifier.padding(horizontal = 24.dp))
-        MacroProgressBars(cards, onAddMeal, Modifier.padding(horizontal = 24.dp))
+        MacroProgressBars(cards, onOpenNutritionOverlay, Modifier.padding(horizontal = 24.dp), onNutritionAnchorPositionChanged)
 
         Spacer(Modifier.height(12.dp))
 
         BiometryCardsCarousel(cards, onNavigateToCard)
 
-        Spacer(Modifier.height(18.dp))
-
-        SectionHeader("Tus ejercicios", Modifier.padding(horizontal = 24.dp))
-
-        ExerciseMetricCards(cards, onNavigateToCard)
     }
 }
 
 // ─── Macro Progress Bars ────────────────────────────────────────────────────
 
 @Composable
-private fun MacroProgressBars(state: HomeCardsState, onAddMeal: () -> Unit = {}, modifier: Modifier = Modifier) {
-    val nutritionToday = state.nutrition
+private fun MacroProgressBars(
+    state: HomeCardsState,
+    onOpenOverlay: () -> Unit = {},
 
+    modifier: Modifier = Modifier,
+    onAnchorPositionChanged: (Float) -> Unit = {},
+) {
+    val nutrition = state.nutrition
+    val calorieProgress = (nutrition.calories.toFloat() / state.calorieGoal.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f)
     val macros = listOf(
-        MacroItem("Cal", nutritionToday.calories.toInt(), state.calorieGoal, Color(0xFF60A5FA)),
-        MacroItem("Prot", nutritionToday.protein.toInt(), state.proteinGoal, Color(0xFFF87171)),
-        MacroItem("Carb", nutritionToday.carbs.toInt(), state.carbGoal, Color(0xFFFBBF24)),
-        MacroItem("Fat", nutritionToday.fats.toInt(), state.fatGoal, Color(0xFFA78BFA)),
+        MacroItem("Proteínas", nutrition.protein.toInt(), state.proteinGoal, "g", Color(0xFFE89A8F)),
+        MacroItem("Carbohidratos", nutrition.carbs.toInt(), state.carbGoal, "g", Color(0xFFD7AE63)),
+        MacroItem("Grasas", nutrition.fats.toInt(), state.fatGoal, "g", Color(0xFF9A86C8)),
     )
 
     Card(
-        onClick = onAddMeal,
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = HomeCardSurface),
+        onClick = onOpenOverlay,
+        modifier = modifier.fillMaxWidth().onGloballyPositioned { onAnchorPositionChanged(it.positionInRoot().y) },
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF181E2C)),
     ) {
         Column(
-            Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(
-                "REGISTRO DE HOY",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Black,
-                color = Color.White.copy(alpha = 0.68f),
-                letterSpacing = 1.6.sp,
-            )
-            macros.forEach { m ->
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        "REGISTRO DE HOY",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White.copy(alpha = 0.62f),
+                        letterSpacing = 1.4.sp,
+                    )
+                    Spacer(Modifier.height(5.dp))
+                    Row(verticalAlignment = Alignment.Bottom) {
                         Text(
-                            m.label,
-                            style = MaterialTheme.typography.labelSmall,
+                            nutrition.calories.toInt().toString(),
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Black,
-                            color = Color.White.copy(alpha = 0.72f),
+                            color = Color.White,
                         )
                         Text(
-                            "${m.current}/${m.goal}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.68f),
+                            " kcal",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.72f),
+                            modifier = Modifier.padding(bottom = 5.dp),
                         )
                     }
-                    LinearProgressIndicator(
-                        progress = { (m.current.toFloat() / m.goal.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f) },
-                        modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(50)),
-                        color = m.color,
-                        trackColor = Color.White.copy(alpha = 0.08f),
-                    )
+                }
+                Text(
+                    "${state.calorieGoal} kcal meta",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF8FB7B8),
+                )
+            }
+            LinearProgressIndicator(
+                progress = { calorieProgress },
+                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(50)),
+                color = Color(0xFF4FA3A5),
+                trackColor = Color.White.copy(alpha = 0.08f),
+            )
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                macros.forEach { macro ->
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text(
+                            macro.label,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.62f),
+                            maxLines = 1,
+                        )
+                        Text(
+                            "${macro.current}/${macro.goal}${macro.unit}",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Black,
+                            color = macro.color,
+                            maxLines = 1,
+                        )
+                        LinearProgressIndicator(
+                            progress = { (macro.current.toFloat() / macro.goal.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(50)),
+                            color = macro.color,
+                            trackColor = Color.White.copy(alpha = 0.08f),
+                        )
+                    }
                 }
             }
         }
@@ -111,9 +152,9 @@ private data class MacroItem(
     val label: String,
     val current: Int,
     val goal: Int,
-    val color: androidx.compose.ui.graphics.Color,
+    val unit: String,
+    val color: Color,
 )
-
 // ─── Biometry Cards Carousel ────────────────────────────────────────────────
 
 @Composable
@@ -154,57 +195,65 @@ private data class BiometryCardData(
 
 @Composable
 private fun BiometryCard(data: BiometryCardData, onClick: () -> Unit) {
+    val accent = when (data.navTarget) {
+        "body-progress" -> Color(0xFF4FA3A5)
+        "ffmi" -> Color(0xFF9A86C8)
+        "imc" -> Color(0xFFD7AE63)
+        "fat" -> Color(0xFFC96B5C)
+        else -> Color(0xFF72A67B)
+    }
     Card(
         onClick = onClick,
         modifier = Modifier
-            .size(width = 118.dp, height = 124.dp)
-            .semantics {
-                contentDescription = "${data.title} ${data.value} ${data.unit}. Tocar para ver progreso corporal"
-            },
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = HomeCardSurfaceAlt),
+            .size(104.dp)
+            .semantics { contentDescription = "${data.title} ${data.value} ${data.unit}. Tocar para ver progreso corporal" },
+        shape = CircleShape,
+        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.13f)),
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.34f)),
     ) {
         Column(
-            Modifier.fillMaxSize().padding(14.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+            Modifier.fillMaxSize().padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
             Text(
-                data.title,
+                data.title.uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
-                color = Color.White.copy(alpha = 0.68f),
-                letterSpacing = 1.2.sp,
+                color = Color.White.copy(alpha = 0.64f),
+                letterSpacing = 0.8.sp,
+                maxLines = 1,
             )
-            Column {
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        data.value,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                    )
-                    if (data.unit == "%" || data.unit == "kg") {
-                        Text(
-                            data.unit,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.68f),
-                            modifier = Modifier.padding(start = 2.dp, bottom = 4.dp),
-                        )
-                    }
-                }
-                if (data.unit != "%" && data.unit != "kg" && data.unit.isNotEmpty()) {
+            Spacer(Modifier.height(5.dp))
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    data.value,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White,
+                )
+                if (data.unit == "%" || data.unit == "kg") {
                     Text(
                         data.unit,
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.5f),
+                        color = accent,
+                        fontWeight = FontWeight.Black,
+                        modifier = Modifier.padding(start = 2.dp, bottom = 4.dp),
                     )
                 }
+            }
+            if (data.unit != "%" && data.unit != "kg" && data.unit.isNotEmpty()) {
+                Text(
+                    data.unit,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = accent,
+                    maxLines = 1,
+                )
             }
         }
     }
 }
-
 // ─── Exercise Metric Cards ──────────────────────────────────────────────────
 
 @Composable
@@ -249,7 +298,7 @@ private fun ExerciseCard(data: ExerciseCardData, onClick: () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = HomeCardSurfaceAlt),
     ) {
         Column(
-            Modifier.fillMaxSize().padding(14.dp),
+            Modifier.fillMaxSize().padding(10.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(

@@ -8,6 +8,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.WarmupSetDefinition
+import com.example.kpkn.screens.workout.components.WorkoutWarmupDisplaySet
+import com.example.kpkn.screens.workout.components.WorkoutWarmupSheet
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -152,7 +154,7 @@ class WorkoutSupportCardsUiTest {
         }
 
         composeRule.onNodeWithText("Warm-up inteligente").assertExists()
-        composeRule.onNodeWithText("80 kg estimados para la primera serie efectiva").assertExists()
+                        composeRule.onNodeWithText("80 kg estimados para la serie efectiva").assertExists()
         composeRule.onNodeWithText("Aproximacion 1").assertExists()
         composeRule.onNodeWithText("Marcar warm-up listo").assertExists()
     }
