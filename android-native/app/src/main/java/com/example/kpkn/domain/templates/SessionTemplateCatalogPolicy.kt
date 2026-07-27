@@ -76,13 +76,11 @@ object SessionTemplateCatalogPolicy {
             if (representativeTemplate != null && exerciseIndex.isNotEmpty()) {
                 val drain = evaluateTemplateRings(representativeTemplate, exerciseIndex)
                 val isPl = isPowerliftingTemplate(representativeTemplate)
-                val maxCns = if (isPl) 45 else 35
-                val maxMuscular = if (isPl) 50 else 45
-                val maxSpinal = if (isPl) 40 else 30
+                val caps = RingBudgetPolicy.sessionWarningCaps(isPl)
 
-                if (drain.cns > maxCns) warnings += "Fatiga SNC elevada (${drain.cns}% > $maxCns%)"
-                if (drain.muscular > maxMuscular) warnings += "Fatiga Muscular elevada (${drain.muscular}% > $maxMuscular%)"
-                if (drain.spinal > maxSpinal) warnings += "Carga axial/espinal elevada (${drain.spinal}% > $maxSpinal%)"
+                if (drain.cns > caps.cns) warnings += "Fatiga SNC elevada (${drain.cns}% > ${caps.cns}%)"
+                if (drain.muscular > caps.muscular) warnings += "Fatiga Muscular elevada (${drain.muscular}% > ${caps.muscular}%)"
+                if (drain.spinal > caps.spinal) warnings += "Carga axial/espinal elevada (${drain.spinal}% > ${caps.spinal}%)"
             }
 
             groups.add(
@@ -158,11 +156,12 @@ object SessionTemplateCatalogPolicy {
 
     fun evaluateTemplateRings(
         template: SessionTemplate,
-        exerciseIndex: Map<String, ExerciseMuscleInfo>
+        exerciseIndex: Map<String, ExerciseMuscleInfo>,
+        settings: Settings = Settings(),
     ): PredictedDrain {
         return try {
             AugeFatigueEngine.calculateAdjustedPredictedDrain(
-                template.session, exerciseIndex, Settings()
+                template.session, exerciseIndex, settings,
             )
         } catch (_: Throwable) {
             PredictedDrain(cns = 100, muscular = 100, spinal = 100)
@@ -183,6 +182,11 @@ object SessionTemplateCatalogPolicy {
                 template.id.contains("texas")
     }
 
+    fun candidateLabelsForDay(dayLabel: String): Set<String> = candidateLabelsFor(dayLabel)
+
+    fun focusCategoriesForDay(dayLabel: String): Set<SessionTemplateFocusCategory> =
+        focusCategoriesFor(dayLabel)
+
     private fun candidateLabelsFor(dayLabel: String): Set<String> {
         val normalized = dayLabel.normalizedLabel()
         val labels = linkedSetOf(normalized)
@@ -195,19 +199,30 @@ object SessionTemplateCatalogPolicy {
             add("Tirón", "Espalda", "Pull", "Peso Muerto/Espalda", "Espalda/Bíceps", "Cadena Posterior")
         }
         if (normalized.contains("pierna") || normalized.contains("lower") || normalized.contains("cuádriceps") || normalized.contains("cuadriceps")) {
-            add("Pierna", "Piernas", "Lower", "Cuádriceps/Glúteo", "Pierna Mantenimiento", "Sentadilla/Pierna", "Cadena Anterior")
+            add(
+                "Pierna", "Piernas", "Lower", "Cuádriceps/Glúteo", "Pierna Mantenimiento",
+                "Sentadilla/Pierna", "Cadena Anterior",
+                "Isquios", "Isquiosurales", "Glúteos", "Glúteo", "Femoral", "Glúteo/Isquios",
+            )
+        }
+        if (normalized.contains("isquio") || normalized.contains("femoral") || normalized.contains("hamstring")) {
+            add("Isquios", "Isquiosurales", "Femoral", "Glúteo/Isquios", "Pierna", "Lower", "Cadena Posterior")
         }
         if (normalized.contains("gluteo") || normalized.contains("glúteo")) {
-            add("Glúteo/Isquios", "Glúteo Pump", "Cuádriceps/Glúteo", "Pierna", "Lower")
+            add("Glúteo/Isquios", "Glúteo Pump", "Cuádriceps/Glúteo", "Pierna", "Lower", "Glúteos", "Glúteo")
         }
         if (normalized.contains("torso") || normalized.contains("upper")) {
-            add("Torso", "Upper", "Upper Completo", "Torso Liviano")
+            add(
+                "Torso", "Upper", "Upper Completo", "Torso Liviano",
+                "Pecho", "Espalda", "Hombros", "Brazos", "Pecho/Espalda", "Hombro/Brazo",
+                "Hombros/Brazos", "Espalda/Bíceps", "Press Banca/Pecho",
+            )
         }
         if (normalized.contains("full body") || normalized.contains("cuerpo completo")) {
             add("Cuerpo Completo", "Full Body", "Full Body A", "Full Body B", "Cuerpo Completo A", "Cuerpo Completo B", "Cuerpo Completo C", "Cuerpo Completo D", "Full Body Pesado", "Full Body Liviano", "Full Body Medio")
         }
-        if (normalized.contains("hombro") || normalized.contains("brazo") || normalized.contains("triceps") || normalized.contains("biceps")) {
-            add("Hombro/Brazo", "Hombros/Brazos", "Brazos/Hombros", "Hombros/Abs", "T1 Militar")
+        if (normalized.contains("hombro") || normalized.contains("delts") || normalized.contains("brazo") || normalized.contains("brazos") || normalized.contains("triceps") || normalized.contains("biceps")) {
+            add("Hombro/Brazo", "Hombros/Brazos", "Brazos/Hombros", "Hombros/Abs", "T1 Militar", "Hombros", "Brazos")
         }
         if (normalized.contains("anterior")) add("Cadena Anterior")
         if (normalized.contains("posterior")) add("Cadena Posterior")
@@ -229,12 +244,29 @@ object SessionTemplateCatalogPolicy {
     private fun focusCategoriesFor(dayLabel: String): Set<SessionTemplateFocusCategory> {
         val normalized = dayLabel.normalizedLabel()
         val categories = linkedSetOf<SessionTemplateFocusCategory>()
-        if (normalized.contains("pierna") || normalized.contains("lower") || normalized.contains("cuádriceps") || normalized.contains("cuadriceps")) categories += SessionTemplateFocusCategory.PIERNAS
+        if (normalized.contains("pierna") || normalized.contains("lower") || normalized.contains("cuádriceps") || normalized.contains("cuadriceps")) {
+            categories += SessionTemplateFocusCategory.PIERNAS
+            categories += SessionTemplateFocusCategory.CUADRICEPS
+            categories += SessionTemplateFocusCategory.ISQUIOS
+            categories += SessionTemplateFocusCategory.GLUTEOS
+        }
+        if (normalized.contains("isquio") || normalized.contains("femoral") || normalized.contains("hamstring")) {
+            categories += SessionTemplateFocusCategory.ISQUIOS
+            categories += SessionTemplateFocusCategory.PIERNAS
+        }
         if (normalized.contains("gluteo") || normalized.contains("glúteo")) categories += SessionTemplateFocusCategory.GLUTEOS
         if (normalized.contains("pecho") || normalized.contains("empuje") || normalized.contains("push") || normalized.contains("banca")) categories += SessionTemplateFocusCategory.PECHO
         if (normalized.contains("espalda") || normalized.contains("tirón") || normalized.contains("tiron") || normalized.contains("pull")) categories += SessionTemplateFocusCategory.ESPALDA
-        if (normalized.contains("hombro")) categories += SessionTemplateFocusCategory.HOMBROS
-        if (normalized.contains("brazo") || normalized.contains("biceps") || normalized.contains("bíceps") || normalized.contains("triceps")) categories += SessionTemplateFocusCategory.BRAZOS
+        if (normalized.contains("hombro") || normalized.contains("delts")) categories += SessionTemplateFocusCategory.HOMBROS
+        if (normalized.contains("brazo") || normalized.contains("brazos") || normalized.contains("biceps") || normalized.contains("bíceps") || normalized.contains("triceps")) {
+            categories += SessionTemplateFocusCategory.BRAZOS
+        }
+        if (normalized.contains("torso") || normalized.contains("upper")) {
+            categories += SessionTemplateFocusCategory.PECHO
+            categories += SessionTemplateFocusCategory.ESPALDA
+            categories += SessionTemplateFocusCategory.HOMBROS
+            categories += SessionTemplateFocusCategory.BRAZOS
+        }
         if (normalized.contains("full") || normalized.contains("cuerpo completo") || normalized.contains("volumen") || normalized.contains("recuperación") || normalized.contains("recuperacion")) categories += SessionTemplateFocusCategory.FULL_BODY
         if (normalized.contains("sbd") || normalized.contains("sentadilla") || normalized.contains("banca") || normalized.contains("peso muerto") || normalized.contains("t1") || normalized.contains("max effort") || normalized.contains("dynamic effort")) categories += SessionTemplateFocusCategory.POWERLIFTING
         if (normalized.contains("minimalista")) categories += SessionTemplateFocusCategory.MINIMALISTA

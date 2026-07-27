@@ -473,7 +473,7 @@ internal fun computeSessionAugeComputation(
             AugeFatigueEngine.adjustPredictedDrainWithEMA(fallback, ema)
         }.getOrDefault(fallback)
         if (adjustedFallback.cns == 0 && adjustedFallback.muscular == 0 && adjustedFallback.spinal == 0 && totalSets > 0) {
-            PredictedDrain(cns = 10, muscular = 14, spinal = 8)
+            AugeFatigueEngine.DEFAULT_FALLBACK_PREDICTED_DRAIN
         } else {
             adjustedFallback
         }

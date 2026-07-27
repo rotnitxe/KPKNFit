@@ -253,16 +253,13 @@ fun FoodLoggerDrawer(
     var apiDraftProvider by remember { mutableStateOf(ApiProvider.GEMINI) }
     var apiDraftKey by remember { mutableStateOf("") }
     var apiDraftFallback by remember { mutableStateOf(true) }
-
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { value ->
-            // Prevent accidental dismiss when there's content (description typed or foods added)
-            if (value == SheetValue.Hidden) description.isBlank() && tags.isEmpty()
-            else true
-        },
-    )
     val listState = rememberLazyListState()
+    val requestDismiss = {
+        // Prevent accidental dismiss when there's content (description typed or foods added)
+        if (description.isBlank() && tags.isEmpty()) {
+            onDismiss()
+        }
+    }
 
     // Auto-scroll to show newly detected foods when analysis finishes
     LaunchedEffect(isAnalyzing) {
@@ -1360,14 +1357,12 @@ fun FoodLoggerDrawer(
 
     // ─── Sheet ───────────────────────────────────────────────────────────────
 
-    KpknSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-    ) {
+    KpknSheet(onDismissRequest = requestDismiss) {
         LazyColumn(
             state = listState,
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(max = 640.dp)
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 24.dp)
                 .imePadding(),

@@ -40,12 +40,12 @@ fun UnilateralIntensityModeSelector(
         ) {
             Icon(
                 imageVector = if (isShared) Icons.Default.Link else Icons.Default.LinkOff,
-                contentDescription = if (isShared) "L/R compartido" else "Lados independientes",
+                contentDescription = if (isShared) "Lados iguales" else "Lados aparte",
                 tint = accentColor,
                 modifier = Modifier.size(18.dp),
             )
             Text(
-                if (isShared) "L/R compartido" else "Lados independientes",
+                if (isShared) "Lados iguales" else "Lados aparte",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
                 color = accentColor,
@@ -156,126 +156,6 @@ fun UnilateralAddGhostRow(
                     color = accentColor,
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun UnilateralSetContent(
-    state: SetEditorCardState,
-    hasLeftTarget: Boolean,
-    hasRightTarget: Boolean,
-    leftMetricValue: String,
-    leftIntensityValue: String,
-    rightMetricValue: String,
-    rightIntensityValue: String,
-    density: SetCardDensity,
-    accentColor: Color,
-    isLinked: Boolean,
-    onToggleLink: () -> Unit,
-    onAddLeft: () -> Unit,
-    onAddRight: () -> Unit,
-    onRemoveLeft: () -> Unit,
-    onRemoveRight: () -> Unit,
-    onLeftAction: (SetEditorAction) -> Unit,
-    onRightAction: (SetEditorAction) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        if (hasLeftTarget || hasRightTarget) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (isLinked) accentColor.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.clickable { onToggleLink() }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            if (isLinked) Icons.Default.Link else Icons.Default.LinkOff,
-                            contentDescription = "Vincular",
-                            tint = if (isLinked) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = if (isLinked) "Vinculados" else "Separados",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (isLinked) accentColor else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }
-
-        if (hasLeftTarget) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "L",
-                    color = Color(0xFF2196F3),
-                    fontWeight = FontWeight.Black,
-                    modifier = Modifier.padding(start = 8.dp, end = 8.dp).width(16.dp)
-                )
-                SetPrimaryInputs(
-                    state = state.copy(
-                        metricValue = leftMetricValue,
-                        intensityValue = leftIntensityValue,
-                        sideMode = SetSideMode.LEFT
-                    ),
-                    density = density,
-                    accentColor = Color(0xFF2196F3),
-                    onAction = onLeftAction,
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(onClick = onRemoveLeft) {
-                    Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
-                }
-            }
-        } else {
-            UnilateralAddGhostRow(
-                label = "Lado Izquierdo",
-                accentColor = Color(0xFF2196F3),
-                onClick = onAddLeft
-            )
-        }
-
-        if (hasRightTarget) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "R",
-                    color = Color(0xFFFF5252),
-                    fontWeight = FontWeight.Black,
-                    modifier = Modifier.padding(start = 8.dp, end = 8.dp).width(16.dp)
-                )
-                SetPrimaryInputs(
-                    state = state.copy(
-                        metricValue = rightMetricValue,
-                        intensityValue = rightIntensityValue,
-                        sideMode = SetSideMode.RIGHT
-                    ),
-                    density = density,
-                    accentColor = Color(0xFFFF5252),
-                    onAction = onRightAction,
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(onClick = onRemoveRight) {
-                    Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
-                }
-            }
-        } else {
-            UnilateralAddGhostRow(
-                label = "Lado Derecho",
-                accentColor = Color(0xFFFF5252),
-                onClick = onAddRight
-            )
         }
     }
 }

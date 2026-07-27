@@ -410,7 +410,7 @@ object AugeRecoveryEngine {
         val tenDaysAgo = now - 10L * 24 * 3600 * 1000
         val muscularCap = (100 - physiologicalFloor(settings).muscular).coerceAtLeast(5).toDouble()
 
-        val manualScore = wellbeing?.manualMuscleBatteries?.get(muscleName)
+        val manualScore = wellbeing?.manualMuscleBatteries?.let { lookupMuscleScore(it, muscleName) }
         val anchorMs = manualBatteryAnchorMs(wellbeing)
         val hoursSinceAnchor = max(0.0, (now - anchorMs) / 3_600_000.0)
         var accumulatedFatigue = 0.0
@@ -432,8 +432,8 @@ object AugeRecoveryEngine {
         relevantHistory.forEach { log ->
             val logTime = logDateMs(log)
             val hoursSince = max(0.0, (now - logTime) / 3_600_000.0)
-            val conservationFactor = 0.85
-            val decayK = 0.65
+            val conservationFactor = AugeUtils.SESSION_CONSERVATION_FACTOR
+            val decayK = AugeUtils.SESSION_DECAY_K
             var accumulatedDrain = 0.0
             val overallMuscleVolumeMap = mutableMapOf<String, Int>()
             var sessionMuscleStress = 0.0
@@ -449,11 +449,13 @@ object AugeRecoveryEngine {
                 val densityMult = densityMultiplierForCompletedExercise(ex)
                 val primaryMuscle = dbInfo?.involvedMuscles
                     ?.find { it.role == MuscleRole.PRIMARY }
-                    ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
+                    ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
                     ?: "Core"
                 var accumulated = overallMuscleVolumeMap[primaryMuscle] ?: 0
-                val muscleKey = primaryMuscle.lowercase().trim()
-                val muscleMult = adaptiveCache.muscleDrainMultipliers[muscleKey] ?: 1.0
+                val muscleMult = lookupMuscleDrainMultiplier(
+                    adaptiveCache.muscleDrainMultipliers,
+                    primaryMuscle,
+                )
 
                 ex.sets.forEach { s ->
                     if (!isSetEffective(s)) return@forEach
@@ -558,11 +560,12 @@ object AugeRecoveryEngine {
         adaptiveCache: AugeAdaptiveCache
     ): Double {
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
-        val conservationFactor = 0.85
-        val decayK = 0.65
+        val conservationFactor = AugeUtils.SESSION_CONSERVATION_FACTOR
+        val decayK = AugeUtils.SESSION_DECAY_K
         var accumulatedDrain = 0.0
         val overallMuscleVolumeMap = mutableMapOf<String, Int>()
         var sessionMuscleStress = 0.0
+        val remappedMultipliers = remapMuscleMultiplierMapToPillars(adaptiveCache.muscleDrainMultipliers)
 
         log.completedExercises.forEach { ex ->
             val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
@@ -574,11 +577,10 @@ object AugeRecoveryEngine {
             val densityMult = densityMultiplierForCompletedExercise(ex)
             val primaryMuscle = dbInfo?.involvedMuscles
                 ?.find { it.role == MuscleRole.PRIMARY }
-                ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
+                ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
                 ?: "Core"
             var accumulated = overallMuscleVolumeMap[primaryMuscle] ?: 0
-            val muscleKey = primaryMuscle.lowercase().trim()
-            val muscleMult = adaptiveCache.muscleDrainMultipliers[muscleKey] ?: 1.0
+            val muscleMult = lookupMuscleDrainMultiplier(remappedMultipliers, primaryMuscle)
 
             ex.sets.forEach { s ->
                 if (!isSetEffective(s)) return@forEach
@@ -652,8 +654,8 @@ object AugeRecoveryEngine {
 
         recentLogs.forEach { log ->
             val hoursSince = max(0.0, (now - logDateMs(log)) / 3_600_000.0)
-            val conservationFactor = 0.85
-            val decayK = 0.65
+            val conservationFactor = AugeUtils.SESSION_CONSERVATION_FACTOR
+            val decayK = AugeUtils.SESSION_DECAY_K
             var accumulatedDrain = 0.0
             val overallMuscleVolumeMap = mutableMapOf<String, Int>()
             var sessionCns = 0.0
@@ -661,11 +663,16 @@ object AugeRecoveryEngine {
 
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
-                val primaryMuscle = dbInfo?.involvedMuscles?.find { it.role == MuscleRole.PRIMARY }?.muscle ?: "Core"
+                val primaryMuscle = dbInfo?.involvedMuscles
+                    ?.find { it.role == MuscleRole.PRIMARY }
+                    ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+                    ?: "Core"
                 var accumulated = overallMuscleVolumeMap[primaryMuscle] ?: 0
                 val densityMult = densityMultiplierForCompletedExercise(ex)
-                val muscleKey = primaryMuscle.lowercase().trim()
-                val muscleMult = adaptiveCache.muscleDrainMultipliers[muscleKey] ?: 1.0
+                val muscleMult = lookupMuscleDrainMultiplier(
+                    adaptiveCache.muscleDrainMultipliers,
+                    primaryMuscle,
+                )
 
                 ex.sets.forEach { s ->
                     if (!isSetEffective(s)) return@forEach
@@ -821,8 +828,8 @@ object AugeRecoveryEngine {
                 nowOverride = logTime,
             )
 
-            val conservationFactor = 0.85
-            val decayK = 0.65
+            val conservationFactor = AugeUtils.SESSION_CONSERVATION_FACTOR
+            val decayK = AugeUtils.SESSION_DECAY_K
             var accumulatedDrain = 0.0
             val overallMuscleVolumeMap = mutableMapOf<String, Int>()
             var sessionSpinalLoad = 0.0
@@ -830,11 +837,16 @@ object AugeRecoveryEngine {
 
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
-                val primaryMuscle = dbInfo?.involvedMuscles?.find { it.role == MuscleRole.PRIMARY }?.muscle ?: "Core"
+                val primaryMuscle = dbInfo?.involvedMuscles
+                    ?.find { it.role == MuscleRole.PRIMARY }
+                    ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+                    ?: "Core"
                 var accumulated = overallMuscleVolumeMap[primaryMuscle] ?: 0
                 val densityMult = densityMultiplierForCompletedExercise(ex)
-                val muscleKey = primaryMuscle.lowercase().trim()
-                val muscleMult = adaptiveCache.muscleDrainMultipliers[muscleKey] ?: 1.0
+                val muscleMult = lookupMuscleDrainMultiplier(
+                    adaptiveCache.muscleDrainMultipliers,
+                    primaryMuscle,
+                )
 
                 ex.sets.forEach { s ->
                     if (!isSetEffective(s)) return@forEach
@@ -1307,45 +1319,22 @@ object AugeRecoveryEngine {
         settings: Settings,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
     ): List<SessionDrainRanking> {
-        val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
         return history.map { log ->
-            var totalMuscular = 0.0
-            var totalCns = 0.0
-            var totalSpinal = 0.0
-
-            log.completedExercises.forEach { ex ->
-                val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
-                val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
-                val densityMult = densityMultiplierForCompletedExercise(ex)
-                var accumulated = 0
-
-                ex.sets.forEach { s ->
-                    if (!isSetEffective(s)) return@forEach
-                    accumulated++
-                    val drain = calculateSetBatteryDrain(
-                        set = s,
-                        metrics = metrics,
-                        tanks = tanks,
-                        accumulatedSets = accumulated,
-                        restTime = ex.restTime,
-                        densityMultiplier = densityMult,
-                    )
-                    totalMuscular += drain.muscularDrainPct
-                    totalCns += drain.cnsDrainPct
-                    totalSpinal += drain.spinalDrainPct
-                }
-            }
-
-            // Normalizar a 0-100
-            val normFactor = 0.01  // cada pct ya está en %, suma de sets
+            val drain = AugeFatigueEngine.calculateCompletedSessionDrain(
+                completedExercises = log.completedExercises,
+                exerciseDb = exerciseDb,
+                settings = settings,
+            )
             SessionDrainRanking(
                 logId = log.id,
                 sessionName = log.sessionName,
                 date = log.date.take(10),
-                totalDrain = (totalMuscular * 0.35 + totalCns * 0.40 + totalSpinal * 0.25) * normFactor,
-                cnsDrain = totalCns * normFactor,
-                muscularDrain = totalMuscular * normFactor,
-                spinalDrain = totalSpinal * normFactor,
+                totalDrain = drain.cns * AugeUtils.STRESS_WEIGHT_CNS +
+                    drain.muscular * AugeUtils.STRESS_WEIGHT_MUSCULAR +
+                    drain.spinal * AugeUtils.STRESS_WEIGHT_SPINAL,
+                cnsDrain = drain.cns.toDouble(),
+                muscularDrain = drain.muscular.toDouble(),
+                spinalDrain = drain.spinal.toDouble(),
             )
         }.sortedByDescending { it.totalDrain }
     }
@@ -1414,7 +1403,9 @@ object AugeRecoveryEngine {
             ExerciseDrainRanking(
                 exerciseName = a.name,
                 exerciseDbId = a.dbId,
-                overallDrain = ((a.muscular / n * 0.35) + (a.cns / n * 0.40) + (a.spinal / n * 0.25)) * normFactor,
+                overallDrain = ((a.muscular / n * AugeUtils.STRESS_WEIGHT_MUSCULAR) +
+                    (a.cns / n * AugeUtils.STRESS_WEIGHT_CNS) +
+                    (a.spinal / n * AugeUtils.STRESS_WEIGHT_SPINAL)) * normFactor,
                 muscularDrain = (a.muscular / n) * normFactor,
                 cnsDrain = (a.cns / n) * normFactor,
                 spinalDrain = (a.spinal / n) * normFactor,
@@ -1485,7 +1476,9 @@ object AugeRecoveryEngine {
         val avgMuscular = sessionStats.map { it.muscular }.average()
         val avgCns = sessionStats.map { it.cns }.average()
         val avgSpinal = sessionStats.map { it.spinal }.average()
-        val avgOverall = (avgMuscular * 0.35 + avgCns * 0.40 + avgSpinal * 0.25)
+        val avgOverall = (avgMuscular * AugeUtils.STRESS_WEIGHT_MUSCULAR +
+            avgCns * AugeUtils.STRESS_WEIGHT_CNS +
+            avgSpinal * AugeUtils.STRESS_WEIGHT_SPINAL)
 
         val fastest = sessionStats.minByOrNull { it.muscular + it.cns + it.spinal }?.name
         val slowest = sessionStats.maxByOrNull { it.muscular + it.cns + it.spinal }?.name

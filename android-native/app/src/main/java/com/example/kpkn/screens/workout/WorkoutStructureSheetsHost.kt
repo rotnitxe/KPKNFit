@@ -47,7 +47,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -848,13 +847,8 @@ internal fun WorkoutStructureSheetsHost(
         val targetGroupId = state.addCatalogToSupersetGroupId!!
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
-        val addCatalogSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-        KpknSheet(
-            onDismissRequest = { state.addCatalogToSupersetGroupId = null },
-            sheetState = addCatalogSheetState,
-        ) {
-            Column(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+        KpknSheet(onDismissRequest = { state.addCatalogToSupersetGroupId = null }) {
+            Column(modifier = Modifier.fillMaxWidth()) {
                 ExercisePickerSheet(
                     query = state.addCatalogSearchQuery,
                     catalog = EXERCISE_DATABASE,
@@ -882,16 +876,13 @@ internal fun WorkoutStructureSheetsHost(
         val targetExerciseId = state.addExerciseAfterId!!
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
-        val addExerciseSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
         KpknSheet(
             onDismissRequest = {
                 state.addExerciseAfterId = null
                 state.addExerciseSearchQuery = ""
             },
-            sheetState = addExerciseSheetState,
         ) {
-            Column(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+            Column(modifier = Modifier.fillMaxWidth()) {
                 ExercisePickerSheet(
                     query = state.addExerciseSearchQuery,
                     catalog = EXERCISE_DATABASE,
@@ -919,18 +910,13 @@ internal fun WorkoutStructureSheetsHost(
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
 
-        val replaceSheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-        )
-
         KpknSheet(
             onDismissRequest = {
                 state.showReplaceExercisePicker = false
                 state.replaceTargetExerciseId = null
             },
-            sheetState = replaceSheetState,
         ) {
-            Column(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+            Column(modifier = Modifier.fillMaxWidth()) {
                 ExercisePickerSheet(
                     query = state.replaceSearchQuery,
                     catalog = EXERCISE_DATABASE,

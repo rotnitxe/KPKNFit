@@ -38,6 +38,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.KpknSheetTokens
+import com.example.kpkn.ui.components.kpknSheetWhiteFieldColors
+import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -45,7 +48,6 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -86,17 +88,8 @@ internal fun TemplatesSheet(
     onCancelApply: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    KpknSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        modifier = Modifier.fillMaxHeight(),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(),
-        ) {
+    KpknSheet(onDismissRequest = onDismiss) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -123,22 +116,29 @@ internal fun TemplatesSheet(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = onSearchChange,
-                placeholder = { Text("Buscar plantilla...") },
-                leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(18.dp)) },
+                placeholder = {
+                    Text("Buscar plantilla...", color = KpknSheetTokens.ControlPlaceholder)
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        null,
+                        modifier = Modifier.size(18.dp),
+                        tint = KpknSheetTokens.ControlLabel,
+                    )
+                },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 4.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                ),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = KpknSheetTokens.ControlLabel),
+                colors = kpknSheetWhiteFieldColors(),
             )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .heightIn(max = 480.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -151,7 +151,8 @@ internal fun TemplatesSheet(
                         templates = templates,
                         searchQuery = searchQuery,
                         onSelectTemplate = onSelectTemplate,
-                        exerciseIndex = remember { EXERCISE_DATABASE.associateBy { it.id.lowercase() } }
+                        exerciseIndex = remember { EXERCISE_DATABASE.associateBy { it.id.lowercase() } },
+                        glassDark = true,
                     )
                 }
             }
@@ -232,7 +233,10 @@ internal fun TemplateCard(
                 }
             }
             Spacer(Modifier.width(8.dp))
-            FilledTonalButton(onClick = onApply) {
+            FilledTonalButton(
+                onClick = onApply,
+                colors = kpknSheetWhiteTonalButtonColors(),
+            ) {
                 Text("Aplicar")
             }
         }
@@ -445,7 +449,10 @@ internal fun MobilityPickerSheet(
                                 overflow = TextOverflow.Ellipsis,
                             )
                         }
-                        FilledTonalButton(onClick = { onAdd(mobility) }) {
+                        FilledTonalButton(
+                            onClick = { onAdd(mobility) },
+                            colors = kpknSheetWhiteTonalButtonColors(),
+                        ) {
                             Text("Agregar")
                         }
                     }

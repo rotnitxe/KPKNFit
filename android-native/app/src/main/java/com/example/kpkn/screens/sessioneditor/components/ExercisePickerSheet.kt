@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.material3.ButtonDefaults
+import com.example.kpkn.ui.components.KpknSheetTokens
+import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -41,7 +44,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -251,7 +253,6 @@ internal fun ExercisePickerSheet(
      Column(
          Modifier
              .fillMaxWidth()
-             .fillMaxHeight()
              .padding(horizontal = 14.dp, vertical = 12.dp),
          verticalArrangement = Arrangement.spacedBy(10.dp),
      ) {
@@ -277,7 +278,8 @@ internal fun ExercisePickerSheet(
                 FilledTonalButton(
                     onClick = onOpenExerciseCreator,
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    colors = kpknSheetWhiteTonalButtonColors(),
                 ) {
                     Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
@@ -287,7 +289,8 @@ internal fun ExercisePickerSheet(
                     FilledTonalButton(
                         onClick = { showSortMenu = true },
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(8.dp),
+                        colors = kpknSheetWhiteTonalButtonColors(),
                     ) {
                         Icon(Icons.Default.FilterList, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
@@ -328,6 +331,7 @@ internal fun ExercisePickerSheet(
                      contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                      shape = RoundedCornerShape(8.dp),
                      modifier = Modifier.fillMaxWidth(),
+                     colors = kpknSheetWhiteTonalButtonColors(),
                  ) {
                      Icon(Icons.Default.Settings, null, modifier = Modifier.size(14.dp))
                      Spacer(Modifier.width(4.dp))
@@ -350,6 +354,7 @@ internal fun ExercisePickerSheet(
                      contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                      shape = RoundedCornerShape(8.dp),
                      modifier = Modifier.fillMaxWidth(),
+                     colors = kpknSheetWhiteTonalButtonColors(),
                  ) {
                      Icon(Icons.Default.FitnessCenter, null, modifier = Modifier.size(14.dp))
                      Spacer(Modifier.width(4.dp))
@@ -374,6 +379,7 @@ internal fun ExercisePickerSheet(
                          contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                          shape = RoundedCornerShape(8.dp),
                          modifier = Modifier.fillMaxWidth(),
+                         colors = kpknSheetWhiteTonalButtonColors(),
                      ) {
                          Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(14.dp))
                          Spacer(Modifier.width(4.dp))
@@ -477,7 +483,9 @@ internal fun ExercisePickerSheet(
              color = Color.White
          )
          LazyColumn(
-             modifier = Modifier.weight(1f),
+             modifier = Modifier
+                 .fillMaxWidth()
+                 .heightIn(max = 480.dp),
              verticalArrangement = Arrangement.spacedBy(8.dp),
          ) {
              item {
@@ -572,7 +580,9 @@ internal fun ExercisePickerSheet(
 
          LazyColumn(
              state = resultListState,
-             modifier = Modifier.weight(1f),
+             modifier = Modifier
+                 .fillMaxWidth()
+                 .heightIn(max = 480.dp),
              verticalArrangement = Arrangement.spacedBy(10.dp),
          ) {
              item {
@@ -685,10 +695,8 @@ internal fun ExercisePickerSheet(
     }
 
     variantFlowExercise?.let { exercise ->
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         VariantFlowSheet(
             initialExercise = exercise,
-            sheetState = sheetState,
             onConfirm = { selectedVariant, selectedAspects ->
                 VariantFlowResultCache.store(
                     exerciseDbId = selectedVariant.id,

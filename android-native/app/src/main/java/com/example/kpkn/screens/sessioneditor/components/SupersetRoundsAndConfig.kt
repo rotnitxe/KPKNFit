@@ -58,6 +58,7 @@ import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.NativeWheelPicker
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
+import com.example.kpkn.screens.sessioneditor.formatExerciseConfigSummary
 import com.example.kpkn.screens.sessioneditor.formatRestSummary
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
@@ -110,7 +111,14 @@ internal fun SupersetExerciseConfigOverlay(
                     onOpenSheet = { showGoalSheet = true },
                 )
                 DarkChoiceChip(
-                    label = relationshipAnchorName?.let { "ANCLA: $it" } ?: "VINCULAR",
+                    label = "Medir ROM",
+                    selected = exercise.trackRom,
+                    accentColor = accentColor,
+                ) {
+                    onUpdateExercise { current -> current.copy(trackRom = !current.trackRom) }
+                }
+                DarkChoiceChip(
+                    label = relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar",
                     selected = exercise.relativeToCanonicalExerciseId != null,
                     accentColor = accentColor,
                     modifier = Modifier.widthIn(max = 170.dp),
@@ -118,7 +126,7 @@ internal fun SupersetExerciseConfigOverlay(
                     if (exercise.relativeToCanonicalExerciseId == null) onOpenRelationshipPicker() else onClearRelationship()
                 }
                 DarkChoiceChip(
-                    label = "CARGA INTELIGENTE",
+                    label = "Carga",
                     selected = false,
                     accentColor = accentColor,
                     modifier = Modifier.widthIn(max = 180.dp),
@@ -147,10 +155,36 @@ internal fun SupersetExerciseConfigOverlay(
                             )
                         }
                     }
+                    DarkChoiceChip(
+                        label = if (exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
+                            "Lados iguales"
+                        } else {
+                            "Lados aparte"
+                        },
+                        selected = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED,
+                        accentColor = accentColor,
+                    ) {
+                        onUpdateExercise { current ->
+                            current.copy(
+                                unilateralIntensityMode = if (current.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
+                                    UnilateralIntensityMode.INDEPENDENT
+                                } else {
+                                    UnilateralIntensityMode.SHARED
+                                },
+                            )
+                        }
+                    }
                 }
             }
+            Text(
+                formatExerciseConfigSummary(exercise),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
             relationshipAnchorName?.let {
-                Text("Vinculado a $it", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Relacionado con $it", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -211,6 +245,16 @@ internal fun SupersetSmartLoadDialog(
                         }
                     }
                 }
+                val resolved1RM = resolveReferenceCapacity(exercise)
+                val needsRmReference = exercise.sets.any { it.targetPercentageRM != null } && resolved1RM == null
+                if (needsRmReference) {
+                    Text(
+                        "Falta referencia para %RM. Agrega RM o PR.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text("Listo") } },
@@ -226,11 +270,11 @@ internal fun SupersetGoalDialog(
     var goalRmInput by rememberSaveable(exercise.id, exercise.goal1RM) { mutableStateOf(formatEditableNumber(exercise.goal1RM)) }
     KpknAlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Meta / PR", fontWeight = FontWeight.Black) },
+        title = { Text("Meta", fontWeight = FontWeight.Black) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Text("Marcar como objetivo", modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
+                    Text("Seguir este ejercicio", modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
                     Switch(
                         checked = exercise.isStarTarget,
                         onCheckedChange = { checked -> onUpdateExercise { it.copy(isStarTarget = checked) } },
@@ -239,6 +283,16 @@ internal fun SupersetGoalDialog(
                 EditorMiniField("Meta 1RM kg", goalRmInput, keyboardType = KeyboardType.Decimal, modifier = Modifier.fillMaxWidth()) { input ->
                     goalRmInput = input
                     onUpdateExercise { it.copy(goal1RM = input.safeDoubleOrNull()) }
+                }
+                val goal = goalRmInput.safeDoubleOrNull()?.takeIf { it > 0 }
+                if (goal != null && resolveReferenceCapacity(exercise) == null) {
+                    TextButton(
+                        onClick = {
+                            onUpdateExercise { it.copy(reference1RM = goal, prFor1RM = null) }
+                        },
+                    ) {
+                        Text("Usar meta como referencia")
+                    }
                 }
             }
         },

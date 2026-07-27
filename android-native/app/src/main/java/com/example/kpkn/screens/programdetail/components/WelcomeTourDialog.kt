@@ -23,12 +23,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.example.kpkn.ui.components.KpknGlass
-import com.example.kpkn.ui.components.kpknWindowGlass
+import com.example.kpkn.ui.components.KpknGlassDialog
 
 private data class TourStep(
     val icon: ImageVector,
@@ -109,32 +107,11 @@ fun WelcomeTourDialog(
     val step = TOUR_STEPS.getOrNull(tourState.currentStep - 1) ?: return
     val isLastStep = tourState.currentStep >= 2
 
-    Dialog(
+    KpknGlassDialog(
         onDismissRequest = tourState.onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        shape = RoundedCornerShape(40.dp),
+        modifier = modifier,
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.4f))
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                    onClick = tourState.onDismiss,
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            val tourCardShape = RoundedCornerShape(40.dp)
-            Card(
-                modifier = modifier
-                    .padding(32.dp)
-                    .fillMaxWidth()
-                    .clickable(enabled = false) {}
-                    .kpknWindowGlass(tourCardShape),
-                shape = tourCardShape,
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                elevation = CardDefaults.cardElevation(0.dp),
-            ) {
                 // Top blue bar
                 Box(
                     modifier = Modifier
@@ -253,7 +230,5 @@ fun WelcomeTourDialog(
                         }
                     }
                 }
-            }
-        }
     }
 }

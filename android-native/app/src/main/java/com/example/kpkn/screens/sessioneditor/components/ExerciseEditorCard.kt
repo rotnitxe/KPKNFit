@@ -69,6 +69,8 @@ import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.screens.sessioneditor.PART_COLORS
+import com.example.kpkn.screens.sessioneditor.resolvePartAccent
+import com.example.kpkn.screens.sessioneditor.exerciseCardBrush
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
 import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
@@ -81,6 +83,7 @@ import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.formatRestSummary
 import com.example.kpkn.screens.sessioneditor.formatExerciseCollapsedSummary
+import com.example.kpkn.screens.sessioneditor.formatExerciseConfigSummary
 import com.example.kpkn.screens.sessioneditor.trainingModeLabel
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
@@ -112,6 +115,8 @@ internal fun ExerciseEditorCard(
     onMoveSet: (String, Int) -> Unit,
     onRemoveMobility: (String) -> Unit,
     onOpenQuickActions: () -> Unit,
+    onOpenWarmup: () -> Unit = {},
+    onOpenMobility: () -> Unit = {},
     relationshipAnchorName: String?,
     onOpenRelationshipPicker: () -> Unit,
     onClearRelationship: () -> Unit,
@@ -155,9 +160,8 @@ internal fun ExerciseEditorCard(
             }
         } else null
     }
-    val accentColor = remember(accentHex) {
-        runCatching { Color(AndroidColor.parseColor(accentHex ?: PART_COLORS.first())) }.getOrDefault(Color(0xFF00F0FF))
-    }
+    val accent = remember(accentHex) { resolvePartAccent(accentHex) }
+    val accentColor = accent.primary
     val predictedWeights = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM, exercise.sets) {
         exercise.sets.associate { set ->
             set.id to calculateSuggestedLoad(exercise, set)
@@ -186,23 +190,23 @@ internal fun ExerciseEditorCard(
     }
 
     val isSupersetExercise = exercise.supersetGroupRefOrLegacyId() != null
-    val supersetShape = RoundedCornerShape(14.dp)
+    val cardShape = RoundedCornerShape(16.dp)
     val containerHighlight = when {
         isDragging -> accentColor.copy(alpha = 0.10f)
         isDropTarget -> accentColor.copy(alpha = 0.08f)
         isPartDropTarget -> accentColor.copy(alpha = 0.06f)
-        isSupersetExercise -> accentColor.copy(alpha = if (expanded) 0.12f else 0.08f)
         else -> Color.Transparent
     }
-    val containerModifier = when {
-        isSupersetExercise -> Modifier
-            .clip(supersetShape)
-            .background(containerHighlight)
-            .border(2.dp, accentColor.copy(alpha = 0.6f), supersetShape)
-
-        containerHighlight.alpha > 0f -> Modifier.background(containerHighlight)
-        else -> Modifier
-    }
+    val containerModifier = Modifier
+        .clip(cardShape)
+        .background(accent.exerciseCardBrush())
+        .then(
+            when {
+                isSupersetExercise -> Modifier.border(1.dp, accentColor.copy(alpha = 0.28f), cardShape)
+                containerHighlight.alpha > 0f -> Modifier.background(containerHighlight)
+                else -> Modifier
+            },
+        )
 
     Column(
         modifier = modifier
@@ -222,7 +226,7 @@ internal fun ExerciseEditorCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(accentColor.copy(alpha = if (expanded) 0.85f else 0.30f)),
+                .background(accentColor.copy(alpha = if (expanded) 0.45f else 0.18f)),
         )
 
         // Header row — always visible, tap to expand/collapse
@@ -279,6 +283,7 @@ internal fun ExerciseEditorCard(
                         text = exercise.name.ifBlank { "Seleccionar ejercicio" },
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.94f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -292,7 +297,7 @@ internal fun ExerciseEditorCard(
                         formatExerciseCollapsedSummary(exercise)?.let { append(" · $it") }
                     },
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.58f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -307,26 +312,12 @@ internal fun ExerciseEditorCard(
                     )
                 }
             }
-            if (!expanded) {
-                IconButton(
-                    onClick = { onAddSet(null) },
-                    modifier = Modifier.size(48.dp),
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Añadir serie", modifier = Modifier.size(20.dp))
-                }
-                IconButton(
-                    onClick = onOpenQuickActions,
-                    modifier = Modifier.size(48.dp),
-                ) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "Acciones rápidas", modifier = Modifier.size(20.dp))
-                }
-            }
             Icon(
                 imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = if (expanded) "Plegar" else "Desplegar",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(34.dp)
                     .clickable { expanded = !expanded },
             )
         }
@@ -436,7 +427,7 @@ internal fun ExerciseEditorCard(
                     // Track ROM toggle chip
                     item("track-rom") {
                         DarkChoiceChip(
-                            label = "MEDIR ROM",
+                            label = "Medir ROM",
                             selected = exercise.trackRom,
                             accentColor = accentColor,
                             onClick = {
@@ -449,7 +440,7 @@ internal fun ExerciseEditorCard(
 
                     item("relationship") {
                         DarkChoiceChip(
-                            label = relationshipAnchorName?.let { "ANCLA: $it" } ?: "VINCULAR",
+                            label = relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar",
                             selected = exercise.relativeToCanonicalExerciseId != null,
                             accentColor = accentColor,
                             modifier = Modifier.widthIn(max = 180.dp),
@@ -469,43 +460,40 @@ internal fun ExerciseEditorCard(
                         )
                     }
 
-                    if (exercise.isEffectivelyUnilateral()) {
-                        item("side-order") {
-                            SideOrderChip(
-                                sideOrder = exercise.unilateralSideOrder,
-                                accentColor = accentColor,
-                                onToggle = {
-                                    onUpdateExercise { current ->
-                                        current.copy(
-                                            unilateralSideOrder = if (current.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
-                                                UnilateralSideOrder.RIGHT_LEFT
-                                            } else {
-                                                UnilateralSideOrder.LEFT_RIGHT
-                                            },
-                                        )
-                                    }
-                                },
-                            )
-                        }
+                    item("warmup") {
+                        DarkChoiceChip(
+                            label = if (exercise.warmupSets.isEmpty()) {
+                                "Aprox."
+                            } else {
+                                "Aprox. ${exercise.warmupSets.size}"
+                            },
+                            selected = exercise.warmupSets.isNotEmpty(),
+                            accentColor = accentColor,
+                            onClick = onOpenWarmup,
+                        )
+                    }
 
-                        item("intensity-mode") {
-                            DarkChoiceChip(
-                                label = if (exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) "LADOS VINCULADOS" else "LADOS INDEPENDIENTES",
-                                selected = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED,
-                                accentColor = accentColor,
-                            ) {
-                                onUpdateExercise { current ->
-                                    val newMode = if (current.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
-                                        UnilateralIntensityMode.INDEPENDENT
-                                    } else {
-                                        UnilateralIntensityMode.SHARED
-                                    }
-                                    current.copy(unilateralIntensityMode = newMode)
-                                }
-                            }
-                        }
+                    item("mobility") {
+                        DarkChoiceChip(
+                            label = if (exercise.mobilitySeries.isEmpty()) {
+                                "Movilidad"
+                            } else {
+                                "Movilidad ${exercise.mobilitySeries.size}"
+                            },
+                            selected = exercise.mobilitySeries.isNotEmpty(),
+                            accentColor = accentColor,
+                            onClick = onOpenMobility,
+                        )
                     }
                 }
+
+                Text(
+                    formatExerciseConfigSummary(exercise),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
 
                 if (exercise.isEffectivelyUnilateral()) {
                     Surface(
@@ -519,7 +507,7 @@ internal fun ExerciseEditorCard(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                "Unilateral",
+                                "Lados",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Black,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -540,7 +528,11 @@ internal fun ExerciseEditorCard(
                                 },
                             )
                             DarkChoiceChip(
-                                label = if (exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) "LADOS VINCULADOS" else "LADOS INDEPENDIENTES",
+                                label = if (exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
+                                    "Lados iguales"
+                                } else {
+                                    "Lados aparte"
+                                },
                                 selected = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED,
                                 accentColor = accentColor,
                                 onClick = {
@@ -631,7 +623,7 @@ internal fun ExerciseEditorCard(
                     ) {
                         Icon(Icons.Default.FitnessCenter, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("CARGA INTELIGENTE", fontWeight = FontWeight.Black)
+                        Text("Carga", fontWeight = FontWeight.Black)
                     }
                 }
 
@@ -681,7 +673,7 @@ internal fun ExerciseEditorCard(
                         ) {
                             Text(
                                 text = exercise.relationshipType?.displayLabel()?.let { "$it de ${relationshipAnchorName ?: exercise.relativeToCanonicalExerciseId}" }
-                                    ?: "Vinculado a ${relationshipAnchorName ?: exercise.relativeToCanonicalExerciseId}",
+                                    ?: "Relacionado con ${relationshipAnchorName ?: exercise.relativeToCanonicalExerciseId}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.weight(1f),

@@ -26,6 +26,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
@@ -194,13 +195,13 @@ internal fun ExerciseGoalDialog(
 ) {
 KpknAlertDialog(
     onDismissRequest = { onDismiss() },
-    title = { Text("Meta / PR", fontWeight = FontWeight.Black) },
+    title = { Text("Meta", fontWeight = FontWeight.Black) },
     text = {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Marcar como objetivo", fontWeight = FontWeight.SemiBold)
-                    Text("Activa seguimiento destacado para este ejercicio.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Seguir este ejercicio", fontWeight = FontWeight.SemiBold)
+                    Text("Aparece destacado en progreso.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Switch(
                     checked = exercise.isStarTarget,
@@ -215,6 +216,16 @@ KpknAlertDialog(
             ) { input ->
                 onGoalRmInputChange(input)
                 onUpdateExercise { ex -> ex.copy(goal1RM = input.safeDoubleOrNull()) }
+            }
+            val goal = goalRmInput.safeDoubleOrNull()?.takeIf { it > 0 }
+            if (goal != null && resolveReferenceCapacity(exercise) == null) {
+                TextButton(
+                    onClick = {
+                        onUpdateExercise { it.copy(reference1RM = goal, prFor1RM = null) }
+                    },
+                ) {
+                    Text("Usar meta como referencia")
+                }
             }
             Text(
                 buildString {

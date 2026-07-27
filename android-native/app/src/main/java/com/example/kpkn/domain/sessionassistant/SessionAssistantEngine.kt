@@ -376,7 +376,7 @@ object SessionAssistantEngine {
             )
             AugeFatigueEngine.adjustPredictedDrainWithEMA(base, ema)
         } catch (_: Throwable) {
-            PredictedDrain(cns = 15, muscular = 20, spinal = 10)
+            AugeFatigueEngine.DEFAULT_FALLBACK_PREDICTED_DRAIN
         }
     }
 

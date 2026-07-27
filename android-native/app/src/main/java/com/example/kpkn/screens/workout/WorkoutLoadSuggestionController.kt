@@ -6,10 +6,12 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
-import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
+import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.workout.BaseLoadPolicy
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
+import com.example.kpkn.data.models.WorkoutContextProfile
 import kotlinx.coroutines.CoroutineScope
 import kotlin.math.roundToInt
 
@@ -35,6 +37,7 @@ class WorkoutLoadSuggestionController(
         fun canonicalExerciseKey(exercise: Exercise): String
         fun getWeightSuggestion(exercise: Exercise, setIdx: Int, activeTag: String? = null): WeightSuggestion?
         fun getExerciseHistory(exerciseDbId: String, limit: Int = 10, preferredTag: String? = null): List<ExerciseHistoryEntry>
+        fun activeContextProfile(exerciseId: String): WorkoutContextProfile?
     }
 
     fun getContextualLoadSuggestion(
@@ -86,7 +89,8 @@ class WorkoutLoadSuggestionController(
                 val hasChanged = previous != null && (
                     kotlin.math.abs(previous.suggestedWeight - suggestion.suggestedWeight) >= 0.25 ||
                         previous.reason != suggestion.reason ||
-                        previous.isRecalculated != suggestion.isRecalculated
+                        previous.isRecalculated != suggestion.isRecalculated ||
+                        previous.suggestedLoadMode != suggestion.suggestedLoadMode
                     )
                 if (hasChanged) key to nowMs else null
             }.toMap()
@@ -107,7 +111,86 @@ class WorkoutLoadSuggestionController(
         side: String? = null,
     ): WeightSuggestion? {
         val currentLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx)
+        val suggestion = computeWeightSuggestionWithAutoRegulation(exercise, setIdx, activeTag, side, currentLoadMode)
+        return applyTaggedBaseLoadFloor(exercise, activeTag, currentLoadMode, suggestion)
+    }
+
+    private fun applyTaggedBaseLoadFloor(
+        exercise: Exercise,
+        activeTag: String?,
+        currentLoadMode: LoadModeV2,
+        suggestion: WeightSuggestion?,
+    ): WeightSuggestion? {
+        if (suggestion == null) return null
+        val mode = suggestion.suggestedLoadMode ?: currentLoadMode
+        val profile = ports.activeContextProfile(exercise.id)
+        val tagKey = activeTag?.takeIf { it.isNotBlank() } ?: profile?.tagId
+        val floor = BaseLoadPolicy.floorForLoadSuggestion(
+            loadMode = mode,
+            activeTagId = tagKey,
+            engineSuggestedKg = suggestion.suggestedWeight,
+            taggedProfileBaseLoadKg = BaseLoadPolicy.resolvedFromProfile(profile),
+            tagDisplayName = activeTag ?: profile?.tagId ?: profile?.setupLabel,
+        ) ?: return suggestion
+        return suggestion.copy(
+            suggestedWeight = floor.suggestedWeight,
+            reason = floor.reason,
+            suggestedLoadMode = LoadModeV2.LOAD,
+        )
+    }
+
+    private fun computeWeightSuggestionWithAutoRegulation(
+        exercise: Exercise,
+        setIdx: Int,
+        activeTag: String?,
+        side: String?,
+        currentLoadMode: LoadModeV2,
+    ): WeightSuggestion? {
+        val contextualSuggestion = getContextualLoadSuggestion(exercise, setIdx, activeTag, side)
+        if (contextualSuggestion != null) {
+            val mode = contextualSuggestion.suggestedLoadMode ?: currentLoadMode
+            // Near-zero lastre suggestion → propose BODYWEIGHT (never force LASTRE 0).
+            if (currentLoadMode == LoadModeV2.LASTRE &&
+                mode == LoadModeV2.LASTRE &&
+                contextualSuggestion.suggestedWeight < 2.5
+            ) {
+                return WeightSuggestion(
+                    suggestedWeight = 0.0,
+                    reason = if (contextualSuggestion.suggestedWeight <= 0.0) {
+                        "Volver a peso corporal"
+                    } else {
+                        contextualSuggestion.reason.ifBlank { "Volver a peso corporal" }
+                    },
+                    suggestedLoadMode = LoadModeV2.BODYWEIGHT,
+                )
+            }
+            return WeightSuggestion(
+                suggestedWeight = contextualSuggestion.suggestedWeight,
+                reason = contextualSuggestion.reason,
+                suggestedLoadMode = mode,
+            )
+        }
+
+        val baseSuggestion = ports.getWeightSuggestion(exercise, setIdx, activeTag)
+
+        // BODYWEIGHT: allow homologated progression to LASTRE; otherwise stay at 0.
         if (currentLoadMode == LoadModeV2.BODYWEIGHT) {
+            if (baseSuggestion?.suggestedLoadMode == LoadModeV2.LASTRE &&
+                (baseSuggestion.suggestedWeight) > 0.0
+            ) {
+                return WeightSuggestion(
+                    suggestedWeight = baseSuggestion.suggestedWeight,
+                    reason = baseSuggestion.reason,
+                    suggestedLoadMode = LoadModeV2.LASTRE,
+                )
+            }
+            if (baseSuggestion?.suggestedLoadMode == LoadModeV2.BODYWEIGHT) {
+                return WeightSuggestion(
+                    suggestedWeight = 0.0,
+                    reason = baseSuggestion.reason.ifBlank { "Peso corporal · progresa por reps o tiempo" },
+                    suggestedLoadMode = LoadModeV2.BODYWEIGHT,
+                )
+            }
             return WeightSuggestion(
                 suggestedWeight = 0.0,
                 reason = "Peso corporal · progresa por reps o tiempo",
@@ -115,20 +198,30 @@ class WorkoutLoadSuggestionController(
             )
         }
 
-        val contextualSuggestion = getContextualLoadSuggestion(exercise, setIdx, activeTag, side)
-        if (contextualSuggestion != null) {
-            return WeightSuggestion(
-                suggestedWeight = contextualSuggestion.suggestedWeight,
-                reason = contextualSuggestion.reason,
-                suggestedLoadMode = contextualSuggestion.suggestedLoadMode,
-            )
+        if (baseSuggestion != null) {
+            // Surface mode transitions (e.g. ASSISTED → BODYWEIGHT, LASTRE → BODYWEIGHT).
+            if (baseSuggestion.suggestedLoadMode != null &&
+                baseSuggestion.suggestedLoadMode != currentLoadMode
+            ) {
+                return WeightSuggestion(
+                    suggestedWeight = baseSuggestion.suggestedWeight,
+                    reason = baseSuggestion.reason,
+                    suggestedLoadMode = baseSuggestion.suggestedLoadMode,
+                )
+            }
         }
+
         val state = getState()
-        val baseSuggestion = ports.getWeightSuggestion(exercise, setIdx, activeTag)
         val autoRegulation = state.currentAutoRegulation
 
         val sessionSets = completedSessionSetsForExercise(exercise, activeTag)
-        val lastSessionSet = sessionSets.lastOrNull { it.completedSet.weight > 0.0 }
+        val sameModeSessionSets = sessionSets.filter {
+            LoadSuggestionEngine.resolvedLoadMode(it.completedSet) == currentLoadMode
+        }
+        val lastSessionSet = sameModeSessionSets.lastOrNull {
+            LoadSuggestionEngine.inputLoad(it.completedSet, currentLoadMode) > 0.0 ||
+                currentLoadMode == LoadModeV2.BODYWEIGHT
+        }
         val lastLiftedLoad = lastSessionSet?.completedSet
             ?.let { inputLoadForSuggestion(it, currentLoadMode) }
             ?.takeIf { it > 0.0 }
@@ -198,7 +291,7 @@ class WorkoutLoadSuggestionController(
         val dbInfo = EXERCISE_DATABASE_BY_ID[exerciseDbId]
         val involvedMuscleIds = dbInfo?.involvedMuscles
             ?.filter { resolveMuscleVolumeContribution(it) > 0.0 }
-            ?.mapNotNull { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
+            ?.mapNotNull { getAugeMusclePillarId(it.muscle, it.emphasis) }
             ?: emptyList()
 
         val readinessFactor = WorkoutAutoRegulation.computeReadinessAdjustmentFactor(
@@ -350,11 +443,27 @@ class WorkoutLoadSuggestionController(
         side: String?,
     ): WorkoutLoadSuggestionUi? {
         val currentLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx)
-        if (currentLoadMode == LoadModeV2.BODYWEIGHT) return null
+        val historySuggestion = ports.getWeightSuggestion(exercise, setIdx, activeTag)
+
+        // BODYWEIGHT: skip fatigue/eRM math; only surface homologated LASTRE transitions.
+        if (currentLoadMode == LoadModeV2.BODYWEIGHT) {
+            if (historySuggestion?.suggestedLoadMode == LoadModeV2.LASTRE &&
+                historySuggestion.suggestedWeight > 0.0
+            ) {
+                return WorkoutLoadSuggestionUi(
+                    suggestedWeight = historySuggestion.suggestedWeight,
+                    originalWeight = 0.0,
+                    isRecalculated = true,
+                    reason = historySuggestion.reason.ifBlank { "Iniciar con lastre" },
+                    source = WorkoutLoadSuggestionSource.HISTORY,
+                    suggestedLoadMode = LoadModeV2.LASTRE,
+                )
+            }
+            return null
+        }
 
         val manualOverride = manualOverrideForSet(exercise.id, setIdx, side)
         val resolvedBase = determineSessionBaseWeight(exercise, setIdx, activeTag, side)
-        val historySuggestion = ports.getWeightSuggestion(exercise, setIdx, activeTag)
         val baseWeight = (manualOverride ?: resolvedBase.first)?.takeIf { it > 0.0 } ?: return null
         val originalWeight = plannedWorkingWeightForSet(exercise, setIdx)
             ?: historySuggestion?.suggestedWeight
@@ -405,17 +514,29 @@ class WorkoutLoadSuggestionController(
             baseReason = baseReason,
         )
 
+        val suggestedMode = when {
+            currentLoadMode == LoadModeV2.ASSISTED &&
+                historySuggestion?.suggestedLoadMode == LoadModeV2.BODYWEIGHT -> LoadModeV2.BODYWEIGHT
+            currentLoadMode == LoadModeV2.ASSISTED -> LoadModeV2.ASSISTED
+            historySuggestion?.suggestedLoadMode != null -> historySuggestion.suggestedLoadMode
+            else -> currentLoadMode
+        }
+        val profile = ports.activeContextProfile(exercise.id)
+        val tagKey = activeTag?.takeIf { it.isNotBlank() } ?: profile?.tagId
+        val floor = BaseLoadPolicy.floorForLoadSuggestion(
+            loadMode = suggestedMode ?: currentLoadMode,
+            activeTagId = tagKey,
+            engineSuggestedKg = computed.suggestedWeight,
+            taggedProfileBaseLoadKg = BaseLoadPolicy.resolvedFromProfile(profile),
+            tagDisplayName = activeTag ?: profile?.tagId ?: profile?.setupLabel,
+        )
         return WorkoutLoadSuggestionUi(
-            suggestedWeight = computed.suggestedWeight,
+            suggestedWeight = floor?.suggestedWeight ?: computed.suggestedWeight,
             originalWeight = computed.originalWeightRounded,
-            isRecalculated = computed.isRecalculated,
-            reason = computed.reason,
+            isRecalculated = computed.isRecalculated || floor != null,
+            reason = floor?.reason ?: computed.reason,
             source = if (manualOverride != null) WorkoutLoadSuggestionSource.MANUAL_BASE else resolvedBase.second,
-            suggestedLoadMode = if (currentLoadMode == LoadModeV2.ASSISTED) {
-                LoadModeV2.ASSISTED
-            } else {
-                historySuggestion?.suggestedLoadMode
-            },
+            suggestedLoadMode = if (floor != null) LoadModeV2.LOAD else suggestedMode,
         )
     }
 
@@ -445,9 +566,14 @@ class WorkoutLoadSuggestionController(
             }
         if (manualAnchor != null) return manualAnchor to WorkoutLoadSuggestionSource.MANUAL_BASE
 
-        val firstActual = sideFilteredSets.firstOrNull()
+        val firstActualSnapshot = sideFilteredSets.firstOrNull()
+        val firstActualMode = firstActualSnapshot?.completedSet?.let { LoadSuggestionEngine.resolvedLoadMode(it) }
+        val firstActual = firstActualSnapshot
+            ?.takeIf { firstActualMode == null || firstActualMode == ports.effectiveLoadModeForExercise(exercise, setIdx) }
             ?.completedSet
-            ?.let { completed -> inputLoadForSuggestion(completed, ports.effectiveLoadModeForExercise(exercise, setIdx)) }
+            ?.let { completed ->
+                inputLoadForSuggestion(completed, ports.effectiveLoadModeForExercise(exercise, setIdx))
+            }
             ?.takeIf { it > 0.0 }
         if (firstActual != null && setIdx > 0) {
             return firstActual to WorkoutLoadSuggestionSource.SESSION_ERM

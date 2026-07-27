@@ -143,6 +143,36 @@ superficies de vidrio. Estados separados = superficies que muestrean fuentes dis
 Nada de `blurRadius = 24.dp` porque "se ve mejor aquí". Todas las superficies deben ser idénticas.
 Si de verdad hay que cambiar el look, se cambia en `KpknGlass.kt` y afecta a todo.
 
+### ❌ ANTI-PATRÓN #7 — `ModalBottomSheet` / `AlertDialog` / `Dialog` window
+
+Estas APIs de Material crean **otra ventana Android**. Haze no puede muestrear el
+`hazeSource` de MainActivity cross-window → blur muerto. El "arreglo" con
+`kpknWindowGlass` (scrim opaco) **no es KPKN Blur**: es un panel sólido que parece
+ventana cuadrada.
+
+```kotlin
+// ❌ NUNCA para glass vivo.
+ModalBottomSheet(containerColor = Color.Transparent) {
+    Box(Modifier.kpknWindowGlass(shape)) { ... }  // fallback opaco, no blur
+}
+AlertDialog(modifier = Modifier.kpknWindowGlass(shape), ...)
+Dialog { Surface(Modifier.kpknWindowGlass(shape)) { ... } }
+```
+
+```kotlin
+// ✅ CORRECTO: wrappers canónicos (portalean fuera del hazeSource).
+KpknSheet(onDismissRequest = onDismiss) { /* bottom sheet real + kpknGlass */ }
+KpknAlertDialog(onDismissRequest = ..., confirmButton = { ... }, ...)
+KpknGlassDialog(onDismissRequest = ...) { /* dialog custom centrado */ }
+```
+
+`kpknWindowGlass` queda **solo** para Popups/DropdownMenus (limitación de Haze).
+
+### ❌ ANTI-PATRÓN #8 — sheet que no es sheet
+
+Un bottom sheet KPKN es full-bleed inferior, solo esquinas superiores redondeadas,
+handle + drag. Nunca un card centrado con 4 esquinas para un sheet.
+
 ---
 
 ## 2. Librería
@@ -177,6 +207,21 @@ Definidos en `ui/components/KpknGlass.kt`. Ya incluyen el pase **"20% más oscur
 - `Modifier.kpknGlass(hazeState, shape, withBorder = true)` — clip + blur + borde en un solo paso.
 - `object KpknGlass` — constantes (`BlurRadius`, `Tint`, `Scrim`, `NoiseFactor`, `BorderColor`).
 
+Overlays globales (`ui/components/`):
+
+- `KpknSheet` — bottom sheet in-composition + portal + blur vivo.
+- `KpknSheetContentTheme` / `KpknSheetTokens` — contraste del Asistente (texto blanco,
+  superficies oscuras para que `Surface`/`Card` no pinten negro, paneles 0.06).
+- `KpknAlertDialog` / `KpknGlassDialog` — diálogos centrados con el mismo contrato.
+- `KpknPortal` + `LocalKpknOverlayHost` — monta el overlay como hermano del `hazeSource`
+  de MainActivity (obligatorio si el call site vive dentro del NavGraph).
+
+**Lineamientos de sheets (altura, contraste, tabs, checklist):** ver
+[`KPKN Sheets.md`](./KPKN%20Sheets.md) — contrato de contenido y UX encima de este blur.
+
+Dismiss del sheet: handle + drag en sheets wrap-content + nested-scroll overscroll
+(hacia abajo arriba del scroll) en sheets con `LazyColumn`/`verticalScroll`.
+
 ### Receta completa (copia esto)
 
 ```kotlin
@@ -197,6 +242,28 @@ Box(modifier = Modifier.fillMaxSize()) {
             .padding(horizontal = 14.dp, vertical = 8.dp)
             .kpknGlass(hazeState, shape = RoundedCornerShape(28.dp)),
     ) { /* contenido del dock */ }
+}
+```
+
+### Receta sheets / diálogos (desde cualquier pantalla)
+
+```kotlin
+// El call site puede estar dentro del NavGraph (anidado en hazeSource).
+// KpknSheet/KpknAlertDialog portalean solos al host de MainActivity.
+// Altura = wrap content (tope maxHeightFraction). Ver KPKN Sheets.md.
+if (showSheet) {
+    KpknSheet(onDismissRequest = { showSheet = false }) {
+        /* contenido — sheet anclado abajo, solo top redondeado, drag handle */
+    }
+}
+if (showDialog) {
+    KpknAlertDialog(
+        onDismissRequest = { showDialog = false },
+        title = "…",
+        text = "…",
+        confirmLabel = "OK",
+        onConfirm = { showDialog = false },
+    )
 }
 ```
 
@@ -234,9 +301,16 @@ aunque compile.
 | Qué | Dónde |
 |-----|-------|
 | Estilo y modifier canónicos | `ui/components/KpknGlass.kt` |
-| Fuente del blur + overlays hermanos | `screens/sessioneditor/SessionEditorScreen.kt` (`Box` raíz → `hazeSource` → `HeroGlassFab` → `SessionContextNavigator`) |
+| hazeSource raíz + portal de overlays | `MainActivity.kt` (`LocalHazeState` + `LocalKpknOverlayHost` + tabbar/header) |
+| Tabbar / header (referencia visual) | `MainActivity.kt` bottom bar · `HomeScreen.kt` `HomeTopBar` |
+| Sheet canónico | `ui/components/KpknSheet.kt` |
+| Lineamientos de sheets (UX/contraste/altura) | [`KPKN Sheets.md`](./KPKN%20Sheets.md) |
+| Dialog canónico | `ui/components/KpknAlertDialog.kt` · `KpknGlassDialog.kt` |
+| Fuente del blur + overlays hermanos (editor) | `screens/sessioneditor/SessionEditorScreen.kt` (`Box` raíz → `hazeSource` → `HeroGlassFab` → `SessionContextNavigator`) |
 | FAB de vidrio correcto | `screens/sessioneditor/components/SessionHeroParts.kt` → `HeroGlassFab` |
-| Dock de vidrio correcto | `screens/sessioneditor/components/SessionContextNavigator.kt` (inline `clip` → `hazeEffect` → `border`, equivalente a `kpknGlass`) |
+| Dock de vidrio correcto | `screens/sessioneditor/components/SessionContextNavigator.kt` |
+| Assistant sheet (usa `KpknSheet`) | `screens/sessioneditor/components/sheets/AssistantSheet.kt` → `AssistantGlassOverlay` |
 
-Si vas a añadir una nueva superficie de vidrio, **copia la estructura de
-`SessionEditorScreen.kt`**. No improvises.
+Si vas a añadir una nueva superficie de vidrio **chrome** (dock/FAB/header), **copia la
+estructura de `SessionEditorScreen.kt` / tabbar**. Si es sheet o modal, usa `KpknSheet` /
+`KpknAlertDialog` / `KpknGlassDialog`. No improvises.

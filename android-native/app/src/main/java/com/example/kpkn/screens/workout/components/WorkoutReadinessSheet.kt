@@ -136,14 +136,8 @@ fun WorkoutReadinessSheet(
             }
         }
     }
-
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { target -> target != SheetValue.Hidden }
-    )
     KpknSheet(
         onDismissRequest = {},
-        sheetState = sheetState,
         dismissible = false,
         hazeState = hazeState,
     ) {
@@ -865,18 +859,8 @@ fun PreWorkoutDiscomfortSelector(
                                         onDiscomfortsChanged(newSelection)
                                     },
                                     label = { Text(item.label, fontSize = 11.sp) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                                        selectedLabelColor = MaterialTheme.colorScheme.primary,
-                                        containerColor = Color.Transparent,
-                                        labelColor = Color.White.copy(alpha = 0.7f)
-                                    ),
-                                    border = FilterChipDefaults.filterChipBorder(
-                                        enabled = true,
-                                        selected = isSelected,
-                                        borderColor = Color.White.copy(alpha = 0.15f),
-                                        selectedBorderColor = MaterialTheme.colorScheme.primary
-                                    )
+                                    colors = com.example.kpkn.ui.components.kpknSheetWhiteFilterChipColors(),
+                                    border = null,
                                 )
                             }
                         }

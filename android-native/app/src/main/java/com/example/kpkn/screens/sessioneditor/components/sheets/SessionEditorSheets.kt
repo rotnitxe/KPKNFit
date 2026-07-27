@@ -137,7 +137,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -427,32 +426,9 @@ internal fun SessionEditorSheets(
                  onDismiss()
              }
          }
-         val sheetState = rememberModalBottomSheetState(
-             skipPartiallyExpanded = true,
-             confirmValueChange = { target ->
-                 when (target) {
-                     SheetValue.Hidden -> {
-                         if (pendingPickerSelection.isNotEmpty()) {
-                             showPickerExitConfirm = true
-                             false
-                         } else {
-                             true
-                         }
-                     }
-                     SheetValue.PartiallyExpanded -> false
-                     SheetValue.Expanded -> true
-                 }
-             },
-         )
-         KpknSheet(
-              onDismissRequest = requestPickerDismiss,
-              sheetState = sheetState,
-              modifier = Modifier.fillMaxHeight(),
-          ) {
+         KpknSheet(onDismissRequest = requestPickerDismiss) {
               Column(
-                  modifier = Modifier
-                      .fillMaxWidth()
-                      .fillMaxHeight(),
+                  modifier = Modifier.fillMaxWidth(),
               ) {
                   if (showInlineCreator) {
                       Row(
@@ -479,7 +455,7 @@ internal fun SessionEditorSheets(
                           },
                           modifier = Modifier
                               .fillMaxWidth()
-                              .weight(1f),
+                              .heightIn(max = 560.dp),
                       )
                    } else {
                        ExercisePickerSheet(
@@ -575,7 +551,6 @@ internal fun SessionEditorSheets(
 
     KpknSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
         when (uiState.sheet) {
             SessionEditorSheet.EXERCISE_PICKER -> Unit

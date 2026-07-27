@@ -76,7 +76,7 @@ internal fun RelationshipPickerSheet(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Vincular ejercicio", fontWeight = FontWeight.Black, fontSize = 18.sp)
+                Text("Relacionar ejercicio", fontWeight = FontWeight.Black, fontSize = 18.sp)
                 Text(
                     targetExercise.name,
                     style = MaterialTheme.typography.bodySmall,
@@ -89,7 +89,7 @@ internal fun RelationshipPickerSheet(
         }
 
         Text(
-            "Elige un ejercicio ancla de cualquier sesión del programa para marcar esta variante, asistencia o sobrecarga.",
+            "Elige el ejercicio ancla en el programa (variante, ayuda o sobrecarga).",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

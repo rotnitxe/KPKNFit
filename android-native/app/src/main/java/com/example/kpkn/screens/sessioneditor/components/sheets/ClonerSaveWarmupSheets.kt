@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,6 +55,9 @@ import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
 import com.example.kpkn.screens.sessioneditor.sessionEditorDayLabel
 import com.example.kpkn.screens.sessioneditor.DarkEditorChip
+import com.example.kpkn.ui.components.KpknSheetLightChip
+import com.example.kpkn.ui.components.KpknSheetTokens
+import com.example.kpkn.ui.components.KpknSheetWhiteButton
 import com.example.kpkn.screens.sessioneditor.DarkEditorChipSelected
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
@@ -99,10 +104,10 @@ internal fun SessionClonerSheet(
             Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("Clonador de sesiones", fontWeight = FontWeight.Black, fontSize = 18.sp)
+            Text("Clonador de sesiones", fontWeight = FontWeight.Black, fontSize = 18.sp, color = Color.White)
             Text(
                 "Copia esta sesión a varios días o trae una sesión de otro día/semana/bloque.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.65f),
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -131,7 +136,11 @@ internal fun SessionClonerSheet(
 
         if (mode == SessionClonerMode.CLONE_TO_DAYS) {
             Column(
-                modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Text("Selecciona días destino", fontWeight = FontWeight.Bold)
@@ -246,7 +255,8 @@ internal fun SessionClonerSheet(
                     .fillMaxWidth()
                     .padding(20.dp),
             ) {
-                Button(
+                KpknSheetWhiteButton(
+                    text = "Clonar hacia días seleccionados",
                     onClick = {
                         onCloneCurrentToTargets(
                             selectedTargetKeys,
@@ -254,18 +264,15 @@ internal fun SessionClonerSheet(
                             applyMode,
                         )
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = DarkEditorChipSelected,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
-                ) {
-                    Text("Clonar hacia días seleccionados", fontWeight = FontWeight.Black)
-                }
+                )
             }
         } else {
             Column(
-                modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Text("Selecciona sesión origen", fontWeight = FontWeight.Bold)
@@ -364,26 +371,18 @@ internal fun SessionClonerSheet(
                     .fillMaxWidth()
                     .padding(20.dp),
             ) {
-                Button(
+                KpknSheetWhiteButton(
+                    text = "Traer sesión al editor actual",
+                    enabled = selectedSourceSessionId != null,
                     onClick = {
-                        val sourceId = selectedSourceSessionId ?: return@Button
+                        val sourceId = selectedSourceSessionId ?: return@KpknSheetWhiteButton
                         onImportFromSource(
                             sourceId,
                             if (importPartial) selectedImportExerciseIds else null,
                             applyMode,
                         )
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = selectedSourceSessionId != null,
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = DarkEditorChipSelected,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        disabledContainerColor = DarkEditorChip,
-                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    ),
-                ) {
-                    Text("Traer sesión al editor actual", fontWeight = FontWeight.Black)
-                }
+                )
             }
         }
     }
@@ -398,7 +397,7 @@ internal fun SaveSheet(
 ) {
     var saveScope by rememberSaveable { mutableStateOf(SessionSaveScope.SESSION_ONLY) }
     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Guardar cambios", fontWeight = FontWeight.Black, fontSize = 18.sp)
+        Text("Guardar cambios", fontWeight = FontWeight.Black, fontSize = 18.sp, color = Color.White)
         Text(
             if (onDiscardSwitch != null) {
                 "Hay cambios sin guardar. Si guardas, continuarás editando la sesión destino. Si descartas, los cambios se perderán."
@@ -407,33 +406,28 @@ internal fun SaveSheet(
             } else {
                 "Puedes guardar solo esta sesión o propagar el mismo molde al mesociclo."
             },
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = Color.White.copy(alpha = 0.65f),
         )
         if (!isSimpleProgram) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
+                KpknSheetLightChip(
+                    label = "Solo esta sesión",
                     selected = saveScope == SessionSaveScope.SESSION_ONLY,
                     onClick = { saveScope = SessionSaveScope.SESSION_ONLY },
-                    label = { Text("Solo esta sesión") },
                 )
-                FilterChip(
+                KpknSheetLightChip(
+                    label = "Todo el mesociclo",
                     selected = saveScope == SessionSaveScope.MESOCYCLE,
                     onClick = { saveScope = SessionSaveScope.MESOCYCLE },
-                    label = { Text("Todo el mesociclo") },
                 )
             }
         }
-        Button(
+        KpknSheetWhiteButton(
+            text = if (onDiscardSwitch != null) "Guardar y continuar" else "Guardar y volver al programa",
             onClick = {
                 onSave(if (isSimpleProgram) SessionSaveScope.SESSION_ONLY else saveScope)
             },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(
-                if (onDiscardSwitch != null) "Guardar y continuar" else "Guardar y volver al programa",
-                fontWeight = FontWeight.Black,
-            )
-        }
+        )
         if (onDiscardSwitch != null) {
             OutlinedButton(onClick = onDiscardSwitch, modifier = Modifier.fillMaxWidth()) {
                 Text("Descartar y cambiar sesión")

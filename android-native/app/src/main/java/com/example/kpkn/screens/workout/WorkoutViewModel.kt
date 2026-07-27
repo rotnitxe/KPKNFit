@@ -9,7 +9,6 @@ import com.example.kpkn.data.voice.VoiceState
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
@@ -299,6 +298,8 @@ class WorkoutViewModel(
                 this@WorkoutViewModel.getWeightSuggestion(exercise, setIdx, activeTag)
             override fun getExerciseHistory(exerciseDbId: String, limit: Int, preferredTag: String?) =
                 this@WorkoutViewModel.getExerciseHistory(exerciseDbId, limit, preferredTag)
+            override fun activeContextProfile(exerciseId: String) =
+                this@WorkoutViewModel.activeContextProfile(exerciseId)
         },
     )
 
@@ -2281,21 +2282,21 @@ class WorkoutViewModel(
     fun getWeightSuggestion(exercise: Exercise, setIdx: Int, activeTag: String? = null): WeightSuggestion? {
         val dbId = canonicalExerciseKey(exercise)
         val loadMode = effectiveLoadModeForExercise(exercise, setIdx)
-        if (loadMode == LoadModeV2.BODYWEIGHT) {
-            return WeightSuggestion(
-                suggestedWeight = 0.0,
-                reason = "Peso corporal",
-                suggestedLoadMode = LoadModeV2.BODYWEIGHT,
-            )
-        }
 
         val history = getExerciseHistory(dbId, limit = 5, preferredTag = activeTag)
         if (history.isEmpty()) {
+            if (loadMode == LoadModeV2.BODYWEIGHT) {
+                return WeightSuggestion(
+                    suggestedWeight = 0.0,
+                    reason = "Peso corporal",
+                    suggestedLoadMode = LoadModeV2.BODYWEIGHT,
+                )
+            }
             val refWeight = exercise.consolidatedWeight?.weightKg
                 ?: exercise.sets.getOrNull(setIdx)?.weight
                 ?: exercise.sets.getOrNull(setIdx)?.consolidatedWeight
             return if (refWeight != null && refWeight > 0)
-                WeightSuggestion(suggestedWeight = refWeight, reason = "Del programa")
+                WeightSuggestion(suggestedWeight = refWeight, reason = "Del programa", suggestedLoadMode = loadMode)
             else null
         }
 
@@ -2305,7 +2306,7 @@ class WorkoutViewModel(
             .getOrNull(setIdx) ?: baseEntry.sets.filter { !it.isWarmup }.lastOrNull()
         val techniqueSignal = latestTechniqueSignal(exercise.id, dbId)
 
-        if (lastSet != null && (lastSet.weight > 0 || LoadSuggestionEngine.inputLoad(lastSet, loadMode) > 0)) {
+        if (lastSet != null) {
             val targetReps = exercise.sets.getOrNull(setIdx)?.targetReps ?: lastSet.reps
             val suggestion = LoadSuggestionEngine.suggestFromLastWorkingSet(
                 lastSet = lastSet,
@@ -2314,11 +2315,21 @@ class WorkoutViewModel(
                 activeTag = activeTag,
                 baseEntryTag = baseEntry.tag,
                 techniqueSignal = techniqueSignal,
-            ) ?: return null
+            )
+            if (suggestion != null) {
+                return WeightSuggestion(
+                    suggestedWeight = suggestion.suggestedWeight,
+                    reason = suggestion.reason,
+                    suggestedLoadMode = suggestion.suggestedLoadMode ?: loadMode,
+                )
+            }
+        }
+
+        if (loadMode == LoadModeV2.BODYWEIGHT) {
             return WeightSuggestion(
-                suggestedWeight = suggestion.suggestedWeight,
-                reason = suggestion.reason,
-                suggestedLoadMode = suggestion.suggestedLoadMode,
+                suggestedWeight = 0.0,
+                reason = "Peso corporal",
+                suggestedLoadMode = LoadModeV2.BODYWEIGHT,
             )
         }
 

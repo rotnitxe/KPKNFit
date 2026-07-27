@@ -292,8 +292,8 @@ internal fun CompactGoalTrackingButton(
             .height(40.dp)
             .clip(RoundedCornerShape(999.dp))
             .combinedClickable(
-                onClick = { if (onOpenSheet != null) onOpenSheet() else onToggle() },
-                onLongClick = { onOpenSheet?.invoke() },
+                onClick = onToggle,
+                onLongClick = { onOpenSheet?.invoke() ?: onToggle() },
             ),
         color = if (isActive) DarkEditorChipSelected else DarkEditorChip,
         border = if (isActive) BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.3f)) else null,
@@ -456,6 +456,10 @@ internal fun ExerciseSetsCarousel(
     var currentSetIndex by remember(exercise.id) { mutableStateOf(0) }
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = currentSetIndex)
     val coroutineScope = rememberCoroutineScope()
+    var techniqueConfigExpandedBySetId by remember(exercise.id) {
+        mutableStateOf<Map<String, Boolean>>(emptyMap())
+    }
+    val anyTechniqueConfigExpanded = techniqueConfigExpandedBySetId.values.any { it }
 
     LaunchedEffect(exercise.sets.size) {
         val lastIndex = (exercise.sets.size - 1).coerceAtLeast(0)
@@ -483,11 +487,13 @@ internal fun ExerciseSetsCarousel(
             UnilateralSideOrder.LEFT_RIGHT -> listOf("L", "R")
             UnilateralSideOrder.RIGHT_LEFT -> listOf("R", "L")
         }
+        val baseHeight = if (showUnilateralDualCards) 460.dp else 278.dp
+        val expandedHeight = if (showUnilateralDualCards) 580.dp else 400.dp
         // Carousel using LazyRow
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (showUnilateralDualCards) 392.dp else 214.dp),
+                .height(if (anyTechniqueConfigExpanded) expandedHeight else baseHeight),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(horizontal = 4.dp),
             state = listState,
@@ -541,6 +547,10 @@ internal fun ExerciseSetsCarousel(
                                                 onRemove = { onRemoveSet(set.id) },
                                                 onMoveUp = { onMoveSet(set.id, -1) },
                                                 onMoveDown = { onMoveSet(set.id, 1) },
+                                                onTechniqueConfigExpandedChange = { expanded ->
+                                                    techniqueConfigExpandedBySetId =
+                                                        techniqueConfigExpandedBySetId + (set.id to expanded)
+                                                },
                                             )
                                         } else {
                                             UnilateralAddGhostCard(
@@ -590,6 +600,10 @@ internal fun ExerciseSetsCarousel(
                                 onRemove = { onRemoveSet(set.id) },
                                 onMoveUp = { onMoveSet(set.id, -1) },
                                 onMoveDown = { onMoveSet(set.id, 1) },
+                                onTechniqueConfigExpandedChange = { expanded ->
+                                    techniqueConfigExpandedBySetId =
+                                        techniqueConfigExpandedBySetId + (set.id to expanded)
+                                },
                             )
                         }
                     }
@@ -847,6 +861,8 @@ internal fun Exercise.toggledBilateralUnilateral(): Exercise {
         copy(
             isUnilateral = true,
             unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
+            // Default suave: pausa corta entre lados si no había valor.
+            restBetweenSidesSeconds = restBetweenSidesSeconds ?: 15,
             sets = sets.map { set ->
                 val target = UnilateralTarget(
                     weight = set.weight,

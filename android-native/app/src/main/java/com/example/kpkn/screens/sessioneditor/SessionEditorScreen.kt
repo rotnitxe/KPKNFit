@@ -5,6 +5,11 @@ import android.graphics.Color as AndroidColor
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -82,6 +87,7 @@ import com.example.kpkn.ui.components.showKpknSnackbar
 import kotlinx.coroutines.launch
 
 import com.example.kpkn.screens.sessioneditor.components.SessionHero
+import com.example.kpkn.screens.sessioneditor.components.SessionHeroCompactOverlay
 import com.example.kpkn.screens.sessioneditor.components.SessionContextNavigator
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionEditorSheets
@@ -189,11 +195,6 @@ fun SessionEditorScreen(
     var navigatorHeightDp by remember { mutableStateOf(editorSpacing.bottomContentPadding) }
     val contentBottomPadding = navigatorHeightDp + 16.dp
     val fabBottomPadding = navigatorHeightDp + 8.dp
-    val isCompactHeader by remember(listState, editorSpacing.heroCompactThreshold) {
-        derivedStateOf {
-            listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > editorSpacing.heroCompactThreshold
-        }
-    }
     val exerciseInfoById = remember { EXERCISE_DATABASE.associateBy { it.id } }
     val dragController = remember(session?.id) { SessionEditorDragController() }
     val partBounds = dragController.partBounds
@@ -264,6 +265,13 @@ fun SessionEditorScreen(
     val scrollableListItems = remember(sessionListItems) {
         sessionListItems.drop(1).let { tail ->
             if (tail.lastOrNull() is SessionListItem.AddActions) tail.dropLast(1) else tail
+        }
+    }
+    // Sticky compact header ONLY when the expanded hero (item 0) has fully left the viewport.
+    // Never mutate the hero height on scroll — that caused the flicker loop.
+    val showCompactHero by remember(listState, scrollableListItems) {
+        derivedStateOf {
+            scrollableListItems.isNotEmpty() && listState.firstVisibleItemIndex > 0
         }
     }
 
@@ -364,7 +372,6 @@ fun SessionEditorScreen(
                     latestBodyMeasurement = uiState.latestBodyMeasurement,
                     onNameChange = viewModel::updateSessionName,
                     onDescriptionChange = viewModel::updateSessionDescription,
-                    onMeetDayChange = viewModel::updateSessionMeetDay,
                     onMeetBodyweightChange = viewModel::updateSessionMeetBodyweight,
                     onSyncMeetBodyweight = {
                         val result = viewModel.syncMeetBodyweightFromLatestMeasurement()
@@ -380,20 +387,6 @@ fun SessionEditorScreen(
                     onOpenTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
                     onOpenHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
                     onOpenRules = { viewModel.openSheet(SessionEditorSheet.RULES) },
-                    onAutoSaveToggle = { viewModel.setAutoSaveEnabled(!uiState.autoSaveEnabled) },
-                    sessionsOnSameDay = uiState.siblingSessions.filter { it.dayOfWeek == session.dayOfWeek },
-                    onSwitchSession = viewModel::requestSessionSwitch,
-                    onSetMainSession = viewModel::setMainSessionForDay,
-                    // Feature 2
-                    targetDurationMinutes = uiState.targetDurationMinutes ?: session.targetDurationMinutes,
-                    sessionTimeBreakdown = uiState.sessionTimeBreakdown,
-                    onSetTargetDuration = viewModel::setTargetDuration,
-                    // Feature 3
-                    activeVariant = uiState.activeVariant,
-                    availableVariants = uiState.availableVariants,
-                    onCreateVariant = { variant, name -> viewModel.createVariant(variant, name) },
-                    onDeleteVariant = { viewModel.deleteVariant(it) },
-                    onSwitchVariant = { viewModel.commitActiveVariantChanges(); viewModel.switchVariant(it) },
                 )
             }
 
@@ -477,6 +470,28 @@ fun SessionEditorScreen(
         }
         } // hazeSource — content behind glass overlays (dock + assistant FAB)
 
+        AnimatedVisibility(
+            visible = showCompactHero,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .zIndex(270f),
+            enter = fadeIn() + slideInVertically { -it / 3 },
+            exit = fadeOut() + slideOutVertically { -it / 3 },
+        ) {
+            SessionHeroCompactOverlay(
+                session = session,
+                hasChanges = uiState.hasUnsavedChanges,
+                autoSaveEnabled = uiState.autoSaveEnabled,
+                hazeState = hazeState,
+                onSave = { viewModel.openSheet(SessionEditorSheet.SAVE) },
+                onOpenCoverSheet = { viewModel.openSheet(SessionEditorSheet.BACKGROUND) },
+                onOpenTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
+                onOpenHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
+                onOpenRules = { viewModel.openSheet(SessionEditorSheet.RULES) },
+            )
+        }
+
         // Assistant FAB: sibling OVER hazeSource (never nested inside Scaffold FAB slot).
         HeroGlassFab(
             summary = uiState.augeSummary,
@@ -522,6 +537,15 @@ fun SessionEditorScreen(
                 onSetMainSessionForDay = viewModel::setMainSessionForDay,
                 currentSessionId = session.id,
                 currentDayOfWeek = uiState.dayOfWeek,
+                currentSession = session,
+                activeVariant = uiState.activeVariant,
+                availableVariants = uiState.availableVariants,
+                onCreateVariant = { variant, name -> viewModel.createVariant(variant, name) },
+                onDeleteVariant = { viewModel.deleteVariant(it) },
+                onSwitchVariant = {
+                    viewModel.commitActiveVariantChanges()
+                    viewModel.switchVariant(it)
+                },
             )
         }
 

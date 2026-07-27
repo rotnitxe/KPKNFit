@@ -19,7 +19,7 @@ import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
+import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -132,18 +132,18 @@ class WorkoutFinishController(
                         adaptiveCache = adaptiveCache,
                     )
                     val base = (
-                        drainSummary.cns * 0.45 +
-                            drainSummary.muscular * 0.25 +
-                            drainSummary.spinal * 0.30
+                        drainSummary.cns * AugeFatigueEngine.STRESS_WEIGHT_CNS +
+                            drainSummary.muscular * AugeFatigueEngine.STRESS_WEIGHT_MUSCULAR +
+                            drainSummary.spinal * AugeFatigueEngine.STRESS_WEIGHT_SPINAL
                         ).coerceAtLeast(1.0)
                     val predictedOverall = base
                     val adjustedSystem = (drainSummary.cns + closingFeedback.systemAdjustment).coerceIn(0, 100)
                     val adjustedMuscular = (drainSummary.muscular + closingFeedback.muscularAdjustment).coerceIn(0, 100)
                     val adjustedStructure = (drainSummary.spinal + closingFeedback.structureAdjustment).coerceIn(0, 100)
                     val adjustedOverall = (
-                        adjustedSystem * 0.45 +
-                            adjustedMuscular * 0.25 +
-                            adjustedStructure * 0.30
+                        adjustedSystem * AugeFatigueEngine.STRESS_WEIGHT_CNS +
+                            adjustedMuscular * AugeFatigueEngine.STRESS_WEIGHT_MUSCULAR +
+                            adjustedStructure * AugeFatigueEngine.STRESS_WEIGHT_SPINAL
                         ).coerceAtLeast(1.0)
                     val impactFactor = adjustedOverall / predictedOverall
                     val avgSetEffortSignal = calculateUnifiedSessionEffortSignal(
@@ -173,7 +173,7 @@ class WorkoutFinishController(
                         val primary = info?.involvedMuscles?.firstOrNull { m -> m.role == MuscleRole.PRIMARY }
                         if (primary != null) {
                             val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, primary.emphasis)
-                            getAugeMuscleDisplayId(canonical, primary.emphasis)
+                            getAugeMusclePillarId(canonical, primary.emphasis)
                         } else {
                             ex.exerciseName
                         }

@@ -196,15 +196,15 @@ object AugeAdaptiveEngine {
 
         val updatedMuscleMults = currentMuscleMults.toMutableMap()
         for ((muscle, manualValue) in manualMuscleBatteries) {
-            val muscleKey = muscle.lowercase().trim()
-            val predicted = predictedMuscleBatteries[muscle] ?: predictedMuscleBatteries[muscleKey]
-            val preWorkout = preWorkoutMuscleBatteries[muscle] ?: preWorkoutMuscleBatteries[muscleKey] ?: 100
+            val muscleKey = toAugeAdaptiveMuscleKey(muscle)
+            val predicted = lookupMuscleScore(predictedMuscleBatteries, muscle)
+            val preWorkout = lookupMuscleScore(preWorkoutMuscleBatteries, muscle) ?: 100
             
             if (predicted != null && preWorkout > predicted) {
                 val predictedDrain = (preWorkout - predicted).toDouble().coerceAtLeast(1.0)
                 val actualDrain = (preWorkout - manualValue).toDouble().coerceAtLeast(1.0)
                 val ratio = (actualDrain / predictedDrain).coerceIn(0.5, 1.6)
-                val currentMult = currentMuscleMults[muscleKey] ?: 1.0
+                val currentMult = lookupMuscleDrainMultiplier(currentMuscleMults, muscle)
                 updatedMuscleMults[muscleKey] = clamp(currentMult * (1.0 - alpha) + ratio * alpha, 0.5, 1.6)
             }
         }
@@ -212,7 +212,7 @@ object AugeAdaptiveEngine {
         return Triple(
             clamp(newCnsMult, 0.5, 1.6),
             clamp(newSpinalMult, 0.5, 1.6),
-            updatedMuscleMults
+            remapMuscleMultiplierMapToPillars(updatedMuscleMults),
         )
     }
 
@@ -231,8 +231,8 @@ object AugeAdaptiveEngine {
         val result = current.toMutableMap()
 
         for ((muscle, manualValue) in manualMuscleBatteries) {
-            val muscleKey = muscle.lowercase().trim()
-            val predicted = predictedMuscleBatteries[muscle] ?: predictedMuscleBatteries[muscleKey] ?: manualValue
+            val muscleKey = toAugeAdaptiveMuscleKey(muscle)
+            val predicted = lookupMuscleScore(predictedMuscleBatteries, muscle) ?: manualValue
             val currentDelta = current[muscleKey] ?: 0.0
             val signal = (manualValue - predicted).toDouble()
             val newDelta = currentDelta * (1.0 - alpha) + signal * alpha

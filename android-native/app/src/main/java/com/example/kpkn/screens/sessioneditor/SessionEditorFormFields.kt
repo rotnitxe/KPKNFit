@@ -50,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.graphics.lerp
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknSheetTokens
 
 @Composable
 internal fun EditorMiniField(
@@ -82,20 +83,32 @@ internal fun EditorMiniField(
             isFocused = focusState.isFocused
         },
         shape = RoundedCornerShape(14.dp),
-        textStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFF3A3A42),
-            unfocusedContainerColor = Color(0xFF2E2E35),
-            disabledContainerColor = Color(0xFF27272D),
-            focusedBorderColor = Color.Transparent,
-            unfocusedBorderColor = Color.Transparent,
-            disabledBorderColor = Color.Transparent,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            cursorColor = MaterialTheme.colorScheme.primary,
+        textStyle = MaterialTheme.typography.bodySmall.copy(
+            fontWeight = FontWeight.Bold,
+            color = Color.White.copy(alpha = 0.92f),
         ),
+        colors = kpknEditorFieldColors(),
     )
 }
+
+@Composable
+internal fun kpknEditorFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = Color.White.copy(alpha = 0.12f),
+    unfocusedContainerColor = Color.White.copy(alpha = 0.08f),
+    disabledContainerColor = Color.White.copy(alpha = 0.05f),
+    focusedTextColor = Color.White.copy(alpha = 0.94f),
+    unfocusedTextColor = Color.White.copy(alpha = 0.90f),
+    disabledTextColor = Color.White.copy(alpha = 0.42f),
+    focusedLabelColor = Color.White.copy(alpha = 0.58f),
+    unfocusedLabelColor = Color.White.copy(alpha = 0.48f),
+    disabledLabelColor = Color.White.copy(alpha = 0.32f),
+    cursorColor = Color.White.copy(alpha = 0.9f),
+    focusedBorderColor = Color.White.copy(alpha = 0.16f),
+    unfocusedBorderColor = Color.White.copy(alpha = 0.08f),
+    disabledBorderColor = Color.Transparent,
+    focusedPlaceholderColor = Color.White.copy(alpha = 0.35f),
+    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.35f),
+)
 
 @Composable
 internal fun DurationPickerField(
@@ -301,17 +314,32 @@ internal fun CatalogSearchField(
         onValueChange = onValueChange,
         modifier = modifier,
         singleLine = true,
-        leadingIcon = { Icon(Icons.Default.Search, null) },
-        placeholder = { Text(placeholder, style = MaterialTheme.typography.bodySmall) },
+        leadingIcon = {
+            Icon(Icons.Default.Search, null, tint = KpknSheetTokens.ControlLabel)
+        },
+        placeholder = {
+            Text(
+                placeholder,
+                style = MaterialTheme.typography.bodySmall,
+                color = KpknSheetTokens.ControlPlaceholder,
+            )
+        },
         shape = RoundedCornerShape(14.dp),
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = KpknSheetTokens.ControlLabel),
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.34f),
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.24f),
-            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.20f),
+            focusedContainerColor = KpknSheetTokens.ControlFill,
+            unfocusedContainerColor = KpknSheetTokens.ControlFill,
+            disabledContainerColor = KpknSheetTokens.ChipIdle,
+            focusedTextColor = KpknSheetTokens.ControlLabel,
+            unfocusedTextColor = KpknSheetTokens.ControlLabel,
+            disabledTextColor = KpknSheetTokens.ControlLabelMuted,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
             errorIndicatorColor = Color.Transparent,
+            cursorColor = KpknSheetTokens.ControlLabel,
+            focusedLeadingIconColor = KpknSheetTokens.ControlLabel,
+            unfocusedLeadingIconColor = KpknSheetTokens.ControlLabel,
         ),
     )
 }
@@ -331,6 +359,7 @@ internal fun CompactCatalogFilterChip(
             Text(
                 label,
                 style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -342,12 +371,12 @@ internal fun CompactCatalogFilterChip(
             null
         },
         colors = FilterChipDefaults.filterChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f),
-            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.20f),
-            labelColor = Color.White.copy(alpha = 0.86f),
-            selectedLabelColor = Color.White,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
-            iconColor = Color.White.copy(alpha = 0.7f),
+            containerColor = KpknSheetTokens.ChipIdle,
+            selectedContainerColor = KpknSheetTokens.ChipSelected,
+            labelColor = KpknSheetTokens.ChipLabel,
+            selectedLabelColor = KpknSheetTokens.ChipLabel,
+            selectedLeadingIconColor = KpknSheetTokens.ChipLabel,
+            iconColor = KpknSheetTokens.ChipLabel,
         ),
     )
 }

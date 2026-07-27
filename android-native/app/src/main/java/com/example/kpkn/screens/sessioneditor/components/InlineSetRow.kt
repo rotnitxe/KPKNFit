@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -77,6 +79,7 @@ internal fun InlineSetRow(
     onRemove: () -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
+    onTechniqueConfigExpandedChange: (Boolean) -> Unit = {},
 ) {
     var showAmrapDialog by remember(set.id) { mutableStateOf(false) }
     var showIntensityMenu by remember(set.id) { mutableStateOf(false) }
@@ -187,9 +190,9 @@ internal fun InlineSetRow(
         LoadModeV2.LASTRE -> "Lastre"
         LoadModeV2.ASSISTED -> "Asistido"
     }
-    val estimatedSurface = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-    val estimatedText = MaterialTheme.colorScheme.onSurface
-    val estimatedSubtle = MaterialTheme.colorScheme.onSurfaceVariant
+    val estimatedSurface = Color.White.copy(alpha = 0.06f)
+    val estimatedText = Color.White.copy(alpha = 0.90f)
+    val estimatedSubtle = Color.White.copy(alpha = 0.58f)
 
     SetEditorCard(
         accentColor = accentColor,
@@ -197,21 +200,24 @@ internal fun InlineSetRow(
         modifier = Modifier.fillMaxWidth().fillMaxHeight(),
     ) {
         Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 6.dp else 8.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(if (isNarrowScreen) 4.dp else 6.dp),
             ) {
-                Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)) {
-                    Text(
-                        text = "S${index + 1}${if (isUnilateral) "-${activeUniSide}" else ""}",
-                        modifier = Modifier.padding(horizontal = if (isNarrowScreen) 5.dp else 6.dp, vertical = 1.dp),
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
+                Surface(shape = RoundedCornerShape(999.dp), color = accentColor.copy(alpha = 0.12f)) {
+            Text(
+                text = "S${index + 1}${if (isUnilateral) "-${activeUniSide}" else ""}",
+                modifier = Modifier.padding(horizontal = if (isNarrowScreen) 5.dp else 6.dp, vertical = 1.dp),
+                fontWeight = FontWeight.Black,
+                color = Color.White.copy(alpha = 0.9f),
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
                 if (isUnilateral && fixedUnilateralSide == null) {
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         listOf("L" to Color(0xFF2196F3), "R" to Color(0xFFFF5252)).forEach { (label, sideColor) ->
@@ -405,10 +411,12 @@ internal fun InlineSetRow(
                                 Icon(Icons.Default.KeyboardArrowDown, null)
                             }
                             KpknDropdownMenu(expanded = showIntensityMenu, onDismissRequest = { showIntensityMenu = false }) {
-                                listOfNotNull(
+                                listOf(
                                     IntensityMode.RPE to "RPE",
                                     IntensityMode.RIR to "RIR",
                                     IntensityMode.FAILURE to "Fallo",
+                                    IntensityMode.LOAD to "Carga",
+                                    IntensityMode.SOLO_RM to "%RM",
                                 ).forEach { (mode, label) ->
                                     DropdownMenuItem(
                                         text = { Text(label) },
@@ -416,9 +424,11 @@ internal fun InlineSetRow(
                                             showIntensityMenu = false
                                             val updater: (ExerciseSet) -> ExerciseSet = {
                                                 when (mode) {
-                                                    IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, targetRPE = it.targetRPE ?: 8.0, targetRIR = null)
-                                                    IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, targetRIR = it.targetRIR ?: 2, targetRPE = null)
-                                                    IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, targetRIR = null, targetRPE = null)
+                                                    IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, targetRPE = it.targetRPE ?: 8.0, targetRIR = null, targetPercentageRM = null)
+                                                    IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, targetRIR = it.targetRIR ?: 2, targetRPE = null, targetPercentageRM = null)
+                                                    IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, targetRIR = null, targetRPE = null, targetPercentageRM = null)
+                                                    IntensityMode.LOAD -> it.copy(intensityMode = IntensityMode.LOAD, isFailure = false, targetRPE = null, targetRIR = null)
+                                                    IntensityMode.SOLO_RM -> it.copy(intensityMode = IntensityMode.SOLO_RM, isFailure = false, targetPercentageRM = it.targetPercentageRM ?: 70.0, targetRPE = null, targetRIR = null)
                                                     else -> it
                                                 }
                                             }
@@ -426,11 +436,11 @@ internal fun InlineSetRow(
                                                 val side = activeUniSide
                                                 onUpdate { current ->
                                                     val currentSide = (if (side == "L") current.leftTarget else current.rightTarget) ?: UnilateralTarget()
-                                                    val temp = ExerciseSet(id = "", targetRPE = currentSide.targetRPE, targetRIR = currentSide.targetRIR, intensityMode = currentSide.intensityMode ?: current.intensityMode)
+                                                    val temp = ExerciseSet(id = "", targetRPE = currentSide.targetRPE, targetRIR = currentSide.targetRIR, intensityMode = currentSide.intensityMode ?: current.intensityMode, weight = currentSide.weight, targetPercentageRM = current.targetPercentageRM)
                                                     val updated = updater(temp)
-                                                    val newSide = currentSide.copy(targetRPE = updated.targetRPE, targetRIR = updated.targetRIR, intensityMode = updated.intensityMode)
-                                                    if (side == "L") current.copy(leftTarget = newSide, isFailure = updated.isFailure)
-                                                    else current.copy(rightTarget = newSide, isFailure = updated.isFailure)
+                                                    val newSide = currentSide.copy(targetRPE = updated.targetRPE, targetRIR = updated.targetRIR, intensityMode = updated.intensityMode, weight = updated.weight)
+                                                    if (side == "L") current.copy(leftTarget = newSide, isFailure = updated.isFailure, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
+                                                    else current.copy(rightTarget = newSide, isFailure = updated.isFailure, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
                                                 }
                                             } else {
                                                 onUpdate(updater)
@@ -479,14 +489,14 @@ internal fun InlineSetRow(
                     Surface(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(if (isNarrowScreen) 12.dp else 14.dp),
-                        color = accentColor.copy(alpha = 0.16f),
+                        color = accentColor.copy(alpha = 0.12f),
                     ) {
                         Text(
                             text = if (set.isCalibrator) "AMRAP calibrador" else "AMRAP",
                             modifier = Modifier.padding(horizontal = if (isNarrowScreen) 8.dp else 10.dp, vertical = if (isNarrowScreen) 8.dp else 10.dp),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = accentColor,
+                            color = Color.White.copy(alpha = 0.9f),
                         )
                     }
                 }
@@ -527,6 +537,7 @@ internal fun InlineSetRow(
             InlineSetRowTechniqueChips(
                 set = set,
                 onUpdate = onUpdate,
+                onConfigExpandedChange = onTechniqueConfigExpandedChange,
             )
         }
     }

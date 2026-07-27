@@ -41,6 +41,8 @@ enum class SessionTemplateTag {
     ALTO_VOLUMEN,
     ALTA_FRECUENCIA,
     DEPORTIVO,
+    /** Lower-body sessions that intentionally skip calves/adductors completeness. */
+    HYPERFOCUSED,
 }
 
 @Serializable
@@ -54,6 +56,8 @@ enum class SessionTemplateSourceType {
 @Serializable
 enum class SessionTemplateFocusCategory {
     PIERNAS,
+    CUADRICEPS,
+    ISQUIOS,
     BRAZOS,
     GLUTEOS,
     PECHO,
@@ -70,6 +74,12 @@ enum class SessionTemplateFocusCategory {
     MINIMALISTA,
     RECUPERACION
 }
+
+@Serializable
+enum class SessionTemplateDurationClass { SHORT, STANDARD, LONG }
+
+@Serializable
+enum class SessionTemplateEquipmentBias { MACHINE, MIXED, FREE }
 
 // ─── Core model ───────────────────────────────────────────────────────────────
 
@@ -111,6 +121,10 @@ data class SessionTemplate(
     val focusCategory: SessionTemplateFocusCategory? = null,
     val shortDescription: String = "",
     val weeklyVolumePolicyId: String? = null,
+    /** Canonical primary focus muscle (e.g. Cuádriceps, Glúteos, Isquiosurales, Pectorales). */
+    val primaryFocusMuscle: String? = null,
+    val durationClass: SessionTemplateDurationClass = SessionTemplateDurationClass.STANDARD,
+    val equipmentBias: SessionTemplateEquipmentBias = SessionTemplateEquipmentBias.MIXED,
 )
 
 // ─── Application logic ────────────────────────────────────────────────────────

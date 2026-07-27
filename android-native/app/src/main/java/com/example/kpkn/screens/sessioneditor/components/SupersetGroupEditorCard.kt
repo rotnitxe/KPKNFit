@@ -55,6 +55,8 @@ import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.PART_COLORS
+import com.example.kpkn.screens.sessioneditor.resolvePartAccent
+import com.example.kpkn.screens.sessioneditor.exerciseCardBrush
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurface
 import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
 import androidx.compose.runtime.setValue
@@ -93,10 +95,8 @@ internal fun SupersetGroupEditorCard(
 ) {
     var expanded by rememberSaveable(group.id) { mutableStateOf(false) }
     var configExerciseId by rememberSaveable(group.id) { mutableStateOf<String?>(null) }
-    val accentColor = remember(accentHex) {
-        runCatching { Color(AndroidColor.parseColor(accentHex ?: PART_COLORS.first())) }
-            .getOrDefault(Color(0xFF00F0FF))
-    }
+    val accent = remember(accentHex) { resolvePartAccent(accentHex) }
+    val accentColor = accent.primary
     val rounds = (group.rounds ?: exercises.maxOfOrNull { it.sets.size } ?: 1).coerceAtLeast(1)
     val totalSets = exercises.sumOf { it.sets.size }
 
@@ -111,8 +111,8 @@ internal fun SupersetGroupEditorCard(
                 shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
             .zIndex(if (isDragging) 12f else 0f)
-            .clip(RoundedCornerShape(14.dp))
-            .background(lerp(DarkEditorSurface, accentColor, if (expanded) 0.12f else 0.08f)),
+            .clip(RoundedCornerShape(16.dp))
+            .background(accent.exerciseCardBrush()),
     ) {
         Box(
             modifier = Modifier

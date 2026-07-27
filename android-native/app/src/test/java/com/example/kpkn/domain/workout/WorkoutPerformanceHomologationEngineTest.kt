@@ -10,6 +10,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.buildWorkoutContextKey
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -369,5 +370,58 @@ class WorkoutPerformanceHomologationEngineTest {
 
         assertEquals(100.0, result.outcome.suggestedNextLoad ?: 0.0, 0.001)
         assertEquals("Mantener por deuda/fallida", result.outcome.suggestionReason)
+    }
+
+    @Test
+    fun lastre_near_zero_with_poor_performance_suggests_bodyweight() {
+        val key = buildWorkoutContextKey("dip", null, null, LoadModeV2.LASTRE, UnitModeV2.REPS)
+        val previous = ContextPerformanceStateV2(
+            contextKey = key,
+            ewma = 55.0,
+            mean = 55.0,
+            variance = 9.0,
+            bestScore = 60.0,
+            sampleCount = 4,
+            recentScores = listOf(50.0, 52.0, 55.0, 58.0),
+        )
+        val entry = SetEntryV2(
+            exerciseId = "dip",
+            setIndex = 0,
+            loadMode = LoadModeV2.LASTRE,
+            unitMode = UnitModeV2.REPS,
+            plannedTarget = 10.0,
+            actualValue = 6.0,
+            loggedLoad = 2.5,
+            debt = 4.0,
+            failedSet = true,
+            reachedFailure = true,
+            bodyWeight = 80.0,
+            contextKey = key,
+        )
+
+        val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous)
+
+        assertEquals(LoadModeV2.BODYWEIGHT, result.outcome.suggestedLoadMode)
+        assertEquals(0.0, result.outcome.suggestedNextLoad ?: -1.0, 0.001)
+        assertEquals("Volver a peso corporal", result.outcome.suggestionReason)
+    }
+
+    @Test
+    fun assisted_sets_do_not_expose_pseudo_erm() {
+        val key = buildWorkoutContextKey("pullup", null, null, LoadModeV2.ASSISTED, UnitModeV2.REPS)
+        val entry = SetEntryV2(
+            exerciseId = "pullup",
+            setIndex = 0,
+            loadMode = LoadModeV2.ASSISTED,
+            unitMode = UnitModeV2.REPS,
+            plannedTarget = 8.0,
+            actualValue = 8.0,
+            loggedLoad = 45.0,
+            bodyWeight = 100.0,
+            contextKey = key,
+        )
+        val result = WorkoutPerformanceHomologationEngine.evaluate(entry, null)
+        assertNull(result.outcome.estimatedRm)
+        assertEquals(45.0, result.outcome.augeEquivalentLoad, 0.001)
     }
 }

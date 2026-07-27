@@ -2,6 +2,7 @@ package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.AthleteType
 import com.example.kpkn.data.models.PhysiologicalFloor
+import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
 import java.time.Instant
@@ -13,6 +14,23 @@ import kotlin.math.min
  * Utilidades compartidas para el sistema AUGE (baterías, recuperación, predicción de fatiga).
  */
 internal object AugeUtils {
+
+    /** Conservation applied to per-set drain when aggregating a session. */
+    const val SESSION_CONSERVATION_FACTOR = 0.85
+
+    /** Diminishing-returns k for session aggregation: 1/(1 + k * acc/100). */
+    const val SESSION_DECAY_K = 0.65
+
+    /** Official stress blend: CNS / muscular / spinal. */
+    const val STRESS_WEIGHT_CNS = 0.45
+    const val STRESS_WEIGHT_MUSCULAR = 0.25
+    const val STRESS_WEIGHT_SPINAL = 0.30
+
+    /**
+     * Canonical fallback when predicted-drain calculation fails but the session
+     * has work. Single source for Session Editor / Assistant / callers.
+     */
+    val DEFAULT_FALLBACK_PREDICTED_DRAIN = PredictedDrain(cns = 10, muscular = 14, spinal = 8)
 
     /**
      * Devuelve el piso fisiológico mínimo para las baterías de acuerdo al tipo de atleta.

@@ -25,11 +25,11 @@ fun ProtectedWorkoutBottomSheet(
     KpknSheet(
         onDismissRequest = {},
         dismissible = false,
+        showDragHandle = false,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.92f)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)

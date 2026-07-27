@@ -373,7 +373,13 @@ data class ExerciseSetupDetails(
     val seatPosition: String? = null,
     val pinPosition: String? = null,
     val equipmentNotes: String? = null,
+    /** Legacy empty-bar weight; prefer [baseLoadKg]. Kept for deserialization compat. */
     val barWeightKg: Double? = null,
+    /**
+     * Carga base (barra vacía, pin/stack mínimo, etc.).
+     * Persistida/aplicada en sugerencias solo cuando el setup va ligado a una etiqueta.
+     */
+    val baseLoadKg: Double? = null,
 )
 
 @Serializable

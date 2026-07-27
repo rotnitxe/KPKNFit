@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.splits.Difficulty
+import com.example.kpkn.domain.templates.RingBudgetPolicy
 import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
 import com.example.kpkn.domain.templates.SessionTemplateFacets
 import com.example.kpkn.domain.templates.TemplateCatalogFilterLogic
@@ -337,7 +338,8 @@ internal fun TemplateExpandedDetails(
     }
 
     val drain = remember(facets, template, exerciseIndex) {
-        facets?.drain ?: SessionTemplateCatalogPolicy.evaluateTemplateRings(template, exerciseIndex)
+        val settings = com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value
+        facets?.drain ?: SessionTemplateCatalogPolicy.evaluateTemplateRings(template, exerciseIndex, settings)
     }
 
     val warnings = remember(template, drain, advanced) {
@@ -345,12 +347,10 @@ internal fun TemplateExpandedDetails(
         else {
             val list = mutableListOf<String>()
             val isPl = SessionTemplateCatalogPolicy.isPowerliftingTemplate(template)
-            val maxCns = if (isPl) 45 else 35
-            val maxMuscular = if (isPl) 50 else 45
-            val maxSpinal = if (isPl) 40 else 30
-            if (drain.cns > maxCns) list += "SNC elevada (${drain.cns}% > $maxCns%)"
-            if (drain.muscular > maxMuscular) list += "Muscular elevada (${drain.muscular}% > $maxMuscular%)"
-            if (drain.spinal > maxSpinal) list += "Axial/espinal elevada (${drain.spinal}% > $maxSpinal%)"
+            val caps = RingBudgetPolicy.sessionWarningCaps(isPl)
+            if (drain.cns > caps.cns) list += "SNC elevada (${drain.cns}% > ${caps.cns}%)"
+            if (drain.muscular > caps.muscular) list += "Muscular elevada (${drain.muscular}% > ${caps.muscular}%)"
+            if (drain.spinal > caps.spinal) list += "Axial/espinal elevada (${drain.spinal}% > ${caps.spinal}%)"
             list
         }
     }

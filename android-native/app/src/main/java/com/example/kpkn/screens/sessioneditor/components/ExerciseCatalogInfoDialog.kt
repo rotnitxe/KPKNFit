@@ -40,13 +40,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
 import com.example.kpkn.ui.components.KpknGlass
-import com.example.kpkn.ui.components.kpknWindowGlass
+import com.example.kpkn.ui.components.KpknGlassDialog
 import androidx.compose.ui.graphics.Color
 
 @Composable
@@ -60,16 +58,10 @@ internal fun ExerciseCatalogInfoDialog(
 ) {
     val fatigue = remember(exercise.id) { calculateFriendlyFatigue(exercise) }
     val kinship = remember(exercise.id, catalog) { buildExerciseKinships(exercise, catalog) }
-    val dialogShape = RoundedCornerShape(KpknGlass.DialogCornerRadius)
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-                .kpknWindowGlass(dialogShape),
-            shape = dialogShape,
-            color = Color.Transparent,
-        ) {
+    KpknGlassDialog(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
+    ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -318,7 +310,6 @@ internal fun ExerciseCatalogInfoDialog(
 
                 ExerciseFatigueScenarios(exercise = exercise)
             }
-        }
     }
 }
 

@@ -184,9 +184,10 @@ object ExerciseReadinessEngine {
         val limitingDetail = when (limitingFactor) {
             "MUSCULAR" -> {
                 involvedMuscles.mapNotNull { involved ->
-                    val id = getAugeMuscleDisplayId(involved.muscle, involved.emphasis) ?: return@mapNotNull null
-                    val recovery = perMuscle[id]?.recoveryScore ?: 100
-                    id to recovery
+                    val pillarId = getAugeMusclePillarId(involved.muscle, involved.emphasis)
+                    val displayId = getAugeMuscleDisplayId(involved.muscle, involved.emphasis)
+                    val recovery = (perMuscle[displayId] ?: perMuscle[pillarId])?.recoveryScore ?: 100
+                    displayId to recovery
                 }.minByOrNull { it.second }?.first
             }
             "ARTICULAR" -> {
@@ -330,9 +331,9 @@ object ExerciseReadinessEngine {
                 }
             }
             LoadModeV2.BODYWEIGHT -> {
-                val pc = bodyWeight ?: 75.0
-                val suggestedAssistance = pc * reductionPercent
-                val finalWeight = ((suggestedAssistance / 2.5).roundToInt() * 2.5).coerceAtLeast(2.5).toDouble()
+                // Assistance suggestion from readiness severity — not (PC − net).
+                val baseAssistance = (2.5 + reductionPercent * 20.0).coerceAtLeast(2.5)
+                val finalWeight = ((baseAssistance / 2.5).roundToInt() * 2.5).coerceAtLeast(2.5).toDouble()
                 Triple(
                     finalWeight,
                     LoadModeV2.ASSISTED,
@@ -340,11 +341,9 @@ object ExerciseReadinessEngine {
                 )
             }
             LoadModeV2.ASSISTED -> {
-                val pc = bodyWeight ?: 75.0
-                val netWeight = (pc - plannedWeight).coerceAtLeast(10.0)
-                val adjustedNet = netWeight * (1.0 - reductionPercent)
-                val suggestedAssistance = (pc - adjustedNet).coerceIn(0.0, pc)
-                val finalWeight = ((suggestedAssistance / 2.5).roundToInt() * 2.5).coerceAtLeast(plannedWeight + 2.5).toDouble()
+                // Stay in ASSISTED: increase assistance kg directly (no PC−net translation).
+                val bump = ((plannedWeight * reductionPercent).coerceAtLeast(2.5) / 2.5).roundToInt() * 2.5
+                val finalWeight = (plannedWeight + bump).coerceAtLeast(plannedWeight + 2.5)
                 Triple(
                     finalWeight,
                     LoadModeV2.ASSISTED,

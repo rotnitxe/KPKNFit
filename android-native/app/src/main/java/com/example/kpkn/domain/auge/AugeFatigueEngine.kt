@@ -17,6 +17,13 @@ object AugeFatigueEngine {
 
     private const val MAX_TECHNIQUE_FATIGUE_MULTIPLIER = 4.0
 
+    /** Canonical fallback when predicted-drain calc fails but the session has work. */
+    val DEFAULT_FALLBACK_PREDICTED_DRAIN: PredictedDrain = AugeUtils.DEFAULT_FALLBACK_PREDICTED_DRAIN
+
+    const val STRESS_WEIGHT_CNS = AugeUtils.STRESS_WEIGHT_CNS
+    const val STRESS_WEIGHT_MUSCULAR = AugeUtils.STRESS_WEIGHT_MUSCULAR
+    const val STRESS_WEIGHT_SPINAL = AugeUtils.STRESS_WEIGHT_SPINAL
+
     // ─── Capacidades base por tipo de atleta ─────────────────────────────────
 
     private val ATHLETE_CAPACITY: Map<AthleteType, Double> = mapOf(
@@ -450,26 +457,136 @@ object AugeFatigueEngine {
 
     // ─── Estrés total de sesión completada (para historial) ──────────────────
 
-    fun calculateCompletedSessionDrain(
+    data class SessionDrainBreakdown(
+        val global: PredictedDrain,
+        /** Pillar id → muscular drain % attributed in this session. */
+        val perMuscleMuscular: Map<String, Int>,
+    )
+
+    private data class AggregateDrainAcc(
+        var totalCns: Double = 0.0,
+        var totalMuscular: Double = 0.0,
+        var totalSpinal: Double = 0.0,
+        var accumulatedDrain: Double = 0.0,
+        val muscleVolumeMap: MutableMap<String, Double> = mutableMapOf(),
+        val perMuscleMuscular: MutableMap<String, Double> = mutableMapOf(),
+    )
+
+    private fun roleWeightForDrain(role: MuscleRole): Double = when (role) {
+        MuscleRole.PRIMARY -> 1.0
+        MuscleRole.SECONDARY -> 0.5
+        MuscleRole.STABILIZER, MuscleRole.NEUTRALIZER -> 0.4
+    }
+
+    private fun attributeMuscularDrain(
+        acc: AggregateDrainAcc,
+        adjustedMuscular: Double,
+        primaryPillar: String,
+        involvementWeights: List<Pair<String, Double>>,
+    ) {
+        if (adjustedMuscular <= 0.0) return
+        val weightSum = involvementWeights.sumOf { it.second }
+        if (weightSum <= 0.0 || involvementWeights.isEmpty()) {
+            acc.perMuscleMuscular[primaryPillar] =
+                (acc.perMuscleMuscular[primaryPillar] ?: 0.0) + adjustedMuscular
+            return
+        }
+        involvementWeights.forEach { (pillar, weight) ->
+            val share = adjustedMuscular * (weight / weightSum)
+            acc.perMuscleMuscular[pillar] = (acc.perMuscleMuscular[pillar] ?: 0.0) + share
+        }
+    }
+
+    private fun aggregateSetIntoSessionDrain(
+        acc: AggregateDrainAcc,
+        set: CompletedSet,
+        metrics: AugeMetrics,
+        tanks: BatteryTanks,
+        restTime: Int,
+        densityMult: Double,
+        primaryPillar: String,
+        involvementWeights: List<Pair<String, Double>>,
+        muscleMult: Double,
+        cnsMult: Double,
+        spinalMult: Double,
+        weightUnit: WeightUnit,
+        muscularCap: Double,
+        cnsCap: Double,
+        spinalCap: Double,
+    ) {
+        val conservationFactor = AugeUtils.SESSION_CONSERVATION_FACTOR
+        val decayK = AugeUtils.SESSION_DECAY_K
+        var accumulated = acc.muscleVolumeMap[primaryPillar] ?: 0.0
+        accumulated += if (set.side != null) 0.5 else 1.0
+        val drain = calculateSetBatteryDrain(
+            set = set,
+            metrics = metrics,
+            tanks = tanks,
+            accumulatedSets = accumulated.roundToInt(),
+            restTime = restTime,
+            densityMultiplier = densityMult,
+            cnsMultiplier = cnsMult,
+            spinalMultiplier = spinalMult,
+            muscleMultiplier = muscleMult,
+            weightUnit = weightUnit,
+        )
+        val diminishingFactor = 1.0 / (1.0 + decayK * (acc.accumulatedDrain / 100.0))
+        val adjustedMuscular = drain.muscularDrainPct * conservationFactor * diminishingFactor
+        val adjustedCns = drain.cnsDrainPct * conservationFactor * diminishingFactor
+        val adjustedSpinal = drain.spinalDrainPct * conservationFactor * diminishingFactor
+        val cappedMuscular = applySoftCap(adjustedMuscular, acc.totalMuscular, muscularCap)
+        val cappedCns = applySoftCap(adjustedCns, acc.totalCns, cnsCap)
+        val cappedSpinal = applySoftCap(adjustedSpinal, acc.totalSpinal, spinalCap)
+        acc.totalMuscular += cappedMuscular
+        acc.totalCns += cappedCns
+        acc.totalSpinal += cappedSpinal
+        acc.accumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
+        attributeMuscularDrain(acc, cappedMuscular, primaryPillar, involvementWeights)
+        acc.muscleVolumeMap[primaryPillar] = accumulated
+    }
+
+    private fun finalizeSessionDrain(
+        acc: AggregateDrainAcc,
+        tanks: BatteryTanks,
+        settings: Settings,
+        muscularCap: Double,
+        cnsCap: Double,
+        spinalCap: Double,
+        hardEffectiveSets: Int,
+    ): SessionDrainBreakdown {
+        val scaledSpinal = scaleSpinalDrainToUi(acc.totalSpinal, tanks)
+        var result = PredictedDrain(
+            cns = acc.totalCns.coerceAtMost(cnsCap).toInt(),
+            muscular = acc.totalMuscular.coerceAtMost(muscularCap).toInt(),
+            spinal = scaledSpinal.coerceAtMost(spinalCap).toInt(),
+        )
+        result = ensureMinimumHardSessionDrain(result, hardEffectiveSets, muscularCap, cnsCap, spinalCap)
+        val (cnsBias, muscularBias, spinalBias) = normalizeBias(settings.augePredictionBias)
+        val global = PredictedDrain(
+            cns = (result.cns + cnsBias).toInt().coerceIn(0, cnsCap.toInt()),
+            muscular = (result.muscular + muscularBias).toInt().coerceIn(0, muscularCap.toInt()),
+            spinal = (result.spinal + spinalBias).toInt().coerceIn(0, spinalCap.toInt()),
+        )
+        val perMuscle = acc.perMuscleMuscular.mapValues { (_, v) ->
+            v.roundToInt().coerceIn(0, muscularCap.toInt())
+        }
+        return SessionDrainBreakdown(global = global, perMuscleMuscular = perMuscle)
+    }
+
+    fun calculateCompletedSessionDrainBreakdown(
         completedExercises: List<CompletedExercise>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         settings: Settings = Settings(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
-    ): PredictedDrain {
+    ): SessionDrainBreakdown {
         val tanks = calculatePersonalizedBatteryTanks(settings)
         val floor = physiologicalFloor(settings)
         val muscularCap = (100 - floor.muscular).coerceAtLeast(5).toDouble()
         val cnsCap = (100 - floor.cns).coerceAtLeast(5).toDouble()
         val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
-
-        var totalCns = 0.0
-        var totalMuscular = 0.0
-        var totalSpinal = 0.0
-        val muscleVolumeMap = mutableMapOf<String, Double>()
-        val conservationFactor = 0.85
-        val decayK = 0.65
-        var accumulatedDrain = 0.0
         val weightUnit = settings.weightUnit
+        val remappedMultipliers = remapMuscleMultiplierMapToPillars(adaptiveCache.muscleDrainMultipliers)
+        val acc = AggregateDrainAcc()
 
         completedExercises.forEach { ex ->
             val lookupId = (ex.exerciseDbId ?: ex.exerciseId)?.lowercase()
@@ -489,63 +606,69 @@ object AugeFatigueEngine {
                 supersetRounds = ex.supersetRounds,
                 supersetRestAfter = ex.supersetRestAfter,
             )
-            val primaryMuscle = dbInfo?.involvedMuscles
-                ?.find { it.role == MuscleRole.PRIMARY }
+            val involved = dbInfo?.involvedMuscles.orEmpty()
+            val primaryMuscle = involved
+                .find { it.role == MuscleRole.PRIMARY }
                 ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
                 ?: "Core"
-            var accumulated = muscleVolumeMap[primaryMuscle] ?: 0.0
-            val muscleKey = primaryMuscle.lowercase().trim()
-            val muscleMult = adaptiveCache.muscleDrainMultipliers[muscleKey] ?: 1.0
+            val involvementWeights = involved
+                .map { getAugeMusclePillarId(it.muscle, it.emphasis) to roleWeightForDrain(it.role) }
+                .groupBy({ it.first }, { it.second })
+                .map { (pillar, weights) -> pillar to weights.maxOrNull()!! }
+            val muscleMult = lookupMuscleDrainMultiplier(remappedMultipliers, primaryMuscle)
 
             ex.sets.forEach { s ->
                 if (!isSetEffective(s)) return@forEach
-                accumulated += if (s.side != null) 0.5 else 1.0
-                val drain = calculateSetBatteryDrain(
+                aggregateSetIntoSessionDrain(
+                    acc = acc,
                     set = s,
                     metrics = metrics,
                     tanks = tanks,
-                    accumulatedSets = accumulated.roundToInt(),
                     restTime = ex.supersetRestBetween ?: ex.restTime,
-                    densityMultiplier = densityMult,
-                    cnsMultiplier = adaptiveCache.cnsDrainMultiplier,
-                    spinalMultiplier = adaptiveCache.spinalDrainMultiplier,
-                    muscleMultiplier = muscleMult,
+                    densityMult = densityMult,
+                    primaryPillar = primaryMuscle,
+                    involvementWeights = involvementWeights,
+                    muscleMult = muscleMult,
+                    cnsMult = adaptiveCache.cnsDrainMultiplier,
+                    spinalMult = adaptiveCache.spinalDrainMultiplier,
                     weightUnit = weightUnit,
+                    muscularCap = muscularCap,
+                    cnsCap = cnsCap,
+                    spinalCap = spinalCap,
                 )
-                val diminishingFactor = 1.0 / (1.0 + decayK * (accumulatedDrain / 100.0))
-                val adjustedMuscular = drain.muscularDrainPct * conservationFactor * diminishingFactor
-                val adjustedCns = drain.cnsDrainPct * conservationFactor * diminishingFactor
-                val adjustedSpinal = drain.spinalDrainPct * conservationFactor * diminishingFactor
-                totalMuscular += applySoftCap(adjustedMuscular, totalMuscular, muscularCap)
-                totalCns += applySoftCap(adjustedCns, totalCns, cnsCap)
-                totalSpinal += applySoftCap(adjustedSpinal, totalSpinal, spinalCap)
-                accumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
             }
-            muscleVolumeMap[primaryMuscle] = accumulated
         }
 
-        val scaledSpinal = scaleSpinalDrainToUi(totalSpinal, tanks)
-        var result = PredictedDrain(
-            cns = totalCns.coerceAtMost(cnsCap).toInt(),
-            muscular = totalMuscular.coerceAtMost(muscularCap).toInt(),
-            spinal = scaledSpinal.coerceAtMost(spinalCap).toInt(),
-        )
-        result = ensureMinimumHardSessionDrain(result, completedExercises, muscularCap, cnsCap, spinalCap)
-        return result
-            .let { raw ->
-                val (cnsBias, muscularBias, spinalBias) = normalizeBias(settings.augePredictionBias)
-                PredictedDrain(
-                    cns = (raw.cns + cnsBias).toInt().coerceIn(0, cnsCap.toInt()),
-                    muscular = (raw.muscular + muscularBias).toInt().coerceIn(0, muscularCap.toInt()),
-                    spinal = (raw.spinal + spinalBias).toInt().coerceIn(0, spinalCap.toInt()),
-                )
-            }
+        val hardSets = completedExercises.flatMap { it.sets }
+            .count { isSetEffective(it) && getEffectiveRPE(it) >= 8.0 }
+        return finalizeSessionDrain(acc, tanks, settings, muscularCap, cnsCap, spinalCap, hardSets)
     }
 
-    /**
-     * Hard effective work (many high-RPE sets) must register a meaningful drain —
-     * avoids "entrené duro y el ring no se movió".
-     */
+    fun calculateCompletedSessionDrain(
+        completedExercises: List<CompletedExercise>,
+        exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
+        settings: Settings = Settings(),
+        adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
+    ): PredictedDrain = calculateCompletedSessionDrainBreakdown(
+        completedExercises = completedExercises,
+        exerciseDb = exerciseDb,
+        settings = settings,
+        adaptiveCache = adaptiveCache,
+    ).global
+
+    /** Pillar → muscular drain % for finish-sheet seeding (same pipeline as global drain). */
+    fun calculateCompletedSessionMuscleDrains(
+        completedExercises: List<CompletedExercise>,
+        exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
+        settings: Settings = Settings(),
+        adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
+    ): Map<String, Int> = calculateCompletedSessionDrainBreakdown(
+        completedExercises = completedExercises,
+        exerciseDb = exerciseDb,
+        settings = settings,
+        adaptiveCache = adaptiveCache,
+    ).perMuscleMuscular
+
     private fun ensureMinimumHardSessionDrain(
         drain: PredictedDrain,
         hardEffectiveSets: Int,
@@ -562,18 +685,6 @@ object AugeFatigueEngine {
         )
     }
 
-    private fun ensureMinimumHardSessionDrain(
-        drain: PredictedDrain,
-        completedExercises: List<CompletedExercise>,
-        muscularCap: Double,
-        cnsCap: Double,
-        spinalCap: Double,
-    ): PredictedDrain {
-        val hardSets = completedExercises.flatMap { it.sets }
-            .count { isSetEffective(it) && getEffectiveRPE(it) >= 8.0 }
-        return ensureMinimumHardSessionDrain(drain, hardSets, muscularCap, cnsCap, spinalCap)
-    }
-
     fun calculateCompletedSessionStress(
         completedExercises: List<CompletedExercise>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
@@ -586,7 +697,9 @@ object AugeFatigueEngine {
             settings = settings,
             adaptiveCache = adaptiveCache,
         )
-        return (summary.cns * 0.45) + (summary.muscular * 0.25) + (summary.spinal * 0.30)
+        return (summary.cns * STRESS_WEIGHT_CNS) +
+            (summary.muscular * STRESS_WEIGHT_MUSCULAR) +
+            (summary.spinal * STRESS_WEIGHT_SPINAL)
     }
 
     // ─── Costo estimado de sesión futura ─────────────────────────────────────
@@ -605,15 +718,13 @@ object AugeFatigueEngine {
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
     ): PredictedDrain {
         val tanks = calculatePersonalizedBatteryTanks(settings)
-        val conservationFactor = 0.85
-        val decayK = 0.65
         val floor = physiologicalFloor(settings)
         val muscularCap = (100 - floor.muscular).coerceAtLeast(5).toDouble()
         val cnsCap = (100 - floor.cns).coerceAtLeast(5).toDouble()
         val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
-        var totalCns = 0.0; var totalMuscular = 0.0; var totalSpinal = 0.0
-        var accumulatedDrain = 0.0
-        val muscleVolumeMap = mutableMapOf<String, Int>()
+        val weightUnit = settings.weightUnit
+        val remappedMultipliers = remapMuscleMultiplierMapToPillars(adaptiveCache.muscleDrainMultipliers)
+        val acc = AggregateDrainAcc()
 
         val exercises = session.exercises + session.parts.flatMap { it.exercises }
 
@@ -633,27 +744,28 @@ object AugeFatigueEngine {
                     return@forEach
                 }
             val densityMult = getDensityMultiplierForExercise(ex.supersetId, ex.restTime ?: 90)
-            val primaryMuscle = if (!ex.effectiveMuscles.isNullOrEmpty()) {
-                ex.effectiveMuscles!!
-                    .find { it.role == MuscleRole.PRIMARY }
-                    ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
-            } else {
-                dbInfo?.involvedMuscles
-                    ?.find { it.role == MuscleRole.PRIMARY }
-                    ?.let { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
-            } ?: "Core"
-            var accumulated = muscleVolumeMap[primaryMuscle] ?: 0
-            val muscleKey = primaryMuscle.lowercase().trim()
-            val muscleMult = adaptiveCache.muscleDrainMultipliers[muscleKey] ?: 1.0
+            val involved = when {
+                !ex.effectiveMuscles.isNullOrEmpty() -> ex.effectiveMuscles!!
+                else -> dbInfo?.involvedMuscles.orEmpty()
+            }
+            val primaryMuscle = involved
+                .find { it.role == MuscleRole.PRIMARY }
+                ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+                ?: "Core"
+            val involvementWeights = involved
+                .map { getAugeMusclePillarId(it.muscle, it.emphasis) to roleWeightForDrain(it.role) }
+                .groupBy({ it.first }, { it.second })
+                .map { (pillar, weights) -> pillar to weights.maxOrNull()!! }
+            val muscleMult = lookupMuscleDrainMultiplier(remappedMultipliers, primaryMuscle)
 
             ex.sets.forEach { s ->
                 if (s.isIneffective) return@forEach
-                accumulated++
                 val calculatedWeight = if (ex.trainingMode == TrainingMode.RM && s.targetPercentageRM != null && ex.reference1RM != null && ex.reference1RM!! > 0.0) {
                     (s.targetPercentageRM / 100.0) * ex.reference1RM!!
                 } else {
                     s.weight ?: 60.0
                 }
+                // Planned sets are modeled as bilateral equivalents (no L/R side on targets).
                 val syntheticSet = CompletedSet(
                     id = "",
                     weight = calculatedWeight,
@@ -668,36 +780,26 @@ object AugeFatigueEngine {
                     },
                     isFailure = s.isFailure || s.intensityMode == IntensityMode.FAILURE,
                 )
-                val rawDrain = calculateSetBatteryDrain(
+                aggregateSetIntoSessionDrain(
+                    acc = acc,
                     set = syntheticSet,
                     metrics = metrics,
                     tanks = tanks,
-                    accumulatedSets = accumulated,
                     restTime = ex.restTime ?: 90,
-                    densityMultiplier = densityMult,
-                    cnsMultiplier = adaptiveCache.cnsDrainMultiplier,
-                    spinalMultiplier = adaptiveCache.spinalDrainMultiplier,
-                    muscleMultiplier = muscleMult,
+                    densityMult = densityMult,
+                    primaryPillar = primaryMuscle,
+                    involvementWeights = involvementWeights,
+                    muscleMult = muscleMult,
+                    cnsMult = adaptiveCache.cnsDrainMultiplier,
+                    spinalMult = adaptiveCache.spinalDrainMultiplier,
+                    weightUnit = weightUnit,
+                    muscularCap = muscularCap,
+                    cnsCap = cnsCap,
+                    spinalCap = spinalCap,
                 )
-                val diminishingFactor = 1.0 / (1.0 + decayK * (accumulatedDrain / 100.0))
-                val adjustedMuscular = rawDrain.muscularDrainPct * conservationFactor * diminishingFactor
-                val adjustedCns = rawDrain.cnsDrainPct * conservationFactor * diminishingFactor
-                val adjustedSpinal = rawDrain.spinalDrainPct * conservationFactor * diminishingFactor
-
-                totalMuscular += applySoftCap(adjustedMuscular, totalMuscular, muscularCap)
-                totalCns += applySoftCap(adjustedCns, totalCns, cnsCap)
-                totalSpinal += applySoftCap(adjustedSpinal, totalSpinal, spinalCap)
-                accumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
             }
-            muscleVolumeMap[primaryMuscle] = accumulated
         }
 
-        val scaledSpinal = scaleSpinalDrainToUi(totalSpinal, tanks)
-        var result = PredictedDrain(
-            cns = totalCns.coerceAtMost(cnsCap).toInt(),
-            muscular = totalMuscular.coerceAtMost(muscularCap).toInt(),
-            spinal = scaledSpinal.coerceAtMost(spinalCap).toInt(),
-        )
         val hardSets = exercises.sumOf { ex ->
             ex.sets.count { s ->
                 !s.isIneffective && (s.targetRPE ?: when {
@@ -706,16 +808,7 @@ object AugeFatigueEngine {
                 }) >= 8.0
             }
         }
-        result = ensureMinimumHardSessionDrain(result, hardSets, muscularCap, cnsCap, spinalCap)
-        return result
-            .let { raw ->
-                val (cnsBias, muscularBias, spinalBias) = normalizeBias(settings.augePredictionBias)
-                PredictedDrain(
-                    cns = (raw.cns + cnsBias).toInt().coerceIn(0, cnsCap.toInt()),
-                    muscular = (raw.muscular + muscularBias).toInt().coerceIn(0, muscularCap.toInt()),
-                    spinal = (raw.spinal + spinalBias).toInt().coerceIn(0, spinalCap.toInt()),
-                )
-            }
+        return finalizeSessionDrain(acc, tanks, settings, muscularCap, cnsCap, spinalCap, hardSets).global
     }
 
     private const val EMA_ALPHA = 0.17

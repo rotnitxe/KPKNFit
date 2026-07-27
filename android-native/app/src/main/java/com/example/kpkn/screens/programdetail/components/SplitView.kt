@@ -41,7 +41,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
@@ -64,6 +63,7 @@ import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTag
 import com.example.kpkn.data.splits.SplitTemplate
+import com.example.kpkn.domain.templates.SuggestionPrefs
 import com.example.kpkn.domain.training.AdvancedSplitMode
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.SessionMigrationMode
@@ -71,6 +71,7 @@ import com.example.kpkn.domain.training.SplitApplicationEngine
 import com.example.kpkn.domain.training.SplitApplicationRequest
 import com.example.kpkn.domain.training.SplitBlockOption
 import com.example.kpkn.domain.training.SplitImpactSummary
+import com.example.kpkn.domain.training.SplitTemplateAlternativePreview
 import com.example.kpkn.domain.training.SplitTemporalScope
 import com.example.kpkn.domain.training.SplitWeekOption
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -780,7 +781,7 @@ private fun CompareDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun SplitApplySheet(
     program: Program,
@@ -795,7 +796,6 @@ private fun SplitApplySheet(
     onDismiss: () -> Unit,
     onApply: (Program) -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val isCalendarized = ProgramCalendarEngine.isCalendarized(program)
     var startDay by rememberSaveable { mutableStateOf(defaultStartDay) }
     var temporalScope by rememberSaveable { mutableStateOf(SplitTemporalScope.CURRENT_WEEK) }
@@ -809,9 +809,17 @@ private fun SplitApplySheet(
     val selectedWeekIds = remember(selectedWeekId) {
         mutableStateListOf<String>().apply { selectedWeekId?.let(::add) }
     }
-    val templatePreview = remember(selectedSplit.id, selectedSplit.pattern) {
-        SplitApplicationEngine.prebuiltSessionPreview(selectedSplit)
+    var focusOverrides by remember(selectedSplit.id) { mutableStateOf<Map<Int, String>>(emptyMap()) }
+    val weekPreview = remember(selectedSplit, focusOverrides) {
+        SplitApplicationEngine.prebuiltWeekPreview(
+            split = selectedSplit,
+            prefs = SuggestionPrefs(
+                preferredDifficulty = selectedSplit.difficulty,
+                forcedTemplateByDayIndex = focusOverrides,
+            ),
+        )
     }
+    val templatePreview = weekPreview.days
     val prebuiltAvailable = templatePreview.isNotEmpty() && templatePreview.all { it.isAvailable }
 
     LaunchedEffect(temporalScope, migrationMode, advancedMode, selectedWeekIds.toList(), blockSelections.toMap()) {
@@ -830,13 +838,17 @@ private fun SplitApplySheet(
         advancedMode = advancedMode,
         migrationMode = resolvedMode,
         perBlockSelections = blockSelections.toMap(),
+        prebuiltPrefs = SuggestionPrefs(
+            preferredDifficulty = selectedSplit.difficulty,
+            forcedTemplateByDayIndex = focusOverrides,
+        ),
     )
     val impact = SplitApplicationEngine.impactSummary(request)
     val targetHasSessions = impact.affectedSessions > 0
     val selectedModeAvailable = migrationMode != SessionMigrationMode.PREBUILT || prebuiltAvailable
     val canApply = impact.affectedWeeks > 0 && migrationMode != null && selectedModeAvailable && (!impact.willReplaceSessions || destructiveAccepted)
 
-    KpknSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    KpknSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier.fillMaxWidth().heightIn(max = 720.dp).verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 8.dp),
@@ -945,15 +957,71 @@ private fun SplitApplySheet(
 
             if (migrationMode == SessionMigrationMode.PREBUILT) {
                 Surface(shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("Resumen de plantillas", fontWeight = FontWeight.Black)
-                        templatePreview.forEach { preview ->
+                        if (weekPreview.exceedsWeeklyBudget || weekPreview.warnings.isNotEmpty()) {
+                            val warningText = weekPreview.warnings.joinToString(" · ")
+                                .ifBlank { "La carga semanal proyectada supera el presupuesto suave de anillos." }
                             Text(
-                                if (preview.isAvailable) "${preview.dayLabel} → ${preview.templateName} · ${preview.exerciseCount} ejercicios"
-                                else "${preview.dayLabel} → Sin plantilla compatible",
+                                warningText,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (preview.isAvailable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
+                                color = MaterialTheme.colorScheme.error,
                             )
+                        }
+                        templatePreview.forEach { preview ->
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    if (preview.isAvailable) {
+                                        "${preview.dayLabel} → ${preview.templateName} · ${preview.exerciseCount} ejercicios"
+                                    } else {
+                                        "${preview.dayLabel} → Sin plantilla compatible"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (preview.isAvailable) {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    } else {
+                                        MaterialTheme.colorScheme.error
+                                    },
+                                )
+                                if (preview.isAvailable) {
+                                    val chipOptions = buildList {
+                                        preview.templateId?.let { id ->
+                                            add(
+                                                SplitTemplateAlternativePreview(
+                                                    templateId = id,
+                                                    templateName = preview.templateName.orEmpty(),
+                                                    primaryFocusMuscle = preview.primaryFocusMuscle,
+                                                    focusLabel = preview.focusLabel
+                                                        ?: preview.primaryFocusMuscle
+                                                        ?: preview.templateName.orEmpty(),
+                                                )
+                                            )
+                                        }
+                                        addAll(preview.alternatives)
+                                    }.distinctBy { it.templateId }
+                                    FlowRow(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    ) {
+                                        chipOptions.forEach { option ->
+                                            val selected = preview.templateId == option.templateId
+                                            androidx.compose.material3.FilterChip(
+                                                selected = selected,
+                                                onClick = {
+                                                    focusOverrides = focusOverrides + (preview.dayIndex to option.templateId)
+                                                },
+                                                label = {
+                                                    Text(
+                                                        option.focusLabel.ifBlank { option.templateName },
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis,
+                                                    )
+                                                },
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -1015,7 +1083,6 @@ private fun MultiSplitApplySheet(
     onDismiss: () -> Unit,
     onApply: (Program) -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var startDay by rememberSaveable { mutableStateOf(defaultStartDay) }
     var temporalScope by rememberSaveable { mutableStateOf(SplitTemporalScope.CURRENT_BLOCK) }
     var migrationMode by rememberSaveable { mutableStateOf<SessionMigrationMode?>(null) }
@@ -1035,11 +1102,13 @@ private fun MultiSplitApplySheet(
     }
     val affectedSessions = targetWeeks.sumOf { it.sessions.size }
     val willReplace = migrationMode != null && migrationMode != SessionMigrationMode.MIGRATE && affectedSessions > 0
-    val prebuiltAvailable = splits.all { split -> SplitApplicationEngine.prebuiltSessionPreview(split).all { it.isAvailable } }
+    val prebuiltAvailable = splits.all { split ->
+        SplitApplicationEngine.prebuiltWeekPreview(split).days.all { it.isAvailable }
+    }
     val canApply = migrationMode != null && splits.isNotEmpty() && targetWeeks.isNotEmpty() &&
         (migrationMode != SessionMigrationMode.PREBUILT || prebuiltAvailable) && (!willReplace || destructiveAccepted)
 
-    KpknSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    KpknSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

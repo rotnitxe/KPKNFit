@@ -81,21 +81,21 @@ internal fun HeroGlassIconButton(
         color = DarkEditorChip,
     ) {
         Box(
-            modifier = Modifier.size(28.dp),
+            modifier = Modifier.size(36.dp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
                 tint = Color.White,
-                modifier = Modifier.size(14.dp),
+                modifier = Modifier.size(18.dp),
             )
             if (showUnsavedDot) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .offset(x = 2.dp, y = (-2).dp)
-                        .size(6.dp)
+                        .size(7.dp)
                         .clip(CircleShape)
                         .background(Color(0xFFEF4444)),
                 )
@@ -192,15 +192,15 @@ internal fun SessionHeroActionChip(
             .clip(RoundedCornerShape(999.dp))
             .clickable { onClick() },
         shape = RoundedCornerShape(999.dp),
-        color = Color.Black.copy(alpha = 0.34f),
+        color = DarkEditorChip,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Icon(icon, contentDescription = null, tint = Color.White.copy(alpha = 0.82f), modifier = Modifier.size(15.dp))
-            Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f))
+            Icon(icon, contentDescription = null, tint = Color.White.copy(alpha = 0.86f), modifier = Modifier.size(15.dp))
+            Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White)
         }
     }
 }

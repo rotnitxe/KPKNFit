@@ -190,21 +190,19 @@ class SessionTemplateCatalogTest {
         SESSION_TEMPLATES_SYSTEM.forEach { template ->
             val drain = SessionTemplateCatalogPolicy.evaluateTemplateRings(template, exerciseDatabaseById)
             val isPl = SessionTemplateCatalogPolicy.isPowerliftingTemplate(template)
-            val maxCns = 60
-            val maxMuscular = 70
-            val maxSpinal = 45
+            val caps = RingBudgetPolicy.sessionHardCaps(isPl)
 
             assertTrue(
-                "La plantilla '${template.name}' excede el límite de fatiga SNC: ${drain.cns}% > $maxCns%",
-                drain.cns <= maxCns
+                "La plantilla '${template.name}' excede el límite de fatiga SNC: ${drain.cns}% > ${caps.cns}%",
+                drain.cns <= caps.cns
             )
             assertTrue(
-                "La plantilla '${template.name}' excede el límite de fatiga Muscular: ${drain.muscular}% > $maxMuscular%",
-                drain.muscular <= maxMuscular
+                "La plantilla '${template.name}' excede el límite de fatiga Muscular: ${drain.muscular}% > ${caps.muscular}%",
+                drain.muscular <= caps.muscular
             )
             assertTrue(
-                "La plantilla '${template.name}' excede el límite de fatiga Espinal: ${drain.spinal}% > $maxSpinal%",
-                drain.spinal <= maxSpinal
+                "La plantilla '${template.name}' excede el límite de fatiga Espinal: ${drain.spinal}% > ${caps.spinal}%",
+                drain.spinal <= caps.spinal
             )
         }
     }

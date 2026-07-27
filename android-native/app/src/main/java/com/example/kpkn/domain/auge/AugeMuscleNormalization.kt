@@ -1,5 +1,14 @@
 package com.example.kpkn.domain.auge
 
+/**
+ * Contrato de claves musculares RINGS:
+ *
+ * - **Pillar** ([getAugeMusclePillarId]): storage / engine / `perMuscle` /
+ *   `manualMuscleBatteries` / adaptive multipliers / learning. Nunca una cabeza
+ *   específica (`"Deltoides"`, no `"Deltoides Lateral"`).
+ * - **Display** ([getAugeMuscleDisplayId]): solo etiquetas UI. Al leer/escribir
+ *   batteries o multipliers, siempre resolver a pilar.
+ */
 internal data class AugeMuscleResolution(
     val broad: String,
     val specific: String? = null,
@@ -78,6 +87,7 @@ internal fun resolveAugeMuscle(rawMuscle: String, rawEmphasis: String? = null): 
     return AugeMuscleResolution(rawMuscle.replaceFirstChar { it.uppercase() })
 }
 
+/** UI label: specific head when available, otherwise pillar. */
 internal fun getAugeMuscleDisplayId(rawMuscle: String, rawEmphasis: String? = null): String {
     val resolved = resolveAugeMuscle(rawMuscle, rawEmphasis)
     return resolved.specific ?: resolved.broad
@@ -86,6 +96,91 @@ internal fun getAugeMuscleDisplayId(rawMuscle: String, rawEmphasis: String? = nu
 /** Pillar / broad group id used by perMuscle batteries (never a specific head). */
 internal fun getAugeMusclePillarId(rawMuscle: String, rawEmphasis: String? = null): String =
     resolveAugeMuscle(rawMuscle, rawEmphasis).broad
+
+/** Alias explícito del contrato de storage/engine. */
+internal fun toAugePillarKey(rawMuscle: String, rawEmphasis: String? = null): String =
+    getAugeMusclePillarId(rawMuscle, rawEmphasis)
+
+/**
+ * Adaptive-cache key for muscle drain multipliers: lowercase pillar.
+ */
+internal fun toAugeAdaptiveMuscleKey(rawMuscle: String, rawEmphasis: String? = null): String =
+    getAugeMusclePillarId(rawMuscle, rawEmphasis).lowercase().trim()
+
+/**
+ * Lookup against maps that may contain pillar and/or legacy display-head keys.
+ * Prefers exact pillar, then display, then any entry whose pillar matches.
+ */
+internal fun <T> lookupMuscleValue(
+    map: Map<String, T>,
+    rawMuscle: String,
+    rawEmphasis: String? = null,
+): T? {
+    if (map.isEmpty()) return null
+    val pillar = getAugeMusclePillarId(rawMuscle, rawEmphasis)
+    val display = getAugeMuscleDisplayId(rawMuscle, rawEmphasis)
+    map[pillar]?.let { return it }
+    if (display != pillar) map[display]?.let { return it }
+    val pillarLower = pillar.lowercase()
+    map[pillarLower]?.let { return it }
+    map.entries.firstOrNull { getAugeMusclePillarId(it.key) == pillar }?.value?.let { return it }
+    return map.entries.firstOrNull {
+        getAugeMusclePillarId(it.key).lowercase() == pillarLower
+    }?.value
+}
+
+internal fun lookupMuscleScore(
+    map: Map<String, Int>,
+    rawMuscle: String,
+    rawEmphasis: String? = null,
+): Int? = lookupMuscleValue(map, rawMuscle, rawEmphasis)
+
+/**
+ * Reclaves a pilar. Si pillar y display coexistem, prevalece el valor del pilar.
+ */
+internal fun remapMuscleIntMapToPillars(map: Map<String, Int>): Map<String, Int> {
+    if (map.isEmpty()) return emptyMap()
+    val result = linkedMapOf<String, Int>()
+    val pillarFirst = map.entries.sortedBy { (key, _) ->
+        val pillar = getAugeMusclePillarId(key)
+        if (key == pillar) 0 else 1
+    }
+    pillarFirst.forEach { (key, value) ->
+        val pillar = getAugeMusclePillarId(key)
+        if (key == pillar || !result.containsKey(pillar)) {
+            result[pillar] = value.coerceIn(0, 100)
+        }
+    }
+    return result
+}
+
+/**
+ * Reclaves multipliers (keys suelen ser lowercase) a pillar lowercase.
+ * Si hay colisión, promedio simple.
+ */
+internal fun remapMuscleMultiplierMapToPillars(map: Map<String, Double>): Map<String, Double> {
+    if (map.isEmpty()) return emptyMap()
+    val buckets = linkedMapOf<String, MutableList<Double>>()
+    map.forEach { (key, value) ->
+        val pillarKey = toAugeAdaptiveMuscleKey(key)
+        buckets.getOrPut(pillarKey) { mutableListOf() }.add(value)
+    }
+    return buckets.mapValues { (_, values) -> values.average() }
+}
+
+internal fun lookupMuscleDrainMultiplier(
+    multipliers: Map<String, Double>,
+    rawMuscle: String,
+    rawEmphasis: String? = null,
+    default: Double = 1.0,
+): Double {
+    if (multipliers.isEmpty()) return default
+    val pillarKey = toAugeAdaptiveMuscleKey(rawMuscle, rawEmphasis)
+    multipliers[pillarKey]?.let { return it }
+    // Legacy: display-head or raw DB string stored as key
+    val remapped = remapMuscleMultiplierMapToPillars(multipliers)
+    return remapped[pillarKey] ?: default
+}
 
 internal fun matchesAugeMuscleTarget(rawMuscle: String, target: String, rawEmphasis: String? = null): Boolean {
     val targetResolved = resolveAugeMuscle(target)

@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 
 internal fun String.safeIntOrNull(): Int? = toIntOrNull()
 
@@ -20,7 +21,7 @@ internal fun formatEditableNumber(value: Double?): String {
 }
 
 internal fun String.toEditorColor(default: Color = Color(0xFF00F0FF)): Color =
-    runCatching { Color(AndroidColor.parseColor(this)) }.getOrDefault(default)
+    resolvePartAccent(this).primary
 
 internal fun formatEditorOneDecimal(value: Double): String = "%.1f".format(value)
 
@@ -55,6 +56,39 @@ internal fun formatExerciseCollapsedSummary(exercise: Exercise): String? {
         else -> ""
     }
     return repsPart + loadPart
+}
+
+/** Resumen corto de la config del ejercicio (chips / header expandido). */
+internal fun formatExerciseConfigSummary(exercise: Exercise): String {
+    val parts = buildList {
+        add(trainingModeLabel(exercise.trainingMode))
+        if (exercise.isEffectivelyUnilateral()) {
+            add("Unilat.")
+            add(
+                if (exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
+                    "Lados iguales"
+                } else {
+                    "Lados aparte"
+                },
+            )
+            exercise.restBetweenSidesSeconds?.takeIf { it > 0 }?.let {
+                add("Entre lados ${formatRestSummary(it)}")
+            }
+        }
+        if (!exercise.isInSuperset()) {
+            exercise.restTime?.let { add("Rest ${formatRestSummary(it)}") }
+        }
+        if (exercise.isStarTarget) add("Meta")
+        exercise.goal1RM?.takeIf { it > 0 }?.let { add("Meta ${formatEditableNumber(it)}kg") }
+        resolveReferenceCapacity(exercise)?.takeIf { it > 0 }?.let {
+            add("Ref ${formatEditableNumber(it)}kg")
+        }
+        if (exercise.warmupSets.isNotEmpty()) add("${exercise.warmupSets.size} aprox")
+        if (exercise.mobilitySeries.isNotEmpty()) add("Movilidad")
+        if (exercise.trackRom) add("ROM")
+        exercise.relativeToCanonicalExerciseId?.let { add("Relacionado") }
+    }
+    return parts.joinToString(" · ")
 }
 
 internal fun trainingModeLabel(mode: TrainingMode): String = when (mode) {

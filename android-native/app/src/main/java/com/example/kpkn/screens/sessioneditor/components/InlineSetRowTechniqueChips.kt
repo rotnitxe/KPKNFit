@@ -5,180 +5,193 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.exercises.*
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.PlannedTechnique
+import com.example.kpkn.data.models.TechniqueType
 import java.util.UUID
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
+
+/** Canonical rest-pause defaults — not user-configurable in the editor. */
+internal object RestPausePlanDefaults {
+    const val PauseSeconds = 10
+    const val Reps = 3
+    const val MinCount = 1
+    const val MaxCount = 5
+    const val DefaultCount = 2
+}
+
+internal object DropSetPlanDefaults {
+    const val MinDrops = 1
+    const val MaxDrops = 3
+    const val DefaultDrops = 1
+
+    fun weightPctsFor(dropCount: Int): String = when (dropCount.coerceIn(MinDrops, MaxDrops)) {
+        1 -> "-20"
+        2 -> "-15,-25"
+        else -> "-15,-25,-35"
+    }
+}
 
 @Composable
 internal fun InlineSetRowTechniqueChips(
     set: ExerciseSet,
     onUpdate: ((ExerciseSet) -> ExerciseSet) -> Unit,
+    onConfigExpandedChange: (Boolean) -> Unit = {},
 ) {
-// AMRAP ahora es un TrainingMode gestionado desde el selector de modo
+    val currentTechniques = set.plannedIntensityTechniques
+    val hasDropSet = currentTechniques.any { it.type == TechniqueType.DROP_SET }
+    val hasRestPause = currentTechniques.any { it.type == TechniqueType.REST_PAUSE }
 
-// ─── Feature 4: Selector de técnica programada (Dropset / Rest-Pause) ─
-val currentTechniques = set.plannedIntensityTechniques
-val hasDropSet = currentTechniques.any { it.type == TechniqueType.DROP_SET }
-val hasRestPause = currentTechniques.any { it.type == TechniqueType.REST_PAUSE }
+    var showDropSetConfig by rememberSaveable(set.id) { mutableStateOf(hasDropSet) }
+    var showRestPauseConfig by rememberSaveable(set.id) { mutableStateOf(hasRestPause) }
 
-var showDropSetConfig by rememberSaveable(set.id) { mutableStateOf(hasDropSet) }
-var showRestPauseConfig by rememberSaveable(set.id) { mutableStateOf(hasRestPause) }
+    val configExpanded = (showDropSetConfig && hasDropSet) || (showRestPauseConfig && hasRestPause)
+    androidx.compose.runtime.LaunchedEffect(configExpanded) {
+        onConfigExpandedChange(configExpanded)
+    }
 
-// Chips de técnica
-Row(
-    modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
-    horizontalArrangement = Arrangement.spacedBy(6.dp),
-    verticalAlignment = Alignment.CenterVertically,
-) {
-    // Chip Drop-set
-    FilterChip(
-        selected = hasDropSet,
-        onClick = {
-            if (hasDropSet) {
-                // Quitar drop-set
-                onUpdate { current ->
-                    current.copy(
-                        plannedIntensityTechniques = current.plannedIntensityTechniques.filter { it.type != TechniqueType.DROP_SET },
-                        isDropSet = false,
-                    )
-                }
-                showDropSetConfig = false
-            } else {
-                // Añadir drop-set con defaults: 3 drops (-15%, -25%, -35%)
-                onUpdate { current ->
-                    val newTechnique = PlannedTechnique(
-                        id = java.util.UUID.randomUUID().toString(),
-                        type = TechniqueType.DROP_SET,
-                        params = mapOf("weightPcts" to "-15,-25,-35", "count" to "3"),
-                    )
-                    current.copy(
-                        plannedIntensityTechniques = current.plannedIntensityTechniques + newTechnique,
-                        isDropSet = true,
-                    )
-                }
-                showDropSetConfig = true
-            }
-        },
-        label = { Text("Drop-set", style = MaterialTheme.typography.labelSmall) },
-        leadingIcon = if (hasDropSet) ({ Icon(Icons.Default.Check, null, Modifier.size(12.dp)) }) else null,
-        shape = RoundedCornerShape(999.dp),
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
-            selectedLabelColor = MaterialTheme.colorScheme.primary,
-        ),
-    )
-    // Chip Rest-pause
-    FilterChip(
-        selected = hasRestPause,
-        onClick = {
-            if (hasRestPause) {
-                onUpdate { current ->
-                    current.copy(
-                        plannedIntensityTechniques = current.plannedIntensityTechniques.filter { it.type != TechniqueType.REST_PAUSE },
-                        isRestPause = false,
-                    )
-                }
-                showRestPauseConfig = false
-            } else {
-                onUpdate { current ->
-                    val newTechnique = PlannedTechnique(
-                        id = java.util.UUID.randomUUID().toString(),
-                        type = TechniqueType.REST_PAUSE,
-                        params = mapOf("count" to "3", "pauseSeconds" to "10", "reps" to "3"),
-                    )
-                    current.copy(
-                        plannedIntensityTechniques = current.plannedIntensityTechniques + newTechnique,
-                        isRestPause = true,
-                    )
-                }
-                showRestPauseConfig = true
-            }
-        },
-        label = { Text("Rest-pause", style = MaterialTheme.typography.labelSmall) },
-        leadingIcon = if (hasRestPause) ({ Icon(Icons.Default.Check, null, Modifier.size(12.dp)) }) else null,
-        shape = RoundedCornerShape(999.dp),
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.22f),
-            selectedLabelColor = MaterialTheme.colorScheme.secondary,
-        ),
-    )
-}
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TechniqueToggleChip(
+                label = "Drop-set",
+                selected = hasDropSet,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    if (hasDropSet) {
+                        onUpdate { current ->
+                            current.copy(
+                                plannedIntensityTechniques = current.plannedIntensityTechniques.filter {
+                                    it.type != TechniqueType.DROP_SET
+                                },
+                                isDropSet = false,
+                            )
+                        }
+                        showDropSetConfig = false
+                    } else {
+                        onUpdate { current ->
+                            val drops = DropSetPlanDefaults.DefaultDrops
+                            val newTechnique = PlannedTechnique(
+                                id = UUID.randomUUID().toString(),
+                                type = TechniqueType.DROP_SET,
+                                params = mapOf(
+                                    "weightPcts" to DropSetPlanDefaults.weightPctsFor(drops),
+                                    "count" to drops.toString(),
+                                ),
+                            )
+                            current.copy(
+                                plannedIntensityTechniques = current.plannedIntensityTechniques + newTechnique,
+                                isDropSet = true,
+                            )
+                        }
+                        showDropSetConfig = true
+                        showRestPauseConfig = false
+                    }
+                },
+            )
+            TechniqueToggleChip(
+                label = "Rest-pause",
+                selected = hasRestPause,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    if (hasRestPause) {
+                        onUpdate { current ->
+                            current.copy(
+                                plannedIntensityTechniques = current.plannedIntensityTechniques.filter {
+                                    it.type != TechniqueType.REST_PAUSE
+                                },
+                                isRestPause = false,
+                            )
+                        }
+                        showRestPauseConfig = false
+                    } else {
+                        onUpdate { current ->
+                            val newTechnique = PlannedTechnique(
+                                id = UUID.randomUUID().toString(),
+                                type = TechniqueType.REST_PAUSE,
+                                params = mapOf(
+                                    "count" to RestPausePlanDefaults.DefaultCount.toString(),
+                                    "pauseSeconds" to RestPausePlanDefaults.PauseSeconds.toString(),
+                                    "reps" to RestPausePlanDefaults.Reps.toString(),
+                                ),
+                            )
+                            current.copy(
+                                plannedIntensityTechniques = current.plannedIntensityTechniques + newTechnique,
+                                isRestPause = true,
+                            )
+                        }
+                        showRestPauseConfig = true
+                        showDropSetConfig = false
+                    }
+                },
+            )
+        }
 
-// Config expandida de Drop-set
-if (showDropSetConfig && hasDropSet) {
-    val dsTechnique = currentTechniques.firstOrNull { it.type == TechniqueType.DROP_SET }
-    if (dsTechnique != null) {
-        val dropPcts = (dsTechnique.params["weightPcts"] ?: "-15,-25,-35")
-            .split(",").map { it.trim() }
-        AnimatedVisibility(visible = true, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                ),
-            ) {
-                Column(
-                    modifier = Modifier.padding(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
+        AnimatedVisibility(
+            visible = showDropSetConfig && hasDropSet,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
+        ) {
+            val dsTechnique = currentTechniques.firstOrNull { it.type == TechniqueType.DROP_SET }
+            if (dsTechnique != null) {
+                val dropCount = (dsTechnique.params["count"]?.toIntOrNull()
+                    ?: dsTechnique.params["weightPcts"]?.split(",")?.size
+                    ?: DropSetPlanDefaults.DefaultDrops)
+                    .coerceIn(DropSetPlanDefaults.MinDrops, DropSetPlanDefaults.MaxDrops)
+                TechniqueConfigPanel(title = "Drop-set programado") {
                     Text(
-                        "Drop-set programado",
+                        "¿Cuántos drops después de la serie normal?",
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color.White.copy(alpha = 0.62f),
                     )
-                    Text(
-                        "Mini-drops: ${dropPcts.size}  ·  Reducciones: ${dropPcts.joinToString(", ")}%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    // Botón para configurar número de drops
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("Drops:", style = MaterialTheme.typography.labelSmall)
-                        listOf(2, 3, 4).forEach { n ->
-                            val isSelected = dropPcts.size == n
-                            val defaultPcts = when (n) {
-                                2 -> "-15,-25"
-                                3 -> "-15,-25,-35"
-                                4 -> "-10,-20,-30,-40"
-                                else -> "-15,-25,-35"
-                            }
-                            OutlinedButton(
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        (DropSetPlanDefaults.MinDrops..DropSetPlanDefaults.MaxDrops).forEach { n ->
+                            TechniqueStepChip(
+                                label = "$n",
+                                selected = dropCount == n,
+                                modifier = Modifier.weight(1f),
                                 onClick = {
                                     onUpdate { current ->
                                         val updated = dsTechnique.copy(
-                                            params = mapOf("weightPcts" to defaultPcts, "count" to n.toString()),
+                                            params = mapOf(
+                                                "weightPcts" to DropSetPlanDefaults.weightPctsFor(n),
+                                                "count" to n.toString(),
+                                            ),
                                         )
                                         current.copy(
                                             plannedIntensityTechniques = current.plannedIntensityTechniques.map {
@@ -187,114 +200,204 @@ if (showDropSetConfig && hasDropSet) {
                                         )
                                     }
                                 },
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent,
-                                    contentColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                ),
-                            ) {
-                                Text("$n", style = MaterialTheme.typography.labelSmall, fontWeight = if (isSelected) FontWeight.Black else FontWeight.Normal)
-                            }
+                            )
                         }
                     }
+                    Text(
+                        "En vivo: sin descanso · peso bajado para ~${RestPausePlanDefaults.Reps} reps",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.45f),
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = showRestPauseConfig && hasRestPause,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
+        ) {
+            val rpTechnique = currentTechniques.firstOrNull { it.type == TechniqueType.REST_PAUSE }
+            if (rpTechnique != null) {
+                val rpCount = (rpTechnique.params["count"]?.toIntOrNull() ?: RestPausePlanDefaults.DefaultCount)
+                    .coerceIn(RestPausePlanDefaults.MinCount, RestPausePlanDefaults.MaxCount)
+                TechniqueConfigPanel(title = "Rest-pause programado") {
+                    Text(
+                        "Pausa fija ${RestPausePlanDefaults.PauseSeconds}s · ${RestPausePlanDefaults.Reps} reps por mini-serie",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.62f),
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            "Cantidad",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.88f),
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            TechniqueStepChip(
+                                label = "−",
+                                selected = false,
+                                onClick = {
+                                    val next = (rpCount - 1).coerceAtLeast(RestPausePlanDefaults.MinCount)
+                                    onUpdate { current ->
+                                        val updated = rpTechnique.copy(
+                                            params = mapOf(
+                                                "count" to next.toString(),
+                                                "pauseSeconds" to RestPausePlanDefaults.PauseSeconds.toString(),
+                                                "reps" to RestPausePlanDefaults.Reps.toString(),
+                                            ),
+                                        )
+                                        current.copy(
+                                            plannedIntensityTechniques = current.plannedIntensityTechniques.map {
+                                                if (it.id == rpTechnique.id) updated else it
+                                            },
+                                        )
+                                    }
+                                },
+                            )
+                            Text(
+                                "$rpCount",
+                                modifier = Modifier.padding(horizontal = 14.dp),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Black,
+                                color = Color.White.copy(alpha = 0.94f),
+                            )
+                            TechniqueStepChip(
+                                label = "+",
+                                selected = false,
+                                onClick = {
+                                    val next = (rpCount + 1).coerceAtMost(RestPausePlanDefaults.MaxCount)
+                                    onUpdate { current ->
+                                        val updated = rpTechnique.copy(
+                                            params = mapOf(
+                                                "count" to next.toString(),
+                                                "pauseSeconds" to RestPausePlanDefaults.PauseSeconds.toString(),
+                                                "reps" to RestPausePlanDefaults.Reps.toString(),
+                                            ),
+                                        )
+                                        current.copy(
+                                            plannedIntensityTechniques = current.plannedIntensityTechniques.map {
+                                                if (it.id == rpTechnique.id) updated else it
+                                            },
+                                        )
+                                    }
+                                },
+                            )
+                        }
+                    }
+                    Text(
+                        "Resumen: $rpCount × ${RestPausePlanDefaults.Reps} reps · pausa ${RestPausePlanDefaults.PauseSeconds}s",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.45f),
+                    )
                 }
             }
         }
     }
 }
 
-// Config expandida de Rest-pause
-if (showRestPauseConfig && hasRestPause) {
-    val rpTechnique = currentTechniques.firstOrNull { it.type == TechniqueType.REST_PAUSE }
-    if (rpTechnique != null) {
-        val rpCount = rpTechnique.params["count"]?.toIntOrNull() ?: 3
-        val rpPause = rpTechnique.params["pauseSeconds"]?.toIntOrNull() ?: 10
-        val rpReps  = rpTechnique.params["reps"]?.toIntOrNull() ?: 3
-        AnimatedVisibility(visible = true, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f),
-                ),
-            ) {
-                Column(
-                    modifier = Modifier.padding(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text(
-                        "Rest-pause programado",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.secondary,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        // Mini-sets
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Mini-series", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = {
-                                    if (rpCount > 2) onUpdate { current ->
-                                        val updated = rpTechnique.copy(params = rpTechnique.params + ("count" to (rpCount - 1).toString()))
-                                        current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == rpTechnique.id) updated else it })
-                                    }
-                                }, modifier = Modifier.size(24.dp)) { Text("-", fontWeight = FontWeight.Black) }
-                                Text("$rpCount", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                                IconButton(onClick = {
-                                    if (rpCount < 6) onUpdate { current ->
-                                        val updated = rpTechnique.copy(params = rpTechnique.params + ("count" to (rpCount + 1).toString()))
-                                        current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == rpTechnique.id) updated else it })
-                                    }
-                                }, modifier = Modifier.size(24.dp)) { Text("+", fontWeight = FontWeight.Black) }
-                            }
-                        }
-                        // Pausa
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Pausa (s)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = {
-                                    if (rpPause > 5) onUpdate { current ->
-                                        val updated = rpTechnique.copy(params = rpTechnique.params + ("pauseSeconds" to (rpPause - 5).toString()))
-                                        current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == rpTechnique.id) updated else it })
-                                    }
-                                }, modifier = Modifier.size(24.dp)) { Text("-", fontWeight = FontWeight.Black) }
-                                Text("${rpPause}s", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                                IconButton(onClick = {
-                                    if (rpPause < 30) onUpdate { current ->
-                                        val updated = rpTechnique.copy(params = rpTechnique.params + ("pauseSeconds" to (rpPause + 5).toString()))
-                                        current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == rpTechnique.id) updated else it })
-                                    }
-                                }, modifier = Modifier.size(24.dp)) { Text("+", fontWeight = FontWeight.Black) }
-                            }
-                        }
-                        // Reps por mini-serie
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Reps", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = {
-                                    if (rpReps > 1) onUpdate { current ->
-                                        val updated = rpTechnique.copy(params = rpTechnique.params + ("reps" to (rpReps - 1).toString()))
-                                        current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == rpTechnique.id) updated else it })
-                                    }
-                                }, modifier = Modifier.size(24.dp)) { Text("-", fontWeight = FontWeight.Black) }
-                                Text("$rpReps", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                                IconButton(onClick = {
-                                    if (rpReps < 10) onUpdate { current ->
-                                        val updated = rpTechnique.copy(params = rpTechnique.params + ("reps" to (rpReps + 1).toString()))
-                                        current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == rpTechnique.id) updated else it })
-                                    }
-                                }, modifier = Modifier.size(24.dp)) { Text("+", fontWeight = FontWeight.Black) }
-                            }
-                        }
-                    }
-                    Text(
-                        "Resumen: $rpCount × $rpReps reps · Pausa ${rpPause}s entre mini-series",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+@Composable
+private fun TechniqueToggleChip(
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = modifier
+            .heightIn(min = 40.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(14.dp),
+        color = if (selected) Color.White.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.08f),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (selected) Color.White.copy(alpha = 0.28f) else Color.White.copy(alpha = 0.10f),
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (selected) {
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(end = 6.dp)
+                        .size(14.dp),
+                    tint = Color.White.copy(alpha = 0.92f),
+                )
             }
+            Text(
+                label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White.copy(alpha = if (selected) 0.94f else 0.78f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
+}
+
+@Composable
+private fun TechniqueConfigPanel(
+    title: String,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = Color.White.copy(alpha = 0.06f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                title,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                color = Color.White.copy(alpha = 0.9f),
+            )
+            content()
+        }
+    }
+}
+
+@Composable
+private fun TechniqueStepChip(
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = modifier
+            .heightIn(min = 36.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(10.dp),
+        color = if (selected) Color.White.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.06f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = if (selected) 0.24f else 0.08f)),
+    ) {
+        Text(
+            label,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (selected) FontWeight.Black else FontWeight.Medium,
+            color = Color.White.copy(alpha = if (selected) 0.94f else 0.7f),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
     }
 }

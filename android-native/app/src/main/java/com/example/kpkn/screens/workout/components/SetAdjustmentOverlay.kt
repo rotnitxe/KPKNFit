@@ -88,14 +88,8 @@ internal fun SetAdjustmentOverlay(
         LoadModeV2.BODYWEIGHT -> "BW"
         else -> "${adjustment.suggestedWeight.toTrimmedNumberString()}kg"
     }
-
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { target -> target != SheetValue.Hidden }
-    )
     KpknSheet(
         onDismissRequest = {},
-        sheetState = sheetState,
         dismissible = false,
     ) {
         Column(

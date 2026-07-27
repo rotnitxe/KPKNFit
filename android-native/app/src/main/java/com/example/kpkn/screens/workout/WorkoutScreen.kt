@@ -136,11 +136,12 @@ import com.example.kpkn.domain.auge.DiscomfortAggregationEngine
 import com.example.kpkn.domain.auge.SessionDiscomfortSummary
 import com.example.kpkn.domain.auge.SessionIntensityEngine
 import com.example.kpkn.domain.auge.SessionIntensityResult
-import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
+import com.example.kpkn.domain.auge.getAugeMusclePillarId
+import com.example.kpkn.domain.auge.lookupMuscleScore
+import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
-import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
@@ -323,28 +324,30 @@ fun WorkoutScreen(
                 val dbInfo = EXERCISE_DATABASE_BY_ID[ex.exerciseDbId ?: ex.exerciseId]
                 dbInfo?.involvedMuscles
                     ?.filter { it.role == MuscleRole.PRIMARY || it.role == MuscleRole.SECONDARY }
-                    ?.map { involved -> getAugeMuscleDisplayId(involved.muscle, involved.emphasis) }
+                    ?.map { involved -> getAugeMusclePillarId(involved.muscle, involved.emphasis) }
                     ?.filterNot { muscleId ->
                         upperOnlySession && normalizeWorkoutMuscleKey(muscleId) in LOWER_SESSION_MUSCLE_KEYS
                     }
                     .orEmpty()
             }
             .flatten()
-            .let { deduplicateCanonicalMuscles(it) }
+            .distinct()
     }
     val sessionMuscleBatteries = remember(perMuscle, sessionRelevantMuscles) {
-        val allowed = sessionRelevantMuscles.toSet()
-        perMuscle
-            .filterKeys { it in allowed }
-            .mapValues { (_, status) -> status.recoveryScore }
+        sessionRelevantMuscles.associateWith { muscleId ->
+            perMuscle[muscleId]?.recoveryScore
+                ?: lookupMuscleScore(perMuscle.mapValues { it.value.recoveryScore }, muscleId)
+                ?: 100
+        }
     }
     val sessionMuscleStartingBatteries = remember(
         sessionRelevantMuscles,
         sessionMuscleBatteries,
         uiState.readinessMuscleOverrides,
     ) {
+        val overrides = remapMuscleIntMapToPillars(uiState.readinessMuscleOverrides)
         sessionRelevantMuscles.associateWith { muscleId ->
-            uiState.readinessMuscleOverrides[muscleId]
+            overrides[muscleId]
                 ?: sessionMuscleBatteries[muscleId]
                 ?: 100
         }
@@ -381,9 +384,25 @@ fun WorkoutScreen(
             )
         }.filter { it.sets.isNotEmpty() }
     }
-    val completedSessionDrains = remember(completedExercisesForSummary) {
-        AugeFatigueEngine.calculateCompletedSessionDrain(completedExercisesForSummary, EXERCISE_DATABASE_BY_ID)
+    val adaptiveCache by produceState(
+        initialValue = com.example.kpkn.data.models.AugeAdaptiveCache(),
+        augeRepository,
+    ) {
+        value = augeRepository.getAdaptiveCache()
     }
+    val completedSessionDrainBreakdown = remember(
+        completedExercisesForSummary,
+        settings,
+        adaptiveCache,
+    ) {
+        AugeFatigueEngine.calculateCompletedSessionDrainBreakdown(
+            completedExercises = completedExercisesForSummary,
+            exerciseDb = EXERCISE_DATABASE_BY_ID,
+            settings = settings,
+            adaptiveCache = adaptiveCache,
+        )
+    }
+    val completedSessionDrains = completedSessionDrainBreakdown.global
     val sessionMuscleVolumeByRoleSets = remember(completedExercisesForSummary) {
         computeSessionMuscleRoleWeightedSets(completedExercisesForSummary)
     }
@@ -393,11 +412,14 @@ fun WorkoutScreen(
         uiState.readinessMuscleOverrides,
         perMuscle,
     ) {
+        val overrides = remapMuscleIntMapToPillars(uiState.readinessMuscleOverrides)
         val keys = (sessionMuscleVolumeByRoleSets.keys + sessionMuscleStartingBatteries.keys)
+            .map { getAugeMusclePillarId(it) }
             .toSet()
         keys.associateWith { muscleId ->
-            uiState.readinessMuscleOverrides[muscleId]
+            overrides[muscleId]
                 ?: perMuscle[muscleId]?.recoveryScore
+                ?: lookupMuscleScore(perMuscle.mapValues { it.value.recoveryScore }, muscleId)
                 ?: sessionMuscleStartingBatteries[muscleId]
                 ?: 100
         }
@@ -550,6 +572,7 @@ fun WorkoutScreen(
                 .padding(padding),
             uiState = uiState,
             settings = settings,
+            adaptiveCache = adaptiveCache,
             viewModel = viewModel,
             currentExercise = currentExercise,
             visibleExercises = visibleExercises,
@@ -833,6 +856,7 @@ fun WorkoutScreen(
             readinessSpinalStart = readinessSpinalStart,
             sessionMuscleStartBatteries = finishMuscleStartingBatteries,
             sessionMuscleVolumeByRoleSets = sessionMuscleVolumeByRoleSets,
+            perMuscleMuscularDrain = completedSessionDrainBreakdown.perMuscleMuscular,
             postExerciseFeedbackByExerciseId = uiState.postExerciseFeedbackByExerciseId,
             sessionDiscomfortSummary = sessionDiscomfortSummary,
             voiceFinalNotes = uiState.voiceFinalNotes,
@@ -859,22 +883,41 @@ fun WorkoutScreen(
                     closingFeedback = closingFeedback,
                     onPendingQuestionnaire = { q -> augeViewModel.schedulePendingQuestionnaire(q) },
                     onComplete = {
-                        augeViewModel.applyManualBatteries(
-                            neural = closingFeedback.finalNeuralBattery ?: readinessNeuralStart,
-                            // Leave global muscular to the engine (per-muscle map + 0.85/0.15 formula)
-                            muscular = null,
-                            spinal = closingFeedback.finalSpinalBattery ?: readinessSpinalStart,
-                            perMuscle = closingFeedback.finalMuscleBatteries,
-                            sessionCnsDrain = completedSessionDrains.cns.toDouble(),
-                            sessionSpinalDrain = completedSessionDrains.spinal.toDouble(),
-                            sessionMuscleDrain = completedSessionDrains.muscular.toDouble(),
-                            predictedNeuralBattery = (readinessNeuralStart - completedSessionDrains.cns).coerceIn(0, 100),
-                            predictedSpinalBattery = (readinessSpinalStart - completedSessionDrains.spinal).coerceIn(0, 100),
-                            predictedMuscleBatteries = finishMuscleStartingBatteries.mapValues { (muscle, start) ->
-                                val drain = completedSessionDrains.muscular / finishMuscleStartingBatteries.size.coerceAtLeast(1)
+                        val anyRingEdit = closingFeedback.neuralEdited ||
+                            closingFeedback.spinalEdited ||
+                            closingFeedback.musclesEdited
+                        if (anyRingEdit) {
+                            val predictedMuscles = finishMuscleStartingBatteries.mapValues { (muscle, start) ->
+                                val drain = completedSessionDrainBreakdown.perMuscleMuscular[muscle] ?: 0
                                 (start - drain).coerceIn(0, 100)
-                            },
-                        )
+                            }
+                            augeViewModel.applyManualBatteries(
+                                neural = if (closingFeedback.neuralEdited) {
+                                    closingFeedback.finalNeuralBattery
+                                } else {
+                                    null
+                                },
+                                muscular = null,
+                                spinal = if (closingFeedback.spinalEdited) {
+                                    closingFeedback.finalSpinalBattery
+                                } else {
+                                    null
+                                },
+                                perMuscle = if (closingFeedback.musclesEdited) {
+                                    closingFeedback.finalMuscleBatteries
+                                } else {
+                                    null
+                                },
+                                sessionCnsDrain = completedSessionDrains.cns.toDouble(),
+                                sessionSpinalDrain = completedSessionDrains.spinal.toDouble(),
+                                sessionMuscleDrain = completedSessionDrains.muscular.toDouble(),
+                                predictedNeuralBattery = (readinessNeuralStart - completedSessionDrains.cns).coerceIn(0, 100),
+                                predictedSpinalBattery = (readinessSpinalStart - completedSessionDrains.spinal).coerceIn(0, 100),
+                                predictedMuscleBatteries = predictedMuscles,
+                            )
+                        } else {
+                            augeViewModel.refresh()
+                        }
                         if (share) {
                             WorkoutShareService.shareToInstagramStory(
                                 context = context,

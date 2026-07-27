@@ -1711,11 +1711,8 @@ private fun AddMeasurementSheet(
     var neck by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
     KpknSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
     ) {
         LazyColumn(
             modifier = Modifier

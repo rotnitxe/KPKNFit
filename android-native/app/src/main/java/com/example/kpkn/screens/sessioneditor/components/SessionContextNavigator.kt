@@ -137,7 +137,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -331,6 +330,7 @@ import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknDropdownMenu
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun SessionContextNavigator(
     sessions: List<Session>,
@@ -350,6 +350,12 @@ internal fun SessionContextNavigator(
     onSetMainSessionForDay: (String) -> Unit,
     currentSessionId: String,
     currentDayOfWeek: Int?,
+    currentSession: Session? = null,
+    activeVariant: WeekVariant = WeekVariant.A,
+    availableVariants: List<WeekVariant> = listOf(WeekVariant.A),
+    onCreateVariant: (WeekVariant, String) -> Unit = { _, _ -> },
+    onDeleteVariant: (WeekVariant) -> Unit = {},
+    onSwitchVariant: (WeekVariant) -> Unit = {},
 ) {
     val orderedDays = remember(weekStartDay) {
         val safeStart = weekStartDay.coerceIn(1, 7)
@@ -383,6 +389,15 @@ internal fun SessionContextNavigator(
     // Create session dialog state
     var showCreateSessionDialog by remember { mutableStateOf(false) }
     var pendingCreateDay by remember { mutableIntStateOf(-1) }
+
+    // Variant menu (long-press on current session day circle)
+    var showVariantMenu by remember { mutableStateOf(false) }
+    var showCreateVariantDialog by remember { mutableStateOf(false) }
+    var newVariantName by remember { mutableStateOf("") }
+    val nextVariant = remember(availableVariants) {
+        listOf(WeekVariant.B, WeekVariant.C, WeekVariant.D)
+            .firstOrNull { it !in availableVariants }
+    }
 
     val navShape = RoundedCornerShape(28.dp)
     val navModifier = Modifier
@@ -483,82 +498,143 @@ internal fun SessionContextNavigator(
                                 else -> Color.White.copy(alpha = 0.86f)
                             }
 
-                            Box(
-                                modifier = Modifier
-                                    .size(38.dp)
-                                    .clip(CircleShape)
-                                    .background(backgroundColor)
-                                    .border(
-                                        width = borderWidth,
-                                        color = borderColor,
-                                        shape = CircleShape,
+                            val isCurrentSessionDay = hasSession && day == currentDayOfWeek
+                            // Outer Box without clip so the variant dropdown isn't clipped to the circle.
+                            Box {
+                                Box(
+                                    modifier = Modifier
+                                        .size(38.dp)
+                                        .clip(CircleShape)
+                                        .background(backgroundColor)
+                                        .border(
+                                            width = borderWidth,
+                                            color = borderColor,
+                                            shape = CircleShape,
+                                        )
+                                        .combinedClickable(
+                                            onClick = {
+                                                selectedDay = day
+                                                if (hasSession) {
+                                                    val primaryOrFirst = daySessions.firstOrNull { it.isMainSession } ?: daySessions.first()
+                                                    onSelectSession(primaryOrFirst.id)
+                                                } else {
+                                                    pendingCreateDay = day
+                                                    showCreateSessionDialog = true
+                                                }
+                                            },
+                                            onLongClick = {
+                                                if (isCurrentSessionDay) {
+                                                    selectedDay = day
+                                                    showVariantMenu = true
+                                                }
+                                            },
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        text = dayInitial(day),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = textColor,
                                     )
-                                    .clickable {
-                                        selectedDay = day
-                                        if (hasSession) {
-                                            val primaryOrFirst = daySessions.firstOrNull { it.isMainSession } ?: daySessions.first()
-                                            onSelectSession(primaryOrFirst.id)
-                                        } else {
-                                            pendingCreateDay = day
-                                            showCreateSessionDialog = true
-                                        }
-                                    },
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = dayInitial(day),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = textColor,
-                                )
-                                // Small dot for days with sessions (not selected)
-                                if (hasSession && !selectedDayChip) {
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.BottomEnd)
-                                            .offset(x = (-4).dp, y = (-4).dp)
-                                            .size(6.dp)
-                                            .clip(CircleShape)
-                                            .background(selectedDayColor),
-                                    )
-                                }
-                                if (isCompetitionKeyDay) {
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.TopStart)
-                                            .offset(x = (-3).dp, y = (-3).dp)
-                                            .size(14.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFFF59E0B)),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Text(
-                                            "C",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontSize = 8.sp,
-                                            fontWeight = FontWeight.Black,
-                                            color = Color.Black,
+                                    // Small dot for days with sessions (not selected)
+                                    if (hasSession && !selectedDayChip) {
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.BottomEnd)
+                                                .offset(x = (-4).dp, y = (-4).dp)
+                                                .size(6.dp)
+                                                .clip(CircleShape)
+                                                .background(selectedDayColor),
                                         )
                                     }
+                                    if (isCompetitionKeyDay) {
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.TopStart)
+                                                .offset(x = (-3).dp, y = (-3).dp)
+                                                .size(14.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFFF59E0B)),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Text(
+                                                "C",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontSize = 8.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = Color.Black,
+                                            )
+                                        }
+                                    }
+                                    // Session count badge for multi-session days
+                                    if (isMultiSession && selectedDayChip) {
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .offset(x = 4.dp, y = (-4).dp)
+                                                .size(16.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFFEF4444)),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Text(
+                                                "$sessionCount",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White,
+                                            )
+                                        }
+                                    }
                                 }
-                                // Session count badge for multi-session days
-                                if (isMultiSession && selectedDayChip) {
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .offset(x = 4.dp, y = (-4).dp)
-                                            .size(16.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFFEF4444)),
-                                        contentAlignment = Alignment.Center,
+                                if (isCurrentSessionDay) {
+                                    KpknDropdownMenu(
+                                        expanded = showVariantMenu,
+                                        onDismissRequest = { showVariantMenu = false },
                                     ) {
-                                        Text(
-                                            "$sessionCount",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontSize = 9.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White,
-                                        )
+                                        availableVariants.forEach { variant ->
+                                            val isActive = variant == activeVariant
+                                            val variantName = when (variant) {
+                                                WeekVariant.A -> "Original"
+                                                WeekVariant.B -> currentSession?.sessionB?.name ?: "Derivada"
+                                                WeekVariant.C -> currentSession?.sessionC?.name ?: "Derivada"
+                                                WeekVariant.D -> currentSession?.sessionD?.name ?: "Derivada"
+                                            }
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        if (isActive) "✓ $variantName" else variantName,
+                                                        fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                                                    )
+                                                },
+                                                onClick = {
+                                                    showVariantMenu = false
+                                                    if (!isActive) onSwitchVariant(variant)
+                                                },
+                                            )
+                                        }
+                                        if (activeVariant != WeekVariant.A) {
+                                            DropdownMenuItem(
+                                                text = { Text("Eliminar variante activa") },
+                                                leadingIcon = { Icon(Icons.Default.Delete, null) },
+                                                onClick = {
+                                                    showVariantMenu = false
+                                                    onDeleteVariant(activeVariant)
+                                                },
+                                            )
+                                        }
+                                        if (nextVariant != null) {
+                                            DropdownMenuItem(
+                                                text = { Text("Crear sesión derivada") },
+                                                leadingIcon = { Icon(Icons.Default.Add, null) },
+                                                onClick = {
+                                                    showVariantMenu = false
+                                                    newVariantName = "${currentSession?.name.orEmpty().ifBlank { "Sesión" }} – Rápida"
+                                                    showCreateVariantDialog = true
+                                                },
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -700,6 +776,43 @@ internal fun SessionContextNavigator(
                         Text("Cancelar")
                     }
                 }
+            },
+        )
+    }
+
+    if (showCreateVariantDialog && nextVariant != null) {
+        KpknAlertDialog(
+            onDismissRequest = { showCreateVariantDialog = false },
+            title = { Text("Nueva variante") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Crea una variante derivada de la sesión original. " +
+                            "Tendrá sus propios ejercicios, series y descansos independientes.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OutlinedTextField(
+                        value = newVariantName,
+                        onValueChange = { newVariantName = it },
+                        label = { Text("Nombre de la variante") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newVariantName.isNotBlank()) {
+                            onCreateVariant(nextVariant, newVariantName.trim())
+                            showCreateVariantDialog = false
+                        }
+                    },
+                    enabled = newVariantName.isNotBlank(),
+                ) { Text("Crear variante") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCreateVariantDialog = false }) { Text("Cancelar") }
             },
         )
     }

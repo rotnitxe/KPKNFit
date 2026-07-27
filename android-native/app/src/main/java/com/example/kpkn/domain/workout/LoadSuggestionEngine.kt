@@ -63,11 +63,25 @@ object LoadSuggestionEngine {
         val payload = set.recordedPayloadV3
         return when (loadMode) {
             LoadModeV2.ASSISTED -> payload?.assistedLoad ?: set.weight
+            LoadModeV2.BODYWEIGHT -> 0.0
             else -> payload?.externalLoad ?: set.weight
         }
     }
 
+    /** Resolves the load mode that was actually logged for [set]. */
+    fun resolvedLoadMode(set: CompletedSet): LoadModeV2 =
+        set.recordedPayloadV3?.loadInputMode
+            ?: set.homologatedResultV3?.loadMode
+            ?: LoadModeV2.LOAD
+
+    /**
+     * Capacity used for fatigue / eRM ratios.
+     * ASSISTED and BODYWEIGHT must not use the homologation pseudo-metric
+     * `(200 - assistance)` as if it were a barbell 1RM.
+     */
     fun estimatedCapacity(set: CompletedSet): Double? {
+        val mode = resolvedLoadMode(set)
+        if (mode == LoadModeV2.ASSISTED || mode == LoadModeV2.BODYWEIGHT) return null
         set.homologatedResultV3?.estimatedRm?.takeIf { it > 0.0 }?.let { return it }
         return if (set.weight > 0.0 && set.reps in 1..36) {
             calculateHybrid1RM(set.weight, set.reps)
@@ -87,8 +101,6 @@ object LoadSuggestionEngine {
         baseEntryTag: String?,
         techniqueSignal: Int,
     ): Suggestion? {
-        if (lastSet.weight <= 0.0 && inputLoad(lastSet, loadMode) <= 0.0) return null
-
         val scale = if (activeTag != baseEntryTag) {
             tagMultiplier(activeTag) / tagMultiplier(baseEntryTag)
         } else {
@@ -121,11 +133,19 @@ object LoadSuggestionEngine {
             return " ($sign$percent% por $activeTag)"
         }
 
-        val homologatedSuggestion = lastSet.homologatedResultV3?.suggestedNextLoad
-        if (homologatedSuggestion != null) {
-            val scaledSug = homologatedSuggestion * scale
-            val adjusted = (adjustWithTechnique(scaledSug) * 2).toLong() / 2.0
-            val baseReason = lastSet.homologatedResultV3?.suggestionReason
+        // Prefer homologated next-load even for BODYWEIGHT sets (weight=0), so
+        // Assistd→BW→Lastre transitions can surface in live suggestions.
+        val homologated = lastSet.homologatedResultV3
+        val homologatedSuggestion = homologated?.suggestedNextLoad
+        if (homologatedSuggestion != null || homologated?.suggestedLoadMode != null) {
+            val rawSug = homologatedSuggestion ?: 0.0
+            val scaledSug = rawSug * scale
+            val adjusted = if (homologated?.suggestedLoadMode == LoadModeV2.BODYWEIGHT) {
+                0.0
+            } else {
+                (adjustWithTechnique(scaledSug) * 2).toLong() / 2.0
+            }
+            val baseReason = homologated?.suggestionReason
                 ?: if (activeTag != null && baseEntryTag == activeTag) {
                     "Historial contextual"
                 } else {
@@ -139,9 +159,11 @@ object LoadSuggestionEngine {
             return Suggestion(
                 suggestedWeight = adjusted,
                 reason = appendTechniqueReason(finalReason),
-                suggestedLoadMode = lastSet.homologatedResultV3?.suggestedLoadMode,
+                suggestedLoadMode = homologated?.suggestedLoadMode,
             )
         }
+
+        if (lastSet.weight <= 0.0 && inputLoad(lastSet, loadMode) <= 0.0) return null
 
         val lastSetWeight = inputLoad(lastSet, loadMode)
         if (lastSetWeight <= 0.0) return null
@@ -161,6 +183,7 @@ object LoadSuggestionEngine {
         return Suggestion(
             suggestedWeight = rounded,
             reason = appendTechniqueReason(reason),
+            suggestedLoadMode = loadMode,
         )
     }
 

@@ -95,7 +95,12 @@ object WorkoutPerformanceHomologationEngine {
             UnitModeV2.REPS -> "ERM"
         }
         val trm = if (entry.unitMode == UnitModeV2.TIME) metric else null
-        val estimatedRm = if (entry.unitMode != UnitModeV2.TIME) metric else null
+        // ASSISTED/BODYWEIGHT use a non-barbell scoring metric — never expose as eRM kg.
+        val estimatedRm = when {
+            entry.unitMode == UnitModeV2.TIME -> null
+            entry.loadMode == LoadModeV2.ASSISTED || entry.loadMode == LoadModeV2.BODYWEIGHT -> null
+            else -> metric
+        }
 
         val nextState = prior.copy(
             ewma = contextStats.ewma,
@@ -297,17 +302,36 @@ object WorkoutPerformanceHomologationEngine {
         val debtOrFail = entry.debt > 0.0 || entry.failedSet
         val currentLoad = entry.loggedLoad
         if (debtOrFail) {
+            // Near-zero lastre that failed → consolidate to bodyweight (don't force LASTRE 0).
+            if (entry.loadMode == LoadModeV2.LASTRE && (currentLoad ?: 0.0) <= 2.5) {
+                return Suggestion(
+                    suggestedLoad = 0.0,
+                    reason = "Volver a peso corporal",
+                    suggestedLoadMode = LoadModeV2.BODYWEIGHT,
+                    isFailure = entry.reachedFailure,
+                )
+            }
             return Suggestion(
                 suggestedLoad = currentLoad,
                 reason = "Mantener por deuda/fallida",
+                suggestedLoadMode = entry.loadMode,
                 isFailure = entry.reachedFailure,
             )
         }
 
         if (entry.reachedFailure && entry.plannedTarget != null && entry.actualValue < entry.plannedTarget) {
+            if (entry.loadMode == LoadModeV2.LASTRE && (currentLoad ?: 0.0) <= 2.5) {
+                return Suggestion(
+                    suggestedLoad = 0.0,
+                    reason = "Volver a peso corporal",
+                    suggestedLoadMode = LoadModeV2.BODYWEIGHT,
+                    isFailure = true,
+                )
+            }
             return Suggestion(
                 suggestedLoad = currentLoad,
                 reason = "Mantener/reducir por fallo prematuro",
+                suggestedLoadMode = entry.loadMode,
                 isFailure = true,
             )
         }
@@ -388,6 +412,20 @@ object WorkoutPerformanceHomologationEngine {
 
             LoadModeV2.LASTRE -> {
                 val external = currentLoad ?: 0.0
+                // Near-zero lastre: consolidate to bodyweight instead of forcing LASTRE 0.
+                val nearZero = external <= 2.5
+                val cannotSustain = historyColor == HistoryColorV2.RED ||
+                    score < 55.0 ||
+                    isPrematureFailure(entry) ||
+                    (entry.plannedTarget != null && entry.actualValue < entry.plannedTarget)
+                if (external <= 0.0 || (nearZero && cannotSustain)) {
+                    return Suggestion(
+                        suggestedLoad = 0.0,
+                        reason = if (external <= 0.0) "Peso corporal" else "Volver a peso corporal",
+                        suggestedLoadMode = LoadModeV2.BODYWEIGHT,
+                        isFailure = entry.reachedFailure,
+                    )
+                }
                 if (external > 0.0 && (historyColor == HistoryColorV2.YELLOW || score >= 65)) {
                     return Suggestion(
                         suggestedLoad = roundToHalf(external + 2.5),
@@ -409,14 +447,6 @@ object WorkoutPerformanceHomologationEngine {
                     return Suggestion(
                         suggestedLoad = roundToHalf(external + 2.5),
                         reason = "Transición a lastre",
-                        suggestedLoadMode = LoadModeV2.LASTRE,
-                        isFailure = entry.reachedFailure,
-                    )
-                }
-                if (external == 0.0 && score >= 65) {
-                    return Suggestion(
-                        suggestedLoad = roundToHalf(2.5),
-                        reason = "Iniciar con lastre",
                         suggestedLoadMode = LoadModeV2.LASTRE,
                         isFailure = entry.reachedFailure,
                     )

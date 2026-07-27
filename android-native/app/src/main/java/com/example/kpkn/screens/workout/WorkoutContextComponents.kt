@@ -710,9 +710,10 @@ internal fun WorkoutExerciseSetupContent(
         val currentSeat = activeProfile?.setupDetails?.seatPosition ?: exercise.setupDetails?.seatPosition.orEmpty()
         val currentPin = activeProfile?.setupDetails?.pinPosition ?: exercise.setupDetails?.pinPosition.orEmpty()
         val currentNotes = activeProfile?.setupDetails?.equipmentNotes ?: exercise.setupDetails?.equipmentNotes.orEmpty()
-        val currentBarWeightKg = activeProfile?.barWeightKg
-            ?: activeProfile?.setupDetails?.barWeightKg
-            ?: exercise.setupDetails?.barWeightKg
+        val currentBaseLoadKg = com.example.kpkn.domain.workout.BaseLoadPolicy.resolvedForDisplay(
+            profile = activeProfile,
+            exercise = exercise,
+        )
 
         OutlinedTextField(
             value = currentMachine,
@@ -762,23 +763,62 @@ internal fun WorkoutExerciseSetupContent(
         }
 
         OutlinedTextField(
-            value = currentBarWeightKg?.toTrimmedNumberString().orEmpty(),
+            value = currentBaseLoadKg?.toTrimmedNumberString().orEmpty(),
             onValueChange = { value ->
                 val parsed = value.toDoubleOrNull()
-                if (activeProfile != null) {
-                    onSaveProfile(activeProfile.copy(
-                        setupDetails = (activeProfile.setupDetails ?: ExerciseSetupDetails()).copy(barWeightKg = parsed)
-                    ))
-                } else {
-                    onUpdateExercise { exercise ->
-                        exercise.copy(
-                            setupDetails = (exercise.setupDetails ?: ExerciseSetupDetails()).copy(barWeightKg = parsed)
+                val hasTag = !exerciseTag.isNullOrBlank()
+                when {
+                    // Persist to tagged profile only when a tag is active.
+                    hasTag && activeProfile != null -> {
+                        val mirrored = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
+                            activeProfile.setupDetails ?: ExerciseSetupDetails(),
+                            parsed,
                         )
+                        onSaveProfile(
+                            activeProfile.copy(
+                                tagId = activeProfile.tagId ?: exerciseTag,
+                                baseLoadKg = mirrored.baseLoadKg,
+                                barWeightKg = mirrored.barWeightKg,
+                                setupDetails = mirrored,
+                            ),
+                        )
+                    }
+                    hasTag && activeProfile == null -> {
+                        // Session exercise mirror until user creates/selects a profile;
+                        // explicit save-with-tag button also writes a profile.
+                        onUpdateExercise { ex ->
+                            ex.copy(
+                                setupDetails = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
+                                    ex.setupDetails ?: ExerciseSetupDetails(),
+                                    parsed,
+                                ),
+                            )
+                        }
+                    }
+                    else -> {
+                        // No tag: session-only (not Room / not suggestion floor).
+                        onUpdateExercise { ex ->
+                            ex.copy(
+                                setupDetails = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
+                                    ex.setupDetails ?: ExerciseSetupDetails(),
+                                    parsed,
+                                ),
+                            )
+                        }
                     }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Peso de barra (kg)") },
+            label = { Text("Carga base (kg)") },
+            supportingText = {
+                Text(
+                    if (exerciseTag.isNullOrBlank()) {
+                        "Se guarda con una etiqueta (barra vacía, pin mínimo, stack…)"
+                    } else {
+                        "Piso de sugerencias LOAD · etiqueta activa"
+                    },
+                )
+            },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
         )
@@ -814,20 +854,23 @@ internal fun WorkoutExerciseSetupContent(
             Spacer(Modifier.height(4.dp))
             Surface(
                 onClick = {
-                    val currentSetupDetails = ExerciseSetupDetails(
-                        seatPosition = currentSeat.ifBlank { null },
-                        pinPosition = currentPin.ifBlank { null },
-                        equipmentNotes = currentNotes.ifBlank { null },
-                        barWeightKg = currentBarWeightKg,
+                    val mirroredSetup = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
+                        ExerciseSetupDetails(
+                            seatPosition = currentSeat.ifBlank { null },
+                            pinPosition = currentPin.ifBlank { null },
+                            equipmentNotes = currentNotes.ifBlank { null },
+                        ),
+                        currentBaseLoadKg,
                     )
                     onSaveProfile(
                         WorkoutContextProfile(
                             id = java.util.UUID.randomUUID().toString(),
                             exerciseKey = "",
                             tagId = exerciseTag,
-                            setupDetails = currentSetupDetails,
+                            setupDetails = mirroredSetup,
                             machineBrand = currentMachine.ifBlank { null },
-                            barWeightKg = currentBarWeightKg,
+                            baseLoadKg = mirroredSetup.baseLoadKg,
+                            barWeightKg = mirroredSetup.barWeightKg,
                         )
                     )
                     hasSetupChanges = false
@@ -870,12 +913,23 @@ internal fun WorkoutExerciseSetupContent(
             confirmButton = {
                 Button(
                     onClick = {
+                        val sessionBase = com.example.kpkn.domain.workout.BaseLoadPolicy.resolvedForDisplay(
+                            profile = null,
+                            exercise = exercise,
+                        )
+                        val mirroredSetup = com.example.kpkn.domain.workout.BaseLoadPolicy.withMirroredBaseLoad(
+                            exercise.setupDetails ?: ExerciseSetupDetails(),
+                            sessionBase,
+                        )
                         onSaveProfile(
                             WorkoutContextProfile(
                                 id = java.util.UUID.randomUUID().toString(),
                                 exerciseKey = "", // Will be set by VM
                                 setupLabel = newLabel.ifBlank { "Nuevo Setup" },
-                                setupDetails = exercise.setupDetails
+                                tagId = exerciseTag,
+                                setupDetails = mirroredSetup,
+                                baseLoadKg = mirroredSetup.baseLoadKg,
+                                barWeightKg = mirroredSetup.barWeightKg,
                             )
                         )
                         showNewProfileDialog = false
@@ -1293,9 +1347,14 @@ private fun WorkoutRmCalcContent(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("e1RM: ${"%.1f".format(rmResult)} kg", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color(0xFF4CAF50))
+                    Text(
+                        if (isAssisted || isLastre) "e1RM equiv.: ${"%.1f".format(rmResult)} kg" else "e1RM: ${"%.1f".format(rmResult)} kg",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4CAF50),
+                    )
                     if ((isAssisted || isLastre) && bodyWeight != null) {
-                        Text("Peso corporal: ${bodyWeight.toTrimmedNumberString()} kg", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
+                        Text("Peso corporal (solo cálculo): ${bodyWeight.toTrimmedNumberString()} kg", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
                     }
                 }
             }

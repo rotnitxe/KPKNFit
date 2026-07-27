@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -49,12 +50,19 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.workout.SupersetRules
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import com.example.kpkn.screens.sessioneditor.resolvePartAccent
+import com.example.kpkn.screens.sessioneditor.resolveExerciseAccentHex
+import com.example.kpkn.screens.sessioneditor.toEditorColor
 import com.example.kpkn.screens.sessioneditor.components.CompetitionSessionEditor
 import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.SupersetGroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.matchesCompetitionMovement
+
+private fun Modifier.drawPartBorder(partAccent: Color): Modifier = this
 
 @Composable
 internal fun SessionEditorListItem(
@@ -156,10 +164,14 @@ internal fun SessionEditorListItem(
         is SessionListItem.PartExercise -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
             val exercise = part.exercises.firstOrNull { it.id == listItem.exerciseId } ?: return
+            val partAccent = remember(part.color) { resolvePartAccent(part.color) }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .padding(horizontal = 16.dp)
+                    .background(partAccent.brush(alpha = 0.06f))
+                    .drawPartBorder(partAccent.primary)
+                    .padding(horizontal = 4.dp, vertical = 4.dp)
                     .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInRoot()) },
             ) {
                 PartExerciseItem(
@@ -231,10 +243,14 @@ internal fun SessionEditorListItem(
                 part.exercises.firstOrNull { it.id == id }
             }
             if (supersetMembers.size < 2) return
+            val partAccent = remember(part.color) { resolvePartAccent(part.color) }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .padding(horizontal = 16.dp)
+                    .background(partAccent.brush(alpha = 0.06f))
+                    .drawPartBorder(partAccent.primary)
+                    .padding(horizontal = 4.dp, vertical = 4.dp)
                     .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInRoot()) },
             ) {
                 PartSupersetItem(
@@ -265,22 +281,33 @@ internal fun SessionEditorListItem(
         is SessionListItem.PartAddExercise -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
             val displayName = part.name.trim().ifBlank { "GRUPO" }.uppercase()
-            FilledTonalButton(
-                onClick = { viewModel.openPicker(part.id) },
+            val partAccent = remember(part.color) { resolvePartAccent(part.color) }
+            val footerShape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 4.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                    .padding(horizontal = 16.dp)
+                    .clip(footerShape)
+                    .background(partAccent.brush(alpha = 0.06f))
+                    .padding(horizontal = 4.dp, vertical = 6.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    "Añadir ejercicio en $displayName",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.labelMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                FilledTonalButton(
+                    onClick = { viewModel.openPicker(part.id) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 2.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        "Añadir ejercicio en $displayName",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
 
@@ -312,13 +339,14 @@ private fun LooseExerciseItem(
     viewModel: SessionEditorViewModel,
 ) {
     val partId = "__loose__"
+    val accentHex = resolveExerciseAccentHex(session, partColor = null)
     key("loose|${exercise.id}") {
         DropGapProjection(
             visible = draggingExerciseId != null && (
                 (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == index) ||
                     exerciseDropTargetKey == "$partId|${exercise.id}"
                 ),
-            accentColor = PART_COLORS.first().toEditorColor(),
+            accentColor = accentHex.toEditorColor(),
         )
         val projectedShift by animateFloatAsState(
             targetValue = projectedShiftFor(partId, index, exercise.id),
@@ -328,7 +356,7 @@ private fun LooseExerciseItem(
         ExerciseEditorCard(
             exercise = exercise,
             exerciseInfo = exercise.exerciseDbId?.let { exerciseInfoById[it] },
-            accentHex = PART_COLORS.first(),
+            accentHex = accentHex,
             partId = partId,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
             modifier = Modifier.fillMaxWidth().graphicsLayer { translationY = projectedShift },
@@ -350,6 +378,8 @@ private fun LooseExerciseItem(
             onMoveSet = { setId, dir -> viewModel.moveSet(null, exercise.id, setId, dir) },
             onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(null, exercise.id, mobilityId) },
             onOpenQuickActions = { viewModel.openExerciseQuickActions(null, exercise.id) },
+            onOpenWarmup = { viewModel.openWarmup(exercise.id) },
+            onOpenMobility = { viewModel.openMobilityPicker(null, exercise.id) },
             relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
             onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, exercise.id) },
             onClearRelationship = { viewModel.linkExerciseRelativeTo(null, exercise.id, null) },
@@ -397,12 +427,13 @@ private fun PartExerciseItem(
     viewModel: SessionEditorViewModel,
 ) {
     key("${part.id}|${exercise.id}") {
+        val accentHex = resolveExerciseAccentHex(session, part.color)
         DropGapProjection(
             visible = draggingExerciseId != null && (
                 (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index) ||
                     exerciseDropTargetKey == "${part.id}|${exercise.id}"
                 ),
-            accentColor = (part.color ?: PART_COLORS.first()).toEditorColor(),
+            accentColor = accentHex.toEditorColor(),
         )
         val projectedShift by animateFloatAsState(
             targetValue = projectedShiftFor(part.id, index, exercise.id),
@@ -412,7 +443,7 @@ private fun PartExerciseItem(
         ExerciseEditorCard(
             exercise = exercise,
             exerciseInfo = exercise.exerciseDbId?.let { exerciseInfoById[it] },
-            accentHex = part.color,
+            accentHex = accentHex,
             partId = part.id,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
             modifier = Modifier.fillMaxWidth().graphicsLayer { translationY = projectedShift },
@@ -434,6 +465,8 @@ private fun PartExerciseItem(
             onMoveSet = { setId, dir -> viewModel.moveSet(part.id, exercise.id, setId, dir) },
             onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(part.id, exercise.id, mobilityId) },
             onOpenQuickActions = { viewModel.openExerciseQuickActions(part.id, exercise.id) },
+            onOpenWarmup = { viewModel.openWarmup(exercise.id) },
+            onOpenMobility = { viewModel.openMobilityPicker(part.id, exercise.id) },
             relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
             onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, exercise.id) },
             onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, exercise.id, null) },
@@ -482,13 +515,14 @@ private fun LooseSupersetItem(
     viewModel: SessionEditorViewModel,
 ) {
     val partId = "__loose__"
+    val accentHex = resolveExerciseAccentHex(session, partColor = null)
     val firstMember = supersetMembers.first()
     DropGapProjection(
         visible = draggingExerciseId != null && (
             (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == index) ||
                 exerciseDropTargetKey == "$partId|${firstMember.id}"
             ),
-        accentColor = PART_COLORS.first().toEditorColor(),
+        accentColor = accentHex.toEditorColor(),
     )
     val projectedShift by animateFloatAsState(
         targetValue = projectedShiftFor(partId, index, firstMember.id),
@@ -498,7 +532,7 @@ private fun LooseSupersetItem(
     SupersetGroupEditorCard(
         group = supersetGroup,
         exercises = supersetMembers,
-        accentHex = PART_COLORS.first(),
+        accentHex = accentHex,
         partId = null,
         isDragging = draggingExerciseId == firstMember.id,
         dragOffset = if (draggingExerciseId == firstMember.id) draggingExerciseOffset else Offset.Zero,
@@ -536,7 +570,7 @@ private fun LooseSupersetItem(
                 ExerciseEditorCard(
                     exercise = member,
                     exerciseInfo = member.exerciseDbId?.let { exerciseInfoById[it] },
-                    accentHex = PART_COLORS.first(),
+                    accentHex = accentHex,
                     partId = partId,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),
@@ -558,6 +592,8 @@ private fun LooseSupersetItem(
                     onMoveSet = { setId, dir -> viewModel.moveSet(null, member.id, setId, dir) },
                     onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(null, member.id, mobilityId) },
                     onOpenQuickActions = { viewModel.openExerciseQuickActions(null, member.id) },
+                    onOpenWarmup = { viewModel.openWarmup(member.id) },
+                    onOpenMobility = { viewModel.openMobilityPicker(null, member.id) },
                     relationshipAnchorName = resolveRelationshipAnchorName(session, member),
                     onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, member.id) },
                     onClearRelationship = { viewModel.linkExerciseRelativeTo(null, member.id, null) },
@@ -602,13 +638,14 @@ private fun PartSupersetItem(
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
 ) {
+    val accentHex = resolveExerciseAccentHex(session, part.color)
     val firstMember = supersetMembers.first()
     DropGapProjection(
         visible = draggingExerciseId != null && (
             (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index) ||
                 exerciseDropTargetKey == "${part.id}|${firstMember.id}"
             ),
-        accentColor = (part.color ?: PART_COLORS.first()).toEditorColor(),
+        accentColor = accentHex.toEditorColor(),
     )
     val projectedShift by animateFloatAsState(
         targetValue = projectedShiftFor(part.id, index, firstMember.id),
@@ -618,7 +655,7 @@ private fun PartSupersetItem(
     SupersetGroupEditorCard(
         group = supersetGroup,
         exercises = supersetMembers,
-        accentHex = part.color,
+        accentHex = accentHex,
         partId = part.id,
         isDragging = draggingExerciseId == firstMember.id,
         dragOffset = if (draggingExerciseId == firstMember.id) draggingExerciseOffset else Offset.Zero,
@@ -656,7 +693,7 @@ private fun PartSupersetItem(
                 ExerciseEditorCard(
                     exercise = member,
                     exerciseInfo = member.exerciseDbId?.let { exerciseInfoById[it] },
-                    accentHex = part.color,
+                    accentHex = accentHex,
                     partId = part.id,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),
@@ -678,6 +715,8 @@ private fun PartSupersetItem(
                     onMoveSet = { setId, dir -> viewModel.moveSet(part.id, member.id, setId, dir) },
                     onRemoveMobility = { mobilityId -> viewModel.removeMobilitySeries(part.id, member.id, mobilityId) },
                     onOpenQuickActions = { viewModel.openExerciseQuickActions(part.id, member.id) },
+                    onOpenWarmup = { viewModel.openWarmup(member.id) },
+                    onOpenMobility = { viewModel.openMobilityPicker(part.id, member.id) },
                     relationshipAnchorName = resolveRelationshipAnchorName(session, member),
                     onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, member.id) },
                     onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, member.id, null) },

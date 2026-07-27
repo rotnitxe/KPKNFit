@@ -2,18 +2,23 @@ package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
+import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTemplate
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
 import com.example.kpkn.domain.templates.SessionTemplateEngine
+import com.example.kpkn.domain.templates.SessionTemplateSuggestionEngine
+import com.example.kpkn.domain.templates.SuggestionPrefs
 import java.util.UUID
 
 enum class SplitTemporalScope { CURRENT_WEEK, SELECTED_WEEKS, CURRENT_BLOCK, WHOLE_PROGRAM }
@@ -42,14 +47,33 @@ data class SplitPatternDay(
     val dayOfWeek: Int,
 )
 
+data class SplitTemplateAlternativePreview(
+    val templateId: String,
+    val templateName: String,
+    val primaryFocusMuscle: String?,
+    val focusLabel: String,
+)
+
 data class SplitTemplateSessionPreview(
     val dayLabel: String,
+    val dayIndex: Int = 0,
     val templateId: String?,
     val templateName: String?,
     val exerciseCount: Int,
+    val primaryFocusMuscle: String? = null,
+    val focusLabel: String? = null,
+    val alternatives: List<SplitTemplateAlternativePreview> = emptyList(),
 ) {
     val isAvailable: Boolean get() = templateId != null
 }
+
+data class PrebuiltWeekPreview(
+    val days: List<SplitTemplateSessionPreview>,
+    val weeklyDrain: PredictedDrain = PredictedDrain(0, 0, 0),
+    val warnings: List<String> = emptyList(),
+    val exceedsWeeklyBudget: Boolean = false,
+)
+
 data class SplitImpactSummary(
     val affectedWeeks: Int,
     val affectedSessions: Int,
@@ -70,6 +94,7 @@ data class SplitApplicationRequest(
     val advancedMode: AdvancedSplitMode = AdvancedSplitMode.GLOBAL,
     val migrationMode: SessionMigrationMode = SessionMigrationMode.MIGRATE,
     val perBlockSelections: Map<String, String> = emptyMap(),
+    val prebuiltPrefs: SuggestionPrefs = SuggestionPrefs(),
 )
 
 object SplitApplicationEngine {
@@ -186,6 +211,7 @@ object SplitApplicationEngine {
                                                 startDay = effectiveStartDay,
                                                 existingSessions = week.sessions,
                                                 migrationMode = request.migrationMode,
+                                                prefs = request.prebuiltPrefs,
                                             )
                                         )
                                     }
@@ -197,23 +223,47 @@ object SplitApplicationEngine {
             }
         )
     }
-    fun prebuiltSessionPreview(split: SplitTemplate): List<SplitTemplateSessionPreview> {
-        return split.pattern
-            .filterNot { it.equals("Descanso", ignoreCase = true) }
-            .map { dayLabel ->
-                val template = SessionTemplateCatalogPolicy.templatesForSplitDay(
-                    splitId = split.id,
-                    dayLabel = dayLabel,
-                    templates = SESSION_TEMPLATES_SYSTEM,
-                ).firstOrNull()
+    fun prebuiltWeekPreview(
+        split: SplitTemplate,
+        prefs: SuggestionPrefs = SuggestionPrefs(preferredDifficulty = split.difficulty),
+        templates: List<SessionTemplate> = SESSION_TEMPLATES_SYSTEM,
+        exerciseIndex: Map<String, ExerciseMuscleInfo> = EXERCISE_DATABASE_BY_ID,
+    ): PrebuiltWeekPreview {
+        val plan = SessionTemplateSuggestionEngine.suggestWeek(
+            split = split,
+            templates = templates,
+            exerciseIndex = exerciseIndex,
+            prefs = prefs,
+        )
+        return PrebuiltWeekPreview(
+            days = plan.days.map { day ->
                 SplitTemplateSessionPreview(
-                    dayLabel = dayLabel,
-                    templateId = template?.id,
-                    templateName = template?.name,
-                    exerciseCount = template?.exerciseCount ?: 0,
+                    dayLabel = day.dayLabel,
+                    dayIndex = day.dayIndex,
+                    templateId = day.template?.id,
+                    templateName = day.template?.name,
+                    exerciseCount = day.template?.exerciseCount ?: 0,
+                    primaryFocusMuscle = day.template?.primaryFocusMuscle,
+                    focusLabel = day.template?.let { focusChipLabel(it) },
+                    alternatives = day.alternatives.map { alt ->
+                        SplitTemplateAlternativePreview(
+                            templateId = alt.id,
+                            templateName = alt.name,
+                            primaryFocusMuscle = alt.primaryFocusMuscle,
+                            focusLabel = focusChipLabel(alt),
+                        )
+                    },
                 )
-            }
+            },
+            weeklyDrain = plan.weeklyDrain,
+            warnings = plan.warnings,
+            exceedsWeeklyBudget = plan.exceedsWeeklyBudget,
+        )
     }
+
+    @Deprecated("Use prebuiltWeekPreview(split).days")
+    fun prebuiltSessionPreview(split: SplitTemplate): List<SplitTemplateSessionPreview> =
+        prebuiltWeekPreview(split).days
 
     fun buildSessionsForSplit(
         splitId: String? = null,
@@ -222,6 +272,9 @@ object SplitApplicationEngine {
         startDay: Int,
         existingSessions: List<Session>,
         migrationMode: SessionMigrationMode,
+        prefs: SuggestionPrefs = SuggestionPrefs(),
+        templates: List<SessionTemplate> = SESSION_TEMPLATES_SYSTEM,
+        exerciseIndex: Map<String, ExerciseMuscleInfo> = EXERCISE_DATABASE_BY_ID,
     ): List<Session> {
         val trainingDays = patternToTrainingDays(pattern, startDay)
         if (trainingDays.isEmpty()) return emptyList()
@@ -239,16 +292,30 @@ object SplitApplicationEngine {
         )
 
         if (migrationMode == SessionMigrationMode.PREBUILT) {
+            val split = resolveSplitForSuggestion(splitId, pattern)
+            val byDayIndex = if (split != null) {
+                SessionTemplateSuggestionEngine.suggestWeek(
+                    split = split,
+                    templates = templates,
+                    exerciseIndex = exerciseIndex,
+                    prefs = prefs.copy(
+                        preferredDifficulty = prefs.preferredDifficulty ?: split.difficulty,
+                    ),
+                ).days.associate { it.dayIndex to it.template }
+            } else {
+                emptyMap()
+            }
             return normalizeMainSessions(
-                trainingDays.map { day ->
+                trainingDays.mapIndexed { index, day ->
                     val base = blankSession(day)
-                    val template = splitId?.let {
-                        SessionTemplateCatalogPolicy.templatesForSplitDay(
-                            splitId = it,
-                            dayLabel = day.label,
-                            templates = SESSION_TEMPLATES_SYSTEM,
-                        ).firstOrNull()
-                    }
+                    val template = byDayIndex[index]
+                        ?: splitId?.let {
+                            SessionTemplateCatalogPolicy.templatesForSplitDay(
+                                splitId = it,
+                                dayLabel = day.label,
+                                templates = templates,
+                            ).firstOrNull()
+                        }
                     if (template == null) base
                     else SessionTemplateEngine.applyTemplate(template, base, SessionTemplateApplyMode.REPLACE).copy(
                         name = day.label,
@@ -283,6 +350,25 @@ object SplitApplicationEngine {
         }
 
         return normalizeMainSessions(reassigned)
+    }
+
+    private fun resolveSplitForSuggestion(splitId: String?, pattern: List<String>): SplitTemplate? {
+        if (splitId == null) return null
+        SPLIT_TEMPLATES.firstOrNull { it.id == splitId }?.let { return it }
+        return SplitTemplate(
+            id = splitId,
+            name = splitId,
+            description = "",
+            pattern = pattern,
+        )
+    }
+
+    private fun focusChipLabel(template: SessionTemplate): String {
+        template.primaryFocusMuscle?.takeIf { it.isNotBlank() }?.let { return it }
+        template.focusCategory?.name?.let { raw ->
+            return raw.lowercase().replaceFirstChar { it.titlecase() }
+        }
+        return template.shortDescription.takeIf { it.isNotBlank() } ?: template.name
     }
     fun copySessionsWithNewIds(sessions: List<Session>): List<Session> {
         return normalizeMainSessions(sessions.map { it.deepCopyWithNewIds() })

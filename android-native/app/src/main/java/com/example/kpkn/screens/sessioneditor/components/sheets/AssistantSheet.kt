@@ -81,9 +81,13 @@ import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SessionEstimatedRings
 import com.example.kpkn.screens.sessioneditor.buildMuscleVolumeRows
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
-import com.example.kpkn.ui.components.kpknGlass
-import dev.chrisbanes.haze.HazeState
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.KpknSheetLightChip
+import com.example.kpkn.ui.components.KpknSheetTokens
+import com.example.kpkn.ui.components.KpknSheetWhiteButton
+import com.example.kpkn.ui.components.kpknSheetWhiteFieldColors
+import dev.chrisbanes.haze.HazeState
 
 private val EnergyRingColor = com.example.kpkn.ui.theme.RingBlue
 private val SpineRingColor = com.example.kpkn.ui.theme.RingYellow
@@ -92,37 +96,10 @@ private val DirectBarColor = Color(0xFF22C55E)
 private val IndirectBarColor = Color(0xFF64748B)
 
 @Composable
-private fun AssistantLightTabChip(
-    label: String,
-    selected: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier = modifier
-            .height(32.dp)
-            .clip(RoundedCornerShape(999.dp))
-            .background(if (selected) Color.White else Color.White.copy(alpha = 0.78f))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Black,
-            color = Color.Black,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-@Composable
 internal fun AssistantGlassOverlay(
     uiState: SessionEditorUiState,
     templates: List<SessionTemplate>,
-    hazeState: HazeState,
+    @Suppress("UNUSED_PARAMETER") hazeState: HazeState,
     onDismiss: () -> Unit,
     onApplyAugeCorrection: (String) -> Unit,
     onAddGhostExercise: (String) -> Unit,
@@ -132,115 +109,20 @@ internal fun AssistantGlassOverlay(
     onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
     onCancelTemplateApply: () -> Unit,
 ) {
-    val panelInteraction = remember { MutableInteractionSource() }
-    val sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-    val scope = rememberCoroutineScope()
-    val density = LocalDensity.current
-
-    // Offset inmediato durante el drag; Animatable solo para el settle.
-    var dragOffsetPx by remember { mutableFloatStateOf(0f) }
-    val settleAnim = remember { Animatable(0f) }
-
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().zIndex(300f)) {
-        val sheetHeightPx = with(density) { (maxHeight * 0.92f).toPx() }
-        // Umbral de descarte: el menor entre ~150dp y el 25% de la altura del sheet.
-        val dismissThresholdPx = with(density) {
-            minOf(150.dp.toPx(), sheetHeightPx * 0.25f)
-        }
-        // Progreso 0..1 del arrastre para atenuar el scrim.
-        val dragProgress = (dragOffsetPx / sheetHeightPx).coerceIn(0f, 1f)
-
-        fun settle() {
-            scope.launch {
-                settleAnim.snapTo(dragOffsetPx)
-                if (dragOffsetPx >= dismissThresholdPx) {
-                    settleAnim.animateTo(sheetHeightPx, animationSpec = tween(durationMillis = 220)) {
-                        dragOffsetPx = value
-                    }
-                    onDismiss()
-                } else {
-                    settleAnim.animateTo(
-                        targetValue = 0f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessMediumLow,
-                        ),
-                    ) {
-                        dragOffsetPx = value
-                    }
-                }
-            }
-        }
-
-        val dragModifier = Modifier.pointerInput(sheetHeightPx, dismissThresholdPx) {
-            detectVerticalDragGestures(
-                onDragEnd = { settle() },
-                onDragCancel = { settle() },
-                onVerticalDrag = { change, dragAmount ->
-                    change.consume()
-                    dragOffsetPx = (dragOffsetPx + dragAmount).coerceAtLeast(0f)
-                },
-            )
-        }
-
-        // Scrim — tap outside to dismiss; se aclara al arrastrar.
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.52f * (1f - dragProgress)))
-                .clickable(onClick = onDismiss),
+    // Uses KpknSheet (portal + LocalHazeState) so blur samples MainActivity's hazeSource.
+    // Do NOT pass the session-local hazeState — the sheet is not a sibling of that source.
+    KpknSheet(onDismissRequest = onDismiss) {
+        AssistantSheet(
+            uiState = uiState,
+            templates = templates,
+            onApplyAugeCorrection = onApplyAugeCorrection,
+            onAddGhostExercise = onAddGhostExercise,
+            onApplyAssistantSuggestion = onApplyAssistantSuggestion,
+            onTemplateSearchChange = onTemplateSearchChange,
+            onSelectTemplate = onSelectTemplate,
+            onConfirmApplyTemplate = onConfirmApplyTemplate,
+            onCancelTemplateApply = onCancelTemplateApply,
         )
-        // True bottom sheet: full-bleed, rounded top only, draggable handle/header
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .fillMaxHeight(0.92f)
-                .offset { IntOffset(0, dragOffsetPx.roundToInt()) }
-                .clip(sheetShape)
-                .kpknGlass(hazeState, sheetShape)
-                .clickable(
-                    interactionSource = panelInteraction,
-                    indication = null,
-                    onClick = {},
-                ),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .navigationBarsPadding(),
-            ) {
-                // Zona táctil ampliada (~36dp) que captura el drag hacia abajo.
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(36.dp)
-                        .then(dragModifier)
-                        .semantics {
-                            contentDescription = "Arrastra hacia abajo para minimizar el asistente"
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(width = 42.dp, height = 5.dp)
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(Color.White.copy(alpha = 0.35f)),
-                    )
-                }
-                AssistantSheet(
-                    uiState = uiState,
-                    templates = templates,
-                    onApplyAugeCorrection = onApplyAugeCorrection,
-                    onAddGhostExercise = onAddGhostExercise,
-                    onApplyAssistantSuggestion = onApplyAssistantSuggestion,
-                    onTemplateSearchChange = onTemplateSearchChange,
-                    onSelectTemplate = onSelectTemplate,
-                    onConfirmApplyTemplate = onConfirmApplyTemplate,
-                    onCancelTemplateApply = onCancelTemplateApply,
-                )
-            }
-        }
     }
 }
 
@@ -270,7 +152,6 @@ internal fun AssistantSheet(
     Column(
         Modifier
             .fillMaxWidth()
-            .fillMaxHeight()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
             .padding(top = 14.dp, bottom = 24.dp),
@@ -292,7 +173,7 @@ internal fun AssistantSheet(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             tabs.forEachIndexed { index, title ->
-                AssistantLightTabChip(
+                KpknSheetLightChip(
                     label = title.uppercase(),
                     selected = selectedTab == index,
                     modifier = Modifier.weight(1f),
@@ -643,20 +524,22 @@ internal fun AssistantTemplatesTab(
     OutlinedTextField(
         value = searchQuery,
         onValueChange = onSearchChange,
-        placeholder = { Text("Buscar plantilla...") },
-        leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(18.dp)) },
+        placeholder = {
+            Text("Buscar plantilla...", color = KpknSheetTokens.ControlPlaceholder)
+        },
+        leadingIcon = {
+            Icon(
+                Icons.Default.Search,
+                null,
+                modifier = Modifier.size(18.dp),
+                tint = KpknSheetTokens.ControlLabel,
+            )
+        },
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = Color.White.copy(alpha = 0.22f),
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            cursorColor = Color.White,
-            focusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
-            unfocusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
-        ),
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = KpknSheetTokens.ControlLabel),
+        colors = kpknSheetWhiteFieldColors(),
     )
     Box(modifier = Modifier.height(10.dp))
     TemplateCatalogBrowser(
@@ -706,9 +589,10 @@ internal fun AssistantSuggestionCard(
             suggestion.type == com.example.kpkn.domain.sessionassistant.AssistantActionType.REDUCE_SET ||
             suggestion.type == com.example.kpkn.domain.sessionassistant.AssistantActionType.REMOVE_FAILURE
         ) {
-            FilledTonalButton(onClick = { onApplySuggestion(suggestion.id) }) {
-                Text("Aplicar", fontWeight = FontWeight.Bold)
-            }
+            KpknSheetWhiteButton(
+                text = "Aplicar",
+                onClick = { onApplySuggestion(suggestion.id) },
+            )
         }
     }
 }

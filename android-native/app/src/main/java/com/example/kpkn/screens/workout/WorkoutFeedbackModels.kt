@@ -16,7 +16,7 @@ import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
+import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.time.LocalDate
 
@@ -96,6 +96,12 @@ data class SessionClosingFeedback(
     val finalSpinalBattery: Int? = null,
     val finalMuscularBattery: Int? = null,
     val finalMuscleBatteries: Map<String, Int> = emptyMap(),
+    /** True when the user dragged/edited the neural ring vs engine seed. */
+    val neuralEdited: Boolean = false,
+    /** True when the user dragged/edited the spinal ring vs engine seed. */
+    val spinalEdited: Boolean = false,
+    /** True when the user edited any per-muscle slider vs engine seed. */
+    val musclesEdited: Boolean = false,
     val additionalDiscomfortNote: String? = null,
     val stillPresentDiscomfortIds: List<String> = emptyList(),
 )
@@ -223,7 +229,7 @@ fun mapWorkoutToPostSessionFeedback(
             ?.firstOrNull { it.role == MuscleRole.PRIMARY }
         if (primary != null) {
             val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, primary.emphasis)
-            getAugeMuscleDisplayId(canonical, primary.emphasis)
+            getAugeMusclePillarId(canonical, primary.emphasis)
         } else feedback.exerciseName
     }
 

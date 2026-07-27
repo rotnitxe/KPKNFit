@@ -101,7 +101,7 @@ import java.util.UUID
 import kotlin.math.roundToInt
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknGlass
-import com.example.kpkn.ui.components.kpknWindowGlass
+import com.example.kpkn.ui.components.KpknGlassDialog
 
 private val OVERLAY_BG = Color(0xE60A0C10)
 private val PANEL_BG = Color(0xF214171C)
@@ -430,25 +430,14 @@ fun NutritionPlanEditorModal(
         )
     }
 
-    Dialog(
+    KpknGlassDialog(
         onDismissRequest = { requestDismiss() },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            dismissOnClickOutside = false,
-            dismissOnBackPress = false,
-        ),
+        dismissOnScrimClick = false,
+        dismissOnBackPress = false,
+        shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
+        modifier = Modifier.fillMaxHeight(0.94f),
+        maxWidth = 720.dp,
     ) {
-        val editorDialogShape = RoundedCornerShape(KpknGlass.DialogCornerRadius)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.94f)
-                .kpknWindowGlass(editorDialogShape),
-            shape = editorDialogShape,
-            color = Color.Transparent,
-            tonalElevation = 0.dp,
-            shadowElevation = 16.dp,
-        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1981,7 +1970,6 @@ fun NutritionPlanEditorModal(
                     }
                 }
             }
-        }
     }
 }
 

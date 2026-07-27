@@ -20,6 +20,7 @@ class SessionEditorUnilateralToggleTest {
 
         assertTrue(updated.isUnilateral)
         assertEquals(UnilateralMode.UNILATERAL_PAIRED, updated.unilateralMode)
+        assertEquals(15, updated.restBetweenSidesSeconds)
     }
 
     @Test

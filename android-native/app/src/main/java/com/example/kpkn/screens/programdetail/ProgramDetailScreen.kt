@@ -49,7 +49,7 @@ import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.ProgramAnalyticsEngine
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.ui.components.KpknGlass
-import com.example.kpkn.ui.components.kpknWindowGlass
+import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.programdetail.components.*
 import com.example.kpkn.services.workout.LoopNotificationManager
@@ -1013,31 +1013,33 @@ private fun CalendarWeeksDialog(
             }.getOrDefault(System.currentTimeMillis())
         }
         val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
-        val datePickerShape = RoundedCornerShape(KpknGlass.DialogCornerRadius)
-        DatePickerDialog(
+        KpknGlassDialog(
             onDismissRequest = { showDatePicker = false },
-            modifier = Modifier.kpknWindowGlass(datePickerShape),
-            shape = datePickerShape,
-            colors = DatePickerDefaults.colors(containerColor = Color.Transparent),
-            tonalElevation = 0.dp,
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            startDate = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
-                                .toString()
-                        }
-                        showDatePicker = false
-                    },
-                ) { Text("Usar fecha") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
-            },
+            shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
         ) {
-            DatePicker(state = datePickerState)
+            Column(modifier = Modifier.padding(12.dp)) {
+                DatePicker(
+                    state = datePickerState,
+                    colors = DatePickerDefaults.colors(containerColor = Color.Transparent),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
+                    TextButton(
+                        onClick = {
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                startDate = Instant.ofEpochMilli(millis)
+                                    .atZone(ZoneId.systemDefault())
+                                    .toLocalDate()
+                                    .toString()
+                            }
+                            showDatePicker = false
+                        },
+                    ) { Text("Usar fecha") }
+                }
+            }
         }
     }
 }

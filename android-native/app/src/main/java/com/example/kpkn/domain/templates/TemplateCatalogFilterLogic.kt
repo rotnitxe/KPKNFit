@@ -131,7 +131,12 @@ object TemplateCatalogFilterLogic {
             TemplateSessionType.EMPUJE -> SessionTemplateTag.EMPUJE in tags
             TemplateSessionType.TIRON -> SessionTemplateTag.TIRON in tags
             TemplateSessionType.PIERNAS ->
-                SessionTemplateTag.PIERNA in tags || focus == SessionTemplateFocusCategory.PIERNAS
+                SessionTemplateTag.PIERNA in tags ||
+                    SessionTemplateTag.CUADRICEPS in tags ||
+                    SessionTemplateTag.ISQUIOTIBIALES in tags ||
+                    focus == SessionTemplateFocusCategory.PIERNAS ||
+                    focus == SessionTemplateFocusCategory.CUADRICEPS ||
+                    focus == SessionTemplateFocusCategory.ISQUIOS
             TemplateSessionType.TORSO -> SessionTemplateTag.TORSO in tags
             TemplateSessionType.FULL_BODY ->
                 SessionTemplateTag.CUERPO_COMPLETO in tags || focus == SessionTemplateFocusCategory.FULL_BODY
@@ -222,6 +227,8 @@ object TemplateCatalogFilterLogic {
 
     fun focusCategoryLabel(category: SessionTemplateFocusCategory): String = when (category) {
         SessionTemplateFocusCategory.PIERNAS -> "Piernas"
+        SessionTemplateFocusCategory.CUADRICEPS -> "Cuádriceps"
+        SessionTemplateFocusCategory.ISQUIOS -> "Isquios"
         SessionTemplateFocusCategory.BRAZOS -> "Brazos"
         SessionTemplateFocusCategory.GLUTEOS -> "Glúteos"
         SessionTemplateFocusCategory.PECHO -> "Pecho"

@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -45,6 +46,7 @@ fun SectionHeader(
 fun SwipeToDeleteCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(28.dp),
     content: @Composable () -> Unit,
 ) {
     val deleteThreshold = 80.dp
@@ -54,7 +56,7 @@ fun SwipeToDeleteCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp)),
+            .clip(shape),
     ) {
         // Delete background (visible when swiping left)
         if (animatedOffset < 0f) {

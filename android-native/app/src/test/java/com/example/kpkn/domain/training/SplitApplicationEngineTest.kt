@@ -12,6 +12,8 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTemplate
+import com.example.kpkn.domain.templates.SessionTemplateSuggestionEngine
+import com.example.kpkn.domain.templates.SuggestionPrefs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -162,6 +164,44 @@ class SplitApplicationEngineTest {
         val firstIds = torsoSessions[0].exercises.map { it.id } + torsoSessions[0].parts.flatMap { part -> part.exercises.map { it.id } }
         val secondIds = torsoSessions[1].exercises.map { it.id } + torsoSessions[1].parts.flatMap { part -> part.exercises.map { it.id } }
         assertTrue(firstIds.intersect(secondIds.toSet()).isEmpty())
+    }
+
+    @Test
+    fun prebuilt_ul_x4_uses_suggestion_not_firstOrNull() {
+        val split = SPLIT_TEMPLATES.first { it.id == "ul_x4" }
+        val plan = SessionTemplateSuggestionEngine.suggestWeek(
+            split = split,
+            prefs = SuggestionPrefs(preferredDifficulty = split.difficulty),
+        )
+        val legPlans = plan.days.filter { it.dayLabel.equals("Pierna", ignoreCase = true) }
+        assertEquals(2, legPlans.size)
+        assertNotEquals(legPlans[0].template?.id, legPlans[1].template?.id)
+
+        val sessions = SplitApplicationEngine.buildSessionsForSplit(
+            splitId = split.id,
+            pattern = split.pattern,
+            startDay = 1,
+            existingSessions = emptyList(),
+            migrationMode = SessionMigrationMode.PREBUILT,
+            prefs = SuggestionPrefs(preferredDifficulty = split.difficulty),
+        )
+        val legSessions = sessions.filter { it.scheduleLabel.equals("Pierna", ignoreCase = true) }
+        assertEquals(2, legSessions.size)
+        fun firstExerciseName(session: Session): String? {
+            session.exercises.firstOrNull()?.name?.let { return it }
+            return session.parts.firstOrNull()?.exercises?.firstOrNull()?.name
+        }
+        val names = legSessions.map { firstExerciseName(it) }
+        val fingerprints = legSessions.map { session ->
+            (session.exercises.map { it.exerciseDbId ?: it.name } +
+                session.parts.flatMap { part -> part.exercises.map { it.exerciseDbId ?: it.name } })
+                .joinToString("|")
+        }
+        assertTrue(
+            "Los dos días Pierna deberían diferir en contenido o en plantilla sugerida; names=$names fingerprints=$fingerprints",
+            fingerprints[0] != fingerprints[1] || names[0] != names[1] ||
+                legPlans[0].template?.id != legPlans[1].template?.id,
+        )
     }
 
     @Test

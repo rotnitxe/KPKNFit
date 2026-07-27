@@ -314,7 +314,9 @@ class WorkoutTagsContextController(
                     profile.machineBrand?.let { add(WorkoutSubTag(name = it, category = SubTagCategory.MARCA)) }
                     profile.setupDetails?.seatPosition?.let { add(WorkoutSubTag(name = "Asiento: $it", category = SubTagCategory.SETUP)) }
                     profile.setupDetails?.pinPosition?.let { add(WorkoutSubTag(name = "Pin: $it", category = SubTagCategory.SETUP)) }
-                    profile.setupDetails?.barWeightKg?.let { add(WorkoutSubTag(name = "Barra: ${it}kg", category = SubTagCategory.SETUP)) }
+                    com.example.kpkn.domain.workout.BaseLoadPolicy.resolvedFromProfile(profile)?.let {
+                        add(WorkoutSubTag(name = "Carga base: ${it}kg", category = SubTagCategory.SETUP))
+                    }
                     profile.setupDetails?.equipmentNotes?.let { add(WorkoutSubTag(name = it, category = SubTagCategory.SETUP)) }
                 }
                 WorkoutTag(

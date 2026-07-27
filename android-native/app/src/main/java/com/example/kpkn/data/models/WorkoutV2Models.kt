@@ -19,6 +19,19 @@ data class WorkoutHeaderWidgets(
     val showRealtimeRings: Boolean = false,
 )
 
+/**
+ * Tipo de carga de una serie (ortogonal a [UnitModeV2] / TrainingMode).
+ *
+ * Contrato semántico del número en UI / persistencia:
+ * - [LOAD]: kg de carga externa (`externalLoad`).
+ * - [BODYWEIGHT]: siempre 0 kg externos (sin lastre ni asistencia). El peso
+ *   corporal de vitals es solo snapshot auxiliar, nunca la carga reportada.
+ * - [LASTRE]: kg *adicionales* al peso corporal (`externalLoad` = lastre).
+ * - [ASSISTED]: kg de *asistencia* (bajar = progresar) (`assistedLoad`).
+ *
+ * Prohibido traducir asistencia ↔ (PC − asistencia) como valor de input en
+ * otro modo. Las transiciones de progresión son Asistido → PC → Lastre.
+ */
 @Serializable
 enum class LoadModeV2 {
     LOAD,
@@ -115,7 +128,10 @@ data class WorkoutContextProfile(
     val loadMode: LoadModeV2? = null,
     val linkStrategy: WorkoutContextLinkStrategyV3 = WorkoutContextLinkStrategyV3.LINKED_EDITABLE,
     val setupDetails: ExerciseSetupDetails? = null,
+    /** Legacy; prefer [baseLoadKg] / [setupDetails.baseLoadKg]. */
     val barWeightKg: Double? = null,
+    /** Carga base ligada a [tagId] (piso de sugerencias LOAD). */
+    val baseLoadKg: Double? = null,
     val notes: String? = null,
     val createdAtIso: String? = null,
     val lastUsedAtIso: String? = null,

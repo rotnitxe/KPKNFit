@@ -39,8 +39,7 @@ import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.SheetHeader
 import com.example.kpkn.screens.sessioneditor.sessionGradients
 import com.example.kpkn.screens.sessioneditor.sessionSolidPresets
-import com.example.kpkn.screens.sessioneditor.DarkEditorChip
-import com.example.kpkn.screens.sessioneditor.DarkEditorChipSelected
+import com.example.kpkn.ui.components.KpknSheetLightChip
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -79,15 +78,21 @@ internal fun CoverSheet(
     ) {
         SheetHeader("Portada de sesión", "Elige un fondo y ajusta solo lo que corresponde a ese tipo.")
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(999.dp))
-                .background(DarkEditorChip)
-                .padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            CoverTabButton("GRADIENTES", coverTab == "gradient", modifier = Modifier.weight(1f)) { coverTab = "gradient" }
-            CoverTabButton("SÓLIDOS", coverTab == "solid", modifier = Modifier.weight(1f)) { coverTab = "solid" }
+            KpknSheetLightChip(
+                label = "GRADIENTES",
+                selected = coverTab == "gradient",
+                modifier = Modifier.weight(1f),
+                onClick = { coverTab = "gradient" },
+            )
+            KpknSheetLightChip(
+                label = "SÓLIDOS",
+                selected = coverTab == "solid",
+                modifier = Modifier.weight(1f),
+                onClick = { coverTab = "solid" },
+            )
         }
 
         if (coverTab == "gradient") {
@@ -151,7 +156,7 @@ internal fun CoverTabButton(
             .clip(RoundedCornerShape(999.dp))
             .clickable { onClick() },
         shape = RoundedCornerShape(999.dp),
-        color = if (selected) DarkEditorChipSelected else Color.Transparent,
+        color = if (selected) Color.White else Color.White.copy(alpha = 0.78f),
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
             Text(
@@ -159,7 +164,7 @@ internal fun CoverTabButton(
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.Black,
             )
         }
     }

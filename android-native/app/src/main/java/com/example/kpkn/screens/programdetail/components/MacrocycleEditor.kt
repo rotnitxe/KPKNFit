@@ -35,7 +35,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
@@ -835,16 +834,6 @@ private fun SimpleCalendarizationSheet(
 ) {
     val isCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
         program.calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { target ->
-            when (target) {
-                SheetValue.Hidden -> false
-                SheetValue.PartiallyExpanded -> false
-                SheetValue.Expanded -> true
-            }
-        },
-    )
     val parsedStartDate = parseProgramDate(startDate)
     val parsedEndDate = parseProgramDate(endDate)
     val weekCount = if (parsedStartDate != null && parsedEndDate != null) {
@@ -855,7 +844,6 @@ private fun SimpleCalendarizationSheet(
 
     KpknSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
         hazeState = hazeState,
         dismissible = false,
     ) {

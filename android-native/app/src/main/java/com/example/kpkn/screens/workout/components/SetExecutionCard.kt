@@ -33,6 +33,7 @@ import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,6 +41,7 @@ import kotlin.math.roundToInt
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
+import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknDropdownMenu
@@ -64,11 +66,7 @@ private fun AmrapConfigSheet(
     var minReps by remember { mutableStateOf(plannedMinReps?.toString() ?: "") }
     var reachFailure by remember { mutableStateOf(initialReachFailure) }
     var reserveReps by remember { mutableStateOf(initialReserveReps?.toString() ?: "") }
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { it != SheetValue.Hidden },
-    )
-    KpknSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    KpknSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("Configurar serie AMRAP", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -525,7 +523,7 @@ private fun quickLoadIncrementFor(exercise: Exercise, currentSet: ExerciseSet): 
 
 
 @Composable
-private fun WorkoutMiniTextField(
+internal fun WorkoutMiniTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
@@ -777,7 +775,14 @@ internal fun SetInputCardV2(
         persistedLoadModeByExercise = persistedLoadModeByExercise,
     )
     var loadMode by remember(exercise.id, setIndex, persistedLoadMode, currentSet.loadModeV2) {
-        mutableStateOf(initialDraft?.loadMode ?: currentSet.loadModeV2 ?: persistedLoadMode ?: LoadModeV2.LOAD)
+        mutableStateOf(
+            resolveEffectiveLoadMode(
+                draftLoadMode = initialDraft?.loadMode,
+                persistedLoadMode = persistedLoadMode,
+                plannedLoadMode = currentSet.loadModeV2,
+                defaultCatalogMode = null,
+            ),
+        )
     }
     val ghostSuggestedWeightText = suggestedWeightText?.takeIf { weightText.isBlank() }
     var reachedFailure by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
@@ -805,17 +810,82 @@ internal fun SetInputCardV2(
     var partialSets by remember(exercise.id, setIndex) {
         mutableStateOf(listOf(0))
     }
-    LaunchedEffect(currentSet?.id) {
-        dropSetEnabled = currentSet?.isDropSet == true || currentSet?.dropSets?.isNotEmpty() == true
-        restPauseEnabled = currentSet?.isRestPause == true || currentSet?.restPauses?.isNotEmpty() == true
+    var guidedPhase by remember(exercise.id, setIndex) {
+        mutableStateOf<GuidedTechniquePhase?>(null)
+    }
+    var guidedMainCapture by remember(exercise.id, setIndex) {
+        mutableStateOf<GuidedMainCapture?>(null)
+    }
+    var guidedDropDrafts by remember(exercise.id, setIndex) {
+        mutableStateOf<List<DropSetEntry>>(emptyList())
+    }
+    var guidedRestPauseDrafts by remember(exercise.id, setIndex) {
+        mutableStateOf<List<RestPauseData>>(emptyList())
+    }
+    var guidedDropWeightText by remember(exercise.id, setIndex) { mutableStateOf("") }
+    var guidedDropRepsText by remember(exercise.id, setIndex) {
+        mutableStateOf(RestPausePlanDefaults.Reps.toString())
+    }
+    var guidedRestPauseRepsText by remember(exercise.id, setIndex) {
+        mutableStateOf(RestPausePlanDefaults.Reps.toString())
+    }
+    LaunchedEffect(currentSet?.id, currentSet?.plannedIntensityTechniques, currentSet?.isDropSet, currentSet?.isRestPause) {
+        val plannedDrop = currentSet?.plannedIntensityTechniques?.firstOrNull {
+            it.type == TechniqueType.DROP_SET
+        }
+        val plannedRestPause = currentSet?.plannedIntensityTechniques?.firstOrNull {
+            it.type == TechniqueType.REST_PAUSE
+        }
+        dropSetEnabled = plannedDrop != null ||
+            currentSet?.isDropSet == true ||
+            currentSet?.dropSets?.isNotEmpty() == true
+        restPauseEnabled = plannedRestPause != null ||
+            currentSet?.isRestPause == true ||
+            currentSet?.restPauses?.isNotEmpty() == true
         if (dropSetEnabled) {
-            dropSets = currentSet?.dropSets?.takeIf { it.isNotEmpty() }?.map {
+            val existing = currentSet?.dropSets?.takeIf { it.isNotEmpty() }?.map {
                 DropSetEntry(weight = it.weight, reps = it.reps)
-            } ?: listOf(DropSetEntry(weight = 0.0, reps = 0))
+            }
+            if (existing != null) {
+                dropSets = existing
+            } else {
+                val count = (plannedDrop?.params?.get("count")?.toIntOrNull() ?: 1).coerceIn(1, 3)
+                dropSets = List(count) { DropSetEntry(weight = 0.0, reps = 0) }
+            }
         }
         if (restPauseEnabled) {
-            restPauseSets = currentSet?.restPauses?.takeIf { it.isNotEmpty() }
-                ?: listOf(RestPauseData(restTime = 20, reps = 0))
+            val existing = currentSet?.restPauses?.takeIf { it.isNotEmpty() }
+            if (existing != null) {
+                restPauseSets = existing
+            } else {
+                val count = (plannedRestPause?.params?.get("count")?.toIntOrNull() ?: 2).coerceIn(1, 5)
+                restPauseSets = List(count) {
+                    RestPauseData(
+                        restTime = RestPausePlanDefaults.PauseSeconds,
+                        reps = RestPausePlanDefaults.Reps,
+                    )
+                }
+            }
+        }
+    }
+    LaunchedEffect(guidedPhase) {
+        val phase = guidedPhase
+        if (phase is GuidedTechniquePhase.RestPauseCountdown) {
+            var left = phase.secondsLeft
+            while (left > 0) {
+                delay(1_000)
+                left -= 1
+                val still = guidedPhase
+                if (still !is GuidedTechniquePhase.RestPauseCountdown || still.index != phase.index) {
+                    return@LaunchedEffect
+                }
+                guidedPhase = still.copy(secondsLeft = left)
+            }
+            val after = guidedPhase
+            if (after is GuidedTechniquePhase.RestPauseCountdown && after.index == phase.index) {
+                guidedPhase = GuidedTechniquePhase.RestPauseReps(after.index, after.total)
+                guidedRestPauseRepsText = RestPausePlanDefaults.Reps.toString()
+            }
         }
     }
     var reportedIntensityMode by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
@@ -1023,8 +1093,30 @@ internal fun SetInputCardV2(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            val guidedSkipAction = remember(exercise.id, setIndex) {
+                arrayOf<(() -> Unit)?>(null)
+            }
+            val activeGuidedPhaseTop = guidedPhase
+            if (activeGuidedPhaseTop != null) {
+                GuidedTechniquePanel(
+                    phase = activeGuidedPhaseTop,
+                    accentColor = sessionAccentColor,
+                    dropWeightText = guidedDropWeightText,
+                    dropRepsText = guidedDropRepsText,
+                    restPauseRepsText = guidedRestPauseRepsText,
+                    onDropWeightChange = { guidedDropWeightText = it },
+                    onDropRepsChange = { guidedDropRepsText = it },
+                    onRestPauseRepsChange = { guidedRestPauseRepsText = it },
+                    onSkipTechnique = { guidedSkipAction[0]?.invoke() },
+                )
+                Text(
+                    "Confirma cada paso con el botón de registrar.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                )
+            }
 
-            if (supportsIndependentSides && !sideLocked) {
+            if (supportsIndependentSides && !sideLocked && guidedPhase == null) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = WorkoutUiTokens.InnerCardShape,
@@ -1203,12 +1295,13 @@ internal fun SetInputCardV2(
                             if (onGoToPrevSet != null) {
                                 IconButton(
                                     onClick = onGoToPrevSet,
+                                    enabled = guidedPhase == null,
                                     modifier = Modifier.size(WorkoutUiTokens.MinTouchTarget),
                                 ) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                         contentDescription = "Anterior",
-                                        tint = Color.White.copy(alpha = 0.78f),
+                                        tint = Color.White.copy(alpha = if (guidedPhase == null) 0.78f else 0.28f),
                                         modifier = Modifier.size(18.dp),
                                     )
                                 }
@@ -1216,12 +1309,13 @@ internal fun SetInputCardV2(
                             if (onGoToNextSet != null) {
                                 IconButton(
                                     onClick = onGoToNextSet,
+                                    enabled = guidedPhase == null,
                                     modifier = Modifier.size(WorkoutUiTokens.MinTouchTarget),
                                 ) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                         contentDescription = "Siguiente",
-                                        tint = Color.White.copy(alpha = 0.78f),
+                                        tint = Color.White.copy(alpha = if (guidedPhase == null) 0.78f else 0.28f),
                                         modifier = Modifier.size(18.dp),
                                     )
                                 }
@@ -1482,7 +1576,10 @@ internal fun SetInputCardV2(
                             },
                             options = quickLoadOptionsFor(
                                 currentWeightText = reportWeightText,
-                                suggestedWeight = weightSuggestion?.suggestedWeight,
+                                suggestedWeight = weightSuggestion?.suggestedWeight?.takeIf {
+                                    weightSuggestion.suggestedLoadMode == null ||
+                                        weightSuggestion.suggestedLoadMode == loadMode
+                                },
                                 loadIncrementKg = quickLoadIncrementFor(exercise, currentSet),
                             ),
                             onWeightSelected = { updateActiveWeightText(it) },
@@ -1497,6 +1594,7 @@ internal fun SetInputCardV2(
                             DropdownMenuItem(
                                 text = { Text("Carga") },
                                 onClick = {
+                                    if (loadMode != LoadModeV2.LOAD) updateActiveWeightText("")
                                     loadMode = LoadModeV2.LOAD
                                     loadModeMenuExpanded = false
                                 },
@@ -1513,6 +1611,7 @@ internal fun SetInputCardV2(
                             DropdownMenuItem(
                                 text = { Text("Lastre") },
                                 onClick = {
+                                    if (loadMode != LoadModeV2.LASTRE) updateActiveWeightText("")
                                     loadMode = LoadModeV2.LASTRE
                                     if (bodyWeightText.isBlank()) showBodyWeightPrompt = true
                                     loadModeMenuExpanded = false
@@ -1521,11 +1620,66 @@ internal fun SetInputCardV2(
                             DropdownMenuItem(
                                 text = { Text("Asistido") },
                                 onClick = {
+                                    if (loadMode != LoadModeV2.ASSISTED) updateActiveWeightText("")
                                     loadMode = LoadModeV2.ASSISTED
                                     if (bodyWeightText.isBlank()) showBodyWeightPrompt = true
                                     loadModeMenuExpanded = false
                                 },
                             )
+                        }
+                    }
+
+                    val suggestedMode = weightSuggestion?.suggestedLoadMode
+                    if (suggestedMode != null && suggestedMode != loadMode) {
+                        val modeLabel = when (suggestedMode) {
+                            LoadModeV2.LOAD -> "Carga externa"
+                            LoadModeV2.BODYWEIGHT -> "Peso corporal"
+                            LoadModeV2.LASTRE -> "Lastre"
+                            LoadModeV2.ASSISTED -> "Asistido"
+                        }
+                        val kgHint = weightSuggestion.suggestedWeight
+                            .takeIf { suggestedMode != LoadModeV2.BODYWEIGHT && it > 0.0 }
+                            ?.let { " · ${it.toTrimmedNumberString()} kg" }
+                            .orEmpty()
+                        Spacer(Modifier.height(6.dp))
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            color = sessionAccentColor.copy(alpha = 0.12f),
+                            onClick = {
+                                loadMode = suggestedMode
+                                updateActiveWeightText(
+                                    if (suggestedMode == LoadModeV2.BODYWEIGHT) ""
+                                    else weightSuggestion.suggestedWeight.toTrimmedNumberString(),
+                                )
+                            },
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "Sugerido: $modeLabel$kgHint",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = sessionAccentColor,
+                                    )
+                                    Text(
+                                        weightSuggestion.reason,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White.copy(alpha = 0.65f),
+                                        maxLines = 2,
+                                    )
+                                }
+                                Text(
+                                    "Aplicar",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = sessionAccentColor,
+                                )
+                            }
                         }
                     }
 
@@ -2127,7 +2281,12 @@ internal fun SetInputCardV2(
                 assistedRepsValue,
             ) {
                 if (!isActivePage) return@LaunchedEffect
-                val initialLoadMode = currentSet.loadModeV2 ?: persistedLoadMode ?: LoadModeV2.LOAD
+                val initialLoadMode = resolveEffectiveLoadMode(
+                    draftLoadMode = initialDraft?.loadMode,
+                    persistedLoadMode = persistedLoadMode,
+                    plannedLoadMode = currentSet.loadModeV2,
+                    defaultCatalogMode = null,
+                )
                 val initialFailure = currentSet.isFailure || currentSet.intensityMode == IntensityMode.FAILURE
                 val initialSide = lockedSide ?: "left"
                 val isDirty = reportWeightText != activeInitialWeight ||
@@ -2197,9 +2356,151 @@ internal fun SetInputCardV2(
                 assistedReps = assistedRepsValue.takeIf { it > 0 },
             )
 
+            fun commitCapturedRecord(
+                capture: GuidedMainCapture,
+                dropOverride: List<DropSetData>,
+                restOverride: List<RestPauseData>,
+            ) {
+                val payload = advanced.copy(
+                    dropSets = dropOverride,
+                    restPauses = restOverride,
+                )
+                guidedPhase = null
+                guidedMainCapture = null
+                guidedDropDrafts = emptyList()
+                guidedRestPauseDrafts = emptyList()
+                if (dropOverride.isNotEmpty()) {
+                    dropSetEnabled = true
+                    dropSets = dropOverride.map { DropSetEntry(weight = it.weight, reps = it.reps) }
+                }
+                if (restOverride.isNotEmpty()) {
+                    restPauseEnabled = true
+                    restPauseSets = restOverride
+                }
+                onRecordV2(
+                    capture.loadMode,
+                    capture.unitMode,
+                    capture.weight,
+                    capture.value,
+                    capture.intensity,
+                    payload,
+                    capture.amrapOverride,
+                    capture.bodyWeight,
+                    capture.side,
+                )
+                if (supportsIndependentSides && !sideLocked) {
+                    selectSide(if (selectedSide == "left") "right" else "left")
+                }
+            }
+
+            guidedSkipAction[0] = {
+                val capture = guidedMainCapture
+                if (capture != null) {
+                    commitCapturedRecord(
+                        capture = capture,
+                        dropOverride = emptyList(),
+                        restOverride = emptyList(),
+                    )
+                }
+            }
+
+            fun beginDropPhase(index: Int, total: Int, capture: GuidedMainCapture, guide: PlannedTechniqueGuide) {
+                val suggested = suggestDropWeightForThreeReps(
+                    mainWeight = capture.weight,
+                    mainReps = capture.value.roundToInt(),
+                    dropIndex = index,
+                    dropPcts = guide.dropPcts,
+                )
+                guidedDropWeightText = suggested.toTrimmedNumberString()
+                guidedDropRepsText = RestPausePlanDefaults.Reps.toString()
+                guidedPhase = GuidedTechniquePhase.DropSet(
+                    index = index,
+                    total = total,
+                    suggestedWeight = suggested,
+                )
+            }
+
+            fun beginRestPauseCountdown(index: Int, total: Int) {
+                guidedPhase = GuidedTechniquePhase.RestPauseCountdown(
+                    index = index,
+                    total = total,
+                    secondsLeft = RestPausePlanDefaults.PauseSeconds,
+                )
+            }
+
             SideEffect {
                 if (isActivePage) {
                     recordActionHolder.action = label@{
+                        val phase = guidedPhase
+                        if (phase != null) {
+                            val capture = guidedMainCapture ?: return@label
+                            when (phase) {
+                                is GuidedTechniquePhase.DropSet -> {
+                                    val dropWeight = guidedDropWeightText.toDoubleOrNull()
+                                    val dropReps = guidedDropRepsText.toIntOrNull()
+                                    if (dropWeight == null || dropWeight <= 0.0 || dropReps == null || dropReps <= 0) {
+                                        android.widget.Toast.makeText(
+                                            context,
+                                            "Completa peso y reps del drop.",
+                                            android.widget.Toast.LENGTH_SHORT,
+                                        ).show()
+                                        return@label
+                                    }
+                                    val nextDrafts = guidedDropDrafts + DropSetEntry(weight = dropWeight, reps = dropReps)
+                                    guidedDropDrafts = nextDrafts
+                                    val nextIndex = phase.index + 1
+                                    if (nextIndex < phase.total) {
+                                        val guide = currentSet.resolvePlannedTechniqueGuide()
+                                            ?: PlannedTechniqueGuide(
+                                                kind = TechniqueType.DROP_SET,
+                                                count = phase.total,
+                                                dropPcts = listOf(-20.0),
+                                            )
+                                        beginDropPhase(nextIndex, phase.total, capture, guide)
+                                    } else {
+                                        commitCapturedRecord(
+                                            capture = capture,
+                                            dropOverride = nextDrafts.map {
+                                                DropSetData(weight = it.weight, reps = it.reps)
+                                            },
+                                            restOverride = emptyList(),
+                                        )
+                                    }
+                                }
+                                is GuidedTechniquePhase.RestPauseCountdown -> {
+                                    guidedPhase = GuidedTechniquePhase.RestPauseReps(phase.index, phase.total)
+                                    guidedRestPauseRepsText = RestPausePlanDefaults.Reps.toString()
+                                }
+                                is GuidedTechniquePhase.RestPauseReps -> {
+                                    val rpReps = guidedRestPauseRepsText.toIntOrNull()
+                                    if (rpReps == null || rpReps <= 0) {
+                                        android.widget.Toast.makeText(
+                                            context,
+                                            "Indica las reps del rest-pause.",
+                                            android.widget.Toast.LENGTH_SHORT,
+                                        ).show()
+                                        return@label
+                                    }
+                                    val nextDrafts = guidedRestPauseDrafts + RestPauseData(
+                                        restTime = RestPausePlanDefaults.PauseSeconds,
+                                        reps = rpReps,
+                                    )
+                                    guidedRestPauseDrafts = nextDrafts
+                                    val nextIndex = phase.index + 1
+                                    if (nextIndex < phase.total) {
+                                        beginRestPauseCountdown(nextIndex, phase.total)
+                                    } else {
+                                        commitCapturedRecord(
+                                            capture = capture,
+                                            dropOverride = emptyList(),
+                                            restOverride = nextDrafts,
+                                        )
+                                    }
+                                }
+                            }
+                            return@label
+                        }
+
                         if (loadMode == LoadModeV2.ASSISTED && bodyWeightText.isBlank()) {
                             android.widget.Toast.makeText(
                                 context,
@@ -2252,6 +2553,57 @@ internal fun SetInputCardV2(
                         val minimumValue = if (isAmrap) plannedTarget?.toDouble() ?: 0.0 else 0.0
                         val value = typedValue.coerceAtLeast(minimumValue)
 
+                        val guide = currentSet.resolvePlannedTechniqueGuide()
+                        val shouldGuide = guide != null &&
+                            !isFailedSet &&
+                            sessionCompletedSet == null &&
+                            !(dropSetEnabled && advanced.dropSets.isNotEmpty()) &&
+                            !(restPauseEnabled && advanced.restPauses.isNotEmpty())
+
+                        if (shouldGuide && guide != null) {
+                            val capture = GuidedMainCapture(
+                                loadMode = loadMode,
+                                unitMode = resolvedUnitMode,
+                                weight = weight,
+                                value = value,
+                                intensity = intensity,
+                                amrapOverride = isAmrap,
+                                bodyWeight = resolvedBodyWeight,
+                                side = reportingSide,
+                            )
+                            when (guide.kind) {
+                                TechniqueType.DROP_SET -> {
+                                    guidedMainCapture = capture
+                                    guidedDropDrafts = emptyList()
+                                    guidedRestPauseDrafts = emptyList()
+                                    beginDropPhase(0, guide.count, capture, guide)
+                                }
+                                TechniqueType.REST_PAUSE -> {
+                                    guidedMainCapture = capture
+                                    guidedDropDrafts = emptyList()
+                                    guidedRestPauseDrafts = emptyList()
+                                    beginRestPauseCountdown(0, guide.count)
+                                }
+                                else -> {
+                                    onRecordV2(
+                                        loadMode,
+                                        resolvedUnitMode,
+                                        weight,
+                                        value,
+                                        intensity,
+                                        advanced,
+                                        isAmrap,
+                                        resolvedBodyWeight,
+                                        reportingSide,
+                                    )
+                                    if (supportsIndependentSides && !sideLocked) {
+                                        selectSide(if (selectedSide == "left") "right" else "left")
+                                    }
+                                }
+                            }
+                            return@label
+                        }
+
                         onRecordV2(
                             loadMode,
                             resolvedUnitMode,
@@ -2300,6 +2652,11 @@ internal fun SetInputCardV2(
             loadMode = loadMode,
             onDismiss = { showReadinessAdjustmentSheet = false },
             onApply = { suggestion ->
+                loadMode = suggestion.suggestedLoadMode
+                updateActiveWeightText(
+                    if (suggestion.suggestedLoadMode == LoadModeV2.BODYWEIGHT) ""
+                    else suggestion.suggestedWeight.toTrimmedNumberString(),
+                )
                 onApplyReadinessAdjustment?.invoke(suggestion)
                 showReadinessAdjustmentSheet = false
             },

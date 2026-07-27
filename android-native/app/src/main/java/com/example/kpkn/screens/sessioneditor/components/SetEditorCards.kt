@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -22,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import com.example.kpkn.screens.sessioneditor.toSetCardBackground
 import com.example.kpkn.ui.components.KpknDropdownMenu
 
 enum class SetCardDensity { Comfortable, Compact, SupersetCompact }
@@ -97,7 +100,8 @@ fun CompactNumericField(
     
     Surface(
         shape = KpknSetEditorTokens.MiniFieldShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.45f),
+        color = Color.White.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
         modifier = modifier
     ) {
         OutlinedTextField(
@@ -106,7 +110,7 @@ fun CompactNumericField(
                 localValue = it
                 onValueChange(it)
             },
-            label = { Text(label) },
+            label = { Text(label, color = Color.White.copy(alpha = 0.5f)) },
             singleLine = true,
             enabled = enabled,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
@@ -122,9 +126,28 @@ fun CompactNumericField(
                 errorBorderColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                focusedTextColor = Color.White.copy(alpha = 0.94f),
+                unfocusedTextColor = Color.White.copy(alpha = 0.90f),
+                disabledTextColor = Color.White.copy(alpha = 0.42f),
+                focusedLabelColor = Color.White.copy(alpha = 0.58f),
+                unfocusedLabelColor = Color.White.copy(alpha = 0.48f),
+                cursorColor = Color.White.copy(alpha = 0.9f),
             ),
-            textStyle = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-            trailingIcon = suffix?.let { { Text(it, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold) } }
+            textStyle = MaterialTheme.typography.bodySmall.copy(
+                fontWeight = FontWeight.Bold,
+                color = Color.White.copy(alpha = 0.94f),
+            ),
+            trailingIcon = suffix?.let {
+                {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.7f),
+                    )
+                }
+            }
         )
     }
 }
@@ -138,32 +161,31 @@ fun SetEditorCard(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val borderAlpha = if (isFocused) 0.8f else if (!isValid) 0.6f else 0.20f
+    val borderAlpha = if (isFocused) 0.55f else if (!isValid) 0.55f else 0.14f
     val borderColor = if (!isValid) MaterialTheme.colorScheme.error else accentColor
-    val borderWidth = if (isFocused || !isValid) 2.dp else 1.dp
-    val cardBg = if (density == SetCardDensity.SupersetCompact) {
-        MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.8f)
-    } else {
-        MaterialTheme.colorScheme.surface
-    }
+    val borderWidth = if (isFocused || !isValid) 1.5.dp else 1.dp
+    val cardBg = accentColor.toSetCardBackground()
     
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = KpknSetEditorTokens.CardShape,
         color = cardBg,
-        tonalElevation = 1.dp,
+        contentColor = Color.White,
+        tonalElevation = 0.dp,
         shadowElevation = 0.dp,
         border = BorderStroke(borderWidth, borderColor.copy(alpha = borderAlpha))
     ) {
-        Column(
-            modifier = Modifier.padding(
-                if (density == SetCardDensity.SupersetCompact) PaddingValues(8.dp) else KpknSetEditorTokens.CardPadding
-            ),
-            verticalArrangement = Arrangement.spacedBy(
-                if (density == SetCardDensity.SupersetCompact) 4.dp else KpknSetEditorTokens.FieldGap
-            ),
-            content = content
-        )
+        CompositionLocalProvider(LocalContentColor provides Color.White) {
+            Column(
+                modifier = Modifier.padding(
+                    if (density == SetCardDensity.SupersetCompact) PaddingValues(8.dp) else KpknSetEditorTokens.CardPadding
+                ),
+                verticalArrangement = Arrangement.spacedBy(
+                    if (density == SetCardDensity.SupersetCompact) 4.dp else KpknSetEditorTokens.FieldGap
+                ),
+                content = content
+            )
+        }
     }
 }
 
@@ -184,7 +206,7 @@ fun SetCardHeader(
     ) {
         Surface(
             shape = KpknSetEditorTokens.ChipShape, 
-            color = accentColor.copy(alpha = 0.14f)
+            color = accentColor.copy(alpha = 0.12f)
         ) {
             val prefix = when (state.sideMode) {
                 SetSideMode.LEFT -> "S${state.setNumber} (L)"
@@ -195,7 +217,7 @@ fun SetCardHeader(
                 text = prefix,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                 fontWeight = FontWeight.Black,
-                color = accentColor,
+                color = Color.White.copy(alpha = 0.9f),
                 style = MaterialTheme.typography.labelSmall,
             )
         }
@@ -434,8 +456,8 @@ fun SetIntensityBlock(
                     .height(44.dp)
                     .clip(KpknSetEditorTokens.MiniFieldShape)
                     .clickable { showIntensityMenu = true },
-                color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.35f),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                color = Color.White.copy(alpha = 0.08f),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 8.dp),
@@ -446,13 +468,13 @@ fun SetIntensityBlock(
                         currentIntensityLabel,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.88f)
                     )
                     Icon(
                         Icons.Default.KeyboardArrowDown,
                         null,
                         modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = Color.White.copy(alpha = 0.55f)
                     )
                 }
             }
@@ -463,6 +485,7 @@ fun SetIntensityBlock(
                     IntensityMode.RIR to "RIR",
                     IntensityMode.FAILURE to "Fallo",
                     IntensityMode.LOAD to "Carga",
+                    IntensityMode.SOLO_RM to "%RM",
                 ).forEach { (mode, label) ->
                     DropdownMenuItem(
                         text = { Text(label) },
@@ -495,8 +518,8 @@ fun SetEstimationFooter(
     if (!state.estimatedLoadLabel.isNullOrBlank() || !state.percentRmLabel.isNullOrBlank()) {
         Surface(
             shape = RoundedCornerShape(14.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)),
+            color = Color.White.copy(alpha = 0.06f),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
             modifier = modifier.fillMaxWidth()
         ) {
             Column(
@@ -517,7 +540,7 @@ fun SetEstimationFooter(
                         },
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.82f)
                     )
                 }
                 

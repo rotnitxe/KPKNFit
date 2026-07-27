@@ -49,6 +49,7 @@ internal fun WorkoutV2Body(
     modifier: Modifier,
     uiState: WorkoutUiState,
     settings: com.example.kpkn.data.models.Settings,
+    adaptiveCache: com.example.kpkn.data.models.AugeAdaptiveCache = com.example.kpkn.data.models.AugeAdaptiveCache(),
     viewModel: WorkoutViewModel,
     currentExercise: Exercise?,
     visibleExercises: List<Exercise>,
@@ -244,7 +245,7 @@ internal fun WorkoutV2Body(
                             },
                         )
                     }
-                    val currentExerciseDrain = remember(currentExerciseCompleted, settings) {
+                    val currentExerciseDrain = remember(currentExerciseCompleted, settings, adaptiveCache) {
                         if (currentExerciseCompleted.sets.isEmpty()) {
                             PredictedDrain(cns = 0, muscular = 0, spinal = 0)
                         } else {
@@ -252,6 +253,7 @@ internal fun WorkoutV2Body(
                                 completedExercises = listOf(currentExerciseCompleted),
                                 exerciseDb = EXERCISE_DATABASE_BY_ID,
                                 settings = settings,
+                                adaptiveCache = adaptiveCache,
                             )
                         }
                     }

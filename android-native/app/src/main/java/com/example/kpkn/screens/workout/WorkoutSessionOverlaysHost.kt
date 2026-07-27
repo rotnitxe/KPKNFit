@@ -39,17 +39,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.example.kpkn.data.models.DailyWellbeingLog
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.MobilityExerciseCatalog
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.ui.components.KpknGlass
-import com.example.kpkn.ui.components.kpknWindowGlass
+import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
@@ -101,9 +101,11 @@ internal fun WorkoutSessionOverlaysHost(
                 manualNeuralBattery = manualNeural ?: todayWellbeing?.manualNeuralBattery,
                 manualSpinalBattery = manualSpinal ?: todayWellbeing?.manualSpinalBattery,
                 manualMuscleBatteries = if (manualMuscleBatteries.isNotEmpty()) {
-                    (todayWellbeing?.manualMuscleBatteries.orEmpty()) + manualMuscleBatteries
+                    remapMuscleIntMapToPillars(
+                        (todayWellbeing?.manualMuscleBatteries.orEmpty()) + manualMuscleBatteries,
+                    )
                 } else {
-                    todayWellbeing?.manualMuscleBatteries.orEmpty()
+                    remapMuscleIntMapToPillars(todayWellbeing?.manualMuscleBatteries.orEmpty())
                 },
                 notes = todayWellbeing?.notes,
                 preWorkoutDiscomforts = discomforts,
@@ -113,7 +115,7 @@ internal fun WorkoutSessionOverlaysHost(
                 neural = neural,
                 muscular = muscular,
                 spinal = spinal,
-                perMuscle = perMuscle,
+                perMuscle = remapMuscleIntMapToPillars(perMuscle),
                 sleepQuality = todayWellbeing?.sleepQuality,
             )
             onReadinessDismissed()
@@ -183,14 +185,10 @@ internal fun WorkoutSessionOverlaysHost(
             if (mobilitySearchQuery.isBlank()) mobilityExercisesForSession
             else MobilityExerciseCatalog.searchMobilityByName(mobilitySearchQuery)
         }
-        val mobilityDialogShape = RoundedCornerShape(20.dp)
-        Dialog(onDismissRequest = { showMobilityPicker = false }) {
-            Surface(
-                modifier = Modifier.kpknWindowGlass(mobilityDialogShape),
-                shape = mobilityDialogShape,
-                color = Color.Transparent,
-                tonalElevation = 0.dp,
-            ) {
+        KpknGlassDialog(
+            onDismissRequest = { showMobilityPicker = false },
+            shape = RoundedCornerShape(20.dp),
+        ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Agregar movilidad", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White)
                     OutlinedTextField(
@@ -252,7 +250,6 @@ internal fun WorkoutSessionOverlaysHost(
                         ) { Text("Cancelar") }
                     }
                 }
-            }
         }
     }
 
@@ -299,17 +296,10 @@ internal fun WorkoutSessionOverlaysHost(
     }
 
     if (showExitDialog) {
-        val exitDialogShape = RoundedCornerShape(KpknGlass.DialogCornerRadius)
-        Dialog(onDismissRequest = { onShowExitDialogChange(false) }) {
-            Surface(
-                modifier = Modifier
-                    .widthIn(min = 280.dp, max = 560.dp)
-                    .wrapContentHeight()
-                    .kpknWindowGlass(exitDialogShape),
-                shape = exitDialogShape,
-                color = Color.Transparent,
-                tonalElevation = 0.dp,
-            ) {
+        KpknGlassDialog(
+            onDismissRequest = { onShowExitDialogChange(false) },
+            shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
+        ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -385,7 +375,6 @@ internal fun WorkoutSessionOverlaysHost(
                         }
                     }
                 }
-            }
         }
     }
 }

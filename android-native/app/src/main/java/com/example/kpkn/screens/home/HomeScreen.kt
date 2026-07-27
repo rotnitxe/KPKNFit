@@ -150,9 +150,11 @@ fun HomeScreen(
     }
     DisposableEffect(Unit) {
         onDispose {
-            // Parent retains this registration for its 150 ms route exit animation and clears it
-            // with compare-and-set afterwards. A remounted Home replaces it immediately.
+            val owned = nutritionRegistration.active
             nutritionRegistration.active = null
+            if (owned != null) {
+                latestNutritionOverlayChange(null, owned)
+            }
         }
     }
     val listState = rememberLazyListState()
@@ -203,14 +205,33 @@ fun HomeScreen(
         )
     }
     val latestHeaderOverlayChange by rememberUpdatedState(onHeaderOverlayChange)
-    // Stable registration: key Unit so recompositions don't dispose→null race.
+    // Holder so dispose only clears if this composition still owns the slot.
+    val headerRegistration = remember {
+        object {
+            var active: HomeGlassOverlay? = null
+        }
+    }
     DisposableEffect(Unit) {
         val registered: HomeGlassOverlay = { rootHazeState ->
             latestHeaderContent(rootHazeState)
         }
+        headerRegistration.active = registered
         latestHeaderOverlayChange(registered, null)
         onDispose {
-            // MainActivity owns the exit animation and delayed compare-and-set cleanup.
+            val owned = headerRegistration.active
+            headerRegistration.active = null
+            // Clear only our own registration so a remounted Home is not wiped by this dispose.
+            if (owned != null) {
+                latestHeaderOverlayChange(null, owned)
+            }
+        }
+    }
+    // Re-assert after the first frame: covers race where a previous Home's onDispose
+    // cleared the slot after this composition already registered.
+    LaunchedEffect(Unit) {
+        val owned = headerRegistration.active
+        if (owned != null) {
+            latestHeaderOverlayChange(owned, null)
         }
     }
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {

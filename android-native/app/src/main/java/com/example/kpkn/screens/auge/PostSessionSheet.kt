@@ -44,7 +44,6 @@ fun PostSessionSheet(
 
     KpknSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
         Column(
             modifier = Modifier
@@ -159,11 +158,7 @@ fun PostSessionSheet(
                                     )
                                 }
                             } else null,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f),
-                                selectedLabelColor = MaterialTheme.colorScheme.error,
-                                selectedLeadingIconColor = MaterialTheme.colorScheme.error,
-                            ),
+                            colors = com.example.kpkn.ui.components.kpknSheetWhiteFilterChipColors(),
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -243,6 +238,8 @@ private fun MuscleFeedbackCard(
                             onClick = { onChange(state.copy(doms = level)) },
                             label = { Text("$level", style = MaterialTheme.typography.labelSmall) },
                             modifier = Modifier.height(28.dp),
+                            colors = com.example.kpkn.ui.components.kpknSheetWhiteFilterChipColors(),
+                            border = null,
                         )
                     }
                 }

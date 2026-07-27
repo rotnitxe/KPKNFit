@@ -95,7 +95,10 @@ import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.icons.NutritionIcon
 import com.example.kpkn.ui.components.icons.WikiIcon
 import com.example.kpkn.ui.components.LocalHazeState
+import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.components.KpknOverlayHostContent
 import com.example.kpkn.ui.components.kpknGlass
+import com.example.kpkn.ui.components.rememberKpknOverlayHostController
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
@@ -107,7 +110,6 @@ import com.example.kpkn.ui.locale.LocaleManager
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.theme.KPKNTheme
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -481,33 +483,42 @@ fun KPKNApp(
     val showContextualSubtabbar = showTrainingSubtabbar || showNutritionSubtabbar || showWikiSearchSubtabbar
 
     val hazeState = remember { HazeState() }
+    val overlayHost = rememberKpknOverlayHostController()
     var homeGlassOverlay by remember { mutableStateOf<HomeGlassOverlay?>(null) }
     var homeModalOverlay by remember { mutableStateOf<HomeGlassOverlay?>(null) }
-    // Stable callbacks — unstable lambdas keyed DisposableEffect in Home and raced dispose→null.
+    // Stable callbacks — never key DisposableEffect on these.
     val onHomeGlassOverlayChange = remember<HomeGlassOverlayChange> {
         { overlay, expectedCurrent ->
-            if (expectedCurrent == null || homeGlassOverlay === expectedCurrent) {
-                homeGlassOverlay = overlay
+            when {
+                overlay != null -> {
+                    if (homeGlassOverlay !== overlay) homeGlassOverlay = overlay
+                }
+                // Only clear when the caller proves it still owns the registration.
+                expectedCurrent != null && homeGlassOverlay === expectedCurrent -> {
+                    homeGlassOverlay = null
+                }
             }
         }
     }
     val onHomeModalOverlayChange = remember<HomeGlassOverlayChange> {
         { overlay, expectedCurrent ->
-            if (expectedCurrent == null || homeModalOverlay === expectedCurrent) {
-                homeModalOverlay = overlay
+            when {
+                overlay != null -> {
+                    if (homeModalOverlay !== overlay) homeModalOverlay = overlay
+                }
+                expectedCurrent != null && homeModalOverlay === expectedCurrent -> {
+                    homeModalOverlay = null
+                }
             }
         }
     }
+    // Exact Home route (not currentTab) so Settings/Profile don't keep the pill.
+    // AnimatedVisibility retains content during exit — no delayed nulling (that raced remounts).
     val showHomeGlassOverlays = currentRoute == KpknRoute.Home.route
-    LaunchedEffect(showHomeGlassOverlays) {
-        if (!showHomeGlassOverlays) {
-            // Keep the last composable alive exactly through the synchronized exit fade.
-            delay(160)
-            onHomeGlassOverlayChange(null, homeGlassOverlay)
-            onHomeModalOverlayChange(null, homeModalOverlay)
-        }
-    }
-    CompositionLocalProvider(LocalHazeState provides hazeState) {
+    CompositionLocalProvider(
+        LocalHazeState provides hazeState,
+        LocalKpknOverlayHost provides overlayHost,
+    ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (isFullscreenWizard) {
             Box(
@@ -792,11 +803,13 @@ fun KPKNApp(
             }
         }
 
-        // Kept outside the fullscreen/non-fullscreen branch so every destination transition,
-        // including Workout and Session Editor, executes the same synchronized fade.
+        // Sibling of hazeSource (drawn after). Visible only on exact Home route.
+        // zIndex keeps the pill above NavHost content after back-stack returns.
         AnimatedVisibility(
-            visible = showHomeGlassOverlays && homeGlassOverlay != null,
-            modifier = Modifier.align(Alignment.TopCenter),
+            visible = showHomeGlassOverlays,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .zIndex(100f),
             enter = fadeIn(animationSpec = tween(120)),
             exit = fadeOut(animationSpec = tween(150)),
         ) {
@@ -804,11 +817,26 @@ fun KPKNApp(
         }
 
         AnimatedVisibility(
-            visible = showHomeGlassOverlays && homeModalOverlay != null,
+            visible = showHomeGlassOverlays,
+            modifier = Modifier.zIndex(101f),
             enter = fadeIn(animationSpec = tween(120)),
             exit = fadeOut(animationSpec = tween(150)),
         ) {
             homeModalOverlay?.invoke(hazeState)
+        }
+
+        // Sheets/dialogs portaled out of NavGraph so they are siblings of hazeSource.
+        // Only mount the full-screen host when there is at least one entry — an empty
+        // fillMaxSize Box at zIndex 400 would swallow every touch in the app.
+        val overlayEntries = overlayHost.entries
+        if (overlayEntries.isNotEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(400f),
+            ) {
+                KpknOverlayHostContent(overlayHost)
+            }
         }
     }
 

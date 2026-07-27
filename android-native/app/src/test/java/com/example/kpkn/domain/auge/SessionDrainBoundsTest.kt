@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Settings
+import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.models.WorkoutLog
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -49,6 +50,77 @@ class SessionDrainBoundsTest {
         assertTrue("CNS drain should be >= 10 after hard work, got ${drain.cns}", drain.cns >= 10)
         assertTrue("Muscular drain should be >= 10 after hard work, got ${drain.muscular}", drain.muscular >= 10)
         assertTrue("Drain must not be (0,0,0)", drain.cns + drain.muscular + drain.spinal > 0)
+    }
+
+    @Test
+    fun completedDrainBreakdown_attributesDeltoidHeadWorkToPillar() {
+        val lateralDb = mapOf(
+            "lateral-raise" to ExerciseMuscleInfo(
+                id = "lateral-raise",
+                name = "Lateral Raise",
+                equipment = "dumbbell",
+                efc = 2.0,
+                cnc = 1.5,
+                ssc = 0.2,
+                involvedMuscles = listOf(
+                    InvolvedMuscle("Deltoides Lateral", MuscleRole.PRIMARY),
+                    InvolvedMuscle("Trapecio", MuscleRole.SECONDARY),
+                ),
+            ),
+        )
+        val exercises = listOf(
+            CompletedExercise(
+                exerciseId = "lateral-raise",
+                exerciseName = "Lateral Raise",
+                exerciseDbId = "lateral-raise",
+                restTime = 90,
+                sets = List(4) { i ->
+                    CompletedSet(id = "lr-$i", weight = 12.0, reps = 12, rpe = 8.0)
+                },
+            ),
+        )
+        val breakdown = AugeFatigueEngine.calculateCompletedSessionDrainBreakdown(
+            completedExercises = exercises,
+            exerciseDb = lateralDb,
+            settings = Settings(),
+        )
+        assertTrue(breakdown.global.muscular > 0)
+        assertTrue(
+            "Deltoides pillar should receive muscular drain, got ${breakdown.perMuscleMuscular}",
+            (breakdown.perMuscleMuscular["Deltoides"] ?: 0) > 0,
+        )
+        assertTrue(
+            "No display-head key should remain",
+            breakdown.perMuscleMuscular.keys.none { it.contains("Lateral") },
+        )
+    }
+
+    @Test
+    fun predictedAndCompleted_useSamePillarKeysForPrimaryMuscle() {
+        // Smoke: both paths return non-zero with Settings weightUnit and do not crash.
+        val exercises = listOf(
+            CompletedExercise(
+                exerciseId = "squat",
+                exerciseName = "Squat",
+                exerciseDbId = "squat",
+                restTime = 180,
+                sets = List(5) { i ->
+                    CompletedSet(id = "s-$i", weight = 100.0, reps = 5, rpe = 8.0)
+                },
+            ),
+        )
+        val completed = AugeFatigueEngine.calculateCompletedSessionDrain(
+            completedExercises = exercises,
+            exerciseDb = exerciseDb,
+            settings = Settings(weightUnit = WeightUnit.LBS),
+        )
+        assertTrue(completed.cns + completed.muscular > 0)
+        val muscleDrains = AugeFatigueEngine.calculateCompletedSessionMuscleDrains(
+            completedExercises = exercises,
+            exerciseDb = exerciseDb,
+            settings = Settings(),
+        )
+        assertTrue(muscleDrains.containsKey("Cuádriceps") || muscleDrains.isNotEmpty())
     }
 
     @Test

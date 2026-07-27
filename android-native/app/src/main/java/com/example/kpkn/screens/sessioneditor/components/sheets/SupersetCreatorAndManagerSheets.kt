@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -115,7 +116,7 @@ internal fun SupersetCreatorSheet(
                     val selected = exercise.id in draft.exerciseIds
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                        color = if (selected) Color.White else Color.White.copy(alpha = 0.78f),
                     modifier = Modifier.fillMaxWidth().clickable(enabled = selected || draft.exerciseIds.size < 4) { toggleExercise(exercise.id) },
                     ) {
                         Row(
@@ -128,19 +129,23 @@ internal fun SupersetCreatorSheet(
                                 onCheckedChange = { toggleExercise(exercise.id) },
                             )
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(exercise.name, fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold)
+                                Text(
+                                    exercise.name,
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
+                                    color = Color.Black,
+                                )
                                 if (exercise.id in draft.exerciseIds) {
                                     Text(
                                         "Orden ${draft.exerciseIds.indexOf(exercise.id) + 1}",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = Color.Black.copy(alpha = 0.55f),
                                         fontWeight = FontWeight.SemiBold,
                                     )
                                 } else if (draft.exerciseIds.size >= 4) {
                                     Text(
                                         "Limite 4 ejercicios",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        color = Color.Black.copy(alpha = 0.45f),
                                     )
                                 }
                             }
@@ -161,15 +166,15 @@ internal fun SupersetCreatorSheet(
                     selectedExercises.forEachIndexed { index, exercise ->
                         Surface(
                             shape = RoundedCornerShape(10.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            color = Color.White,
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
-                                Text("${index + 1}", fontWeight = FontWeight.Black, modifier = Modifier.width(24.dp))
-                                Text(exercise.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text("${index + 1}", fontWeight = FontWeight.Black, color = Color.Black, modifier = Modifier.width(24.dp))
+                                Text(exercise.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, color = Color.Black)
                                 IconButton(onClick = { moveSelectedExercise(exercise.id, -1) }, enabled = index > 0) {
                                     Icon(Icons.Default.KeyboardArrowUp, null)
                                 }
@@ -269,7 +274,7 @@ internal fun SupersetMemberPickerSheet(
             availableExercises.forEach { exercise ->
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                    color = Color.White.copy(alpha = 0.78f),
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable(enabled = draft.exerciseIds.size < 4) {
@@ -343,7 +348,7 @@ internal fun SupersetManagerSheet(
             exercises.forEachIndexed { index, exercise ->
                 Surface(
                     shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                    color = Color.White,
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),

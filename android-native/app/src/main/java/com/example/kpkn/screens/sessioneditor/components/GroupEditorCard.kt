@@ -137,7 +137,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -253,6 +252,10 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 import com.example.kpkn.screens.sessioneditor.PART_COLORS
+import com.example.kpkn.screens.sessioneditor.PartAccentPreset
+import com.example.kpkn.screens.sessioneditor.partAccentGradients
+import com.example.kpkn.screens.sessioneditor.partAccentSolids
+import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurface
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
 import com.example.kpkn.screens.sessioneditor.SessionExerciseEditorBlock
@@ -330,7 +333,12 @@ import com.example.kpkn.screens.sessioneditor.components.SupersetRestPickerDialo
 import com.example.kpkn.screens.sessioneditor.components.SupersetRestWheelRow
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
 import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
+import com.example.kpkn.ui.components.KpknAlertConfirmButton
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknAlertDismissButton
+import com.example.kpkn.ui.components.KpknSheetTokens
+import com.example.kpkn.ui.components.kpknSheetDialogOutlinedButtonColors
+import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 
 @Composable
 internal fun GroupEditorCard(
@@ -355,17 +363,22 @@ internal fun GroupEditorCard(
     var showColorPicker by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember(part.id) { mutableStateOf(false) }
     var showDeleteModeConfirm by remember(part.id) { mutableStateOf(false) }
-    val partColor = remember(part.color) {
-        runCatching { Color(AndroidColor.parseColor(part.color ?: PART_COLORS.first())) }.getOrDefault(Color(0xFF00F0FF))
-    }
+    val partAccent = remember(part.color) { resolvePartAccent(part.color) }
+    val partColor = partAccent.primary
     val dropScale by animateFloatAsState(if (isDropTarget) 1.01f else 1f, label = "partDropScale")
     val normalizedName = part.name.trim()
     val displayName = if (normalizedName.isBlank()) "GRUPO" else normalizedName.uppercase()
     val shouldShowDeleteChoice = part.exercises.isNotEmpty()
+    val headerShape = if (collapsed) {
+        RoundedCornerShape(16.dp)
+    } else {
+        RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 0.dp, bottomEnd = 0.dp)
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp, bottom = if (collapsed) 4.dp else 0.dp)
             .onGloballyPositioned { onBoundsChange(it.boundsInRoot()) }
             .graphicsLayer {
                 translationY = if (isDragging) dragOffsetY else 0f
@@ -376,16 +389,23 @@ internal fun GroupEditorCard(
             }
             .zIndex(if (isDragging) 10f else 0f),
     ) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            color = partColor.copy(alpha = 0.13f),
-            border = if (isDragging || isDropTarget) {
-                androidx.compose.foundation.BorderStroke(
-                    width = if (isDragging) 2.dp else 1.5.dp,
-                    color = partColor.copy(alpha = if (isDragging) 0.95f else 0.7f),
-                )
-            } else null,
+        val headerBorderColor = if (isDragging || isDropTarget) {
+            partColor.copy(alpha = if (isDragging) 0.45f else 0.28f)
+        } else {
+            partColor.copy(alpha = 0.12f)
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(headerShape)
+                .background(partAccent.brush(alpha = 0.08f))
+                .then(
+                    if (collapsed) {
+                        Modifier.border(BorderStroke(1.dp, headerBorderColor), headerShape)
+                    } else {
+                        Modifier
+                    }
+                ),
         ) {
             Column {
                 SwipeToDeleteCard(
@@ -396,11 +416,12 @@ internal fun GroupEditorCard(
                             showDeleteConfirm = true
                         }
                     },
+                    shape = headerShape,
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
@@ -423,15 +444,15 @@ internal fun GroupEditorCard(
                             Icon(
                                 imageVector = Icons.Default.DragHandle,
                                 contentDescription = "Mantén pulsado para reordenar grupo",
-                                tint = partColor.copy(alpha = if (isDragging) 0.92f else 0.56f),
+                                tint = Color.White.copy(alpha = if (isDragging) 0.7f else 0.36f),
                                 modifier = Modifier.size(24.dp),
                             )
                         }
                         Box(
                             modifier = Modifier
-                                .size(10.dp)
+                                .size(12.dp)
                                 .clip(CircleShape)
-                                .background(partColor)
+                                .background(partAccent.brush())
                                 .clickable { showColorPicker = !showColorPicker },
                         )
                         if (part.isEditorUncategorized()) {
@@ -439,48 +460,40 @@ internal fun GroupEditorCard(
                                 "SIN GRUPO",
                                 modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.labelLarge,
-                                fontSize = 14.sp,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.Black,
-                                color = partColor,
+                                color = Color.White.copy(alpha = 0.7f),
                             )
                         } else {
-                            Column(modifier = Modifier.weight(1f)) {
-                                BasicTextField(
-                                    value = normalizedName.uppercase(),
-                                    onValueChange = { input ->
-                                        onRename(input.trim())
-                                    },
-                                    singleLine = true,
-                                    cursorBrush = SolidColor(partColor),
-                                    textStyle = MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Black,
-                                        fontSize = 14.sp,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                    ),
-                                    decorationBox = { innerTextField ->
-                                        Box {
-                                            if (normalizedName.isBlank()) {
-                                                Text(
-                                                    displayName,
-                                                    style = MaterialTheme.typography.labelLarge.copy(
-                                                        fontWeight = FontWeight.Black,
-                                                        fontSize = 14.sp,
-                                                    ),
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                )
-                                            }
-                                            innerTextField()
+                            BasicTextField(
+                                value = normalizedName.uppercase(),
+                                onValueChange = { input ->
+                                    onRename(input.trim())
+                                },
+                                singleLine = true,
+                                cursorBrush = SolidColor(partColor),
+                                textStyle = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 16.sp,
+                                    color = Color.White.copy(alpha = 0.92f),
+                                ),
+                                decorationBox = { innerTextField ->
+                                    Box(modifier = Modifier.fillMaxWidth()) {
+                                        if (normalizedName.isBlank()) {
+                                            Text(
+                                                displayName,
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontWeight = FontWeight.Black,
+                                                    fontSize = 16.sp,
+                                                ),
+                                                color = Color.White.copy(alpha = 0.45f),
+                                            )
                                         }
-                                    },
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .height(2.dp)
-                                        .fillMaxWidth()
-                                        .background(partColor.copy(alpha = 0.4f))
-                                )
-                            }
+                                        innerTextField()
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
                         }
                         IconButton(
                             onClick = onToggleCollapse,
@@ -489,7 +502,7 @@ internal fun GroupEditorCard(
                             Icon(
                                 if (collapsed) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
                                 contentDescription = if (collapsed) "Expandir" else "Colapsar",
-                                tint = partColor,
+                                tint = Color.White.copy(alpha = 0.6f),
                                 modifier = Modifier.size(20.dp),
                             )
                         }
@@ -497,26 +510,54 @@ internal fun GroupEditorCard(
                 }
 
                 AnimatedVisibility(showColorPicker) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            "Sólidos",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.5f),
+                            fontWeight = FontWeight.Bold,
+                        )
                         Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            PART_COLORS.forEach { hex ->
-                                val c = runCatching { Color(AndroidColor.parseColor(hex)) }.getOrDefault(Color.Gray)
-                                Box(
-                                    modifier = Modifier
-                                        .size(22.dp)
-                                        .clip(CircleShape)
-                                        .background(c)
-                                        .border(if (hex == part.color) 2.dp else 0.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                                        .clickable {
-                                            onChangeColor(hex)
-                                            showColorPicker = false
-                                        }
+                            partAccentSolids.forEach { accent ->
+                                PartAccentSwatch(
+                                    accent = accent,
+                                    selected = accent.id == part.color,
+                                    onClick = {
+                                        onChangeColor(accent.id)
+                                        showColorPicker = false
+                                    },
+                                )
+                            }
+                        }
+                        Text(
+                            "Gradientes",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.5f),
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Row(
+                            modifier = Modifier.horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            partAccentGradients.forEach { accent ->
+                                PartAccentSwatch(
+                                    accent = accent,
+                                    selected = accent.id == part.color,
+                                    onClick = {
+                                        onChangeColor(accent.id)
+                                        showColorPicker = false
+                                    },
                                 )
                             }
                         }
                     }
+                }
 
                     AnimatedVisibility(!collapsed && !headerOnly) {
                         Column(
@@ -547,15 +588,19 @@ internal fun GroupEditorCard(
             title = { Text("Eliminar grupo", fontWeight = FontWeight.Black) },
             text = { Text("¿Eliminar este grupo?") },
             confirmButton = {
-                FilledTonalButton(onClick = {
-                    showDeleteConfirm = false
-                    onRemove(false)
-                }) { Text("Eliminar") }
+                KpknAlertConfirmButton(
+                    text = "Eliminar",
+                    onClick = {
+                        showDeleteConfirm = false
+                        onRemove(false)
+                    },
+                )
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Cancelar")
-                }
+                KpknAlertDismissButton(
+                    text = "Cancelar",
+                    onClick = { showDeleteConfirm = false },
+                )
             },
         )
     }
@@ -573,8 +618,9 @@ internal fun GroupEditorCard(
                             showDeleteModeConfirm = false
                         },
                         modifier = Modifier.fillMaxWidth(),
+                        colors = kpknSheetDialogOutlinedButtonColors(),
                     ) {
-                        Text("Conservar ejercicios")
+                        Text("Conservar ejercicios", color = KpknSheetTokens.Body)
                     }
                     FilledTonalButton(
                         onClick = {
@@ -582,19 +628,45 @@ internal fun GroupEditorCard(
                             showDeleteModeConfirm = false
                         },
                         modifier = Modifier.fillMaxWidth(),
+                        colors = kpknSheetWhiteTonalButtonColors(),
                     ) {
-                        Text("Borrar grupo y ejercicios")
+                        Text(
+                            "Borrar grupo y ejercicios",
+                            color = KpknSheetTokens.ControlLabel,
+                            fontWeight = FontWeight.Bold,
+                        )
                     }
                 }
             },
             confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { showDeleteModeConfirm = false }) {
-                    Text("Cancelar")
-                }
+                KpknAlertDismissButton(
+                    text = "Cancelar",
+                    onClick = { showDeleteModeConfirm = false },
+                )
             },
         )
     }
+}
+
+@Composable
+private fun PartAccentSwatch(
+    accent: PartAccentPreset,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(if (accent.isGradient) 28.dp else 24.dp)
+            .clip(CircleShape)
+            .background(accent.brush())
+            .border(
+                width = if (selected) 2.dp else 0.dp,
+                color = Color.White.copy(alpha = 0.9f),
+                shape = CircleShape,
+            )
+            .clickable(onClick = onClick),
+    )
 }
 
 internal fun buildSessionExerciseEditorBlocks(

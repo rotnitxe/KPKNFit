@@ -14,7 +14,6 @@ import com.example.kpkn.data.models.SetEntryV2
 import com.example.kpkn.data.models.SetOutcomeV2
 import com.example.kpkn.data.models.SetTechniqueV2
 import com.example.kpkn.data.models.SubTagCategory
-import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.data.models.TimeProgressionStrategyV3
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WeekVariant
@@ -255,8 +254,11 @@ class WorkoutSetRecorder(
                 superSetWithExerciseId = advanced.superSetWithExerciseId,
             )
 
-            val resolvedBarWeightKg = activeProfile?.setupDetails?.barWeightKg
-                ?: exercise.setupDetails?.barWeightKg
+            val resolvedBarWeightKg = if (!resolvedTagId.isNullOrBlank()) {
+                com.example.kpkn.domain.workout.BaseLoadPolicy.resolvedFromProfile(activeProfile)
+            } else {
+                null
+            }
 
             val entry = SetEntryV2(
                 exerciseId = exercise.id,
@@ -520,26 +522,13 @@ class WorkoutSetRecorder(
                 val adjustedPlanned = ports.adjustRestTimeForPace(plannedRest)
                 val adjustedAdaptive = ports.adjustRestTimeForPace(adaptiveRest)
 
-                val hasPlannedDropSet = plannedSet?.plannedIntensityTechniques?.any {
-                    it.type == TechniqueType.DROP_SET
-                } == true
-                val hasPlannedRestPause = plannedSet?.plannedIntensityTechniques?.any {
-                    it.type == TechniqueType.REST_PAUSE
-                } == true
-                val effectivePlanned = when {
-                    hasPlannedDropSet -> 0
-                    hasPlannedRestPause -> {
-                        val rpSeconds = plannedSet?.plannedIntensityTechniques
-                            ?.firstOrNull { it.type == TechniqueType.REST_PAUSE }
-                            ?.params?.get("pauseSeconds")?.toIntOrNull()
-                        rpSeconds ?: 10
-                    }
-                    else -> adjustedPlanned
-                }
+                // Drop/rest-pause pauses run inside the guided card flow.
+                // After the final record, always use the normal between-set rest.
+                val effectivePlanned = adjustedPlanned
 
                 val pendingSuggestion = PendingRestSuggestion(
                     plannedSeconds = effectivePlanned,
-                    adaptiveSeconds = if (hasPlannedDropSet) 0 else adjustedAdaptive.coerceAtLeast(10),
+                    adaptiveSeconds = adjustedAdaptive.coerceAtLeast(10),
                     exerciseName = exercise.name,
                     exerciseId = exercise.id,
                     lastSet = completedSet,

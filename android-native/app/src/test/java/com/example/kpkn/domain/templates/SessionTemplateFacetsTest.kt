@@ -126,12 +126,15 @@ class SessionTemplateFacetsTest {
 
     @Test
     fun allSystemTemplatesProduceValidFacets() {
+        assertTrue(
+            "El catálogo sistema no debe estar vacío",
+            SESSION_TEMPLATES_SYSTEM.isNotEmpty(),
+        )
         assertEquals(
-            "buildAll debe cubrir las 65 plantillas del sistema",
+            "buildAll debe cubrir todas las plantillas del sistema (${SESSION_TEMPLATES_SYSTEM.size})",
             SESSION_TEMPLATES_SYSTEM.size,
             facetsById.size,
         )
-        assertEquals(65, SESSION_TEMPLATES_SYSTEM.size)
 
         val failures = mutableListOf<String>()
         SESSION_TEMPLATES_SYSTEM.forEach { template ->

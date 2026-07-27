@@ -57,7 +57,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -93,77 +92,27 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.SessionDiscomfortSummary
 import com.example.kpkn.domain.auge.SessionIntensityResult
-import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
+import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.screens.workout.components.AdjustableRingCompact
 import com.example.kpkn.screens.workout.components.MinimalMuscleSlider
 import dev.chrisbanes.haze.HazeState
-import kotlin.math.roundToInt
 
 internal const val FINISH_ROLE_STABILIZER_MULT = 0.4
 
 internal fun computeInitialFinishMuscleBatteries(
     startBatteries: Map<String, Int>,
-    roleWeightedSets: Map<String, Double>,
-    predictedMuscularDrain: Int,
-    completedExercises: List<CompletedExercise>,
+    perMuscleMuscularDrain: Map<String, Int>,
 ): Map<String, Int> {
     if (startBatteries.isEmpty()) return emptyMap()
-
-    val expectedDrop = predictedMuscularDrain.coerceIn(0, 100).toDouble()
-    if (expectedDrop <= 0.5) {
-        return startBatteries.mapValues { (_, start) -> start.coerceIn(0, 100) }
-    }
-
-    val muscleCount = startBatteries.size.coerceAtLeast(1)
-    val totalRoleWeight = roleWeightedSets.values.sum().takeIf { it > 0.0 }
-    val fallbackShare = 1.0 / muscleCount.toDouble()
-    val totalSets = completedExercises.sumOf { ex ->
-        ex.sets.count { set -> !set.isWarmup && AugeFatigueEngine.isSetEffective(set) }
-    }.coerceAtLeast(1)
-    val avgSessionRest = completedExercises
-        .map { it.restTime }
-        .average()
-        .coerceIn(30.0, 300.0)
-    val densityFactor = when {
-        avgSessionRest <= 45.0 -> 1.16
-        avgSessionRest <= 75.0 -> 1.10
-        avgSessionRest >= 210.0 -> 0.92
-        avgSessionRest >= 150.0 -> 0.96
-        else -> 1.0
-    }
-    val progressionFactor = (1.0 + ((totalSets - 4).coerceAtLeast(0) / 14.0) * 0.22)
-        .coerceIn(1.0, 1.30)
-    val supersetFactor = if (completedExercises.any { !it.supersetId.isNullOrBlank() }) 1.08 else 1.0
-    val adjustedExpectedDrop = (expectedDrop * densityFactor * progressionFactor * supersetFactor)
-        .coerceAtMost(100.0)
-
     return startBatteries.mapValues { (muscle, rawStart) ->
-        val start = rawStart.coerceIn(0, 100).toDouble()
-
-        val share = if (totalRoleWeight != null) {
-            ((roleWeightedSets[muscle] ?: 0.0) / totalRoleWeight).coerceIn(0.0, 1.0)
-        } else {
-            fallbackShare
-        }
-
-        // Relative to average share (=1.0). Keeps session-level drop stable while
-        // redistributing toward muscles that realmente trabajaron más.
-        val relativeShare = share * muscleCount.toDouble()
-        val roleFactor = (0.60 + (0.40 * relativeShare)).coerceIn(0.45, 1.55)
-
-        // Slight stabilization by starting battery to avoid over-penalizing
-        // already low muscles and over-optimistic drops on fresh muscles.
-        val startFactor = when {
-            start >= 90.0 -> 0.92
-            start <= 50.0 -> 1.08
-            else -> 1.0
-        }
-
-        val modeledDrop = (adjustedExpectedDrop * roleFactor * startFactor)
-            .coerceIn(0.0, start)
-
-        (start - modeledDrop).roundToInt().coerceIn(0, 100)
+        val start = rawStart.coerceIn(0, 100)
+        val drain = perMuscleMuscularDrain[muscle]
+            ?: perMuscleMuscularDrain.entries.firstOrNull {
+                getAugeMusclePillarId(it.key) == getAugeMusclePillarId(muscle)
+            }?.value
+            ?: 0
+        (start - drain).coerceIn(0, 100)
     }
 }
 
@@ -183,7 +132,7 @@ internal fun computeSessionMuscleRoleWeightedSets(
 
         dbInfo.involvedMuscles.forEach { involvement ->
             val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
-            val muscleId = getAugeMuscleDisplayId(canonical, involvement.emphasis)
+            val muscleId = getAugeMusclePillarId(canonical, involvement.emphasis)
             val roleMultiplier = when (involvement.role) {
                 MuscleRole.PRIMARY -> 1.0
                 MuscleRole.SECONDARY -> 0.5
@@ -213,6 +162,7 @@ internal fun FinishWorkoutSheet(
     hazeState: HazeState,
     sessionMuscleStartBatteries: Map<String, Int> = emptyMap(),
     sessionMuscleVolumeByRoleSets: Map<String, Double> = emptyMap(),
+    perMuscleMuscularDrain: Map<String, Int> = emptyMap(),
     postExerciseFeedbackByExerciseId: Map<String, PostExerciseFeedback> = emptyMap(),
     sessionDiscomfortSummary: List<SessionDiscomfortSummary> = emptyList(),
     voiceFinalNotes: String? = null,
@@ -226,23 +176,21 @@ internal fun FinishWorkoutSheet(
     onDismiss: () -> Unit,
     onShare: () -> Unit,
 ) {
-    var neuralFinal by remember(readinessNeuralStart, predictedDrain.cns) {
-        mutableIntStateOf((readinessNeuralStart - predictedDrain.cns).coerceIn(0, 100))
+    val neuralSeed = (readinessNeuralStart - predictedDrain.cns).coerceIn(0, 100)
+    val spinalSeed = (readinessSpinalStart - predictedDrain.spinal).coerceIn(0, 100)
+    val muscleSeed = remember(sessionMuscleStartBatteries, perMuscleMuscularDrain) {
+        computeInitialFinishMuscleBatteries(
+            startBatteries = sessionMuscleStartBatteries,
+            perMuscleMuscularDrain = perMuscleMuscularDrain,
+        )
     }
-    var spinalFinal by remember(readinessSpinalStart, predictedDrain.spinal) {
-        mutableIntStateOf((readinessSpinalStart - predictedDrain.spinal).coerceIn(0, 100))
-    }
-    val muscleFinal = remember(sessionMuscleStartBatteries, sessionMuscleVolumeByRoleSets, predictedDrain.muscular) {
-        mutableStateMapOf<String, Int>().also { map ->
-            map.putAll(
-                computeInitialFinishMuscleBatteries(
-                    startBatteries = sessionMuscleStartBatteries,
-                    roleWeightedSets = sessionMuscleVolumeByRoleSets,
-                    predictedMuscularDrain = predictedDrain.muscular,
-                    completedExercises = completedExercises,
-                )
-            )
-        }
+    var neuralFinal by remember(neuralSeed) { mutableIntStateOf(neuralSeed) }
+    var spinalFinal by remember(spinalSeed) { mutableIntStateOf(spinalSeed) }
+    var neuralEdited by remember(neuralSeed) { mutableStateOf(false) }
+    var spinalEdited by remember(spinalSeed) { mutableStateOf(false) }
+    var musclesEdited by remember(muscleSeed) { mutableStateOf(false) }
+    val muscleFinal = remember(muscleSeed) {
+        mutableStateMapOf<String, Int>().also { map -> map.putAll(muscleSeed) }
     }
 
     val derivedMuscularFinal by remember(muscleFinal) {
@@ -288,11 +236,13 @@ internal fun FinishWorkoutSheet(
     LaunchedEffect(voiceFinalNeural) {
         if (voiceFinalNeural != null) {
             neuralFinal = voiceFinalNeural
+            neuralEdited = true
         }
     }
     LaunchedEffect(voiceFinalSpinal) {
         if (voiceFinalSpinal != null) {
             spinalFinal = voiceFinalSpinal
+            spinalEdited = true
         }
     }
     LaunchedEffect(voiceFinalDiscomforts) {
@@ -336,16 +286,11 @@ internal fun FinishWorkoutSheet(
             .sortedByDescending { it.value }
     }
 
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-    )
-
     // Explicit back / scrim / drag closes finish sheet (does not abandon the workout).
     BackHandler(enabled = true) { onDismiss() }
 
     KpknSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
         hazeState = hazeState,
     ) {
         Column(
@@ -485,7 +430,10 @@ internal fun FinishWorkoutSheet(
                                 value = neuralFinal,
                                 ringColor = com.example.kpkn.ui.theme.RingBlue,
                                 ringSize = 120,
-                                onValueChange = { neuralFinal = it },
+                                onValueChange = {
+                                    neuralFinal = it
+                                    neuralEdited = true
+                                },
                             )
                             AdjustableRingCompact(
                                 modifier = Modifier.weight(1f),
@@ -493,7 +441,10 @@ internal fun FinishWorkoutSheet(
                                 value = spinalFinal,
                                 ringColor = com.example.kpkn.ui.theme.RingYellow,
                                 ringSize = 120,
-                                onValueChange = { spinalFinal = it },
+                                onValueChange = {
+                                    spinalFinal = it
+                                    spinalEdited = true
+                                },
                             )
                         }
 
@@ -520,6 +471,7 @@ internal fun FinishWorkoutSheet(
                                         value = current,
                                         onValueChange = { updated ->
                                             muscleFinal[muscleId] = updated
+                                            musclesEdited = true
                                         },
                                     )
                                 }
@@ -886,7 +838,10 @@ internal fun FinishWorkoutSheet(
                             environmentTags = emptyList(),
                             finalNeuralBattery = neuralFinal,
                             finalSpinalBattery = spinalFinal,
-                            finalMuscleBatteries = muscleFinal.toMap(),
+                            finalMuscleBatteries = if (musclesEdited) muscleFinal.toMap() else emptyMap(),
+                            neuralEdited = neuralEdited,
+                            spinalEdited = spinalEdited,
+                            musclesEdited = musclesEdited,
                             additionalDiscomfortNote = additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
                             stillPresentDiscomfortIds = stillPresentIds,
                         ),

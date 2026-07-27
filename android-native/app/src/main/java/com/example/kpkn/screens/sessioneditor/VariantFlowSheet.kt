@@ -26,13 +26,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import com.example.kpkn.ui.components.KpknSheet
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -64,11 +62,9 @@ import com.example.kpkn.domain.exercises.VariantGroupIndex
 import com.example.kpkn.domain.exercises.VariantPreferenceStore
 import com.example.kpkn.screens.wikilab.wikilabMuscleColor
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VariantFlowSheet(
     initialExercise: ExerciseMuscleInfo,
-    sheetState: SheetState,
     onConfirm: (selectedVariant: ExerciseMuscleInfo, selectedAspects: Map<String, String>) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -105,7 +101,6 @@ fun VariantFlowSheet(
 
     KpknSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
     ) {
         Column(
             modifier = Modifier
