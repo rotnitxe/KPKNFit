@@ -368,7 +368,7 @@ internal fun SessionEditorSheets(
     onSave: (SessionSaveScope) -> Unit,
     onApplyAugeCorrection: (String) -> Unit,
     onAddGhostExercise: (String) -> Unit,
-    onApplyAssistantSuggestion: (String) -> Unit,
+    onApplyAssistantSuggestion: (suggestionId: String, acceptedDetailIds: List<String>) -> Unit,
     onDiscardSwitch: (() -> Unit)?,
     onWarmupSave: (String, List<WarmupSetDefinition>) -> Unit,
     onRestoreSnapshot: (SessionDraftSnapshot) -> Unit,

@@ -65,14 +65,16 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.domain.training.ProgramCalendarEngine
+import com.example.kpkn.domain.training.ScheduleIssue
 import com.example.kpkn.domain.training.StartDaySessionMode
 import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.domain.training.WeekWithMeta
+import com.example.kpkn.ui.components.KpknAlertDialog
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknDropdownMenu
 
 data class DayInfo(
@@ -135,6 +137,7 @@ fun DayView(
     onApplySessionsLayout: (List<Session>) -> Unit,
     onUpdateStartDay: (Int, StartDayTemporalScope, StartDaySessionMode) -> Unit,
     onUpdateWeekMetadata: (String, String, String?) -> Unit,
+    onUpdateTrainingDayDate: (weekId: String, dayOfWeek: Int, isoDate: String?) -> Unit = { _, _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     val startDay = program.startDay ?: 1
@@ -153,10 +156,12 @@ fun DayView(
     var rootBounds by remember { mutableStateOf<Rect?>(null) }
     var pendingStartDay by remember { mutableStateOf<Int?>(null) }
     var pendingOffScheduleSession by remember { mutableStateOf<Pair<Session, String>?>(null) }
+    var editingDayDate by remember { mutableStateOf<Pair<Int, String>?>(null) }
     var startDayScope by remember { mutableStateOf(StartDayTemporalScope.ALL_WEEKS) }
     var startDaySessionMode by remember { mutableStateOf(StartDaySessionMode.KEEP_DAYS) }
     val outsideProgramDays = selectedWeek?.outsideProgramDays.orEmpty()
     val trainingDayDates = selectedWeek?.trainingDayDates.orEmpty()
+    val selectedWeekId = selectedWeek?.id
 
     val initialExpandedDay = remember(startDay, trainingDayDates) {
         val todayStr = java.time.LocalDate.now().toString()
@@ -223,7 +228,12 @@ fun DayView(
                     onEditSession = onEditSession,
                     onDeleteSession = onDeleteSession,
                     onStartWorkout = { session ->
-                        val issue = calendarStartWarning(isOutsideProgram, scheduledDate)
+                        val issue = ProgramCalendarEngine.scheduleIssueFor(
+                            program = program,
+                            weekId = selectedWeekId,
+                            session = session,
+                        )?.let { scheduleIssueMessage(it) }
+                            ?: calendarStartWarning(isOutsideProgram, scheduledDate)
                         if (issue != null) pendingOffScheduleSession = session to issue
                         else onStartWorkout(session)
                     },
@@ -235,6 +245,11 @@ fun DayView(
                             startDaySessionMode = StartDaySessionMode.KEEP_DAYS
                         }
                     },
+                    onEditScheduledDate = if (isCalendarized && selectedWeekId != null) {
+                        {
+                            editingDayDate = day.id to (scheduledDate.orEmpty())
+                        }
+                    } else null,
                     onDayBoundsChange = { rect -> dayBounds[day.id] = rect },
                     onCardBoundsChange = { sessionId, rect -> cardBounds[sessionId] = rect },
                     onDragStart = { sessionId ->
@@ -333,11 +348,11 @@ fun DayView(
         }
     }
 
-    pendingOffScheduleSession?.let { (session, _) ->
+    pendingOffScheduleSession?.let { (session, message) ->
         KpknAlertDialog(
             onDismissRequest = { pendingOffScheduleSession = null },
-            title = { Text("Aviso", fontWeight = FontWeight.Black) },
-            text = { Text("La sesión que quieres iniciar no corresponde a la fecha de hoy. ¿Quieres continuar?") },
+            title = { Text("Aviso de calendario", fontWeight = FontWeight.Black) },
+            text = { Text(message) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -351,6 +366,47 @@ fun DayView(
             },
         )
     }
+
+    editingDayDate?.let { (dayId, currentIso) ->
+        var draft by remember(dayId, currentIso) { mutableStateOf(currentIso) }
+        KpknAlertDialog(
+            onDismissRequest = { editingDayDate = null },
+            title = { Text("Fecha de entrenamiento", fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("ISO (YYYY-MM-DD) para este día de la semana seleccionada. Así puedes anclar turnos irregulares.")
+                    OutlinedTextField(
+                        value = draft,
+                        onValueChange = { draft = it },
+                        label = { Text("Fecha") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val weekId = selectedWeekId ?: return@Button
+                        onUpdateTrainingDayDate(weekId, dayId, draft.trim().ifBlank { null })
+                        editingDayDate = null
+                    },
+                ) { Text("Guardar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingDayDate = null }) { Text("Cancelar") }
+            },
+        )
+    }
+}
+
+private fun scheduleIssueMessage(issue: com.example.kpkn.domain.training.ScheduleIssue): String = when (issue) {
+    is com.example.kpkn.domain.training.ScheduleIssue.WrongDate ->
+        "Esta sesión está planificada para ${issue.plannedDate}. Hoy es ${issue.actualDate}. Puedes continuar; KPKN registrará la desviación."
+    is com.example.kpkn.domain.training.ScheduleIssue.OutsideProgram ->
+        "Hoy (${issue.actualDate}) está fuera del rango del programa (${issue.startDate} → ${issue.endDate})."
+    is com.example.kpkn.domain.training.ScheduleIssue.OutsideProgramDay ->
+        "Hoy (${issue.actualDate}) no es un día de entrenamiento del plan calendarizado."
 }
 
 private fun calendarStartWarning(isOutsideProgram: Boolean, scheduledDate: String?): String? {
@@ -563,6 +619,7 @@ private fun DayColumn(
     onStartWorkout: (Session) -> Unit,
     onAddSession: () -> Unit,
     onSetStartDay: () -> Unit,
+    onEditScheduledDate: (() -> Unit)? = null,
     onDayBoundsChange: (Rect) -> Unit,
     onCardBoundsChange: (String, Rect) -> Unit,
     onDragStart: (String) -> Unit,
@@ -629,10 +686,16 @@ private fun DayColumn(
                             fontWeight = FontWeight.Bold,
                             textDecoration = if (isOutsideProgram) TextDecoration.LineThrough else TextDecoration.None,
                             color = if (isOutsideProgram) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f) else MaterialTheme.colorScheme.onSurface,
+                            modifier = if (onEditScheduledDate != null) {
+                                Modifier.clickable { onEditScheduledDate.invoke() }
+                            } else {
+                                Modifier
+                            },
                         )
                         Text(
                             when {
                                 isOutsideProgram -> "Fuera de programa"
+                                onEditScheduledDate != null && scheduledDateLabel != null -> "Toca la fecha para ajustar (turnos)"
                                 entries.isEmpty() -> "Sin sesiones todavía"
                                 else -> "${entries.size} sesión${if (entries.size > 1) "es" else ""}"
                             },

@@ -11,6 +11,7 @@ import com.example.kpkn.services.workout.VoiceSessionCommand
 import com.example.kpkn.services.workout.VoicePipelineStage
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.services.workout.WorkoutVoiceController
+import com.example.kpkn.services.workout.WorkoutVoiceExerciseAliasMatcher
 import com.example.kpkn.services.workout.WorkoutVoiceForegroundService
 import com.example.kpkn.services.workout.WorkoutVoicePermissionHelper
 import kotlinx.coroutines.CoroutineScope
@@ -63,6 +64,16 @@ class WorkoutVoiceCommandHandler(
         fun commitStructuralPersistenceSessionOnly()
         fun commitStructuralPersistencePermanent()
         fun clearPendingStructuralPersistence()
+        fun stopRestTimer()
+        fun addRestTime(seconds: Int)
+        fun resolvePendingRestSuggestion(useAdaptive: Boolean)
+        fun undoVoiceRecordedSet(payload: com.example.kpkn.services.workout.VoiceUndoPayload)
+        fun patchLastCompletedSet(patch: com.example.kpkn.services.workout.VoiceSetEditPatch): Boolean
+        fun coachPaceAlert(): String?
+        fun sessionTimeRemainingSeconds(): Int?
+        fun suggestedWeightReason(exercise: Exercise, setIdx: Int, side: String?): String?
+        fun voiceExerciseAliases(): Map<String, String>
+        fun enteringExerciseRangeHint(exercise: Exercise): String?
     }
 
     private var voiceJob: Job? = null
@@ -350,6 +361,42 @@ class WorkoutVoiceCommandHandler(
             is VoiceSessionCommand.AddSetPermanent -> {
                 ports.commitStructuralPersistencePermanent()
             }
+            is VoiceSessionCommand.SkipRest -> {
+                ports.stopRestTimer()
+                speakCurrentStepAnnouncementIfEnabled()
+            }
+            is VoiceSessionCommand.UseAdaptiveRest -> {
+                ports.resolvePendingRestSuggestion(useAdaptive = true)
+            }
+            is VoiceSessionCommand.AdjustRestTime -> {
+                if (getState().isRestTimerRunning) {
+                    ports.addRestTime(command.deltaSeconds)
+                }
+            }
+            is VoiceSessionCommand.UndoLastSet -> {
+                val payload = voiceController.consumePendingUndo()
+                if (payload != null) {
+                    ports.undoVoiceRecordedSet(payload)
+                    voiceController.speakFeedbackUpdated("Serie deshecha.")
+                }
+            }
+            is VoiceSessionCommand.EditLastSet -> {
+                val ok = ports.patchLastCompletedSet(command.patch)
+                if (ok) {
+                    voiceController.speakSetUpdated(
+                        weightKg = command.patch.weightKg,
+                        reps = command.patch.metricValue,
+                        intensityValue = command.patch.intensityValue,
+                        intensityKind = command.patch.intensityKind,
+                    )
+                } else {
+                    voiceController.speakFeedbackUpdated("No hay una serie reciente para editar.")
+                }
+            }
+            is VoiceSessionCommand.SuggestWeightReasoned -> handleVoiceSuggestWeightReasoned()
+            is VoiceSessionCommand.FatigueAdvice -> handleVoiceFatigueAdvice()
+            is VoiceSessionCommand.PaceStatus -> handleVoicePaceStatus()
+            is VoiceSessionCommand.StopSpeaking -> voiceController.stopSpeaking()
             is VoiceSessionCommand.Unknown -> { /* no-op */ }
         }
     }
@@ -364,7 +411,14 @@ class WorkoutVoiceCommandHandler(
                     ports.workoutStepPositions(updatedState).firstOrNull { it.stepKey == key }
                 }
                 val round = step?.supersetRoundIndex?.let { it + 1 }
-                voiceController.speakCurrentExercise(nextEx.name, updatedState.currentSetIdx + 1, nextEx.sets.size, round = round)
+                val rangeHint = ports.enteringExerciseRangeHint(nextEx)
+                voiceController.speakCurrentExercise(
+                    nextEx.name,
+                    updatedState.currentSetIdx + 1,
+                    nextEx.sets.size,
+                    round = round,
+                    rangeHint = rangeHint,
+                )
             }
         }
     }
@@ -380,10 +434,12 @@ class WorkoutVoiceCommandHandler(
             val matchedId = target.exerciseIds.firstOrNull { exerciseId ->
                 val memberEx = allExercises.firstOrNull { it.id == exerciseId }
                 if (memberEx != null) {
-                    val normalizedName = java.text.Normalizer.normalize(memberEx.name.lowercase(Locale.ROOT), java.text.Normalizer.Form.NFD)
-                        .replace("\\p{Mn}+".toRegex(), "")
-                        .trim()
-                    normalizedName.isNotBlank() && transcriptNormalized.contains(normalizedName)
+                    WorkoutVoiceExerciseAliasMatcher.matchesSpokenName(
+                        spoken = transcriptNormalized,
+                        exerciseId = exerciseId,
+                        exerciseName = memberEx.name,
+                        userAliases = ports.voiceExerciseAliases(),
+                    )
                 } else false
             }
             val finalId = matchedId ?: target.missingFeedbackExerciseIds(state).firstOrNull() ?: target.exerciseIds.first()
@@ -655,17 +711,75 @@ class WorkoutVoiceCommandHandler(
         val state = getState()
         val allExercises = ports.visibleExercises(state)
         val exercise = allExercises.getOrNull(state.currentExerciseIdx) ?: return
+        val side = voiceController.state.value.lastInterpretation?.side
+            ?: resolvePendingSide(exercise, state)
         val suggestion = ports.getWeightSuggestionWithAutoRegulation(
             exercise = exercise,
             setIdx = state.currentSetIdx,
             activeTag = state.exerciseTags[exercise.id],
-            side = null,
+            side = side,
         )
         val weight = suggestion?.suggestedWeight
         if (weight != null && weight > 0.0) {
             voiceController.speakSuggestedWeight(exercise.name, weight)
         }
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
+    }
+
+    private fun handleVoiceSuggestWeightReasoned() {
+        val state = getState()
+        val exercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
+        val side = resolvePendingSide(exercise, state)
+        val reason = ports.suggestedWeightReason(exercise, state.currentSetIdx, side)
+            ?: "Usa la carga sugerida en pantalla."
+        val suggestion = ports.getWeightSuggestionWithAutoRegulation(
+            exercise = exercise,
+            setIdx = state.currentSetIdx,
+            activeTag = state.exerciseTags[exercise.id],
+            side = side,
+        )
+        val weight = suggestion?.suggestedWeight
+        val text = if (weight != null && weight > 0) {
+            "Carga sugerida: ${weight.toInt()} kilos. $reason"
+        } else {
+            reason
+        }
+        voiceController.speakFeedbackUpdated(text)
+        updateState { it.copy(voiceSessionState = voiceController.state.value) }
+    }
+
+    private fun handleVoiceFatigueAdvice() {
+        val alert = ports.coachPaceAlert()
+        val message = when (alert) {
+            "retrasado", "apurar", "excedido" ->
+                "Vas justo de tiempo. Acorta el descanso o baja un poco la carga en accesorios."
+            else ->
+                "Si te sientes muy fatigado, baja 5 a 10 por ciento la carga o usa el descanso sugerido."
+        }
+        voiceController.speakFeedbackUpdated(message)
+        updateState { it.copy(voiceSessionState = voiceController.state.value) }
+    }
+
+    private fun handleVoicePaceStatus() {
+        val remaining = ports.sessionTimeRemainingSeconds()
+        val alert = ports.coachPaceAlert()
+        val message = when {
+            remaining == null -> "No hay límite de tiempo en esta sesión."
+            remaining <= 0 -> "El tiempo estimado de sesión ya se agotó."
+            alert == "retrasado" || alert == "apurar" ->
+                "Te quedan ${remaining / 60} minutos y vas un poco atrasado."
+            else -> "Te quedan ${remaining / 60} minutos. Ritmo bien."
+        }
+        voiceController.speakFeedbackUpdated(message)
+        updateState { it.copy(voiceSessionState = voiceController.state.value) }
+    }
+
+    private fun resolvePendingSide(exercise: Exercise, state: WorkoutUiState): String? {
+        if (!exercise.isEffectivelyUnilateral()) return null
+        val expected = exercise.expectedSidesForSet(state.currentSetIdx)
+        return expected.firstOrNull { side ->
+            !state.completedSets.containsKey("${exercise.id}_${state.currentSetIdx}_${side.take(1).uppercase()}")
+        } ?: expected.firstOrNull()
     }
 
     private fun handleVoiceRestStatus() {
@@ -682,9 +796,17 @@ class WorkoutVoiceCommandHandler(
         val exercise = allExercises.getOrNull(state.currentExerciseIdx) ?: return
         val setNum = state.currentSetIdx + 1
         val totalSets = exercise.sets.size
+        val side = resolvePendingSide(exercise, state)
+        val sideLabel = when (side) {
+            "left" -> ", lado izquierdo"
+            "right" -> ", lado derecho"
+            else -> ""
+        }
 
         scope.launch {
-            voiceController.speakCurrentExercise(exercise.name, setNum, totalSets)
+            voiceController.speakFeedbackUpdated(
+                "${exercise.name}, serie $setNum de $totalSets$sideLabel.",
+            )
         }
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
     }

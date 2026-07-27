@@ -54,6 +54,7 @@ object AugeTtcEngine {
         "Glúteos"             to listOf(ArticularBattery.HIP),
         "Aductores"           to listOf(ArticularBattery.HIP),
         "Pantorrillas"        to listOf(ArticularBattery.ANKLE),
+        "Tibial Anterior"     to listOf(ArticularBattery.ANKLE),
         "Trapecio"            to listOf(ArticularBattery.SHOULDER, ArticularBattery.CERVICAL),
         "Cuello"              to listOf(ArticularBattery.CERVICAL),
         "Erectores Espinales" to listOf(ArticularBattery.LUMBAR),
@@ -76,6 +77,24 @@ object AugeTtcEngine {
         "Psoas"               to listOf(ArticularBattery.HIP),
         "Lumbar"              to listOf(ArticularBattery.LUMBAR),
     )
+
+    /**
+     * Único punto de resolución músculo → baterías articulares.
+     *
+     * Los datos históricos y el catálogo pueden traer una cabeza, alias o padre.
+     * Centralizar el fallback evita que cada consumidor pierda silenciosamente
+     * el componente articular por consultar el mapa con un string distinto.
+     */
+    fun articularBatteriesFor(
+        muscle: String,
+        emphasis: String? = null,
+    ): List<ArticularBattery> {
+        if (muscle.isBlank()) return emptyList()
+        return MUSCLE_TO_ARTICULAR[muscle]
+            ?: MUSCLE_TO_ARTICULAR[getAugeMuscleDisplayId(muscle, emphasis)]
+            ?: MUSCLE_TO_ARTICULAR[getAugeMusclePillarId(muscle, emphasis)]
+            ?: emptyList()
+    }
 
     fun articularLabel(ab: ArticularBattery): String = when (ab) {
         ArticularBattery.SHOULDER -> "Hombro"
@@ -358,7 +377,7 @@ object AugeTtcEngine {
         muscleBattery: Int,
         articularBatteries: Map<ArticularBattery, ArticularBatteryState>,
     ): StructuralReadinessBreakdown {
-        val related       = MUSCLE_TO_ARTICULAR[muscleName] ?: emptyList()
+        val related = articularBatteriesFor(muscleName)
         val articularScore = if (related.isEmpty()) muscleBattery
         else related.map { articularBatteries[it]?.recoveryScore ?: 100 }.average().toInt()
 
@@ -469,9 +488,8 @@ object AugeTtcEngine {
 
         for (involved in info.involvedMuscles) {
             if (involved.role != MuscleRole.PRIMARY && involved.role != MuscleRole.SECONDARY) continue
-            val articulars = MUSCLE_TO_ARTICULAR[involved.muscle]
-                ?: MUSCLE_TO_ARTICULAR[getAugeMusclePillarId(involved.muscle, involved.emphasis)]
-                ?: continue
+            val articulars = articularBatteriesFor(involved.muscle, involved.emphasis)
+            if (articulars.isEmpty()) continue
             for (ab in articulars) {
                 val roleMult = if (involved.role == MuscleRole.PRIMARY) 1.0 else 0.6
                 result[ab] = (result[ab] ?: 0.0) + roleMult

@@ -4,6 +4,8 @@ import com.example.kpkn.screens.workout.WorkoutVoiceInterpretation
 
 enum class VoicePipelineStage {
     DISABLED,
+    /** Session on (PTT): muted/ready but not listening until press. */
+    ARMED,
     LISTENING,
     PROCESSING,
     CONFIRM_WAIT,
@@ -21,6 +23,12 @@ data class VoiceSessionState(
     val consecutiveErrors: Int = 0,
     /** Waiting for "solo sesión" / "para siempre" after AddSet. */
     val pendingAddSetPersistence: Boolean = false,
+    /** Live mic level from SpeechRecognizer.onRmsChanged (dB). */
+    val rmsLevel: Float = 0f,
+    /** Short human summary of last understood action for the dock. */
+    val lastHeardSummary: String = "",
+    /** True when the continuous engine is using on-device recognition. */
+    val usingOnDeviceRecognizer: Boolean = false,
 ) {
     val isListening: Boolean get() = stage == VoicePipelineStage.LISTENING
     val isDucking: Boolean get() = duckHandle != null
@@ -47,6 +55,24 @@ sealed class VoiceSessionCommand {
     data object AddSetSessionOnly : VoiceSessionCommand()
     /** Resolve AddSet persistence prompt: save permanently to program. */
     data object AddSetPermanent : VoiceSessionCommand()
+    /** Skip the active rest timer (not the exercise). */
+    data object SkipRest : VoiceSessionCommand()
+    /** Apply pending adaptive rest suggestion. */
+    data object UseAdaptiveRest : VoiceSessionCommand()
+    /** Adjust rest timer by spoken delta seconds. */
+    data class AdjustRestTime(val deltaSeconds: Int) : VoiceSessionCommand()
+    /** Undo last auto-confirmed set within the correction window. */
+    data object UndoLastSet : VoiceSessionCommand()
+    /** Patch fields on the last logged set without deleting it first. */
+    data class EditLastSet(val patch: VoiceSetEditPatch) : VoiceSessionCommand()
+    /** Coach: explain suggested load. */
+    data object SuggestWeightReasoned : VoiceSessionCommand()
+    /** Coach: fatigue advice. */
+    data object FatigueAdvice : VoiceSessionCommand()
+    /** Coach: session pace status. */
+    data object PaceStatus : VoiceSessionCommand()
+    /** Stop current TTS utterance (barge-in). */
+    data object StopSpeaking : VoiceSessionCommand()
     data class LogFeedback(
         val technicalQuality: Int?,
         val discomfortId: String?,

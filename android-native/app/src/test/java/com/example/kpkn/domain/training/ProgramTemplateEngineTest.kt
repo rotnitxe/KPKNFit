@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -66,5 +67,24 @@ class ProgramTemplateEngineTest {
         assertTrue(result.createdCopy)
         assertNotEquals("p2", result.program.id)
         assertTrue(result.program.isDraft)
+    }
+
+    @Test
+    fun applyTemplate_prefills_sessions_from_split_when_program_has_no_content() {
+        val program = Program(id = "p3", name = "Vacío", structure = ProgramStructure.SIMPLE)
+        val template = PROGRAM_TEMPLATES.first { it.id == "power-12-3" }
+        val result = ProgramTemplateEngine.applyTemplate(program, template)
+
+        assertEquals("pl_classic_4", result.program.selectedSplitId)
+        assertTrue(ProgramTemplateEngine.hasSessionContent(result.program))
+    }
+
+    @Test
+    fun applyTemplate_without_split_prefill_keeps_weeks_empty() {
+        val program = Program(id = "p4", name = "Vacío", structure = ProgramStructure.SIMPLE)
+        val template = PROGRAM_TEMPLATES.first { it.id == "simple-1" }
+        val result = ProgramTemplateEngine.applyTemplate(program, template, applySplitPrefill = false)
+
+        assertFalse(ProgramTemplateEngine.hasSessionContent(result.program))
     }
 }

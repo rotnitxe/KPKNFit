@@ -60,6 +60,7 @@ object VolumeCalculator {
         "sóleo" to "Pantorrillas",
         "soleo" to "Pantorrillas",
         "pantorrilla" to "Pantorrillas",
+        "tibial anterior" to "Tibial Anterior",
         "cuello" to "Cuello",
         "cervical" to "Cuello",
         "pectoral" to "Pectorales",
@@ -128,13 +129,14 @@ object VolumeCalculator {
         if (lower.contains("psoas")) return "Core"
         if (lower.contains("adductor") || lower.contains("aductor") || lower.contains("pectíneo") || lower.contains("pectineo")) return "Aductores"
         if (lower.contains("gemelo") || lower.contains("pantorrilla") || lower.contains("gastrocnemio") || lower.contains("sóleo") || lower.contains("soleo")) return "Pantorrillas"
+        if (lower.contains("tibial anterior") || lower == "tibial") return "Tibial Anterior"
         if (lower.contains("cuello") || lower.contains("cervical")) return "Cuello"
         // Core: deep stabilizers — must be checked BEFORE Abdomen to avoid "core" → "Abdomen".
         if (lower == "core" || lower.contains("transverso") || lower.contains("serrato") || emphasisLower.contains("core")) return "Core"
         // Abdomen: rectus abdominis + obliques.
         if (lower.contains("abdominal") || lower.contains("abdomen") || lower.contains("oblicuo") || lower.contains("recto del abdomen")) return "Abdomen"
 
-        return normalizeMuscleGroup(specificMuscle, emphasis)
+        return specificMuscle.trim().replaceFirstChar { it.uppercase() }
     }
 
     /**

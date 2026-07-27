@@ -18,6 +18,18 @@ data class Settings(
     val availablePlates: List<Double> = listOf(25.0, 20.0, 15.0, 10.0, 5.0, 2.5, 1.25),
     val restTimerDefaultSeconds: Int = 90,
     val restTimerAutoStart: Boolean = false,
+    /** How chatty continuous-voice TTS is during a live session. */
+    val voiceVerbosity: VoiceVerbosity = VoiceVerbosity.COMPLETE,
+    /** Mic VAD profile: GYM = more tolerant to noise; QUIET = snappier cutoffs. */
+    val voiceNoiseProfile: VoiceNoiseProfile = VoiceNoiseProfile.GYM,
+    /** TTS speech rate multiplier (0.9–1.1 typical). */
+    val ttsSpeechRate: Float = 1.0f,
+    /** Continuous always-on mic vs hold-to-talk. */
+    val voiceInputMode: VoiceInputMode = VoiceInputMode.CONTINUOUS,
+    /** First-time continuous-voice practice prompt. */
+    val hasSeenVoiceTutorial: Boolean = false,
+    /** User nicknames → exerciseId for voice matching. */
+    val voiceExerciseAliases: Map<String, String> = emptyMap(),
     val showPRsInWorkout: Boolean = true,
     val oneRMFormula: OneRMFormula = OneRMFormula.BRZYCKI,
     val workoutLoggerMode: WorkoutLoggerMode = WorkoutLoggerMode.PRO,
@@ -95,6 +107,9 @@ enum class WeightUnit { KG, LBS }
 enum class IntensityMetric { RPE, RIR }
 enum class OneRMFormula { BRZYCKI, EPLEY, LANDER }
 enum class WorkoutLoggerMode { PRO, SIMPLE }
+enum class VoiceVerbosity { COMPLETE, ESSENTIAL, SILENT }
+enum class VoiceNoiseProfile { GYM, QUIET }
+enum class VoiceInputMode { CONTINUOUS, PUSH_TO_TALK }
 enum class ApiProvider { GEMINI, GPT, DEEPSEEK }
 enum class AppTheme { DEFAULT, DARK, DEEP_BLACK, VOLT, LIGHT }
 enum class HapticIntensity { LIGHT, MEDIUM, STRONG }

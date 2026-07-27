@@ -259,7 +259,7 @@ internal fun WorkoutPostExerciseFeedbackContent(
             feedbackExercises.flatMap { ex ->
                 val dbInfo = EXERCISE_DATABASE_BY_ID[ex.exerciseDbId ?: ex.exerciseId]
                 dbInfo?.involvedMuscles.orEmpty()
-                    .flatMap { im -> AugeTtcEngine.MUSCLE_TO_ARTICULAR[im.muscle].orEmpty() }
+                .flatMap { im -> AugeTtcEngine.articularBatteriesFor(im.muscle, im.emphasis) }
             }.distinct()
         }
         val linkedDiscomforts = remember(currentArticulations, postExerciseFeedbackByExerciseId) {

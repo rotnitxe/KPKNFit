@@ -16,11 +16,11 @@ private const val EXERCISE_ALIASES_ASSET = "exercise_id_aliases.json"
 private val exerciseCatalogJson = Json { ignoreUnknownKeys = true }
 private val exerciseCatalogLock = Any()
 private val extraWikiLabExerciseAliases = mapOf(
-    "db_exp_face_pull" to "tren_superior_face_pull_polea",
-    "db_plank" to "ultimo_plancha_frontal",
-    "db_exp_hammer_curl" to "tren_superior_curl_martillo_mancuernas",
-    "db_ab_wheel" to "ultimo_plancha_rodillo",
-    "db_hanging_leg_raises" to "ultimo_elevacion_piernas_paralelas",
+    "db_exp_face_pull" to "deltoides_face_pull_polea",
+    "db_plank" to "core_plancha_frontal_iso",
+    "db_exp_hammer_curl" to "biceps_curl_de_pie_martillo_mancuernas",
+    "db_ab_wheel" to "core_rueda_abdominal_rodillas",
+    "db_hanging_leg_raises" to "core_elevacion_piernas_paralelas",
 )
 
 @Volatile

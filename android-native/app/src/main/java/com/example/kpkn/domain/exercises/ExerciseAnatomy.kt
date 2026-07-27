@@ -75,7 +75,7 @@ val ALL_MUSCLES: List<MuscleAnatomy> = listOf(
         heads = listOf(
             MuscleHead(name = "Mayor", emphasisKeyword = "mayor"),
             MuscleHead(name = "Medio", emphasisKeyword = "medio"),
-            MuscleHead(name = "Menor", emphasisKeyword = null),
+            MuscleHead(name = "Menor", emphasisKeyword = "menor"),
         ),
     ),
     MuscleAnatomy(
@@ -90,6 +90,11 @@ val ALL_MUSCLES: List<MuscleAnatomy> = listOf(
             MuscleHead(name = "Gastrocnemio", emphasisKeyword = "gastrocnemio"),
             MuscleHead(name = "Sóleo", emphasisKeyword = "sóleo"),
         ),
+    ),
+    MuscleAnatomy(
+        canonicalName = "Tibial Anterior",
+        displayName = "Tibial anterior",
+        heads = emptyList(),
     ),
     MuscleAnatomy(
         canonicalName = "Bíceps",

@@ -47,9 +47,6 @@ internal fun resolveAugeMuscle(rawMuscle: String, rawEmphasis: String? = null): 
     if (source.contains("pantorrilla") || source.contains("gemelo") || source.contains("gastrocnemio") || source.contains("soleo") || source.contains("calf")) {
         return AugeMuscleResolution("Pantorrillas")
     }
-    if (source.contains("gluteo") || source.contains("gluteos")) {
-        return AugeMuscleResolution("Glúteos")
-    }
     if (source.contains("isquio") || source.contains("hamstring") || source.contains("femoral") || source.contains("semitendinoso") || source.contains("semimembranoso")) {
         return AugeMuscleResolution("Isquiosurales")
     }
@@ -66,13 +63,18 @@ internal fun resolveAugeMuscle(rawMuscle: String, rawEmphasis: String? = null): 
         return AugeMuscleResolution("Bíceps")
     }
     if (source.contains("deltoide") || source.contains("deltoides") || source.contains("hombro") || source.contains("shoulder")) {
+        val haystack = "$source $emphasis"
         val specific = when {
-            source.contains("posterior") || emphasis == "posterior" || emphasis == "rear" -> "Deltoides Posterior"
-            source.contains("lateral") || source.contains("medio") || source.contains("medial") || emphasis == "lateral" || emphasis == "medio" -> "Deltoides Lateral"
-            source.contains("anterior") || source.contains("frontal") || emphasis == "anterior" || emphasis == "front" -> "Deltoides Anterior"
+            haystack.contains("posterior") || haystack.contains("trasero") || haystack.contains("rear") -> "Deltoides Posterior"
+            haystack.contains("lateral") || haystack.contains("medio") || haystack.contains("medial") -> "Deltoides Lateral"
+            haystack.contains("anterior") || haystack.contains("frontal") || haystack.contains("front") -> "Deltoides Anterior"
             else -> null
         }
         return AugeMuscleResolution("Deltoides", specific)
+    }
+    if (source.contains("gluteo") || source.contains("gluteos") || source.contains("tensor")) {
+        // Pillar only — heads are display/emphasis, never separate batteries.
+        return AugeMuscleResolution("Glúteos")
     }
     if (source.contains("trapecio") || source.contains("upper back")) {
         return AugeMuscleResolution("Trapecio")

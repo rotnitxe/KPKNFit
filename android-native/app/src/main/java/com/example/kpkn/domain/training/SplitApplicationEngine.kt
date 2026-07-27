@@ -497,7 +497,7 @@ object SplitApplicationEngine {
                 SessionMuscleFilter.relevantMusclesFor(info).forEach { involved ->
                     muscles.add(
                         normalizeCanonicalMuscle(
-                            VolumeCalculator.normalizeMuscleGroup(
+                            VolumeCalculator.normalizeCanonicalMuscleGroup(
                                 specificMuscle = involved.muscle,
                                 emphasis = involved.emphasis,
                             )
@@ -542,13 +542,13 @@ object SplitApplicationEngine {
         val lower = label.lowercase()
         val keywords = linkedSetOf<String>()
         if ("empuje" in lower || "push" in lower) keywords.addAll(listOf("Pectorales", "Tríceps", "Deltoides"))
-        if ("tirón" in lower || "tiron" in lower || "pull" in lower || "tracción" in lower || "traccion" in lower) keywords.addAll(listOf("Dorsales", "Trapecio", "Bíceps", "Deltoides Posterior"))
+        if ("tirón" in lower || "tiron" in lower || "pull" in lower || "tracción" in lower || "traccion" in lower) keywords.addAll(listOf("Dorsales", "Trapecio", "Bíceps", "Deltoides"))
         if ("pierna" in lower || "lower" in lower) keywords.addAll(listOf("Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas"))
         if ("torso" in lower || "upper" in lower) keywords.addAll(upperBodyKeywords)
         if ("full" in lower || "cuerpo completo" in lower || "sbd" in lower) keywords.addAll(upperBodyKeywords + lowerBodyKeywords)
         if ("pecho" in lower || "banca" in lower) keywords.add("Pectorales")
         if ("espalda" in lower) keywords.addAll(listOf("Dorsales", "Trapecio", "Erectores Espinales"))
-        if ("hombro" in lower) keywords.addAll(listOf("Deltoides Anterior", "Deltoides Lateral", "Deltoides Posterior"))
+        if ("hombro" in lower) keywords.add("Deltoides")
         if ("brazo" in lower) keywords.addAll(listOf("Bíceps", "Tríceps"))
         if ("cuádriceps" in lower || "cuadriceps" in lower) keywords.add("Cuádriceps")
         if ("isquios" in lower || "femoral" in lower) keywords.add("Isquiosurales")
@@ -627,6 +627,6 @@ object SplitApplicationEngine {
         )
     }
 
-    private val upperBodyKeywords = setOf("Pectorales", "Dorsales", "Trapecio", "Bíceps", "Tríceps", "Deltoides Anterior", "Deltoides Lateral", "Deltoides Posterior")
+    private val upperBodyKeywords = setOf("Pectorales", "Dorsales", "Trapecio", "Bíceps", "Tríceps", "Deltoides")
     private val lowerBodyKeywords = setOf("Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas", "Aductores")
 }

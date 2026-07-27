@@ -112,6 +112,7 @@ import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.isCompetitionMeet
 import com.example.kpkn.data.models.SupersetGroup
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.TrainingMode
@@ -236,7 +237,7 @@ fun WorkoutScreen(
     }
 
     // ─── Readiness sheet state ─────────────────────────────────────────────────
-    val isMeetOrComp = session?.isMeetDay == true || session?.isCompetitionSession == true
+    val isMeetOrComp = session?.isCompetitionMeet == true
     // Local source keeps workout overlays as true siblings; the activity source is an ancestor.
     val overlayHazeState = remember { HazeState() }
     var readinessSheetDismissed by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
@@ -665,6 +666,9 @@ fun WorkoutScreen(
             isUnilateral = isUnilateralDock,
             voiceSessionEnabled = uiState.voiceSessionEnabled,
             voiceSessionState = uiState.voiceSessionState,
+            voicePushToTalk = settings.voiceInputMode == com.example.kpkn.data.models.VoiceInputMode.PUSH_TO_TALK,
+            onPushToTalkStart = { viewModel.beginVoicePushToTalk() },
+            onPushToTalkEnd = { viewModel.endVoicePushToTalk() },
             onToggleVoice = {
                 val hasMic = ContextCompat.checkSelfPermission(
                     context, Manifest.permission.RECORD_AUDIO

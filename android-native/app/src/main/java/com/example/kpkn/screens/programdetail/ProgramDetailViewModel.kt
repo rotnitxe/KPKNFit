@@ -28,6 +28,7 @@ import com.example.kpkn.data.models.startSimpleCalendarizedBreak
 import com.example.kpkn.data.models.calendarizeSimpleCycle
 import com.example.kpkn.data.models.suggestCalendarTrainingDays
 import com.example.kpkn.data.models.toSimpleProgramSnapshot
+import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ProgramDetailHelpers
 import com.example.kpkn.domain.training.AppClock
@@ -70,7 +71,7 @@ import kotlin.math.floor
 
 enum class MainTab { TRAINING, ANALYTICS }
 
-enum class StructureSubTab { SEMANA, SPLIT, MACROCICLO, LOOPS, PROTOCOLOS }
+enum class StructureSubTab { SEMANA, SPLIT, MACROCICLO, LOOPS }
 
 enum class AnalyticsSubTab { VOLUMEN, PROGRESO, HISTORIALES }
 
@@ -469,47 +470,20 @@ class ProgramDetailViewModel(
         repository.addProgram(ProgramCalendarEngine.materializeWeekDates(copy))
     }
 
+    /**
+     * Prefer [calendarizeSimpleCycle] / [applySimpleCalendarizedBreak] / [recoverCyclicProgram].
+     * Kept as a thin wrapper so legacy callers don't leave half-migrated calendar state.
+     */
+    @Deprecated(
+        message = "Use calendarizeSimpleCycle() or applySimpleCalendarizedBreak() / recoverCyclicProgram()",
+        replaceWith = ReplaceWith("calendarizeSimpleCycle()"),
+    )
     fun setSimpleDatedCalendarization(enabled: Boolean) {
-        val current = program.value ?: return
-        if (!current.isSimpleTemporalProgram && current.structure != ProgramStructure.SIMPLE) return
-        val updated = if (enabled) {
-            current.copy(
-                timelineStartDate = current.timelineStartDate ?: appClock.today(java.time.ZoneId.systemDefault()).toString(),
-                calendarization = current.calendarization ?: ProgramCalendarEngine.defaultSimpleDatedCalendarization(),
-                simpleProgramKind = SimpleProgramKind.CALENDARIZED,
-                pausedCyclicSnapshot = current.pausedCyclicSnapshot ?: current.toSimpleProgramSnapshot(appClock),
-                loops = emptyList(),
-                loopState = null,
-                events = emptyList(),
-            )
+        if (enabled) {
+            calendarizeSimpleCycle()
         } else {
-            current.pausedCyclicSnapshot?.let { snapshot ->
-                current.copy(
-                    timelineStartDate = current.timelineStartDate,
-                    calendarization = null,
-                    simpleProgramKind = SimpleProgramKind.CYCLIC,
-                    macrocycles = snapshot.macrocycles,
-                    loops = snapshot.loops,
-                    loopState = snapshot.loopState,
-                    events = snapshot.events,
-                    selectedSplitId = snapshot.selectedSplitId,
-                    customSplitPattern = snapshot.customSplitPattern,
-                    customSplitName = snapshot.customSplitName,
-                    customSplitDescription = snapshot.customSplitDescription,
-                    blockSplitSelections = snapshot.blockSplitSelections,
-                    weekSplitSelections = snapshot.weekSplitSelections,
-                    runState = snapshot.runState ?: current.runState,
-                    schedulePlan = snapshot.schedulePlan ?: current.schedulePlan,
-                    loopOccurrences = snapshot.loopOccurrences,
-                    pausedCyclicSnapshot = null,
-                )
-            } ?: current.copy(
-                calendarization = null,
-                simpleProgramKind = SimpleProgramKind.CYCLIC,
-                pausedCyclicSnapshot = null,
-            )
+            recoverCyclicProgram()
         }
-        repository.updateProgram(ProgramCalendarEngine.materializeWeekDates(updated))
     }
 
     fun markVolumeSetupPromptSeen() {
@@ -597,7 +571,7 @@ class ProgramDetailViewModel(
                 },
             ).normalizedTemporalStructure()
 
-            repository.updateProgram(updated)
+            updateProgram(updated)
             _uiState.update { it.copy(selectedBlockId = fallbackBlock.id, selectedWeekId = newWeek.id, structureSubTab = StructureSubTab.SEMANA) }
             return
         }
@@ -627,7 +601,7 @@ class ProgramDetailViewModel(
             }
         ).normalizedTemporalStructure()
 
-        repository.updateProgram(updated)
+        updateProgram(updated)
         _uiState.update { it.copy(selectedBlockId = block.id, selectedWeekId = newWeek.id) }
     }
 
@@ -666,7 +640,7 @@ class ProgramDetailViewModel(
             }
         ).normalizedTemporalStructure()
 
-        repository.updateProgram(updated)
+        updateProgram(updated)
         _uiState.update {
             it.copy(
                 selectedBlockId = target.id,
@@ -695,7 +669,7 @@ class ProgramDetailViewModel(
             }
         ).normalizedTemporalStructure()
 
-        repository.updateProgram(updated)
+        updateProgram(updated)
         _uiState.update {
             it.copy(
                 selectedBlockId = newBlock.id,
@@ -782,6 +756,38 @@ class ProgramDetailViewModel(
         repository.updateProgram(updated)
     }
 
+    fun updateWeekTrainingDayDate(weekId: String, dayOfWeek: Int, isoDate: String?) {
+        val current = program.value ?: return
+        if (dayOfWeek !in 1..7) return
+        val normalized = isoDate?.trim()?.takeIf { it.isNotBlank() }
+        val parsed = normalized?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
+        if (normalized != null && parsed == null) return
+        val updated = current.copy(
+            macrocycles = current.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = macro.blocks.map { block ->
+                        block.copy(
+                            mesocycles = block.mesocycles.map { meso ->
+                                meso.copy(
+                                    weeks = meso.weeks.map { week ->
+                                        if (week.id != weekId) week
+                                        else {
+                                            val nextDates = week.trainingDayDates.toMutableMap()
+                                            if (parsed == null) nextDates.remove(dayOfWeek)
+                                            else nextDates[dayOfWeek] = parsed.toString()
+                                            week.copy(trainingDayDates = nextDates)
+                                        }
+                                    },
+                                )
+                            },
+                        )
+                    },
+                )
+            },
+        )
+        updateProgram(updated)
+    }
+
     fun updateBlockMetadata(blockId: String, name: String, description: String?) {
         val current = program.value ?: return
         val normalizedDescription = description?.trim()?.takeIf { it.isNotEmpty() }
@@ -821,7 +827,7 @@ class ProgramDetailViewModel(
             }.filter { macro -> macro.blocks.isNotEmpty() }
         ).normalizedTemporalStructure()
 
-        repository.updateProgram(updated)
+        updateProgram(updated)
         val blocks = ProgramDetailHelpers.buildRoadmapBlocks(updated)
         val selectedBlock = blocks.firstOrNull { it.id == _uiState.value.selectedBlockId } ?: blocks.firstOrNull()
         val nextWeek = ProgramDetailHelpers.getWeeksForBlock(selectedBlock?.id, blocks, updated).firstOrNull()
@@ -851,7 +857,7 @@ class ProgramDetailViewModel(
             }.filter { it.blocks.isNotEmpty() }
         ).normalizedTemporalStructure()
 
-        repository.updateProgram(updated)
+        updateProgram(updated)
         val blocks = ProgramDetailHelpers.buildRoadmapBlocks(updated)
         val selectedBlock = blocks.firstOrNull()
         val nextWeek = ProgramDetailHelpers.getWeeksForBlock(selectedBlock?.id, blocks, updated).firstOrNull()
@@ -921,9 +927,16 @@ class ProgramDetailViewModel(
         return VolumeAdjustmentResult.SUCCESS
     }
 
-    fun deleteSession(sessionId: String, macroIndex: Int, mesoIndex: Int, weekId: String) {
+    fun deleteSession(
+        sessionId: String,
+        macroIndex: Int,
+        mesoIndex: Int,
+        weekId: String,
+        competitionRepository: CompetitionRepository? = runCatching { CompetitionRepository.getInstance() }.getOrNull(),
+    ) {
         val current = program.value ?: return
         var changed = false
+        var removedSession: Session? = null
         val updated = current.copy(
             macrocycles = current.macrocycles.mapIndexed { mi, macro ->
                 if (mi != macroIndex) macro
@@ -940,6 +953,7 @@ class ProgramDetailViewModel(
                                         weeks = meso.weeks.map { week ->
                                             if (week.id != weekId) week
                                             else {
+                                                removedSession = week.sessions.firstOrNull { it.id == sessionId }
                                                 changed = true
                                                 week.copy(
                                                     sessions = normalizeMainSessions(
@@ -956,7 +970,17 @@ class ProgramDetailViewModel(
                 }
             }
         )
-        if (changed) repository.updateProgram(updated)
+        if (!changed) return
+        repository.updateProgram(updated)
+        // Un record de competición nunca debe quedar apuntando a una sesión eliminada.
+        // Se desvincula (no se borra) para preservar intentos/bitácora ya registrados: el
+        // record sigue siendo consultable desde CompetitionScreen como historial standalone.
+        val recordId = removedSession?.competitionRecordId
+        if (!recordId.isNullOrBlank()) {
+            competitionRepository?.getById(recordId)?.let { record ->
+                competitionRepository.upsert(record.copy(plannedSessionId = null, plannedWeekId = null))
+            }
+        }
     }
 
     fun addSession(macroIndex: Int, mesoIndex: Int, weekId: String, session: Session) {
@@ -1117,7 +1141,7 @@ class ProgramDetailViewModel(
                 )
             }
         ).normalizedTemporalStructure()
-        repository.updateProgram(ProgramCalendarEngine.materializeWeekDates(updated))
+        updateProgram(updated)
         _uiState.update { it.copy(selectedBlockId = block.id, selectedWeekId = newWeeks.lastOrNull()?.id) }
     }
 
@@ -1145,7 +1169,7 @@ class ProgramDetailViewModel(
                 )
             }
         ).normalizedTemporalStructure()
-        repository.updateProgram(ProgramCalendarEngine.materializeWeekDates(updated))
+        updateProgram(updated)
         _uiState.update { it.copy(selectedBlockId = target.id, selectedWeekId = newWeeks.lastOrNull()?.id, structureSubTab = StructureSubTab.SEMANA) }
     }
 
@@ -1357,7 +1381,7 @@ class ProgramDetailViewModel(
             .filter { resolveMuscleVolumeContribution(it) > 0.0 }
             .map { involved ->
                 canonicalizeMuscleName(
-                    VolumeCalculator.normalizeMuscleGroup(
+                    VolumeCalculator.normalizeCanonicalMuscleGroup(
                         specificMuscle = involved.muscle,
                         emphasis = involved.emphasis,
                     )

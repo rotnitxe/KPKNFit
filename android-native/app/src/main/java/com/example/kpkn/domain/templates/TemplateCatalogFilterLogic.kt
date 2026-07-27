@@ -17,11 +17,24 @@ import com.example.kpkn.domain.exercises.ExerciseCatalogRegion
  * patrón de movimiento.
  */
 enum class TemplateGroupMode(val label: String) {
-    SPLIT("Por rutina"),
+    MUSCLE_GROUP("Por grupo"),
+    SPLIT("Por rutina (split)"),
     SESSION_TYPE("Tipo de sesión"),
     GOAL("Objetivo"),
     LEVEL("Nivel"),
     DURATION("Duración"),
+}
+
+/**
+ * Agrupación gruesa para el catálogo (Pierna / Torso / Brazo / Full).
+ * Deriva de [SessionTemplateFocusCategory], no de músculos sueltos.
+ */
+enum class TemplateDominantGroup(val label: String) {
+    PIERNA("Pierna"),
+    TORSO("Torso"),
+    BRAZO("Brazo"),
+    FULL("Full body"),
+    OTRO("Otros"),
 }
 
 /**
@@ -206,12 +219,53 @@ object TemplateCatalogFilterLogic {
             SessionTemplateFacetsBuilder.matchesDuration(facets, filters.duration)
     }
 
+    /**
+     * Clones literales "Enfoque X" (`sys-independent-*`): mismo contenido que otra
+     * plantilla base. Se mantienen en el catálogo de sistema para políticas/tests,
+     * pero no se listan en el navegador principal.
+     */
+    fun isHiddenCatalogClone(template: SessionTemplate): Boolean =
+        template.id.startsWith("sys-independent-")
+
+    fun dominantGroup(category: SessionTemplateFocusCategory?): TemplateDominantGroup = when (category) {
+        SessionTemplateFocusCategory.PIERNAS,
+        SessionTemplateFocusCategory.CUADRICEPS,
+        SessionTemplateFocusCategory.ISQUIOS,
+        SessionTemplateFocusCategory.GLUTEOS,
+        SessionTemplateFocusCategory.PANTORRILLAS,
+        SessionTemplateFocusCategory.ADUCTORES,
+        SessionTemplateFocusCategory.CADENA_ANTERIOR,
+        SessionTemplateFocusCategory.CADENA_POSTERIOR,
+        -> TemplateDominantGroup.PIERNA
+
+        SessionTemplateFocusCategory.PECHO,
+        SessionTemplateFocusCategory.ESPALDA,
+        SessionTemplateFocusCategory.HOMBROS,
+        SessionTemplateFocusCategory.CORE,
+        -> TemplateDominantGroup.TORSO
+
+        SessionTemplateFocusCategory.BRAZOS,
+        SessionTemplateFocusCategory.ANTEBRAZOS,
+        -> TemplateDominantGroup.BRAZO
+
+        SessionTemplateFocusCategory.FULL_BODY,
+        SessionTemplateFocusCategory.POWERLIFTING,
+        SessionTemplateFocusCategory.MINIMALISTA,
+        SessionTemplateFocusCategory.RECUPERACION,
+        -> TemplateDominantGroup.FULL
+
+        null -> TemplateDominantGroup.OTRO
+    }
+
     fun filterTemplates(
         templates: List<SessionTemplate>,
         facetsById: Map<String, SessionTemplateFacets>,
         filters: TemplateCatalogFilters,
+        includeHiddenClones: Boolean = false,
     ): List<SessionTemplate> =
-        templates.filter { matchesFilters(it, facetsById[it.id], filters) }
+        templates
+            .filter { includeHiddenClones || !isHiddenCatalogClone(it) }
+            .filter { matchesFilters(it, facetsById[it.id], filters) }
 
     /** Tipos de sesión presentes en el catálogo (orden del enum, sin ALL). */
     fun availableSessionTypes(templates: List<SessionTemplate>): List<TemplateSessionType> =
@@ -260,9 +314,9 @@ object TemplateCatalogFilterLogic {
     }
 
     fun difficultyLabel(difficulty: Difficulty): String = when (difficulty) {
-        Difficulty.PRINCIPIANTE -> "Principiante"
-        Difficulty.INTERMEDIO -> "Intermedio"
-        Difficulty.AVANZADO -> "Avanzado"
+        Difficulty.PRINCIPIANTE -> "Fácil"
+        Difficulty.INTERMEDIO -> "Medio"
+        Difficulty.AVANZADO -> "Exigente"
     }
 
     /**
@@ -279,12 +333,52 @@ object TemplateCatalogFilterLogic {
         if (templates.isEmpty()) return emptyList()
 
         return when (mode) {
+            TemplateGroupMode.MUSCLE_GROUP -> groupByMuscleGroup(templates)
             TemplateGroupMode.SPLIT -> groupBySplit(templates, splits)
             TemplateGroupMode.SESSION_TYPE -> groupBySessionType(templates)
             TemplateGroupMode.GOAL -> groupByGoal(templates)
             TemplateGroupMode.LEVEL -> groupByLevel(templates)
             TemplateGroupMode.DURATION -> groupByDuration(templates, facetsById)
         }
+    }
+
+    private fun groupByMuscleGroup(
+        templates: List<SessionTemplate>,
+    ): List<TemplateCatalogSection> {
+        val sections = mutableListOf<TemplateCatalogSection>()
+        val userTemplates = SessionTemplateCatalogPolicy.userTemplateGroup(templates).templates
+        if (userTemplates.isNotEmpty()) {
+            sections += TemplateCatalogSection(
+                key = "user",
+                title = "Mis plantillas",
+                subtitle = "${userTemplates.size} guardadas",
+                templates = userTemplates,
+            )
+        }
+
+        val system = templates.filter { it.sourceType != SessionTemplateSourceType.USER }
+        val order = listOf(
+            TemplateDominantGroup.PIERNA,
+            TemplateDominantGroup.TORSO,
+            TemplateDominantGroup.BRAZO,
+            TemplateDominantGroup.FULL,
+            TemplateDominantGroup.OTRO,
+        )
+        order.forEach { group ->
+            val list = system
+                .filter { dominantGroup(it.focusCategory) == group }
+                .distinctBy { it.id }
+                .sortedBy { it.sortOrder }
+            if (list.isNotEmpty()) {
+                sections += TemplateCatalogSection(
+                    key = "muscle-${group.name}",
+                    title = group.label,
+                    subtitle = "${list.size} plantillas",
+                    templates = list,
+                )
+            }
+        }
+        return sections
     }
 
     private fun groupBySplit(

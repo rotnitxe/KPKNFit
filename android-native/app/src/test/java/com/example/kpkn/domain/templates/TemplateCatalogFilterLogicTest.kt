@@ -243,13 +243,49 @@ class TemplateCatalogFilterLogicTest {
         assertEquals("Tren superior", TemplateSessionZone.SUPERIOR.label)
         assertEquals("Tren inferior", TemplateSessionZone.INFERIOR.label)
 
-        assertEquals("Por rutina", TemplateGroupMode.SPLIT.label)
+        assertEquals("Por grupo", TemplateGroupMode.MUSCLE_GROUP.label)
+        assertEquals("Por rutina (split)", TemplateGroupMode.SPLIT.label)
         assertEquals("Tipo de sesión", TemplateGroupMode.SESSION_TYPE.label)
         assertEquals("Objetivo", TemplateGroupMode.GOAL.label)
 
         assertEquals("Pecho", TemplateCatalogFilterLogic.focusCategoryLabel(SessionTemplateFocusCategory.PECHO))
         assertEquals("Core", TemplateCatalogFilterLogic.focusCategoryLabel(SessionTemplateFocusCategory.CORE))
         assertEquals("Full body", TemplateCatalogFilterLogic.focusCategoryLabel(SessionTemplateFocusCategory.FULL_BODY))
+        assertEquals("Fácil", TemplateCatalogFilterLogic.difficultyLabel(Difficulty.PRINCIPIANTE))
+        assertEquals("Medio", TemplateCatalogFilterLogic.difficultyLabel(Difficulty.INTERMEDIO))
+        assertEquals("Exigente", TemplateCatalogFilterLogic.difficultyLabel(Difficulty.AVANZADO))
+        assertEquals(TemplateDominantGroup.PIERNA, TemplateCatalogFilterLogic.dominantGroup(SessionTemplateFocusCategory.PIERNAS))
+        assertEquals(TemplateDominantGroup.TORSO, TemplateCatalogFilterLogic.dominantGroup(SessionTemplateFocusCategory.PECHO))
+        assertEquals(TemplateDominantGroup.BRAZO, TemplateCatalogFilterLogic.dominantGroup(SessionTemplateFocusCategory.BRAZOS))
+    }
+
+    @Test
+    fun clonesEnfoqueQuedanOcultosDelListadoPrincipal() {
+        val filtered = TemplateCatalogFilterLogic.filterTemplates(
+            templates,
+            facetsById,
+            TemplateCatalogFilters(),
+        )
+        assertFalse(filtered.any { TemplateCatalogFilterLogic.isHiddenCatalogClone(it) })
+        assertTrue(templates.any { TemplateCatalogFilterLogic.isHiddenCatalogClone(it) })
+    }
+
+    @Test
+    fun agrupacionPorGrupoMuscularParticionaSinDuplicados() {
+        val filtered = TemplateCatalogFilterLogic.filterTemplates(
+            templates,
+            facetsById,
+            TemplateCatalogFilters(),
+        )
+        val sections = TemplateCatalogFilterLogic.groupTemplates(
+            filtered,
+            facetsById,
+            TemplateGroupMode.MUSCLE_GROUP,
+        )
+        assertTrue(sections.isNotEmpty())
+        val all = sections.flatMap { it.templates.map { t -> t.id } }
+        assertEquals(all.distinct().size, all.size)
+        assertEquals(filtered.map { it.id }.toSet(), all.toSet())
     }
 
     @Test

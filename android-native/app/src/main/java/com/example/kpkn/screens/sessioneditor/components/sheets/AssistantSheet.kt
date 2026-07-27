@@ -69,7 +69,6 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
 import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
-import com.example.kpkn.data.models.EnergyConfidence
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.WorkoutLog
@@ -85,9 +84,17 @@ import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSheetLightChip
 import com.example.kpkn.ui.components.KpknSheetTokens
-import com.example.kpkn.ui.components.KpknSheetWhiteButton
+import com.example.kpkn.ui.components.KpknSheetTranslucentButton
 import com.example.kpkn.ui.components.kpknSheetWhiteFieldColors
 import dev.chrisbanes.haze.HazeState
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.foundation.layout.width
+import com.example.kpkn.domain.sessionassistant.AssistantActionType
+import com.example.kpkn.domain.sessionassistant.AssistantSuggestion
+import com.example.kpkn.domain.sessionassistant.AssistantSuggestionDetail
+import com.example.kpkn.domain.sessionassistant.AssistantDetailAction
 
 private val EnergyRingColor = com.example.kpkn.ui.theme.RingBlue
 private val SpineRingColor = com.example.kpkn.ui.theme.RingYellow
@@ -103,7 +110,7 @@ internal fun AssistantGlassOverlay(
     onDismiss: () -> Unit,
     onApplyAugeCorrection: (String) -> Unit,
     onAddGhostExercise: (String) -> Unit,
-    onApplyAssistantSuggestion: (String) -> Unit,
+    onApplyAssistantSuggestion: (suggestionId: String, acceptedDetailIds: List<String>) -> Unit,
     onTemplateSearchChange: (String) -> Unit,
     onSelectTemplate: (SessionTemplate) -> Unit,
     onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
@@ -132,7 +139,7 @@ internal fun AssistantSheet(
     templates: List<SessionTemplate>,
     onApplyAugeCorrection: (String) -> Unit,
     onAddGhostExercise: (String) -> Unit,
-    onApplyAssistantSuggestion: (String) -> Unit,
+    onApplyAssistantSuggestion: (suggestionId: String, acceptedDetailIds: List<String>) -> Unit,
     onTemplateSearchChange: (String) -> Unit,
     onSelectTemplate: (SessionTemplate) -> Unit,
     onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
@@ -223,15 +230,25 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
         muscleDrain = summary.sessionDrain.muscular,
     )
 
-    // 2. Time as elegant text (no card)
+    // 2. Duración — título + tarjeta
     if (timeBreakdown != null) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 4.dp),
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White.copy(alpha = 0.06f))
+                .padding(14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
+            Text(
+                "Duración de la sesión",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Black,
+                color = Color.White,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+            )
             Text(
                 "${timeBreakdown.totalMinutes} min",
                 style = MaterialTheme.typography.titleMedium,
@@ -247,60 +264,6 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
         }
     }
 
-    // 3. Energy (kcal / EPOC) — translucent dark panel
-    if (energySummary.totalKcal.mid > 0) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.White.copy(alpha = 0.06f))
-                .padding(14.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Kcal", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.55f))
-                Text(
-                    "${energySummary.totalKcal.mid}",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
-                )
-                Text(
-                    "${energySummary.totalKcal.low}–${energySummary.totalKcal.high}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.45f),
-                )
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("EPOC", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.55f))
-                Text(
-                    "${energySummary.epocKcal.mid} kcal",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.9f),
-                )
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Confianza", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.55f))
-                Text(
-                    when (energySummary.confidence) {
-                        EnergyConfidence.HIGH -> "alta"
-                        EnergyConfidence.MEDIUM -> "media"
-                        EnergyConfidence.LOW -> "baja"
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Black,
-                    color = when (energySummary.confidence) {
-                        EnergyConfidence.HIGH -> Color(0xFF22C55E)
-                        EnergyConfidence.MEDIUM -> Color(0xFFF59E0B)
-                        EnergyConfidence.LOW -> Color(0xFFEF4444)
-                    },
-                )
-            }
-        }
-    }
-
     if (report == null) {
         Text(
             "Calculando análisis...",
@@ -310,7 +273,7 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
         )
     }
 
-    // 4. Volume — always visible; empty state when no exercises
+    // 3. Volumen
     val session = uiState.session
     val volumeRows = remember(session) {
         session?.let { buildMuscleVolumeRows(it) }.orEmpty()
@@ -363,6 +326,39 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
                     )
                 }
             }
+        }
+    }
+
+    // 4. Calorías bajo volumen (sin EPOC ni confianza)
+    if (energySummary.totalKcal.mid > 0) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White.copy(alpha = 0.06f))
+                .padding(14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                "Calorías estimadas",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Black,
+                color = Color.White,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                "${energySummary.totalKcal.mid} kcal",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Black,
+                color = Color.White,
+            )
+            Text(
+                "${energySummary.totalKcal.low}–${energySummary.totalKcal.high}",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.45f),
+            )
         }
     }
 }
@@ -476,8 +472,8 @@ private fun formatSets(value: Double): String =
 
 @Composable
 private fun AssistantSuggestionsTab(
-    suggestions: List<com.example.kpkn.domain.sessionassistant.AssistantSuggestion>,
-    onApply: (String) -> Unit,
+    suggestions: List<AssistantSuggestion>,
+    onApply: (suggestionId: String, acceptedDetailIds: List<String>) -> Unit,
 ) {
     if (suggestions.isEmpty()) {
         Column(
@@ -493,7 +489,7 @@ private fun AssistantSuggestionsTab(
                 color = Color.White.copy(alpha = 0.85f),
             )
             Text(
-                "Cuando el asistente detecte ajustes útiles aparecerán aquí.",
+                "Si la sesión se pone demasiado exigente, aparecerán ajustes aquí.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center,
@@ -572,26 +568,64 @@ internal fun AssistantTemplatesTab(
 
 @Composable
 internal fun AssistantSuggestionCard(
-    suggestion: com.example.kpkn.domain.sessionassistant.AssistantSuggestion,
-    onApplySuggestion: (String) -> Unit,
+    suggestion: AssistantSuggestion,
+    onApplySuggestion: (suggestionId: String, acceptedDetailIds: List<String>) -> Unit,
 ) {
+    val accepted = remember(suggestion.id, suggestion.details) {
+        mutableStateMapOf<String, Boolean>().apply {
+            suggestion.details.forEach { detail ->
+                put(detail.id, detail.defaultAccepted)
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(Color.White.copy(alpha = 0.08f))
             .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(suggestion.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, color = Color.White)
         Text(suggestion.message, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.65f))
-        if (suggestion.type == com.example.kpkn.domain.sessionassistant.AssistantActionType.LOWER_RPE ||
-            suggestion.type == com.example.kpkn.domain.sessionassistant.AssistantActionType.REDUCE_SET ||
-            suggestion.type == com.example.kpkn.domain.sessionassistant.AssistantActionType.REMOVE_FAILURE
-        ) {
-            KpknSheetWhiteButton(
+        if (suggestion.details.isNotEmpty()) {
+            suggestion.details.forEach { detail ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            accepted[detail.id] = !(accepted[detail.id] ?: true)
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Checkbox(
+                        checked = accepted[detail.id] ?: detail.defaultAccepted,
+                        onCheckedChange = { accepted[detail.id] = it },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = Color.White.copy(alpha = 0.85f),
+                            uncheckedColor = Color.White.copy(alpha = 0.35f),
+                            checkmarkColor = Color.Black,
+                        ),
+                    )
+                    Text(
+                        detail.label,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.88f),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+            val selectedIds = suggestion.details.map { it.id }.filter { accepted[it] == true }
+            KpknSheetTranslucentButton(
+                text = if (selectedIds.isEmpty()) "Nada seleccionado" else "Aplicar selección",
+                enabled = selectedIds.isNotEmpty(),
+                onClick = { onApplySuggestion(suggestion.id, selectedIds) },
+            )
+        } else {
+            KpknSheetTranslucentButton(
                 text = "Aplicar",
-                onClick = { onApplySuggestion(suggestion.id) },
+                onClick = { onApplySuggestion(suggestion.id, emptyList()) },
             )
         }
     }

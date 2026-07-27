@@ -12,17 +12,32 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-class WorkoutContinuousVoiceEngine(private val context: Context) {
+/**
+ * Continuous ASR for live workouts.
+ *
+ * STREAM_SYSTEM is muted for the whole voice session (start→stop) so Android's
+ * mic-activation beeps stay silent across listen cycles. Session beeps/TTS use
+ * other streams and are unaffected.
+ */
+class WorkoutContinuousVoiceEngine(
+    private val context: Context,
+    private var noiseProfile: com.example.kpkn.data.models.VoiceNoiseProfile =
+        com.example.kpkn.data.models.VoiceNoiseProfile.GYM,
+) {
 
     private var recognizer: SpeechRecognizer? = null
     private var scope: CoroutineScope? = null
     private var active = false
     private var restarting = false
+    private var sessionMuted = false
     private var originalSystemVolume: Int = -1
+    private var usingOnDevice = false
 
     private val _partialResults = MutableSharedFlow<String>(
         extraBufferCapacity = 4,
@@ -30,11 +45,11 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
     )
     val partialResults: Flow<String> = _partialResults
 
-    private val _finalResults = MutableSharedFlow<String>(
+    private val _finalResults = MutableSharedFlow<List<VoiceHypothesis>>(
         extraBufferCapacity = 2,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
-    val finalResults: Flow<String> = _finalResults
+    val finalResults: Flow<List<VoiceHypothesis>> = _finalResults
 
     private val _errors = MutableSharedFlow<String>(
         extraBufferCapacity = 2,
@@ -42,30 +57,51 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
     )
     val errors: Flow<String> = _errors
 
+    private val _rmsLevel = MutableStateFlow(0f)
+    val rmsLevel: StateFlow<Float> = _rmsLevel.asStateFlow()
+
+    private val _usingOnDeviceRecognizer = MutableStateFlow(false)
+    val usingOnDeviceRecognizer: StateFlow<Boolean> = _usingOnDeviceRecognizer.asStateFlow()
+
     val isActive: Boolean get() = active
 
+    fun setNoiseProfile(profile: com.example.kpkn.data.models.VoiceNoiseProfile) {
+        noiseProfile = profile
+    }
+
     private fun muteSystemVolume() {
+        if (sessionMuted) return
         try {
             val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager ?: return
             if (originalSystemVolume == -1) {
                 originalSystemVolume = audioManager.getStreamVolume(android.media.AudioManager.STREAM_SYSTEM)
             }
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                audioManager.adjustStreamVolume(android.media.AudioManager.STREAM_SYSTEM, android.media.AudioManager.ADJUST_MUTE, 0)
+                audioManager.adjustStreamVolume(
+                    android.media.AudioManager.STREAM_SYSTEM,
+                    android.media.AudioManager.ADJUST_MUTE,
+                    0,
+                )
             } else {
                 @Suppress("DEPRECATION")
                 audioManager.setStreamMute(android.media.AudioManager.STREAM_SYSTEM, true)
             }
-        } catch (e: Exception) {
+            sessionMuted = true
+        } catch (_: Exception) {
             // Ignore security or permission exceptions gracefully
         }
     }
 
     private fun unmuteSystemVolume() {
+        if (!sessionMuted) return
         try {
             val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager ?: return
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                audioManager.adjustStreamVolume(android.media.AudioManager.STREAM_SYSTEM, android.media.AudioManager.ADJUST_UNMUTE, 0)
+                audioManager.adjustStreamVolume(
+                    android.media.AudioManager.STREAM_SYSTEM,
+                    android.media.AudioManager.ADJUST_UNMUTE,
+                    0,
+                )
             } else {
                 @Suppress("DEPRECATION")
                 audioManager.setStreamMute(android.media.AudioManager.STREAM_SYSTEM, false)
@@ -74,7 +110,8 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
                 audioManager.setStreamVolume(android.media.AudioManager.STREAM_SYSTEM, originalSystemVolume, 0)
                 originalSystemVolume = -1
             }
-        } catch (e: Exception) {
+            sessionMuted = false
+        } catch (_: Exception) {
             // Ignore
         }
     }
@@ -83,17 +120,18 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
         this.scope = scope
         if (active) return
         active = true
+        muteSystemVolume()
         scope.launch(Dispatchers.Main) {
             startListening()
         }
     }
 
+    /** Pause listening for TTS without unmuting STREAM_SYSTEM (session mute stays). */
     fun pause() {
         active = false
         restarting = false
-        unmuteSystemVolume()
+        _rmsLevel.value = 0f
         val currentScope = scope
-        // If the ViewModel scope is already cancelled, launch{} never runs — destroy sync.
         if (currentScope != null && currentScope.isActive) {
             currentScope.launch(Dispatchers.Main) {
                 destroyRecognizer()
@@ -103,15 +141,28 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
         }
     }
 
+    /** End the voice session: unmute system stream and tear down recognizer. */
     fun stop() {
-        pause()
+        active = false
+        restarting = false
+        _rmsLevel.value = 0f
+        unmuteSystemVolume()
+        val currentScope = scope
+        if (currentScope != null && currentScope.isActive) {
+            currentScope.launch(Dispatchers.Main) {
+                destroyRecognizer()
+            }
+        } else {
+            destroyRecognizer()
+        }
     }
 
     private fun destroyRecognizer() {
         try {
             recognizer?.cancel()
             recognizer?.destroy()
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+        }
         recognizer = null
     }
 
@@ -127,13 +178,13 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
         }
 
         try {
-            val newRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+            val newRecognizer = createRecognizerInstance()
             newRecognizer.setRecognitionListener(object : RecognitionListener {
-                override fun onReadyForSpeech(params: Bundle?) {
-                    unmuteSystemVolume()
-                }
+                override fun onReadyForSpeech(params: Bundle?) {}
                 override fun onBeginningOfSpeech() {}
-                override fun onRmsChanged(rmsdB: Float) {}
+                override fun onRmsChanged(rmsdB: Float) {
+                    _rmsLevel.value = rmsdB
+                }
                 override fun onBufferReceived(buffer: ByteArray?) {}
                 override fun onEndOfSpeech() {}
                 override fun onEvent(eventType: Int, params: Bundle?) {}
@@ -150,45 +201,51 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
                 }
 
                 override fun onResults(results: Bundle?) {
-                    unmuteSystemVolume()
-                    val text = results
+                    val texts = results
                         ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                        ?.firstOrNull()
-                        ?.trim()
-                        ?: ""
+                        .orEmpty()
+                    val confidences = results?.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES)
+                    val hypotheses = texts.mapIndexedNotNull { index, raw ->
+                        val text = raw.trim()
+                        if (text.isBlank()) null
+                        else VoiceHypothesis(
+                            text = text,
+                            confidence = confidences?.getOrNull(index) ?: 0f,
+                        )
+                    }
 
-                    if (text.isNotBlank()) {
-                        _finalResults.tryEmit(text)
+                    if (hypotheses.isNotEmpty()) {
+                        _finalResults.tryEmit(hypotheses)
                     }
 
                     restartListeningDelayed(300)
                 }
 
                 override fun onError(error: Int) {
-                    unmuteSystemVolume()
                     if (!active) return
 
-                    destroyRecognizer()
-
-                    if (error == SpeechRecognizer.ERROR_NO_MATCH ||
-                        error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
-                    ) {
-                        restartListeningDelayed(400)
-                        return
+                    when (error) {
+                        SpeechRecognizer.ERROR_NO_MATCH,
+                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT,
+                        -> {
+                            softRestartListening(400)
+                        }
+                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS,
+                        SpeechRecognizer.ERROR_NETWORK,
+                        SpeechRecognizer.ERROR_NETWORK_TIMEOUT,
+                        SpeechRecognizer.ERROR_SERVER,
+                        -> {
+                            scope?.launch {
+                                _errors.emit("Error de reconocimiento: $error")
+                            }
+                        }
+                        else -> {
+                            destroyRecognizer()
+                            scope?.launch {
+                                _errors.emit("Error de reconocimiento: $error")
+                            }
+                        }
                     }
-
-                    if (error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY ||
-                        error == SpeechRecognizer.ERROR_CLIENT
-                    ) {
-                        restartListeningDelayed(800)
-                        return
-                    }
-
-                    scope?.launch {
-                        _errors.emit("Error de reconocimiento: $error")
-                    }
-
-                    restartListeningDelayed(1000)
                 }
             })
             recognizer = newRecognizer
@@ -198,6 +255,46 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
                 _errors.emit("Error al inicializar reconocedor: ${e.message}")
             }
             return null
+        }
+    }
+
+    private fun createRecognizerInstance(): SpeechRecognizer {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            try {
+                val onDevice = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
+                usingOnDevice = true
+                _usingOnDeviceRecognizer.value = true
+                return onDevice
+            } catch (_: Exception) {
+                // Fall through to standard recognizer.
+            }
+        }
+        usingOnDevice = false
+        _usingOnDeviceRecognizer.value = false
+        return SpeechRecognizer.createSpeechRecognizer(context)
+    }
+
+    private fun softRestartListening(delayMs: Long) {
+        if (!active || restarting) return
+        restarting = true
+        scope?.launch(Dispatchers.Main) {
+            delay(delayMs)
+            restarting = false
+            if (!active) return@launch
+            val rec = recognizer ?: getOrCreateRecognizer() ?: return@launch
+            val intent = buildRecognizerIntent(noiseProfile)
+            try {
+                rec.cancel()
+            } catch (_: Exception) {
+            }
+            try {
+                rec.startListening(intent)
+            } catch (_: Exception) {
+                destroyRecognizer()
+                scope?.launch {
+                    _errors.emit("Error al reiniciar reconocimiento")
+                }
+            }
         }
     }
 
@@ -219,36 +316,44 @@ class WorkoutContinuousVoiceEngine(private val context: Context) {
             if (!active) return@launch
 
             val rec = getOrCreateRecognizer() ?: return@launch
-            val intent = buildRecognizerIntent()
+            val intent = buildRecognizerIntent(noiseProfile)
 
             try {
                 rec.cancel()
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+            }
 
-            muteSystemVolume()
             try {
                 rec.startListening(intent)
             } catch (e: Exception) {
-                unmuteSystemVolume()
                 destroyRecognizer()
-                restartListeningDelayed(1000)
+                scope?.launch {
+                    _errors.emit("Error al iniciar reconocimiento: ${e.message}")
+                }
             }
         }
     }
 
     companion object {
-        fun buildRecognizerIntent(): Intent {
+        fun buildRecognizerIntent(
+            noiseProfile: com.example.kpkn.data.models.VoiceNoiseProfile =
+                com.example.kpkn.data.models.VoiceNoiseProfile.GYM,
+        ): Intent {
             val deviceLocale = java.util.Locale.getDefault()
-            val lang = if (deviceLocale.language == "es") deviceLocale.toLanguageTag() else "es-ES"
+            val lang = if (deviceLocale.language == "es") deviceLocale.toLanguageTag() else "es-CL"
+            val (minLen, completeSilence, possibleSilence) = when (noiseProfile) {
+                com.example.kpkn.data.models.VoiceNoiseProfile.GYM -> Triple(450L, 1500L, 1000L)
+                com.example.kpkn.data.models.VoiceNoiseProfile.QUIET -> Triple(300L, 1200L, 800L)
+            }
             return Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang)
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, lang)
                 putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                 putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1500L)
-                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1000L)
-                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 300L)
+                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, completeSilence)
+                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, possibleSilence)
+                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, minLen)
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
             }
         }

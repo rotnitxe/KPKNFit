@@ -3,6 +3,8 @@ package com.example.kpkn.screens.workout.components
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -23,6 +25,7 @@ import dev.chrisbanes.haze.HazeState
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.services.workout.VoicePipelineStage
 import com.example.kpkn.services.workout.VoiceSessionState
+import kotlinx.coroutines.delay
 
 @Suppress("UNUSED_PARAMETER")
 @Composable
@@ -41,16 +44,29 @@ fun WorkoutCommandDock(
     sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
     hazeState: HazeState? = null,
     isUpdateMode: Boolean = false,
+    voicePushToTalk: Boolean = false,
+    onPushToTalkStart: () -> Unit = {},
+    onPushToTalkEnd: () -> Unit = {},
 ) {
-    val (pulseScale, pulseAlpha) = rememberVoicePulse(enabled = voiceSessionEnabled)
-
     val isListening = voiceSessionState.stage == VoicePipelineStage.LISTENING
+    val isArmed = voiceSessionState.stage == VoicePipelineStage.ARMED
     val isProcessing = voiceSessionState.stage == VoicePipelineStage.PROCESSING ||
             voiceSessionState.stage == VoicePipelineStage.CONFIRM_WAIT ||
             voiceSessionState.stage == VoicePipelineStage.TTS_SPEAKING
 
+    val rmsNorm = remember(voiceSessionState.rmsLevel, isListening) {
+        if (!isListening || voiceSessionState.rmsLevel == 0f) null
+        else ((voiceSessionState.rmsLevel + 2f) / 12f).coerceIn(0f, 1f)
+    }
+    val (pulseScale, pulseAlpha) = if (rmsNorm != null) {
+        (1f + rmsNorm * 0.28f) to (0.45f + rmsNorm * 0.55f)
+    } else {
+        rememberVoicePulse(enabled = voiceSessionEnabled && isListening)
+    }
+
     val voiceIndicatorColor = when {
         isListening -> Color(0xFF4CAF50)
+        isArmed -> Color(0xFF81C784)
         isProcessing -> MaterialTheme.colorScheme.tertiary
         voiceSessionState.stage == VoicePipelineStage.ERROR_RECOVERY -> Color(0xFFFF9800)
         voiceSessionEnabled -> MaterialTheme.colorScheme.secondary
@@ -58,8 +74,11 @@ fun WorkoutCommandDock(
     }
 
     val voiceIndicatorText = when {
+        voiceSessionState.stage == VoicePipelineStage.ARMED ->
+            "Listo · mantén el mic para hablar"
         voiceSessionState.stage == VoicePipelineStage.LISTENING -> {
             if (voiceSessionState.partialText.isNotBlank()) "Escuchando: \"${voiceSessionState.partialText}\""
+            else if (voicePushToTalk) "Escuchando (suelta al terminar)..."
             else "Escuchando comandos de voz..."
         }
         voiceSessionState.stage == VoicePipelineStage.PROCESSING -> "Procesando..."
@@ -78,6 +97,24 @@ fun WorkoutCommandDock(
     }
 
     val showVoiceChip = voiceSessionEnabled && voiceIndicatorText.isNotBlank()
+    val micInteractionSource = remember { MutableInteractionSource() }
+    val micPressed by micInteractionSource.collectIsPressedAsState()
+    var suppressMicClickAfterHold by remember { mutableStateOf(false) }
+
+    // Push-to-talk: hold starts ASR after 160ms; release ends it.
+    // Quick tap (no hold) uses onClick to toggle the session off.
+    LaunchedEffect(micPressed, voicePushToTalk, voiceSessionEnabled) {
+        if (!voicePushToTalk || !voiceSessionEnabled) return@LaunchedEffect
+        if (micPressed) {
+            delay(160)
+            if (micPressed) {
+                suppressMicClickAfterHold = true
+                onPushToTalkStart()
+            }
+        } else {
+            onPushToTalkEnd()
+        }
+    }
 
     val primaryButtonText = remember(exercise, setIndex, activeSide, isUnilateral) {
         if (exercise == null) "Completar Serie"
@@ -127,6 +164,17 @@ fun WorkoutCommandDock(
                                     else Modifier
                                 )
                         )
+                        // Live mic level meter when RMS is available
+                        if (isListening && voiceSessionState.rmsLevel != 0f) {
+                            val rmsNorm = ((voiceSessionState.rmsLevel + 2f) / 12f).coerceIn(0.08f, 1f)
+                            Box(
+                                modifier = Modifier
+                                    .width(3.dp)
+                                    .height((12.dp * rmsNorm).coerceAtLeast(3.dp))
+                                    .clip(CircleShape)
+                                    .background(voiceIndicatorColor.copy(alpha = 0.85f)),
+                            )
+                        }
                         Text(
                             text = voiceIndicatorText,
                             color = Color.White,
@@ -135,6 +183,23 @@ fun WorkoutCommandDock(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                        if (voiceSessionState.lastHeardSummary.isNotBlank()) {
+                            Text(
+                                text = voiceSessionState.lastHeardSummary,
+                                color = Color.White.copy(alpha = 0.72f),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        if (voiceSessionState.usingOnDeviceRecognizer && isListening) {
+                            Text(
+                                text = "local",
+                                color = Color(0xFF81C784),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                            )
+                        }
                         if (voiceSessionState.errorMessage != null && voiceSessionState.stage == VoicePipelineStage.ERROR_RECOVERY) {
                             Spacer(modifier.width(4.dp))
                             Text(
@@ -184,7 +249,13 @@ fun WorkoutCommandDock(
                     )
                 }
                 SmallFloatingActionButton(
-                    onClick = onToggleVoice,
+                    onClick = {
+                        if (voicePushToTalk && voiceSessionEnabled && suppressMicClickAfterHold) {
+                            suppressMicClickAfterHold = false
+                            return@SmallFloatingActionButton
+                        }
+                        onToggleVoice()
+                    },
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(start = 0.dp, top = 0.dp)
@@ -198,6 +269,7 @@ fun WorkoutCommandDock(
                     shape = CircleShape,
                     containerColor = when {
                         voiceSessionEnabled && isListening -> Color(0xFF4CAF50)
+                        voiceSessionEnabled && isArmed -> Color(0xFF81C784)
                         voiceSessionEnabled -> voiceIndicatorColor.copy(alpha = 0.95f)
                         else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.94f)
                     },
@@ -206,10 +278,15 @@ fun WorkoutCommandDock(
                         defaultElevation = 6.dp,
                         pressedElevation = 8.dp,
                     ),
+                    interactionSource = micInteractionSource,
                 ) {
                     Icon(
                         imageVector = if (voiceSessionEnabled) Icons.Default.Mic else Icons.Default.MicOff,
-                        contentDescription = if (voiceSessionEnabled) "Desactivar control por voz" else "Activar control por voz",
+                        contentDescription = when {
+                            !voiceSessionEnabled -> "Activar control por voz"
+                            voicePushToTalk -> "Mantén para hablar. Toque corto para apagar."
+                            else -> "Desactivar control por voz"
+                        },
                         modifier = Modifier.size(24.dp),
                     )
                 }

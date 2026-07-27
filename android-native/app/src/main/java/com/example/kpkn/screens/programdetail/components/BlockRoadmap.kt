@@ -305,14 +305,15 @@ private fun CycleBasedRoadmap(
     val baseWeeks = weeks.filterNot { it.isLoopWeek }
     val loopWeeks = weeks.filter { it.isLoopWeek }
     val cycleLength = baseWeeks.size.coerceAtLeast(1)
-    val cycleCount = loopMarkers.maxOfOrNull { it.repeatEveryCycles.coerceAtLeast(1) } ?: 1
+    val cycleCount = lcmOf(loopMarkers.map { it.repeatEveryCycles.coerceAtLeast(1) }.ifEmpty { listOf(1) })
     val eventPills = loopMarkers.mapIndexedNotNull { index, marker ->
         loopWeeks.firstOrNull { it.loopId == marker.id }?.let { week ->
             SimpleEventPill(index = index + 1, marker = marker, week = week)
         }
     }
 
-    val currentCycleIndex = if (currentCycle > 0) currentCycle % cycleCount else 0
+    // currentCycle is 1-based (runState.cycleNumber); pills are 0-based within the compound cycle.
+    val currentCycleIndex = if (currentCycle > 0) (currentCycle - 1) % cycleCount else 0
     var selectedPillIndex by remember(cycleLength, cycleCount, currentCycleIndex) { mutableIntStateOf(currentCycleIndex) }
 
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -723,3 +724,23 @@ private fun MetadataDialog(
         },
     )
 }
+
+private fun gcd(a: Int, b: Int): Int {
+    var x = a
+    var y = b
+    while (y != 0) {
+        val t = y
+        y = x % y
+        x = t
+    }
+    return x.coerceAtLeast(1)
+}
+
+private fun lcm(a: Int, b: Int): Int {
+    val safeA = a.coerceAtLeast(1)
+    val safeB = b.coerceAtLeast(1)
+    return (safeA / gcd(safeA, safeB) * safeB).coerceAtLeast(1)
+}
+
+private fun lcmOf(values: List<Int>): Int =
+    values.fold(1) { acc, value -> lcm(acc, value.coerceAtLeast(1)) }.coerceIn(1, 52)

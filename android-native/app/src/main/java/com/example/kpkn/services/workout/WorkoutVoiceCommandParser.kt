@@ -92,6 +92,43 @@ object WorkoutVoiceCommandParser {
         "en el programa", "al programa", "definitivo",
     )
 
+    private val SKIP_REST_KEYWORDS = setOf(
+        "saltar descanso", "saltar timer", "omitir descanso", "omitir timer",
+        "ya estoy", "continuar", "listo",
+    )
+
+    private val USE_ADAPTIVE_REST_KEYWORDS = setOf(
+        "usar sugerido", "descanso dinamico", "descanso dinámico",
+        "usar adaptativo", "usar descanso adaptativo", "usar sugerencia",
+    )
+
+    private val UNDO_KEYWORDS = setOf(
+        "corregir", "deshacer", "borra eso", "borrar eso", "deshacer serie",
+    )
+
+    private val EDIT_LAST_SET_TRIGGERS = setOf(
+        "cambialo", "cámbialo", "cambia a", "cambialo a", "cámbialo a",
+        "cambia el peso", "en realidad", "eran", "era",
+        "sube", "baja", "aumenta", "reduce",
+    )
+
+    private val FATIGUE_KEYWORDS = setOf(
+        "estoy fatigado", "estoy cansado", "voy muerto", "voy fatigado",
+        "muy fatigado", "demasiado cansado", "no doy mas", "no doy más",
+    )
+
+    private val PACE_STATUS_KEYWORDS = setOf(
+        "voy atrasado", "como voy de tiempo", "cómo voy de tiempo",
+        "voy retrasado", "ritmo de sesion", "ritmo de sesión", "como voy",
+    )
+
+    private val WEIGHT_REASON_KEYWORDS = setOf(
+        "por que esa carga", "por qué esa carga", "por que ese peso",
+        "por qué ese peso", "explica la carga", "motivo del peso",
+    )
+
+    private val STOP_SPEAKING_KEYWORDS = setOf("para", "calla", "silencio ya", "basta")
+
     fun parseCommand(
         transcript: String,
         isTimeMode: Boolean,
@@ -107,14 +144,35 @@ object WorkoutVoiceCommandParser {
         }
 
         if (hasPendingConfirmation) {
-            // Token/phrase match — never substring ("bueno"≠noise filler alone is OK as token;
-            // "anotacion" must NOT match "no").
             if (matchesAnyKeyword(lower, CONFIRM_KEYWORDS)) {
                 return VoiceSessionCommand.Confirm
             }
             if (matchesAnyKeyword(lower, CANCEL_KEYWORDS)) {
                 return VoiceSessionCommand.Cancel
             }
+            if (STOP_SPEAKING_KEYWORDS.any { matchesAnyKeyword(lower, setOf(it)) }) {
+                return VoiceSessionCommand.StopSpeaking
+            }
+        }
+
+        if (isRestTimerActive) {
+            parseRestAwareCommand(lower)?.let { return it }
+        }
+
+        if (STOP_SPEAKING_KEYWORDS.any { matchesAnyKeyword(lower, setOf(normalizeText(it))) }) {
+            return VoiceSessionCommand.StopSpeaking
+        }
+
+        parseEditLastSet(lower)?.let { return it }
+
+        if (FATIGUE_KEYWORDS.any { lower.contains(normalizeText(it)) }) {
+            return VoiceSessionCommand.FatigueAdvice
+        }
+        if (PACE_STATUS_KEYWORDS.any { lower.contains(normalizeText(it)) }) {
+            return VoiceSessionCommand.PaceStatus
+        }
+        if (WEIGHT_REASON_KEYWORDS.any { lower.contains(normalizeText(it)) }) {
+            return VoiceSessionCommand.SuggestWeightReasoned
         }
 
         if (FINISH_SESSION_KEYWORDS.any { lower.contains(it) }) {
@@ -167,6 +225,158 @@ object WorkoutVoiceCommandParser {
         }
 
         return VoiceSessionCommand.Unknown(transcript)
+    }
+
+    fun parseEditLastSet(normalized: String): VoiceSessionCommand.EditLastSet? {
+        val lower = normalizeText(normalized)
+        val triggered = EDIT_LAST_SET_TRIGGERS.any { lower.contains(normalizeText(it)) }
+        if (!triggered) return null
+
+        var weightKg: Double? = null
+        var weightDeltaKg: Double? = null
+        var metricValue: Int? = null
+        var intensityValue: Double? = null
+        var intensityKind: com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind? = null
+
+        val wordAlts = VOICE_INTEGER_WORDS.keys.joinToString("|")
+        val numOrWord = """(\d+(?:[.,]\d+)?|$wordAlts)"""
+
+        val absoluteWeight = Regex(
+            """(?:cambialo a|cambia a|cambialo|en realidad)\s+$numOrWord(?:\s*(?:kilos?|kg))?""",
+        ).find(lower)
+        if (absoluteWeight != null) {
+            weightKg = parseSpokenInteger(absoluteWeight.groupValues[1])?.toDouble()
+                ?: absoluteWeight.groupValues[1].replace(',', '.').toDoubleOrNull()
+        }
+
+        val deltaUp = Regex(
+            """(?:sube|aumenta)\s+$numOrWord(?:\s*(?:kilos?|kg))?""",
+        ).find(lower)
+        if (deltaUp != null) {
+            weightDeltaKg = parseSpokenInteger(deltaUp.groupValues[1])?.toDouble()
+                ?: deltaUp.groupValues[1].replace(',', '.').toDoubleOrNull()
+        }
+        val deltaDown = Regex(
+            """(?:baja|reduce)\s+$numOrWord(?:\s*(?:kilos?|kg))?""",
+        ).find(lower)
+        if (deltaDown != null) {
+            val n = parseSpokenInteger(deltaDown.groupValues[1])?.toDouble()
+                ?: deltaDown.groupValues[1].replace(',', '.').toDoubleOrNull()
+            if (n != null) weightDeltaKg = -n
+        }
+
+        // "eran 9" / "era nueve"
+        val repsWere = Regex(
+            """(?:eran|era)\s+(\d+|$wordAlts)(?:\s*(?:reps?|repeticiones?))?""",
+        ).find(lower)
+        if (repsWere != null) {
+            metricValue = parseSpokenInteger(repsWere.groupValues[1])
+        }
+
+        // Natural multi-field: "82 por 9", "82 x 9", "82 kilos por nueve reps"
+        if (metricValue == null) {
+            val porReps = Regex(
+                """(?:por|x|×)\s+(\d+|$wordAlts)(?:\s*(?:reps?|repeticiones?))?""",
+            ).find(lower)
+            if (porReps != null) {
+                metricValue = parseSpokenInteger(porReps.groupValues[1])
+            }
+        }
+        if (metricValue == null) {
+            val bareReps = Regex(
+                """(?:^|\s)(\d+|$wordAlts)\s*(?:reps?|repeticiones?)\b""",
+            ).find(lower)
+            if (bareReps != null) {
+                metricValue = parseSpokenInteger(bareReps.groupValues[1])
+            }
+        }
+
+        val rpeMatch = Regex("""rpe\s+(\d+(?:[.,]\d+)?)""").find(lower)
+        if (rpeMatch != null) {
+            intensityValue = rpeMatch.groupValues[1].replace(',', '.').toDoubleOrNull()
+            intensityKind = com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind.RPE
+        }
+        val rirMatch = Regex("""rir\s+(\d+)""").find(lower)
+        if (rirMatch != null) {
+            intensityValue = rirMatch.groupValues[1].toDoubleOrNull()
+            intensityKind = com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind.RIR
+        }
+
+        val patch = VoiceSetEditPatch(
+            weightKg = weightKg,
+            weightDeltaKg = weightDeltaKg,
+            metricValue = metricValue,
+            intensityValue = intensityValue,
+            intensityKind = intensityKind,
+        )
+        if (!patch.hasAnyField) return null
+        return VoiceSessionCommand.EditLastSet(patch)
+    }
+
+    /**
+     * During an active rest timer: "saltar" means skip rest (not the exercise),
+     * plus adaptive / adjust / undo commands.
+     */
+    fun parseRestAwareCommand(normalized: String): VoiceSessionCommand? {
+        val lower = normalized
+        if (USE_ADAPTIVE_REST_KEYWORDS.any { lower.contains(normalizeText(it)) }) {
+            return VoiceSessionCommand.UseAdaptiveRest
+        }
+        parseAdjustRestTime(lower)?.let { return it }
+        if (UNDO_KEYWORDS.any { matchesAnyKeyword(lower, setOf(normalizeText(it))) || lower.contains(normalizeText(it)) }) {
+            return VoiceSessionCommand.UndoLastSet
+        }
+        if (SKIP_REST_KEYWORDS.any { lower.contains(normalizeText(it)) } ||
+            SKIP_KEYWORDS.any { lower.contains(it) }
+        ) {
+            return VoiceSessionCommand.SkipRest
+        }
+        return null
+    }
+
+    fun parseAdjustRestTime(normalized: String): VoiceSessionCommand.AdjustRestTime? {
+        val lower = normalized
+        val addMatch = Regex(
+            """(?:anade|añade|suma|agrega|mas|más)\s+(\d+|""" +
+                VOICE_INTEGER_WORDS.keys.joinToString("|") +
+                """)\s*(?:segundos?|segs?)?""",
+        ).find(lower)
+        val removeMatch = Regex(
+            """(?:quita|resta|saca|menos)\s+(\d+|""" +
+                VOICE_INTEGER_WORDS.keys.joinToString("|") +
+                """)\s*(?:segundos?|segs?)?""",
+        ).find(lower)
+
+        when {
+            addMatch != null -> {
+                val n = parseSpokenInteger(addMatch.groupValues[1]) ?: return null
+                return VoiceSessionCommand.AdjustRestTime(n)
+            }
+            removeMatch != null -> {
+                val n = parseSpokenInteger(removeMatch.groupValues[1]) ?: return null
+                return VoiceSessionCommand.AdjustRestTime(-n)
+            }
+            lower.contains("mas treinta") || lower.contains("más treinta") ||
+                lower.contains("mas 30") || lower.contains("más 30") -> {
+                return VoiceSessionCommand.AdjustRestTime(30)
+            }
+            lower.contains("menos treinta") || lower.contains("menos 30") -> {
+                return VoiceSessionCommand.AdjustRestTime(-30)
+            }
+            lower.contains("mas quince") || lower.contains("más quince") ||
+                lower.contains("mas 15") || lower.contains("más 15") -> {
+                return VoiceSessionCommand.AdjustRestTime(15)
+            }
+            lower.contains("menos quince") || lower.contains("menos 15") -> {
+                return VoiceSessionCommand.AdjustRestTime(-15)
+            }
+        }
+        return null
+    }
+
+    private fun parseSpokenInteger(token: String): Int? {
+        token.toIntOrNull()?.let { return it }
+        return VOICE_INTEGER_WORDS[normalizeText(token)]
     }
 
     fun parseAddSetPersistence(normalizedTranscript: String): VoiceSessionCommand {

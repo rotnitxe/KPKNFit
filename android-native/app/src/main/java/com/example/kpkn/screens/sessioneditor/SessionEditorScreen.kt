@@ -583,8 +583,8 @@ fun SessionEditorScreen(
                         snackbarHostState.showKpknSnackbar("Ejercicio añadido a la sesión", SnackbarType.SUCCESS)
                     }
                 },
-                onApplyAssistantSuggestion = { suggestionId ->
-                    viewModel.applyAssistantSuggestion(suggestionId)
+                onApplyAssistantSuggestion = { suggestionId, detailIds ->
+                    viewModel.applyAssistantSuggestion(suggestionId, detailIds)
                     scope.launch {
                         snackbarHostState.showKpknSnackbar("Ajuste aplicado", SnackbarType.SUCCESS)
                     }
@@ -687,8 +687,8 @@ fun SessionEditorScreen(
                 snackbarHostState.showKpknSnackbar("Ejercicio añadido a la sesión", SnackbarType.SUCCESS)
             }
         },
-        onApplyAssistantSuggestion = { suggestionId ->
-            viewModel.applyAssistantSuggestion(suggestionId)
+        onApplyAssistantSuggestion = { suggestionId, detailIds ->
+            viewModel.applyAssistantSuggestion(suggestionId, detailIds)
             scope.launch {
                 snackbarHostState.showKpknSnackbar("Ajuste aplicado", SnackbarType.SUCCESS)
             }

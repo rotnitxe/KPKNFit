@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -15,23 +16,35 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.resolveExerciseId
 import com.example.kpkn.data.models.IntensityMetric
-import com.example.kpkn.data.models.OneRMFormula
+import com.example.kpkn.data.models.VoiceInputMode
+import com.example.kpkn.data.models.VoiceNoiseProfile
+import com.example.kpkn.data.models.VoiceVerbosity
 import com.example.kpkn.data.models.VolumeSystem
 import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.models.WorkoutLoggerMode
+import com.example.kpkn.screens.settings.components.SettingsActionItem
 import com.example.kpkn.screens.settings.components.SettingsDropdownItem
+import com.example.kpkn.screens.settings.components.SettingsInfoRow
 import com.example.kpkn.screens.settings.components.SettingsSectionCard
 import com.example.kpkn.screens.settings.components.SettingsSectionHeader
 import com.example.kpkn.screens.settings.components.SettingsSegmentedButtonItem
 import com.example.kpkn.screens.settings.components.SettingsSliderItem
 import com.example.kpkn.screens.settings.components.SettingsSwitchItem
 import com.example.kpkn.screens.settings.components.SettingsTextFieldItem
+import java.text.Normalizer
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +54,9 @@ fun SettingsTrainingScreen(
 ) {
     val settings by viewModel.settings.collectAsState()
     val weightUnitLabel = settings.weightUnit.name
+    var aliasNickname by remember { mutableStateOf("") }
+    var aliasExerciseQuery by remember { mutableStateOf("") }
+    var aliasError by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -110,6 +126,120 @@ fun SettingsTrainingScreen(
                         checked = settings.restTimerAutoStart,
                         onCheckedChange = { value -> viewModel.update { it.copy(restTimerAutoStart = value) } },
                     )
+                    SettingsSegmentedButtonItem(
+                        title = "Verbosidad de voz",
+                        options = VoiceVerbosity.entries,
+                        selected = settings.voiceVerbosity,
+                        onSelect = { value -> viewModel.update { it.copy(voiceVerbosity = value) } },
+                        optionLabel = {
+                            when (it) {
+                                VoiceVerbosity.COMPLETE -> "Completa"
+                                VoiceVerbosity.ESSENTIAL -> "Esencial"
+                                VoiceVerbosity.SILENT -> "Silencio"
+                            }
+                        },
+                    )
+                    SettingsSegmentedButtonItem(
+                        title = "Perfil de micrófono",
+                        options = VoiceNoiseProfile.entries,
+                        selected = settings.voiceNoiseProfile,
+                        onSelect = { value -> viewModel.update { it.copy(voiceNoiseProfile = value) } },
+                        optionLabel = {
+                            when (it) {
+                                VoiceNoiseProfile.GYM -> "Gimnasio"
+                                VoiceNoiseProfile.QUIET -> "Silencio"
+                            }
+                        },
+                    )
+                    SettingsSegmentedButtonItem(
+                        title = "Modo de micrófono",
+                        options = VoiceInputMode.entries,
+                        selected = settings.voiceInputMode,
+                        onSelect = { value -> viewModel.update { it.copy(voiceInputMode = value) } },
+                        optionLabel = {
+                            when (it) {
+                                VoiceInputMode.CONTINUOUS -> "Continuo"
+                                VoiceInputMode.PUSH_TO_TALK -> "Mantener"
+                            }
+                        },
+                    )
+                    SettingsSliderItem(
+                        title = "Velocidad de voz TTS",
+                        value = settings.ttsSpeechRate,
+                        onValueChange = { value ->
+                            val snapped = (Math.round(value * 20.0) / 20.0).toFloat().coerceIn(0.8f, 1.2f)
+                            viewModel.update { it.copy(ttsSpeechRate = snapped) }
+                        },
+                        valueRange = 0.8f..1.2f,
+                        steps = 7,
+                        valueLabel = { String.format("%.2f×", it) },
+                    )
+                }
+            }
+
+            item { SettingsSectionHeader("Apodos de voz") }
+            item {
+                SettingsSectionCard {
+                    SettingsTextFieldItem(
+                        label = "Apodo (cómo lo dices)",
+                        value = aliasNickname,
+                        onValueChange = {
+                            aliasNickname = it
+                            aliasError = null
+                        },
+                        placeholder = "ej. press banca",
+                    )
+                    SettingsTextFieldItem(
+                        label = "Ejercicio (nombre o id)",
+                        value = aliasExerciseQuery,
+                        onValueChange = {
+                            aliasExerciseQuery = it
+                            aliasError = null
+                        },
+                        placeholder = "ej. Press banca o tren_superior_...",
+                    )
+                    if (aliasError != null) {
+                        SettingsInfoRow(title = "Error", value = aliasError!!)
+                    }
+                    SettingsActionItem(
+                        title = "Añadir apodo",
+                        description = "Mapea tu apodo al ejercicio del catálogo",
+                        onClick = {
+                            val nick = aliasNickname.trim()
+                            if (nick.isBlank()) {
+                                aliasError = "Escribe un apodo"
+                                return@SettingsActionItem
+                            }
+                            val resolvedId = resolveVoiceAliasExerciseId(aliasExerciseQuery)
+                            if (resolvedId == null) {
+                                aliasError = "No encontré ese ejercicio"
+                                return@SettingsActionItem
+                            }
+                            viewModel.update {
+                                it.copy(
+                                    voiceExerciseAliases = it.voiceExerciseAliases +
+                                        (nick.lowercase(Locale.ROOT) to resolvedId),
+                                )
+                            }
+                            aliasNickname = ""
+                            aliasExerciseQuery = ""
+                            aliasError = null
+                        },
+                    )
+                    settings.voiceExerciseAliases.entries.sortedBy { it.key }.forEach { (nick, exerciseId) ->
+                        val label = EXERCISE_DATABASE_BY_ID[exerciseId]?.name ?: exerciseId
+                        SettingsActionItem(
+                            title = "\"$nick\" → $label",
+                            description = exerciseId,
+                            icon = Icons.Default.Delete,
+                            destructive = true,
+                            onClick = {
+                                viewModel.update {
+                                    it.copy(voiceExerciseAliases = it.voiceExerciseAliases - nick)
+                                }
+                            },
+                        )
+                    }
                 }
             }
 
@@ -118,7 +248,7 @@ fun SettingsTrainingScreen(
                 SettingsSectionCard {
                     SettingsSwitchItem(
                         title = "Mostrar PRs en entrenamiento",
-                        description = "Resalta records personales dentro de la sesion",
+                        description = "Resalta records y anuncia rango eRM al entrar (voz completa)",
                         checked = settings.showPRsInWorkout,
                         onCheckedChange = { value -> viewModel.update { it.copy(showPRsInWorkout = value) } },
                     )
@@ -169,6 +299,25 @@ fun SettingsTrainingScreen(
             }
         }
     }
+}
+
+private fun resolveVoiceAliasExerciseId(query: String): String? {
+    val raw = query.trim()
+    if (raw.isBlank()) return null
+    val normalized = normalizeAliasQuery(raw)
+    resolveExerciseId(raw)?.let { return it }
+    EXERCISE_DATABASE_BY_ID[normalized]?.id?.let { return it }
+    EXERCISE_DATABASE.firstOrNull { normalizeAliasQuery(it.name) == normalized }?.id?.let { return it }
+    EXERCISE_DATABASE.firstOrNull {
+        val name = normalizeAliasQuery(it.name)
+        name.contains(normalized) || normalized.contains(name)
+    }?.id?.let { return it }
+    return null
+}
+
+private fun normalizeAliasQuery(text: String): String {
+    val decomposed = Normalizer.normalize(text.lowercase(Locale.ROOT), Normalizer.Form.NFD)
+    return decomposed.replace(Regex("\\p{Mn}+"), "").trim()
 }
 
 private fun volumeSystemLabel(value: VolumeSystem): String = when (value) {

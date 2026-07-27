@@ -11,6 +11,7 @@ object SystemAudioHelper {
     data class TransientDuckHandle(
         val audioManager: AudioManager,
         val request: AudioFocusRequest? = null,
+        val focusChangeListener: AudioManager.OnAudioFocusChangeListener? = null,
     )
 
     fun getRingerModeVolume(context: Context): Float {
@@ -43,6 +44,7 @@ object SystemAudioHelper {
     fun requestTransientDuckFocus(context: Context): TransientDuckHandle? {
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return null
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val listener = AudioManager.OnAudioFocusChangeListener { /* notification duck — no-op */ }
             val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
                 .setAudioAttributes(
                     AudioAttributes.Builder()
@@ -50,23 +52,26 @@ object SystemAudioHelper {
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                         .build(),
                 )
+                .setOnAudioFocusChangeListener(listener)
                 .setAcceptsDelayedFocusGain(false)
                 .setWillPauseWhenDucked(false)
                 .build()
             if (audioManager.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                TransientDuckHandle(audioManager = audioManager, request = request)
+                TransientDuckHandle(audioManager = audioManager, request = request, focusChangeListener = listener)
             } else {
                 null
             }
         } else {
             @Suppress("DEPRECATION")
+            val listener = AudioManager.OnAudioFocusChangeListener { }
+            @Suppress("DEPRECATION")
             val granted = audioManager.requestAudioFocus(
-                null,
+                listener,
                 AudioManager.STREAM_NOTIFICATION,
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK,
             ) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
             if (granted) {
-                TransientDuckHandle(audioManager = audioManager)
+                TransientDuckHandle(audioManager = audioManager, focusChangeListener = listener)
             } else {
                 null
             }
@@ -79,37 +84,62 @@ object SystemAudioHelper {
             safeHandle.request?.let { safeHandle.audioManager.abandonAudioFocusRequest(it) }
         } else {
             @Suppress("DEPRECATION")
-            safeHandle.audioManager.abandonAudioFocus(null)
+            safeHandle.focusChangeListener?.let { safeHandle.audioManager.abandonAudioFocus(it) }
+                ?: safeHandle.audioManager.abandonAudioFocus(null)
         }
     }
 
+    /**
+     * Duck other audio for workout TTS. Attributes match [WorkoutTtsManager]
+     * (USAGE_ASSISTANT / CONTENT_TYPE_SPEECH) so music ducking applies to the right stream.
+     */
     fun requestTransientDuckForVoice(context: Context): TransientDuckHandle? {
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return null
+        var handleRef: TransientDuckHandle? = null
+        val listener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+            when (focusChange) {
+                AudioManager.AUDIOFOCUS_LOSS,
+                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT,
+                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK,
+                -> {
+                    abandonTransientDuckFocus(handleRef)
+                    handleRef = null
+                }
+            }
+        }
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
                 .setAudioAttributes(
                     AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                        .setUsage(AudioAttributes.USAGE_ASSISTANT)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                         .build(),
                 )
+                .setOnAudioFocusChangeListener(listener)
                 .setAcceptsDelayedFocusGain(false)
                 .setWillPauseWhenDucked(false)
                 .build()
             if (audioManager.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                TransientDuckHandle(audioManager = audioManager, request = request)
+                TransientDuckHandle(
+                    audioManager = audioManager,
+                    request = request,
+                    focusChangeListener = listener,
+                ).also { handleRef = it }
             } else {
                 null
             }
         } else {
             @Suppress("DEPRECATION")
             val granted = audioManager.requestAudioFocus(
-                null,
-                AudioManager.STREAM_VOICE_CALL,
+                listener,
+                AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK,
             ) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
             if (granted) {
-                TransientDuckHandle(audioManager = audioManager)
+                TransientDuckHandle(
+                    audioManager = audioManager,
+                    focusChangeListener = listener,
+                ).also { handleRef = it }
             } else {
                 null
             }

@@ -32,7 +32,7 @@ object DiscomfortAggregationEngine {
             if (dbInfo == null) continue
 
             val relatedArticulars = dbInfo.involvedMuscles
-                .flatMap { im -> AugeTtcEngine.MUSCLE_TO_ARTICULAR[im.muscle].orEmpty() }
+                .flatMap { im -> AugeTtcEngine.articularBatteriesFor(im.muscle, im.emphasis) }
                 .distinct()
 
             for (articular in relatedArticulars) {

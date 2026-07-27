@@ -205,6 +205,223 @@ class ProgramKeyDateEngineTest {
     }
 
     @Test
+    fun fitBlocksToKeyDate_reports_missing_data_without_dates() {
+        val program = Program(id = "p", name = "P", structure = ProgramStructure.COMPLEX)
+        val keyDate = ProgramKeyDate(id = "comp", title = "Comp", type = KeyDateType.COMPETITION, startDate = "2026-06-01")
+        val report = ProgramKeyDateEngine.fitBlocksToKeyDate(program, keyDate)
+        assertEquals(ProgramKeyDateEngine.KeyDateFitStatus.MISSING_DATA, report.status)
+        assertNull(report.requiredWeeks)
+    }
+
+    @Test
+    fun fitBlocksToKeyDate_detects_deficit_when_program_is_shorter_than_required() {
+        val program = Program(
+            id = "p",
+            name = "P",
+            structure = ProgramStructure.COMPLEX,
+            timelineStartDate = "2026-05-04",
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "m",
+                    name = "M",
+                    blocks = listOf(
+                        Block(
+                            id = "b",
+                            name = "B",
+                            mesocycles = listOf(
+                                Mesocycle(id = "meso", name = "Meso", weeks = (1..4).map { ProgramWeek(id = "w$it", name = "W$it") }),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        // 2026-06-08 falls in week 6 (5 weeks after start) while the program only has 4 weeks.
+        val keyDate = ProgramKeyDate(id = "comp", title = "Comp", type = KeyDateType.COMPETITION, startDate = "2026-06-08", eventDate = "2026-06-08")
+        val report = ProgramKeyDateEngine.fitBlocksToKeyDate(program, keyDate)
+
+        assertEquals(ProgramKeyDateEngine.KeyDateFitStatus.NEEDS_MORE_WEEKS, report.status)
+        assertTrue(report.needsMoreWeeks)
+        assertEquals(6, report.requiredWeeks)
+        assertEquals(4, report.currentTotalWeeks)
+        assertEquals(2, report.weeksGap)
+        assertEquals(2, report.actionableWeeks)
+    }
+
+    @Test
+    fun fitBlocksToKeyDate_detects_surplus_when_program_is_longer_than_required() {
+        val program = Program(
+            id = "p",
+            name = "P",
+            structure = ProgramStructure.COMPLEX,
+            timelineStartDate = "2026-05-04",
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "m",
+                    name = "M",
+                    blocks = listOf(
+                        Block(
+                            id = "b",
+                            name = "B",
+                            mesocycles = listOf(
+                                Mesocycle(id = "meso", name = "Meso", weeks = (1..8).map { ProgramWeek(id = "w$it", name = "W$it") }),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val keyDate = ProgramKeyDate(id = "comp", title = "Comp", type = KeyDateType.COMPETITION, startDate = "2026-06-08", eventDate = "2026-06-08")
+        val report = ProgramKeyDateEngine.fitBlocksToKeyDate(program, keyDate)
+
+        assertEquals(ProgramKeyDateEngine.KeyDateFitStatus.HAS_SURPLUS_WEEKS, report.status)
+        assertTrue(report.hasSurplusWeeks)
+        assertEquals(6, report.requiredWeeks)
+        assertEquals(8, report.currentTotalWeeks)
+        assertEquals(-2, report.weeksGap)
+        assertEquals(2, report.actionableWeeks)
+    }
+
+    @Test
+    fun fitBlocksToKeyDate_fits_exactly_when_weeks_match() {
+        val program = Program(
+            id = "p",
+            name = "P",
+            structure = ProgramStructure.COMPLEX,
+            timelineStartDate = "2026-05-04",
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "m",
+                    name = "M",
+                    blocks = listOf(
+                        Block(
+                            id = "b",
+                            name = "B",
+                            mesocycles = listOf(
+                                Mesocycle(id = "meso", name = "Meso", weeks = (1..6).map { ProgramWeek(id = "w$it", name = "W$it") }),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val keyDate = ProgramKeyDate(id = "comp", title = "Comp", type = KeyDateType.COMPETITION, startDate = "2026-06-08", eventDate = "2026-06-08")
+        val report = ProgramKeyDateEngine.fitBlocksToKeyDate(program, keyDate)
+
+        assertTrue(report.fitsExactly)
+        assertEquals(0, report.weeksGap)
+    }
+
+    @Test
+    fun fitBlocksToKeyDate_flags_event_before_program_start() {
+        val program = Program(
+            id = "p",
+            name = "P",
+            structure = ProgramStructure.COMPLEX,
+            timelineStartDate = "2026-06-08",
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "m",
+                    name = "M",
+                    blocks = listOf(
+                        Block(
+                            id = "b",
+                            name = "B",
+                            mesocycles = listOf(Mesocycle(id = "meso", name = "Meso", weeks = listOf(ProgramWeek(id = "w1", name = "W1")))),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val keyDate = ProgramKeyDate(id = "comp", title = "Comp", type = KeyDateType.COMPETITION, startDate = "2026-05-01", eventDate = "2026-05-01")
+        val report = ProgramKeyDateEngine.fitBlocksToKeyDate(program, keyDate)
+
+        assertEquals(ProgramKeyDateEngine.KeyDateFitStatus.BEFORE_PROGRAM_START, report.status)
+    }
+
+    @Test
+    fun fitBlocksToCompetitionKeyDate_returns_null_without_competition() {
+        val program = Program(id = "p", name = "P", structure = ProgramStructure.COMPLEX)
+        assertNull(ProgramKeyDateEngine.fitBlocksToCompetitionKeyDate(program))
+    }
+
+    @Test
+    fun addWeeksToBlock_appends_weeks_to_last_mesocycle() {
+        val program = Program(
+            id = "p",
+            name = "P",
+            structure = ProgramStructure.COMPLEX,
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "m",
+                    name = "M",
+                    blocks = listOf(
+                        Block(
+                            id = "b",
+                            name = "B",
+                            mesocycles = listOf(
+                                Mesocycle(id = "meso1", name = "Meso1", weeks = listOf(ProgramWeek(id = "w1", name = "W1"))),
+                                Mesocycle(id = "meso2", name = "Meso2", weeks = listOf(ProgramWeek(id = "w2", name = "W2"))),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val updated = ProgramKeyDateEngine.addWeeksToBlock(program, "b", 2)
+        val block = updated.macrocycles.single().blocks.single()
+
+        assertEquals(1, block.mesocycles[0].weeks.size)
+        assertEquals(3, block.mesocycles[1].weeks.size)
+        assertEquals(4, updated.macrocycles.sumOf { it.blocks.sumOf { b -> b.mesocycles.sumOf { it.weeks.size } } })
+    }
+
+    @Test
+    fun addWeeksToBlock_is_noop_for_unknown_block_or_non_positive_count() {
+        val program = Program(id = "p", name = "P", structure = ProgramStructure.COMPLEX)
+        assertEquals(program, ProgramKeyDateEngine.addWeeksToBlock(program, "missing", 2))
+        assertEquals(program, ProgramKeyDateEngine.addWeeksToBlock(program, "missing", 0))
+    }
+
+    @Test
+    fun removeWeeksFromBlock_trims_trailing_weeks_but_keeps_at_least_one() {
+        val program = Program(
+            id = "p",
+            name = "P",
+            structure = ProgramStructure.COMPLEX,
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "m",
+                    name = "M",
+                    blocks = listOf(
+                        Block(
+                            id = "b",
+                            name = "B",
+                            mesocycles = listOf(
+                                Mesocycle(id = "meso1", name = "Meso1", weeks = listOf(ProgramWeek(id = "w1", name = "W1"))),
+                                Mesocycle(id = "meso2", name = "Meso2", weeks = listOf(ProgramWeek(id = "w2", name = "W2"), ProgramWeek(id = "w3", name = "W3"))),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val updated = ProgramKeyDateEngine.removeWeeksFromBlock(program, "b", 5)
+        val block = updated.macrocycles.single().blocks.single()
+        val remainingWeeks = block.mesocycles.sumOf { it.weeks.size }
+
+        assertEquals(1, remainingWeeks)
+        assertEquals("w1", block.mesocycles.single().weeks.single().id)
+    }
+
+    @Test
+    fun removeWeeksFromBlock_is_noop_for_unknown_block_or_non_positive_count() {
+        val program = Program(id = "p", name = "P", structure = ProgramStructure.COMPLEX)
+        assertEquals(program, ProgramKeyDateEngine.removeWeeksFromBlock(program, "missing", 2))
+        assertEquals(program, ProgramKeyDateEngine.removeWeeksFromBlock(program, "missing", 0))
+    }
+
+    @Test
     fun applyAdvancedCalendarSave_materializes_before_locating_competition_week() {
         val program = Program(
             id = "p",

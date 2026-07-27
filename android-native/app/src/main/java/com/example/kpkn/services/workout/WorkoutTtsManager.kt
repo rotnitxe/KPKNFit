@@ -2,11 +2,12 @@ package com.example.kpkn.services.workout
 
 import android.content.Context
 import android.media.AudioAttributes
-import android.media.AudioManager
 import android.os.Build
+import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicLong
 
 class WorkoutTtsManager(context: Context) {
 
@@ -15,6 +16,7 @@ class WorkoutTtsManager(context: Context) {
     private var _isInitialized = false
     private var _initError: String? = null
     private var _onUtteranceComplete: (() -> Unit)? = null
+    private val utteranceCounter = AtomicLong(0)
 
     val isInitialized: Boolean get() = _isInitialized
     val initError: String? get() = _initError
@@ -80,6 +82,10 @@ class WorkoutTtsManager(context: Context) {
         _onUtteranceComplete = callback
     }
 
+    fun setSpeechRate(rate: Float) {
+        tts?.setSpeechRate(rate.coerceIn(0.7f, 1.3f))
+    }
+
     fun speakSuggestedWeight(weightKg: Double, exerciseName: String) {
         val rounded = formatWeight(weightKg)
         speak("Carga sugerida para $exerciseName: $rounded.", queueFlush = true)
@@ -105,6 +111,32 @@ class WorkoutTtsManager(context: Context) {
 
     fun speakAutoConfirmed() {
         speak("Serie confirmada automáticamente.", queueFlush = false)
+    }
+
+    fun speakAutoConfirmedWithUndo(weightKg: Double?, reps: Int?, isTimeMode: Boolean) {
+        val summary = buildString {
+            if (weightKg != null) append(formatWeight(weightKg).replace(" kilos", ""))
+            if (weightKg != null && reps != null) append(" por ")
+            if (reps != null) append(if (isTimeMode) "$reps segundos" else "$reps")
+        }
+        val body = if (summary.isNotBlank()) "Serie registrada: $summary." else "Serie registrada."
+        speak("$body Di corregir para deshacer.", queueFlush = true)
+    }
+
+    fun speakRestAdaptiveSuggestion(plannedSeconds: Int, suggestedSeconds: Int) {
+        speak(
+            "Descanso programado: ${formatRestSecondsLabel(plannedSeconds)}. " +
+                "Sugerido: ${formatRestSecondsLabel(suggestedSeconds)}. Di usar sugerido.",
+            queueFlush = false,
+        )
+    }
+
+    fun speakTenSecondsLeft() {
+        speak("Diez segundos.", queueFlush = true)
+    }
+
+    fun speakRecoveredReady() {
+        speak("Recuperado. Di listo para continuar.", queueFlush = true)
     }
 
     fun speakRestRemaining(minutes: Int, seconds: Int) {
@@ -174,13 +206,23 @@ class WorkoutTtsManager(context: Context) {
         if (!_isInitialized) return
 
         val queueMode = if (queueFlush) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
-        val utteranceId = System.currentTimeMillis().toString()
+        val utteranceId = "kpkn-tts-${utteranceCounter.incrementAndGet()}"
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            engine.speak(text, queueMode, null, utteranceId)
+            val params = Bundle().apply {
+                putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
+            }
+            engine.speak(text, queueMode, params, utteranceId)
         } else {
             @Suppress("DEPRECATION")
-            engine.speak(text, queueMode, hashMapOf(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID to utteranceId))
+            engine.speak(
+                text,
+                queueMode,
+                hashMapOf(
+                    TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID to utteranceId,
+                    TextToSpeech.Engine.KEY_PARAM_VOLUME to "1.0",
+                ),
+            )
         }
     }
 
@@ -219,6 +261,16 @@ class WorkoutTtsManager(context: Context) {
             mins > 0 && secs > 0 -> "descansas $mins minutos $secs segundos"
             mins > 0 -> "descansas $mins minutos"
             else -> "descansas $secs segundos"
+        }
+    }
+
+    private fun formatRestSecondsLabel(totalSeconds: Int): String {
+        val mins = totalSeconds / 60
+        val secs = totalSeconds % 60
+        return when {
+            mins > 0 && secs == 0 -> if (mins == 1) "1 minuto" else "$mins minutos"
+            mins > 0 -> "$mins minutos $secs segundos"
+            else -> "$secs segundos"
         }
     }
 }

@@ -3,6 +3,7 @@ package com.example.kpkn.domain.training
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.LoopState
+import com.example.kpkn.data.models.LoopStatus
 import com.example.kpkn.data.models.ProgramRunState
 import com.example.kpkn.data.models.ProgramRunStatus
 import com.example.kpkn.data.models.ProgramWeek
@@ -37,7 +38,8 @@ object ProgramProgressEngine {
 
     fun resolveCurrentWeekInstances(program: Program, cycleNumber: Int): List<WeekInstance> {
         if (!program.isSimpleProgram) return emptyList()
-        return ProgramHierarchyIndex(program).orderedWeeks()
+        val hierarchy = ProgramHierarchyIndex(program)
+        val base = hierarchy.orderedWeeks()
             .filterNot { it.week.isLoopWeek }
             .map { location ->
                 val week = location.week
@@ -54,6 +56,54 @@ object ProgramProgressEngine {
                     mesoIndex = location.globalMesoIndex,
                 )
             }
+        val loopTail = resolveLoopWeekInstancesForCycle(program, cycleNumber, hierarchy)
+        return base + loopTail
+    }
+
+    /**
+     * Semanas de loop que deben entrenarse al cerrar el ciclo [cycleNumber]
+     * (ocurrencias ACTIVE/SCHEDULED para ese ciclo, no canceladas/completadas/pospuestas).
+     */
+    fun resolveLoopWeekInstancesForCycle(
+        program: Program,
+        cycleNumber: Int,
+        hierarchy: ProgramHierarchyIndex = ProgramHierarchyIndex(program),
+    ): List<WeekInstance> {
+        if (program.loops.isEmpty() || cycleNumber <= 0) return emptyList()
+        val synced = LoopEngine.syncOccurrences(program)
+        val actionable = synced.loopOccurrences
+            .filter {
+                it.scheduledCycle == cycleNumber &&
+                    it.status != LoopStatus.CANCELLED &&
+                    it.status != LoopStatus.COMPLETED &&
+                    it.status != LoopStatus.POSTPONED
+            }
+            .sortedWith(
+                compareByDescending<com.example.kpkn.data.models.LoopOccurrence> { occ ->
+                    synced.loops.firstOrNull { it.id == occ.loopId }?.priority ?: 0
+                }.thenBy { it.loopId },
+            )
+        if (actionable.isEmpty()) return emptyList()
+
+        return actionable.mapNotNull { occ ->
+            val location = hierarchy.orderedWeeks()
+                .firstOrNull { it.week.isLoopWeek && it.week.loopId == occ.loopId }
+                ?: return@mapNotNull null
+            val week = location.week
+            val templateId = week.id
+            WeekInstance(
+                instanceId = instanceIdFor(cycleNumber, templateId),
+                templateWeekId = templateId,
+                cycleNumber = cycleNumber,
+                week = week.copy(
+                    id = instanceIdFor(cycleNumber, templateId),
+                    name = "${week.name} (C$cycleNumber)",
+                ),
+                macroIndex = location.macroIndex,
+                blockIndex = location.blockIndex,
+                mesoIndex = location.globalMesoIndex,
+            )
+        }
     }
     fun instanceIdFor(cycleNumber: Int, templateWeekId: String): String =
         "inst_c${cycleNumber}_$templateWeekId"
@@ -134,7 +184,10 @@ object ProgramProgressEngine {
         programRunId: String? = null,
     ): Boolean {
         val requiredSessions = week.sessions.filter { it.isMainSession || week.sessions.size == 1 }
-        if (requiredSessions.isEmpty()) return false
+        if (requiredSessions.isEmpty()) {
+            // Empty base weeks are vacuously complete; empty loop events stay pending until sessions exist and are logged.
+            return !week.isLoopWeek
+        }
         val instanceLogs = logsForInstance(logs, programId, instanceId, cycleNumber, programRunId)
         return requiredSessions.all { session -> instanceLogs.any { it.sessionId == session.id } }
     }
@@ -206,25 +259,28 @@ object ProgramProgressEngine {
             )
         }
 
+        var workingProgram = markLoopOccurrenceCompletedIfNeeded(program, canonicalWeek, cycleNumber)
+
         var nextIndex = instances.indexOfFirst { it.instanceId == canonicalInstance.instanceId } + 1
         while (nextIndex in instances.indices) {
             val candidate = instances[nextIndex]
             val candidateWeek = hierarchy.locateWeek(candidate.templateWeekId)?.week ?: break
-            if (!isWeekInstanceComplete(candidateWeek, logs, program.id, candidate.instanceId, cycleNumber, runId)) break
+            if (!isWeekInstanceComplete(candidateWeek, logs, workingProgram.id, candidate.instanceId, cycleNumber, runId)) break
+            workingProgram = markLoopOccurrenceCompletedIfNeeded(workingProgram, candidateWeek, cycleNumber)
             nextIndex++
         }
 
         if (nextIndex in instances.indices) {
             val next = instances[nextIndex]
             val location = hierarchy.locateWeek(next.templateWeekId)
-            val updatedRun = (program.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+            val updatedRun = (workingProgram.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
                 cycleNumber = cycleNumber,
                 weekInstanceId = next.instanceId,
                 weekId = next.templateWeekId,
                 completedSessionIds = emptySet(),
             )
             return ProgressAdvanceResult(
-                program = program.copy(runState = updatedRun),
+                program = workingProgram.copy(runState = updatedRun),
                 activeState = activeState?.copy(
                     currentWeekId = next.instanceId,
                     currentWeekInstanceId = next.instanceId,
@@ -240,7 +296,29 @@ object ProgramProgressEngine {
             )
         }
 
-        return completeCycle(program, activeState, cycleNumber, logs)
+        return completeCycle(workingProgram, activeState, cycleNumber, logs)
+    }
+
+    private fun markLoopOccurrenceCompletedIfNeeded(
+        program: Program,
+        week: ProgramWeek,
+        cycleNumber: Int,
+    ): Program {
+        val loopId = week.loopId?.takeIf { week.isLoopWeek } ?: return program
+        val updatedOccurrences = program.loopOccurrences.map { occ ->
+            if (occ.loopId == loopId && occ.scheduledCycle == cycleNumber &&
+                occ.status != LoopStatus.CANCELLED && occ.status != LoopStatus.COMPLETED
+            ) {
+                occ.copy(status = LoopStatus.COMPLETED, weekInstanceId = instanceIdFor(cycleNumber, week.id))
+            } else {
+                occ
+            }
+        }
+        return if (updatedOccurrences == program.loopOccurrences) {
+            program
+        } else {
+            program.copy(loopOccurrences = updatedOccurrences)
+        }
     }
     fun completeCycle(
         program: Program,
@@ -294,4 +372,79 @@ object ProgramProgressEngine {
         )
     }
     fun newRunId(idProvider: IdProvider = UuidIdProvider): String = "run_${idProvider.newId()}"
+
+    /**
+     * If the cursor sits on a loop week that is no longer actionable (postponed/cancelled),
+     * jump to the next valid base week of the current or following cycle.
+     */
+    fun reconcileCursorAfterLoopChange(program: Program): Program {
+        if (!program.isSimpleProgram || program.simpleProgramKind == SimpleProgramKind.CALENDARIZED) {
+            return program
+        }
+        val cycle = program.runState?.cycleNumber ?: return program
+        val currentWeekId = program.runState?.weekId ?: return program
+        val hierarchy = ProgramHierarchyIndex(program)
+        val currentWeek = hierarchy.locateWeek(currentWeekId)?.week
+            ?: hierarchy.locateWeek(templateWeekIdFromInstance(currentWeekId) ?: currentWeekId)?.week
+            ?: return program
+        if (!currentWeek.isLoopWeek) return program
+
+        val stillActionable = resolveLoopWeekInstancesForCycle(program, cycle, hierarchy)
+            .any { it.templateWeekId == currentWeek.id || it.templateWeekId == currentWeekId }
+        if (stillActionable) return program
+
+        val instances = resolveCurrentWeekInstances(program, cycle)
+        val nextBase = instances.firstOrNull { !it.week.isLoopWeek }
+        if (nextBase != null && instances.none { it.week.isLoopWeek }) {
+            // No loop left in this cycle — if all base weeks already done, advance cycle.
+            val runId = program.runState?.runId
+            val allBaseDone = instances.all { instance ->
+                val week = hierarchy.locateWeek(instance.templateWeekId)?.week ?: return@all false
+                isWeekInstanceComplete(week, emptyList(), program.id, instance.instanceId, cycle, runId)
+            }
+            // Prefer landing on first remaining incomplete instance; else start next cycle.
+            val incomplete = instances.firstOrNull { instance ->
+                val week = hierarchy.locateWeek(instance.templateWeekId)?.week ?: return@firstOrNull false
+                !isWeekInstanceComplete(week, emptyList(), program.id, instance.instanceId, cycle, runId)
+            }
+            if (incomplete != null) {
+                return program.copy(
+                    runState = program.runState?.copy(
+                        weekInstanceId = incomplete.instanceId,
+                        weekId = incomplete.templateWeekId,
+                        completedSessionIds = emptySet(),
+                    ),
+                )
+            }
+            if (allBaseDone || instances.isEmpty()) {
+                val newCycle = cycle + 1
+                val nextInstances = resolveCurrentWeekInstances(
+                    program.copy(loopState = (program.loopState ?: LoopState()).copy(currentCycle = newCycle)),
+                    newCycle,
+                )
+                val first = nextInstances.firstOrNull()
+                return LoopEngine.syncOccurrences(
+                    program.copy(
+                        loopState = (program.loopState ?: LoopState()).copy(currentCycle = newCycle),
+                        runState = ProgramRunState(
+                            runId = runId ?: newRunId(),
+                            cycleNumber = newCycle,
+                            weekInstanceId = first?.instanceId,
+                            weekId = first?.templateWeekId,
+                            status = ProgramRunStatus.ACTIVE,
+                        ),
+                    ),
+                )
+            }
+        }
+
+        val first = instances.firstOrNull { !it.week.isLoopWeek } ?: instances.firstOrNull() ?: return program
+        return program.copy(
+            runState = program.runState?.copy(
+                weekInstanceId = first.instanceId,
+                weekId = first.templateWeekId,
+                completedSessionIds = emptySet(),
+            ),
+        )
+    }
 }

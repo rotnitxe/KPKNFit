@@ -17,6 +17,8 @@ import com.example.kpkn.data.models.alignTemporalMetadata
 import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.data.protocols.ProtocolBlock
+import com.example.kpkn.data.protocols.ProtocolExerciseLibrary
+import com.example.kpkn.data.protocols.ProtocolLift
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 
 /**
@@ -38,7 +40,7 @@ object ProgramProtocolEngine {
             buildBlock(protocolBlock, splitPattern, sessionParts, protocol, idProvider)
         }
         val structure = if (blocks.size > 1) ProgramStructure.COMPLEX else ProgramStructure.SIMPLE
-        return program.copy(
+        val applied = program.copy(
             structure = structure,
             structureTemplateId = protocol.id,
             simpleProgramKind = if (structure == ProgramStructure.SIMPLE) {
@@ -69,6 +71,11 @@ object ProgramProtocolEngine {
                 ),
             ),
         ).alignTemporalMetadata()
+        // Bridge F4: red de seguridad — si algún protocolo quedara sin sesiones
+        // ejecutables (p.ej. bloques sin días de entrenamiento), se rellena con
+        // sugerencias reales del split declarado. Con contenido propio, es un no-op.
+        val split = SessionPrefillBridge.resolveSplit(applied, protocolDefaultSplitId = applied.selectedSplitId)
+        return SessionPrefillBridge.prefillIfEmpty(applied, split)
     }
 
     private fun buildBlock(
@@ -79,7 +86,7 @@ object ProgramProtocolEngine {
         idProvider: IdProvider,
     ): Block {
         val goal = resolveGoal(protocolBlock.goal)
-        val intensityMid = ((protocolBlock.intensityMin + protocolBlock.intensityMax) / 2.0)
+        val totalWeeksInBlock = protocolBlock.weeks.coerceAtLeast(1)
         return Block(
             id = idProvider.newId(),
             name = protocolBlock.name,
@@ -92,7 +99,7 @@ object ProgramProtocolEngine {
                     id = idProvider.newId(),
                     name = protocolBlock.name,
                     goal = goal,
-                    weeks = (1..protocolBlock.weeks.coerceAtLeast(1)).map { weekNumber ->
+                    weeks = (1..totalWeeksInBlock).map { weekNumber ->
                         ProgramWeek(
                             id = idProvider.newId(),
                             name = "Semana $weekNumber",
@@ -102,7 +109,9 @@ object ProgramProtocolEngine {
                                 parts = sessionParts,
                                 protocol = protocol,
                                 protocolBlock = protocolBlock,
-                                intensityMid = intensityMid,
+                                goal = goal,
+                                weekNumber = weekNumber,
+                                totalWeeksInBlock = totalWeeksInBlock,
                                 idProvider = idProvider,
                             ),
                         )
@@ -117,7 +126,9 @@ object ProgramProtocolEngine {
         parts: List<String>,
         protocol: Protocol,
         protocolBlock: ProtocolBlock,
-        intensityMid: Double,
+        goal: MesocycleGoal,
+        weekNumber: Int,
+        totalWeeksInBlock: Int,
         idProvider: IdProvider,
     ): List<Session> {
         val trainingDays = splitPattern
@@ -128,6 +139,10 @@ object ProgramProtocolEngine {
 
         return trainingDays.mapIndexed { sessionIndex, (dayOfWeek, label) ->
             val isMain = sessionIndex == 0
+            val focus = ProtocolExerciseLibrary.focusForDayLabel(label)
+            val mainLift = ProtocolExerciseLibrary.mainLiftFor(focus, sessionIndex)
+            val accessoryCount = (parts.size - 2).coerceAtLeast(0)
+            val accessories = ProtocolExerciseLibrary.accessoriesFor(mainLift, weekNumber, accessoryCount)
             Session(
                 id = idProvider.newId(),
                 name = label,
@@ -138,14 +153,18 @@ object ProgramProtocolEngine {
                 isMainSession = isMain,
                 focus = protocolBlock.goal,
                 parts = parts.mapIndexed { partIndex, partName ->
+                    val lift = liftForPart(partIndex, mainLift, accessories)
                     SessionPart(
                         id = idProvider.newId(),
                         name = partName,
                         exercises = listOf(
-                            placeholderExercise(
-                                partName = partName,
+                            prescribedExercise(
+                                lift = lift,
                                 partIndex = partIndex,
-                                intensityMid = intensityMid,
+                                goal = goal,
+                                protocolBlock = protocolBlock,
+                                weekNumber = weekNumber,
+                                totalWeeksInBlock = totalWeeksInBlock,
                                 idProvider = idProvider,
                             ),
                         ),
@@ -155,32 +174,59 @@ object ProgramProtocolEngine {
         }
     }
 
+    /** Parte 0 = movimiento principal (o su variante técnica en acumulación), parte 1 = mismo movimiento, resto = accesorios reales. */
+    private fun liftForPart(partIndex: Int, mainLift: ProtocolLift, accessories: List<ProtocolLift>): ProtocolLift = when (partIndex) {
+        0, 1 -> mainLift
+        else -> accessories.getOrElse(partIndex - 2) { mainLift }
+    }
+
     /**
-     * Plantilla ejecutable mínima: un ejercicio por parte con series %1RM,
-     * para que el editor/workout no reciba semanas vacías.
+     * Ejercicio ejecutable con exerciseDbId real y prescripción de series/reps/%1RM/RPE
+     * escalada por [PeriodizationEngine] según el objetivo del bloque.
      */
-    private fun placeholderExercise(
-        partName: String,
+    private fun prescribedExercise(
+        lift: ProtocolLift,
         partIndex: Int,
-        intensityMid: Double,
+        goal: MesocycleGoal,
+        protocolBlock: ProtocolBlock,
+        weekNumber: Int,
+        totalWeeksInBlock: Int,
         idProvider: IdProvider,
     ): Exercise {
-        val sets = (1..3).map { setIdx ->
-            val pct = (intensityMid - 5.0 + setIdx * 2.5).coerceIn(40.0, 100.0)
+        val resolvedLift = if (partIndex == 0 && goal == MesocycleGoal.ACCUMULATION) {
+            ProtocolExerciseLibrary.techniqueVariantFor(lift)
+        } else {
+            lift
+        }
+        val baseReps = when (partIndex) {
+            0 -> 5
+            1 -> 8
+            else -> 10
+        }
+        val prescription = PeriodizationEngine.prescriptionFor(
+            goal = goal,
+            baseSets = 3,
+            baseReps = baseReps,
+            volumeModifier = protocolBlock.volumeModifier,
+            intensityMin = protocolBlock.intensityMin,
+            intensityMax = protocolBlock.intensityMax,
+            weekNumber = weekNumber,
+            totalWeeksInBlock = totalWeeksInBlock,
+        )
+        val sets = (1..prescription.sets).map {
             ExerciseSet(
                 id = idProvider.newId(),
-                targetReps = when (partIndex) {
-                    0 -> 5
-                    1 -> 8
-                    else -> 10
-                },
-                targetPercentageRM = pct,
-                targetRPE = if (partIndex == 0) 8.0 else 7.0,
+                targetReps = prescription.reps,
+                targetPercentageRM = prescription.percentageRM,
+                targetRPE = prescription.rpe,
             )
         }
         return Exercise(
             id = idProvider.newId(),
-            name = "$partName · movimiento base",
+            name = resolvedLift.name,
+            exerciseDbId = resolvedLift.exerciseDbId,
+            exerciseId = resolvedLift.exerciseDbId,
+            canonicalExerciseId = resolvedLift.exerciseDbId,
             sets = sets,
         )
     }

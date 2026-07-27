@@ -923,7 +923,7 @@ object AugeRecoveryEngine {
                 ).recoveryScore
             } ?: return@mapNotNull null
 
-            val relatedArtic = AugeTtcEngine.MUSCLE_TO_ARTICULAR[muscleName].orEmpty()
+            val relatedArtic = AugeTtcEngine.articularBatteriesFor(muscleName)
             if (relatedArtic.isEmpty()) return@mapNotNull muscleScore
 
             val articularAvg = relatedArtic

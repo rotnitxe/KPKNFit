@@ -62,7 +62,6 @@ internal fun CompactTemplateCard(
     exerciseIndex: Map<String, ExerciseMuscleInfo>,
     glassDark: Boolean = false,
     facets: SessionTemplateFacets? = null,
-    advanced: Boolean = false,
 ) {
     var expanded by rememberSaveable(template.id) { mutableStateOf(false) }
     val titleColor = if (glassDark) Color.White else MaterialTheme.colorScheme.onSurface
@@ -88,7 +87,7 @@ internal fun CompactTemplateCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(if (glassDark) 10.dp else 16.dp))
             .background(rowBg)
-            .animateContentSize()
+            .then(if (expanded) Modifier.animateContentSize() else Modifier)
             .semantics {
                 contentDescription = buildString {
                     append(template.name)
@@ -155,7 +154,7 @@ internal fun CompactTemplateCard(
                         color = diffColor,
                     )
                 }
-                if (advanced && primaryMuscles.isNotEmpty()) {
+                if (primaryMuscles.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Enfoque: ${primaryMuscles.take(4).joinToString(" · ")}",
@@ -164,10 +163,6 @@ internal fun CompactTemplateCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                }
-                if (advanced && facets != null) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    AdvancedTemplateMetaRow(facets = facets, mutedColor = mutedColor, glassDark = glassDark)
                 }
             }
             Spacer(modifier = Modifier.width(6.dp))
@@ -209,7 +204,7 @@ internal fun CompactTemplateCard(
                 exerciseIndex = exerciseIndex,
                 glassDark = glassDark,
                 facets = facets,
-                advanced = advanced,
+                advanced = true,
             )
         }
         if (glassDark) {

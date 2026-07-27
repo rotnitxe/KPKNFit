@@ -235,7 +235,7 @@ private fun KpknSheetBody(
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer { alpha = (1f - enterOffset.value).coerceIn(0f, 1f) }
-                .background(Color.Black.copy(alpha = 0.45f * (1f - dragProgress)))
+                .background(Color.Black.copy(alpha = 0.72f * (1f - dragProgress)))
                 .then(
                     if (dismissible) {
                         Modifier.clickable(

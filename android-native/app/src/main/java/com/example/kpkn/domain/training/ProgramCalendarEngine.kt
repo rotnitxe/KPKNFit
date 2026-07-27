@@ -149,6 +149,10 @@ object ProgramCalendarEngine {
                             explicit = week.trainingDayDates,
                         )
                         val marks = program.keyDates.filter { keyDateIntersects(it, weekStart, weekEnd) }
+                        val resolvedDays = dayDates.keys
+                        val outsideDays = (1..7).filter { day ->
+                            day !in resolvedDays && week.sessions.any { it.dayOfWeek == day }
+                        }.toSet()
                         weeks += CalendarWeekProjection(
                             weekId = week.id,
                             weekName = week.name,
@@ -160,7 +164,7 @@ object ProgramCalendarEngine {
                             blockName = block.name,
                             startDate = weekStart,
                             endDate = weekEnd,
-                            outsideProgramDays = emptySet(),
+                            outsideProgramDays = outsideDays,
                             trainingDayDates = dayDates,
                             keyDates = marks,
                         )
@@ -246,8 +250,7 @@ object ProgramCalendarEngine {
         return (1..7).toSet()
     }
 
-    @Suppress("unused")
-    private fun alignToWeekStart(date: LocalDate, weekStartDay: Int?): LocalDate {
+    fun alignToWeekStart(date: LocalDate, weekStartDay: Int?): LocalDate {
         val target = weekStartDay?.coerceIn(1, 7) ?: date.dayOfWeek.value
         val current = date.dayOfWeek.value
         val delta = (current - target + 7) % 7

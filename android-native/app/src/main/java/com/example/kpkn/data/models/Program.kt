@@ -424,13 +424,14 @@ fun Program.startSimpleCalendarizedBreak(
     val snapshot = pausedCyclicSnapshot ?: toSimpleProgramSnapshot()
 
     val calculatedEndDate = endDate ?: startDate.plusWeeks(3).plusDays(6)
-    val weekCount = inclusiveCalendarWeekCount(startDate, calculatedEndDate)
+    val alignedStart = ProgramCalendarEngine.alignToWeekStart(startDate, startDayOfWeek)
+    val weekCount = inclusiveCalendarWeekCount(alignedStart, calculatedEndDate)
 
-    val weeks = buildSimpleCalendarWeeks(startDate, weekCount, startDayOfWeek, safeDays, idProvider)
-    val breakId = "break_${id}_${startDate}"
+    val weeks = buildSimpleCalendarWeeks(alignedStart, weekCount, startDayOfWeek, safeDays, idProvider)
+    val breakId = "break_${id}_${alignedStart}"
     val breakRunId = "run_cal_${idProvider.newId()}"
     val datedPlan = (schedulePlan ?: resolvedSchedulePlan()).copy(
-        anchorDate = startDate.toString(),
+        anchorDate = alignedStart.toString(),
         weekStartDay = startDayOfWeek,
         trainingDays = safeDays,
         mode = ScheduleMode.DATED,
@@ -439,7 +440,7 @@ fun Program.startSimpleCalendarizedBreak(
 
     return copy(
         structure = ProgramStructure.SIMPLE,
-        timelineStartDate = startDate.toString(),
+        timelineStartDate = alignedStart.toString(),
         calendarization = ProgramCalendarEngine.defaultSimpleDatedCalendarization().copy(
             manualEndDate = calculatedEndDate.toString(),
         ),
@@ -460,7 +461,7 @@ fun Program.startSimpleCalendarizedBreak(
         calendarBreaks = calendarBreaks + CalendarBreak(
             id = breakId,
             title = "Break calendarizado",
-            startDate = startDate.toString(),
+            startDate = alignedStart.toString(),
             endDate = calculatedEndDate.toString(),
             weeks = weeks,
             pausedRunState = snapshot.runState,
@@ -508,7 +509,8 @@ fun Program.calendarizeSimpleCycle(
         return startSimpleCalendarizedBreak(startDate, null, startDayOfWeek, safeDays, idProvider)
     }
 
-    var cursor = startDate
+    val alignedStart = ProgramCalendarEngine.alignToWeekStart(startDate, startDayOfWeek)
+    var cursor = alignedStart
     val datedMacrocycles = macrocycles.map { macro ->
         macro.copy(
             blocks = macro.blocks.map { block ->
@@ -546,11 +548,11 @@ fun Program.calendarizeSimpleCycle(
         .flatMap { it.weeks }
         .mapNotNull { it.endDate }
         .maxOrNull()
-    val breakId = "cal_${id}_$startDate"
+    val breakId = "cal_${id}_$alignedStart"
     val breakRunId = "run_cal_${idProvider.newId()}"
     return copy(
         structure = ProgramStructure.SIMPLE,
-        timelineStartDate = startDate.toString(),
+        timelineStartDate = alignedStart.toString(),
         calendarization = ProgramCalendarEngine.defaultSimpleDatedCalendarization().copy(
             manualEndDate = projectedEnd,
         ),
@@ -567,7 +569,7 @@ fun Program.calendarizeSimpleCycle(
         ),
         startDay = startDayOfWeek,
         schedulePlan = (schedulePlan ?: resolvedSchedulePlan()).copy(
-            anchorDate = startDate.toString(),
+            anchorDate = alignedStart.toString(),
             weekStartDay = startDayOfWeek,
             trainingDays = safeDays,
             mode = ScheduleMode.DATED,
@@ -579,8 +581,8 @@ fun Program.calendarizeSimpleCycle(
             calendarBreaks + CalendarBreak(
                 id = breakId,
                 title = "Ciclo calendarizado",
-                startDate = startDate.toString(),
-                endDate = projectedEnd ?: startDate.toString(),
+                startDate = alignedStart.toString(),
+                endDate = projectedEnd ?: alignedStart.toString(),
                 weeks = datedMacrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks },
                 pausedRunState = snapshot.runState,
                 pausedCyclicSnapshot = snapshot,
@@ -719,8 +721,9 @@ internal fun buildSimpleCalendarWeeks(
     idProvider: IdProvider = UuidIdProvider,
 ): List<ProgramWeek> {
     val startDayIsoValue = startDayOfWeek.coerceIn(1, 7)
+    val alignedStart = ProgramCalendarEngine.alignToWeekStart(startDate, startDayIsoValue)
     return (0 until weekCount).map { index ->
-        val weekStart = startDate.plusWeeks(index.toLong())
+        val weekStart = alignedStart.plusWeeks(index.toLong())
         val weekEnd = weekStart.plusDays(6)
         val trainingDayDates = trainingDays.associate { dayOfWeek ->
             val targetDayIsoValue = dayOfWeek

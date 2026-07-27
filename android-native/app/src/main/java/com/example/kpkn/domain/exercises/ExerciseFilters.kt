@@ -19,12 +19,7 @@ fun matchesMuscleHead(
     if (!matchesMuscle(exercise, anatomy)) return false
     return exercise.involvedMuscles.any { involvement ->
         val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
-        canonical != anatomy.canonicalName && return@any false
-        val emphasisLower = involvement.emphasis?.lowercase()?.trim().orEmpty()
-        if (head.emphasisKeyword != null) {
-            emphasisLower == head.emphasisKeyword
-        } else {
-            emphasisLower.isBlank()
-        }
+        if (canonical != anatomy.canonicalName) return@any false
+        MuscleHeadResolution.matchesHead(anatomy.canonicalName, involvement.emphasis, head)
     }
 }

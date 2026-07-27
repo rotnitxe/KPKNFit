@@ -1,16 +1,21 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.CompetitionDetails
 import com.example.kpkn.data.models.CompetitionRecord
 import com.example.kpkn.data.models.KeyDateType
+import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramKeyDate
+import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.models.ScheduleMode
+import com.example.kpkn.data.models.totalProgramWeeks
 import com.example.kpkn.data.repository.CompetitionRepository
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
 
 object ProgramKeyDateEngine {
 
@@ -46,6 +51,166 @@ object ProgramKeyDateEngine {
         val competitionKeyDate: ProgramKeyDate?,
         val competitionMoved: Boolean = false,
     )
+
+    enum class KeyDateFitStatus {
+        /** El programa termina exactamente en la semana de la fecha clave. */
+        FITS,
+        /** Faltan semanas para alcanzar la fecha clave: hay que agregar bloques/semanas. */
+        NEEDS_MORE_WEEKS,
+        /** El programa se extiende más allá de la fecha clave: hay semanas sobrantes. */
+        HAS_SURPLUS_WEEKS,
+        /** La fecha clave cae antes del inicio del programa. */
+        BEFORE_PROGRAM_START,
+        /** Falta la fecha de inicio del programa o la fecha del evento para poder calcular. */
+        MISSING_DATA,
+    }
+
+    /**
+     * Reporte de calce entre la estructura actual del programa (semanas totales) y las
+     * semanas necesarias para llegar a [keyDateId] (típicamente el día de competición/meet day).
+     */
+    data class KeyDateFitReport(
+        val keyDateId: String,
+        val status: KeyDateFitStatus,
+        val currentTotalWeeks: Int,
+        val requiredWeeks: Int?,
+        /** Positivo = faltan N semanas (déficit). Negativo = sobran N semanas (superávit). */
+        val weeksGap: Int,
+    ) {
+        val needsMoreWeeks: Boolean get() = status == KeyDateFitStatus.NEEDS_MORE_WEEKS
+        val hasSurplusWeeks: Boolean get() = status == KeyDateFitStatus.HAS_SURPLUS_WEEKS
+        val fitsExactly: Boolean get() = status == KeyDateFitStatus.FITS
+
+        /** Semanas a agregar/quitar para calzar; siempre positivo o cero. */
+        val actionableWeeks: Int get() = kotlin.math.abs(weeksGap)
+    }
+
+    /**
+     * Compara las semanas totales del programa contra las semanas necesarias para que
+     * [keyDate] (fecha de evento o inicio) caiga dentro del programa, asumiendo semanas de 7 días
+     * contadas desde [Program.timelineStartDate].
+     */
+    fun fitBlocksToKeyDate(program: Program, keyDate: ProgramKeyDate): KeyDateFitReport {
+        val currentTotalWeeks = program.totalProgramWeeks
+        val startDate = parseDate(program.timelineStartDate)
+        val eventDate = parseDate(keyDate.eventDate ?: keyDate.startDate)
+        if (startDate == null || eventDate == null) {
+            return KeyDateFitReport(
+                keyDateId = keyDate.id,
+                status = KeyDateFitStatus.MISSING_DATA,
+                currentTotalWeeks = currentTotalWeeks,
+                requiredWeeks = null,
+                weeksGap = 0,
+            )
+        }
+        val daysBetween = ChronoUnit.DAYS.between(startDate, eventDate)
+        if (daysBetween < 0) {
+            return KeyDateFitReport(
+                keyDateId = keyDate.id,
+                status = KeyDateFitStatus.BEFORE_PROGRAM_START,
+                currentTotalWeeks = currentTotalWeeks,
+                requiredWeeks = 0,
+                weeksGap = -currentTotalWeeks,
+            )
+        }
+        val requiredWeeks = (daysBetween / 7 + 1).toInt()
+        val gap = requiredWeeks - currentTotalWeeks
+        val status = when {
+            gap > 0 -> KeyDateFitStatus.NEEDS_MORE_WEEKS
+            gap < 0 -> KeyDateFitStatus.HAS_SURPLUS_WEEKS
+            else -> KeyDateFitStatus.FITS
+        }
+        return KeyDateFitReport(
+            keyDateId = keyDate.id,
+            status = status,
+            currentTotalWeeks = currentTotalWeeks,
+            requiredWeeks = requiredWeeks,
+            weeksGap = gap,
+        )
+    }
+
+    /** Atajo para el caso más común: calzar contra la fecha de competición del programa. */
+    fun fitBlocksToCompetitionKeyDate(program: Program): KeyDateFitReport? =
+        competitionKeyDate(program)?.let { fitBlocksToKeyDate(program, it) }
+
+    /** Agrega [count] semanas nuevas al final del bloque [blockId]. No-op si el bloque no existe. */
+    fun addWeeksToBlock(program: Program, blockId: String, count: Int, idProvider: IdProvider = UuidIdProvider): Program {
+        if (count <= 0) return program
+        val location = locateBlock(program, blockId) ?: return program
+        val (macroIndex, blockIndex) = location
+        return program.copy(
+            macrocycles = program.macrocycles.mapIndexed { mi, macro ->
+                if (mi != macroIndex) macro
+                else macro.copy(
+                    blocks = macro.blocks.mapIndexed { bi, block ->
+                        if (bi != blockIndex) block else block.appendWeeks(count, idProvider)
+                    },
+                )
+            },
+        )
+    }
+
+    /**
+     * Quita hasta [count] semanas desde el final del bloque [blockId], nunca dejándolo vacío.
+     * No-op si el bloque no existe o ya tiene una sola semana.
+     */
+    fun removeWeeksFromBlock(program: Program, blockId: String, count: Int): Program {
+        if (count <= 0) return program
+        val location = locateBlock(program, blockId) ?: return program
+        val (macroIndex, blockIndex) = location
+        val block = program.macrocycles[macroIndex].blocks[blockIndex]
+        val totalBlockWeeks = block.mesocycles.sumOf { it.weeks.size }
+        val safeCount = count.coerceAtMost((totalBlockWeeks - 1).coerceAtLeast(0))
+        if (safeCount <= 0) return program
+        return program.copy(
+            macrocycles = program.macrocycles.mapIndexed { mi, macro ->
+                if (mi != macroIndex) macro
+                else macro.copy(
+                    blocks = macro.blocks.mapIndexed { bi, currentBlock ->
+                        if (bi != blockIndex) currentBlock else currentBlock.trimTrailingWeeks(safeCount)
+                    },
+                )
+            },
+        )
+    }
+
+    private fun locateBlock(program: Program, blockId: String): Pair<Int, Int>? {
+        program.macrocycles.forEachIndexed { macroIndex, macro ->
+            val blockIndex = macro.blocks.indexOfFirst { it.id == blockId }
+            if (blockIndex >= 0) return macroIndex to blockIndex
+        }
+        return null
+    }
+
+    private fun Block.appendWeeks(count: Int, idProvider: IdProvider): Block {
+        val existingWeeks = mesocycles.sumOf { it.weeks.size }
+        val newWeeks = (1..count).map { offset ->
+            ProgramWeek(id = idProvider.newId(), name = "Semana ${existingWeeks + offset}")
+        }
+        if (mesocycles.isEmpty()) {
+            return copy(mesocycles = listOf(Mesocycle(id = idProvider.newId(), name = "Mesociclo 1", weeks = newWeeks)))
+        }
+        val lastMesoIndex = mesocycles.lastIndex
+        return copy(
+            mesocycles = mesocycles.mapIndexed { index, meso ->
+                if (index == lastMesoIndex) meso.copy(weeks = meso.weeks + newWeeks) else meso
+            },
+        )
+    }
+
+    private fun Block.trimTrailingWeeks(count: Int): Block {
+        var remaining = count
+        val trimmed = mesocycles.asReversed().map { meso ->
+            if (remaining <= 0) {
+                meso
+            } else {
+                val keep = (meso.weeks.size - remaining).coerceAtLeast(0)
+                remaining -= (meso.weeks.size - keep)
+                meso.copy(weeks = meso.weeks.take(keep))
+            }
+        }.asReversed()
+        return copy(mesocycles = trimmed.filter { it.weeks.isNotEmpty() })
+    }
 
     fun validate(keyDate: ProgramKeyDate): String? {
         val start = parseDate(keyDate.startDate)

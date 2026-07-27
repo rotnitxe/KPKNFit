@@ -29,61 +29,61 @@ class SessionAssistantEngineTest {
     }
 
     @Test
-    fun `assistant suggestions only appear when a ring battery drains forty percent or more`() {
-        val below = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 39, muscular = 39, spinal = 39)))
-        val atThreshold = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 40, muscular = 40, spinal = 40)))
+    fun `assistant suggestions only appear when session drain is clearly high`() {
+        val below = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 59, muscular = 59, spinal = 59)))
+        val atThreshold = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 60, muscular = 60, spinal = 60)))
 
         assertTrue(below.ajustes.isEmpty())
         assertFalse(atThreshold.ajustes.isEmpty())
-        assertTrue(atThreshold.ajustes.any { it.id == "rings-cns-moderate" })
-        assertTrue(atThreshold.ajustes.any { it.id == "rings-spinal-moderate" })
-        assertTrue(atThreshold.ajustes.any { it.id.startsWith("rings-muscular-moderate") })
+        assertTrue(atThreshold.ajustes.any { it.id == "session_too_fatiguing" })
+        assertTrue(atThreshold.ajustes.first().details.isNotEmpty())
     }
 
     @Test
-    fun `assistant suggestions prefer moderate series and intensity adjustments`() {
-        val report = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 55, muscular = 55, spinal = 45)))
+    fun `assistant suggestions use human language without technical jargon`() {
+        val report = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 70, muscular = 70, spinal = 65)))
 
         assertTrue(report.ajustes.isNotEmpty())
         assertTrue(report.ajustes.all { suggestion ->
-            suggestion.message.contains("RPE", ignoreCase = true) ||
-                suggestion.message.contains("serie", ignoreCase = true) ||
-                suggestion.message.contains("series", ignoreCase = true)
+            val text = (suggestion.title + " " + suggestion.message).lowercase()
+            !text.contains("snc") &&
+                !text.contains("drenaje") &&
+                !text.contains("batería") &&
+                !text.contains("axial") &&
+                !text.contains("auge")
         })
-        assertTrue(report.ajustes.none { it.message.contains("eliminar", ignoreCase = true) })
+        assertTrue(report.ajustes.any { it.message.contains("fatigante", ignoreCase = true) })
     }
 
-    private fun input(customDrain: PredictedDrain): SessionAssistantInput {
+    private fun input(customDrain: PredictedDrain? = null): SessionAssistantInput {
         val exercise = Exercise(
-            id = "squat",
+            id = "ex1",
             name = "Sentadilla",
             exerciseDbId = "squat",
             sets = listOf(
                 ExerciseSet(id = "s1", targetReps = 8, targetRPE = 8.0),
                 ExerciseSet(id = "s2", targetReps = 8, targetRPE = 8.0),
-                ExerciseSet(id = "s3", targetReps = 8, targetRPE = 8.0),
+                ExerciseSet(id = "s3", targetReps = 8, targetRPE = 9.0),
             ),
             restTime = 120,
         )
-        val info = ExerciseMuscleInfo(
-            id = "squat",
-            name = "Sentadilla",
-            involvedMuscles = listOf(InvolvedMuscle("cuadriceps", MuscleRole.PRIMARY)),
-            axialLoadFactor = 8.0,
-            cnc = 4.0,
-            averageRestSeconds = 120,
-        )
         return SessionAssistantInput(
             allExercisesInSession = listOf(exercise),
-            weekSessions = listOf(Session(id = "session", name = "Sesion", exercises = listOf(exercise))),
-            currentSessionId = "session",
-            program = Program(id = "program", name = "Plan"),
+            weekSessions = emptyList(),
+            currentSessionId = "session-1",
+            program = Program(id = "p1", name = "P"),
             settings = Settings(),
             workoutLogs = emptyList(),
-            exerciseIndex = mapOf("squat" to info),
+            exerciseIndex = mapOf(
+                "squat" to ExerciseMuscleInfo(
+                    id = "squat",
+                    name = "Sentadilla",
+                    involvedMuscles = listOf(InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY)),
+                ),
+            ),
             ruleLimits = SessionEditorRuleLimits(),
             mesoIndex = 0,
-            programId = "program",
+            programId = "p1",
             customDrain = customDrain,
         )
     }

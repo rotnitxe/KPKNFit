@@ -400,21 +400,7 @@ internal fun PredictedMuscleBatterySection(perMuscle: Map<String, Int>) {
 
 
 internal fun resolveSpecificSubMuscle(muscle: String, emphasis: String?): String {
-    val lower = muscle.lowercase().replace("-", " ").replace("_", " ").trim()
-    if (lower.contains("deltoides") || lower.contains("hombro")) {
-        return when {
-            lower.contains("posterior") || lower.contains("trasero") -> "Deltoides Posterior"
-            lower.contains("lateral") || lower.contains("medio") -> "Deltoides Lateral"
-            else -> "Deltoides Anterior"
-        }
-    }
-    if (lower.contains("glúteo") || lower.contains("gluteo") || lower.contains("tensor de la fascia lata") || lower.contains("tensor fascia")) {
-        return when {
-            lower.contains("medio") || lower.contains("medius") || lower.contains("mínimo") || lower.contains("minimus") || lower.contains("tensor") -> "Glúteo Medio"
-            else -> "Glúteo Mayor"
-        }
-    }
-    return muscle
+    return MuscleHeadResolution.resolveDisplayHead(muscle, emphasis) ?: muscle
 }
 
 internal fun com.example.kpkn.data.models.ExerciseSet.editorEffectiveTargetRpe(): Double {
@@ -554,7 +540,7 @@ internal fun calculateSubMuscleBreakdown(
 ): List<Pair<String, List<Pair<String, Double>>>> {
     val targetSubMuscles = when (canonicalMuscle) {
         "Deltoides" -> listOf("Deltoides Anterior", "Deltoides Lateral", "Deltoides Posterior")
-        "Glúteos" -> listOf("Glúteo Mayor", "Glúteo Medio")
+        "Glúteos" -> listOf("Glúteo Mayor", "Glúteo Medio", "Glúteo Menor")
         else -> return emptyList()
     }
     

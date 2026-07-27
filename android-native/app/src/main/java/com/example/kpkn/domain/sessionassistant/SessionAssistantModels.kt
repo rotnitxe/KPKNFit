@@ -47,7 +47,42 @@ enum class AssistantActionType {
     REDUCE_REST_TIME,
     CONVERT_TO_SUPERSET,
     CONVERT_TO_DROPSET,
+    COMPOSITE,
 }
+
+/** Acción atómica que el usuario puede aceptar o rechazar dentro de una sugerencia. */
+sealed class AssistantDetailAction {
+    data class LowerRpe(
+        val exerciseId: String? = null,
+        val amount: Double = 0.5,
+    ) : AssistantDetailAction()
+
+    data class ReduceSet(
+        val exerciseId: String? = null,
+        val muscle: String? = null,
+    ) : AssistantDetailAction()
+
+    data class ReduceRest(
+        val seconds: Int = 15,
+    ) : AssistantDetailAction()
+
+    data class ConvertToSuperset(
+        val exerciseId: String,
+    ) : AssistantDetailAction()
+
+    data class ConvertToDropSet(
+        val exerciseId: String,
+    ) : AssistantDetailAction()
+
+    data object RemoveFailure : AssistantDetailAction()
+}
+
+data class AssistantSuggestionDetail(
+    val id: String,
+    val label: String,
+    val action: AssistantDetailAction,
+    val defaultAccepted: Boolean = true,
+)
 
 data class AssistantSuggestion(
     val id: String,
@@ -59,6 +94,7 @@ data class AssistantSuggestion(
     val exerciseName: String? = null,
     val priority: Int = 0,
     val canAutoApply: Boolean = false,
+    val details: List<AssistantSuggestionDetail> = emptyList(),
 )
 
 data class GhostExerciseCard(

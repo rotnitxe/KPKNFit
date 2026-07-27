@@ -71,6 +71,7 @@ data class ExerciseMuscleInfo(
     val averageRestSeconds: Int? = null,
     val executionOptions: List<String>? = null,
     val movementPattern: String? = null,
+    val subMuscleGroup: String? = null,
 
     // Variant Group (exercises that are technical variants of each other)
     val variantGroupId: String? = null,

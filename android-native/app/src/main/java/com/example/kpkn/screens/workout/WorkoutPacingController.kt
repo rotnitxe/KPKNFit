@@ -22,11 +22,21 @@ class WorkoutPacingController(
     private val updateState: ((WorkoutUiState) -> WorkoutUiState) -> Unit,
     private val persistOngoingState: () -> Unit,
     private val visibleExercises: (WorkoutUiState) -> List<Exercise>,
+    private val isVoiceActive: () -> Boolean = { false },
+    private val speakViaVoice: (String) -> Unit = {},
 ) {
     private val _sessionTimeRemainingSeconds = MutableStateFlow<Int?>(null)
     val sessionTimeRemainingSeconds: StateFlow<Int?> = _sessionTimeRemainingSeconds.asStateFlow()
 
     private var sessionTimerJob: Job? = null
+
+    private fun speakPacing(text: String) {
+        if (isVoiceActive()) {
+            speakViaVoice(text)
+        } else {
+            sessionTtsManager.speak(text, queueFlush = true)
+        }
+    }
 
     fun startSessionTimer(totalSeconds: Int) {
         sessionTimerJob?.cancel()
@@ -36,13 +46,13 @@ class WorkoutPacingController(
             while (remaining >= -3600) {
                 _sessionTimeRemainingSeconds.value = remaining
                 if (remaining == 300) {
-                    sessionTtsManager.speak("Quedan 5 minutos para completar la sesión.", queueFlush = true)
+                    speakPacing("Quedan 5 minutos para completar la sesión.")
                 }
                 if (remaining == 60) {
-                    sessionTtsManager.speak("Queda un minuto para completar la sesión de entrenamiento.", queueFlush = true)
+                    speakPacing("Queda un minuto para completar la sesión de entrenamiento.")
                 }
                 if (remaining == 0) {
-                    sessionTtsManager.speak("Tiempo estimado de entrenamiento agotado.", queueFlush = true)
+                    speakPacing("Tiempo estimado de entrenamiento agotado.")
                 }
                 checkPacingStatus()
                 delay(1000L)

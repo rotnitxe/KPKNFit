@@ -34,6 +34,7 @@ import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.isCompetitionMeet
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.data.models.CompetitionDetails
@@ -555,7 +556,9 @@ private fun TrainingPanel(
                 isSimpleProgram = program.isSimpleTemporalProgram,
                 isSimpleCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED,
                 simpleLoopMarkers = simpleRoadmapLoopMarkers,
-                currentCycle = program.loopState?.currentCycle ?: 0,
+                currentCycle = program.runState?.cycleNumber
+                    ?: program.loopState?.currentCycle?.takeIf { it > 0 }
+                    ?: 1,
                 onSelectBlock = { viewModel.selectBlock(it) },
                 onSelectWeek = { viewModel.selectWeek(it) },
                 onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },
@@ -628,6 +631,9 @@ private fun TrainingPanel(
                     onUpdateWeekMetadata = { weekId, name, description ->
                         viewModel.updateWeekMetadata(weekId, name, description)
                     },
+                    onUpdateTrainingDayDate = { weekId, dayOfWeek, isoDate ->
+                        viewModel.updateWeekTrainingDayDate(weekId, dayOfWeek, isoDate)
+                    },
                 )
             }
             StructureSubTab.SPLIT -> SplitView(
@@ -686,10 +692,6 @@ private fun TrainingPanel(
                     onOpenProgram(copy.id)
                 },
             )
-            StructureSubTab.PROTOCOLOS -> ProtocolsView(
-                program = program,
-                onUpdateProgram = { viewModel.updateProgram(it) },
-            )
         }
 
         Spacer(Modifier.height(120.dp))
@@ -719,7 +721,7 @@ private fun TrainingPanel(
     }
 
     pendingDeleteSession?.let { sessionToDelete ->
-        val isCompetition = sessionToDelete.isMeetDay || sessionToDelete.isCompetitionSession
+        val isCompetition = sessionToDelete.isCompetitionMeet
         KpknAlertDialog(
             onDismissRequest = { pendingDeleteSession = null },
             title = { Text("Confirmar eliminación", fontWeight = FontWeight.Black) },

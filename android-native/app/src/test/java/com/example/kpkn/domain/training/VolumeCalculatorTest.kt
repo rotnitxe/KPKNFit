@@ -418,6 +418,12 @@ class VolumeCalculatorTest {
         assertEquals("Glúteos", VolumeCalculator.normalizeCanonicalMuscleGroup("tensor fascia"))
     }
 
+    @Test
+    fun normalizeCanonical_tibial_anterior_stays_separate_from_calf_plantar_flexors() {
+        assertEquals("Tibial Anterior", VolumeCalculator.normalizeCanonicalMuscleGroup("Tibial Anterior"))
+        assertEquals("Pantorrillas", VolumeCalculator.normalizeCanonicalMuscleGroup("Gastrocnemio"))
+    }
+
     /** normalizeCanonicalMuscleGroup: psoas → "Core". */
     @Test
     fun normalizeCanonical_psoas_maps_to_core() {

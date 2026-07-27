@@ -36,6 +36,7 @@ object ProgramTemplateEngine {
         template: ProgramTemplateOption,
         forceCopy: Boolean = false,
         idProvider: IdProvider = UuidIdProvider,
+        applySplitPrefill: Boolean = true,
     ): ApplyResult {
         val strategy = resolveApplyStrategy(current, forceCopy)
         val draft = template.buildProgramDraft(
@@ -54,8 +55,16 @@ object ProgramTemplateEngine {
                 else -> current.mode
             },
         )
+        // Bridge F4: una plantilla sin sesiones propias queda con semanas vacías;
+        // la rellenamos con sugerencias reales del split (actual o por defecto según track).
+        val prefilled = if (applySplitPrefill) {
+            val split = SessionPrefillBridge.resolveSplit(draft, fallbackTrackLabel = template.trackLabel)
+            SessionPrefillBridge.prefillIfEmpty(draft, split)
+        } else {
+            draft
+        }
         return ApplyResult(
-            program = draft.alignTemporalMetadata(),
+            program = prefilled.alignTemporalMetadata(),
             strategy = strategy,
             createdCopy = strategy == ApplyStrategy.CREATE_DRAFT_COPY,
         )

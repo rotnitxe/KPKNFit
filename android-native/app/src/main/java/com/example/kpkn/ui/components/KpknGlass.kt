@@ -32,32 +32,32 @@ object KpknGlass {
     val BlurRadius = 40.dp
 
     /**
-     * Subtle white tint that gives the frosted sheen. Kept low so content stays legible.
-     * (20% darker pass reduced this from 0.12 -> 0.10.)
+     * Frosted sheen. Near-zero so large sheets read dark, not milky.
+     * History: 0.12 → 0.10 → 0.06 → 0.03 → 0.015.
      */
-    val Tint = Color.White.copy(alpha = 0.10f)
+    val Tint = Color.White.copy(alpha = 0.015f)
 
     /**
      * Dark scrim baked into the blur. This is the "darkness" knob.
-     * (20% darker pass raised this from 0.22 -> 0.26.)
+     * History: 0.22 → 0.26 → 0.40 → 0.55 → 0.68.
      */
-    val Scrim = Color.Black.copy(alpha = 0.26f)
+    val Scrim = Color.Black.copy(alpha = 0.68f)
 
     /** Fine grain that removes banding on flat gradients. */
-    const val NoiseFactor = 0.05f
+    const val NoiseFactor = 0.04f
 
     /** Hairline border that defines the glass edge. */
-    val BorderColor = Color.White.copy(alpha = 0.16f)
+    val BorderColor = Color.White.copy(alpha = 0.08f)
     val BorderWidth = 1.dp
 
     /** Solid fallback when [HazeState] is unavailable (blur would be dead). */
-    val FallbackScrim = Color.Black.copy(alpha = 0.55f)
+    val FallbackScrim = Color.Black.copy(alpha = 0.86f)
 
     /**
      * Opaque-enough frosted fallback for Dialog/Popup windows. Haze cannot sample a source
-     * from another Android window, so using the live 0.26 scrim there breaks contrast.
+     * from another Android window, so using the live scrim alpha there breaks contrast.
      */
-    val WindowFallbackScrim = Color(0xE6141418)
+    val WindowFallbackScrim = Color(0xF8080810)
 
     /** Shared top-sheet corner radius. */
     val SheetCornerRadius = 28.dp

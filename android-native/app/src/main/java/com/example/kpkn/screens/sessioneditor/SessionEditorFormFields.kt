@@ -350,7 +350,12 @@ internal fun CompactCatalogFilterChip(
     onClick: () -> Unit,
     label: String,
     modifier: Modifier = Modifier,
+    glassDark: Boolean = false,
 ) {
+    val idle = if (glassDark) Color.White.copy(alpha = 0.14f) else KpknSheetTokens.ChipIdle
+    val selectedBg = if (glassDark) Color.White.copy(alpha = 0.28f) else KpknSheetTokens.ChipSelected
+    val labelIdle = if (glassDark) Color.White.copy(alpha = 0.88f) else KpknSheetTokens.ChipLabel
+    val labelSelected = if (glassDark) Color.White else KpknSheetTokens.ChipLabel
     FilterChip(
         selected = selected,
         onClick = onClick,
@@ -371,12 +376,12 @@ internal fun CompactCatalogFilterChip(
             null
         },
         colors = FilterChipDefaults.filterChipColors(
-            containerColor = KpknSheetTokens.ChipIdle,
-            selectedContainerColor = KpknSheetTokens.ChipSelected,
-            labelColor = KpknSheetTokens.ChipLabel,
-            selectedLabelColor = KpknSheetTokens.ChipLabel,
-            selectedLeadingIconColor = KpknSheetTokens.ChipLabel,
-            iconColor = KpknSheetTokens.ChipLabel,
+            containerColor = idle,
+            selectedContainerColor = selectedBg,
+            labelColor = labelIdle,
+            selectedLabelColor = labelSelected,
+            selectedLeadingIconColor = labelSelected,
+            iconColor = labelIdle,
         ),
     )
 }

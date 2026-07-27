@@ -60,6 +60,7 @@ import com.example.kpkn.domain.training.DiscomfortEntry
 import com.example.kpkn.domain.training.ExerciseDiscomfortAssociationEntry
 import com.example.kpkn.domain.training.ProgramAnalyticsReport
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.domain.exercises.MuscleHeadResolution
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -1330,46 +1331,7 @@ private data class SubMuscleContribution(
 )
 
 private fun resolveSpecificSubMuscle(muscle: String, emphasis: String?): String {
-    val lower = muscle.lowercase().replace("-", " ").replace("_", " ").trim()
-    val emph = emphasis?.lowercase()?.trim().orEmpty()
-
-    if (lower.contains("deltoides") || lower.contains("hombro")) {
-        return when {
-            emph == "posterior" || lower.contains("posterior") || lower.contains("trasero") -> "Deltoides Posterior"
-            emph == "medio" || emph == "lateral" || lower.contains("lateral") || lower.contains("medio") -> "Deltoides Lateral"
-            emph == "anterior" -> "Deltoides Anterior"
-            else -> "Deltoides Anterior"
-        }
-    }
-    if (lower.contains("glúteo") || lower.contains("gluteo") || lower.contains("tensor de la fascia lata") || lower.contains("tensor fascia")) {
-        return when {
-            emph == "medio" || lower.contains("medius") || lower.contains("tensor") -> "Glúteo Medio"
-            emph == "menor" || lower.contains("minimus") || lower.contains("mínimo") -> "Glúteo Menor"
-            emph == "mayor" -> "Glúteo Mayor"
-            else -> "Glúteo Mayor"
-        }
-    }
-    if (lower.contains("pectoral") || lower.contains("pecho")) {
-        return when {
-            emph == "superior" -> "Pectoral Superior"
-            emph == "inferior" -> "Pectoral Inferior"
-            else -> "Pectoral Medio"
-        }
-    }
-    if (lower.contains("trapecio")) {
-        return when {
-            emph == "superior" -> "Trapecio Superior"
-            emph == "inferior" -> "Trapecio Inferior"
-            else -> "Trapecio Medio"
-        }
-    }
-    if (lower.contains("pantorrilla") || lower.contains("gemelo") || lower.contains("gastrocnemio") || lower.contains("soleo") || lower.contains("sóleo")) {
-        return when {
-            emph == "gastrocnemio" -> "Gastrocnemio"
-            else -> "Sóleo"
-        }
-    }
-    return muscle
+    return MuscleHeadResolution.resolveDisplayHead(muscle, emphasis) ?: muscle
 }
 
 private fun com.example.kpkn.data.models.ExerciseSet.effectiveTargetRpe(): Double {
@@ -1466,7 +1428,7 @@ private fun calculateSubMuscleBreakdown(
 ): List<SubMuscleContribution> {
     val targetSubMuscles = when (canonicalMuscle) {
         "Deltoides" -> listOf("Deltoides Anterior", "Deltoides Lateral", "Deltoides Posterior")
-        "Glúteos" -> listOf("Glúteo Mayor", "Glúteo Medio")
+        "Glúteos" -> listOf("Glúteo Mayor", "Glúteo Medio", "Glúteo Menor")
         "Pectorales" -> listOf("Pectoral Superior", "Pectoral Medio", "Pectoral Inferior")
         "Trapecio" -> listOf("Trapecio Superior", "Trapecio Medio", "Trapecio Inferior")
         "Pantorrillas" -> listOf("Gastrocnemio", "Sóleo")

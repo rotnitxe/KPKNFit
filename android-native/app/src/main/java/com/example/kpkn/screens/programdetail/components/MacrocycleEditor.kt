@@ -32,6 +32,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.SheetValue
@@ -44,9 +45,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.kpkn.ui.components.KpknSheetLightChip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +60,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.CalendarBreak
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
@@ -86,7 +90,6 @@ import com.example.kpkn.data.models.totalMesocycleCount
 import com.example.kpkn.data.models.totalProgramWeeks
 import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
 import com.example.kpkn.data.programs.ProgramTemplateOption
-import com.example.kpkn.data.programs.buildProgramDraft
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.domain.training.ProgramProtocolEngine
@@ -141,7 +144,12 @@ fun MacrocycleEditor(
         mutableStateOf((competition?.eventDate ?: competition?.startDate).orEmpty())
     }
     var showKeyDatesSheet by remember { mutableStateOf(false) }
-    var showAdvancedRoadmap by remember { mutableStateOf(false) }
+    var showAdvancedRoadmap by remember(program.id) {
+        mutableStateOf(
+            program.structure == ProgramStructure.COMPLEX &&
+                (ProgramCalendarEngine.isCalendarized(program) || ProgramKeyDateEngine.competitionKeyDate(program) != null)
+        )
+    }
     var showLibrarySheet by remember { mutableStateOf(false) }
     var showLoopsSheet by remember { mutableStateOf(false) }
     var editingMeso by remember { mutableStateOf<EditingMesoTarget?>(null) }
@@ -209,9 +217,18 @@ fun MacrocycleEditor(
         )
         if (!temporalInsight.isSimple && showAdvancedRoadmap) {
             AdvancedRoadmapCard(
+                program = program,
                 roadmap = advancedRoadmap,
                 onFocusWeek = onFocusWeek,
                 onCreateSessionForWeek = onCreateSessionForWeek,
+                onAdjustBlockWeeks = { blockId, deltaWeeks ->
+                    val updated = if (deltaWeeks > 0) {
+                        ProgramKeyDateEngine.addWeeksToBlock(program, blockId, deltaWeeks)
+                    } else {
+                        ProgramKeyDateEngine.removeWeeksFromBlock(program, blockId, -deltaWeeks)
+                    }
+                    onUpdateProgram(updated.alignTemporalMetadata())
+                },
             )
         }
 
@@ -502,7 +519,7 @@ fun MacrocycleEditor(
                         val updated = program
                             .ensureMacrocycle()
                             .addBlockToMacro(0, "Bloque 2")
-                            .copy(structure = ProgramStructure.COMPLEX)
+                            .convertSimpleCalendarizedToAdvanced()
                             .alignTemporalMetadata()
                         onUpdateProgram(updated)
                         pendingSimpleToAdvanced = false
@@ -584,9 +601,11 @@ fun MacrocycleEditor(
         TemplatesProtocolsSheet(
             currentProgram = program,
             onApplyTemplate = { template ->
+                showLibrarySheet = false
                 pendingTemplate = template
             },
             onApplyProtocol = { protocol ->
+                showLibrarySheet = false
                 pendingProtocol = protocol
             },
             onDismiss = { showLibrarySheet = false },
@@ -646,6 +665,11 @@ fun MacrocycleEditor(
                         "${template.trackLabel ?: "Programa"} · ${template.blockNames.size} bloques · ${template.weeks} semanas",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        "Las semanas se rellenarán automáticamente con sesiones sugeridas según el split.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     if (ProgramTemplateEngine.hasSessionContent(program)) {
                         Text(
@@ -914,7 +938,10 @@ private fun SimpleCalendarizationSheet(
                     color = sheetPrimary,
                 )
                 Text(
-                    "Define el rango de fechas, el día en que comienza tu semana y los días de entrenamiento. Si eliges un día distinto al lunes, cada semana irá desde ese día hasta el mismo día de la semana siguiente.",
+                    "Úsalo cuando tus días libres cambian semana a semana (turnos rotativos, viajes). " +
+                        "\"Calendarizar ciclo actual\" conserva tus sesiones y las ancla a fechas. " +
+                        "\"Crear break\" abre semanas vacías fechadas sin tocar el ciclo cíclico guardado en snapshot. " +
+                        "Después puedes ajustar la fecha de cada día de entrenamiento en la vista Semana.",
                     style = MaterialTheme.typography.bodySmall,
                     color = sheetSecondary,
                     lineHeight = 17.sp,
@@ -1404,9 +1431,11 @@ private fun CalendarPreviewLine(label: String, value: String) {
 
 @Composable
 private fun AdvancedRoadmapCard(
+    program: Program,
     roadmap: AdvancedRoadmap,
     onFocusWeek: (blockId: String, weekId: String) -> Unit,
     onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int, keyDateId: String?) -> Unit,
+    onAdjustBlockWeeks: (blockId: String, deltaWeeks: Int) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1433,6 +1462,15 @@ private fun AdvancedRoadmapCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                val fitReport = remember(program) { ProgramKeyDateEngine.fitBlocksToCompetitionKeyDate(program) }
+                val lastBlockId = roadmap.weekSlots.lastOrNull()?.blockId
+                if (fitReport != null) {
+                    KeyDateFitSection(
+                        fitReport = fitReport,
+                        lastBlockId = lastBlockId,
+                        onAdjustBlockWeeks = onAdjustBlockWeeks,
+                    )
+                }
                 Text(
                     "Guía: los bloques muestran el plan completo y los puntos son semanas reales. La competición se reserva como semana completa para que puedas entrar y programar el día exacto.",
                     style = MaterialTheme.typography.bodySmall,
@@ -1498,19 +1536,112 @@ private fun AdvancedRoadmapCard(
                     }
                 }
 
-                roadmap.weekSlots.filter { slot -> slot.marks.any { it.type != KeyDateType.COMPETITION } }.take(2).forEach { slot ->
-                    val mark = slot.marks.first { it.type != KeyDateType.COMPETITION }
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)),
-                    ) {
-                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            KeyDateTypeBadge(mark.type)
-                            Column(Modifier.weight(1f)) {
-                                Text(mark.title, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                Text("Semana ${slot.weekName} · ${slot.dateRangeLabel}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                roadmap.keyDateTracks.filter { it.keyDate.type != KeyDateType.COMPETITION }.forEach { track ->
+                    KeyDateTrackCard(track = track, onFocusWeek = onFocusWeek)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun KeyDateFitSection(
+    fitReport: ProgramKeyDateEngine.KeyDateFitReport,
+    lastBlockId: String?,
+    onAdjustBlockWeeks: (blockId: String, deltaWeeks: Int) -> Unit,
+) {
+    val requiredWeeks = fitReport.requiredWeeks
+    if (requiredWeeks != null && requiredWeeks > 0) {
+        val progress = (fitReport.currentTotalWeeks.toFloat() / requiredWeeks.toFloat()).coerceIn(0f, 1f)
+        val progressColor = when {
+            fitReport.fitsExactly -> Color(0xFF10B981)
+            fitReport.hasSurplusWeeks -> Color(0xFF10B981)
+            else -> Color(0xFFF59E0B)
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Avance hacia el día de competición", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("${fitReport.currentTotalWeeks}/$requiredWeeks sem", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black)
+            }
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = progressColor,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+        }
+    }
+
+    val gapMessage = when (fitReport.status) {
+        ProgramKeyDateEngine.KeyDateFitStatus.NEEDS_MORE_WEEKS ->
+            "Faltan ${fitReport.actionableWeeks} semana(s) para llegar a la competición con la estructura actual."
+        ProgramKeyDateEngine.KeyDateFitStatus.HAS_SURPLUS_WEEKS ->
+            "Sobran ${fitReport.actionableWeeks} semana(s) después de la competición."
+        ProgramKeyDateEngine.KeyDateFitStatus.BEFORE_PROGRAM_START ->
+            "La competición cae antes del inicio del programa. Ajusta la fecha de inicio o la de competición."
+        else -> null
+    }
+    if (gapMessage != null) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF59E0B).copy(alpha = 0.13f)),
+            border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.42f)),
+        ) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(gapMessage, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (lastBlockId != null && fitReport.actionableWeeks > 0 &&
+                    fitReport.status != ProgramKeyDateEngine.KeyDateFitStatus.BEFORE_PROGRAM_START
+                ) {
+                    val delta = if (fitReport.needsMoreWeeks) fitReport.actionableWeeks else -fitReport.actionableWeeks
+                    OutlinedButton(onClick = { onAdjustBlockWeeks(lastBlockId, delta) }) {
+                        Text(
+                            if (fitReport.needsMoreWeeks) {
+                                "+${fitReport.actionableWeeks} sem al último bloque"
+                            } else {
+                                "-${fitReport.actionableWeeks} sem del último bloque"
                             }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun KeyDateTrackCard(
+    track: KeyDateTrack,
+    onFocusWeek: (blockId: String, weekId: String) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)),
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                KeyDateTypeBadge(track.keyDate.type)
+                Text(track.keyDate.title, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            }
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                itemsIndexed(track.slots, key = { _, slot -> slot.weekId }) { _, slot ->
+                    val accent = when (slot.trackKind) {
+                        KeyDateTrackKind.INSIDE -> MaterialTheme.colorScheme.primary
+                        KeyDateTrackKind.BEFORE, KeyDateTrackKind.AFTER -> MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                    Box(
+                        modifier = Modifier
+                            .background(accent.copy(alpha = if (slot.trackKind == KeyDateTrackKind.INSIDE) 0.18f else 0.08f), RoundedCornerShape(999.dp))
+                            .clickable { onFocusWeek(slot.blockId, slot.weekId) }
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(slot.relativeLabel, fontSize = 9.sp, fontWeight = FontWeight.Black, color = accent)
+                            Text(slot.weekName, fontSize = 8.sp, color = accent, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 }
@@ -1640,8 +1771,17 @@ private fun KeyDateEditSheet(
                 OutlinedTextField(value = endDate, onValueChange = { endDate = it }, label = { Text("Fin opcional (YYYY-MM-DD)") }, singleLine = true)
                 OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas opcionales") })
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    KeyDateType.entries.forEach { entry ->
+                    // La competición se edita exclusivamente vía "Fechas clave" → applyAdvancedCalendarSave,
+                    // para no dejar la calendarización/eventDate inconsistente con este flujo genérico.
+                    KeyDateType.entries.filter { it != KeyDateType.COMPETITION }.forEach { entry ->
                         FilterChip(selected = type == entry, onClick = { type = entry }, label = { Text(entry.name.lowercase().replaceFirstChar { it.uppercase() }) })
+                    }
+                    if (keyDate.type == KeyDateType.COMPETITION) {
+                        Text(
+                            "La fecha de competición se edita desde \"Fechas clave y calendario\". Aquí solo puedes eliminarla.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
@@ -1668,7 +1808,7 @@ private fun KeyDateEditSheet(
                                 )
                             )
                         },
-                        enabled = title.isNotBlank() && startDate.isNotBlank(),
+                        enabled = title.isNotBlank() && startDate.isNotBlank() && type != KeyDateType.COMPETITION,
                     ) { Text("Guardar") }
                 }
             }
@@ -1677,7 +1817,6 @@ private fun KeyDateEditSheet(
     }
 }
 
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 private fun TemplatesProtocolsSheet(
     currentProgram: Program,
@@ -1685,7 +1824,7 @@ private fun TemplatesProtocolsSheet(
     onApplyProtocol: (Protocol) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(0) }
     val simpleTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.SIMPLE } }
     val advancedTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.COMPLEX } }
 
@@ -1696,46 +1835,81 @@ private fun TemplatesProtocolsSheet(
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Plantillas / protocolos", fontWeight = FontWeight.Black, fontSize = 20.sp)
-            TabRow(selectedTabIndex = selectedTab) {
-                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Simple") })
-                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Avanzado") })
-                Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text("Protocolos") })
+            Text("Plantillas / protocolos", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
+            Text(
+                "Elige una plantilla Simple/Avanzada o un protocolo. Se pedirá confirmación antes de aplicar.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.65f),
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                KpknSheetLightChip(
+                    label = "SIMPLE",
+                    selected = selectedTab == 0,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedTab = 0 },
+                )
+                KpknSheetLightChip(
+                    label = "AVANZADO",
+                    selected = selectedTab == 1,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedTab = 1 },
+                )
+                KpknSheetLightChip(
+                    label = "PROTOCOLOS",
+                    selected = selectedTab == 2,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedTab = 2 },
+                )
             }
-            when (selectedTab) {
-                0 -> simpleTemplates.forEach { template ->
-                    TemplatePreviewCard(template = template, onClick = { onApplyTemplate(template) })
-                }
-                1 -> advancedTemplates.forEach { template ->
-                    TemplatePreviewCard(template = template, onClick = { onApplyTemplate(template) })
-                }
-                2 -> PROTOCOL_LIBRARY.forEach { protocol ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onApplyProtocol(protocol) },
-                        shape = RoundedCornerShape(18.dp),
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(protocol.name, fontWeight = FontWeight.Black)
-                            Text(protocol.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(
-                                "${protocol.blocks.sumOf { it.weeks }} semanas · ${protocol.blocks.size} bloques · ${protocol.sessionCategories.size} partes por sesión",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                            if (protocol.sessionCategories.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                when (selectedTab) {
+                    0 -> simpleTemplates.forEach { template ->
+                        TemplatePreviewCard(template = template, onClick = { onApplyTemplate(template) })
+                    }
+                    1 -> advancedTemplates.forEach { template ->
+                        TemplatePreviewCard(template = template, onClick = { onApplyTemplate(template) })
+                    }
+                    else -> PROTOCOL_LIBRARY.forEach { protocol ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onApplyProtocol(protocol) },
+                            shape = RoundedCornerShape(18.dp),
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(protocol.name, fontWeight = FontWeight.Black)
                                 Text(
-                                    protocol.sessionCategories.joinToString(" · "),
+                                    protocol.description,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                Text(
+                                    "${protocol.blocks.sumOf { it.weeks }} semanas · ${protocol.blocks.size} bloques · ${protocol.sessionCategories.size} partes por sesión",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                                if (protocol.sessionCategories.isNotEmpty()) {
+                                    Text(
+                                        protocol.sessionCategories.joinToString(" · "),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -2204,6 +2378,50 @@ private fun defaultMesocycle(
 
 private fun defaultWeek(name: String): ProgramWeek {
     return ProgramWeek(id = "week_${System.nanoTime()}", name = name)
+}
+
+/**
+ * Convierte un programa Simple (posiblemente calendarizado) a Avanzado.
+ * SIMPLE_DATED nunca es una calendarización válida para un programa Avanzado: si el break estaba
+ * activo, la calendarización se migra a ADVANCED_COMPETITION (o se limpia si no hay fechas) y el
+ * snapshot cíclico pausado se archiva como CalendarBreak en vez de perderse silenciosamente.
+ */
+private fun Program.convertSimpleCalendarizedToAdvanced(): Program {
+    val wasCalendarized = simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
+        calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
+    val hasCompetitionKeyDate = keyDates.any { it.type == KeyDateType.COMPETITION }
+
+    val nextCalendarization = when {
+        !wasCalendarized -> calendarization
+        keyDates.isNotEmpty() || !timelineStartDate.isNullOrBlank() -> {
+            val base = if (hasCompetitionKeyDate) {
+                ProgramCalendarEngine.defaultCompetitionCalendarization()
+            } else {
+                ProgramCalendarEngine.defaultAdvancedDatedCalendarization()
+            }
+            base.copy(manualEndDate = calendarization?.manualEndDate)
+        }
+        else -> null
+    }
+
+    val archivedBreak = if (wasCalendarized && pausedCyclicSnapshot != null) {
+        CalendarBreak(
+            id = "break_${id}_to_advanced_${System.currentTimeMillis()}",
+            title = "Ciclo pausado al convertir a Avanzado",
+            startDate = timelineStartDate ?: LocalDate.now().toString(),
+            endDate = calendarization?.manualEndDate ?: timelineStartDate ?: LocalDate.now().toString(),
+            weeks = macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks },
+            pausedRunState = runState,
+            pausedCyclicSnapshot = pausedCyclicSnapshot,
+        )
+    } else null
+
+    return copy(
+        structure = ProgramStructure.COMPLEX,
+        calendarization = nextCalendarization,
+        pausedCyclicSnapshot = null,
+        calendarBreaks = if (archivedBreak != null) calendarBreaks + archivedBreak else calendarBreaks,
+    )
 }
 
 private fun Program.addBlockToMacro(macroIndex: Int, blockName: String): Program {

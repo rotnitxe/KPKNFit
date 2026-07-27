@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import kotlinx.coroutines.Dispatchers
@@ -114,6 +115,7 @@ class ProgramDetailViewModelTest {
 
     @After
     fun tearDown() {
+        CompetitionRepository.closeInstance()
         ProgramRepository.closeInstance()
         KpknDatabase.closeInstance()
         Dispatchers.resetMain()
@@ -248,6 +250,62 @@ class ProgramDetailViewModelTest {
         val week = updated.macrocycles[0].blocks[0].mesocycles[0].weeks[0]
         assertEquals(1, week.sessions.size)
         assertEquals("${id}_s2", week.sessions[0].id)
+    }
+
+    @Test
+    fun deleteSession_unlinks_but_preserves_linked_competition_record() = runBlocking {
+        val id = nextId()
+        val program = makeProgram(id)
+        val competitionSession = Session(
+            id = "${id}_comp",
+            name = "Meet day",
+            dayOfWeek = 3,
+            isMeetDay = true,
+            isCompetitionSession = true,
+            competitionRecordId = "${id}_record",
+        )
+        val withCompetitionSession = program.copy(
+            macrocycles = program.macrocycles.mapIndexed { mi, macro ->
+                if (mi != 0) macro
+                else macro.copy(blocks = macro.blocks.mapIndexed { bi, block ->
+                    if (bi != 0) block
+                    else block.copy(mesocycles = block.mesocycles.map { meso ->
+                        meso.copy(weeks = meso.weeks.map { week ->
+                            if (week.id != "${id}_w1") week
+                            else week.copy(sessions = week.sessions + competitionSession)
+                        })
+                    })
+                })
+            },
+        )
+        repository.addProgram(withCompetitionSession)
+
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        CompetitionRepository.initForTests(context)
+        val competitionRepository = CompetitionRepository.getInstance()
+        withTimeout(5_000) { while (!competitionRepository.isReady.value) delay(10) }
+        competitionRepository.upsertNow(
+            CompetitionRecord(
+                id = "${id}_record",
+                title = "Meet day",
+                plannedProgramId = id,
+                plannedSessionId = "${id}_comp",
+                plannedWeekId = "${id}_w1",
+                journal = CompetitionJournal(overallFeeling = "Buena sensación"),
+            )
+        )
+
+        val vm = ProgramDetailViewModel(id)
+        vm.deleteSession("${id}_comp", macroIndex = 0, mesoIndex = 0, weekId = "${id}_w1")
+
+        val updatedWeek = repository.getProgramById(id)!!.macrocycles[0].blocks[0].mesocycles[0].weeks[0]
+        assertTrue(updatedWeek.sessions.none { it.id == "${id}_comp" })
+
+        val record = competitionRepository.getById("${id}_record")
+        assertNotNull("El record de competición no debería eliminarse", record)
+        assertNull(record!!.plannedSessionId)
+        assertNull(record.plannedWeekId)
+        assertEquals("Buena sensación", record.journal?.overallFeeling)
     }
 
     @Test

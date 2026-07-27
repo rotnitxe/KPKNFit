@@ -4,6 +4,8 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,8 +27,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -57,6 +62,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -119,11 +125,23 @@ class CompetitionViewModel : ViewModel() {
 @Composable
 fun CompetitionScreen(
     onBack: () -> Unit,
+    initialCompetitionId: String? = null,
     viewModel: CompetitionViewModel = viewModel { CompetitionViewModel() },
 ) {
     val records by viewModel.records.collectAsState()
     var showCreateSheet by remember { mutableStateOf(false) }
     var editingRecord by remember { mutableStateOf<CompetitionRecord?>(null) }
+    var openedInitialId by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(initialCompetitionId, records) {
+        val targetId = initialCompetitionId?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+        if (openedInitialId == targetId) return@LaunchedEffect
+        val match = records.firstOrNull { it.id == targetId }
+        if (match != null) {
+            editingRecord = match
+            openedInitialId = targetId
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -754,14 +772,17 @@ private fun AttemptRow(attempt: CompetitionAttempt, onChange: (CompetitionAttemp
                 singleLine = true,
             )
         }
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CompetitionAttemptResult.entries.forEach { result ->
-                item {
-                    FilterChip(
-                        selected = attempt.resultType == result,
-                        onClick = { onChange(attempt.copy(resultType = result)) },
-                        label = { Text(result.label()) },
-                    )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            AttemptLights(attempt.resultType)
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CompetitionAttemptResult.entries.forEach { result ->
+                    item {
+                        FilterChip(
+                            selected = attempt.resultType == result,
+                            onClick = { onChange(attempt.copy(resultType = result)) },
+                            label = { Text(result.label()) },
+                        )
+                    }
                 }
             }
         }
@@ -772,6 +793,28 @@ private fun AttemptRow(attempt: CompetitionAttempt, onChange: (CompetitionAttemp
             modifier = Modifier.fillMaxWidth(),
             minLines = 1,
         )
+    }
+}
+
+/** Luces estilo jurado de powerlifting: verde = válido, rojo = nulo, apagadas si aún no hay decisión. */
+@Composable
+private fun AttemptLights(result: CompetitionAttemptResult) {
+    val lightColor = when (result) {
+        CompetitionAttemptResult.GOOD_LIFT -> Color(0xFF2ECC71)
+        CompetitionAttemptResult.NO_LIFT -> Color(0xFFE74C3C)
+        CompetitionAttemptResult.SKIPPED -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
+        CompetitionAttemptResult.PENDING -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f)
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        repeat(3) {
+            Box(
+                modifier = Modifier
+                    .size(14.dp)
+                    .clip(CircleShape)
+                    .background(lightColor)
+                    .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), CircleShape),
+            )
+        }
     }
 }
 

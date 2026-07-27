@@ -15,6 +15,10 @@ class AugeMuscleNormalizationTest {
         assertEquals("Deltoides", getAugeMusclePillarId("hombro", "lateral"))
         assertEquals("Deltoides Lateral", getAugeMuscleDisplayId("Deltoides Lateral"))
         assertEquals("Deltoides Anterior", getAugeMuscleDisplayId("shoulder", "front"))
+        assertEquals("Deltoides Posterior", getAugeMuscleDisplayId("Deltoides", "Deltoides Posterior"))
+        assertEquals("Deltoides Posterior", getAugeMuscleDisplayId("Deltoides", "posterior"))
+        assertEquals("Glúteos", getAugeMusclePillarId("Glúteo Medio"))
+        assertEquals("Glúteos", getAugeMusclePillarId("Tensor Fascia Lata"))
     }
 
     @Test

@@ -1,0 +1,41 @@
+{
+  "source": "C:\\Users\\valen\\Documents\\KPKNFit\\android-native\\app\\src\\main\\assets\\exercise_database.json",
+  "expectedCount": 1030,
+  "actualCount": 1020,
+  "coverage": "1020/1020",
+  "sourceSha256Before": "2655b89ad00d7a78618d887cacace2dbb65c88c0eef500053487eb2e03646822",
+  "sourceSha256After": "2655b89ad00d7a78618d887cacace2dbb65c88c0eef500053487eb2e03646822",
+  "sourceUnchanged": true,
+  "flagInstances": {
+    "YELLOW": 67,
+    "ORANGE": 719,
+    "BLUE": 1072,
+    "RED": 52
+  },
+  "exercisesBySeverity": {
+    "YELLOW": 43,
+    "ORANGE": 506,
+    "BLUE": 642,
+    "RED": 49
+  },
+  "flagCodes": {
+    "1.5_FREE_EMPHASIS": 625,
+    "1.4_NONCANONICAL_MUSCLE": 367,
+    "1.1_ACTIVATION_ROLE": 262,
+    "3.1_IQR_TTC": 128,
+    "3.1_IQR_SSC": 115,
+    "3.1_IQR_CNC": 104,
+    "3.1_IQR_EFC": 79,
+    "1.7_PARENT_SUM_GT_ONE": 67,
+    "3.2_DEAD_STABILIZER_GATE": 37,
+    "2.1_PATTERN_PRIMARY": 31,
+    "4.3_MODIFIER_MUSCLE_NAME": 30,
+    "1.2_MULTIPLE_PRIMARY": 21,
+    "3.1_HINGE_LOW_SSC": 21,
+    "2.4_VARIANT_PRIMARY_DIVERGENCE": 15,
+    "1.3_DUPLICATE_MUSCLE": 8
+  },
+  "sampleSeed": 20260727,
+  "sampleSize": 102,
+  "unflaggedSample": 22
+}

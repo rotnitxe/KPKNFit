@@ -88,9 +88,15 @@ class SessionTemplateCatalogTest {
             val exercises = template.session.exercises + template.session.parts.flatMap { it.exercises }
             exercises.forEach { exercise ->
                 val dbId = exercise.exerciseDbId
-                assertNotNull("La plantilla '${template.name}' contiene un ejercicio '${exercise.name}' con dbId nulo", dbId)
-                val resolvedId = resolveExerciseId(dbId)
-                assertNotNull("El ejercicio '${exercise.name}' con dbId '$dbId' en la plantilla '${template.name}' no existe en exercise_database.json ni en aliases", resolvedId)
+                assertNotNull(
+                    "La plantilla '${template.name}' contiene un ejercicio '${exercise.name}' con dbId nulo",
+                    dbId,
+                )
+                assertTrue(
+                    "El ejercicio '${exercise.name}' con dbId '$dbId' en la plantilla '${template.name}' " +
+                        "debe usar un ID canónico de exercise_database.json (sin aliases)",
+                    exerciseDatabaseById.containsKey(dbId!!.lowercase()),
+                )
             }
         }
     }
@@ -100,14 +106,17 @@ class SessionTemplateCatalogTest {
         SESSION_TEMPLATES_SYSTEM.forEach { template ->
             val exercises = template.session.exercises + template.session.parts.flatMap { it.exercises }
             exercises.forEach { exercise ->
-                val resolved = resolveExercise(exercise.exerciseDbId)
-                assertNotNull("Ejercicio con dbId '${exercise.exerciseDbId}' no pudo ser resuelto", resolved)
-                val matchesName = exercise.name.equals(resolved!!.name, ignoreCase = true)
-                val matchesAlias = resolved.alias?.split(",")?.any { exercise.name.equals(it.trim(), ignoreCase = true) } ?: false
-
+                val dbId = exercise.exerciseDbId
+                assertNotNull(dbId)
+                val official = exerciseDatabaseById[dbId!!.lowercase()]
+                assertNotNull(
+                    "Ejercicio con dbId '$dbId' no existe como entrada canónica en exercise_database.json",
+                    official,
+                )
                 assertTrue(
-                    "El nombre '${exercise.name}' en la plantilla '${template.name}' no coincide con el nombre oficial '${resolved.name}' ni con su alias '${resolved.alias}'",
-                    matchesName || matchesAlias
+                    "El nombre '${exercise.name}' en la plantilla '${template.name}' debe ser " +
+                        "exactamente el nombre oficial '${official!!.name}' (no alias ni nombre inventado)",
+                    exercise.name == official.name,
                 )
             }
         }
@@ -352,7 +361,7 @@ class SessionTemplateCatalogTest {
     @Test
     fun templateTotalVolumeIsReasonable() {
         val lowVolumeIds = SESSION_TEMPLATES_SYSTEM
-            .filter { it.id.contains("-low") || it.name.contains("Dosificad", ignoreCase = true) || it.name.contains("Alta Frecuencia", ignoreCase = true) }
+            .filter { it.id.endsWith("-low") || it.name.contains("Compacta", ignoreCase = true) }
             .map { it.id }
             .toSet()
         val failures = mutableListOf<String>()

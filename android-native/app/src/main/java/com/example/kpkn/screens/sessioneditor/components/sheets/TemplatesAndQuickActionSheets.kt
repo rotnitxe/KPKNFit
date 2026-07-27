@@ -17,9 +17,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
@@ -139,22 +137,16 @@ internal fun TemplatesSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 480.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    TemplateCatalogBrowser(
-                        templates = templates,
-                        searchQuery = searchQuery,
-                        onSelectTemplate = onSelectTemplate,
-                        exerciseIndex = remember { EXERCISE_DATABASE.associateBy { it.id.lowercase() } },
-                        glassDark = true,
-                    )
-                }
+                TemplateCatalogBrowser(
+                    templates = templates,
+                    searchQuery = searchQuery,
+                    onSelectTemplate = onSelectTemplate,
+                    exerciseIndex = remember { EXERCISE_DATABASE.associateBy { it.id.lowercase() } },
+                    glassDark = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }

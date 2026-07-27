@@ -94,91 +94,81 @@ object SessionAssistantEngine {
     private const val MAX_REDUCE_REST_SUGGESTIONS = 2
     private const val MAX_SUPERSET_SUGGESTIONS = 2
     private const val MAX_DROPSET_SUGGESTIONS = 2
+    /** Only suggest when the session is clearly too demanding. */
+    private const val HIGH_DRAIN_THRESHOLD = 60
 
     private fun buildTimeSuggestions(
         input: SessionAssistantInput,
         overageMinutes: Int
     ): List<AssistantSuggestion> {
-        val suggestions = mutableListOf<AssistantSuggestion>()
+        if (overageMinutes < 8) return emptyList()
         val exercises = input.allExercisesInSession
+        val details = mutableListOf<AssistantSuggestionDetail>()
 
-        // Only suggest reduce-rest if average rest > 45s
         val avgRest = exercises.map { it.restTime ?: 90 }.average()
-        if (avgRest > 45 && suggestions.size < MAX_REDUCE_REST_SUGGESTIONS) {
-            suggestions.add(
-                AssistantSuggestion(
-                    id = "time_reduce_rest",
-                    type = com.example.kpkn.domain.sessionassistant.AssistantActionType.REDUCE_REST_TIME,
-                    title = "Reducir descansos en 15s",
-                    message = "Ahorro estimado de ~${(exercises.size * 15) / 60} min. Sesión excede por $overageMinutes min el límite.",
-                    priority = 30,
-                )
+        if (avgRest > 45) {
+            details += AssistantSuggestionDetail(
+                id = "time_detail_rest",
+                label = "Bajar 15s de descanso entre series",
+                action = AssistantDetailAction.ReduceRest(seconds = 15),
             )
         }
 
-        // Supersets: pair consecutive exercises
-        if (exercises.size >= 2 && suggestions.size < MAX_SUPERSET_SUGGESTIONS + 1) {
-            for (i in 0 until exercises.size - 1) {
+        if (exercises.size >= 2) {
+            for (i in 0 until minOf(exercises.size - 1, MAX_SUPERSET_SUGGESTIONS)) {
                 val ex = exercises[i]
                 val next = exercises[i + 1]
                 if (ex.sets.any { it.isDropSet || it.isRestPause }) continue
                 if (next.sets.any { it.isDropSet || it.isRestPause }) continue
-                suggestions.add(
-                    AssistantSuggestion(
-                        id = "time_superset_${ex.id}",
-                        type = com.example.kpkn.domain.sessionassistant.AssistantActionType.CONVERT_TO_SUPERSET,
-                        title = "Superserie con siguiente ejercicio",
-                        message = "Ahorra ~90s por ronda de descanso eliminada. Sesión excede por $overageMinutes min.",
-                        exerciseId = ex.id,
-                        priority = 40,
-                    )
-                )
-                if (suggestions.size >= MAX_SUPERSET_SUGGESTIONS + 1) break
-            }
-        }
-
-        // Drop sets: convert suitable exercises
-        if (suggestions.size < MAX_DROPSET_SUGGESTIONS + MAX_SUPERSET_SUGGESTIONS + 1) {
-            for (ex in exercises) {
-                val multiSet = ex.sets.size > 1
-                val notAlreadyDrop = ex.sets.none { it.isDropSet }
-                val notRestPause = ex.sets.none { it.isRestPause }
-                if (!multiSet || !notAlreadyDrop || !notRestPause) continue
-                suggestions.add(
-                    AssistantSuggestion(
-                        id = "time_dropset_${ex.id}",
-                        type = com.example.kpkn.domain.sessionassistant.AssistantActionType.CONVERT_TO_DROPSET,
-                        title = "Convertir a dropset",
-                        message = "Reduce descansos intra-ejercicio a ~10s. Sesión excede por $overageMinutes min.",
-                        exerciseId = ex.id,
-                        priority = 25,
-                    )
-                )
-                if (suggestions.size >= MAX_DROPSET_SUGGESTIONS + MAX_SUPERSET_SUGGESTIONS + 1) break
-            }
-        }
-
-        // Reduce sets as final option
-        if (suggestions.size >= 2) {
-            val targetMuscles = calcularVolumenPorMusculo(input).volumeMap.entries
-                .filter { (_, acc) -> acc.flat > 0 }
-                .map { it.key }
-            val muscle = targetMuscles.firstOrNull()
-            if (muscle != null) {
-                suggestions.add(
-                    AssistantSuggestion(
-                        id = "time_reduce_sets",
-                        type = com.example.kpkn.domain.sessionassistant.AssistantActionType.REDUCE_SET,
-                        title = "Reducir una serie en $muscle",
-                        message = "Impacto directo en duración. Sesión excede por $overageMinutes min.",
-                        muscle = muscle,
-                        priority = 20,
-                    )
+                details += AssistantSuggestionDetail(
+                    id = "time_detail_superset_${ex.id}",
+                    label = "Unir ${ex.name} con ${next.name} en superserie",
+                    action = AssistantDetailAction.ConvertToSuperset(exerciseId = ex.id),
+                    defaultAccepted = false,
                 )
             }
         }
 
-        return suggestions
+        var dropCount = 0
+        for (ex in exercises) {
+            if (dropCount >= MAX_DROPSET_SUGGESTIONS) break
+            val multiSet = ex.sets.size > 1
+            val notAlreadyDrop = ex.sets.none { it.isDropSet }
+            val notRestPause = ex.sets.none { it.isRestPause }
+            if (!multiSet || !notAlreadyDrop || !notRestPause) continue
+            details += AssistantSuggestionDetail(
+                id = "time_detail_drop_${ex.id}",
+                label = "Acortar descansos en ${ex.name} (drop-set)",
+                action = AssistantDetailAction.ConvertToDropSet(exerciseId = ex.id),
+                defaultAccepted = false,
+            )
+            dropCount++
+        }
+
+        val muscle = calcularVolumenPorMusculo(input).volumeMap.entries
+            .filter { (_, acc) -> acc.flat > 0 }
+            .map { it.key }
+            .firstOrNull()
+        if (muscle != null && details.size >= 1) {
+            details += AssistantSuggestionDetail(
+                id = "time_detail_reduce_$muscle",
+                label = "Quitar 1 serie de $muscle",
+                action = AssistantDetailAction.ReduceSet(muscle = muscle),
+                defaultAccepted = false,
+            )
+        }
+
+        if (details.isEmpty()) return emptyList()
+        return listOf(
+            AssistantSuggestion(
+                id = "time_overage",
+                type = AssistantActionType.COMPOSITE,
+                title = "La sesión se alarga demasiado",
+                message = "Pasa unos $overageMinutes min del tiempo previsto. Elige qué ajustes quieres aplicar.",
+                priority = 20,
+                details = details,
+            ),
+        )
     }
 
     // ─── Volume Calculation ───────────────────────────────────────────────────
@@ -745,60 +735,59 @@ object SessionAssistantEngine {
         volume: VolumeCalculationResult,
         drain: PredictedDrain,
     ): List<AssistantSuggestion> {
-        val ajustes = mutableListOf<AssistantSuggestion>()
+        val peak = maxOf(drain.spinal, drain.cns, drain.muscular)
+        if (peak < HIGH_DRAIN_THRESHOLD) return emptyList()
+
         val heavyExercises = volume.exerciseInsights
-            .filter { (it.muscular >= 40.0 && drain.muscular >= 40) || (it.cns >= 40.0 && drain.cns >= 40) || (it.spinal >= 40.0 && drain.spinal >= 40) }
-            .sortedWith(compareByDescending<ExerciseInsightData> { maxOf(it.muscular, it.cns, it.spinal) }.thenBy { it.name })
-            .take(2)
-        val targetNames = heavyExercises.joinToString(", ") { it.name }.ifBlank { "los ejercicios más demandantes" }
+            .filter {
+                (it.muscular >= HIGH_DRAIN_THRESHOLD) ||
+                    (it.cns >= HIGH_DRAIN_THRESHOLD) ||
+                    (it.spinal >= HIGH_DRAIN_THRESHOLD)
+            }
+            .sortedWith(
+                compareByDescending<ExerciseInsightData> { maxOf(it.muscular, it.cns, it.spinal) }
+                    .thenBy { it.name },
+            )
+            .take(3)
 
-        if (drain.spinal >= 40) {
-            ajustes += AssistantSuggestion(
-                id = "rings-spinal-moderate",
-                type = AssistantActionType.LOWER_RPE,
-                title = "Moderar carga axial",
-                message = "La batería espinal bajaría ${drain.spinal}%. Mantén la estructura, pero baja 0.5-1 RPE y recorta 1 serie total entre $targetNames.",
+        val details = mutableListOf<AssistantSuggestionDetail>()
+        val topMuscle = volume.volumeMap.maxByOrNull { it.value.effective }?.key
+
+        if (drain.muscular >= HIGH_DRAIN_THRESHOLD && topMuscle != null) {
+            details += AssistantSuggestionDetail(
+                id = "fatigue_detail_reduce_$topMuscle",
+                label = "Quitar 1 serie de $topMuscle",
+                action = AssistantDetailAction.ReduceSet(muscle = topMuscle),
+            )
+        }
+
+        heavyExercises.forEach { exercise ->
+            details += AssistantSuggestionDetail(
+                id = "fatigue_detail_rpe_${exercise.exerciseId}",
+                label = "Bajar un poco la intensidad en ${exercise.name}",
+                action = AssistantDetailAction.LowerRpe(exerciseId = exercise.exerciseId, amount = 0.5),
+            )
+        }
+
+        if (details.isEmpty() && input.allExercisesInSession.isNotEmpty()) {
+            val first = input.allExercisesInSession.first()
+            details += AssistantSuggestionDetail(
+                id = "fatigue_detail_rpe_fallback",
+                label = "Bajar un poco la intensidad en ${first.name}",
+                action = AssistantDetailAction.LowerRpe(exerciseId = first.id, amount = 0.5),
+            )
+        }
+
+        return listOf(
+            AssistantSuggestion(
+                id = "session_too_fatiguing",
+                type = AssistantActionType.COMPOSITE,
+                title = "Sesión demasiado exigente",
+                message = "Es una sesión demasiado fatigante y puede afectar tu recuperación para lo que viene. Elige qué quieres suavizar.",
                 priority = 1,
-            )
-        }
-
-        if (drain.cns >= 40) {
-            ajustes += AssistantSuggestion(
-                id = "rings-cns-moderate",
-                type = AssistantActionType.LOWER_RPE,
-                title = "Bajar drenaje SNC",
-                message = "La batería SNC bajaría ${drain.cns}%. Reduce levemente la intensidad en los sets duros y evita llevar series al límite en $targetNames.",
-                priority = 2,
-            )
-        }
-
-        if (drain.muscular >= 40) {
-            val muscle = volume.volumeMap.maxByOrNull { it.value.effective }?.key
-            ajustes += AssistantSuggestion(
-                id = "rings-muscular-moderate-${muscle ?: "general"}",
-                type = AssistantActionType.REDUCE_SET,
-                title = "Ajustar volumen efectivo",
-                message = "La batería muscular bajaría ${drain.muscular}%. Recorta 1 serie del bloque principal y baja 0.5 RPE en los sets finales para conservar estímulo.",
-                muscle = muscle,
-                priority = 3,
-            )
-        }
-
-        heavyExercises.forEachIndexed { index, exercise ->
-            val peak = maxOf(exercise.muscular, exercise.cns, exercise.spinal)
-            if (peak < 40.0) return@forEachIndexed
-            ajustes += AssistantSuggestion(
-                id = "rings-exercise-${exercise.exerciseId}",
-                type = AssistantActionType.LOWER_RPE,
-                title = "Suavizar ${exercise.name}",
-                message = "${exercise.name} concentra un drenaje cercano a ${peak.roundToInt()}%. Usa un ajuste moderado: 1 serie menos si hay muchas series, o 0.5-1 RPE menos si el volumen debe mantenerse.",
-                exerciseId = exercise.exerciseId,
-                exerciseName = exercise.name,
-                priority = 4 + index,
-            )
-        }
-
-        return ajustes.distinctBy { it.id }.sortedBy { it.priority }
+                details = details,
+            ),
+        )
     }
 
     internal fun generarOportunidades(

@@ -8,6 +8,22 @@ import org.junit.Test
 
 class ExerciseReadinessEngineArticularTest {
 
+    @Test
+    fun articularLookup_resolvesAliasesHeadsAndParentsThroughOneApi() {
+        assertEquals(
+            listOf(ArticularBattery.SHOULDER),
+            AugeTtcEngine.articularBatteriesFor("Deltoides", "posterior"),
+        )
+        assertEquals(
+            listOf(ArticularBattery.HIP),
+            AugeTtcEngine.articularBatteriesFor("Glúteo Mayor"),
+        )
+        assertEquals(
+            listOf(ArticularBattery.ANKLE),
+            AugeTtcEngine.articularBatteriesFor("Sóleo"),
+        )
+    }
+
     @Before
     fun setUp() {
         // Clear or set up any required static exercise database state

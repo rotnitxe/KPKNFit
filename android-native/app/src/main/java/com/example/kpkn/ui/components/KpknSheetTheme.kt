@@ -141,6 +141,31 @@ fun KpknSheetLightChip(
     }
 }
 
+/** Soft white CTA for glass sheets (less harsh than solid white). */
+@Composable
+fun KpknSheetTranslucentButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.White.copy(alpha = 0.18f),
+            contentColor = Color.White,
+            disabledContainerColor = Color.White.copy(alpha = 0.08f),
+            disabledContentColor = Color.White.copy(alpha = 0.35f),
+        ),
+    ) {
+        Text(text, fontWeight = FontWeight.Bold)
+    }
+}
+
 /** Full-width white CTA used inside sheets (black label). */
 @Composable
 fun KpknSheetWhiteButton(

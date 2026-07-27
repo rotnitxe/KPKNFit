@@ -77,11 +77,7 @@ object ExerciseReadinessEngine {
 
         // NUEVO Step C' — Articular component (limiting por ejercicio)
         val (artScoreSum, artWeightSum) = involvedMuscles.fold(0.0 to 0.0) { (s, w), involved ->
-            val pillarId = getAugeMusclePillarId(involved.muscle, involved.emphasis)
-            val displayId = getAugeMuscleDisplayId(involved.muscle, involved.emphasis)
-            val relatedArtic = AugeTtcEngine.MUSCLE_TO_ARTICULAR[displayId]
-                ?: AugeTtcEngine.MUSCLE_TO_ARTICULAR[pillarId]
-                ?: emptyList()
+            val relatedArtic = AugeTtcEngine.articularBatteriesFor(involved.muscle, involved.emphasis)
             if (relatedArtic.isEmpty()) return@fold s to w
             val roleWeight = FATIGUE_ROLE_MULTIPLIERS[involved.role] ?: return@fold s to w
             val avgScore = relatedArtic
@@ -98,8 +94,7 @@ object ExerciseReadinessEngine {
         // LIMITING principle: structural = min(muscular, articular)
         val structuralComponent = minOf(muscularComponent, articularComponent)
         val relatedArticular = involvedMuscles
-            .mapNotNull { getAugeMuscleDisplayId(it.muscle, it.emphasis) }
-            .flatMap { AugeTtcEngine.MUSCLE_TO_ARTICULAR[it].orEmpty() }
+            .flatMap { AugeTtcEngine.articularBatteriesFor(it.muscle, it.emphasis) }
             .distinct()
 
         val cnsComponent = augeBatteries.cnc.coerceIn(0, 100)
@@ -391,7 +386,7 @@ object ExerciseReadinessEngine {
         if (unresolvedDiscomfortIds.isEmpty()) return 1.0
 
         val exerciseArticulars = involvedMuscles
-            .flatMap { muscle -> AugeTtcEngine.MUSCLE_TO_ARTICULAR[muscle.muscle].orEmpty() }
+            .flatMap { muscle -> AugeTtcEngine.articularBatteriesFor(muscle.muscle, muscle.emphasis) }
             .toSet()
         if (exerciseArticulars.isEmpty()) return 1.0
 

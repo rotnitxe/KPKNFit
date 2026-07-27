@@ -30,7 +30,16 @@ object LoopEngine {
                 id = existing?.id ?: "loop_week_${loop.id}",
                 name = loop.title.ifBlank { getLoopTypeLabel(loop.type) },
                 description = "Loop ${getLoopTypeLabel(loop.type)} · cada ${loop.repeatEveryXLoops.coerceAtLeast(1)} ciclos",
-                sessions = existing?.sessions ?: loop.sessions,
+                sessions = (existing?.sessions ?: loop.sessions).ifEmpty {
+                    listOf(
+                        Session(
+                            id = "loop_session_${loop.id}",
+                            name = loop.title.ifBlank { getLoopTypeLabel(loop.type) },
+                            dayOfWeek = loop.dayOfWeek?.coerceIn(1, 7) ?: 1,
+                            isMainSession = true,
+                        ),
+                    )
+                },
                 isLoopWeek = true,
                 loopId = loop.id,
             )
@@ -100,7 +109,9 @@ object LoopEngine {
     }
 
     fun getCurrentCycle(program: Program): Int {
-        return program.loopState?.currentCycle ?: 0
+        return program.runState?.cycleNumber
+            ?: program.loopState?.currentCycle?.takeIf { it > 0 }
+            ?: 0
     }
 
     fun getDaysIntoCycle(program: Program, daysSinceStart: Int): Int {
@@ -211,12 +222,16 @@ object LoopEngine {
     fun postponeOccurrence(program: Program, occurrenceId: String): Program {
         val occ = program.loopOccurrences.firstOrNull { it.id == occurrenceId }
             ?: return program
-        return postponeLoop(program, occ.loopId, occ.scheduledCycle)
+        return ProgramProgressEngine.reconcileCursorAfterLoopChange(
+            postponeLoop(program, occ.loopId, occ.scheduledCycle),
+        )
     }
 
     fun postponeNextOccurrence(program: Program, loopId: String): Program {
         val fromCycle = nextScheduledCycle(program, loopId) ?: return program
-        return postponeLoop(program, loopId, fromCycle)
+        return ProgramProgressEngine.reconcileCursorAfterLoopChange(
+            postponeLoop(program, loopId, fromCycle),
+        )
     }
 
     fun cancelOccurrence(program: Program, occurrenceId: String): Program {
@@ -230,7 +245,7 @@ object LoopEngine {
                 if (it.id == occurrenceId) it.copy(status = LoopStatus.CANCELLED) else it
             },
         )
-        return syncOccurrences(updated)
+        return ProgramProgressEngine.reconcileCursorAfterLoopChange(syncOccurrences(updated))
     }
 
     fun cancelLoop(program: Program, loopId: String): Program {
@@ -289,14 +304,16 @@ object LoopEngine {
                 projection.cycle
             }
             val originKey = "${projection.loop.id}_$originCycle"
+            val existing = existingByOrigin[originKey]
             // Deferred slots are the live occurrence after postpone (SCHEDULED/ACTIVE),
             // not a POSTPONED tombstone — origin is preserved separately.
+            // Never downgrade a COMPLETED occurrence while re-syncing projections.
             val status = when {
+                existing?.status == LoopStatus.COMPLETED -> LoopStatus.COMPLETED
                 projection.isCancelled -> LoopStatus.CANCELLED
                 projection.daysUntil <= 0 -> LoopStatus.ACTIVE
                 else -> LoopStatus.SCHEDULED
             }
-            val existing = existingByOrigin[originKey]
             existing?.copy(
                 status = status,
                 cycleNumber = projection.cycle,

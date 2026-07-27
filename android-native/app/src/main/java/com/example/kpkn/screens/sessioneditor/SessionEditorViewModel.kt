@@ -477,7 +477,7 @@ class SessionEditorViewModel(
             .flatMap { it.mesocycles }
             .flatMap { it.weeks }
             .flatMap { week -> week.sessions }
-            .filter { it.isMeetDay || it.isCompetitionSession }
+            .filter { it.isCompetitionMeet }
             .flatMap { session -> session.allExercises() }
             .filter { it.isCompetitionLift }
             .flatMap { exercise ->

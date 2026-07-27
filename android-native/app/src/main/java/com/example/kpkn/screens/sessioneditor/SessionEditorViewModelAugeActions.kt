@@ -6,6 +6,9 @@ import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.domain.sessionassistant.AssistantActionType
+import com.example.kpkn.domain.sessionassistant.AssistantDetailAction
+import com.example.kpkn.domain.sessionassistant.AssistantSuggestionDetail
 import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
 import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -15,6 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.math.roundToInt
 
 fun SessionEditorViewModel.applyAugeCorrection(
     alertId: String,
@@ -110,30 +114,53 @@ fun SessionEditorViewModel.addGhostExercise(cardId: String) {
     }
 }
 
-fun SessionEditorViewModel.applyAssistantSuggestion(suggestionId: String) {
+fun SessionEditorViewModel.applyAssistantSuggestion(
+    suggestionId: String,
+    acceptedDetailIds: List<String>? = null,
+) {
     val suggestion = currentUiState.assistantReport?.ajustes
         ?.firstOrNull { it.id == suggestionId } ?: return
 
+    val details = if (!acceptedDetailIds.isNullOrEmpty()) {
+        suggestion.details.filter { it.id in acceptedDetailIds }
+    } else if (suggestion.details.isNotEmpty()) {
+        suggestion.details.filter { it.defaultAccepted }
+    } else {
+        emptyList()
+    }
+
+    if (details.isNotEmpty()) {
+        updateSession { session ->
+            var next = session
+            details.forEach { detail ->
+                next = applyAssistantDetail(next, detail)
+            }
+            next
+        }
+        return
+    }
+
+    // Legacy single-action suggestions (no details)
     when (suggestion.type) {
-        com.example.kpkn.domain.sessionassistant.AssistantActionType.REDUCE_SET -> {
+        AssistantActionType.REDUCE_SET -> {
             val muscle = suggestion.muscle
             if (muscle != null) {
-                updateSession { session ->
-                    reduceSetsForMuscle(session, muscle)
+                updateSession { session -> reduceSetsForMuscle(session, muscle) }
+            }
+        }
+        AssistantActionType.LOWER_RPE -> {
+            updateSession { session ->
+                if (suggestion.exerciseId != null) {
+                    lowerRpeOnExercise(session, suggestion.exerciseId)
+                } else {
+                    lowerRpeOnAllExercises(session)
                 }
             }
         }
-        com.example.kpkn.domain.sessionassistant.AssistantActionType.LOWER_RPE -> {
-            updateSession { session ->
-                lowerRpeOnAllExercises(session)
-            }
+        AssistantActionType.REMOVE_FAILURE -> {
+            updateSession { session -> convertFailureToRir(session) }
         }
-        com.example.kpkn.domain.sessionassistant.AssistantActionType.REMOVE_FAILURE -> {
-            updateSession { session ->
-                convertFailureToRir(session)
-            }
-        }
-        com.example.kpkn.domain.sessionassistant.AssistantActionType.REDUCE_REST_TIME -> {
+        AssistantActionType.REDUCE_REST_TIME -> {
             updateSession { session ->
                 session.transformExercises { exercise ->
                     val currentRest = exercise.restTime ?: 90
@@ -141,38 +168,113 @@ fun SessionEditorViewModel.applyAssistantSuggestion(suggestionId: String) {
                 }
             }
         }
-        com.example.kpkn.domain.sessionassistant.AssistantActionType.CONVERT_TO_DROPSET -> {
+        AssistantActionType.CONVERT_TO_DROPSET -> {
             val exerciseId = suggestion.exerciseId ?: return
-            updateSession { session ->
-                session.transformExercises { exercise ->
-                    if (exercise.id != exerciseId) return@transformExercises exercise
-                    val updatedSets = exercise.sets.map { set ->
-                        if (set.isDropSet) set else set.copy(isDropSet = true, dropSets = listOf(com.example.kpkn.data.models.DropSetData(weight = set.weight ?: 0.0, reps = (set.targetReps ?: 8) / 2)))
-                    }
-                    exercise.copy(sets = updatedSets)
-                }
-            }
+            updateSession { session -> convertExerciseToDropSet(session, exerciseId) }
         }
-        com.example.kpkn.domain.sessionassistant.AssistantActionType.CONVERT_TO_SUPERSET -> {
+        AssistantActionType.CONVERT_TO_SUPERSET -> {
             val targetExerciseId = suggestion.exerciseId ?: return
-            val session = currentUiState.session ?: return
-            val allExercises = session.allExercises()
-            val targetIdx = allExercises.indexOfFirst { it.id == targetExerciseId }
-            if (targetIdx < 0) return
-            val partner = allExercises.getOrNull(targetIdx + 1) ?: return
-            if (partner.id == targetExerciseId) return
-            val groupId = "superset_group_${System.currentTimeMillis()}"
-            updateSession { s ->
-                s.copy(
-                    supersetGroups = s.supersetGroups + com.example.kpkn.data.models.SupersetGroup(
-                        id = groupId,
-                        exerciseOrder = listOf(targetExerciseId, partner.id),
-                    )
-                )
-            }
+            updateSession { session -> convertToSupersetWithNext(session, targetExerciseId) }
         }
         else -> Unit
     }
+}
+
+private fun SessionEditorViewModel.applyAssistantDetail(
+    session: Session,
+    detail: AssistantSuggestionDetail,
+): Session = when (val action = detail.action) {
+    is AssistantDetailAction.LowerRpe -> {
+        if (action.exerciseId != null) {
+            lowerRpeOnExercise(session, action.exerciseId, action.amount)
+        } else {
+            lowerRpeOnAllExercises(session)
+        }
+    }
+    is AssistantDetailAction.ReduceSet -> {
+        when {
+            action.exerciseId != null -> reduceSetsForExercise(session, action.exerciseId)
+            action.muscle != null -> reduceSetsForMuscle(session, action.muscle)
+            else -> session
+        }
+    }
+    is AssistantDetailAction.ReduceRest -> {
+        session.transformExercises { exercise ->
+            val currentRest = exercise.restTime ?: 90
+            exercise.copy(restTime = maxOf(30, currentRest - action.seconds))
+        }
+    }
+    is AssistantDetailAction.ConvertToDropSet -> convertExerciseToDropSet(session, action.exerciseId)
+    is AssistantDetailAction.ConvertToSuperset -> convertToSupersetWithNext(session, action.exerciseId)
+    AssistantDetailAction.RemoveFailure -> convertFailureToRir(session)
+}
+
+internal fun SessionEditorViewModel.reduceSetsForExercise(session: Session, exerciseId: String): Session {
+    return session.transformExercises { exercise ->
+        if (exercise.id != exerciseId || exercise.sets.size <= 1) exercise
+        else exercise.copy(sets = exercise.sets.dropLast(1))
+    }
+}
+
+internal fun SessionEditorViewModel.lowerRpeOnExercise(
+    session: Session,
+    exerciseId: String,
+    amount: Double = 0.5,
+): Session {
+    return session.transformExercises { exercise ->
+        if (exercise.id != exerciseId) return@transformExercises exercise
+        exercise.copy(sets = exercise.sets.map { set ->
+            when (set.intensityMode) {
+                IntensityMode.FAILURE -> set.copy(
+                    intensityMode = IntensityMode.RIR,
+                    targetRIR = 1,
+                    isFailure = false,
+                )
+                IntensityMode.RPE -> {
+                    val currentRpe = set.targetRPE ?: 8.0
+                    set.copy(targetRPE = maxOf(6.0, currentRpe - amount))
+                }
+                IntensityMode.RIR -> {
+                    val currentRir = set.targetRIR ?: 2
+                    set.copy(targetRIR = (currentRir + amount.roundToInt()).coerceAtMost(5))
+                }
+                else -> set
+            }
+        })
+    }
+}
+
+internal fun SessionEditorViewModel.convertExerciseToDropSet(session: Session, exerciseId: String): Session {
+    return session.transformExercises { exercise ->
+        if (exercise.id != exerciseId) return@transformExercises exercise
+        val updatedSets = exercise.sets.map { set ->
+            if (set.isDropSet) set else set.copy(
+                isDropSet = true,
+                dropSets = listOf(
+                    com.example.kpkn.data.models.DropSetData(
+                        weight = set.weight ?: 0.0,
+                        reps = (set.targetReps ?: 8) / 2,
+                    ),
+                ),
+            )
+        }
+        exercise.copy(sets = updatedSets)
+    }
+}
+
+internal fun SessionEditorViewModel.convertToSupersetWithNext(session: Session, targetExerciseId: String): Session {
+    val allExercises = session.allExercises()
+    val targetIdx = allExercises.indexOfFirst { it.id == targetExerciseId }
+    if (targetIdx < 0) return session
+    val partner = allExercises.getOrNull(targetIdx + 1) ?: return session
+    if (partner.id == targetExerciseId) return session
+    val groupId = "superset_group_${System.currentTimeMillis()}"
+    return session.copy(
+        supersetGroups = session.supersetGroups + com.example.kpkn.data.models.SupersetGroup(
+            id = groupId,
+            exerciseOrder = listOf(targetExerciseId, partner.id),
+        ),
+    )
 }
 
 internal fun SessionEditorViewModel.reduceSetsForMuscle(session: Session, muscle: String): Session {

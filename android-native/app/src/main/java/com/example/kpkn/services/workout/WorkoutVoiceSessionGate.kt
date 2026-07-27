@@ -7,6 +7,7 @@ package com.example.kpkn.services.workout
 object WorkoutVoiceSessionGate {
 
     private val ACTIVE_STAGES = setOf(
+        VoicePipelineStage.ARMED,
         VoicePipelineStage.LISTENING,
         VoicePipelineStage.PROCESSING,
         VoicePipelineStage.CONFIRM_WAIT,
@@ -34,7 +35,9 @@ object WorkoutVoiceSessionGate {
         if (current == VoicePipelineStage.ERROR_RECOVERY) return VoicePipelineStage.ERROR_RECOVERY
         // Do not interrupt CONFIRM_WAIT / TTS mid-utterance with a hard error stage;
         // still allow recovery when idle listening.
-        if (current == VoicePipelineStage.LISTENING) return VoicePipelineStage.ERROR_RECOVERY
+        if (current == VoicePipelineStage.LISTENING || current == VoicePipelineStage.ARMED) {
+            return VoicePipelineStage.ERROR_RECOVERY
+        }
         return null
     }
 
@@ -50,7 +53,9 @@ object WorkoutVoiceSessionGate {
     }
 
     fun shouldAcceptFinalResult(stage: VoicePipelineStage): Boolean {
-        return stage != VoicePipelineStage.DISABLED && stage != VoicePipelineStage.TTS_SPEAKING
+        return stage != VoicePipelineStage.DISABLED &&
+            stage != VoicePipelineStage.ARMED &&
+            stage != VoicePipelineStage.TTS_SPEAKING
     }
 
     fun shouldProcessCommand(stage: VoicePipelineStage): Boolean {
@@ -58,7 +63,14 @@ object WorkoutVoiceSessionGate {
     }
 
     const val MAX_CONSECUTIVE_ENGINE_ERRORS = 5
-    const val ENGINE_ERROR_RETRY_MS = 750L
+    /** @deprecated Prefer [engineErrorBackoffMs] — kept for callers that expect a single delay. */
+    const val ENGINE_ERROR_RETRY_MS = 400L
     /** Time to wait for sí/no (or AddSet persistence) after TTS finishes asking. */
     const val CONFIRM_WAIT_TIMEOUT_MS = 8_000L
+
+    /** Exponential backoff: 400 → 800 → 1600 ms (capped) based on consecutive error count. */
+    fun engineErrorBackoffMs(consecutiveErrors: Int): Long {
+        val step = (consecutiveErrors - 1).coerceAtLeast(0).coerceAtMost(2)
+        return 400L shl step
+    }
 }

@@ -105,6 +105,7 @@ import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.isCompetitionMeet
 import java.util.UUID
 import com.example.kpkn.ui.locale.LocaleManager
 import com.example.kpkn.ui.theme.AppThemeMode
@@ -1156,6 +1157,15 @@ private fun KPKNNavGraph(
         composable(KpknRoute.Competitions.route) {
             CompetitionScreen(onBack = { navController.popBackStack() })
         }
+        composable(KpknRoute.CompetitionDetail.route) { backStack ->
+            val competitionId = backStack.arguments
+                ?.getString(KpknRoute.CompetitionDetail.ARG_COMPETITION_ID)
+                ?.takeIf { it.isNotBlank() }
+            CompetitionScreen(
+                onBack = { navController.popBackStack() },
+                initialCompetitionId = competitionId,
+            )
+        }
         composable(KpknRoute.Nutrition.route) {
             NutritionScreen(
                 viewModel = nutritionViewModel,
@@ -1571,27 +1581,16 @@ private fun navigateWorkoutOrCompetition(
     session: Session,
     program: Program,
 ) {
-    if (session.isMeetDay || session.isCompetitionSession) {
-        when (session.competitionRecordMode) {
-            com.example.kpkn.data.models.CompetitionRecordMode.TECHNICAL -> {
-                navController.navigate(KpknRoute.Workout.create(program.id, session.id)) { launchSingleTop = true }
-            }
-            com.example.kpkn.data.models.CompetitionRecordMode.JOURNAL -> {
-                val recordId = session.competitionRecordId
-                if (!recordId.isNullOrBlank()) {
-                    navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
-                } else {
-                    navController.navigate(KpknRoute.Competitions.route) { launchSingleTop = true }
-                }
-            }
-            else -> {
-                val recordId = session.competitionRecordId
-                if (!recordId.isNullOrBlank()) {
-                    navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
-                } else {
-                    navController.navigate(KpknRoute.Workout.create(program.id, session.id)) { launchSingleTop = true }
-                }
-            }
+    // Las sesiones de competición (técnica, bitácora o híbrida) nunca abren el WorkoutScreen:
+    // no tienen series planificadas y quedaría una pantalla vacía. Siempre van al flujo de
+    // meet day (CompetitionScreen/CompetitionDetail), donde viven el peso corporal, los
+    // intentos y las luces del jurado.
+    if (session.isCompetitionMeet) {
+        val recordId = session.competitionRecordId
+        if (!recordId.isNullOrBlank()) {
+            navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
+        } else {
+            navController.navigate(KpknRoute.Competitions.route) { launchSingleTop = true }
         }
     } else {
         navController.navigate(KpknRoute.Workout.create(program.id, session.id))

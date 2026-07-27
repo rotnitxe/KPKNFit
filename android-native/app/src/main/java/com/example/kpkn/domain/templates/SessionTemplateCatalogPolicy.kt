@@ -38,17 +38,18 @@ object SessionTemplateCatalogPolicy {
         "Pectorales" to 10.0..14.0,
         "Dorsales" to 10.0..14.0,
         "Trapecio" to 6.0..10.0,
-        "Deltoides" to 8.0..12.0,
+        "Deltoides" to 8.0..14.0,
         "Bíceps" to 6.0..10.0,
         "Tríceps" to 6.0..10.0,
-        "Cuádriceps" to 10.0..14.0,
+        "Cuádriceps" to 10.0..16.0,
         "Isquiosurales" to 8.0..12.0,
         "Glúteos" to 8.0..14.0,
         "Pantorrillas" to 6.0..12.0,
         "Aductores" to 4.0..8.0,
         "Abdomen" to 4.0..10.0,
         "Core" to 4.0..8.0,
-        "Erectores Espinales" to 3.0..6.0
+        // Compuestos (sentadilla / bisagra) aportan erectores secundarios reales del catálogo.
+        "Erectores Espinales" to 3.0..12.0,
     )
 
     fun templatesForSplit(

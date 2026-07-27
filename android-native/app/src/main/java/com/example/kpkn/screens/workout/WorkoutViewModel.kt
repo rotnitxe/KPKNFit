@@ -86,8 +86,11 @@ class WorkoutViewModel(
         base + aliases
     }
     private val voiceRecognizer = WorkoutVoiceRecognizer(appContext.applicationContext)
-    private val voiceController = WorkoutVoiceController(appContext.applicationContext)
     private val sessionTtsManager = WorkoutTtsManager(appContext.applicationContext)
+    private val voiceController = WorkoutVoiceController(
+        context = appContext.applicationContext,
+        sharedTtsManager = sessionTtsManager,
+    )
     private val performanceRangeStore = PerformanceRangeStore(appContext)
     private val pacingNotifications = WorkoutPacingNotificationManager(appContext)
 
@@ -269,6 +272,8 @@ class WorkoutViewModel(
         updateState = { transform -> _uiState.update(transform) },
         persistOngoingState = { persistOngoingState() },
         visibleExercises = ::visibleExercises,
+        isVoiceActive = { voiceController.isEnabled() },
+        speakViaVoice = { text -> voiceController.speakAnnouncement(text) },
     )
 
     private val tagsContextController = WorkoutTagsContextController(
@@ -373,6 +378,35 @@ class WorkoutViewModel(
                     }
                 }
                 override fun clearPendingStructuralPersistence() = this@WorkoutViewModel.clearPendingStructuralPersistence()
+                override fun stopRestTimer() = this@WorkoutViewModel.stopRestTimer()
+                override fun addRestTime(seconds: Int) = this@WorkoutViewModel.addRestTime(seconds)
+                override fun resolvePendingRestSuggestion(useAdaptive: Boolean) =
+                    this@WorkoutViewModel.resolvePendingRestSuggestion(useAdaptive)
+                override fun undoVoiceRecordedSet(payload: com.example.kpkn.services.workout.VoiceUndoPayload) =
+                    this@WorkoutViewModel.undoVoiceRecordedSet(payload)
+                override fun patchLastCompletedSet(patch: com.example.kpkn.services.workout.VoiceSetEditPatch) =
+                    this@WorkoutViewModel.patchLastCompletedSet(patch)
+                override fun coachPaceAlert() = _uiState.value.coachPaceAlert
+                override fun sessionTimeRemainingSeconds() = sessionTimeRemainingSeconds.value
+                override fun suggestedWeightReason(exercise: Exercise, setIdx: Int, side: String?): String? {
+                    val suggestion = loadSuggestionController.getWeightSuggestionWithAutoRegulation(
+                        exercise, setIdx, _uiState.value.exerciseTags[exercise.id], side,
+                    ) ?: return null
+                    return suggestion.reason.takeIf { it.isNotBlank() }
+                        ?: "Basado en tu historial y la fatiga actual."
+                }
+                override fun voiceExerciseAliases() = repository.settings.value.voiceExerciseAliases
+                override fun enteringExerciseRangeHint(exercise: Exercise): String? {
+                    val canonicalId = canonicalExerciseKey(exercise)
+                    performanceRangeStore.prefetchIfMissing(canonicalId, viewModelScope)
+                    val range = performanceRangeStore.getCached(canonicalId) ?: return null
+                    return com.example.kpkn.services.workout.WorkoutVoiceEnteringCue.rangeHint(
+                        ermMin = range.ermMin,
+                        ermMax = range.ermMax,
+                        sampleCount = range.sampleCount,
+                        showPRsInWorkout = repository.settings.value.showPRsInWorkout,
+                    )
+                }
             },
         )
         sessionHydrator = WorkoutSessionHydrator(
@@ -489,6 +523,9 @@ class WorkoutViewModel(
         initExtractedControllers()
         sessionTtsManager.initialize()
         voiceController.initialize(viewModelScope)
+        voiceController.verbosityProvider = { repository.settings.value.voiceVerbosity }
+        voiceController.noiseProfileProvider = { repository.settings.value.voiceNoiseProfile }
+        voiceController.inputModeProvider = { repository.settings.value.voiceInputMode }
         voiceController.exerciseInfoProvider = provider@{
             val s = _uiState.value
             val exercises = visibleExercises(s)
@@ -503,6 +540,13 @@ class WorkoutViewModel(
                 (if (s.completedSets.containsKey("${exercise.id}_${s.currentSetIdx}_L")) 1 else 0) +
                 (if (s.completedSets.containsKey("${exercise.id}_${s.currentSetIdx}_R")) 1 else 0)
             } else 0
+            val pendingSide = if (exercise.isEffectivelyUnilateral()) {
+                exercise.expectedSidesForSet(s.currentSetIdx).firstOrNull { side ->
+                    !s.completedSets.containsKey("${exercise.id}_${s.currentSetIdx}_${side.take(1).uppercase()}")
+                }
+            } else {
+                null
+            }
             WorkoutVoiceController.ExerciseInfo(
                 exercise = exercise,
                 setIndex = s.currentSetIdx,
@@ -510,8 +554,10 @@ class WorkoutViewModel(
                 isTimeMode = exercise.trainingMode == TrainingMode.TIME,
                 isUnilateral = exercise.isEffectivelyUnilateral(),
                 baseIntensityMode = exercise.sets.getOrNull(s.currentSetIdx)?.intensityMode,
-                setDraft = getSetDraft(exercise.id, s.currentSetIdx, null),
-                suggestedWeight = getWeightSuggestionWithAutoRegulation(exercise, s.currentSetIdx)?.suggestedWeight,
+                setDraft = getSetDraft(exercise.id, s.currentSetIdx, pendingSide),
+                suggestedWeight = getWeightSuggestionWithAutoRegulation(
+                    exercise, s.currentSetIdx, side = pendingSide,
+                )?.suggestedWeight,
                 restSecondsRemaining = restTimer.remaining.value.takeIf { it > 0 },
                 nextExerciseName = exercises.getOrNull(s.currentExerciseIdx + 1)?.name,
                 showPostExerciseSheet = s.showPostExerciseSheet,
@@ -519,14 +565,29 @@ class WorkoutViewModel(
                 supersetRound = round,
                 isUnilateralSidePending = sidePending,
                 completedSidesCount = completedSidesCount,
+                pendingUnilateralSide = pendingSide,
             )
         }
+        voiceController.hapticEnabledProvider = { repository.settings.value.hapticFeedbackEnabled }
+        sessionTtsManager.setSpeechRate(repository.settings.value.ttsSpeechRate)
         voiceController.onCommandDetected = { command -> voiceCommandHandler.handleVoiceCommand(command) }
         voiceController.onStageChanged = {
             _uiState.update { it.copy(voiceSessionState = voiceController.state.value) }
         }
         voiceController.onError = {
             _uiState.update { it.copy(voiceSessionState = voiceController.state.value) }
+        }
+        viewModelScope.launch {
+            combine(restTimer.remaining, restTimer.recovery) { remaining, recovery ->
+                remaining to recovery
+            }.collect { (remaining, recovery) ->
+                if (voiceController.isEnabled() && _uiState.value.isRestTimerRunning) {
+                    voiceController.onRestCountdownTick(
+                        remainingSeconds = remaining,
+                        isReady = recovery?.isReady == true,
+                    )
+                }
+            }
         }
         viewModelScope.launch {
             if (!repository.isReady.value) {
@@ -1040,11 +1101,22 @@ class WorkoutViewModel(
     fun toggleVoiceSession() = voiceCommandHandler.toggleVoiceSession()
 
 
-    fun enableVoice() = voiceCommandHandler.enableVoice()
+    fun enableVoice() = run {
+        voiceCommandHandler.enableVoice()
+        if (voiceController.isEnabled() && !repository.settings.value.hasSeenVoiceTutorial) {
+            voiceController.speakAnnouncement(
+                "Práctica rápida: di ochenta por ocho. En esta prueba no se registrará la serie.",
+            )
+            repository.updateSettings { it.copy(hasSeenVoiceTutorial = true) }
+        }
+    }
 
 
     fun disableVoice() = voiceCommandHandler.disableVoice()
 
+    fun beginVoicePushToTalk() = voiceController.beginPushToTalk()
+
+    fun endVoicePushToTalk() = voiceController.endPushToTalk()
 
     /** Stops continuous listening when the activity goes to background; does not auto-resume. */
     fun onVoiceHostPaused() = voiceCommandHandler.onVoiceHostPaused()
@@ -1316,6 +1388,7 @@ class WorkoutViewModel(
 
     private fun openFinishSheet() {
         abortRestTimerHard()
+        voiceController.resetFeedbackPromptFlags()
         _uiState.update {
             it.copy(
                 showFinishSheet = true,
@@ -1330,6 +1403,9 @@ class WorkoutViewModel(
                 continuityFeedbackExerciseId = null,
                 isRestTimerRunning = false,
             )
+        }
+        if (voiceController.isEnabled()) {
+            voiceController.announceFeedbackSheetPrompt(isFinal = true)
         }
         persistOngoingState()
     }
@@ -1789,6 +1865,60 @@ class WorkoutViewModel(
         )
     }
 
+    fun undoVoiceRecordedSet(payload: com.example.kpkn.services.workout.VoiceUndoPayload) {
+        if (!payload.isActive()) return
+        stopRestTimer()
+        _uiState.update { state ->
+            val exerciseIdx = visibleExercises(state).indexOfFirst { it.id == payload.exerciseId }
+                .takeIf { it >= 0 } ?: state.currentExerciseIdx
+            state.copy(
+                completedSets = state.completedSets - payload.setKey,
+                currentExerciseIdx = exerciseIdx,
+                currentSetIdx = payload.setIdx,
+                pendingRestSuggestion = null,
+                restModalState = null,
+                isRestTimerRunning = false,
+            )
+        }
+        persistOngoingState()
+        voiceController.clearPendingUndo()
+    }
+
+    fun patchLastCompletedSet(patch: com.example.kpkn.services.workout.VoiceSetEditPatch): Boolean {
+        val state = _uiState.value
+        val key = state.setJustLoggedKey
+            ?: state.completedSets.keys.lastOrNull()
+            ?: return false
+        val current = state.completedSets[key] ?: return false
+        val newWeight = when {
+            patch.weightKg != null -> patch.weightKg
+            patch.weightDeltaKg != null -> (current.weight + patch.weightDeltaKg).coerceAtLeast(0.0)
+            else -> current.weight
+        }
+        val newReps = patch.metricValue ?: current.reps
+        val newRpe = if (patch.intensityKind == com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind.RPE) {
+            patch.intensityValue
+        } else {
+            current.rpe
+        }
+        val newRir = if (patch.intensityKind == com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind.RIR) {
+            patch.intensityValue?.toInt()
+        } else {
+            current.rir
+        }
+        val updated = current.copy(
+            weight = newWeight,
+            reps = newReps,
+            rpe = newRpe,
+            rir = newRir,
+        )
+        _uiState.update {
+            it.copy(completedSets = it.completedSets + (key to updated))
+        }
+        persistOngoingState()
+        return true
+    }
+
     fun finishUpToCurrentPoint() {
         stopRestTimer()
         val state = _uiState.value
@@ -1939,8 +2069,13 @@ class WorkoutViewModel(
 
     // ─── Post-exercise sheet ──────────────────────────────────────────────────
 
-    fun requestPostExerciseFeedback(exerciseIdx: Int) =
+    fun requestPostExerciseFeedback(exerciseIdx: Int) {
+        voiceController.resetFeedbackPromptFlags()
         feedbackController.requestPostExerciseFeedback(exerciseIdx)
+        if (voiceController.isEnabled()) {
+            voiceController.announceFeedbackSheetPrompt(isFinal = false)
+        }
+    }
 
     fun savePostExerciseFeedback(feedback: PostExerciseFeedback) =
         feedbackController.savePostExerciseFeedback(feedback)

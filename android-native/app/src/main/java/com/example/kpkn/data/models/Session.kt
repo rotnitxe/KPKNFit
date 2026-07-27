@@ -442,4 +442,23 @@ fun Session.effectiveSupersetGroupFor(exercise: Exercise): SupersetGroup? {
 fun Exercise.supersetGroupRefOrLegacyId(): String? =
     supersetGroupRef?.takeIf { it.isNotBlank() } ?: supersetId?.takeIf { it.isNotBlank() }
 
+/**
+ * Clasificación de alto nivel de una sesión. Se deriva de las flags legacy
+ * [Session.isMeetDay]/[Session.isCompetitionSession] en vez de reemplazarlas, para no
+ * forzar una migración de datos. Los call sites nuevos deberían preferir [Session.isCompetitionMeet]
+ * o [Session.kind] antes que leer las flags booleanas directamente.
+ */
+enum class SessionKind { TRAINING, COMPETITION }
+
+/**
+ * True si la sesión es un día de meet/competición (planificación o resultados), sin importar
+ * cuál de las dos flags legacy se usó para marcarla. Centraliza el OR para poder migrar
+ * call sites gradualmente sin duplicar la condición en todo el código.
+ */
+val Session.isCompetitionMeet: Boolean
+    get() = isMeetDay || isCompetitionSession
+
+val Session.kind: SessionKind
+    get() = if (isCompetitionMeet) SessionKind.COMPETITION else SessionKind.TRAINING
+
 

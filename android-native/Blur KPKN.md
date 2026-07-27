@@ -187,15 +187,16 @@ Usamos [Haze](https://github.com/chrisbanes/haze) (`dev.chrisbanes.haze`), ya in
 
 ## 3. Valores canónicos (NO tocar)
 
-Definidos en `ui/components/KpknGlass.kt`. Ya incluyen el pase **"20% más oscuro"** aprobado.
+Definidos en `ui/components/KpknGlass.kt`. Incluyen el pase **oscuro para sheets** (asistente
+y resto de `KpknSheet`) para evitar vidrio lechoso.
 
 | Parámetro         | Valor                              | Rol                                                       |
 |-------------------|------------------------------------|-----------------------------------------------------------|
 | `blurRadius`      | `40.dp`                            | Fuerza del desenfoque. Alto = lectura clara de "vidrio".  |
-| `tint`            | `Color.White` alpha `0.10`         | Brillo esmerilado sutil (bajó de 0.12 → 0.10).            |
-| `backgroundColor` | `Color.Black` alpha `0.26`         | Scrim oscuro = la "oscuridad" (subió de 0.22 → 0.26).     |
-| `noiseFactor`     | `0.05`                             | Grano fino, evita banding en degradados planos.           |
-| borde             | `Color.White` alpha `0.16`, `1.dp` | Filo del vidrio (hairline).                               |
+| `tint`            | `Color.White` alpha `0.015`        | Brillo esmerilado (… → 0.03 → 0.015).                     |
+| `backgroundColor` | `Color.Black` alpha `0.68`         | Scrim oscuro (… → 0.55 → 0.68).                           |
+| `noiseFactor`     | `0.04`                             | Grano fino, evita banding en degradados planos.           |
+| borde             | `Color.White` alpha `0.08`, `1.dp` | Filo del vidrio (hairline).                               |
 
 ---
 

@@ -66,9 +66,10 @@ class ProgramMigrationEngineTest {
 
     @Test
     fun `active calendarized program survives migrateIfNeeded reload`() {
-        val clock = FixedClock(LocalDate.of(2026, 7, 20))
+        val clock = FixedClock(LocalDate.of(2026, 7, 18))
+        // Monday start — aligns as-is; week ends 2026-07-19 so clock stays inside the window.
         val calendarized = cyclicBase().calendarizeSimpleCycle(
-            startDate = LocalDate.of(2026, 7, 14),
+            startDate = LocalDate.of(2026, 7, 13),
             startDayOfWeek = 1,
             trainingDays = setOf(1, 3, 5),
         )
@@ -80,7 +81,7 @@ class ProgramMigrationEngineTest {
         assertNotNull(migrated.program.pausedCyclicSnapshot)
         assertEquals(ProgramCalendarizationMode.SIMPLE_DATED, migrated.program.calendarization?.mode)
         assertEquals(3, migrated.program.pausedCyclicSnapshot?.runState?.cycleNumber)
-        assertEquals("2026-07-14", migrated.program.timelineStartDate)
+        assertEquals("2026-07-13", migrated.program.timelineStartDate)
         assertEquals(ProgramRunStatus.BREAK, migrated.program.runState?.status)
         assertTrue(migrated.program.runState?.runId != migrated.program.pausedCyclicSnapshot?.runState?.runId)
     }
@@ -172,9 +173,9 @@ class ProgramMigrationEngineTest {
 
     @Test
     fun `expired calendarization reconciles when clock advances without reload`() {
-        val startClock = FixedClock(LocalDate.of(2026, 7, 20))
+        val startClock = FixedClock(LocalDate.of(2026, 7, 18))
         val calendarized = cyclicBase().calendarizeSimpleCycle(
-            startDate = LocalDate.of(2026, 7, 14),
+            startDate = LocalDate.of(2026, 7, 13),
             startDayOfWeek = 1,
             trainingDays = setOf(1, 3, 5),
         )

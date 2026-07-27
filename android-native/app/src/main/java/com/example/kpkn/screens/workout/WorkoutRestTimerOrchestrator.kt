@@ -99,10 +99,21 @@ class WorkoutRestTimerOrchestrator(
         }
         ports.persistOngoingState()
         if (voiceController.isEnabled()) {
-            if (kind == RestTimerKind.SUPERSET_INTRA || kind == RestTimerKind.SUPERSET_ROUND) {
-                voiceController.onRestTimerStartedContextual(seconds, isTransition = (kind == RestTimerKind.SUPERSET_INTRA))
-            } else {
-                voiceController.onRestTimerStarted(seconds)
+            val pending = getState().pendingRestSuggestion
+            val adaptiveDelta = pending?.let { kotlin.math.abs(it.adaptiveSeconds - it.plannedSeconds) } ?: 0
+            when {
+                kind == RestTimerKind.SUPERSET_INTRA || kind == RestTimerKind.SUPERSET_ROUND -> {
+                    voiceController.onRestTimerStartedContextual(seconds, isTransition = (kind == RestTimerKind.SUPERSET_INTRA))
+                }
+                pending != null && adaptiveDelta >= 15 -> {
+                    voiceController.onRestTimerStartedWithAdaptiveHint(
+                        plannedSeconds = pending.plannedSeconds,
+                        suggestedSeconds = pending.adaptiveSeconds,
+                    )
+                }
+                else -> {
+                    voiceController.onRestTimerStarted(seconds)
+                }
             }
         }
         restTimer.scheduleAndTick(
@@ -217,11 +228,23 @@ class WorkoutRestTimerOrchestrator(
     }
 
     private suspend fun handleNaturalFinish(advanceOnFinish: Boolean) {
-        getState().restModalState?.exerciseName?.let { nextExerciseName ->
-            voiceController.onRestTimerFinished(
-                exerciseName = nextExerciseName,
-                suggestedWeight = suggestedWeightForVoiceAfterRest(),
-            )
+        val stateBeforeFinish = getState()
+        val exercise = ports.visibleExercises(stateBeforeFinish).getOrNull(stateBeforeFinish.currentExerciseIdx)
+        stateBeforeFinish.restModalState?.exerciseName?.let { nextExerciseName ->
+            if (exercise != null) {
+                voiceController.onRestTimerFinishedWithStep(
+                    exerciseName = nextExerciseName,
+                    suggestedWeight = suggestedWeightForVoiceAfterRest(),
+                    setNumber = stateBeforeFinish.currentSetIdx + 1,
+                    totalSets = exercise.sets.size,
+                    round = null,
+                )
+            } else {
+                voiceController.onRestTimerFinished(
+                    exerciseName = nextExerciseName,
+                    suggestedWeight = suggestedWeightForVoiceAfterRest(),
+                )
+            }
         }
         restTimer.clearReferences()
         restTimer.zeroRemaining()

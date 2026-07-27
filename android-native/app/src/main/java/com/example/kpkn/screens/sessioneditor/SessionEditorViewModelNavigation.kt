@@ -5,9 +5,9 @@ import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
-import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
 import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
+import com.example.kpkn.domain.training.CompetitionSessionSync
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
 import kotlinx.coroutines.Dispatchers
@@ -159,6 +159,10 @@ fun SessionEditorViewModel.createCompetitionSessionForDay(dayOfWeek: Int): Sessi
     if (!repository.upsertSessionInProgram(programId, state.weekId, state.macroIndex, state.mesoIndex, newSession)) {
         return SessionEditorSaveResult(success = false, message = "No pudimos crear la sesión de competición en esta semana.")
     }
+    // Crear el CompetitionRecord de forma atómica junto con la sesión: evita records huérfanos
+    // si el usuario navega fuera antes de guardar la sesión explícitamente.
+    CompetitionSessionSync.merge(newSession, existingRecord = null, programId = program.id, weekId = state.weekId)
+        ?.let { record -> runCatching { CompetitionRepository.getInstance() }.getOrNull()?.upsert(record) }
 
     updateUi {
         val updatedWeekSessions = ensureSessionInList(it.weekSessions, newSession)
@@ -375,61 +379,11 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
 }
 
 internal fun SessionEditorViewModel.syncCompetitionRecordFromSession(session: Session, program: Program, weekId: String) {
-    if (!session.isMeetDay && !session.isCompetitionSession) return
-    val recordId = session.competitionRecordId ?: return
-    val details = session.competitionDetails
+    if (!session.isCompetitionMeet) return
     val repository = runCatching { CompetitionRepository.getInstance() }.getOrNull() ?: return
-    val existing = repository.getById(recordId)
-    val record = existing ?: CompetitionRecord(
-        id = recordId,
-        title = session.name.ifBlank { "Competición" },
-        eventDate = details?.competitionDate,
-        sportType = session.competitionSportType ?: CompetitionTemplateType.CUSTOM,
-        recordMode = session.competitionRecordMode ?: CompetitionRecordMode.HYBRID,
-        status = CompetitionRecordStatus.PLANNED,
-        plannedProgramId = program.id,
-        plannedSessionId = session.id,
-        plannedWeekId = weekId,
-        keyDateId = session.competitionKeyDateId,
-    )
-    val blocks = session.exercises.map { exercise ->
-        val existingBlock = record.technicalBlocks.firstOrNull { block ->
-            block.exerciseDbId == exercise.exerciseDbId ||
-                block.canonicalExerciseId == exercise.resolvedCanonicalExerciseId() ||
-                block.exerciseName.equals(exercise.name, ignoreCase = true)
-        }
-        CompetitionTechnicalBlock(
-            id = existingBlock?.id ?: exercise.id,
-            title = exercise.name.ifBlank { "Movimiento" },
-            exerciseDbId = exercise.exerciseDbId ?: exercise.exerciseId,
-            canonicalExerciseId = exercise.resolvedCanonicalExerciseId(),
-            exerciseName = exercise.name,
-            bestValidWeightKg = exercise.reference1RM,
-            notes = existingBlock?.notes,
-        )
-    }
-    repository.upsert(
-        record.copy(
-            title = session.name.ifBlank { record.title },
-            eventDate = details?.competitionDate ?: record.eventDate,
-            startTime = details?.startTime ?: record.startTime,
-            location = details?.location ?: record.location,
-            federation = details?.federation ?: record.federation,
-            category = details?.category ?: record.category,
-            bodyweightKg = details?.targetBodyweightKg ?: session.meetBodyweight ?: record.bodyweightKg,
-            notes = details?.strategyNotes ?: record.notes,
-            sportType = session.competitionSportType ?: record.sportType,
-            recordMode = session.competitionRecordMode ?: record.recordMode,
-            plannedProgramId = record.plannedProgramId ?: program.id,
-            plannedSessionId = record.plannedSessionId ?: session.id,
-            plannedWeekId = record.plannedWeekId ?: weekId,
-            keyDateId = record.keyDateId ?: session.competitionKeyDateId,
-            reminderOneWeekEnabled = details?.reminderOneWeekEnabled ?: record.reminderOneWeekEnabled,
-            reminder48hEnabled = details?.reminder48hEnabled ?: record.reminder48hEnabled,
-            reminderStartEnabled = details?.reminderStartEnabled ?: record.reminderStartEnabled,
-            technicalBlocks = blocks.ifEmpty { record.technicalBlocks },
-        )
-    )
+    val existing = session.competitionRecordId?.let { repository.getById(it) }
+    val merged = CompetitionSessionSync.merge(session, existing, program.id, weekId) ?: return
+    repository.upsert(merged)
 }
 
 internal fun SessionEditorViewModel.appendDraftSnapshot(

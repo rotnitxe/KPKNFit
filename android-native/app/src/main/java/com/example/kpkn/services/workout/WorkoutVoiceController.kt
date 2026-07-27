@@ -15,11 +15,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class WorkoutVoiceController(private val context: Context) {
+class WorkoutVoiceController(
+    private val context: Context,
+    sharedTtsManager: WorkoutTtsManager? = null,
+) {
 
     private val continuousEngine = WorkoutContinuousVoiceEngine(context)
-    private val ttsManager = WorkoutTtsManager(context)
+    private val ttsManager = sharedTtsManager ?: WorkoutTtsManager(context)
     private val audioHelper = SystemAudioHelper
+    private val speechBus = WorkoutSpeechBus()
 
     private val _state = MutableStateFlow(VoiceSessionState())
     val state: StateFlow<VoiceSessionState> = _state.asStateFlow()
@@ -30,15 +34,33 @@ class WorkoutVoiceController(private val context: Context) {
     private var partialCollectJob: Job? = null
     private var errorCollectJob: Job? = null
     private var utteranceWatchdogJob: Job? = null
+    private var rmsCollectJob: Job? = null
+    private var onDeviceCollectJob: Job? = null
     private var confirmedOrCancelled = false
+    /** Debounce instant partial commands so one utterance does not fire twice. */
+    private var lastInstantPartialKey: String? = null
+    private var lastHypothesisConfidence: Float = 0f
+    private var announcedPostFeedbackPrompt = false
+    private var announcedFinalFeedbackPrompt = false
     /** User wants continuous voice on; survives async TTS init without clobbering LISTENING. */
     private var sessionWanted = false
     private var announcedVoiceOn = false
+    /** True while the dock mic is held in push-to-talk mode. */
+    private var pushToTalkHeld = false
+    private var activeSpeechPriority: WorkoutSpeechPriority? = null
 
     var onCommandDetected: ((VoiceSessionCommand) -> Unit)? = null
     var onError: ((String) -> Unit)? = null
     var onStageChanged: ((VoicePipelineStage) -> Unit)? = null
     var exerciseInfoProvider: (() -> ExerciseInfo?)? = null
+    var verbosityProvider: (() -> com.example.kpkn.data.models.VoiceVerbosity)? = null
+    var noiseProfileProvider: (() -> com.example.kpkn.data.models.VoiceNoiseProfile)? = null
+    var hapticEnabledProvider: (() -> Boolean)? = null
+    var inputModeProvider: (() -> com.example.kpkn.data.models.VoiceInputMode)? = null
+
+    private var pendingUndo: VoiceUndoPayload? = null
+    private var announcedTenSecondsForRest = false
+    private var announcedRecoveredForRest = false
 
     data class ExerciseInfo(
         val exercise: Exercise,
@@ -56,6 +78,7 @@ class WorkoutVoiceController(private val context: Context) {
         val supersetRound: Int? = null,
         val isUnilateralSidePending: Boolean = false,
         val completedSidesCount: Int = 0,
+        val pendingUnilateralSide: String? = null,
     )
 
     fun initialize(scope: CoroutineScope) {
@@ -80,11 +103,16 @@ class WorkoutVoiceController(private val context: Context) {
     fun enable() {
         sessionWanted = true
         announcedVoiceOn = false
+        pushToTalkHeld = false
         when (WorkoutVoiceSessionGate.enableAction(_state.value.stage)) {
             WorkoutVoiceSessionGate.EnableAction.NOOP_ALREADY_ACTIVE -> return
             WorkoutVoiceSessionGate.EnableAction.START_LISTENING -> {
-                startListening()
-                updateStage(VoicePipelineStage.LISTENING)
+                if (isPushToTalkMode()) {
+                    armPushToTalkSession()
+                } else {
+                    startListening()
+                    updateStage(VoicePipelineStage.LISTENING)
+                }
                 _state.update { it.copy(consecutiveErrors = 0, errorMessage = null) }
                 announceVoiceOnIfReady()
             }
@@ -92,14 +120,69 @@ class WorkoutVoiceController(private val context: Context) {
     }
 
     fun disable() {
+        val shouldAnnounce = sessionWanted && ttsManager.isInitialized
         sessionWanted = false
         announcedVoiceOn = false
+        pushToTalkHeld = false
+        speechBus.clear()
+        activeSpeechPriority = null
         cancelAllJobs()
         continuousEngine.stop()
-        ttsManager.stop()
-        releaseDucking()
+        if (shouldAnnounce) {
+            // Session already stopped — speak off without ASR pause path.
+            requestDucking()
+            runSpeakingOrSkip(
+                priority = WorkoutSpeechPriority.CRITICAL,
+                onComplete = { releaseDucking() },
+                speak = { ttsManager.speakVoiceOff() },
+            )
+        } else {
+            ttsManager.stop()
+            releaseDucking()
+        }
         updateStage(VoicePipelineStage.DISABLED)
         resetState()
+    }
+
+    /** Hold-to-talk: start ASR while session is armed. */
+    fun beginPushToTalk() {
+        if (!sessionWanted || !isPushToTalkMode()) return
+        pushToTalkHeld = true
+        val stage = _state.value.stage
+        if (stage == VoicePipelineStage.TTS_SPEAKING ||
+            stage == VoicePipelineStage.CONFIRM_WAIT ||
+            stage == VoicePipelineStage.PROCESSING
+        ) {
+            return
+        }
+        resumeListening()
+    }
+
+    /** Hold-to-talk: pause ASR unless mid-command / mid-TTS. */
+    fun endPushToTalk() {
+        if (!isPushToTalkMode()) return
+        pushToTalkHeld = false
+        if (!sessionWanted) return
+        val stage = _state.value.stage
+        if (stage == VoicePipelineStage.CONFIRM_WAIT ||
+            stage == VoicePipelineStage.PROCESSING ||
+            stage == VoicePipelineStage.TTS_SPEAKING
+        ) {
+            return
+        }
+        continuousEngine.pause()
+        updateStage(VoicePipelineStage.ARMED)
+    }
+
+    private fun isPushToTalkMode(): Boolean =
+        inputModeProvider?.invoke() == com.example.kpkn.data.models.VoiceInputMode.PUSH_TO_TALK
+
+    private fun armPushToTalkSession() {
+        val s = scope ?: return
+        // Mute system beeps via start, then pause ASR until the user holds the mic.
+        continuousEngine.start(s)
+        continuousEngine.pause()
+        updateStage(VoicePipelineStage.ARMED)
     }
 
     private fun announceVoiceOnIfReady() {
@@ -116,21 +199,164 @@ class WorkoutVoiceController(private val context: Context) {
     fun getStage(): VoicePipelineStage = _state.value.stage
 
     fun onRestTimerFinished(exerciseName: String, suggestedWeight: Double?) {
+        if (!allows(VoiceAnnouncementKind.ESSENTIAL)) return
         speakWhilePaused {
             ttsManager.speakRestComplete(exerciseName, suggestedWeight)
         }
     }
 
+    fun onRestTimerFinishedWithStep(
+        exerciseName: String,
+        suggestedWeight: Double?,
+        setNumber: Int,
+        totalSets: Int,
+        round: Int? = null,
+    ) {
+        if (!allows(VoiceAnnouncementKind.ESSENTIAL)) return
+        speakWhilePaused {
+            ttsManager.speakRestComplete(exerciseName, suggestedWeight)
+            ttsManager.speakCurrentExercise(exerciseName, setNumber, totalSets, round)
+        }
+    }
+
     fun onRestTimerStarted(durationSeconds: Int) {
+        announcedTenSecondsForRest = false
+        announcedRecoveredForRest = false
+        if (!allows(VoiceAnnouncementKind.ESSENTIAL)) return
         speakWhilePaused {
             ttsManager.speakRestStarted(durationSeconds)
         }
     }
 
+    fun onRestTimerStartedWithAdaptiveHint(plannedSeconds: Int, suggestedSeconds: Int) {
+        announcedTenSecondsForRest = false
+        announcedRecoveredForRest = false
+        if (!allows(VoiceAnnouncementKind.ESSENTIAL)) return
+        speakWhilePaused {
+            ttsManager.speakRestAdaptiveSuggestion(plannedSeconds, suggestedSeconds)
+        }
+    }
+
     fun onRestTimerStartedContextual(durationSeconds: Int, isTransition: Boolean) {
+        announcedTenSecondsForRest = false
+        announcedRecoveredForRest = false
+        if (!allows(VoiceAnnouncementKind.ESSENTIAL)) return
         speakWhilePaused {
             ttsManager.speakRestStartedContextual(durationSeconds, isTransition)
         }
+    }
+
+    /** Tick hook for mid-rest spoken cues (10s / recovered). */
+    fun onRestCountdownTick(remainingSeconds: Int, isReady: Boolean) {
+        if (!sessionWanted) return
+        if (remainingSeconds == 10 && !announcedTenSecondsForRest && allows(VoiceAnnouncementKind.COMPLETE)) {
+            announcedTenSecondsForRest = true
+            speakWhilePaused { ttsManager.speakTenSecondsLeft() }
+        }
+        if (isReady && remainingSeconds > 10 && !announcedRecoveredForRest && allows(VoiceAnnouncementKind.COMPLETE)) {
+            announcedRecoveredForRest = true
+            speakWhilePaused { ttsManager.speakRecoveredReady() }
+        }
+    }
+
+    fun consumePendingUndo(): VoiceUndoPayload? {
+        val payload = pendingUndo ?: return null
+        pendingUndo = null
+        return if (payload.isActive()) payload else null
+    }
+
+    fun clearPendingUndo() {
+        pendingUndo = null
+    }
+
+    fun stopSpeaking() {
+        ttsManager.stop()
+        releaseDucking()
+        if (sessionWanted) {
+            resumeListening()
+        }
+    }
+
+    fun announceFeedbackSheetPrompt(isFinal: Boolean) {
+        if (!sessionWanted) return
+        if (isFinal) {
+            if (announcedFinalFeedbackPrompt) return
+            announcedFinalFeedbackPrompt = true
+            if (!allows(VoiceAnnouncementKind.ESSENTIAL)) return
+            speakWhilePaused { ttsManager.speakError("¿Alguna molestia o nota final? Di guardar cuando termines.") }
+        } else {
+            if (announcedPostFeedbackPrompt) return
+            announcedPostFeedbackPrompt = true
+            if (!allows(VoiceAnnouncementKind.ESSENTIAL)) return
+            speakWhilePaused { ttsManager.speakError("Di la calidad técnica del 1 al 10, o una molestia.") }
+        }
+    }
+
+    fun resetFeedbackPromptFlags() {
+        announcedPostFeedbackPrompt = false
+        announcedFinalFeedbackPrompt = false
+    }
+
+    fun speakSetUpdated(
+        weightKg: Double?,
+        reps: Int?,
+        intensityValue: Double? = null,
+        intensityKind: WorkoutVoiceIntensityKind? = null,
+    ) {
+        val summary = buildString {
+            if (weightKg != null) append(weightKg.toInt().takeIf { weightKg == it.toDouble() } ?: weightKg)
+            if (weightKg != null && reps != null) append(" por ")
+            if (reps != null) append(reps)
+            if (intensityValue != null && intensityKind != null) {
+                if (isNotEmpty()) append(", ")
+                append(
+                    when (intensityKind) {
+                        WorkoutVoiceIntensityKind.RPE -> "RPE ${intensityValue.toInt().takeIf { intensityValue == it.toDouble() } ?: intensityValue}"
+                        WorkoutVoiceIntensityKind.RIR -> "RIR ${intensityValue.toInt()}"
+                        WorkoutVoiceIntensityKind.PERCENT_RM -> "${intensityValue.toInt().takeIf { intensityValue == it.toDouble() } ?: intensityValue}% RM"
+                    },
+                )
+            }
+        }
+        speakWhilePaused(priority = WorkoutSpeechPriority.HIGH) {
+            ttsManager.speak(
+                if (summary.isNotBlank()) "Actualizado: $summary." else "Serie actualizada.",
+                queueFlush = true,
+            )
+        }
+    }
+
+    fun publishHeardSummary(command: VoiceSessionCommand) {
+        val summary = when (command) {
+            is VoiceSessionCommand.RegisterSet -> {
+                val w = command.interpretation.weightKg
+                val r = command.interpretation.metricValue
+                when {
+                    w != null && r != null -> "${w.toInt()}×$r"
+                    else -> "Serie dictada"
+                }
+            }
+            is VoiceSessionCommand.EditLastSet -> "Serie editada"
+            is VoiceSessionCommand.SkipRest -> "Descanso saltado"
+            is VoiceSessionCommand.UseAdaptiveRest -> "Descanso adaptativo"
+            is VoiceSessionCommand.UndoLastSet -> "Serie deshecha"
+            is VoiceSessionCommand.Confirm -> "Confirmado"
+            is VoiceSessionCommand.Cancel -> "Cancelado"
+            is VoiceSessionCommand.SuggestWeight,
+            is VoiceSessionCommand.SuggestWeightReasoned -> "Consulta de carga"
+            is VoiceSessionCommand.FatigueAdvice -> "Consejo de fatiga"
+            is VoiceSessionCommand.PaceStatus -> "Ritmo de sesión"
+            else -> ""
+        }
+        if (summary.isNotBlank()) {
+            _state.update { it.copy(lastHeardSummary = summary) }
+        }
+    }
+
+    private fun allows(kind: VoiceAnnouncementKind): Boolean {
+        val verbosity = verbosityProvider?.invoke()
+            ?: com.example.kpkn.data.models.VoiceVerbosity.COMPLETE
+        return WorkoutVoiceVerbosityGate.allows(verbosity, kind)
     }
 
     fun speakUnilateralSideRegistered(completedSide: String, pendingSide: String) {
@@ -152,9 +378,18 @@ class WorkoutVoiceController(private val context: Context) {
         }
     }
 
-    fun speakCurrentExercise(exerciseName: String, setNumber: Int, totalSets: Int, round: Int? = null) {
-        speakWhilePaused {
+    fun speakCurrentExercise(
+        exerciseName: String,
+        setNumber: Int,
+        totalSets: Int,
+        round: Int? = null,
+        rangeHint: String? = null,
+    ) {
+        speakWhilePaused(priority = WorkoutSpeechPriority.NORMAL, kind = VoiceAnnouncementKind.ESSENTIAL) {
             ttsManager.speakCurrentExercise(exerciseName, setNumber, totalSets, round)
+            if (!rangeHint.isNullOrBlank() && allows(VoiceAnnouncementKind.COMPLETE)) {
+                ttsManager.speak(rangeHint, queueFlush = false)
+            }
         }
     }
 
@@ -182,18 +417,48 @@ class WorkoutVoiceController(private val context: Context) {
         }
     }
 
-    private fun speakWhilePaused(block: () -> Unit) {
+    /**
+     * Pacing / ad-hoc announcements while continuous voice is on.
+     * Pauses ASR so TTS is not self-heard; no-op if voice session is off.
+     */
+    fun speakAnnouncement(
+        text: String,
+        queueFlush: Boolean = true,
+        priority: WorkoutSpeechPriority = WorkoutSpeechPriority.NORMAL,
+    ) {
+        if (!allows(VoiceAnnouncementKind.COMPLETE)) return
+        speakWhilePaused(priority = priority) {
+            ttsManager.speak(text, queueFlush = queueFlush)
+        }
+    }
+
+    private fun speakWhilePaused(
+        priority: WorkoutSpeechPriority = WorkoutSpeechPriority.NORMAL,
+        kind: VoiceAnnouncementKind? = null,
+        block: () -> Unit,
+    ) {
         if (!sessionWanted) return
+        if (kind != null && !allows(kind)) return
+
+        val acquired = speechBus.tryAcquire(priority) {
+            ttsManager.stop()
+            activeSpeechPriority?.let { speechBus.release(it) }
+        }
+        if (!acquired) return
+        activeSpeechPriority = priority
 
         continuousEngine.pause()
 
         if (!ttsManager.isInitialized) {
+            speechBus.release(priority)
+            activeSpeechPriority = null
             resumeListening()
             return
         }
 
         requestDucking()
         runSpeakingOrSkip(
+            priority = priority,
             onComplete = {
                 scope?.launch {
                     releaseDucking()
@@ -208,10 +473,16 @@ class WorkoutVoiceController(private val context: Context) {
      * Speaks with a guaranteed resume path: if TTS is not ready, [onComplete] runs immediately;
      * otherwise an 8s watchdog forces completion if the utterance callback never arrives.
      */
-    private fun runSpeakingOrSkip(onComplete: () -> Unit, speak: () -> Unit) {
+    private fun runSpeakingOrSkip(
+        priority: WorkoutSpeechPriority = WorkoutSpeechPriority.NORMAL,
+        onComplete: () -> Unit,
+        speak: () -> Unit,
+    ) {
         updateStage(VoicePipelineStage.TTS_SPEAKING)
 
         if (!ttsManager.isInitialized) {
+            speechBus.release(priority)
+            if (activeSpeechPriority == priority) activeSpeechPriority = null
             onComplete()
             return
         }
@@ -219,6 +490,8 @@ class WorkoutVoiceController(private val context: Context) {
         val finish = WorkoutVoiceUtteranceGuard.createCompletionGate {
             utteranceWatchdogJob?.cancel()
             utteranceWatchdogJob = null
+            speechBus.release(priority)
+            if (activeSpeechPriority == priority) activeSpeechPriority = null
             onComplete()
         }
         ttsManager.setOnUtteranceComplete { finish() }
@@ -234,20 +507,37 @@ class WorkoutVoiceController(private val context: Context) {
     private fun startListening() {
         val scope = this.scope ?: return
 
+        noiseProfileProvider?.invoke()?.let { continuousEngine.setNoiseProfile(it) }
+
         engineCollectJob?.cancel()
         partialCollectJob?.cancel()
         errorCollectJob?.cancel()
+        rmsCollectJob?.cancel()
+        onDeviceCollectJob?.cancel()
         continuousEngine.start(scope)
 
         engineCollectJob = scope.launch {
-            continuousEngine.finalResults.collect { text ->
-                handleFinalResult(text)
+            continuousEngine.finalResults.collect { hypotheses ->
+                handleFinalHypotheses(hypotheses)
             }
         }
 
         partialCollectJob = scope.launch {
             continuousEngine.partialResults.collect { text ->
                 _state.update { it.copy(partialText = text) }
+                maybeHandleInstantPartial(text)
+            }
+        }
+
+        rmsCollectJob = scope.launch {
+            continuousEngine.rmsLevel.collect { rms ->
+                _state.update { it.copy(rmsLevel = rms) }
+            }
+        }
+
+        onDeviceCollectJob = scope.launch {
+            continuousEngine.usingOnDeviceRecognizer.collect { onDevice ->
+                _state.update { it.copy(usingOnDeviceRecognizer = onDevice) }
             }
         }
 
@@ -265,12 +555,63 @@ class WorkoutVoiceController(private val context: Context) {
                 onStageChanged?.invoke(VoicePipelineStage.ERROR_RECOVERY)
                 onError?.invoke(error)
                 if (errors <= WorkoutVoiceSessionGate.MAX_CONSECUTIVE_ENGINE_ERRORS) {
-                    delay(WorkoutVoiceSessionGate.ENGINE_ERROR_RETRY_MS)
+                    delay(WorkoutVoiceSessionGate.engineErrorBackoffMs(errors))
                     if (sessionWanted && _state.value.stage == VoicePipelineStage.ERROR_RECOVERY) {
                         resumeListening()
                     }
                 }
             }
+        }
+    }
+
+    private fun handleFinalHypotheses(hypotheses: List<VoiceHypothesis>) {
+        val best = WorkoutVoiceHypothesisScorer.pickBest(hypotheses) ?: return
+        lastHypothesisConfidence = best.confidence
+        lastInstantPartialKey = null
+        handleFinalResult(best.text)
+    }
+
+    private fun maybeHandleInstantPartial(text: String) {
+        val s = _state.value
+        val restActive = exerciseInfoProvider?.invoke()?.restSecondsRemaining != null
+        val confirmWait = s.stage == VoicePipelineStage.CONFIRM_WAIT
+        if (!confirmWait && !restActive) return
+        if (s.stage == VoicePipelineStage.TTS_SPEAKING || s.stage == VoicePipelineStage.PROCESSING) return
+
+        val command = WorkoutVoiceInstantCommands.match(
+            partial = text,
+            confirmWait = confirmWait,
+            restActive = restActive && !confirmWait,
+        ) ?: return
+
+        val key = "${s.stage}:${command::class.simpleName}:${text.trim().lowercase()}"
+        if (key == lastInstantPartialKey) return
+        lastInstantPartialKey = key
+
+        if (confirmWait) {
+            handleConfirmInput(text)
+            return
+        }
+
+        if (command is VoiceSessionCommand.StopSpeaking) {
+            stopSpeaking()
+            return
+        }
+
+        if (WorkoutVoiceSessionGate.shouldProcessCommand(s.stage) || restActive) {
+            continuousEngine.pause()
+            requestDucking()
+            dispatchInstantRestCommand(command)
+        }
+    }
+
+    private fun dispatchInstantRestCommand(command: VoiceSessionCommand) {
+        updateStage(VoicePipelineStage.PROCESSING)
+        _state.update { it.copy(lastCommand = command) }
+        onCommandDetected?.invoke(command)
+        if (_state.value.stage != VoicePipelineStage.TTS_SPEAKING) {
+            releaseDucking()
+            resumeListening()
         }
     }
 
@@ -315,14 +656,31 @@ class WorkoutVoiceController(private val context: Context) {
         val isTimeMode = exerciseInfo?.isTimeMode ?: false
         val isUnilateral = exerciseInfo?.isUnilateral ?: false
 
-        val command = WorkoutVoiceCommandParser.parseCommand(
+        val command = WorkoutVoiceIntentMatcher.match(
             transcript = transcript,
+            stage = _state.value.stage.let {
+                if (it == VoicePipelineStage.PROCESSING) VoicePipelineStage.LISTENING else it
+            },
             isTimeMode = isTimeMode,
             isUnilateral = isUnilateral,
-            hasPendingConfirmation = false,
             isRestTimerActive = exerciseInfo?.restSecondsRemaining != null,
+            showPostExerciseSheet = false,
+            showFinishSheet = false,
             pendingAddSetPersistence = false,
-        )
+        ).let { cmd ->
+            if (cmd is VoiceSessionCommand.RegisterSet && isUnilateral && cmd.interpretation.side == null) {
+                val side = exerciseInfo?.pendingUnilateralSide
+                if (side != null) {
+                    VoiceSessionCommand.RegisterSet(cmd.interpretation.copy(side = side))
+                } else {
+                    cmd
+                }
+            } else {
+                cmd
+            }
+        }
+
+        publishHeardSummary(command)
 
         when (command) {
             is VoiceSessionCommand.RegisterSet -> {
@@ -334,6 +692,10 @@ class WorkoutVoiceController(private val context: Context) {
             is VoiceSessionCommand.TurnOffVoice -> {
                 releaseDucking()
                 disable()
+                return
+            }
+            is VoiceSessionCommand.StopSpeaking -> {
+                stopSpeaking()
                 return
             }
             is VoiceSessionCommand.Confirm,
@@ -401,6 +763,56 @@ class WorkoutVoiceController(private val context: Context) {
         }
 
         val isTimeMode = exerciseInfo?.isTimeMode ?: false
+        val draft = exerciseInfo?.setDraft
+        val draftHasWeightAndReps = !draft?.weightText.isNullOrBlank() && !draft?.valueText.isNullOrBlank()
+        val decision = WorkoutVoiceConfirmationPolicy.decide(
+            interpretation = interpretation,
+            asrConfidence = lastHypothesisConfidence,
+            draftHasWeightAndReps = draftHasWeightAndReps,
+        )
+        if (decision == ConfirmationDecision.AUTO) {
+            val side = interpretation.side ?: exerciseInfo?.pendingUnilateralSide
+            val resolved = if (side != null && interpretation.side == null) {
+                interpretation.copy(side = side)
+            } else {
+                interpretation
+            }
+            runSpeakingOrSkip(
+                onComplete = {
+                    if (exerciseInfo != null) {
+                        pendingUndo = VoiceUndoPayload(
+                            setKey = VoiceUndoPayload.buildSetKey(
+                                exerciseInfo.exercise.id,
+                                exerciseInfo.setIndex,
+                                resolved.side,
+                            ),
+                            exerciseId = exerciseInfo.exercise.id,
+                            setIdx = exerciseInfo.setIndex,
+                            side = resolved.side,
+                            expiresAtMs = System.currentTimeMillis() + VoiceUndoPayload.WINDOW_MS,
+                        )
+                    }
+                    onCommandDetected?.invoke(VoiceSessionCommand.RegisterSet(resolved))
+                    releaseDucking()
+                    resumeListening()
+                },
+                speak = {
+                    ttsManager.speakAutoConfirmedWithUndo(
+                        weightKg = resolved.weightKg,
+                        reps = resolved.metricValue,
+                        isTimeMode = isTimeMode,
+                    )
+                },
+            )
+            return
+        }
+
+        if (decision == ConfirmationDecision.REJECT) {
+            releaseDucking()
+            resumeListening()
+            return
+        }
+
         runSpeakingOrSkip(
             onComplete = {
                 updateStage(VoicePipelineStage.CONFIRM_WAIT)
@@ -638,6 +1050,12 @@ class WorkoutVoiceController(private val context: Context) {
     private fun resumeListening() {
         if (!sessionWanted) return
 
+        if (isPushToTalkMode() && !pushToTalkHeld) {
+            continuousEngine.pause()
+            updateStage(VoicePipelineStage.ARMED)
+            return
+        }
+
         _state.update {
             it.copy(
                 partialText = "",
@@ -673,6 +1091,10 @@ class WorkoutVoiceController(private val context: Context) {
         partialCollectJob = null
         errorCollectJob?.cancel()
         errorCollectJob = null
+        rmsCollectJob?.cancel()
+        rmsCollectJob = null
+        onDeviceCollectJob?.cancel()
+        onDeviceCollectJob = null
         confirmationJob?.cancel()
         confirmationJob = null
         utteranceWatchdogJob?.cancel()
@@ -695,6 +1117,33 @@ class WorkoutVoiceController(private val context: Context) {
     private fun updateStage(stage: VoicePipelineStage) {
         _state.update { it.copy(stage = stage) }
         onStageChanged?.invoke(stage)
+        maybeHapticForStage(stage)
+    }
+
+    private fun maybeHapticForStage(stage: VoicePipelineStage) {
+        if (hapticEnabledProvider?.invoke() != true) return
+        try {
+            val vibrator = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                val mgr = context.getSystemService(android.os.VibratorManager::class.java)
+                mgr?.defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                context.getSystemService(Context.VIBRATOR_SERVICE) as? android.os.Vibrator
+            } ?: return
+            val ms = when (stage) {
+                VoicePipelineStage.LISTENING -> 18L
+                VoicePipelineStage.CONFIRM_WAIT -> 30L
+                VoicePipelineStage.ERROR_RECOVERY -> 50L
+                else -> return
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                vibrator.vibrate(android.os.VibrationEffect.createOneShot(ms, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(ms)
+            }
+        } catch (_: Exception) {
+        }
     }
 
     fun shutdown() {

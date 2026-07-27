@@ -18,7 +18,12 @@ class ExerciseDatabaseLoadTest {
         try {
             val exercises = json.decodeFromString<List<ExerciseMuscleInfo>>(jsonText)
             println("Successfully parsed ${exercises.size} exercises!")
-            assertTrue("Should parse all 1030 exercises", exercises.size == 1030)
+            assertTrue("Should parse all 969 unique exercises", exercises.size == 969)
+            assertTrue("Exercise IDs must be unique", exercises.map { it.id }.distinct().size == exercises.size)
+            assertTrue(
+                "subMuscleGroup must survive deserialization",
+                exercises.any { !it.subMuscleGroup.isNullOrBlank() },
+            )
         } catch (e: Throwable) {
             println("FAILED TO PARSE exercise_database.json!")
             println("Exception message: ${e.message}")
