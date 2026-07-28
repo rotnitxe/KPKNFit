@@ -67,15 +67,20 @@ internal fun Exercise.withSessionEditorDefaults(defaults: SessionEditorRuleDefau
         val safeSetCount = defaults.setCount.coerceAtLeast(1)
         val safeReps = defaults.reps.coerceAtLeast(1)
         val safeRpe = defaults.rpe.coerceIn(1.0, 10.0)
+        val mode = when (defaults.intensityType) {
+            DefaultIntensityType.RIR -> IntensityMode.RIR
+            DefaultIntensityType.FALLO -> IntensityMode.FAILURE
+            else -> IntensityMode.RPE
+        }
         val nextSets = List(safeSetCount) { index ->
             val existing = sets.getOrNull(index) ?: ExerciseSet(id = UUID.randomUUID().toString())
             existing.copy(
                 targetReps = safeReps,
-                targetRPE = safeRpe,
-                targetRIR = null,
+                targetRPE = if (mode == IntensityMode.RPE) safeRpe else null,
+                targetRIR = if (mode == IntensityMode.RIR) safeRpe.toInt().coerceIn(0, 5) else null,
                 targetPercentageRM = null,
-                intensityMode = IntensityMode.RPE,
-                isFailure = false,
+                intensityMode = mode,
+                isFailure = mode == IntensityMode.FAILURE,
             )
         }
         return copy(

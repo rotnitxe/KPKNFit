@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,16 +12,26 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,18 +39,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.exercises.*
-import androidx.compose.foundation.background
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.domain.exercises.resolvePrimaryMuscleLabel
+import com.example.kpkn.ui.components.KpknSheetTokens
+import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 
 @Composable
 internal fun ExercisePickerCompactCard(
@@ -57,7 +60,7 @@ internal fun ExercisePickerCompactCard(
             .clickable { onSelect() },
         shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = bgAlpha),
-        contentColor = Color.White
+        contentColor = KpknSheetTokens.Body,
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -74,7 +77,7 @@ internal fun ExercisePickerCompactCard(
                     fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    color = Color.White
+                    color = KpknSheetTokens.Body,
                 )
                 if (onOpenVariantFlow != null && !info.variantGroupId.isNullOrBlank()) {
                     IconButton(onClick = onOpenVariantFlow, modifier = Modifier.size(26.dp)) {
@@ -95,13 +98,18 @@ internal fun ExercisePickerCompactCard(
                     )
                 }
                 IconButton(onClick = onInfo, modifier = Modifier.size(26.dp)) {
-                    Icon(Icons.Default.Info, contentDescription = "Ver detalle", modifier = Modifier.size(16.dp))
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = "Ver detalle",
+                        tint = KpknSheetTokens.MutedStrong,
+                        modifier = Modifier.size(16.dp),
+                    )
                 }
             }
             Text(
                 listOfNotNull(resolvePrimaryMuscleLabel(info), info.equipment).joinToString(" · "),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = KpknSheetTokens.MutedStrong,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -126,7 +134,7 @@ internal fun ExercisePickerDetailedCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = bgAlpha),
-            contentColor = Color.White
+            contentColor = KpknSheetTokens.Body,
         ),
     ) {
         Column(
@@ -145,12 +153,12 @@ internal fun ExercisePickerDetailedCard(
                         fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        color = Color.White
+                        color = KpknSheetTokens.Body,
                     )
                     Text(
                         listOfNotNull(primaryMuscle, info.equipment, info.type).joinToString(" · "),
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = KpknSheetTokens.MutedStrong,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -173,7 +181,11 @@ internal fun ExercisePickerDetailedCard(
                     )
                 }
                 IconButton(onClick = onInfo) {
-                    Icon(Icons.Default.Info, contentDescription = "Ver detalle")
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = "Ver detalle",
+                        tint = KpknSheetTokens.MutedStrong,
+                    )
                 }
             }
 
@@ -181,7 +193,7 @@ internal fun ExercisePickerDetailedCard(
                 Text(
                     info.description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = KpknSheetTokens.MutedStrong,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -201,12 +213,14 @@ internal fun ExercisePickerSelectionDock(
     var showSelectedList by remember { mutableStateOf(false) }
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        tonalElevation = 3.dp,
+        shape = RoundedCornerShape(16.dp),
+        color = KpknSheetTokens.Panel,
+        contentColor = KpknSheetTokens.Body,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(
@@ -218,14 +232,14 @@ internal fun ExercisePickerSelectionDock(
             ) {
                 Text(
                     text = "${selectedExercises.size} seleccionados",
-                    color = Color.White,
+                    color = KpknSheetTokens.Body,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Icon(
                     if (showSelectedList) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     null,
-                    tint = Color.White.copy(alpha = 0.7f),
+                    tint = KpknSheetTokens.MutedStrong,
                 )
             }
             if (showSelectedList) {
@@ -238,7 +252,7 @@ internal fun ExercisePickerSelectionDock(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                                .background(Color.White.copy(alpha = 0.08f))
                                 .padding(horizontal = 8.dp, vertical = 6.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
@@ -246,7 +260,7 @@ internal fun ExercisePickerSelectionDock(
                             Text(
                                 info.name,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.White,
+                                color = KpknSheetTokens.Body,
                                 modifier = Modifier.weight(1f),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -258,7 +272,7 @@ internal fun ExercisePickerSelectionDock(
                                 Icon(
                                     Icons.Default.Close,
                                     "Quitar",
-                                    tint = Color.White.copy(alpha = 0.7f),
+                                    tint = KpknSheetTokens.MutedStrong,
                                     modifier = Modifier.size(16.dp),
                                 )
                             }
@@ -278,8 +292,18 @@ internal fun ExercisePickerSelectionDock(
                             onClearExerciseSelection()
                         },
                         modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = KpknSheetTokens.ControlFill,
+                            contentColor = KpknSheetTokens.ControlLabel,
+                        ),
                     ) {
-                        Text("Crear superserie", maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            "Crear superserie",
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            fontWeight = FontWeight.Black,
+                        )
                     }
                 }
                 FilledTonalButton(
@@ -288,8 +312,14 @@ internal fun ExercisePickerSelectionDock(
                         onClearExerciseSelection()
                     },
                     modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = kpknSheetWhiteTonalButtonColors(),
                 ) {
-                    Text("Agregar ${selectedExercises.size}", maxLines = 1)
+                    Text(
+                        "Agregar ${selectedExercises.size}",
+                        maxLines = 1,
+                        fontWeight = FontWeight.Black,
+                    )
                 }
             }
         }

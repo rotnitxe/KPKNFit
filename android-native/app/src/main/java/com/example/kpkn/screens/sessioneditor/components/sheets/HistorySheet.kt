@@ -3,102 +3,135 @@ package com.example.kpkn.screens.sessioneditor.components.sheets
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.exercises.*
-import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SessionDraftSnapshot
+import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SheetHeader
-import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
 import com.example.kpkn.screens.sessioneditor.formatHistoryTimestamp
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknSheetTokens
 
 @Composable
 internal fun HistorySheet(
     uiState: SessionEditorUiState,
     onRestoreSnapshot: (SessionDraftSnapshot) -> Unit,
 ) {
+    var pendingRestore by remember { mutableStateOf<SessionDraftSnapshot?>(null) }
+    val currentSession = uiState.session
+
     Column(
         Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 18.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(
+                horizontal = KpknSheetTokens.ContentPaddingHorizontal,
+                vertical = KpknSheetTokens.ContentPaddingTop,
+            ),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        SheetHeader("Historial y borradores", "Restaura snapshots locales o revisa sesiones registradas.")
-        Text("Cambios recientes del borrador", style = MaterialTheme.typography.labelLarge)
+        SheetHeader(
+            "Versiones",
+            "Restaura un orden anterior de esta sesión.",
+        )
         if (uiState.localDraftHistory.isEmpty()) {
-            Text("Todavía no hay snapshots locales.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "Todavía no hay versiones guardadas. Se crean al editar la estructura.",
+                color = KpknSheetTokens.MutedStrong,
+            )
         } else {
             uiState.localDraftHistory.asReversed().forEachIndexed { index, snapshot ->
                 val title = snapshot.session.name.ifBlank { "Sesión" }
-                val diffSummary = snapshot.changedFields.take(3).joinToString(" · ")
+                val diffSummary = snapshot.changedFields.take(3).joinToString(" · ").ifBlank { "ajustes" }
+                val isCurrent = currentSession != null && currentSession == snapshot.session
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable { onRestoreSnapshot(snapshot) },
-                    shape = RoundedCornerShape(16.dp),
-                    color = DarkEditorSurfaceSoft,
+                        .clip(RoundedCornerShape(KpknSheetTokens.PanelRadius))
+                        .clickable(enabled = !isCurrent) {
+                            if (uiState.hasUnsavedChanges && !isCurrent) {
+                                pendingRestore = snapshot
+                            } else {
+                                onRestoreSnapshot(snapshot)
+                            }
+                        },
+                    shape = RoundedCornerShape(KpknSheetTokens.PanelRadius),
+                    color = if (isCurrent) Color.White.copy(alpha = 0.16f) else KpknSheetTokens.Panel,
                 ) {
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Text("${index + 1}. $title", fontWeight = FontWeight.Bold)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                "${index + 1}. $title",
+                                fontWeight = FontWeight.Bold,
+                                color = KpknSheetTokens.Body,
+                            )
+                            if (isCurrent) {
+                                Text(
+                                    "Actual",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = KpknSheetTokens.Body,
+                                )
+                            }
+                        }
                         Text(
                             "${formatHistoryTimestamp(snapshot.savedAtMs)} · ${snapshot.reason}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = KpknSheetTokens.MutedStrong,
                         )
                         Text(
                             "${snapshot.exerciseCount} ejercicios · ${snapshot.setCount} series · ${snapshot.partCount} grupos",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = KpknSheetTokens.MutedStrong,
                         )
                         Text(
                             "Cambios: $diffSummary",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = KpknSheetTokens.MutedStrong,
                         )
                     }
                 }
             }
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-        Text("Sesiones registradas", style = MaterialTheme.typography.labelLarge)
-        if (uiState.workoutLogs.isEmpty()) {
-            Text("Todavía no hay historiales de esta sesión.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                uiState.workoutLogs.forEach { log ->
-                    Card {
-                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(log.date.substringBefore("T"), fontWeight = FontWeight.Black)
-                            Text("Duración ${log.durationMinutes} min · Volumen ${"%.0f".format(log.totalVolume)}", style = MaterialTheme.typography.bodySmall)
-                            Text("Fatiga ${log.fatigueLevel ?: 0}/10 · Estrés ${log.sessionStressScore?.toInt() ?: 0}", style = MaterialTheme.typography.bodySmall)
-                            if (!log.discomforts.isNullOrEmpty()) Text("Molestias: ${log.discomforts.joinToString()}", style = MaterialTheme.typography.bodySmall)
-                            if (!log.notes.isNullOrBlank()) Text(log.notes, style = MaterialTheme.typography.bodySmall)
-                            uiState.feedbackByLogId[log.id]?.let { feedback ->
-                                Text("Feedback muscular: ${feedback.muscleFeedback.keys.joinToString()}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    }
+
+    pendingRestore?.let { snapshot ->
+        KpknAlertDialog(
+            onDismissRequest = { pendingRestore = null },
+            title = "¿Restaurar esta versión?",
+            text = "Hay cambios sin guardar. Al restaurar se reemplaza el borrador actual (puedes deshacer con otra versión).",
+            confirmLabel = "Restaurar",
+            onConfirm = {
+                onRestoreSnapshot(snapshot)
+                pendingRestore = null
+            },
+            dismissLabel = "Cancelar",
+            onDismiss = { pendingRestore = null },
+        )
     }
 }

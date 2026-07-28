@@ -381,6 +381,12 @@ class VolumeCalculatorTest {
         assertEquals(2.0, lats!!.displayVolume, 0.01)
     }
 
+    @Test
+    fun normalizeMuscleGroup_core_does_not_collapse_to_abdomen() {
+        assertEquals("Core", VolumeCalculator.normalizeMuscleGroup("core"))
+        assertEquals("Abdomen", VolumeCalculator.normalizeMuscleGroup("recto abdominal"))
+    }
+
     /** normalizeCanonicalMuscleGroup: "core" literal → "Core", nunca "Abdomen". */
     @Test
     fun normalize_core_does_not_collapse_to_abdomen() {

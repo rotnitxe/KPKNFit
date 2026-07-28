@@ -280,7 +280,6 @@ import com.example.kpkn.screens.sessioneditor.AddSetGhostCard
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.formatEditorOneDecimal
 import com.example.kpkn.screens.sessioneditor.formatRestSummary
-import com.example.kpkn.screens.sessioneditor.formatHistoryTimestamp
 import com.example.kpkn.screens.sessioneditor.trainingModeLabel
 import com.example.kpkn.screens.sessioneditor.sessionEditorDayLabelShort
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
@@ -299,7 +298,6 @@ import com.example.kpkn.screens.sessioneditor.PART_COLORS
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SessionEditorSheet
 import com.example.kpkn.screens.sessioneditor.SessionSaveScope
-import com.example.kpkn.screens.sessioneditor.SessionDraftSnapshot
 import com.example.kpkn.screens.sessioneditor.SessionCloneApplyMode
 import com.example.kpkn.screens.sessioneditor.SessionCloneExerciseOption
 import com.example.kpkn.screens.sessioneditor.SessionCloneSourceOption
@@ -402,14 +400,16 @@ internal fun SessionContextNavigator(
     val navShape = RoundedCornerShape(28.dp)
     val navModifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 14.dp, vertical = 8.dp)
+        .padding(horizontal = 14.dp)
+        .padding(top = 8.dp, bottom = 0.dp)
         .kpknGlassOrFallback(hazeState, navShape)
     Box(modifier = navModifier) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+                .padding(horizontal = 14.dp)
+                .padding(top = 8.dp, bottom = 4.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             // Block chips for advanced programs

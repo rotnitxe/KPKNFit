@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +36,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.PathEffect
@@ -47,7 +49,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.*
+import com.example.kpkn.ui.components.KpknSheetTokens
 import kotlin.math.roundToInt
 
 /** Solid or gradient accent stored in [SessionPart.color]. */
@@ -152,19 +156,27 @@ internal fun DragLiftPreview(
     exercise: Exercise,
     rect: Rect,
     offset: Offset,
+    rootBounds: Rect?,
     modifier: Modifier = Modifier,
 ) {
+    val root = rootBounds ?: return
     val density = LocalDensity.current
+    val x = rect.left - root.left + offset.x
+    val y = rect.top - root.top + offset.y
     Surface(
         modifier = modifier
             .offset {
-                IntOffset(
-                    x = (rect.left + offset.x).roundToInt(),
-                    y = (rect.top + offset.y).roundToInt(),
-                )
+                IntOffset(x.roundToInt(), y.roundToInt())
             }
             .width(with(density) { rect.width.toDp() })
-            .heightIn(min = 70.dp),
+            .heightIn(min = 70.dp)
+            .zIndex(100f)
+            .graphicsLayer {
+                scaleX = 1.03f
+                scaleY = 1.03f
+                alpha = 0.96f
+                shadowElevation = 18.dp.toPx()
+            },
         shape = RoundedCornerShape(20.dp),
         color = DarkEditorSurface.copy(alpha = 0.98f),
         shadowElevation = 28.dp,
@@ -195,9 +207,55 @@ internal fun DragLiftPreview(
 }
 
 @Composable
-internal fun DropGapProjection(
+internal fun DragPartLiftPreview(
+    partName: String,
+    rect: Rect,
+    offsetY: Float,
+    rootBounds: Rect?,
+    modifier: Modifier = Modifier,
+) {
+    val root = rootBounds ?: return
+    val density = LocalDensity.current
+    val x = rect.left - root.left
+    val y = rect.top - root.top + offsetY
+    Surface(
+        modifier = modifier
+            .offset { IntOffset(x.roundToInt(), y.roundToInt()) }
+            .width(with(density) { rect.width.toDp() })
+            .heightIn(min = 56.dp)
+            .zIndex(100f)
+            .graphicsLayer {
+                scaleX = 1.03f
+                scaleY = 1.03f
+                alpha = 0.96f
+                shadowElevation = 18.dp.toPx()
+            },
+        shape = RoundedCornerShape(16.dp),
+        color = DarkEditorSurface.copy(alpha = 0.98f),
+        shadowElevation = 28.dp,
+        tonalElevation = 10.dp,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(Icons.Default.DragHandle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Text(
+                partName.ifBlank { "Grupo" }.uppercase(),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Black,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+/** DayView-style drop cue: thin primary bar between items. */
+@Composable
+internal fun SessionEditorDropIndicator(
     visible: Boolean,
-    accentColor: Color,
     modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
@@ -205,39 +263,25 @@ internal fun DropGapProjection(
         enter = fadeIn(tween(90)) + expandVertically(animationSpec = tween(140)),
         exit = fadeOut(tween(80)) + shrinkVertically(animationSpec = tween(120)),
     ) {
-        Surface(
+        Box(
             modifier = modifier
                 .fillMaxWidth()
-                .height(54.dp)
-                .padding(horizontal = 14.dp, vertical = 6.dp),
-            shape = RoundedCornerShape(18.dp),
-            color = accentColor.copy(alpha = 0.14f),
-        ) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .drawWithContent {
-                        drawContent()
-                        drawRoundRect(
-                            color = accentColor.copy(alpha = 0.48f),
-                            style = Stroke(
-                                width = 2f,
-                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f), 0f),
-                            ),
-                            cornerRadius = CornerRadius(18.dp.toPx(), 18.dp.toPx()),
-                        )
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    "Soltar aquí",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Black,
-                    color = accentColor,
-                )
-            }
-        }
+                .height(4.dp)
+                .padding(horizontal = 14.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(MaterialTheme.colorScheme.primary),
+        )
     }
+}
+
+@Deprecated("Use SessionEditorDropIndicator", ReplaceWith("SessionEditorDropIndicator(visible)"))
+@Composable
+internal fun DropGapProjection(
+    visible: Boolean,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    SessionEditorDropIndicator(visible = visible, modifier = modifier)
 }
 
 internal val DarkEditorSurface = Color(0xE61B1B20)
@@ -277,7 +321,7 @@ internal fun DarkChoiceChip(
             .clip(RoundedCornerShape(999.dp))
             .clickable { onClick() },
         shape = RoundedCornerShape(999.dp),
-        color = if (selected) Color.White else Color.White.copy(alpha = 0.78f),
+        color = if (selected) KpknSheetTokens.ChipSelected else KpknSheetTokens.ChipIdle,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp),
@@ -285,13 +329,13 @@ internal fun DarkChoiceChip(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             if (selected) {
-                Icon(Icons.Default.Check, contentDescription = null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                Icon(Icons.Default.Check, contentDescription = null, tint = KpknSheetTokens.ChipLabel, modifier = Modifier.size(15.dp))
             }
             Text(
                 label,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
-                color = Color.Black,
+                color = KpknSheetTokens.ChipLabel,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

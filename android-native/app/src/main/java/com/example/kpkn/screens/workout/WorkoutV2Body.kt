@@ -529,6 +529,20 @@ internal fun WorkoutV2Body(
                             color = barColor,
                             trackColor = Color.White.copy(alpha = 0.08f),
                         )
+                        val statusLabel = when {
+                            progress >= 1f -> "Presupuesto agotado"
+                            progress >= 0.9f -> "90% del presupuesto"
+                            progress >= 0.75f -> "75% del presupuesto"
+                            else -> null
+                        }
+                        if (statusLabel != null) {
+                            Text(
+                                statusLabel,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = barColor,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            )
+                        }
                         Spacer(Modifier.height(4.dp))
                     }
 

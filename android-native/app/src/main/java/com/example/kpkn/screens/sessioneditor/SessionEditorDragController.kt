@@ -165,12 +165,19 @@ class SessionEditorDragController {
         val activeId = draggingPartId ?: return
         draggingPartOffsetY += deltaY
         val startRect = dragStartPartRect ?: partBounds[activeId] ?: return
-        val centerY = startRect.center.y + draggingPartOffsetY
-        val targetId = groupedParts.firstOrNull { candidate ->
-            candidate.id != activeId && partBounds[candidate.id]?.contains(Offset(startRect.center.x, centerY)) == true
-        }?.id
-        partDropTargetId = targetId
-        partDropTargetIndex = targetId?.let { id -> groupedParts.indexOfFirst { it.id == id } }
+        val pointerY = startRect.center.y + draggingPartOffsetY
+        val ordered = groupedParts
+            .filter { it.id != activeId }
+            .mapNotNull { part -> partBounds[part.id]?.let { part to it } }
+            .sortedBy { it.second.center.y }
+        val before = ordered.firstOrNull { (_, rect) -> pointerY < rect.center.y }
+        if (before != null) {
+            partDropTargetId = before.first.id
+            partDropTargetIndex = groupedParts.indexOfFirst { it.id == before.first.id }.takeIf { it >= 0 }
+        } else {
+            partDropTargetId = null
+            partDropTargetIndex = groupedParts.size
+        }
     }
 
     fun endPartDrag(
@@ -181,8 +188,12 @@ class SessionEditorDragController {
         val targetIndex = partDropTargetIndex
         if (activeId != null && targetIndex != null) {
             val currentIndex = groupedParts.indexOfFirst { it.id == activeId }
-            if (currentIndex != -1 && targetIndex != currentIndex) {
-                onMovePart(activeId, targetIndex)
+            var adjusted = targetIndex
+            if (currentIndex >= 0 && targetIndex > currentIndex) {
+                adjusted = (targetIndex - 1).coerceAtLeast(0)
+            }
+            if (currentIndex != -1 && adjusted != currentIndex) {
+                onMovePart(activeId, adjusted.coerceIn(0, (groupedParts.size - 1).coerceAtLeast(0)))
             }
         }
         draggingPartId = null

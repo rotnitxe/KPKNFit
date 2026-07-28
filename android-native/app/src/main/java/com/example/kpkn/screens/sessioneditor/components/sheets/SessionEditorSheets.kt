@@ -379,6 +379,7 @@ internal fun SessionEditorSheets(
     setTargetDuration: (Int?) -> Unit,
     setPartTargetDuration: (String, Int?) -> Unit,
     setExerciseTargetDuration: (String, Int?) -> Unit,
+    onDistributeTargetAcrossParts: () -> Unit = {},
     onQuickActionOpenPicker: () -> Unit,
     onQuickActionOpenWarmup: () -> Unit,
     onQuickActionOpenMobility: () -> Unit,
@@ -579,6 +580,8 @@ internal fun SessionEditorSheets(
                 setTargetDuration = setTargetDuration,
                 setPartTargetDuration = setPartTargetDuration,
                 setExerciseTargetDuration = setExerciseTargetDuration,
+                onDistributeTargetAcrossParts = onDistributeTargetAcrossParts,
+                onDismiss = onDismiss,
             )
             SessionEditorSheet.TRANSFER -> SessionClonerSheet(
                 uiState = uiState,

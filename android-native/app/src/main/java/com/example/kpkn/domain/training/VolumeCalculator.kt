@@ -67,11 +67,11 @@ object VolumeCalculator {
         "pecho" to "Pectorales",
         "abdominal" to "Abdomen",
         "oblicuo" to "Abdomen",
-        "core" to "Abdomen",
+        "core" to "Core",
     )
 
     @Deprecated(
-        message = "Use normalizeCanonicalMuscleGroup instead. This function maps 'core' → 'Abdomen' " +
+        message = "Use normalizeCanonicalMuscleGroup instead. This function previously mapped 'core' → 'Abdomen' " +
             "and splits deltoid heads, breaking volume aggregation when used as a re-normalizer.",
         replaceWith = ReplaceWith("normalizeCanonicalMuscleGroup(specificMuscle, emphasis)"),
     )

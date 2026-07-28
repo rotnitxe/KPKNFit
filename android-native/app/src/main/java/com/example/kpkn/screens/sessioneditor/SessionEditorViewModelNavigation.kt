@@ -340,7 +340,18 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
         }
     }
 
-    repository.updateProgram(updatedProgram)
+    val pendingTransfer = state.pendingTransferToDays
+    val programWithTransfers = if (pendingTransfer != null) {
+        applyPendingTransfersToProgram(
+            program = updatedProgram,
+            pending = pendingTransfer,
+            cloneDayOptions = state.cloneDayOptions,
+        )
+    } else {
+        updatedProgram
+    }
+
+    repository.updateProgram(programWithTransfers)
     syncCompetitionRecordFromSession(draft, program, state.weekId)
     clearPersistedDraft(
         weekId = state.weekId,
@@ -348,6 +359,11 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
         mesoIndex = state.mesoIndex,
         sessionId = draft.id,
     )
+    val transferSuffix = if (pendingTransfer != null) {
+        " · Transferencia aplicada a ${pendingTransfer.targetKeys.size} día(s)"
+    } else {
+        ""
+    }
     updateUi {
         it.copy(
             originalSession = draft,
@@ -363,7 +379,10 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
             pendingWeekId = null,
             pendingMacroIndex = null,
             pendingMesoIndex = null,
-            roadmapOptions = buildRoadmapOptions(program),
+            pendingTransferToDays = null,
+            roadmapOptions = buildRoadmapOptions(programWithTransfers),
+            cloneDayOptions = buildCloneDayOptions(programWithTransfers, currentSessionId = draft.id),
+            cloneSourceOptions = buildCloneSourceOptions(programWithTransfers, currentSessionId = draft.id),
         )
     }
     if (!skipRefresh) {
@@ -375,7 +394,7 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
         )
     }
     val warningSuffix = validation.warnings.takeIf { it.isNotEmpty() }?.joinToString(separator = " | ", prefix = " (Alertas: ")?.plus(")") ?: ""
-    return SessionEditorSaveResult(true, "Sesión guardada$warningSuffix")
+    return SessionEditorSaveResult(true, "Sesión guardada$transferSuffix$warningSuffix")
 }
 
 internal fun SessionEditorViewModel.syncCompetitionRecordFromSession(session: Session, program: Program, weekId: String) {
@@ -423,14 +442,36 @@ internal fun SessionEditorViewModel.detectChangedFields(previous: Session, curre
     if (previous.name != current.name) changes += "nombre"
     if (previous.description != current.description) changes += "descripción"
     if (previous.dayOfWeek != current.dayOfWeek) changes += "día"
-    if (previous.parts.size != current.parts.size) changes += "grupos"
+    if (previous.parts.size != current.parts.size) {
+        changes += if (current.parts.size > previous.parts.size) "+grupos" else "-grupos"
+    }
     val previousExercises = previous.allExercises()
     val currentExercises = current.allExercises()
-    if (previousExercises.size != currentExercises.size) changes += "ejercicios"
+    val prevIds = previousExercises.map { it.id }.toSet()
+    val currIds = currentExercises.map { it.id }.toSet()
+    val added = currIds - prevIds
+    val removed = prevIds - currIds
+    if (added.isNotEmpty()) {
+        val names = currentExercises.filter { it.id in added }.take(2).map { it.name.ifBlank { "ejercicio" } }
+        changes += "añadió ${names.joinToString(", ")}" + if (added.size > 2) " +${added.size - 2}" else ""
+    }
+    if (removed.isNotEmpty()) {
+        val names = previousExercises.filter { it.id in removed }.take(2).map { it.name.ifBlank { "ejercicio" } }
+        changes += "quitó ${names.joinToString(", ")}" + if (removed.size > 2) " +${removed.size - 2}" else ""
+    }
+    if (previousExercises.map { it.id } != currentExercises.map { it.id } && added.isEmpty() && removed.isEmpty()) {
+        changes += "orden"
+    }
     val previousSets = previousExercises.sumOf { it.sets.size.coerceAtLeast(1) }
     val currentSets = currentExercises.sumOf { it.sets.size.coerceAtLeast(1) }
-    if (previousSets != currentSets) changes += "series"
+    if (previousSets != currentSets) {
+        val delta = currentSets - previousSets
+        changes += if (delta > 0) "+$delta series" else "$delta series"
+    }
+    if (previous.allSupersetGroups().size != current.allSupersetGroups().size) changes += "superseries"
+    if (previous.targetDurationMinutes != current.targetDurationMinutes) changes += "tiempo"
     if (previous.isCompetitionSession != current.isCompetitionSession) changes += "modo competición"
+    if (previous.background != current.background || previous.coverStyle != current.coverStyle) changes += "portada"
     if (changes.isEmpty()) changes += "ajustes"
     return changes
 }

@@ -61,9 +61,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
@@ -71,6 +73,7 @@ import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.models.WorkoutContextProfile
+import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.effectiveSupersetGroupFor
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isInSuperset
@@ -82,10 +85,12 @@ import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
+import com.example.kpkn.screens.wikilab.CustomExerciseCreatorContent
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.KpknSheetTokens
 import dev.chrisbanes.haze.HazeState
 import java.util.UUID
-import com.example.kpkn.ui.components.KpknAlertDialog
-
 @Stable
 internal class WorkoutStructureSheetsState {
     var exerciseContextExerciseId by mutableStateOf<String?>(null)
@@ -101,8 +106,10 @@ internal class WorkoutStructureSheetsState {
     var supersetSettingsGroupId by mutableStateOf<String?>(null)
     var addCatalogToSupersetGroupId by mutableStateOf<String?>(null)
     var addCatalogSearchQuery by mutableStateOf("")
+    var addCatalogSelectedIds by mutableStateOf<Set<String>>(emptySet())
     var addExerciseAfterId by mutableStateOf<String?>(null)
     var addExerciseSearchQuery by mutableStateOf("")
+    var addExerciseSelectedIds by mutableStateOf<Set<String>>(emptySet())
     var showReorderSheet by mutableStateOf(false)
     var reorderSheetExerciseIds by mutableStateOf<List<String>>(emptyList())
     var showReorderCrossBoundaryConfirm by mutableStateOf(false)
@@ -113,6 +120,86 @@ internal class WorkoutStructureSheetsState {
 @Composable
 internal fun rememberWorkoutStructureSheetsState(): WorkoutStructureSheetsState =
     remember { WorkoutStructureSheetsState() }
+
+/**
+ * Live-workout catalog host with the same inline "Crear ejercicio" flow used by the session editor.
+ */
+@Composable
+private fun LiveExercisePickerWithCreator(
+    query: String,
+    workoutLogs: List<WorkoutLog>,
+    editingExisting: Boolean,
+    onSearch: (String) -> Unit,
+    onSelect: (ExerciseMuscleInfo) -> Unit,
+    onMultiSelect: (List<ExerciseMuscleInfo>) -> List<String>,
+    onOpenExerciseDetail: (String) -> Unit,
+    onDismiss: () -> Unit,
+    selectedExercisesIds: Set<String> = emptySet(),
+    onToggleExerciseSelection: (String) -> Unit = {},
+    onClearExerciseSelection: () -> Unit = {},
+    onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
+) {
+    var showInlineCreator by remember { mutableStateOf(false) }
+    var highlightedCreatedExerciseId by remember { mutableStateOf<String?>(null) }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        if (showInlineCreator) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Crear ejercicio",
+                        fontWeight = FontWeight.Black,
+                        fontSize = 18.sp,
+                        color = KpknSheetTokens.TitleStrong,
+                    )
+                    Text(
+                        "Se guardará en Creados por ti",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = KpknSheetTokens.MutedStrong,
+                    )
+                }
+                TextButton(onClick = { showInlineCreator = false }) {
+                    Text("Catálogo", color = KpknSheetTokens.Body)
+                }
+            }
+            CustomExerciseCreatorContent(
+                onBack = { showInlineCreator = false },
+                onSaved = { createdId ->
+                    highlightedCreatedExerciseId = createdId
+                    showInlineCreator = false
+                    onSearch("")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 560.dp),
+            )
+        } else {
+            ExercisePickerSheet(
+                query = query,
+                catalog = EXERCISE_DATABASE,
+                workoutLogs = workoutLogs,
+                editingExisting = editingExisting,
+                highlightedExerciseId = highlightedCreatedExerciseId,
+                selectedExercisesIds = selectedExercisesIds,
+                onToggleExerciseSelection = onToggleExerciseSelection,
+                onClearExerciseSelection = onClearExerciseSelection,
+                onSearch = onSearch,
+                onSelect = onSelect,
+                onMultiSelect = onMultiSelect,
+                onCreateSuperset = onCreateSuperset,
+                onOpenExerciseDetail = onOpenExerciseDetail,
+                onOpenExerciseCreator = { showInlineCreator = true },
+                onDismiss = onDismiss,
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -175,6 +262,7 @@ internal fun WorkoutStructureSheetsHost(
                     onClick = {
                         state.addCatalogToSupersetGroupId = contextSupersetGroupId
                         state.addCatalogSearchQuery = ""
+                        state.addCatalogSelectedIds = emptySet()
                         state.exerciseContextExerciseId = null
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -227,6 +315,8 @@ internal fun WorkoutStructureSheetsHost(
                 FilledTonalButton(
                     onClick = {
                         state.addExerciseAfterId = contextExercise?.id
+                        state.addExerciseSearchQuery = ""
+                        state.addExerciseSelectedIds = emptySet()
                         state.exerciseContextExerciseId = null
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -847,28 +937,49 @@ internal fun WorkoutStructureSheetsHost(
         val targetGroupId = state.addCatalogToSupersetGroupId!!
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
-        KpknSheet(onDismissRequest = { state.addCatalogToSupersetGroupId = null }) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                ExercisePickerSheet(
-                    query = state.addCatalogSearchQuery,
-                    catalog = EXERCISE_DATABASE,
-                    workoutLogs = workoutLogs,
-                    editingExisting = false,
-                    onSearch = { state.addCatalogSearchQuery = it },
-                    onSelect = { info ->
+        KpknSheet(
+            onDismissRequest = {
+                state.addCatalogToSupersetGroupId = null
+                state.addCatalogSearchQuery = ""
+                state.addCatalogSelectedIds = emptySet()
+            },
+        ) {
+            LiveExercisePickerWithCreator(
+                query = state.addCatalogSearchQuery,
+                workoutLogs = workoutLogs,
+                editingExisting = false,
+                selectedExercisesIds = state.addCatalogSelectedIds,
+                onToggleExerciseSelection = { id ->
+                    state.addCatalogSelectedIds = if (id in state.addCatalogSelectedIds) {
+                        state.addCatalogSelectedIds - id
+                    } else {
+                        state.addCatalogSelectedIds + id
+                    }
+                },
+                onClearExerciseSelection = { state.addCatalogSelectedIds = emptySet() },
+                onSearch = { state.addCatalogSearchQuery = it },
+                onSelect = { info ->
+                    viewModel.addCatalogExerciseToLiveSuperset(targetGroupId, info)
+                    state.addCatalogToSupersetGroupId = null
+                    state.addCatalogSearchQuery = ""
+                    state.addCatalogSelectedIds = emptySet()
+                },
+                onMultiSelect = { infos ->
+                    infos.forEach { info ->
                         viewModel.addCatalogExerciseToLiveSuperset(targetGroupId, info)
-                        state.addCatalogToSupersetGroupId = null
-                        state.addCatalogSearchQuery = ""
-                    },
-                    onMultiSelect = { emptyList() },
-                    onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
-                    onOpenExerciseCreator = { },
-                    onDismiss = {
-                        state.addCatalogToSupersetGroupId = null
-                        state.addCatalogSearchQuery = ""
-                    },
-                )
-            }
+                    }
+                    state.addCatalogToSupersetGroupId = null
+                    state.addCatalogSearchQuery = ""
+                    state.addCatalogSelectedIds = emptySet()
+                    emptyList()
+                },
+                onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
+                onDismiss = {
+                    state.addCatalogToSupersetGroupId = null
+                    state.addCatalogSearchQuery = ""
+                    state.addCatalogSelectedIds = emptySet()
+                },
+            )
         }
     }
 
@@ -880,29 +991,45 @@ internal fun WorkoutStructureSheetsHost(
             onDismissRequest = {
                 state.addExerciseAfterId = null
                 state.addExerciseSearchQuery = ""
+                state.addExerciseSelectedIds = emptySet()
             },
         ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                ExercisePickerSheet(
-                    query = state.addExerciseSearchQuery,
-                    catalog = EXERCISE_DATABASE,
-                    workoutLogs = workoutLogs,
-                    editingExisting = false,
-                    onSearch = { state.addExerciseSearchQuery = it },
-                    onSelect = { info ->
+            LiveExercisePickerWithCreator(
+                query = state.addExerciseSearchQuery,
+                workoutLogs = workoutLogs,
+                editingExisting = false,
+                selectedExercisesIds = state.addExerciseSelectedIds,
+                onToggleExerciseSelection = { id ->
+                    state.addExerciseSelectedIds = if (id in state.addExerciseSelectedIds) {
+                        state.addExerciseSelectedIds - id
+                    } else {
+                        state.addExerciseSelectedIds + id
+                    }
+                },
+                onClearExerciseSelection = { state.addExerciseSelectedIds = emptySet() },
+                onSearch = { state.addExerciseSearchQuery = it },
+                onSelect = { info ->
+                    viewModel.addExerciseAfter(targetExerciseId, info)
+                    state.addExerciseAfterId = null
+                    state.addExerciseSearchQuery = ""
+                    state.addExerciseSelectedIds = emptySet()
+                },
+                onMultiSelect = { infos ->
+                    infos.asReversed().forEach { info ->
                         viewModel.addExerciseAfter(targetExerciseId, info)
-                        state.addExerciseAfterId = null
-                        state.addExerciseSearchQuery = ""
-                    },
-                    onMultiSelect = { emptyList() },
-                    onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
-                    onOpenExerciseCreator = { },
-                    onDismiss = {
-                        state.addExerciseAfterId = null
-                        state.addExerciseSearchQuery = ""
-                    },
-                )
-            }
+                    }
+                    state.addExerciseAfterId = null
+                    state.addExerciseSearchQuery = ""
+                    state.addExerciseSelectedIds = emptySet()
+                    emptyList()
+                },
+                onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
+                onDismiss = {
+                    state.addExerciseAfterId = null
+                    state.addExerciseSearchQuery = ""
+                    state.addExerciseSelectedIds = emptySet()
+                },
+            )
         }
     }
 
@@ -916,34 +1043,30 @@ internal fun WorkoutStructureSheetsHost(
                 state.replaceTargetExerciseId = null
             },
         ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                ExercisePickerSheet(
-                    query = state.replaceSearchQuery,
-                    catalog = EXERCISE_DATABASE,
-                    workoutLogs = workoutLogs,
-                    editingExisting = true,
-                    onSearch = { state.replaceSearchQuery = it },
-                    onSelect = { info ->
-                        val target = state.replaceTargetExerciseId!!
-                        state.showReplaceExercisePicker = false
-                        state.replaceTargetExerciseId = null
-                        viewModel.replaceExercise(
-                            exerciseId = target,
-                            replacement = info,
-                            deferPersistencePrompt = true,
-                        )
-                        state.editSheetExerciseId = target
-                        state.selectedExerciseContextTab = null
-                    },
-                    onMultiSelect = { emptyList() },
-                    onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
-                    onOpenExerciseCreator = { },
-                    onDismiss = {
-                        state.showReplaceExercisePicker = false
-                        state.replaceTargetExerciseId = null
-                    }
-                )
-            }
+            LiveExercisePickerWithCreator(
+                query = state.replaceSearchQuery,
+                workoutLogs = workoutLogs,
+                editingExisting = true,
+                onSearch = { state.replaceSearchQuery = it },
+                onSelect = { info ->
+                    val target = state.replaceTargetExerciseId!!
+                    state.showReplaceExercisePicker = false
+                    state.replaceTargetExerciseId = null
+                    viewModel.replaceExercise(
+                        exerciseId = target,
+                        replacement = info,
+                        deferPersistencePrompt = true,
+                    )
+                    state.editSheetExerciseId = target
+                    state.selectedExerciseContextTab = null
+                },
+                onMultiSelect = { emptyList() },
+                onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
+                onDismiss = {
+                    state.showReplaceExercisePicker = false
+                    state.replaceTargetExerciseId = null
+                },
+            )
         }
     }
 

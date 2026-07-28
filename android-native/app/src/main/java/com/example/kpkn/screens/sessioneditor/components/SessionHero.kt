@@ -221,7 +221,7 @@ internal fun SessionHero(
                             leadingIcon = { Icon(Icons.Default.SwapHoriz, null) },
                         )
                         DropdownMenuItem(
-                            text = { Text("Historial") },
+                            text = { Text("Versiones") },
                             onClick = { showSecondaryMenu = false; onOpenHistory() },
                             leadingIcon = { Icon(Icons.Default.History, null) },
                         )
@@ -256,7 +256,7 @@ internal fun SessionHero(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     SessionHeroActionChip("Transferir", Icons.Default.SwapHoriz, onOpenTransfer)
-                    SessionHeroActionChip("Historial", Icons.Default.History, onOpenHistory)
+                    SessionHeroActionChip("Versiones", Icons.Default.History, onOpenHistory)
                     SessionHeroActionChip("Reglas", Icons.Default.Settings, onOpenRules)
                 }
                 Row(
@@ -356,7 +356,7 @@ internal fun SessionHeroCompactOverlay(
                 onClick = onOpenTransfer,
             )
             HeroGlassActionChip(
-                label = "Historial",
+                label = "Versiones",
                 icon = Icons.Default.History,
                 hazeState = hazeState,
                 onClick = onOpenHistory,

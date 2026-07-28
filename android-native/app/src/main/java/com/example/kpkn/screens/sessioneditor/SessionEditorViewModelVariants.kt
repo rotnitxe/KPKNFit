@@ -39,6 +39,31 @@ fun SessionEditorViewModel.setExerciseTargetDuration(exerciseId: String, minutes
     }
 }
 
+/** Splits the session global budget across parts by set-count weight. */
+fun SessionEditorViewModel.distributeTargetDurationAcrossParts() {
+    val session = currentUiState.session ?: return
+    val total = session.targetDurationMinutes ?: return
+    if (total <= 0 || session.parts.isEmpty()) return
+    val weights = session.parts.map { part ->
+        part.exercises.sumOf { it.sets.size.coerceAtLeast(1) }.coerceAtLeast(1)
+    }
+    val weightSum = weights.sum().coerceAtLeast(1)
+    var allocated = 0
+    updateCurrentSession { current ->
+        current.copy(
+            parts = current.parts.mapIndexed { index, part ->
+                val share = if (index == current.parts.lastIndex) {
+                    (total - allocated).coerceAtLeast(1)
+                } else {
+                    ((total.toDouble() * weights[index]) / weightSum).toInt().coerceAtLeast(1)
+                        .also { allocated += it }
+                }
+                part.copy(targetDurationMinutes = share)
+            },
+        )
+    }
+}
+
     // ─── Feature 3: Variantes de sesión ──────────────────────────────────────────
 
 /**

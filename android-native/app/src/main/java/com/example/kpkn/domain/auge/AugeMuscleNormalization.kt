@@ -38,10 +38,12 @@ internal fun resolveAugeMuscle(rawMuscle: String, rawEmphasis: String? = null): 
     if (source.contains("erector") || source.contains("lumbar") || source.contains("espalda baja") || source.contains("lower back")) {
         return AugeMuscleResolution("Erectores Espinales")
     }
-    if (source == "core") {
+    if (source == "core" || source.contains("transverso")) {
         return AugeMuscleResolution("Core")
     }
-    if (source.contains("abdomen") || source.contains("abdominal") || source.contains("oblicuo") || source.contains("transverso")) {
+    if (source.contains("abdomen") || source.contains("abdominal") || source.contains("oblicuo") ||
+        source.contains("recto del abdomen") || source.contains("recto abdominal")
+    ) {
         return AugeMuscleResolution("Abdomen")
     }
     if (source.contains("pantorrilla") || source.contains("gemelo") || source.contains("gastrocnemio") || source.contains("soleo") || source.contains("calf")) {

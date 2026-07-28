@@ -126,6 +126,8 @@ class SessionEditorViewModel(
     private var augeJob: Job? = null
     private var autoSaveJob: Job? = null
     private var loadSessionJob: Job? = null
+    private var textHistoryDebounceJob: Job? = null
+    private var textHistoryBaseline: Session? = null
 
     internal fun scheduleAutoSave() {
         autoSaveJob?.cancel()
@@ -286,6 +288,9 @@ class SessionEditorViewModel(
             mesoIndex = state.mesoIndex,
             sessionId = session.id,
         )
+        _uiState.update { it.copy(pendingTransferToDays = null) }
+        textHistoryBaseline = null
+        textHistoryDebounceJob?.cancel()
     }
 
     init {
@@ -505,12 +510,12 @@ class SessionEditorViewModel(
         }
     }
 
-    internal fun updateSession(transform: (Session) -> Session) {
+    internal fun updateSession(reason: String = "Edición", transform: (Session) -> Session) {
         val current = _uiState.value.session ?: return
         _uiState.update { state ->
             state.copy(localDraftHistory = appendDraftSnapshot(
                 history = state.localDraftHistory,
-                snapshot = buildDraftSnapshot(session = current, previous = state.localDraftHistory.lastOrNull()?.session, reason = "Edición"),
+                snapshot = buildDraftSnapshot(session = current, previous = state.localDraftHistory.lastOrNull()?.session, reason = reason),
             ))
         }
         _uiState.update { state ->
@@ -530,7 +535,7 @@ class SessionEditorViewModel(
         scheduleAutoSave()
     }
 
-    fun updateCurrentSession(transform: (Session) -> Session) = updateSession(transform)
+    fun updateCurrentSession(transform: (Session) -> Session) = updateSession(transform = transform)
 
     private fun updateSessionDay(dayOfWeek: Int) = updateSession { session ->
         session.copy(dayOfWeek = dayOfWeek)
@@ -646,8 +651,44 @@ class SessionEditorViewModel(
     // ─── Feature 2: Duración objetivo ────────────────────────────────────────────
 
     /** Actualiza la duración objetivo de la sesión (Feature 2). null = sin límite. */
-    fun updateSessionName(name: String) = updateSession { it.copy(name = name) }
-    fun updateSessionDescription(description: String) = updateSession { it.copy(description = description) }
+    fun updateSessionName(name: String) = updateSessionTextField { it.copy(name = name) }
+    fun updateSessionDescription(description: String) = updateSessionTextField { it.copy(description = description) }
+
+    /** Text edits: one history snapshot per typing burst (debounce), not per keystroke. */
+    private fun updateSessionTextField(transform: (Session) -> Session) {
+        val current = _uiState.value.session ?: return
+        if (textHistoryBaseline == null) {
+            textHistoryBaseline = current
+            _uiState.update { state ->
+                state.copy(
+                    localDraftHistory = appendDraftSnapshot(
+                        history = state.localDraftHistory,
+                        snapshot = buildDraftSnapshot(
+                            session = current,
+                            previous = state.localDraftHistory.lastOrNull()?.session,
+                            reason = "Edición",
+                        ),
+                    ),
+                )
+            }
+        }
+        _uiState.update { state ->
+            val base = state.session ?: return@update state
+            val updated = transform(base).copy(lastModifiedAtMs = System.currentTimeMillis())
+            state.copy(
+                session = updated,
+                dayOfWeek = updated.dayOfWeek ?: state.dayOfWeek,
+                hasUnsavedChanges = updated != state.originalSession,
+            )
+        }
+        scheduleAugeRecalc()
+        scheduleAutoSave()
+        textHistoryDebounceJob?.cancel()
+        textHistoryDebounceJob = viewModelScope.launch {
+            delay(800)
+            textHistoryBaseline = null
+        }
+    }
     fun updateSessionMeetDay(isMeetDay: Boolean) = updateSession {
 
         if (isMeetDay) {
@@ -750,9 +791,14 @@ class SessionEditorViewModel(
                 session = restoredSession,
                 localDraftHistory = history,
                 hasUnsavedChanges = restoredSession != state.originalSession,
+                sheet = SessionEditorSheet.NONE,
+                snackbarMessage = "Versión restaurada · ${formatHistoryTimestamp(snapshot.savedAtMs)}",
             )
         }
+        textHistoryBaseline = null
+        textHistoryDebounceJob?.cancel()
         scheduleAugeRecalc()
+        scheduleAutoSave()
     }
 
 }

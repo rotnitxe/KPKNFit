@@ -30,6 +30,8 @@ object SessionEditorRulesEngine {
         val safeRpe = defaults.rpe.coerceIn(1.0, 10.0)
         val safeRest = defaults.normalRestSeconds.coerceAtLeast(0)
         val safeSideRest = defaults.betweenSidesRestSeconds.coerceAtLeast(0)
+        val safeBetween = defaults.supersetBetweenRestSeconds.coerceAtLeast(0)
+        val safeRound = defaults.supersetRoundRestSeconds.coerceAtLeast(0)
 
         fun Exercise.applyRuleDefaults(): Exercise {
             val mode = when (defaults.intensityType) {
@@ -56,12 +58,26 @@ object SessionEditorRulesEngine {
             )
         }
 
+        val scopedExerciseIds = if (partId == null) {
+            session.allExercises().map { it.id }.toSet()
+        } else {
+            session.parts.firstOrNull { it.id == partId }?.exercises?.map { it.id }?.toSet().orEmpty()
+        }
+        val updatedGroups = session.allSupersetGroups().map { group ->
+            if (group.exerciseOrder.none { it in scopedExerciseIds }) group
+            else group.copy(
+                restBetweenExercises = safeBetween,
+                restAfterSuperset = safeRound,
+            )
+        }
+
         return session.copy(
             exercises = if (partId == null) session.exercises.map { it.applyRuleDefaults() } else session.exercises,
             parts = session.parts.map { part ->
                 if (partId != null && part.id != partId) part
                 else part.copy(exercises = part.exercises.map { it.applyRuleDefaults() })
             },
+            supersetGroups = updatedGroups,
         )
     }
 

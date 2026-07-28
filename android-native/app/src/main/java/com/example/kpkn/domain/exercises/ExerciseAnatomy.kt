@@ -130,7 +130,7 @@ val ALL_MUSCLES: List<MuscleAnatomy> = listOf(
     ),
     MuscleAnatomy(
         canonicalName = "Core",
-        displayName = "Transverso/Core",
+        displayName = "Core",
         heads = emptyList(),
     ),
     MuscleAnatomy(

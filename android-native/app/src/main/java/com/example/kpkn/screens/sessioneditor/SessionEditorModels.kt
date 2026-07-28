@@ -145,6 +145,8 @@ data class SessionEditorUiState(
     val roadmapOptions: List<SessionRoadmapOption> = emptyList(),
     val cloneDayOptions: List<SessionCloneDayOption> = emptyList(),
     val cloneSourceOptions: List<SessionCloneSourceOption> = emptyList(),
+    /** Staged "copy current → other days"; applied when the user saves. */
+    val pendingTransferToDays: PendingTransferToDays? = null,
     val selectedSiblingSessionId: String? = null,
     val workoutLogs: List<WorkoutLog> = emptyList(),
     val feedbackByLogId: Map<String, PostSessionFeedback> = emptyMap(),

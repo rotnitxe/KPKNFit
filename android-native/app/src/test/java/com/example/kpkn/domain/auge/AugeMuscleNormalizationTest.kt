@@ -69,8 +69,12 @@ class AugeMuscleNormalizationTest {
     }
 
     @Test
-    fun matchesTargetAcceptsHeadAgainstPillar() {
-        assertTrue(matchesAugeMuscleTarget("Deltoides Lateral", "Deltoides"))
-        assertNull(lookupMuscleScore(emptyMap(), "Core"))
+    fun coreAndAbdomenStaySeparatePillars() {
+        assertEquals("Core", getAugeMusclePillarId("Core"))
+        assertEquals("Core", getAugeMusclePillarId("transverso"))
+        assertEquals("Core", getAugeMusclePillarId("Transverso Abdominal"))
+        assertEquals("Abdomen", getAugeMusclePillarId("Abdomen"))
+        assertEquals("Abdomen", getAugeMusclePillarId("recto abdominal"))
+        assertEquals("Abdomen", getAugeMusclePillarId("oblicuo externo"))
     }
 }

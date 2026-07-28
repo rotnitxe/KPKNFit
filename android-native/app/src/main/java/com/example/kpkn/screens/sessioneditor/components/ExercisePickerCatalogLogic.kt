@@ -1,32 +1,30 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.ui.graphics.Color
-import com.example.kpkn.data.models.*
+import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.discomfortLabel
-import com.example.kpkn.domain.exercises.*
+import com.example.kpkn.data.models.resolveMuscleVolumeContribution
+import com.example.kpkn.domain.exercises.ExerciseCatalogExclusiveFilter
+import com.example.kpkn.domain.exercises.ExerciseCatalogRegion
+import com.example.kpkn.domain.exercises.ExerciseCatalogSort
+import com.example.kpkn.domain.exercises.calculateFriendlyFatigue
+import com.example.kpkn.domain.exercises.calculateSearchScore
+import com.example.kpkn.domain.exercises.deduplicateCatalogVisualResults
+import com.example.kpkn.domain.exercises.matchesExclusiveCatalogFilter
+import com.example.kpkn.domain.exercises.resolveExerciseRegion
+import com.example.kpkn.domain.exercises.resolvePrimaryMuscleLabel
 import com.example.kpkn.domain.training.VolumeCalculator
 
 internal fun filterAndSortExerciseCatalog(
     fullCatalog: List<ExerciseMuscleInfo>,
     normalizedQuery: String,
-    activeRegion: ExerciseCatalogRegion,
-    selectedTrait: ExerciseCatalogTrait?,
     sortMode: ExerciseCatalogSort,
-    selectedMuscle: String?,
-    selectedHeadName: String?,
+    exclusiveFilter: ExerciseCatalogExclusiveFilter = ExerciseCatalogExclusiveFilter.None,
+    ascending: Boolean = true,
 ): List<ExerciseMuscleInfo> {
-    val muscleAnatomy = selectedMuscle?.let { MUSCLE_BY_CANONICAL[it] }
-    val muscleHead = if (muscleAnatomy != null && selectedHeadName != null) {
-        muscleAnatomy.heads.firstOrNull { it.name == selectedHeadName }
-    } else null
-
-    val baseFiltered = fullCatalog.filter { info ->
-        val regionMatch = activeRegion == ExerciseCatalogRegion.ALL || resolveExerciseRegion(info) == activeRegion
-        val traitMatch = selectedTrait == null || matchesCatalogTrait(info, selectedTrait!!)
-        val muscleMatch = muscleAnatomy == null || matchesMuscle(info, muscleAnatomy)
-        val headMatch = muscleHead == null || matchesMuscleHead(info, muscleAnatomy!!, muscleHead)
-        regionMatch && traitMatch && muscleMatch && headMatch
-    }
+    val baseFiltered = fullCatalog.filter { matchesExclusiveCatalogFilter(it, exclusiveFilter) }
 
     val searched = if (normalizedQuery.isBlank()) {
         baseFiltered
@@ -37,42 +35,28 @@ internal fun filterAndSortExerciseCatalog(
             .sortedWith(
                 compareByDescending<Pair<ExerciseMuscleInfo, Int>> { it.second }
                     .thenBy { kotlin.math.abs(it.first.name.length - normalizedQuery.length) }
-                    .thenBy { it.first.name }
+                    .thenBy { it.first.name },
             )
             .map { it.first }
     }
 
-    val sorted = when (sortMode) {
-        ExerciseCatalogSort.RELEVANCE -> searched
-        ExerciseCatalogSort.FATIGUE_HIGH -> {
-            val fatigueMap: Map<String, Int> = searched.associate { it.id to calculateFriendlyFatigue(it).overall }
-            searched.sortedByDescending { fatigueMap[it.id] ?: 0 }
-        }
-        ExerciseCatalogSort.FATIGUE_LOW -> {
-            val fatigueMap: Map<String, Int> = searched.associate { it.id to calculateFriendlyFatigue(it).overall }
-            searched.sortedBy { fatigueMap[it.id] ?: 0 }
-        }
-        ExerciseCatalogSort.NAME -> searched.sortedBy { it.name }
-        ExerciseCatalogSort.GROUP_BY_MUSCLE -> searched.sortedWith(compareBy({ resolvePrimaryMuscleLabel(it) }, { it.name }))
-        else -> searched
-    }
-    val finalSorted = if (selectedMuscle != null && selectedMuscle.equals("Trapecio", ignoreCase = true)) {
-        sorted.sortedBy { exercise ->
-            val involvement = exercise.involvedMuscles.find {
-                VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis).equals("Trapecio", ignoreCase = true)
-            }
-            when (involvement?.role) {
-                MuscleRole.PRIMARY -> 0
-                MuscleRole.SECONDARY -> 1
-                else -> 2
-            }
-        }
-    } else {
-        sorted
-    }
-    return deduplicateCatalogVisualResults(finalSorted)
-}
+    val byNameAsc = compareBy<ExerciseMuscleInfo> { it.name.lowercase() }
+    val byFatigueAsc = compareBy<ExerciseMuscleInfo> { calculateFriendlyFatigue(it).overall }
+        .thenBy { it.name.lowercase() }
 
+    val sorted = when (sortMode) {
+        ExerciseCatalogSort.NAME ->
+            if (ascending) searched.sortedWith(byNameAsc) else searched.sortedWith(byNameAsc.reversed())
+        ExerciseCatalogSort.FATIGUE_HIGH, ExerciseCatalogSort.FATIGUE_LOW ->
+            // ascending = menos → más fatigante; descending = más → menos
+            if (ascending) searched.sortedWith(byFatigueAsc) else searched.sortedWith(byFatigueAsc.reversed())
+        ExerciseCatalogSort.GROUP_BY_MUSCLE ->
+            searched.sortedWith(compareBy({ resolvePrimaryMuscleLabel(it) }, { it.name.lowercase() }))
+        else ->
+            if (ascending) searched.sortedWith(byNameAsc) else searched.sortedWith(byNameAsc.reversed())
+    }
+    return deduplicateCatalogVisualResults(sorted)
+}
 
 internal fun discomfortCountsByExercise(
     workoutLogs: List<WorkoutLog>,
@@ -172,7 +156,6 @@ internal fun oneSeriesVolumeContributions(exercise: ExerciseMuscleInfo): List<Mu
         MuscleVolumeContribution(
             muscle = entries.first().muscle,
             role = topRole,
-            // 1 serie del ejercicio no puede aportar > 1.0 serie a un músculo
             seriesEquivalent = entries.maxOf { it.seriesEquivalent }.coerceIn(0.0, 1.0),
         )
     }.sortedByDescending { it.seriesEquivalent }

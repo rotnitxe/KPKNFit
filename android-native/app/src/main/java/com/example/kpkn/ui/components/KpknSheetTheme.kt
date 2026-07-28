@@ -46,9 +46,9 @@ object KpknSheetTokens {
     val Panel = Color.White.copy(alpha = 0.06f)
 
     val ChipIdle = Color.White.copy(alpha = 0.78f)
-    val ChipSelected = Color.White
+    val ChipSelected = Color.White.copy(alpha = 0.90f)
     val ChipLabel = Color.Black
-    val ControlFill = Color.White
+    val ControlFill = Color.White.copy(alpha = 0.82f)
     val ControlLabel = Color.Black
     val ControlLabelMuted = Color.Black.copy(alpha = 0.55f)
     val ControlPlaceholder = Color.Black.copy(alpha = 0.40f)

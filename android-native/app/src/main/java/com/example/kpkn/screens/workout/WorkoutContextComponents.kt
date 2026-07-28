@@ -1855,7 +1855,6 @@ internal fun displayWorkoutMuscleGroup(group: String?): String? = when (group) {
     "Deltoides" -> "Hombros"
     "Antebrazo" -> "Antebrazos"
     "Isquiosurales" -> "Isquios"
-    "Abdomen" -> "Core"
     else -> group
 }
 

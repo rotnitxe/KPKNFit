@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import com.example.kpkn.ui.components.KpknSheetTokens
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -171,10 +172,10 @@ internal fun CompactTemplateCard(
                     text = "Aplicar",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
-                    color = Color.Black,
+                    color = KpknSheetTokens.ControlLabel,
                     modifier = Modifier
                         .clip(RoundedCornerShape(999.dp))
-                        .background(Color.White)
+                        .background(KpknSheetTokens.ControlFill)
                         .clickable(onClick = onApply)
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                         .semantics { contentDescription = "Aplicar plantilla ${template.name}" },

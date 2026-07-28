@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -103,7 +105,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
@@ -350,7 +351,13 @@ fun SessionEditorScreen(
         viewModel.closeSheet()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    var editorRootBounds by remember { mutableStateOf<Rect?>(null) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned { editorRootBounds = it.boundsInWindow() },
+    ) {
         Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
@@ -552,7 +559,7 @@ fun SessionEditorScreen(
         val previewExercise = draggingExerciseId?.let { activeId -> session.allExercises().firstOrNull { it.id == activeId } }
         val previewPartId = draggingExercisePartId
         val previewRect = if (previewPartId != null && draggingExerciseId != null) {
-            exerciseBounds["$previewPartId|$draggingExerciseId"]
+            dragController.dragStartExerciseRect ?: exerciseBounds["$previewPartId|$draggingExerciseId"]
         } else {
             null
         }
@@ -561,6 +568,18 @@ fun SessionEditorScreen(
                 exercise = previewExercise,
                 rect = previewRect,
                 offset = draggingExerciseOffset,
+                rootBounds = editorRootBounds,
+                modifier = Modifier.zIndex(500f),
+            )
+        }
+        val draggingPart = draggingPartId?.let { id -> groupedParts.firstOrNull { it.id == id } }
+        val partPreviewRect = draggingPartId?.let { dragController.dragStartPartRect ?: partBounds[it] }
+        if (draggingPart != null && partPreviewRect != null) {
+            DragPartLiftPreview(
+                partName = draggingPart.name,
+                rect = partPreviewRect,
+                offsetY = draggingPartOffsetY,
+                rootBounds = editorRootBounds,
                 modifier = Modifier.zIndex(500f),
             )
         }
@@ -759,6 +778,7 @@ fun SessionEditorScreen(
         setTargetDuration = viewModel::setTargetDuration,
         setPartTargetDuration = viewModel::setPartTargetDuration,
         setExerciseTargetDuration = viewModel::setExerciseTargetDuration,
+        onDistributeTargetAcrossParts = viewModel::distributeTargetDurationAcrossParts,
     )
 
     if (showDiscardDialog) {

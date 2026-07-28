@@ -1930,52 +1930,6 @@
     "bodybuildingScore": 7.5
   },
   {
-    "id": "tren_superior_fondos_entre_bancos",
-    "name": "Fondos Entre Bancos",
-    "description": "Fondos con manos en bancos. Variante de fondos para principiantes o sin paralelas.",
-    "involvedMuscles": [
-      {
-        "muscle": "Pectorales",
-        "role": "primary",
-        "activation": 1
-      },
-      {
-        "muscle": "Tríceps",
-        "role": "secondary",
-        "activation": 0.5
-      },
-      {
-        "muscle": "Deltoides",
-        "role": "secondary",
-        "activation": 0.5,
-        "emphasis": "anterior"
-      },
-      {
-        "muscle": "Core",
-        "role": "stabilizer",
-        "activation": 0.4
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Accesorio",
-    "equipment": "Peso Corporal",
-    "force": "Empuje",
-    "bodyPart": "upper",
-    "chain": "anterior",
-    "efc": 2.8,
-    "cnc": 2.4,
-    "ssc": 0.7,
-    "ttc": 1.8,
-    "movementPattern": "Empuje Horizontal",
-    "executionOptions": null,
-    "subMuscleGroup": "Pectorales",
-    "averageRestSeconds": 90,
-    "coreInvolvement": "medium",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
     "id": "tren_superior_press_inclinado_maquina_convergente",
     "name": "Press Inclinado en Máquina Convergente",
     "description": "Press de pecho inclinado en máquina con brazos convergentes.",
@@ -2046,354 +2000,6 @@
     "movementPattern": "Empuje Diagonal"
   },
   {
-    "id": "triceps_rompecraneos_barra_recta",
-    "name": "Rompecráneos con Barra Recta",
-    "description": "Rompecráneos tumbado en banco con barra recta.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_barra_ez",
-    "name": "Rompecráneos con Barra EZ",
-    "description": "Rompecráneos tumbado en banco con barra EZ para alivio articular.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra EZ",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_barra_neutra",
-    "name": "Rompecráneos con Barra de Agarre Neutro",
-    "description": "Rompecráneos con triceps bar / barra de agarre neutro.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra de Agarre Neutro",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_mancuernas",
-    "name": "Rompecráneos con Mancuernas",
-    "description": "Rompecráneos tumbado con mancuernas.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Mancuerna",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_kettlebell",
-    "name": "Rompecráneos con Kettlebell",
-    "description": "Rompecráneos con kettlebells.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_polea",
-    "name": "Rompecráneos en Polea",
-    "description": "Rompecráneos tumbado frente a polea baja.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_polea_unilateral",
-    "name": "Rompecráneos en Polea Unilateral",
-    "description": "Rompecráneos unilateral en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_banda",
-    "name": "Rompecráneos en Banda Elástica",
-    "description": "Rompecráneos con resistencia de banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_declinado_barra_ez",
-    "name": "Rompecráneos Declinado con Barra EZ",
-    "description": "Rompecráneos en banco declinado con barra EZ.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra EZ",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_declinado_mancuernas",
-    "name": "Rompecráneos Declinado con Mancuernas",
-    "description": "Rompecráneos en banco declinado con mancuernas.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Mancuerna",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_suelo_barra_ez",
-    "name": "Rompecráneos en el Suelo con Barra EZ",
-    "description": "Floor skullcrusher con pausa en suelo y barra EZ.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra EZ",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_suelo_mancuernas",
-    "name": "Rompecráneos en el Suelo con Mancuernas",
-    "description": "Floor skullcrusher con mancuernas en el suelo.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Mancuerna",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
     "id": "triceps_press_frances_barra_recta",
     "name": "Press Francés con Barra Recta",
     "description": "Press francés tumbado llevando barra recta detrás de la cabeza.",
@@ -2420,7 +2026,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos con Barra Recta"
   },
   {
     "id": "triceps_press_frances_barra_ez",
@@ -2450,7 +2057,7 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 7.5,
-    "alias": "Press Francés Tumbado con Barra EZ"
+    "alias": "Press Francés Tumbado con Barra EZ, Rompecráneos con Barra EZ"
   },
   {
     "id": "triceps_press_frances_barra_neutra",
@@ -2479,7 +2086,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos con Barra de Agarre Neutro"
   },
   {
     "id": "triceps_press_frances_mancuernas",
@@ -2508,7 +2116,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos con Mancuernas"
   },
   {
     "id": "triceps_press_frances_kettlebell",
@@ -2537,7 +2146,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos con Kettlebell"
   },
   {
     "id": "triceps_press_frances_polea",
@@ -2566,7 +2176,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos en Polea"
   },
   {
     "id": "triceps_press_frances_polea_unilateral",
@@ -2595,7 +2206,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos en Polea Unilateral"
   },
   {
     "id": "triceps_press_frances_banda",
@@ -2624,7 +2236,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos en Banda Elástica"
   },
   {
     "id": "triceps_press_frances_declinado_barra_ez",
@@ -2653,7 +2266,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos Declinado con Barra EZ"
   },
   {
     "id": "triceps_press_frances_declinado_mancuernas",
@@ -2682,7 +2296,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos Declinado con Mancuernas"
   },
   {
     "id": "triceps_press_frances_suelo_barra_ez",
@@ -2711,7 +2326,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos en el Suelo con Barra EZ"
   },
   {
     "id": "triceps_press_frances_suelo_mancuernas",
@@ -2740,7 +2356,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos en el Suelo con Mancuernas"
   },
   {
     "id": "triceps_overhead_barra_recta",
@@ -4066,14 +3683,29 @@
   },
   {
     "id": "triceps_fondos_entre_bancos",
-    "name": "Fondos Entre Bancos (Bench Dips)",
+    "name": "Fondos Entre Bancos",
     "description": "Fondos apoyando manos en un banco y pies en otro para tríceps.",
     "involvedMuscles": [
       {
         "muscle": "Tríceps",
         "role": "primary",
-        "activation": 1,
-        "emphasis": "Pectorales, Deltoides"
+        "activation": 1
+      },
+      {
+        "muscle": "Pectorales",
+        "role": "secondary",
+        "activation": 0.7
+      },
+      {
+        "muscle": "Deltoides",
+        "role": "secondary",
+        "activation": 0.5,
+        "emphasis": "anterior"
+      },
+      {
+        "muscle": "Core",
+        "role": "stabilizer",
+        "activation": 0.4
       }
     ],
     "category": "Hipertrofia",
@@ -4092,65 +3724,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_inclinado_barra_ez",
-    "name": "Rompecráneos Inclinado con Barra EZ",
-    "description": "Rompecráneos en banco inclinado a 30-45º con barra EZ para mayor tensión inicial.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra EZ",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
-  },
-  {
-    "id": "triceps_rompecraneos_inclinado_mancuernas",
-    "name": "Rompecráneos Inclinado con Mancuernas",
-    "description": "Rompecráneos en banco inclinado con mancuernas.",
-    "involvedMuscles": [
-      {
-        "muscle": "Tríceps",
-        "role": "primary",
-        "activation": 1
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Mancuerna",
-    "force": "Extensión",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.2,
-    "cnc": 1.8,
-    "ssc": 0.2,
-    "ttc": 1.6,
-    "movementPattern": "Extensión Codo",
-    "subMuscleGroup": "Tríceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Bench Dips, Fondos Entre Bancos"
   },
   {
     "id": "triceps_press_frances_inclinado_barra_ez",
@@ -4179,7 +3754,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos Inclinado con Barra EZ"
   },
   {
     "id": "triceps_press_frances_inclinado_mancuernas",
@@ -4208,7 +3784,8 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "alias": "Rompecráneos Inclinado con Mancuernas"
   },
   {
     "id": "triceps_katana_barra_ez",
@@ -9228,47 +8805,6 @@
     "bodybuildingScore": 8.0
   },
   {
-    "id": "back_jefferson_curl_kettlebell",
-    "name": "Jefferson Curl con Kettlebell",
-    "description": "Jefferson Curl sujetando kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Erectores Espinales",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "lumbar/espinal"
-      },
-      {
-        "muscle": "Glúteos",
-        "role": "secondary",
-        "activation": 0.6,
-        "emphasis": "mayor"
-      },
-      {
-        "muscle": "Isquiosurales",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "lower",
-    "chain": "posterior",
-    "efc": 2.5,
-    "cnc": 2.0,
-    "ssc": 0.4,
-    "ttc": 1.8,
-    "movementPattern": "Flexión Columna",
-    "subMuscleGroup": "Lumbar / Espinal",
-    "averageRestSeconds": 90,
-    "coreInvolvement": "medium",
-    "bracingRecommended": true,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.0
-  },
-  {
     "id": "back_jefferson_curl_disco",
     "name": "Jefferson Curl con Disco",
     "description": "Jefferson Curl sujetando disco de pesas.",
@@ -9335,47 +8871,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "lower",
-    "chain": "posterior",
-    "efc": 2.5,
-    "cnc": 2.0,
-    "ssc": 0.4,
-    "ttc": 1.8,
-    "movementPattern": "Flexión Columna",
-    "subMuscleGroup": "Lumbar / Espinal",
-    "averageRestSeconds": 90,
-    "coreInvolvement": "medium",
-    "bracingRecommended": true,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.0
-  },
-  {
-    "id": "back_jefferson_curl_smith",
-    "name": "Jefferson Curl en Máquina Smith",
-    "description": "Jefferson Curl guiado en multipower.",
-    "involvedMuscles": [
-      {
-        "muscle": "Erectores Espinales",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "lumbar/espinal"
-      },
-      {
-        "muscle": "Glúteos",
-        "role": "secondary",
-        "activation": 0.6,
-        "emphasis": "mayor"
-      },
-      {
-        "muscle": "Isquiosurales",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Máquina Smith",
     "force": "Tirón",
     "bodyPart": "lower",
     "chain": "posterior",
@@ -9715,47 +9210,6 @@
     "bodybuildingScore": 8.0
   },
   {
-    "id": "back_reverse_hyper_banco",
-    "name": "Reverse Hyper en Banco Plano (Peso Corporal / Lastrado)",
-    "description": "Extensión inversa de piernas abrazando banco plano.",
-    "involvedMuscles": [
-      {
-        "muscle": "Erectores Espinales",
-        "role": "secondary",
-        "activation": 0.6,
-        "emphasis": "lumbar/espinal"
-      },
-      {
-        "muscle": "Glúteos",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "mayor"
-      },
-      {
-        "muscle": "Isquiosurales",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Peso Corporal",
-    "force": "Bisagra",
-    "bodyPart": "lower",
-    "chain": "posterior",
-    "efc": 2.5,
-    "cnc": 2.0,
-    "ssc": 0.4,
-    "ttc": 1.8,
-    "movementPattern": "Extensión Cadera",
-    "subMuscleGroup": "Lumbar",
-    "averageRestSeconds": 90,
-    "coreInvolvement": "high",
-    "bracingRecommended": true,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.0
-  },
-  {
     "id": "biceps_curl_de_pie_supino_barra_recta",
     "name": "Curl de Bíceps de Pie con Barra Recta",
     "description": "Ejercicio de curl de pie supinado con palmas hacia arriba con barra recta.",
@@ -10038,41 +9492,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_de_pie_supino_smith",
-    "name": "Curl de Bíceps de Pie en Máquina Smith",
-    "description": "Ejercicio de curl de pie supinado con palmas hacia arriba en máquina smith.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Máquina Smith",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_de_pie_martillo_barra_recta",
     "name": "Curl Martillo de Pie con Barra Recta",
     "description": "Ejercicio de curl de pie con agarre neutro o martillo con barra recta.",
@@ -10212,41 +9631,6 @@
     "strapsRecommended": false,
     "bodybuildingScore": 8.5,
     "alias": "Curl Martillo con Mancuernas"
-  },
-  {
-    "id": "biceps_curl_de_pie_martillo_kettlebell",
-    "name": "Curl Martillo de Pie con Kettlebell",
-    "description": "Ejercicio de curl de pie con agarre neutro o martillo con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
   },
   {
     "id": "biceps_curl_de_pie_martillo_polea",
@@ -10389,41 +9773,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_de_pie_martillo_smith",
-    "name": "Curl Martillo de Pie en Máquina Smith",
-    "description": "Ejercicio de curl de pie con agarre neutro o martillo en máquina smith.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Máquina Smith",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_de_pie_inverso_barra_recta",
     "name": "Curl Inverso de Pie con Barra Recta",
     "description": "Ejercicio de curl de pie con agarre prono o inverso con barra recta.",
@@ -10513,41 +9862,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_de_pie_inverso_kettlebell",
-    "name": "Curl Inverso de Pie con Kettlebell",
-    "description": "Ejercicio de curl de pie con agarre prono o inverso con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -10704,41 +10018,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_de_pie_inverso_smith",
-    "name": "Curl Inverso de Pie en Máquina Smith",
-    "description": "Ejercicio de curl de pie con agarre prono o inverso en máquina smith.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Máquina Smith",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_de_pie_supinacion_mancuernas",
     "name": "Curl de Bíceps de Pie con Supinación con Mancuernas",
     "description": "Ejercicio de curl de pie con giro de supinación activa de neutro a supinado con mancuernas.",
@@ -10758,146 +10037,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_de_pie_supinacion_kettlebell",
-    "name": "Curl de Bíceps de Pie con Supinación con Kettlebell",
-    "description": "Ejercicio de curl de pie con giro de supinación activa de neutro a supinado con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_de_pie_supinacion_polea",
-    "name": "Curl de Bíceps de Pie con Supinación en Polea",
-    "description": "Ejercicio de curl de pie con giro de supinación activa de neutro a supinado en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_de_pie_supinacion_polea_unilateral",
-    "name": "Curl de Bíceps de Pie con Supinación en Polea Unilateral",
-    "description": "Ejercicio de curl de pie con giro de supinación activa de neutro a supinado en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_de_pie_supinacion_banda",
-    "name": "Curl de Bíceps de Pie con Supinación en Banda Elástica",
-    "description": "Ejercicio de curl de pie con giro de supinación activa de neutro a supinado en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -11003,41 +10142,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_sentado_banco_plano_supino_kettlebell",
-    "name": "Curl Sentado en Banco Plano con Kettlebell",
-    "description": "Ejercicio de curl sentado en banco plano supinado con palmas hacia arriba con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -11299,41 +10403,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_sentado_banco_plano_martillo_kettlebell",
-    "name": "Curl Martillo Sentado en Banco Plano con Kettlebell",
-    "description": "Ejercicio de curl sentado en banco plano con agarre neutro o martillo con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_sentado_banco_plano_martillo_polea",
     "name": "Curl Martillo Sentado en Banco Plano en Polea",
     "description": "Ejercicio de curl sentado en banco plano con agarre neutro o martillo en polea.",
@@ -11544,41 +10613,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_sentado_banco_plano_inverso_kettlebell",
-    "name": "Curl Inverso Sentado en Banco Plano con Kettlebell",
-    "description": "Ejercicio de curl sentado en banco plano con agarre prono o inverso con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_sentado_banco_plano_inverso_polea",
     "name": "Curl Inverso Sentado en Banco Plano en Polea",
     "description": "Ejercicio de curl sentado en banco plano con agarre prono o inverso en polea.",
@@ -11719,146 +10753,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_sentado_banco_plano_supinacion_kettlebell",
-    "name": "Curl Sentado en Banco Plano con Supinación con Kettlebell",
-    "description": "Ejercicio de curl sentado en banco plano con giro de supinación activa de neutro a supinado con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_sentado_banco_plano_supinacion_polea",
-    "name": "Curl Sentado en Banco Plano con Supinación en Polea",
-    "description": "Ejercicio de curl sentado en banco plano con giro de supinación activa de neutro a supinado en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_sentado_banco_plano_supinacion_polea_unilateral",
-    "name": "Curl Sentado en Banco Plano con Supinación en Polea Unilateral",
-    "description": "Ejercicio de curl sentado en banco plano con giro de supinación activa de neutro a supinado en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_sentado_banco_plano_supinacion_banda",
-    "name": "Curl Sentado en Banco Plano con Supinación en Banda Elástica",
-    "description": "Ejercicio de curl sentado en banco plano con giro de supinación activa de neutro a supinado en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_inclinado_supino_barra_recta",
     "name": "Curl en Banco Inclinado con Barra Recta",
     "description": "Ejercicio de curl sentado a 45º en banco inclinado supinado con palmas hacia arriba con barra recta.",
@@ -11948,41 +10842,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_inclinado_supino_kettlebell",
-    "name": "Curl en Banco Inclinado con Kettlebell",
-    "description": "Ejercicio de curl sentado a 45º en banco inclinado supinado con palmas hacia arriba con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -12244,41 +11103,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_inclinado_martillo_kettlebell",
-    "name": "Curl Martillo en Banco Inclinado con Kettlebell",
-    "description": "Ejercicio de curl sentado a 45º en banco inclinado con agarre neutro o martillo con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_inclinado_martillo_polea",
     "name": "Curl Martillo en Banco Inclinado en Polea",
     "description": "Ejercicio de curl sentado a 45º en banco inclinado con agarre neutro o martillo en polea.",
@@ -12489,41 +11313,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_inclinado_inverso_kettlebell",
-    "name": "Curl Inverso en Banco Inclinado con Kettlebell",
-    "description": "Ejercicio de curl sentado a 45º en banco inclinado con agarre prono o inverso con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_inclinado_inverso_polea",
     "name": "Curl Inverso en Banco Inclinado en Polea",
     "description": "Ejercicio de curl sentado a 45º en banco inclinado con agarre prono o inverso en polea.",
@@ -12664,216 +11453,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_inclinado_supinacion_kettlebell",
-    "name": "Curl en Banco Inclinado con Supinación con Kettlebell",
-    "description": "Ejercicio de curl sentado a 45º en banco inclinado con giro de supinación activa de neutro a supinado con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_inclinado_supinacion_polea",
-    "name": "Curl en Banco Inclinado con Supinación en Polea",
-    "description": "Ejercicio de curl sentado a 45º en banco inclinado con giro de supinación activa de neutro a supinado en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_inclinado_supinacion_polea_unilateral",
-    "name": "Curl en Banco Inclinado con Supinación en Polea Unilateral",
-    "description": "Ejercicio de curl sentado a 45º en banco inclinado con giro de supinación activa de neutro a supinado en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_inclinado_supinacion_banda",
-    "name": "Curl en Banco Inclinado con Supinación en Banda Elástica",
-    "description": "Ejercicio de curl sentado a 45º en banco inclinado con giro de supinación activa de neutro a supinado en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_supino_barra_recta",
-    "name": "Curl en Banco Declinado con Barra Recta",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado supinado con palmas hacia arriba con barra recta.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_supino_barra_ez",
-    "name": "Curl en Banco Declinado con Barra EZ",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado supinado con palmas hacia arriba con barra ez.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra EZ",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_declinado_supino_mancuernas",
     "name": "Curl en Banco Declinado con Mancuernas",
     "description": "Ejercicio de curl recostado boca arriba en banco declinado supinado con palmas hacia arriba con mancuernas.",
@@ -12893,251 +11472,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_supino_kettlebell",
-    "name": "Curl en Banco Declinado con Kettlebell",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado supinado con palmas hacia arriba con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_supino_polea",
-    "name": "Curl en Banco Declinado en Polea",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado supinado con palmas hacia arriba en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_supino_polea_unilateral",
-    "name": "Curl en Banco Declinado en Polea Unilateral",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado supinado con palmas hacia arriba en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_supino_banda",
-    "name": "Curl en Banco Declinado en Banda Elástica",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado supinado con palmas hacia arriba en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_martillo_barra_recta",
-    "name": "Curl Martillo en Banco Declinado con Barra Recta",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre neutro o martillo con barra recta.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_martillo_barra_ez",
-    "name": "Curl Martillo en Banco Declinado con Barra EZ",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre neutro o martillo con barra ez.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra EZ",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_martillo_barra_neutra",
-    "name": "Curl Martillo en Banco Declinado con Barra de Agarre Neutro",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre neutro o martillo con barra de agarre neutro.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra de Agarre Neutro",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -13189,216 +11523,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_declinado_martillo_kettlebell",
-    "name": "Curl Martillo en Banco Declinado con Kettlebell",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre neutro o martillo con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_martillo_polea",
-    "name": "Curl Martillo en Banco Declinado en Polea",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre neutro o martillo en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_martillo_polea_unilateral",
-    "name": "Curl Martillo en Banco Declinado en Polea Unilateral",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre neutro o martillo en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_martillo_banda",
-    "name": "Curl Martillo en Banco Declinado en Banda Elástica",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre neutro o martillo en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_inverso_barra_recta",
-    "name": "Curl Inverso en Banco Declinado con Barra Recta",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre prono o inverso con barra recta.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_inverso_barra_ez",
-    "name": "Curl Inverso en Banco Declinado con Barra EZ",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre prono o inverso con barra ez.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Barra EZ",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_declinado_inverso_mancuernas",
     "name": "Curl Inverso en Banco Declinado con Mancuernas",
     "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre prono o inverso con mancuernas.",
@@ -13434,146 +11558,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_declinado_inverso_kettlebell",
-    "name": "Curl Inverso en Banco Declinado con Kettlebell",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre prono o inverso con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_inverso_polea",
-    "name": "Curl Inverso en Banco Declinado en Polea",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre prono o inverso en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_inverso_polea_unilateral",
-    "name": "Curl Inverso en Banco Declinado en Polea Unilateral",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre prono o inverso en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_inverso_banda",
-    "name": "Curl Inverso en Banco Declinado en Banda Elástica",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con agarre prono o inverso en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_declinado_supinacion_mancuernas",
     "name": "Curl en Banco Declinado con Supinación con Mancuernas",
     "description": "Ejercicio de curl recostado boca arriba en banco declinado con giro de supinación activa de neutro a supinado con mancuernas.",
@@ -13593,146 +11577,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_supinacion_kettlebell",
-    "name": "Curl en Banco Declinado con Supinación con Kettlebell",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con giro de supinación activa de neutro a supinado con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_supinacion_polea",
-    "name": "Curl en Banco Declinado con Supinación en Polea",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con giro de supinación activa de neutro a supinado en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_supinacion_polea_unilateral",
-    "name": "Curl en Banco Declinado con Supinación en Polea Unilateral",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con giro de supinación activa de neutro a supinado en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_declinado_supinacion_banda",
-    "name": "Curl en Banco Declinado con Supinación en Banda Elástica",
-    "description": "Ejercicio de curl recostado boca arriba en banco declinado con giro de supinación activa de neutro a supinado en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -13838,41 +11682,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_predicador_supino_kettlebell",
-    "name": "Curl Predicador con Kettlebell",
-    "description": "Ejercicio de curl en banco Scott apoyando los brazos supinado con palmas hacia arriba con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -14029,41 +11838,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_predicador_supino_smith",
-    "name": "Curl Predicador en Máquina Smith",
-    "description": "Ejercicio de curl en banco Scott apoyando los brazos supinado con palmas hacia arriba en máquina smith.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Máquina Smith",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_predicador_martillo_barra_recta",
     "name": "Curl Martillo Predicador con Barra Recta",
     "description": "Ejercicio de curl en banco Scott apoyando los brazos con agarre neutro o martillo con barra recta.",
@@ -14188,41 +11962,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_predicador_martillo_kettlebell",
-    "name": "Curl Martillo Predicador con Kettlebell",
-    "description": "Ejercicio de curl en banco Scott apoyando los brazos con agarre neutro o martillo con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -14379,41 +12118,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_predicador_martillo_smith",
-    "name": "Curl Martillo Predicador en Máquina Smith",
-    "description": "Ejercicio de curl en banco Scott apoyando los brazos con agarre neutro o martillo en máquina smith.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Máquina Smith",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_predicador_inverso_barra_recta",
     "name": "Curl Inverso Predicador con Barra Recta",
     "description": "Ejercicio de curl en banco Scott apoyando los brazos con agarre prono o inverso con barra recta.",
@@ -14503,41 +12207,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_predicador_inverso_kettlebell",
-    "name": "Curl Inverso Predicador con Kettlebell",
-    "description": "Ejercicio de curl en banco Scott apoyando los brazos con agarre prono o inverso con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -14694,41 +12363,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_predicador_inverso_smith",
-    "name": "Curl Inverso Predicador en Máquina Smith",
-    "description": "Ejercicio de curl en banco Scott apoyando los brazos con agarre prono o inverso en máquina smith.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Máquina Smith",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_predicador_supinacion_mancuernas",
     "name": "Curl Predicador con Supinación con Mancuernas",
     "description": "Ejercicio de curl en banco Scott apoyando los brazos con giro de supinación activa de neutro a supinado con mancuernas.",
@@ -14748,146 +12382,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_predicador_supinacion_kettlebell",
-    "name": "Curl Predicador con Supinación con Kettlebell",
-    "description": "Ejercicio de curl en banco Scott apoyando los brazos con giro de supinación activa de neutro a supinado con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_predicador_supinacion_polea",
-    "name": "Curl Predicador con Supinación en Polea",
-    "description": "Ejercicio de curl en banco Scott apoyando los brazos con giro de supinación activa de neutro a supinado en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_predicador_supinacion_polea_unilateral",
-    "name": "Curl Predicador con Supinación en Polea Unilateral",
-    "description": "Ejercicio de curl en banco Scott apoyando los brazos con giro de supinación activa de neutro a supinado en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_predicador_supinacion_banda",
-    "name": "Curl Predicador con Supinación en Banda Elástica",
-    "description": "Ejercicio de curl en banco Scott apoyando los brazos con giro de supinación activa de neutro a supinado en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -14993,41 +12487,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_arana_supino_kettlebell",
-    "name": "Curl Araña con Kettlebell",
-    "description": "Ejercicio de curl tumbado boca abajo a 45º en banco inclinado supinado con palmas hacia arriba con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -15289,41 +12748,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_arana_martillo_kettlebell",
-    "name": "Curl Martillo Araña con Kettlebell",
-    "description": "Ejercicio de curl tumbado boca abajo a 45º en banco inclinado con agarre neutro o martillo con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_arana_martillo_polea",
     "name": "Curl Martillo Araña en Polea",
     "description": "Ejercicio de curl tumbado boca abajo a 45º en banco inclinado con agarre neutro o martillo en polea.",
@@ -15534,41 +12958,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_arana_inverso_kettlebell",
-    "name": "Curl Inverso Araña con Kettlebell",
-    "description": "Ejercicio de curl tumbado boca abajo a 45º en banco inclinado con agarre prono o inverso con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_arana_inverso_polea",
     "name": "Curl Inverso Araña en Polea",
     "description": "Ejercicio de curl tumbado boca abajo a 45º en banco inclinado con agarre prono o inverso en polea.",
@@ -15709,146 +13098,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_arana_supinacion_kettlebell",
-    "name": "Curl Araña con Supinación con Kettlebell",
-    "description": "Ejercicio de curl tumbado boca abajo a 45º en banco inclinado con giro de supinación activa de neutro a supinado con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_arana_supinacion_polea",
-    "name": "Curl Araña con Supinación en Polea",
-    "description": "Ejercicio de curl tumbado boca abajo a 45º en banco inclinado con giro de supinación activa de neutro a supinado en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_arana_supinacion_polea_unilateral",
-    "name": "Curl Araña con Supinación en Polea Unilateral",
-    "description": "Ejercicio de curl tumbado boca abajo a 45º en banco inclinado con giro de supinación activa de neutro a supinado en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_arana_supinacion_banda",
-    "name": "Curl Araña con Supinación en Banda Elástica",
-    "description": "Ejercicio de curl tumbado boca abajo a 45º en banco inclinado con giro de supinación activa de neutro a supinado en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_concentrado_supino_mancuernas",
     "name": "Curl Concentrado con Mancuernas",
     "description": "Ejercicio de curl apoyando el codo en el muslo interno supinado con palmas hacia arriba con mancuernas.",
@@ -15868,41 +13117,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_concentrado_supino_kettlebell",
-    "name": "Curl Concentrado con Kettlebell",
-    "description": "Ejercicio de curl apoyando el codo en el muslo interno supinado con palmas hacia arriba con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -16059,41 +13273,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_concentrado_martillo_kettlebell",
-    "name": "Curl Martillo Concentrado con Kettlebell",
-    "description": "Ejercicio de curl apoyando el codo en el muslo interno con agarre neutro o martillo con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_concentrado_martillo_polea",
     "name": "Curl Martillo Concentrado en Polea",
     "description": "Ejercicio de curl apoyando el codo en el muslo interno con agarre neutro o martillo en polea.",
@@ -16218,41 +13397,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_concentrado_inverso_kettlebell",
-    "name": "Curl Inverso Concentrado con Kettlebell",
-    "description": "Ejercicio de curl apoyando el codo en el muslo interno con agarre prono o inverso con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -16409,146 +13553,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_concentrado_supinacion_kettlebell",
-    "name": "Curl Concentrado con Supinación con Kettlebell",
-    "description": "Ejercicio de curl apoyando el codo en el muslo interno con giro de supinación activa de neutro a supinado con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_concentrado_supinacion_polea",
-    "name": "Curl Concentrado con Supinación en Polea",
-    "description": "Ejercicio de curl apoyando el codo en el muslo interno con giro de supinación activa de neutro a supinado en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_concentrado_supinacion_polea_unilateral",
-    "name": "Curl Concentrado con Supinación en Polea Unilateral",
-    "description": "Ejercicio de curl apoyando el codo en el muslo interno con giro de supinación activa de neutro a supinado en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_concentrado_supinacion_banda",
-    "name": "Curl Concentrado con Supinación en Banda Elástica",
-    "description": "Ejercicio de curl apoyando el codo en el muslo interno con giro de supinación activa de neutro a supinado en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_drag_supino_barra_recta",
     "name": "Curl Drag con Barra Recta",
     "description": "Ejercicio de curl arrastrando la carga pegada al torso llevando codos hacia atrás supinado con palmas hacia arriba con barra recta.",
@@ -16638,41 +13642,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_drag_supino_kettlebell",
-    "name": "Curl Drag con Kettlebell",
-    "description": "Ejercicio de curl arrastrando la carga pegada al torso llevando codos hacia atrás supinado con palmas hacia arriba con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -16934,41 +13903,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_drag_martillo_kettlebell",
-    "name": "Curl Martillo Drag con Kettlebell",
-    "description": "Ejercicio de curl arrastrando la carga pegada al torso llevando codos hacia atrás con agarre neutro o martillo con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_drag_martillo_polea",
     "name": "Curl Martillo Drag en Polea",
     "description": "Ejercicio de curl arrastrando la carga pegada al torso llevando codos hacia atrás con agarre neutro o martillo en polea.",
@@ -17179,41 +14113,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_drag_inverso_kettlebell",
-    "name": "Curl Inverso Drag con Kettlebell",
-    "description": "Ejercicio de curl arrastrando la carga pegada al torso llevando codos hacia atrás con agarre prono o inverso con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_drag_inverso_polea",
     "name": "Curl Inverso Drag en Polea",
     "description": "Ejercicio de curl arrastrando la carga pegada al torso llevando codos hacia atrás con agarre prono o inverso en polea.",
@@ -17354,146 +14253,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_drag_supinacion_kettlebell",
-    "name": "Curl Drag con Supinación con Kettlebell",
-    "description": "Ejercicio de curl arrastrando la carga pegada al torso llevando codos hacia atrás con giro de supinación activa de neutro a supinado con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_drag_supinacion_polea",
-    "name": "Curl Drag con Supinación en Polea",
-    "description": "Ejercicio de curl arrastrando la carga pegada al torso llevando codos hacia atrás con giro de supinación activa de neutro a supinado en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_drag_supinacion_polea_unilateral",
-    "name": "Curl Drag con Supinación en Polea Unilateral",
-    "description": "Ejercicio de curl arrastrando la carga pegada al torso llevando codos hacia atrás con giro de supinación activa de neutro a supinado en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_drag_supinacion_banda",
-    "name": "Curl Drag con Supinación en Banda Elástica",
-    "description": "Ejercicio de curl arrastrando la carga pegada al torso llevando codos hacia atrás con giro de supinación activa de neutro a supinado en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_bayesian_supino_mancuernas",
     "name": "Curl Bayesian con Mancuernas",
     "description": "Ejercicio de curl de espaldas a la carga con hombros en extensión por detrás del cuerpo supinado con palmas hacia arriba con mancuernas.",
@@ -17513,41 +14272,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_bayesian_supino_kettlebell",
-    "name": "Curl Bayesian con Kettlebell",
-    "description": "Ejercicio de curl de espaldas a la carga con hombros en extensión por detrás del cuerpo supinado con palmas hacia arriba con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -17704,41 +14428,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_bayesian_martillo_kettlebell",
-    "name": "Curl Martillo Bayesian con Kettlebell",
-    "description": "Ejercicio de curl de espaldas a la carga con hombros en extensión por detrás del cuerpo con agarre neutro o martillo con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_bayesian_martillo_polea",
     "name": "Curl Martillo Bayesian en Polea",
     "description": "Ejercicio de curl de espaldas a la carga con hombros en extensión por detrás del cuerpo con agarre neutro o martillo en polea.",
@@ -17863,41 +14552,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_bayesian_inverso_kettlebell",
-    "name": "Curl Inverso Bayesian con Kettlebell",
-    "description": "Ejercicio de curl de espaldas a la carga con hombros en extensión por detrás del cuerpo con agarre prono o inverso con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -18054,146 +14708,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_bayesian_supinacion_kettlebell",
-    "name": "Curl Bayesian con Supinación con Kettlebell",
-    "description": "Ejercicio de curl de espaldas a la carga con hombros en extensión por detrás del cuerpo con giro de supinación activa de neutro a supinado con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_bayesian_supinacion_polea",
-    "name": "Curl Bayesian con Supinación en Polea",
-    "description": "Ejercicio de curl de espaldas a la carga con hombros en extensión por detrás del cuerpo con giro de supinación activa de neutro a supinado en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_bayesian_supinacion_polea_unilateral",
-    "name": "Curl Bayesian con Supinación en Polea Unilateral",
-    "description": "Ejercicio de curl de espaldas a la carga con hombros en extensión por detrás del cuerpo con giro de supinación activa de neutro a supinado en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_bayesian_supinacion_banda",
-    "name": "Curl Bayesian con Supinación en Banda Elástica",
-    "description": "Ejercicio de curl de espaldas a la carga con hombros en extensión por detrás del cuerpo con giro de supinación activa de neutro a supinado en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_superman_supino_polea",
     "name": "Curl Superman en Polea",
     "description": "Ejercicio de curl con brazos mantenidos horizontales a la altura de los hombros supinado con palmas hacia arriba en polea.",
@@ -18248,41 +14762,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_superman_supino_banda",
-    "name": "Curl Superman en Banda Elástica",
-    "description": "Ejercicio de curl con brazos mantenidos horizontales a la altura de los hombros supinado con palmas hacia arriba en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -18369,41 +14848,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_superman_martillo_banda",
-    "name": "Curl Martillo Superman en Banda Elástica",
-    "description": "Ejercicio de curl con brazos mantenidos horizontales a la altura de los hombros con agarre neutro o martillo en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_superman_inverso_polea",
     "name": "Curl Inverso Superman en Polea",
     "description": "Ejercicio de curl con brazos mantenidos horizontales a la altura de los hombros con agarre prono o inverso en polea.",
@@ -18458,146 +14902,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_superman_inverso_banda",
-    "name": "Curl Inverso Superman en Banda Elástica",
-    "description": "Ejercicio de curl con brazos mantenidos horizontales a la altura de los hombros con agarre prono o inverso en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_superman_supinacion_polea",
-    "name": "Curl Superman con Supinación en Polea",
-    "description": "Ejercicio de curl con brazos mantenidos horizontales a la altura de los hombros con giro de supinación activa de neutro a supinado en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_superman_supinacion_polea_unilateral",
-    "name": "Curl Superman con Supinación en Polea Unilateral",
-    "description": "Ejercicio de curl con brazos mantenidos horizontales a la altura de los hombros con giro de supinación activa de neutro a supinado en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_superman_supinacion_banda",
-    "name": "Curl Superman con Supinación en Banda Elástica",
-    "description": "Ejercicio de curl con brazos mantenidos horizontales a la altura de los hombros con giro de supinación activa de neutro a supinado en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -18684,41 +14988,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_crucifijo_supino_banda",
-    "name": "Curl Crucifijo en Banda Elástica",
-    "description": "Ejercicio de curl con brazos elevados a 90º en cruz en poleas altas supinado con palmas hacia arriba en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "ambas cabezas"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.5
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_crucifijo_martillo_polea",
     "name": "Curl Martillo Crucifijo en Polea",
     "description": "Ejercicio de curl con brazos elevados a 90º en cruz en poleas altas con agarre neutro o martillo en polea.",
@@ -18773,41 +15042,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_crucifijo_martillo_banda",
-    "name": "Curl Martillo Crucifijo en Banda Elástica",
-    "description": "Ejercicio de curl con brazos elevados a 90º en cruz en poleas altas con agarre neutro o martillo en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "braquial / braquiorradial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -18894,146 +15128,6 @@
     "bodybuildingScore": 8.5
   },
   {
-    "id": "biceps_curl_crucifijo_inverso_banda",
-    "name": "Curl Inverso Crucifijo en Banda Elástica",
-    "description": "Ejercicio de curl con brazos elevados a 90º en cruz en poleas altas con agarre prono o inverso en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "antebrazo / braquial"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_crucifijo_supinacion_polea",
-    "name": "Curl Crucifijo con Supinación en Polea",
-    "description": "Ejercicio de curl con brazos elevados a 90º en cruz en poleas altas con giro de supinación activa de neutro a supinado en polea.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_crucifijo_supinacion_polea_unilateral",
-    "name": "Curl Crucifijo con Supinación en Polea Unilateral",
-    "description": "Ejercicio de curl con brazos elevados a 90º en cruz en poleas altas con giro de supinación activa de neutro a supinado en polea unilateral.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_crucifijo_supinacion_banda",
-    "name": "Curl Crucifijo con Supinación en Banda Elástica",
-    "description": "Ejercicio de curl con brazos elevados a 90º en cruz en poleas altas con giro de supinación activa de neutro a supinado en banda elástica.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "supinación activa / pico"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.6
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Banda Elástica",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
     "id": "biceps_curl_zottman_mancuernas",
     "name": "Curl Zottman con Mancuernas",
     "description": "Subida supinada y bajada pronada con mancuernas.",
@@ -19053,76 +15147,6 @@
     "category": "Hipertrofia",
     "type": "Aislamiento",
     "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_zottman_polea",
-    "name": "Curl Zottman en Polea",
-    "description": "Curl Zottman en polea baja.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "bíceps y antebrazo"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Polea",
-    "force": "Tirón",
-    "bodyPart": "upper",
-    "chain": "full",
-    "efc": 2.0,
-    "cnc": 1.6,
-    "ssc": 0.1,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Codo",
-    "subMuscleGroup": "Bíceps",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "biceps_curl_zottman_kettlebell",
-    "name": "Curl Zottman con Kettlebell",
-    "description": "Curl Zottman con kettlebells.",
-    "involvedMuscles": [
-      {
-        "muscle": "Bíceps",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "bíceps y antebrazo"
-      },
-      {
-        "muscle": "Antebrazo",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Kettlebell",
     "force": "Tirón",
     "bodyPart": "upper",
     "chain": "full",
@@ -30834,7 +26858,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "alias": "Reverse Hyper en Banco Plano (Peso Corporal / Lastrado)"
   },
   {
     "id": "hams_peso_muerto_convencional_barra_recta",
@@ -30958,47 +26983,6 @@
     "ttc": 2.0,
     "movementPattern": "Bisagra Cadera / Tracción",
     "subMuscleGroup": "Cuádriceps / Glúteo / Isquios",
-    "averageRestSeconds": 90,
-    "coreInvolvement": "medium",
-    "bracingRecommended": true,
-    "strapsRecommended": false,
-    "bodybuildingScore": 9.0
-  },
-  {
-    "id": "hams_peso_muerto_deficit_barra_recta",
-    "name": "Peso Muerto en Déficit con Barra Recta",
-    "description": "Peso muerto sobre plataforma elevada para mayor rango de estiramiento.",
-    "involvedMuscles": [
-      {
-        "muscle": "Isquiosurales",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "Isquiosurales / Glúteo"
-      },
-      {
-        "muscle": "Glúteos",
-        "role": "secondary",
-        "activation": 0.7,
-        "emphasis": "mayor"
-      },
-      {
-        "muscle": "Erectores Espinales",
-        "role": "secondary",
-        "activation": 0.7
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Accesorio",
-    "equipment": "Barra",
-    "force": "Tirón",
-    "bodyPart": "lower",
-    "chain": "posterior",
-    "efc": 2.8,
-    "cnc": 2.2,
-    "ssc": 1.0,
-    "ttc": 2.0,
-    "movementPattern": "Bisagra Cadera / Tracción",
-    "subMuscleGroup": "Isquiosurales / Glúteo",
     "averageRestSeconds": 90,
     "coreInvolvement": "medium",
     "bracingRecommended": true,
@@ -31558,114 +27542,6 @@
     "ttc": 2.0,
     "movementPattern": "Bisagra Cadera / Tracción",
     "subMuscleGroup": "Glúteo Mayor / Aductores",
-    "averageRestSeconds": 90,
-    "coreInvolvement": "medium",
-    "bracingRecommended": true,
-    "strapsRecommended": false,
-    "bodybuildingScore": 9.0
-  },
-  {
-    "id": "hams_peso_muerto_unilateral_mancuerna",
-    "name": "Peso Muerto Unilateral a 1 Pierna con Mancuerna",
-    "description": "Peso muerto convencional a 1 pierna con mancuerna.",
-    "involvedMuscles": [
-      {
-        "muscle": "Isquiosurales",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "Isquiosurales Unilateral"
-      },
-      {
-        "muscle": "Glúteos",
-        "role": "secondary",
-        "activation": 0.7,
-        "emphasis": "mayor"
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Accesorio",
-    "equipment": "Mancuerna",
-    "force": "Tirón",
-    "bodyPart": "lower",
-    "chain": "posterior",
-    "efc": 2.8,
-    "cnc": 2.2,
-    "ssc": 0.5,
-    "ttc": 2.0,
-    "movementPattern": "Bisagra Cadera Unilateral",
-    "subMuscleGroup": "Isquiosurales Unilateral",
-    "averageRestSeconds": 90,
-    "coreInvolvement": "medium",
-    "bracingRecommended": true,
-    "strapsRecommended": false,
-    "bodybuildingScore": 9.0
-  },
-  {
-    "id": "hams_peso_muerto_unilateral_kettlebell",
-    "name": "Peso Muerto Unilateral a 1 Pierna con Kettlebell",
-    "description": "Peso muerto a 1 pierna con kettlebell.",
-    "involvedMuscles": [
-      {
-        "muscle": "Isquiosurales",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "Isquiosurales Unilateral"
-      },
-      {
-        "muscle": "Glúteos",
-        "role": "secondary",
-        "activation": 0.7,
-        "emphasis": "mayor"
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Accesorio",
-    "equipment": "Kettlebell",
-    "force": "Tirón",
-    "bodyPart": "lower",
-    "chain": "posterior",
-    "efc": 2.8,
-    "cnc": 2.2,
-    "ssc": 0.5,
-    "ttc": 2.0,
-    "movementPattern": "Bisagra Cadera Unilateral",
-    "subMuscleGroup": "Isquiosurales Unilateral",
-    "averageRestSeconds": 90,
-    "coreInvolvement": "medium",
-    "bracingRecommended": true,
-    "strapsRecommended": false,
-    "bodybuildingScore": 9.0
-  },
-  {
-    "id": "hams_peso_muerto_unilateral_barra_recta",
-    "name": "Peso Muerto Unilateral a 1 Pierna con Barra Recta",
-    "description": "Peso muerto a 1 pierna con barra recta.",
-    "involvedMuscles": [
-      {
-        "muscle": "Isquiosurales",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "Isquiosurales Unilateral"
-      },
-      {
-        "muscle": "Glúteos",
-        "role": "secondary",
-        "activation": 0.7,
-        "emphasis": "mayor"
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Accesorio",
-    "equipment": "Barra",
-    "force": "Tirón",
-    "bodyPart": "lower",
-    "chain": "posterior",
-    "efc": 2.8,
-    "cnc": 2.2,
-    "ssc": 1.0,
-    "ttc": 2.0,
-    "movementPattern": "Bisagra Cadera Unilateral",
-    "subMuscleGroup": "Isquiosurales Unilateral",
     "averageRestSeconds": 90,
     "coreInvolvement": "medium",
     "bracingRecommended": true,
@@ -33818,42 +29694,6 @@
     "ttc": 1.5,
     "movementPattern": "Flexión Plantar Unilateral",
     "subMuscleGroup": "Gastrocnemio Unilateral",
-    "averageRestSeconds": 60,
-    "coreInvolvement": "low",
-    "bracingRecommended": false,
-    "strapsRecommended": false,
-    "bodybuildingScore": 8.5
-  },
-  {
-    "id": "calves_elevacion_talones_prensa_piernas",
-    "name": "Elevación de Talones en Prensa de Piernas",
-    "description": "Flexión plantar empujando plataforma de prensa con puntas de pie.",
-    "involvedMuscles": [
-      {
-        "muscle": "Pantorrillas",
-        "role": "primary",
-        "activation": 1.0,
-        "emphasis": "Gastrocnemio"
-      },
-      {
-        "muscle": "Pantorrillas",
-        "role": "secondary",
-        "activation": 0.7,
-        "emphasis": "sóleo"
-      }
-    ],
-    "category": "Hipertrofia",
-    "type": "Aislamiento",
-    "equipment": "Máquina",
-    "force": "Empuje",
-    "bodyPart": "lower",
-    "chain": "posterior",
-    "efc": 2.0,
-    "cnc": 1.5,
-    "ssc": 0.2,
-    "ttc": 1.5,
-    "movementPattern": "Flexión Plantar",
-    "subMuscleGroup": "Gastrocnemio",
     "averageRestSeconds": 60,
     "coreInvolvement": "low",
     "bracingRecommended": false,

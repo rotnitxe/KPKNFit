@@ -40,6 +40,7 @@ import com.example.kpkn.screens.sessioneditor.SheetHeader
 import com.example.kpkn.screens.sessioneditor.sessionGradients
 import com.example.kpkn.screens.sessioneditor.sessionSolidPresets
 import com.example.kpkn.ui.components.KpknSheetLightChip
+import com.example.kpkn.ui.components.KpknSheetTokens
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -156,7 +157,7 @@ internal fun CoverTabButton(
             .clip(RoundedCornerShape(999.dp))
             .clickable { onClick() },
         shape = RoundedCornerShape(999.dp),
-        color = if (selected) Color.White else Color.White.copy(alpha = 0.78f),
+        color = if (selected) KpknSheetTokens.ChipSelected else KpknSheetTokens.ChipIdle,
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
             Text(
@@ -164,7 +165,7 @@ internal fun CoverTabButton(
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
-                color = Color.Black,
+                color = KpknSheetTokens.ChipLabel,
             )
         }
     }

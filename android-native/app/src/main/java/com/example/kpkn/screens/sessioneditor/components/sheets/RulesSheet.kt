@@ -37,7 +37,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -158,7 +157,12 @@ internal fun RestTimePickerDialog(
                     )
                     OutlinedTextField(
                         value = secInput,
-                        onValueChange = { secInput = it.filter(Char::isDigit).take(2) },
+                        onValueChange = {
+                            secInput = it.filter(Char::isDigit).take(2).let { raw ->
+                                val n = raw.toIntOrNull()
+                                if (n != null && n > 59) "59" else raw
+                            }
+                        },
                         label = { Text("Segundos") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f),
@@ -173,8 +177,8 @@ internal fun RestTimePickerDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val m = minInput.toIntOrNull() ?: 0
-                    val s = secInput.toIntOrNull() ?: 0
+                    val m = minInput.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                    val s = (secInput.toIntOrNull() ?: 0).coerceIn(0, 59)
                     onConfirm(m * 60 + s)
                 },
             ) {
@@ -250,6 +254,7 @@ internal fun RulesSheet(
     setTargetDuration: (Int?) -> Unit,
     setPartTargetDuration: (String, Int?) -> Unit,
     setExerciseTargetDuration: (String, Int?) -> Unit,
+    onDistributeTargetAcrossParts: () -> Unit = {},
     onSave: () -> Unit = {},
     onDismiss: () -> Unit = {},
 ) {
@@ -518,20 +523,20 @@ internal fun RulesSheet(
         } else {
             val session = uiState.session
             if (session != null) {
-                var timeInput by remember(session.targetDurationMinutes) {
-                    val m = session.targetDurationMinutes ?: 0
-                    mutableStateOf("%02d:%02d:%02d".format(m / 60, m % 60, 0))
+                var globalMinutesInput by remember(session.targetDurationMinutes) {
+                    mutableStateOf(session.targetDurationMinutes?.toString().orEmpty())
                 }
 
                 fun applyGlobalTimeBudget() {
-                    val parts = timeInput.split(":").map { it.toIntOrNull() ?: 0 }
-                    val hh = parts.getOrElse(0) { 0 }
-                    val mm = parts.getOrElse(1) { 0 }
-                    val ss = parts.getOrElse(2) { 0 }
-                    val totalSecs = hh * 3600 + mm * 60 + ss
-                    val totalMin = if (totalSecs == 0) null else totalSecs / 60
-                    setTargetDuration(totalMin)
+                    val minutes = globalMinutesInput.toIntOrNull()?.takeIf { it > 0 }
+                    setTargetDuration(minutes)
                 }
+
+                // Part budget OR sum of its exercises (never both). Plus loose exercises.
+                val assignedMinutes = session.parts.sumOf { part ->
+                    part.targetDurationMinutes
+                        ?: part.exercises.sumOf { it.targetDurationMinutes ?: 0 }
+                } + session.exercises.sumOf { it.targetDurationMinutes ?: 0 }
 
                 Column(
                     modifier = Modifier
@@ -548,39 +553,81 @@ internal fun RulesSheet(
                         color = Color.White,
                     )
                     Text(
-                        "Establece un límite de tiempo objetivo para toda la sesión. Sirve de referencia de ritmo durante el entrenamiento.",
+                        "Presupuesto orientativo en minutos. Guía el ritmo en vivo; no corta el entrenamiento.",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.65f),
                     )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(30, 45, 60, 90).forEach { mins ->
+                            KpknSheetLightChip(
+                                label = "${mins}m",
+                                selected = globalMinutesInput == mins.toString(),
+                                onClick = {
+                                    globalMinutesInput = mins.toString()
+                                    setTargetDuration(mins)
+                                },
+                            )
+                        }
+                        if (uiState.estimatedDurationMinutes > 0) {
+                            KpknSheetLightChip(
+                                label = "Estimado ${uiState.estimatedDurationMinutes}m",
+                                selected = globalMinutesInput == uiState.estimatedDurationMinutes.toString(),
+                                onClick = {
+                                    globalMinutesInput = uiState.estimatedDurationMinutes.toString()
+                                    setTargetDuration(uiState.estimatedDurationMinutes)
+                                },
+                            )
+                        }
+                        KpknSheetLightChip(
+                            label = "Sin límite",
+                            selected = globalMinutesInput.isBlank(),
+                            onClick = {
+                                globalMinutesInput = ""
+                                setTargetDuration(null)
+                            },
+                        )
+                    }
+                    if (uiState.estimatedDurationMinutes > 0) {
+                        val budget = session.targetDurationMinutes
+                        Text(
+                            if (budget != null && budget > 0) {
+                                "Estimado de estructura: ${uiState.estimatedDurationMinutes} min · Objetivo: $budget min"
+                            } else {
+                                "Estimado de estructura: ${uiState.estimatedDurationMinutes} min"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.85f),
+                        )
+                    }
                     OutlinedTextField(
-                        value = timeInput,
-                        onValueChange = { timeInput = it },
-                        label = { Text("HH:MM:SS") },
+                        value = globalMinutesInput,
+                        onValueChange = { globalMinutesInput = it.filter(Char::isDigit).take(3) },
+                        label = { Text("Minutos") },
                         placeholder = {
-                            Text("01:30:00", color = KpknSheetTokens.ControlPlaceholder)
+                            Text("60", color = KpknSheetTokens.ControlPlaceholder)
                         },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
                         textStyle = MaterialTheme.typography.bodyMedium.copy(
-                            fontFamily = FontFamily.Monospace,
                             textAlign = TextAlign.Center,
                             color = KpknSheetTokens.ControlLabel,
                         ),
                         colors = kpknSheetWhiteFieldColors(),
                         shape = RoundedCornerShape(KpknSheetTokens.ControlRadius),
+                        suffix = {
+                            Text("min", color = KpknSheetTokens.ControlLabelMuted)
+                        },
                     )
-                    val partsSum = session.parts.sumOf { it.targetDurationMinutes ?: 0 } +
-                        session.exercises.sumOf { it.targetDurationMinutes ?: 0 }
                     val sessionBudget = session.targetDurationMinutes ?: 0
                     if (sessionBudget > 0) {
-                        val isOverBudget = partsSum > sessionBudget
-                        val remaining = sessionBudget - partsSum
+                        val isOverBudget = assignedMinutes > sessionBudget
+                        val remaining = sessionBudget - assignedMinutes
                         Text(
                             text = if (isOverBudget) {
-                                "Excede el presupuesto global por ${partsSum - sessionBudget} min ($partsSum min asignados)"
+                                "Excede el presupuesto global por ${assignedMinutes - sessionBudget} min ($assignedMinutes min asignados)"
                             } else {
-                                "$partsSum de $sessionBudget min asignados (${if (remaining >= 0) "$remaining min disponibles" else ""})"
+                                "$assignedMinutes de $sessionBudget min asignados ($remaining min disponibles)"
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = if (isOverBudget) Color(0xFFEF4444) else Color.White.copy(alpha = 0.85f),
@@ -596,10 +643,17 @@ internal fun RulesSheet(
                     color = Color.White,
                 )
                 Text(
-                    "Define presupuestos específicos (en minutos) en función del global.",
+                    "Presupuestos en minutos (guía). Si el grupo tiene minutos, no se suman los de sus ejercicios al global.",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.65f),
                 )
+                if (session.parts.size >= 2 && (session.targetDurationMinutes ?: 0) > 0) {
+                    KpknSheetLightChip(
+                        label = "Repartir global en grupos",
+                        selected = false,
+                        onClick = onDistributeTargetAcrossParts,
+                    )
+                }
 
                 session.parts.forEach { part ->
                     var partMinutesInput by remember(part.targetDurationMinutes) {

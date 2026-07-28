@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import com.example.kpkn.ui.components.KpknSheetTokens
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -97,7 +99,7 @@ internal fun SupersetCreatorSheet(
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Crear superserie", fontWeight = FontWeight.Black, fontSize = 18.sp)
+        Text("Crear superserie", fontWeight = FontWeight.Black, fontSize = 18.sp, color = KpknSheetTokens.TitleStrong)
         Column(
             modifier = Modifier
                 .weight(1f, fill = false)
@@ -107,16 +109,16 @@ internal fun SupersetCreatorSheet(
             Text(
                 "Elige entre 2 y 4 ejercicios de la sesión, ordena la secuencia y configura descansos.",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = KpknSheetTokens.MutedStrong,
             )
 
-            Text("Seleccionar ejercicios", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+            Text("Seleccionar ejercicios", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge, color = KpknSheetTokens.Body)
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 availableExercises.forEach { exercise ->
                     val selected = exercise.id in draft.exerciseIds
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = if (selected) Color.White else Color.White.copy(alpha = 0.78f),
+                        color = if (selected) KpknSheetTokens.ChipSelected else KpknSheetTokens.ChipIdle,
                     modifier = Modifier.fillMaxWidth().clickable(enabled = selected || draft.exerciseIds.size < 4) { toggleExercise(exercise.id) },
                     ) {
                         Row(
@@ -127,25 +129,30 @@ internal fun SupersetCreatorSheet(
                             Checkbox(
                                 checked = selected,
                                 onCheckedChange = { toggleExercise(exercise.id) },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = KpknSheetTokens.ControlLabel,
+                                    uncheckedColor = KpknSheetTokens.ControlLabelMuted,
+                                    checkmarkColor = KpknSheetTokens.ChipSelected,
+                                ),
                             )
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     exercise.name,
                                     fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
-                                    color = Color.Black,
+                                    color = KpknSheetTokens.ControlLabel,
                                 )
                                 if (exercise.id in draft.exerciseIds) {
                                     Text(
                                         "Orden ${draft.exerciseIds.indexOf(exercise.id) + 1}",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color.Black.copy(alpha = 0.55f),
+                                        color = KpknSheetTokens.ControlLabelMuted,
                                         fontWeight = FontWeight.SemiBold,
                                     )
                                 } else if (draft.exerciseIds.size >= 4) {
                                     Text(
                                         "Limite 4 ejercicios",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color.Black.copy(alpha = 0.45f),
+                                        color = KpknSheetTokens.ControlPlaceholder,
                                     )
                                 }
                             }
@@ -154,32 +161,32 @@ internal fun SupersetCreatorSheet(
                 }
             }
 
-            Text("Orden de la superserie", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+            Text("Orden de la superserie", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge, color = KpknSheetTokens.Body)
             if (selectedExercises.isEmpty()) {
                 Text(
                     "Selecciona ejercicios arriba para armar la superserie.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = KpknSheetTokens.MutedStrong,
                 )
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     selectedExercises.forEachIndexed { index, exercise ->
                         Surface(
                             shape = RoundedCornerShape(10.dp),
-                            color = Color.White,
+                            color = KpknSheetTokens.ControlFill,
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
-                                Text("${index + 1}", fontWeight = FontWeight.Black, color = Color.Black, modifier = Modifier.width(24.dp))
-                                Text(exercise.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, color = Color.Black)
+                                Text("${index + 1}", fontWeight = FontWeight.Black, color = KpknSheetTokens.ControlLabel, modifier = Modifier.width(24.dp))
+                                Text(exercise.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, color = KpknSheetTokens.ControlLabel)
                                 IconButton(onClick = { moveSelectedExercise(exercise.id, -1) }, enabled = index > 0) {
-                                    Icon(Icons.Default.KeyboardArrowUp, null)
+                                    Icon(Icons.Default.KeyboardArrowUp, null, tint = KpknSheetTokens.ControlLabel)
                                 }
                                 IconButton(onClick = { moveSelectedExercise(exercise.id, 1) }, enabled = index < selectedExercises.lastIndex) {
-                                    Icon(Icons.Default.KeyboardArrowDown, null)
+                                    Icon(Icons.Default.KeyboardArrowDown, null, tint = KpknSheetTokens.ControlLabel)
                                 }
                                 IconButton(onClick = { toggleExercise(exercise.id) }) {
                                     Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error)
@@ -274,7 +281,7 @@ internal fun SupersetMemberPickerSheet(
             availableExercises.forEach { exercise ->
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White.copy(alpha = 0.78f),
+                    color = KpknSheetTokens.ChipIdle,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable(enabled = draft.exerciseIds.size < 4) {
@@ -287,8 +294,15 @@ internal fun SupersetMemberPickerSheet(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text(exercise.name, modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp), tint = KpknSheetTokens.ControlLabel)
+                        Text(
+                            exercise.name,
+                            modifier = Modifier.weight(1f),
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = KpknSheetTokens.ControlLabel,
+                        )
                     }
                 }
             }

@@ -29,10 +29,105 @@ enum class ExerciseCatalogSort(val label: String, val isGrouped: Boolean = false
     GROUP_BY_MUSCLE("Agrupar por músculo", isGrouped = true),
     GROUP_BY_REGION("Agrupar por región", isGrouped = true),
     RELEVANCE("Relevancia"),
-    NAME("Nombre A-Z"),
-    FATIGUE_HIGH("Fatiga alta"),
-    FATIGUE_LOW("Fatiga baja"),
+    NAME("Alfabético"),
+    FATIGUE_HIGH("Más fatigante"),
+    FATIGUE_LOW("Menos fatigante"),
 }
+
+/** Single exclusive filter for the simplified catalog picker. Selecting one replaces any previous. */
+sealed class ExerciseCatalogExclusiveFilter {
+    abstract val label: String
+    abstract val storageKey: String
+
+    data object None : ExerciseCatalogExclusiveFilter() {
+        override val label: String = "Sin filtro"
+        override val storageKey: String = "none"
+    }
+
+    data object UpperBody : ExerciseCatalogExclusiveFilter() {
+        override val label: String = "Tren superior"
+        override val storageKey: String = "body:upper"
+    }
+
+    data object LowerBody : ExerciseCatalogExclusiveFilter() {
+        override val label: String = "Tren inferior"
+        override val storageKey: String = "body:lower"
+    }
+
+    data object AnteriorChain : ExerciseCatalogExclusiveFilter() {
+        override val label: String = "Cadena anterior"
+        override val storageKey: String = "chain:anterior"
+    }
+
+    data object PosteriorChain : ExerciseCatalogExclusiveFilter() {
+        override val label: String = "Cadena posterior"
+        override val storageKey: String = "chain:posterior"
+    }
+
+    data class Muscle(val canonicalName: String, val displayName: String = canonicalName) : ExerciseCatalogExclusiveFilter() {
+        override val label: String = displayName
+        override val storageKey: String = "muscle:$canonicalName"
+    }
+
+    data class MovementPattern(val force: String) : ExerciseCatalogExclusiveFilter() {
+        override val label: String = force
+        override val storageKey: String = "force:$force"
+    }
+
+    companion object {
+        fun fromStorageKey(key: String?): ExerciseCatalogExclusiveFilter {
+            if (key.isNullOrBlank() || key == "none") return None
+            return when {
+                key == "body:upper" -> UpperBody
+                key == "body:lower" -> LowerBody
+                key == "chain:anterior" -> AnteriorChain
+                key == "chain:posterior" -> PosteriorChain
+                key.startsWith("muscle:") -> {
+                    val name = key.removePrefix("muscle:")
+                    val display = ALL_MUSCLES.firstOrNull { it.canonicalName.equals(name, true) }?.displayName ?: name
+                    Muscle(name, display)
+                }
+                key.startsWith("force:") -> MovementPattern(key.removePrefix("force:"))
+                else -> None
+            }
+        }
+    }
+}
+
+fun matchesExclusiveCatalogFilter(
+    info: ExerciseMuscleInfo,
+    filter: ExerciseCatalogExclusiveFilter,
+): Boolean = when (filter) {
+    ExerciseCatalogExclusiveFilter.None -> true
+    ExerciseCatalogExclusiveFilter.UpperBody -> {
+        info.bodyPart.equals("upper", ignoreCase = true) ||
+            resolveExerciseRegion(info) == ExerciseCatalogRegion.UPPER
+    }
+    ExerciseCatalogExclusiveFilter.LowerBody -> {
+        info.bodyPart.equals("lower", ignoreCase = true) ||
+            resolveExerciseRegion(info) == ExerciseCatalogRegion.LOWER
+    }
+    ExerciseCatalogExclusiveFilter.AnteriorChain ->
+        info.chain.equals("anterior", ignoreCase = true)
+    ExerciseCatalogExclusiveFilter.PosteriorChain ->
+        info.chain.equals("posterior", ignoreCase = true)
+    is ExerciseCatalogExclusiveFilter.Muscle -> {
+        val anatomy = MUSCLE_BY_CANONICAL[filter.canonicalName]
+            ?: MuscleAnatomy(filter.canonicalName, filter.displayName, emptyList())
+        matchesMuscle(info, anatomy)
+    }
+    is ExerciseCatalogExclusiveFilter.MovementPattern ->
+        info.force.equals(filter.force, ignoreCase = true)
+}
+
+/** Canonical movement-pattern labels used by the simplified catalog filter. */
+val CATALOG_MOVEMENT_PATTERNS: List<String> = listOf(
+    "Empuje",
+    "Tirón",
+    "Bisagra",
+    "Extensión",
+    "Elevación",
+)
 
 data class FriendlyFatigueBreakdown(
     val muscle: Int,
@@ -79,7 +174,8 @@ private fun broadMuscleLabel(raw: String): String {
         "Glúteos" -> "Glúteos"
         "Aductores" -> "Aductores"
         "Pantorrillas" -> "Pantorrillas"
-        "Abdomen", "Core" -> "Core"
+        "Abdomen" -> "Abdomen"
+        "Core" -> "Core"
         "Erectores Espinales" -> "Espalda baja"
         else -> canonical
     }

@@ -38,7 +38,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -134,7 +134,7 @@ internal fun SessionEditorListItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 4.dp)
-                    .onGloballyPositioned { onLooseBoundsReport(it.boundsInRoot()) },
+                    .onGloballyPositioned { onLooseBoundsReport(it.boundsInWindow()) },
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 LooseExerciseItem(
@@ -172,7 +172,7 @@ internal fun SessionEditorListItem(
                     .background(partAccent.brush(alpha = 0.06f))
                     .drawPartBorder(partAccent.primary)
                     .padding(horizontal = 4.dp, vertical = 4.dp)
-                    .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInRoot()) },
+                    .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
                 PartExerciseItem(
                     exercise = exercise,
@@ -208,7 +208,7 @@ internal fun SessionEditorListItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 4.dp)
-                    .onGloballyPositioned { onLooseBoundsReport(it.boundsInRoot()) },
+                    .onGloballyPositioned { onLooseBoundsReport(it.boundsInWindow()) },
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 LooseSupersetItem(
@@ -251,7 +251,7 @@ internal fun SessionEditorListItem(
                     .background(partAccent.brush(alpha = 0.06f))
                     .drawPartBorder(partAccent.primary)
                     .padding(horizontal = 4.dp, vertical = 4.dp)
-                    .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInRoot()) },
+                    .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
                 PartSupersetItem(
                     supersetGroup = supersetGroup,
@@ -341,17 +341,13 @@ private fun LooseExerciseItem(
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
     key("loose|${exercise.id}") {
-        DropGapProjection(
-            visible = draggingExerciseId != null && (
-                (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == index) ||
-                    exerciseDropTargetKey == "$partId|${exercise.id}"
-                ),
-            accentColor = accentHex.toEditorColor(),
-        )
-        val projectedShift by animateFloatAsState(
-            targetValue = projectedShiftFor(partId, index, exercise.id),
-            animationSpec = tween(150),
-            label = "looseExerciseProjectedShift",
+        SessionEditorDropIndicator(
+            visible = draggingExerciseId != null &&
+                draggingExerciseId != exercise.id &&
+                (
+                    (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == index) ||
+                        exerciseDropTargetKey == "$partId|${exercise.id}"
+                    ),
         )
         ExerciseEditorCard(
             exercise = exercise,
@@ -359,7 +355,7 @@ private fun LooseExerciseItem(
             accentHex = accentHex,
             partId = partId,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
-            modifier = Modifier.fillMaxWidth().graphicsLayer { translationY = projectedShift },
+            modifier = Modifier.fillMaxWidth(),
             isDragging = draggingExerciseId == exercise.id,
             dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
             isDropTarget = (
@@ -391,12 +387,6 @@ private fun LooseExerciseItem(
             },
         )
     }
-    ExerciseDropTargetIndicator(
-        visible = draggingExerciseId != null && (
-            exerciseDropTargetKey == "$partId|${exercise.id}" ||
-                (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == index)
-            ),
-    )
     ExerciseListDivider(
         exercise = exercise,
         index = index,
@@ -428,17 +418,13 @@ private fun PartExerciseItem(
 ) {
     key("${part.id}|${exercise.id}") {
         val accentHex = resolveExerciseAccentHex(session, part.color)
-        DropGapProjection(
-            visible = draggingExerciseId != null && (
-                (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index) ||
-                    exerciseDropTargetKey == "${part.id}|${exercise.id}"
-                ),
-            accentColor = accentHex.toEditorColor(),
-        )
-        val projectedShift by animateFloatAsState(
-            targetValue = projectedShiftFor(part.id, index, exercise.id),
-            animationSpec = tween(150),
-            label = "partExerciseProjectedShift",
+        SessionEditorDropIndicator(
+            visible = draggingExerciseId != null &&
+                draggingExerciseId != exercise.id &&
+                (
+                    (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index) ||
+                        exerciseDropTargetKey == "${part.id}|${exercise.id}"
+                    ),
         )
         ExerciseEditorCard(
             exercise = exercise,
@@ -446,7 +432,7 @@ private fun PartExerciseItem(
             accentHex = accentHex,
             partId = part.id,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
-            modifier = Modifier.fillMaxWidth().graphicsLayer { translationY = projectedShift },
+            modifier = Modifier.fillMaxWidth(),
             isDragging = draggingExerciseId == exercise.id,
             dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
             isDropTarget = (
@@ -478,12 +464,6 @@ private fun PartExerciseItem(
             },
         )
     }
-    ExerciseDropTargetIndicator(
-        visible = draggingExerciseId != null && (
-            exerciseDropTargetKey == "${part.id}|${exercise.id}" ||
-                (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index)
-            ),
-    )
     ExerciseListDivider(
         exercise = exercise,
         index = index,
@@ -517,17 +497,13 @@ private fun LooseSupersetItem(
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
     val firstMember = supersetMembers.first()
-    DropGapProjection(
-        visible = draggingExerciseId != null && (
-            (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == index) ||
-                exerciseDropTargetKey == "$partId|${firstMember.id}"
-            ),
-        accentColor = accentHex.toEditorColor(),
-    )
-    val projectedShift by animateFloatAsState(
-        targetValue = projectedShiftFor(partId, index, firstMember.id),
-        animationSpec = tween(150),
-        label = "looseSupersetProjectedShift",
+    SessionEditorDropIndicator(
+        visible = draggingExerciseId != null &&
+            draggingExerciseId != firstMember.id &&
+            (
+                (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == index) ||
+                    exerciseDropTargetKey == "$partId|${firstMember.id}"
+                ),
     )
     SupersetGroupEditorCard(
         group = supersetGroup,
@@ -536,7 +512,7 @@ private fun LooseSupersetItem(
         partId = null,
         isDragging = draggingExerciseId == firstMember.id,
         dragOffset = if (draggingExerciseId == firstMember.id) draggingExerciseOffset else Offset.Zero,
-        modifier = Modifier.graphicsLayer { translationY = projectedShift },
+        modifier = Modifier,
         onBoundsChange = { rect -> exerciseBounds["$partId|${firstMember.id}"] = rect },
         onDragStart = { beginExerciseDrag(partId, firstMember.id) },
         onDrag = updateExerciseDrag,
@@ -640,17 +616,13 @@ private fun PartSupersetItem(
 ) {
     val accentHex = resolveExerciseAccentHex(session, part.color)
     val firstMember = supersetMembers.first()
-    DropGapProjection(
-        visible = draggingExerciseId != null && (
-            (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index) ||
-                exerciseDropTargetKey == "${part.id}|${firstMember.id}"
-            ),
-        accentColor = accentHex.toEditorColor(),
-    )
-    val projectedShift by animateFloatAsState(
-        targetValue = projectedShiftFor(part.id, index, firstMember.id),
-        animationSpec = tween(150),
-        label = "partSupersetProjectedShift",
+    SessionEditorDropIndicator(
+        visible = draggingExerciseId != null &&
+            draggingExerciseId != firstMember.id &&
+            (
+                (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index) ||
+                    exerciseDropTargetKey == "${part.id}|${firstMember.id}"
+                ),
     )
     SupersetGroupEditorCard(
         group = supersetGroup,
@@ -659,7 +631,7 @@ private fun PartSupersetItem(
         partId = part.id,
         isDragging = draggingExerciseId == firstMember.id,
         dragOffset = if (draggingExerciseId == firstMember.id) draggingExerciseOffset else Offset.Zero,
-        modifier = Modifier.graphicsLayer { translationY = projectedShift },
+        modifier = Modifier,
         onBoundsChange = { rect -> exerciseBounds["${part.id}|${firstMember.id}"] = rect },
         onDragStart = { beginExerciseDrag(part.id, firstMember.id) },
         onDrag = updateExerciseDrag,
@@ -736,33 +708,6 @@ private fun PartSupersetItem(
         index = index,
         exercises = part.exercises,
     )
-}
-
-@Composable
-private fun ExerciseDropTargetIndicator(visible: Boolean) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn() + expandVertically(),
-        exit = fadeOut() + shrinkVertically(),
-    ) {
-        val primaryColor = MaterialTheme.colorScheme.primary
-        val cornerRadiusPx = with(LocalDensity.current) { 12.dp.toPx() }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-                .padding(horizontal = 16.dp)
-                .drawWithContent {
-                    drawContent()
-                    val dashEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 8f), 0f)
-                    drawRoundRect(
-                        color = primaryColor.copy(alpha = 0.24f),
-                        style = Stroke(width = 2f, pathEffect = dashEffect),
-                        cornerRadius = CornerRadius(cornerRadiusPx),
-                    )
-                },
-        )
-    }
 }
 
 @Composable

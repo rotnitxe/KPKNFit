@@ -55,7 +55,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -211,7 +211,7 @@ internal fun ExerciseEditorCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .onGloballyPositioned { onBoundsChange(it.boundsInRoot()) }
+            .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
             .graphicsLayer {
                 translationX = 0f
                 translationY = 0f

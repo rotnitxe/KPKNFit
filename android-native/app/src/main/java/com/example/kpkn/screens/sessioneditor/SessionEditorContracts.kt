@@ -69,6 +69,7 @@ data class SessionCloneDayOption(
     val weekName: String,
     val existingSessionId: String? = null,
     val existingSessionName: String? = null,
+    val existingExerciseCount: Int = 0,
     val isCurrentSessionDay: Boolean = false,
 )
 
@@ -107,6 +108,14 @@ enum class SessionCloneApplyMode {
     REPLACE,
 }
 
+/** Queued copy of [sourceSession] onto other days; flushed on save. */
+data class PendingTransferToDays(
+    val targetKeys: Set<String>,
+    val selectedExerciseIds: Set<String>?,
+    val applyMode: SessionCloneApplyMode,
+    val sourceSession: com.example.kpkn.data.models.Session,
+)
+
 enum class SessionSaveScope {
     SESSION_ONLY,
     MESOCYCLE,
@@ -114,9 +123,7 @@ enum class SessionSaveScope {
 
 sealed interface SessionEditorAction {
     data object CloseEditor : SessionEditorAction
-    data object OpenHistory : SessionEditorAction
     data object OpenRules : SessionEditorAction
-    data object OpenTransfer : SessionEditorAction
     data object OpenBackgroundEditor : SessionEditorAction
     data object OpenAuge : SessionEditorAction
     data class SwitchSiblingSession(val sessionId: String) : SessionEditorAction

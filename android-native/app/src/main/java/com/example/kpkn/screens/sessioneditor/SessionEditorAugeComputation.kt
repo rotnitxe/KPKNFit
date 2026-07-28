@@ -720,5 +720,6 @@ internal fun ExerciseSet.lowerAugeIntensity(capRpe: Double? = null): ExerciseSet
 internal data class ClonePayload(
     val parts: List<SessionPart>,
     val looseExercises: List<Exercise>,
+    val supersetGroups: List<SupersetGroup> = emptyList(),
 )
 

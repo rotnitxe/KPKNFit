@@ -102,31 +102,31 @@ fun SessionEditorViewModel.cloneCurrentSessionToTargets(
         return SessionEditorSaveResult(false, "Selecciona al menos un día destino.")
     }
     if (selectedExerciseIds != null && selectedExerciseIds.isEmpty()) {
-        return SessionEditorSaveResult(false, "Selecciona al menos un ejercicio para clonación parcial.")
+        return SessionEditorSaveResult(false, "Selecciona al menos un ejercicio para transferencia parcial.")
     }
     val state = currentUiState
     val source = state.session ?: return SessionEditorSaveResult(false, "No hay sesión origen activa.")
-    val program = repository.getProgramById(programId) ?: return SessionEditorSaveResult(false, "No pudimos encontrar el programa.")
-    val targets = state.cloneDayOptions.filter { it.key in targetKeys }
+    val targets = state.cloneDayOptions.filter { it.key in targetKeys && !it.isCurrentSessionDay }
     if (targets.isEmpty()) return SessionEditorSaveResult(false, "No se encontraron destinos válidos.")
 
-    val updatedProgram = targets.fold(program) { acc, target ->
-        applyCloneToTarget(
-            program = acc,
-            source = source,
-            target = target,
-            selectedExerciseIds = selectedExerciseIds,
-            applyMode = applyMode,
+    // Stage only — applied when the user saves (unified draft semantics with import).
+    updateUi {
+        it.copy(
+            pendingTransferToDays = PendingTransferToDays(
+                targetKeys = targets.map { t -> t.key }.toSet(),
+                selectedExerciseIds = selectedExerciseIds,
+                applyMode = applyMode,
+                sourceSession = source,
+            ),
+            hasUnsavedChanges = true,
+            sheet = SessionEditorSheet.NONE,
+            snackbarMessage = "Transferencia pendiente a ${targets.size} día${if (targets.size > 1) "s" else ""}. Guarda para aplicarla.",
         )
     }
-    repository.updateProgram(updatedProgram)
-    closeSheet()
-    loadSession()
-
     val modeLabel = if (selectedExerciseIds.isNullOrEmpty()) "completa" else "parcial"
     return SessionEditorSaveResult(
         success = true,
-        message = "Clonación $modeLabel aplicada en ${targets.size} día${if (targets.size > 1) "s" else ""}.",
+        message = "Transferencia $modeLabel pendiente en ${targets.size} día${if (targets.size > 1) "s" else ""}. Guarda para aplicarla.",
     )
 }
 
@@ -135,21 +135,21 @@ fun SessionEditorViewModel.importFromSourceSession(
     selectedExerciseIds: Set<String>?,
     applyMode: SessionCloneApplyMode,
 ): SessionEditorSaveResult {
-        if (selectedExerciseIds != null && selectedExerciseIds.isEmpty()) {
-            return SessionEditorSaveResult(false, "Selecciona al menos un ejercicio para importación parcial.")
-        }
-        val state = currentUiState
-        val sourceOption = state.cloneSourceOptions.firstOrNull { it.sessionId == sourceSessionId }
-            ?: return SessionEditorSaveResult(false, "No se encontró la sesión origen.")
-        val program = repository.getProgramById(programId) ?: return SessionEditorSaveResult(false, "No pudimos encontrar el programa.")
-        val sourceSession = program.findSessionInProgram(
-            macroIndex = sourceOption.macroIndex,
-            mesoIndex = sourceOption.mesoIndex,
-            weekId = sourceOption.weekId,
-            sessionId = sourceOption.sessionId,
-        ) ?: return SessionEditorSaveResult(false, "No se pudo leer la sesión origen.")
+    if (selectedExerciseIds != null && selectedExerciseIds.isEmpty()) {
+        return SessionEditorSaveResult(false, "Selecciona al menos un ejercicio para transferencia parcial.")
+    }
+    val state = currentUiState
+    val sourceOption = state.cloneSourceOptions.firstOrNull { it.sessionId == sourceSessionId }
+        ?: return SessionEditorSaveResult(false, "No se encontró la sesión origen.")
+    val program = repository.getProgramById(programId) ?: return SessionEditorSaveResult(false, "No pudimos encontrar el programa.")
+    val sourceSession = program.findSessionInProgram(
+        macroIndex = sourceOption.macroIndex,
+        mesoIndex = sourceOption.mesoIndex,
+        weekId = sourceOption.weekId,
+        sessionId = sourceOption.sessionId,
+    ) ?: return SessionEditorSaveResult(false, "No se pudo leer la sesión origen.")
 
-        updateSession { current ->
+    updateSession(reason = "Transferencia") { current ->
             mergeSessions(
                 base = current,
                 incoming = sourceSession,
@@ -157,10 +157,30 @@ fun SessionEditorViewModel.importFromSourceSession(
                 applyMode = applyMode,
             )
         }
-        closeSheet()
-        val modeLabel = if (selectedExerciseIds.isNullOrEmpty()) "completa" else "parcial"
-        return SessionEditorSaveResult(success = true, message = "Importación $modeLabel aplicada desde ${sourceOption.sessionName}.")
+    closeSheet()
+    val modeLabel = if (selectedExerciseIds.isNullOrEmpty()) "completa" else "parcial"
+    return SessionEditorSaveResult(
+        success = true,
+        message = "Transferencia $modeLabel al borrador desde ${sourceOption.sessionName}. Revisa y guarda.",
+    )
+}
+
+internal fun SessionEditorViewModel.applyPendingTransfersToProgram(
+    program: Program,
+    pending: PendingTransferToDays,
+    cloneDayOptions: List<SessionCloneDayOption>,
+): Program {
+    val targets = cloneDayOptions.filter { it.key in pending.targetKeys && !it.isCurrentSessionDay }
+    return targets.fold(program) { acc, target ->
+        applyCloneToTarget(
+            program = acc,
+            source = pending.sourceSession,
+            target = target,
+            selectedExerciseIds = pending.selectedExerciseIds,
+            applyMode = pending.applyMode,
+        )
     }
+}
 
 internal fun SessionEditorViewModel.applyCloneToTarget(
     program: Program,
@@ -169,28 +189,28 @@ internal fun SessionEditorViewModel.applyCloneToTarget(
     selectedExerciseIds: Set<String>?,
     applyMode: SessionCloneApplyMode,
 ): Program {
-        val payload = buildClonePayload(source, selectedExerciseIds)
-        return program.updateWeekById(target.weekId) { week ->
-            val sessions = week.sessions.toMutableList()
-            val existingIndex = sessions.indexOfFirst { it.id == target.existingSessionId }
-            if (existingIndex >= 0) {
-                val existing = sessions[existingIndex]
-                sessions[existingIndex] = mergeSessionWithPayload(
-                    base = existing,
-                    source = source,
-                    payload = payload,
-                    selectedExerciseIds = selectedExerciseIds,
-                    applyMode = applyMode,
-                ).copy(dayOfWeek = target.dayOfWeek)
-            } else {
-                sessions += createSessionForTargetDay(
-                    source = source,
-                    dayOfWeek = target.dayOfWeek,
-                    payload = payload,
-                    selectedExerciseIds = selectedExerciseIds,
-                )
-            }
-            week.copy(sessions = normalizeMainSessions(sessions))
+    val payload = buildClonePayload(source, selectedExerciseIds)
+    return program.updateWeekById(target.weekId) { week ->
+        val sessions = week.sessions.toMutableList()
+        val existingIndex = sessions.indexOfFirst { it.id == target.existingSessionId }
+        if (existingIndex >= 0) {
+            val existing = sessions[existingIndex]
+            sessions[existingIndex] = mergeSessionWithPayload(
+                base = existing,
+                source = source,
+                payload = payload,
+                selectedExerciseIds = selectedExerciseIds,
+                applyMode = applyMode,
+            ).copy(dayOfWeek = target.dayOfWeek)
+        } else {
+            sessions += createSessionForTargetDay(
+                source = source,
+                dayOfWeek = target.dayOfWeek,
+                payload = payload,
+                selectedExerciseIds = selectedExerciseIds,
+            )
         }
+        week.copy(sessions = normalizeMainSessions(sessions))
     }
+}
 

@@ -51,14 +51,10 @@ import java.util.UUID
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SessionCloneApplyMode
 import com.example.kpkn.screens.sessioneditor.SessionSaveScope
-import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
-import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
 import com.example.kpkn.screens.sessioneditor.sessionEditorDayLabel
-import com.example.kpkn.screens.sessioneditor.DarkEditorChip
 import com.example.kpkn.ui.components.KpknSheetLightChip
 import com.example.kpkn.ui.components.KpknSheetTokens
 import com.example.kpkn.ui.components.KpknSheetWhiteButton
-import com.example.kpkn.screens.sessioneditor.DarkEditorChipSelected
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
@@ -98,25 +94,47 @@ internal fun SessionClonerSheet(
     val sourceOption = remember(uiState.cloneSourceOptions, selectedSourceSessionId) {
         uiState.cloneSourceOptions.firstOrNull { it.sessionId == selectedSourceSessionId }
     }
+    val selectedTargets = remember(uiState.cloneDayOptions, selectedTargetKeys) {
+        uiState.cloneDayOptions.filter { it.key in selectedTargetKeys && !it.isCurrentSessionDay }
+    }
+    val replaceLossCount = remember(selectedTargets, applyMode) {
+        if (applyMode != SessionCloneApplyMode.REPLACE) 0
+        else selectedTargets.sumOf { it.existingExerciseCount }
+    }
+    val canSubmitClone = selectedTargetKeys.isNotEmpty() &&
+        (!clonePartial || selectedCloneExerciseIds.isNotEmpty())
+    val canSubmitImport = selectedSourceSessionId != null &&
+        (!importPartial || selectedImportExerciseIds.isNotEmpty())
 
     Column(Modifier.fillMaxWidth()) {
         Column(
-            Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp),
+            Modifier.padding(
+                start = KpknSheetTokens.ContentPaddingHorizontal,
+                end = KpknSheetTokens.ContentPaddingHorizontal,
+                top = KpknSheetTokens.ContentPaddingTop,
+            ),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("Clonador de sesiones", fontWeight = FontWeight.Black, fontSize = 18.sp, color = Color.White)
+            Text("Transferir", fontWeight = FontWeight.Black, fontSize = 18.sp, color = KpknSheetTokens.TitleStrong)
             Text(
-                "Copia esta sesión a varios días o trae una sesión de otro día/semana/bloque.",
-                color = Color.White.copy(alpha = 0.65f),
+                "Copia esta sesión a otros días o tráela desde otra sesión. Los cambios quedan en borrador hasta que guardes.",
+                color = KpknSheetTokens.MutedStrong,
             )
+            if (uiState.pendingTransferToDays != null) {
+                Text(
+                    "Ya hay una transferencia pendiente a ${uiState.pendingTransferToDays.targetKeys.size} día(s).",
+                    color = KpknSheetTokens.Body,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                DarkChoiceChip(
+                KpknSheetLightChip(
                     label = "Copiar hacia",
                     selected = mode == SessionClonerMode.CLONE_TO_DAYS,
                     onClick = { mode = SessionClonerMode.CLONE_TO_DAYS },
                 )
-                DarkChoiceChip(
+                KpknSheetLightChip(
                     label = "Traer desde",
                     selected = mode == SessionClonerMode.IMPORT_FROM_DAY,
                     onClick = { mode = SessionClonerMode.IMPORT_FROM_DAY },
@@ -125,7 +143,7 @@ internal fun SessionClonerSheet(
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SessionCloneApplyMode.entries.forEach { candidate ->
-                    DarkChoiceChip(
+                    KpknSheetLightChip(
                         label = if (candidate == SessionCloneApplyMode.APPEND) "Agregar" else "Reemplazar",
                         selected = applyMode == candidate,
                         onClick = { applyModeName = candidate.name },
@@ -140,123 +158,100 @@ internal fun SessionClonerSheet(
                     .fillMaxWidth()
                     .heightIn(max = 420.dp)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp),
+                    .padding(horizontal = KpknSheetTokens.ContentPaddingHorizontal),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Text("Selecciona días destino", fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(2.dp))
+                Text("Días destino", fontWeight = FontWeight.Bold, color = KpknSheetTokens.Body)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val currentWeekId = uiState.weekId
+                    val weekTargets = uiState.cloneDayOptions.filter {
+                        !it.isCurrentSessionDay && it.weekId == currentWeekId
+                    }
+                    val sameDayTargets = uiState.cloneDayOptions.filter {
+                        !it.isCurrentSessionDay && it.dayOfWeek == uiState.dayOfWeek
+                    }
+                    if (weekTargets.isNotEmpty()) {
+                        KpknSheetLightChip(
+                            label = "Esta semana",
+                            selected = selectedTargetKeys == weekTargets.map { it.key }.toSet(),
+                            onClick = {
+                                selectedTargetKeys = weekTargets.map { it.key }.toSet()
+                            },
+                        )
+                    }
+                    if (sameDayTargets.isNotEmpty()) {
+                        KpknSheetLightChip(
+                            label = "Mismo día",
+                            selected = selectedTargetKeys == sameDayTargets.map { it.key }.toSet(),
+                            onClick = {
+                                selectedTargetKeys = sameDayTargets.map { it.key }.toSet()
+                            },
+                        )
+                    }
+                }
                 uiState.cloneDayOptions
                     .filterNot { it.isCurrentSessionDay }
                     .forEach { target ->
                         val selected = target.key in selectedTargetKeys
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(14.dp))
-                                .clickable {
-                                    selectedTargetKeys = if (selected) {
-                                        selectedTargetKeys - target.key
-                                    } else {
-                                        selectedTargetKeys + target.key
-                                    }
-                                },
-        shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-                                else DarkEditorSurfaceSoft,
-                            ),
-                        ) {
-                            Row(
-                                Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(
-                                        "${sessionEditorDayLabel(target.dayOfWeek)} · ${target.weekName}",
-                                        fontWeight = FontWeight.Black,
-                                        fontSize = 14.sp,
-                                    )
-                                    Text(
-                                        "${target.blockName} · ${target.mesoName}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
+                        TransferOptionCard(
+                            selected = selected,
+                            title = "${sessionEditorDayLabel(target.dayOfWeek)} · ${target.weekName}",
+                            subtitle = "${target.blockName} · ${target.mesoName}",
+                            meta = if (target.existingSessionId != null) {
+                                "Destino: ${target.existingSessionName?.ifBlank { "Sesión" } ?: "Sesión"} · ${target.existingExerciseCount} ej."
+                            } else {
+                                "Sin sesión"
+                            },
+                            onClick = {
+                                selectedTargetKeys = if (selected) {
+                                    selectedTargetKeys - target.key
+                                } else {
+                                    selectedTargetKeys + target.key
                                 }
-                                Text(
-                                    if (target.existingSessionId != null) {
-                                        "Destino: ${target.existingSessionName?.ifBlank { "Sesión" } ?: "Sesión"}"
-                                    } else {
-                                        "Sin sesión"
-                                    },
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (target.existingSessionId != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                )
-                            }
-                        }
+                            },
+                        )
                     }
-                Spacer(Modifier.height(4.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(DarkEditorSurfaceSoft)
-                        .clickable { clonePartial = !clonePartial }
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text("Clonación parcial (ejercicios seleccionados)")
-                    DarkChoiceChip(
-                        label = if (clonePartial) "ON" else "OFF",
-                        selected = clonePartial,
-                        onClick = { clonePartial = !clonePartial },
-                    )
-                }
+
+                TransferToggleRow(
+                    label = "Transferencia parcial",
+                    enabled = clonePartial,
+                    onToggle = { clonePartial = !clonePartial },
+                )
 
                 if (clonePartial) {
                     availableExercises.forEach { exercise ->
-                        val selected = exercise.exerciseId in selectedCloneExerciseIds
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(10.dp))
-                                .clickable {
-                                    selectedCloneExerciseIds = if (selected) {
-                                        selectedCloneExerciseIds - exercise.exerciseId
-                                    } else {
-                                        selectedCloneExerciseIds + exercise.exerciseId
-                                    }
+                        TransferExerciseRow(
+                            name = exercise.name,
+                            detail = exercise.sourcePartName ?: "Sin grupo",
+                            selected = exercise.exerciseId in selectedCloneExerciseIds,
+                            onClick = {
+                                selectedCloneExerciseIds = if (exercise.exerciseId in selectedCloneExerciseIds) {
+                                    selectedCloneExerciseIds - exercise.exerciseId
+                                } else {
+                                    selectedCloneExerciseIds + exercise.exerciseId
                                 }
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            if (selected) {
-                                Icon(
-                                    Icons.Default.CheckCircle,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
-                            } else {
-                                Box(Modifier.size(24.dp).clip(CircleShape).background(DarkEditorChip))
-                            }
-                            Column(Modifier.weight(1f)) {
-                                Text(exercise.name, fontWeight = FontWeight.SemiBold)
-                                Text(exercise.sourcePartName ?: "Sin grupo", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
+                            },
+                        )
                     }
+                }
+
+                if (applyMode == SessionCloneApplyMode.REPLACE && replaceLossCount > 0) {
+                    Text(
+                        "Reemplazar eliminará $replaceLossCount ejercicio(s) en los destinos seleccionados.",
+                        color = KpknSheetTokens.Body,
+                        fontWeight = FontWeight.SemiBold,
+                    )
                 }
             }
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(KpknSheetTokens.ContentPaddingHorizontal),
             ) {
                 KpknSheetWhiteButton(
-                    text = "Clonar hacia días seleccionados",
+                    text = "Preparar transferencia",
+                    enabled = canSubmitClone,
                     onClick = {
                         onCloneCurrentToTargets(
                             selectedTargetKeys,
@@ -272,96 +267,52 @@ internal fun SessionClonerSheet(
                     .fillMaxWidth()
                     .heightIn(max = 420.dp)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp),
+                    .padding(horizontal = KpknSheetTokens.ContentPaddingHorizontal),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Text("Selecciona sesión origen", fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(2.dp))
+                Text("Sesión origen", fontWeight = FontWeight.Bold, color = KpknSheetTokens.Body)
                 uiState.cloneSourceOptions.forEach { source ->
                     val selected = selectedSourceSessionId == source.sessionId
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .clickable { selectedSourceSessionId = source.sessionId },
-                        shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-                            else DarkEditorSurfaceSoft,
-                        ),
-                    ) {
-                        Row(
-                            Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Column(Modifier.weight(1f)) {
-                                Text(source.sessionName, fontWeight = FontWeight.Black, fontSize = 14.sp)
-                                Text(
-                                    "${sessionEditorDayLabel(source.dayOfWeek)} · ${source.weekName} · ${source.blockName} · ${source.mesoName}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            Text(
-                                "${source.exerciseCount} ejercicios",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    }
-                }
-                Spacer(Modifier.height(4.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(DarkEditorSurfaceSoft)
-                        .clickable { importPartial = !importPartial }
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text("Importación parcial (ejercicios seleccionados)")
-                    DarkChoiceChip(
-                        label = if (importPartial) "ON" else "OFF",
-                        selected = importPartial,
-                        onClick = { importPartial = !importPartial },
+                    TransferOptionCard(
+                        selected = selected,
+                        title = source.sessionName,
+                        subtitle = "${sessionEditorDayLabel(source.dayOfWeek)} · ${source.weekName} · ${source.blockName}",
+                        meta = "${source.exerciseCount} ejercicios",
+                        onClick = { selectedSourceSessionId = source.sessionId },
                     )
                 }
 
+                TransferToggleRow(
+                    label = "Transferencia parcial",
+                    enabled = importPartial,
+                    onToggle = { importPartial = !importPartial },
+                )
+
                 if (importPartial && sourceOption != null) {
                     sourceOption.exercises.forEach { exercise ->
-                        val selected = exercise.exerciseId in selectedImportExerciseIds
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(10.dp))
-                                .clickable {
-                                    selectedImportExerciseIds = if (selected) {
-                                        selectedImportExerciseIds - exercise.exerciseId
-                                    } else {
-                                        selectedImportExerciseIds + exercise.exerciseId
-                                    }
+                        TransferExerciseRow(
+                            name = exercise.name,
+                            detail = exercise.sourcePartName ?: "Sin grupo",
+                            selected = exercise.exerciseId in selectedImportExerciseIds,
+                            onClick = {
+                                selectedImportExerciseIds = if (exercise.exerciseId in selectedImportExerciseIds) {
+                                    selectedImportExerciseIds - exercise.exerciseId
+                                } else {
+                                    selectedImportExerciseIds + exercise.exerciseId
                                 }
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            if (selected) {
-                                Icon(
-                                    Icons.Default.CheckCircle,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
-                            } else {
-                                Box(Modifier.size(24.dp).clip(CircleShape).background(DarkEditorChip))
-                            }
-                            Column(Modifier.weight(1f)) {
-                                Text(exercise.name, fontWeight = FontWeight.SemiBold)
-                                Text(exercise.sourcePartName ?: "Sin grupo", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
+                            },
+                        )
+                    }
+                }
+
+                if (applyMode == SessionCloneApplyMode.REPLACE) {
+                    val currentCount = currentSession.allExercises().size
+                    if (currentCount > 0) {
+                        Text(
+                            "Reemplazar sobrescribirá $currentCount ejercicio(s) de la sesión actual.",
+                            color = KpknSheetTokens.Body,
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
                 }
             }
@@ -369,11 +320,11 @@ internal fun SessionClonerSheet(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(KpknSheetTokens.ContentPaddingHorizontal),
             ) {
                 KpknSheetWhiteButton(
-                    text = "Traer sesión al editor actual",
-                    enabled = selectedSourceSessionId != null,
+                    text = "Traer al borrador actual",
+                    enabled = canSubmitImport,
                     onClick = {
                         val sourceId = selectedSourceSessionId ?: return@KpknSheetWhiteButton
                         onImportFromSource(
@@ -384,6 +335,94 @@ internal fun SessionClonerSheet(
                     },
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun TransferOptionCard(
+    selected: Boolean,
+    title: String,
+    subtitle: String,
+    meta: String,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(KpknSheetTokens.PanelRadius))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(KpknSheetTokens.PanelRadius),
+        color = if (selected) Color.White.copy(alpha = 0.16f) else KpknSheetTokens.Panel,
+    ) {
+        Row(
+            Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(title, fontWeight = FontWeight.Black, fontSize = 14.sp, color = KpknSheetTokens.Body)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = KpknSheetTokens.MutedStrong)
+            }
+            Text(meta, style = MaterialTheme.typography.labelSmall, color = KpknSheetTokens.MutedStrong)
+        }
+    }
+}
+
+@Composable
+private fun TransferToggleRow(
+    label: String,
+    enabled: Boolean,
+    onToggle: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(KpknSheetTokens.PanelRadius))
+            .background(KpknSheetTokens.Panel)
+            .clickable(onClick = onToggle)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(label, color = KpknSheetTokens.Body)
+        KpknSheetLightChip(
+            label = if (enabled) "ON" else "OFF",
+            selected = enabled,
+            onClick = onToggle,
+        )
+    }
+}
+
+@Composable
+private fun TransferExerciseRow(
+    name: String,
+    detail: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (selected) {
+            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = KpknSheetTokens.Body)
+        } else {
+            Box(
+                Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.18f)),
+            )
+        }
+        Column(Modifier.weight(1f)) {
+            Text(name, fontWeight = FontWeight.SemiBold, color = KpknSheetTokens.Body)
+            Text(detail, style = MaterialTheme.typography.labelSmall, color = KpknSheetTokens.MutedStrong)
         }
     }
 }

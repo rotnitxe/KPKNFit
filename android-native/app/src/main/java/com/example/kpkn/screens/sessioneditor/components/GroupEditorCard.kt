@@ -173,7 +173,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -284,7 +284,6 @@ import com.example.kpkn.screens.sessioneditor.AddSetGhostCard
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.formatEditorOneDecimal
 import com.example.kpkn.screens.sessioneditor.formatRestSummary
-import com.example.kpkn.screens.sessioneditor.formatHistoryTimestamp
 import com.example.kpkn.screens.sessioneditor.trainingModeLabel
 import com.example.kpkn.screens.sessioneditor.sessionEditorDayLabel
 import com.example.kpkn.screens.sessioneditor.sessionEditorDayLabelShort
@@ -304,7 +303,6 @@ import com.example.kpkn.screens.sessioneditor.SessionCoverGradient
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SessionEditorSheet
 import com.example.kpkn.screens.sessioneditor.SessionSaveScope
-import com.example.kpkn.screens.sessioneditor.SessionDraftSnapshot
 import com.example.kpkn.screens.sessioneditor.SessionCloneApplyMode
 import com.example.kpkn.screens.sessioneditor.SessionCloneDayOption
 import com.example.kpkn.screens.sessioneditor.SessionCloneExerciseOption
@@ -379,13 +377,13 @@ internal fun GroupEditorCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp, bottom = if (collapsed) 4.dp else 0.dp)
-            .onGloballyPositioned { onBoundsChange(it.boundsInRoot()) }
+            .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
             .graphicsLayer {
-                translationY = if (isDragging) dragOffsetY else 0f
+                translationY = 0f
                 scaleX = if (isDragging) 1.02f else dropScale
                 scaleY = if (isDragging) 1.02f else dropScale
-                alpha = if (isDragging) 0.96f else 1f
-                shadowElevation = if (isDragging) 28.dp.toPx() else 0f
+                alpha = if (isDragging) 0.22f else 1f
+                shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
             .zIndex(if (isDragging) 10f else 0f),
     ) {
@@ -561,7 +559,7 @@ internal fun GroupEditorCard(
 
                     AnimatedVisibility(!collapsed && !headerOnly) {
                         Column(
-                            modifier = Modifier.onGloballyPositioned { onContentBoundsChange(it.boundsInRoot()) },
+                            modifier = Modifier.onGloballyPositioned { onContentBoundsChange(it.boundsInWindow()) },
                             verticalArrangement = Arrangement.spacedBy(0.dp),
                         ) {
                             content()
