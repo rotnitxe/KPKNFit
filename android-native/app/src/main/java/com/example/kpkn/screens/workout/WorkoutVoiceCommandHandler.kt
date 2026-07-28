@@ -14,6 +14,7 @@ import com.example.kpkn.services.workout.WorkoutVoiceController
 import com.example.kpkn.services.workout.WorkoutVoiceExerciseAliasMatcher
 import com.example.kpkn.services.workout.WorkoutVoiceForegroundService
 import com.example.kpkn.services.workout.WorkoutVoicePermissionHelper
+import com.example.kpkn.services.workout.WorkoutVoiceRuntime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -32,6 +33,17 @@ class WorkoutVoiceCommandHandler(
     private val updateState: ((WorkoutUiState) -> WorkoutUiState) -> Unit,
     private val ports: Ports,
 ) {
+    init {
+        WorkoutVoiceRuntime.initialize(appContext)
+        // «Detener voz» debe apagar captura de forma síncrona (privacidad P0).
+        WorkoutVoiceRuntime.registerStopCaptureHandler {
+            disableVoice()
+        }
+        WorkoutVoiceRuntime.registerActionSink { command ->
+            handleVoiceCommand(command)
+        }
+    }
+
     interface Ports {
         fun visibleExercises(state: WorkoutUiState): List<Exercise>
         fun workoutStepPositions(state: WorkoutUiState): List<WorkoutStep>
@@ -280,6 +292,15 @@ class WorkoutVoiceCommandHandler(
             }
             return
         }
+        // Re-registrar en cada enable (disable lo limpia).
+        WorkoutVoiceRuntime.registerStopCaptureHandler {
+            disableVoice()
+        }
+        WorkoutVoiceRuntime.registerActionSink { command ->
+            handleVoiceCommand(command)
+        }
+        // Android 14+: crear el FGS de micrófono mientras la Activity aún es visible.
+        WorkoutVoiceForegroundService.start(appContext)
         voiceController.enable()
         val controllerState = voiceController.state.value
         if (!voiceController.isEnabled() ||
@@ -295,9 +316,9 @@ class WorkoutVoiceCommandHandler(
                     ),
                 )
             }
+            WorkoutVoiceForegroundService.stop(appContext)
             return
         }
-        WorkoutVoiceForegroundService.start(appContext)
         updateState {
             it.copy(
                 voiceSessionEnabled = true,
@@ -307,6 +328,9 @@ class WorkoutVoiceCommandHandler(
     }
 
     fun disableVoice() {
+        // Cortar callbacks antes de detener el servicio evita reentrada desde onDestroy.
+        WorkoutVoiceRuntime.registerStopCaptureHandler(null)
+        WorkoutVoiceRuntime.registerActionSink(null)
         voiceController.disable()
         updateState {
             it.copy(

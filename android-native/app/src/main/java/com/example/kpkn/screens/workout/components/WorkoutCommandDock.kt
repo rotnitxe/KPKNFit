@@ -68,6 +68,8 @@ fun WorkoutCommandDock(
         isListening -> Color(0xFF4CAF50)
         isArmed -> Color(0xFF81C784)
         isProcessing -> MaterialTheme.colorScheme.tertiary
+        voiceSessionState.stage == VoicePipelineStage.MIC_BUSY -> Color(0xFFFF9800)
+        voiceSessionState.stage == VoicePipelineStage.RECONNECTING -> Color(0xFFFFB74D)
         voiceSessionState.stage == VoicePipelineStage.ERROR_RECOVERY -> Color(0xFFFF9800)
         voiceSessionEnabled -> MaterialTheme.colorScheme.secondary
         else -> Color.White.copy(alpha = 0.38f)
@@ -76,6 +78,13 @@ fun WorkoutCommandDock(
     val voiceIndicatorText = when {
         voiceSessionState.stage == VoicePipelineStage.ARMED ->
             "Listo · mantén el mic para hablar"
+        // Fallback/pausas antes que LISTENING: el stage suele seguir en LISTENING.
+        voiceSessionState.usingNativeFallback -> "Fallback local en curso..."
+        voiceSessionState.fallbackPaused -> "Fallback pausado por límite"
+        voiceSessionState.stage == VoicePipelineStage.MIC_BUSY ->
+            "Micrófono ocupado (llamada u otra app)"
+        voiceSessionState.stage == VoicePipelineStage.RECONNECTING ->
+            "Reconectando micrófono..."
         voiceSessionState.stage == VoicePipelineStage.LISTENING -> {
             if (voiceSessionState.partialText.isNotBlank()) "Escuchando: \"${voiceSessionState.partialText}\""
             else if (voicePushToTalk) "Escuchando (suelta al terminar)..."
@@ -194,10 +203,19 @@ fun WorkoutCommandDock(
                         }
                         if (voiceSessionState.usingOnDeviceRecognizer && isListening) {
                             Text(
-                                text = "local",
+                                text = if (voiceSessionState.usingNativeFallback) "fallback" else "vosk local",
                                 color = Color(0xFF81C784),
                                 style = MaterialTheme.typography.labelSmall,
                                 maxLines = 1,
+                            )
+                        }
+                        voiceSessionState.activeRouteLabel?.takeIf { it.isNotBlank() }?.let { route ->
+                            Text(
+                                text = route,
+                                color = Color.White.copy(alpha = 0.7f),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
                         if (voiceSessionState.errorMessage != null && voiceSessionState.stage == VoicePipelineStage.ERROR_RECOVERY) {

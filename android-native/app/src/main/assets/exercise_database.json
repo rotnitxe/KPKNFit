@@ -129,7 +129,11 @@
         ]
       }
     ],
-    "alias": "Press de banca plano con barra, Press de Banca Plano, Press de Banca"
+    "alias": "Press de banca plano con barra, Press de Banca Plano, Press de Banca",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "chest_press_flat",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "tren_superior_press_banca_plano_mancuernas",
@@ -261,7 +265,11 @@
         ]
       }
     ],
-    "alias": "Press de banca plano con mancuernas, Press de Banca con Mancuernas"
+    "alias": "Press de banca plano con mancuernas, Press de Banca con Mancuernas",
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "chest_press_flat",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "tren_superior_press_banca_inclinado_barra",
@@ -389,7 +397,11 @@
         ]
       }
     ],
-    "alias": "Press de banca inclinado con barra, Press de Banca Inclinado"
+    "alias": "Press de banca inclinado con barra, Press de Banca Inclinado",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "chest_press_incline",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "tren_superior_press_banca_inclinado_mancuernas",
@@ -517,7 +529,11 @@
         ]
       }
     ],
-    "alias": "Press de banca inclinado con mancuernas, Press Inclinado con Mancuernas"
+    "alias": "Press de banca inclinado con mancuernas, Press Inclinado con Mancuernas",
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "chest_press_incline",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "tren_superior_press_banca_declinado_barra",
@@ -645,7 +661,11 @@
         ]
       }
     ],
-    "alias": "Press de banca declinado con barra, Press de Banca Declinado"
+    "alias": "Press de banca declinado con barra, Press de Banca Declinado",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "chest_press_decline",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "tren_superior_press_banca_declinado_mancuernas",
@@ -773,7 +793,11 @@
         ]
       }
     ],
-    "alias": "Press de banca declinado con mancuernas"
+    "alias": "Press de banca declinado con mancuernas",
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "chest_press_decline",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "tren_superior_press_pecho_maquina_convergente",
@@ -1492,7 +1516,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "chest_fly",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "tren_superior_aperturas_inclinadas_mancuernas",
@@ -1529,7 +1557,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "chest_fly",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "tren_superior_aperturas_declinadas_mancuernas",
@@ -1566,7 +1598,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "chest_fly",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "tren_superior_aperturas_pec_deck",
@@ -1602,7 +1638,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "chest_fly",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "tren_superior_cruce_poleas_altas",
@@ -1712,7 +1752,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "chest_fly",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "tren_superior_squeeze_press_mancuernas",
@@ -1789,7 +1833,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "chest_fly",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "tren_superior_fondos_paralelas",
@@ -2537,7 +2585,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "triceps_extension",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "triceps_overhead_polea_unilateral",
@@ -2807,7 +2859,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 7.5,
-    "alias": "Extensión de Tríceps en Polea Alta con Cuerda"
+    "alias": "Extensión de Tríceps en Polea Alta con Cuerda",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "triceps_pushdown",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "triceps_pushdown_polea_unilateral",
@@ -2836,7 +2892,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "triceps_pushdown",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "triceps_pushdown_banda",
@@ -2904,7 +2964,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "replacementGroup": "triceps_niche",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "triceps_jm_press_mancuernas",
@@ -2973,7 +3037,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "replacementGroup": "triceps_niche",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "triceps_tate_press_polea",
@@ -3033,7 +3101,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "replacementGroup": "triceps_niche",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "triceps_katana_polea_unilateral",
@@ -3561,7 +3633,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 7.5
+    "bodybuildingScore": 7.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "triceps_extension",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "triceps_overhead_maquina",
@@ -3869,7 +3945,11 @@
     "bracingRecommended": true,
     "strapsRecommended": false,
     "bodybuildingScore": 8.0,
-    "alias": "Remo Inclinado Prono con Barra"
+    "alias": "Remo Inclinado Prono con Barra",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_row_barbell",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_barra_recta_cerrado",
@@ -3922,7 +4002,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_row_barbell",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_pendlay_barra_recta",
@@ -3975,7 +4059,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_row_barbell",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_barra_ez",
@@ -4028,7 +4116,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "back_row_barbell",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_barra_neutra",
@@ -4081,7 +4173,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "back_row_barbell",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_mancuerna",
@@ -4135,7 +4231,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 8.0,
-    "alias": "Remo a una Mano con Mancuerna"
+    "alias": "Remo a una Mano con Mancuerna",
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_dumbbell",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_kettlebell",
@@ -4188,7 +4288,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "replacementGroup": "back_row_dumbbell"
   },
   {
     "id": "back_remo_banda_ancho",
@@ -4347,7 +4448,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "replacementGroup": "back_row_tbar"
   },
   {
     "id": "back_remo_barra_t_cerrado",
@@ -4400,7 +4502,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "replacementGroup": "back_row_tbar"
   },
   {
     "id": "back_remo_barra_t_pecho_apoyado_ancho",
@@ -4453,7 +4556,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_row_supported",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_barra_t_pecho_apoyado_cerrado",
@@ -4506,7 +4613,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_row_supported",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_barra_t_maquina_ancho",
@@ -4559,7 +4670,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_tbar",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_barra_t_maquina_cerrado",
@@ -4612,7 +4727,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_tbar",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_barra_t_maquina_pecho_apoyado_ancho",
@@ -4665,7 +4784,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_row_supported",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_barra_t_maquina_pecho_apoyado_cerrado",
@@ -4718,7 +4841,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_row_supported",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_pecho_apoyado_mancuernas",
@@ -4771,7 +4898,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "back_row_supported",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_pecho_apoyado_kettlebell",
@@ -4824,7 +4955,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "back_row_supported",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_pecho_apoyado_polea_baja",
@@ -4877,7 +5012,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_supported",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_pecho_apoyado_polea_baja_unilateral",
@@ -4930,7 +5069,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_supported",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_pecho_apoyado_polea_media",
@@ -4983,7 +5126,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_supported",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_pecho_apoyado_polea_media_unilateral",
@@ -5036,7 +5183,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_supported",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_pecho_apoyado_polea_alta",
@@ -5089,7 +5240,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_supported",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_pecho_apoyado_polea_alta_unilateral",
@@ -5142,7 +5297,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_supported",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_polea_baja_ancho",
@@ -5195,7 +5354,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_cable_low",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_polea_baja_cerrado",
@@ -5249,7 +5412,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 8.0,
-    "alias": "Remo Sentado en Polea Baja"
+    "alias": "Remo Sentado en Polea Baja",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_row_cable_low",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_polea_baja_unilateral",
@@ -5302,7 +5469,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "back_row_cable_low",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_polea_media_ancho",
@@ -5355,7 +5526,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_cable_mid",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_polea_media_cerrado",
@@ -5408,7 +5583,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_row_cable_mid",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_polea_media_unilateral",
@@ -5461,7 +5640,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "back_row_cable_mid",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_polea_alta_ancho",
@@ -5514,7 +5697,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_cable_high",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_polea_alta_cerrado",
@@ -5567,7 +5754,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_row_cable_high",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_polea_alta_unilateral",
@@ -5620,7 +5811,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "back_row_cable_high",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_gironda_ancho",
@@ -5832,7 +6027,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "replacementGroup": "back_row_seal"
   },
   {
     "id": "back_remo_seal_mancuernas",
@@ -5885,7 +6081,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "replacementGroup": "back_row_seal"
   },
   {
     "id": "back_remo_seal_kettlebell",
@@ -5938,7 +6135,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "replacementGroup": "back_row_seal"
   },
   {
     "id": "back_remo_renegado_mancuernas",
@@ -5991,7 +6189,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_renegado_kettlebell",
@@ -6044,7 +6245,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_gorilla_mancuernas",
@@ -6097,7 +6301,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_gorilla_kettlebell",
@@ -6150,7 +6357,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_remo_maquina_ancho",
@@ -6203,7 +6413,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_machine",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_maquina_cerrado",
@@ -6256,7 +6470,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_machine",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_maquina_smith_ancho",
@@ -6309,7 +6527,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_machine",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_maquina_smith_cerrado",
@@ -6362,7 +6584,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_row_machine",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_remo_invertido_barra_fija",
@@ -6415,7 +6641,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "replacementGroup": "back_row_inverted"
   },
   {
     "id": "back_remo_invertido_trx",
@@ -6468,7 +6695,8 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "replacementGroup": "back_row_inverted"
   },
   {
     "id": "back_jalon_pecho_polea_ancho",
@@ -6522,7 +6750,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 8.0,
-    "alias": "Jalón al Pecho"
+    "alias": "Jalón al Pecho",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_pulldown_pronated",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_jalon_pecho_polea_cerrado",
@@ -6570,7 +6802,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_pulldown_pronated",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_jalon_pecho_polea_unilateral",
@@ -6618,7 +6854,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_pulldown_unilateral",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_jalon_neutro_polea",
@@ -6666,7 +6906,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_pulldown_neutral",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_jalon_pecho_maquina_ancho",
@@ -6719,7 +6963,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_pulldown_pronated",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_jalon_pecho_maquina_cerrado",
@@ -6767,7 +7015,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_pulldown_pronated",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "back_jalon_banda_ancho",
@@ -6917,7 +7169,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 8.0,
-    "alias": "Dominadas"
+    "alias": "Dominadas",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "back_pullup_pronated",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_dominadas_supinas",
@@ -6965,7 +7221,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "back_pullup_supinated",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_dominadas_neutras",
@@ -7013,7 +7273,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "back_pullup_neutral",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_dominadas_lastradas",
@@ -7061,7 +7325,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "back_pullup_pronated",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_dominadas_asistidas_maquina",
@@ -7109,7 +7377,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "back_pullup_assisted",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_dominadas_asistidas_banda",
@@ -7157,7 +7429,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "back_pullup_assisted",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_dominadas_anillas",
@@ -7205,7 +7481,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "back_pullup_neutral",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_pullover_mancuerna",
@@ -7946,7 +8226,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_encogimientos_kelso_banco_inclinado_mancuernas",
@@ -7987,7 +8270,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_encogimientos_kelso_banco_plano_barra_ez",
@@ -8028,7 +8314,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_encogimientos_kelso_banco_inclinado_barra_ez",
@@ -8069,7 +8358,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_encogimientos_kelso_banco_plano_kettlebell",
@@ -8110,7 +8402,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_encogimientos_kelso_banco_inclinado_kettlebell",
@@ -8151,7 +8446,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_encogimientos_kelso_polea",
@@ -8192,7 +8490,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_encogimientos_kelso_banda",
@@ -8233,7 +8534,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_band_pull_apart",
@@ -8474,7 +8778,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "back_pullup_scapular",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_hiperextensiones_45",
@@ -8720,7 +9028,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_jefferson_curl_barra_ez",
@@ -8761,7 +9072,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_jefferson_curl_mancuerna",
@@ -8802,7 +9116,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_jefferson_curl_disco",
@@ -8843,7 +9160,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_jefferson_curl_polea",
@@ -8884,7 +9204,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_extension_lumbar_maquina",
@@ -9043,7 +9366,10 @@
     "coreInvolvement": "high",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.0
+    "bodybuildingScore": 8.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "back_buenos_dias_kettlebell",
@@ -9279,7 +9605,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 8.5,
-    "alias": "Curl de Bíceps con Barra EZ"
+    "alias": "Curl de Bíceps con Barra EZ",
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "biceps_curl_supinated",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "biceps_curl_de_pie_supino_mancuernas",
@@ -9314,7 +9644,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "biceps_curl_supinated",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "biceps_curl_de_pie_supino_kettlebell",
@@ -9384,7 +9718,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "biceps_curl_supinated",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "biceps_curl_de_pie_supino_polea_unilateral",
@@ -9630,7 +9968,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 8.5,
-    "alias": "Curl Martillo con Mancuernas"
+    "alias": "Curl Martillo con Mancuernas",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "biceps_curl_hammer",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "biceps_curl_de_pie_martillo_polea",
@@ -15356,7 +15698,11 @@
     "bracingRecommended": true,
     "strapsRecommended": false,
     "bodybuildingScore": 8.5,
-    "alias": "Press Militar de Pie con Barra"
+    "alias": "Press Militar de Pie con Barra",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "shoulder_press_standing",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_militar_de_pie_barra_ez",
@@ -15396,7 +15742,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "shoulder_press_standing",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_militar_de_pie_barra_neutra",
@@ -15436,7 +15786,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "shoulder_press_standing",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_de_pie_mancuernas",
@@ -15476,7 +15830,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "shoulder_press_standing",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_de_pie_kettlebell",
@@ -15516,7 +15874,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "shoulder_press_standing",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_de_pie_polea",
@@ -15556,7 +15918,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "shoulder_press_standing",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_de_pie_polea_unilateral",
@@ -15596,7 +15962,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "shoulder_press_standing",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_de_pie_banda",
@@ -15631,7 +16001,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "shoulder_press_standing",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_sentado_barra_recta",
@@ -15666,7 +16040,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_press_seated",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_sentado_barra_ez",
@@ -15701,7 +16079,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_press_seated",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_sentado_barra_neutra",
@@ -15736,7 +16118,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_press_seated",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_sentado_mancuernas",
@@ -15771,7 +16157,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "shoulder_press_seated",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_sentado_kettlebell",
@@ -15806,7 +16196,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "shoulder_press_seated",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_sentado_polea",
@@ -15841,7 +16235,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "shoulder_press_seated",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_sentado_maquina",
@@ -15876,7 +16274,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "shoulder_press_seated",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "deltoides_press_hombros_sentado_maquina_smith",
@@ -15911,7 +16313,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "shoulder_press_seated",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "deltoides_press_arnold_mancuernas",
@@ -16056,7 +16462,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_press_z_barra_ez",
@@ -16096,7 +16505,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_press_z_mancuernas",
@@ -16216,7 +16628,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_push_press_mancuernas",
@@ -16256,7 +16671,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_push_press_kettlebell",
@@ -16296,7 +16714,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_press_landmine_unilateral",
@@ -16647,7 +17068,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 8.5,
-    "alias": "Elevaciones Laterales con Mancuernas"
+    "alias": "Elevaciones Laterales con Mancuernas",
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_laterales_de_pie_kettlebell",
@@ -16682,7 +17107,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_laterales_de_pie_polea",
@@ -16717,7 +17146,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_laterales_de_pie_polea_unilateral",
@@ -16752,7 +17185,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_laterales_de_pie_banda",
@@ -16787,7 +17224,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_laterales_de_pie_maquina",
@@ -16822,7 +17263,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_laterales_sentado_maquina",
@@ -16857,7 +17302,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_laterales_barra_recta",
@@ -16892,7 +17341,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_laterales_barra_ez",
@@ -16927,7 +17380,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_laterales_sentado_mancuernas",
@@ -16962,7 +17419,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_laterales_sentado_kettlebell",
@@ -16997,7 +17458,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_laterales_sentado_polea",
@@ -17032,7 +17497,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_laterales_sentado_polea_unilateral",
@@ -17067,7 +17536,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_y_raises_sentado_banco_inclinado_mancuernas",
@@ -17210,7 +17683,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_laterales_acostado_banco_plano_polea_cruzada",
@@ -17245,7 +17722,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_laterales_acostado_banco_plano_polea_unilateral",
@@ -17280,7 +17761,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_laterales_inclinadas_mancuerna",
@@ -17315,7 +17800,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_laterales_recostado_mancuerna",
@@ -17350,7 +17839,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "shoulder_lateral_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_laterales_super_rom_mancuernas",
@@ -17385,7 +17878,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_laterales_super_rom_polea",
@@ -17420,7 +17916,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_laterales_super_rom_polea_unilateral",
@@ -17455,7 +17954,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_lu_raises_mancuernas",
@@ -17490,7 +17992,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_lu_raises_disco",
@@ -17525,7 +18030,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_remo_menton_barra_recta",
@@ -17805,7 +18313,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_de_pie_kettlebell",
@@ -17845,7 +18357,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_de_pie_polea_cruzada",
@@ -17885,7 +18401,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_de_pie_polea_unilateral",
@@ -17925,7 +18445,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_de_pie_banda",
@@ -17965,7 +18489,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_sentado_banco_plano_mancuernas",
@@ -18005,7 +18533,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_sentado_banco_plano_kettlebell",
@@ -18045,7 +18577,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_sentado_banco_plano_polea",
@@ -18085,7 +18621,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_pecho_apoyado_mancuernas",
@@ -18125,7 +18665,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_pecho_apoyado_kettlebell",
@@ -18165,7 +18709,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_pecho_apoyado_polea",
@@ -18205,7 +18753,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_pecho_apoyado_polea_unilateral",
@@ -18245,7 +18797,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_acostado_banco_plano_mancuernas",
@@ -18285,7 +18841,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_acostado_banco_plano_polea_cruzada",
@@ -18325,7 +18885,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_acostado_banco_plano_polea_unilateral",
@@ -18365,7 +18929,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_arana_mancuernas",
@@ -18405,7 +18973,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_arana_kettlebell",
@@ -18445,7 +19017,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "deltoides_elevaciones_posteriores_arana_polea",
@@ -18485,7 +19061,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "deltoides_aperturas_inversas_maquina_pec_deck",
@@ -18525,7 +19105,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "shoulder_rear_delt_raise",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "deltoides_face_pull_polea",
@@ -18688,7 +19272,11 @@
     "bracingRecommended": true,
     "strapsRecommended": false,
     "bodybuildingScore": 9.0,
-    "alias": "Sentadilla Trasera Barra Alta"
+    "alias": "Sentadilla Trasera Barra Alta",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "quad_squat",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_trasera_barra_baja",
@@ -18729,7 +19317,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "quad_squat",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_trasera_barra_ssb",
@@ -18770,7 +19362,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "quad_squat",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_trasera_mancuernas",
@@ -18806,7 +19402,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_squat",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_trasera_kettlebell",
@@ -18842,7 +19442,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "quad_squat",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_trasera_maquina_smith",
@@ -18878,7 +19482,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "quad_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_frontal_barra_recta",
@@ -18919,7 +19527,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "quad_squat",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_frontal_barra_ssb",
@@ -18960,7 +19572,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "quad_squat",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_frontal_mancuernas",
@@ -18996,7 +19612,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_squat",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_frontal_kettlebell",
@@ -19032,7 +19652,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "quad_squat",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_frontal_maquina_smith",
@@ -19068,7 +19692,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "quad_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_bazuca_barra_recta",
@@ -19268,7 +19896,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_somersault_mancuerna",
@@ -19304,7 +19935,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_somersault_kettlebell",
@@ -19340,7 +19974,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_somersault_maquina_smith",
@@ -19376,7 +20013,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_zercher_barra_recta",
@@ -19417,7 +20057,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_copa_mancuerna",
@@ -19561,7 +20204,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "quad_machine_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_hack_invertida_maquina",
@@ -19597,7 +20244,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_machine_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_hack_barra_recta",
@@ -19633,7 +20284,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_machine_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_hack_maquina_smith",
@@ -19669,7 +20324,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "quad_machine_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_pendulo_maquina",
@@ -19705,7 +20364,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "quad_machine_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_belt_squat_maquina",
@@ -19741,7 +20404,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_machine_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_sissy_libre",
@@ -19777,7 +20444,10 @@
     "bracingRecommended": true,
     "strapsRecommended": false,
     "bodybuildingScore": 9.0,
-    "alias": "Sentadilla Sissy"
+    "alias": "Sentadilla Sissy",
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_sissy_maquina_smith",
@@ -19812,7 +20482,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_sissy_maquina_hack",
@@ -19847,7 +20520,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_sissy_maquina_pendulo",
@@ -19882,7 +20558,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_sissy_prensa",
@@ -19917,7 +20596,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_sissy_banco",
@@ -19952,7 +20634,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_reverse_nordic_peso_corporal",
@@ -19987,7 +20672,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_prensa_piernas_45_maquina",
@@ -20024,7 +20712,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 9.0,
-    "alias": "Prensa de Piernas a 45 Grados"
+    "alias": "Prensa de Piernas a 45 Grados",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "quad_leg_press",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_prensa_piernas_horizontal_maquina",
@@ -20060,7 +20752,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_leg_press",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_prensa_piernas_vertical_maquina",
@@ -20096,7 +20792,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "quad_leg_press",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_prensa_piernas_unilateral_maquina",
@@ -20132,7 +20832,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "quad_leg_press",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_extension_cuadriceps_maquina",
@@ -20167,7 +20871,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "quad_leg_extension",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "quads_extension_cuadriceps_maquina_unilateral",
@@ -20202,7 +20910,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "quad_leg_extension",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "quads_extension_cuadriceps_polea",
@@ -20237,7 +20949,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_leg_extension",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "quads_extension_cuadriceps_polea_unilateral",
@@ -20272,7 +20988,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_leg_extension",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "quads_extension_cuadriceps_banda",
@@ -20307,7 +21027,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "quad_leg_extension",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "quads_sentadilla_bulgara_mancuernas",
@@ -21446,7 +22170,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_machine_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_v_squat_invertida_maquina",
@@ -21482,7 +22210,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_machine_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_jefferson_barra_recta",
@@ -21523,7 +22255,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_jefferson_mancuerna",
@@ -21564,7 +22299,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_anderson_barra_recta",
@@ -21897,7 +22635,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_machine_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_pendulo_unilateral_maquina",
@@ -21933,7 +22675,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "quad_machine_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_belt_squat_unilateral_maquina",
@@ -21969,7 +22715,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_machine_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_sentadilla_v_squat_unilateral_maquina",
@@ -22005,7 +22755,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "quad_machine_squat",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "quads_zancada_inversa_maquina_hack",
@@ -22159,7 +22913,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_bulgara_maquina_belt_squat",
@@ -22267,7 +23024,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_bulgara_somersault_maquina_smith",
@@ -22303,7 +23063,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_bulgara_jefferson_barra_recta",
@@ -22344,7 +23107,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_bulgara_maquina_hack",
@@ -22524,7 +23290,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_bulgara_somersault_mancuerna",
@@ -22560,7 +23329,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_bulgara_somersault_kettlebell",
@@ -22596,7 +23368,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_bulgara_jefferson_mancuerna",
@@ -22632,7 +23407,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_bulgara_jefferson_kettlebell",
@@ -22668,7 +23446,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_bulgara_jefferson_maquina_smith",
@@ -22704,7 +23485,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_step_up_cajon_frontal_barra_recta",
@@ -22812,7 +23596,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_step_up_cajon_zercher_maquina_smith",
@@ -22848,7 +23635,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_zancada_frontal_zercher_barra_recta",
@@ -22884,7 +23674,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_zancada_frontal_zercher_maquina_smith",
@@ -22920,7 +23713,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_zancada_inversa_frontal_barra_recta",
@@ -23028,7 +23824,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_zancada_inversa_zercher_maquina_smith",
@@ -23064,7 +23863,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_zancada_caminando_frontal_barra_recta",
@@ -23136,7 +23938,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_sumo_frontal_barra_recta",
@@ -23356,7 +24161,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_sumo_zercher_maquina_smith",
@@ -23402,7 +24210,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_sissy_barra_recta",
@@ -23437,7 +24248,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_sissy_frontal_barra_recta",
@@ -23472,7 +24286,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_sissy_zercher_barra_recta",
@@ -23507,7 +24324,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "quads_sentadilla_cosaca_unilateral_peso_corporal",
@@ -23876,7 +24696,11 @@
     "bracingRecommended": true,
     "strapsRecommended": false,
     "bodybuildingScore": 9.0,
-    "alias": "Hip Thrust con Barra Libre, Hip Thrust con Pie Elevado"
+    "alias": "Hip Thrust con Barra Libre, Hip Thrust con Pie Elevado",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_mancuerna",
@@ -23911,7 +24735,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_kettlebell",
@@ -23946,7 +24774,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_disco",
@@ -23981,7 +24813,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_polea",
@@ -24016,7 +24852,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_banda",
@@ -24051,7 +24891,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_maquina_smith",
@@ -24086,7 +24930,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_maquina",
@@ -24121,7 +24969,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_unilateral_barra_recta",
@@ -24156,7 +25008,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_unilateral_mancuerna",
@@ -24191,7 +25047,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_unilateral_kettlebell",
@@ -24226,7 +25086,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_unilateral_polea",
@@ -24261,7 +25125,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_unilateral_maquina_smith",
@@ -24296,7 +25164,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "glutes_hip_thrust_unilateral_peso_corporal",
@@ -24331,7 +25203,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "glute_hip_thrust",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_puente_gluteos_barra_recta",
@@ -24366,7 +25242,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "glute_bridge",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_puente_gluteos_mancuerna",
@@ -24401,7 +25281,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "glute_bridge",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_puente_gluteos_disco",
@@ -24436,7 +25320,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "glute_bridge",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_puente_gluteos_peso_corporal",
@@ -24471,7 +25359,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "glute_bridge",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_puente_gluteos_unilateral_peso_corporal",
@@ -24506,7 +25398,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "glute_bridge",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_patada_gluteo_polea",
@@ -24541,7 +25437,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "glute_kickback",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "glutes_patada_gluteo_polea_diagonal",
@@ -24571,7 +25471,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "glute_kickback",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "glutes_patada_gluteo_banda",
@@ -24606,7 +25510,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "glute_kickback",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "glutes_patada_gluteo_maquina",
@@ -24641,7 +25549,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "glute_kickback",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "glutes_patada_gluteo_peso_corporal",
@@ -24676,7 +25588,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "glute_kickback",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "glutes_frog_pumps_peso_corporal",
@@ -24706,7 +25622,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "glute_frog_pump",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "glutes_frog_pumps_disco",
@@ -24736,7 +25656,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "glute_frog_pump",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "glutes_abduccion_cadera_sentado_maquina",
@@ -24772,7 +25696,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 9.0,
-    "alias": "Abducción de Cadera en Máquina"
+    "alias": "Abducción de Cadera en Máquina",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "glute_med_abduction",
+    "restReductionProfile": "GLUTE_MED_ABDUCTION"
   },
   {
     "id": "glutes_abduccion_cadera_polea",
@@ -24802,7 +25730,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "glute_med_abduction",
+    "restReductionProfile": "GLUTE_MED_ABDUCTION"
   },
   {
     "id": "glutes_abduccion_cadera_banda",
@@ -24832,7 +25764,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "glute_med_abduction",
+    "restReductionProfile": "GLUTE_MED_ABDUCTION"
   },
   {
     "id": "glutes_clamshells_banda",
@@ -24862,7 +25798,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "glute_med_abduction",
+    "restReductionProfile": "GLUTE_MED_ABDUCTION"
   },
   {
     "id": "glutes_monster_walk_banda",
@@ -24934,7 +25874,11 @@
     "bracingRecommended": true,
     "strapsRecommended": false,
     "bodybuildingScore": 9.0,
-    "alias": "Peso Muerto Rumano"
+    "alias": "Peso Muerto Rumano",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_mancuernas",
@@ -24975,7 +25919,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_kettlebell",
@@ -25016,7 +25964,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_polea",
@@ -25057,7 +26009,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_maquina_smith",
@@ -25098,7 +26054,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_unilateral_mancuerna",
@@ -25134,7 +26094,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_unilateral_kettlebell",
@@ -25170,7 +26134,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_unilateral_barra_recta",
@@ -25206,7 +26174,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_b_stance_mancuernas",
@@ -25242,7 +26214,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_b_stance_barra_recta",
@@ -25278,7 +26254,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_piernas_rigidas_barra_recta",
@@ -25600,7 +26580,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "ham_leg_curl",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "hams_curl_femoral_tumbado_unilateral_maquina",
@@ -25635,7 +26619,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "ham_leg_curl",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "hams_curl_femoral_sentado_maquina",
@@ -25670,7 +26658,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "ham_leg_curl",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "hams_curl_femoral_sentado_unilateral_maquina",
@@ -25705,7 +26697,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "ham_leg_curl",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "hams_curl_femoral_pie_maquina",
@@ -25740,7 +26736,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "ham_leg_curl",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "hams_curl_femoral_pie_polea",
@@ -25775,7 +26775,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "ham_leg_curl",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "hams_curl_femoral_tumbado_mancuerna",
@@ -25810,7 +26814,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "ham_leg_curl",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "hams_curl_femoral_banda",
@@ -25845,7 +26853,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "ham_leg_curl",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "hams_curl_femoral_trx",
@@ -25881,7 +26893,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "ham_leg_curl",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "hams_curl_nordic_peso_corporal",
@@ -26004,7 +27020,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "replacementGroup": "hinge_niche",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_zercher_maquina_smith",
@@ -26050,7 +27070,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_buenos_dias_zercher_barra_recta",
@@ -26096,7 +27119,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "replacementGroup": "hinge_niche",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_buenos_dias_zercher_maquina_smith",
@@ -26142,7 +27169,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_buenos_dias_maquina_smith",
@@ -26213,7 +27243,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "glute_kickback",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "glutes_patada_gluteo_lateral_polea_unilateral",
@@ -26243,7 +27277,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "glute_kickback",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "glutes_patada_gluteo_lateral_banda",
@@ -26273,7 +27311,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "glute_kickback",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "glutes_patada_gluteo_lateral_maquina",
@@ -26303,7 +27345,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "glute_kickback",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "glutes_patada_gluteo_lateral_peso_corporal",
@@ -26333,7 +27379,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "glute_kickback",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "glutes_step_up_gluteo_mancuernas",
@@ -26906,7 +27956,11 @@
     "bracingRecommended": true,
     "strapsRecommended": false,
     "bodybuildingScore": 9.0,
-    "alias": "Peso Muerto Convencional"
+    "alias": "Peso Muerto Convencional",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_sumo_barra_recta",
@@ -26946,7 +28000,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_barra_hexagonal",
@@ -26987,7 +28045,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_pull_through_polea",
@@ -27177,7 +28239,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "ham_leg_curl",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "hams_curl_femoral_balon_suizo",
@@ -27213,7 +28279,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 5,
+    "replacementGroup": "ham_leg_curl",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "hams_buenos_dias_sentado_barra_recta",
@@ -27326,7 +28396,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_convencional_kettlebell",
@@ -27367,7 +28441,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_convencional_maquina_smith",
@@ -27408,7 +28486,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_sumo_mancuernas",
@@ -27454,7 +28536,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_sumo_kettlebell",
@@ -27500,7 +28586,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_sumo_maquina_smith",
@@ -27546,7 +28636,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_unilateral_polea",
@@ -27664,7 +28758,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_sumo_mancuernas",
@@ -27710,7 +28808,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_sumo_kettlebell",
@@ -27756,7 +28858,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_sumo_maquina_smith",
@@ -27802,7 +28908,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "glutes_puente_gluteos_maquina_smith",
@@ -27837,7 +28947,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "glute_bridge",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "glutes_puente_gluteos_unilateral_maquina_smith",
@@ -27872,7 +28986,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "glute_bridge",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_convencional_deficit_barra_recta",
@@ -27913,7 +29031,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_convencional_deficit_mancuernas",
@@ -27954,7 +29076,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_convencional_deficit_kettlebell",
@@ -27995,7 +29121,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_convencional_deficit_maquina_smith",
@@ -28036,7 +29166,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_deficit_barra_recta",
@@ -28077,7 +29211,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_deficit_mancuernas",
@@ -28118,7 +29256,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_deficit_kettlebell",
@@ -28159,7 +29301,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_deficit_maquina_smith",
@@ -28200,7 +29346,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_sumo_deficit_barra_recta",
@@ -28241,7 +29391,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_sumo_deficit_mancuernas",
@@ -28282,7 +29436,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_sumo_deficit_kettlebell",
@@ -28323,7 +29481,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_sumo_deficit_maquina_smith",
@@ -28364,7 +29526,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_deadlift",
+    "restReductionProfile": "MACHINE_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_piernas_rigidas_deficit_barra_recta",
@@ -28528,7 +29694,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_sumo_deficit_mancuernas",
@@ -28569,7 +29739,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "hams_peso_muerto_rumano_sumo_deficit_kettlebell",
@@ -28610,7 +29784,11 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "ham_rdl",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hiperextension_45_banda",
@@ -28690,7 +29868,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hiperextension_45_maquina_smith",
@@ -28890,7 +30071,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hiperextension_45_unilateral_polea",
@@ -29050,7 +30234,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_hiperextension_45_unilateral_zercher_maquina_smith",
@@ -29090,7 +30277,10 @@
     "coreInvolvement": "medium",
     "bracingRecommended": true,
     "strapsRecommended": false,
-    "bodybuildingScore": 9.0
+    "bodybuildingScore": 9.0,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "glutes_reverse_hyper_unilateral_maquina",
@@ -29268,7 +30458,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "adductor_hip_adduction",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "adductors_aduccion_cadera_polea",
@@ -29304,7 +30498,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "adductor_hip_adduction",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "adductors_aduccion_cadera_polea_unilateral",
@@ -29340,7 +30538,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "adductor_hip_adduction",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "adductors_aduccion_cadera_banda",
@@ -29376,7 +30578,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "adductor_hip_adduction",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "adductors_plancha_copenhagen_peso_corporal",
@@ -29411,7 +30617,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "adductor_copenhagen",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "adductors_plancha_copenhagen_dinamica",
@@ -29446,7 +30656,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "adductor_copenhagen",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_maquina",
@@ -29482,7 +30696,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_maquina_smith",
@@ -29518,7 +30736,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_mancuernas",
@@ -29554,7 +30776,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_kettlebell",
@@ -29590,7 +30816,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_barra_recta",
@@ -29626,7 +30856,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_unilateral_mancuerna",
@@ -29662,7 +30896,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_unilateral_peso_corporal",
@@ -29698,7 +30936,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_donkey_maquina",
@@ -29735,7 +30977,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 8.5,
-    "alias": "Elevación de Gemelos Tipo Burro (Donkey)"
+    "alias": "Elevación de Gemelos Tipo Burro (Donkey)",
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_sentado_maquina",
@@ -29771,7 +31017,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_sentado_barra_recta",
@@ -29807,7 +31057,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_sentado_mancuernas",
@@ -29843,7 +31097,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_sentado_disco",
@@ -29879,7 +31137,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_sentado_unilateral_mancuerna",
@@ -29915,7 +31177,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_tibial_anterior_de_pie_pared",
@@ -29944,7 +31210,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "tibialis_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_tibial_anterior_sentado_disco",
@@ -29973,7 +31243,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "tibialis_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_tibial_anterior_polea",
@@ -30002,7 +31276,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "tibialis_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "calves_elevacion_tibial_anterior_banda",
@@ -30031,7 +31309,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "tibialis_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_tibial_anterior_maquina",
@@ -30060,7 +31342,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "tibialis_raise",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "forearms_curl_muneca_sentado_barra_recta",
@@ -30095,7 +31381,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "forearm_wrist_curl",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "forearms_curl_muneca_sentado_mancuernas",
@@ -30130,7 +31420,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "forearm_wrist_curl",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "forearms_curl_muneca_sentado_polea",
@@ -30165,7 +31459,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "forearm_wrist_curl",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "forearms_curl_muneca_de_pie_tras_espalda_barra",
@@ -30200,7 +31498,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "forearm_wrist_curl",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "forearms_curl_muneca_inverso_sentado_barra_recta",
@@ -30230,7 +31532,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "forearm_wrist_curl",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "forearms_curl_muneca_inverso_sentado_barra_ez",
@@ -30260,7 +31566,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "forearm_wrist_curl",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "forearms_curl_muneca_inverso_sentado_mancuernas",
@@ -30290,7 +31600,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "forearm_wrist_curl",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "forearms_curl_muneca_inverso_sentado_polea",
@@ -30320,7 +31634,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "forearm_wrist_curl",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "forearms_paseo_del_granjero_mancuernas",
@@ -30360,7 +31678,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "forearm_loaded_carry",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "forearms_paseo_del_granjero_kettlebells",
@@ -30400,7 +31722,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "forearm_loaded_carry",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "forearms_paseo_del_granjero_barras_trap",
@@ -30440,7 +31766,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "forearm_loaded_carry",
+    "restReductionProfile": "FREE_WEIGHT_COMPOUND"
   },
   {
     "id": "forearms_enrollamiento_muneca_rodillo",
@@ -30470,7 +31800,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "forearm_grip_isometric",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "forearms_suspension_isometrica_barra_fija",
@@ -30505,7 +31839,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "forearm_grip_isometric",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "neck_flexion_cuello_recostado_disco",
@@ -30798,7 +32136,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "core_crunch_cable",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "core_crunch_maquina",
@@ -30833,7 +32175,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "core_crunch_machine",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "core_crunch_banco_declinado_lastrado_disco",
@@ -30868,7 +32214,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "core_crunch_bodyweight",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "core_crunch_suelo_peso_corporal",
@@ -30899,7 +32249,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 8.5,
-    "alias": ", Bicho Muerto (Dead Bug)"
+    "alias": ", Bicho Muerto (Dead Bug)",
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "core_crunch_bodyweight",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "core_rueda_abdominal_rodillas",
@@ -30939,7 +32293,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "core_ab_wheel",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "core_rueda_abdominal_de_pie",
@@ -30979,7 +32337,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "core_ab_wheel",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "core_elevacion_piernas_colgado_barra",
@@ -31014,7 +32376,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "core_leg_raise_hanging",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "core_elevacion_rodillas_colgado_barra",
@@ -31049,7 +32415,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "core_knee_raise_hanging",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "core_elevacion_piernas_paralelas",
@@ -31084,7 +32454,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "core_leg_raise_parallel",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "core_elevacion_piernas_banco_plano",
@@ -31119,7 +32493,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "core_leg_raise_bench",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "core_dragon_flag_banco_plano",
@@ -31154,7 +32532,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": false,
+    "replacementPriority": 999,
+    "replacementGroup": "core_niche",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "core_press_pallof_polea",
@@ -31189,7 +32571,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "core_pallof_press",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "core_press_pallof_banda",
@@ -31224,7 +32610,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "core_pallof_press",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "core_lenador_polea_alta_baja",
@@ -31259,7 +32649,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "core_woodchop_high_to_low",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "core_lenador_polea_baja_alta",
@@ -31294,7 +32688,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "core_woodchop_low_to_high",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "core_inclinacion_lateral_mancuerna",
@@ -31324,7 +32722,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "core_side_bend",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "core_inclinacion_lateral_polea",
@@ -31354,7 +32756,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "core_side_bend",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "core_plancha_frontal_iso",
@@ -31390,7 +32796,11 @@
     "bracingRecommended": false,
     "strapsRecommended": false,
     "bodybuildingScore": 8.5,
-    "alias": ", Hollow Body Hold"
+    "alias": ", Hollow Body Hold",
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "core_plank_front",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "core_plancha_lateral_iso",
@@ -31425,7 +32835,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "core_plank_side",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "forearms_pinza_de_discos_dos_manos",
@@ -31455,7 +32869,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "forearm_grip_isometric",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "forearms_pinza_de_discos_unilateral",
@@ -31485,7 +32903,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "forearm_grip_isometric",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_prensa_45",
@@ -31521,7 +32943,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_prensa_horizontal",
@@ -31557,7 +32983,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_prensa_vertical",
@@ -31593,7 +33023,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_unilateral_prensa_45",
@@ -31629,7 +33063,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_unilateral_prensa_horizontal",
@@ -31665,7 +33103,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_polea",
@@ -31701,7 +33143,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_maquina_hack",
@@ -31737,7 +33183,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_maquina_v_squat",
@@ -31773,7 +33223,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_maquina_belt_squat",
@@ -31809,7 +33263,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_unilateral_kettlebell",
@@ -31845,7 +33303,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_unilateral_polea",
@@ -31881,7 +33343,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 4,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_sentado_polea",
@@ -31917,7 +33383,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_sentado_kettlebell",
@@ -31953,7 +33423,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_unilateral_prensa_vertical",
@@ -31989,7 +33463,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_unilateral_maquina",
@@ -32025,7 +33503,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_unilateral_maquina_smith",
@@ -32061,7 +33543,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_unilateral_barra_recta",
@@ -32097,7 +33583,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_unilateral_maquina_hack",
@@ -32133,7 +33623,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_unilateral_maquina_v_squat",
@@ -32169,7 +33663,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_de_pie_unilateral_maquina_belt_squat",
@@ -32205,7 +33703,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_standing",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_donkey_unilateral_maquina",
@@ -32241,7 +33743,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_sentado_unilateral_maquina",
@@ -32277,7 +33783,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_sentado_unilateral_barra_recta",
@@ -32313,7 +33823,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_sentado_unilateral_disco",
@@ -32349,7 +33863,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_talones_sentado_unilateral_polea",
@@ -32385,7 +33903,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "calves_elevacion_talones_sentado_unilateral_kettlebell",
@@ -32421,7 +33943,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "calf_raise_seated",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_tibial_anterior_de_pie_unilateral_pared",
@@ -32451,7 +33977,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "tibialis_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_tibial_anterior_sentado_unilateral_disco",
@@ -32481,7 +34011,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "tibialis_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_tibial_anterior_sentado_mancuerna",
@@ -32511,7 +34045,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "tibialis_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_tibial_anterior_sentado_unilateral_mancuerna",
@@ -32541,7 +34079,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "tibialis_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_tibial_anterior_unilateral_polea",
@@ -32571,7 +34113,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 2,
+    "replacementGroup": "tibialis_raise",
+    "restReductionProfile": "ISOLATION_CABLE_SMALL"
   },
   {
     "id": "calves_elevacion_tibial_anterior_unilateral_banda",
@@ -32601,7 +34147,11 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 3,
+    "replacementGroup": "tibialis_raise",
+    "restReductionProfile": "ISOLATION_GENERAL"
   },
   {
     "id": "calves_elevacion_tibial_anterior_unilateral_maquina",
@@ -32631,6 +34181,10 @@
     "coreInvolvement": "low",
     "bracingRecommended": false,
     "strapsRecommended": false,
-    "bodybuildingScore": 8.5
+    "bodybuildingScore": 8.5,
+    "isCommon": true,
+    "replacementPriority": 1,
+    "replacementGroup": "tibialis_raise",
+    "restReductionProfile": "ISOLATION_MACHINE_SMALL"
   }
 ]

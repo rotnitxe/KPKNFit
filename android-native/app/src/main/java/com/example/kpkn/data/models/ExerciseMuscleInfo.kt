@@ -72,6 +72,14 @@ data class ExerciseMuscleInfo(
     val executionOptions: List<String>? = null,
     val movementPattern: String? = null,
     val subMuscleGroup: String? = null,
+    /** Curado manualmente: ejercicio suficientemente común para sugerencias automáticas. */
+    val isCommon: Boolean? = null,
+    /** Curado manualmente: menor número = mejor candidato para reemplazo. */
+    val replacementPriority: Int? = null,
+    /** Curado manualmente: grupo de sustitución semántica segura. */
+    val replacementGroup: String? = null,
+    /** Curado manualmente: perfil explícito para recorte de descansos. */
+    val restReductionProfile: String? = null,
 
     // Variant Group (exercises that are technical variants of each other)
     val variantGroupId: String? = null,

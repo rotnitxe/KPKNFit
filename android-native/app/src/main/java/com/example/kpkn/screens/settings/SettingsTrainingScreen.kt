@@ -126,6 +126,7 @@ fun SettingsTrainingScreen(
                         checked = settings.restTimerAutoStart,
                         onCheckedChange = { value -> viewModel.update { it.copy(restTimerAutoStart = value) } },
                     )
+
                     SettingsSegmentedButtonItem(
                         title = "Verbosidad de voz",
                         options = VoiceVerbosity.entries,

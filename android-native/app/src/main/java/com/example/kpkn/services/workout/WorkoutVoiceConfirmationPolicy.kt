@@ -23,6 +23,7 @@ object WorkoutVoiceConfirmationPolicy {
         asrConfidence: Float,
         draftHasWeightAndReps: Boolean = false,
         isEditPatch: Boolean = false,
+        confidenceKnown: Boolean = true,
     ): ConfirmationDecision {
         val hasWeight = WorkoutVoiceField.WEIGHT in interpretation.fields &&
             interpretation.weightKg != null && interpretation.weightKg > 0.0
@@ -36,7 +37,11 @@ object WorkoutVoiceConfirmationPolicy {
             if (!hasWeight && !hasReps && !hasIntensity && interpretation.weightKg == null) {
                 return ConfirmationDecision.REJECT
             }
-            return if (confidenceOk(asrConfidence)) ConfirmationDecision.AUTO else ConfirmationDecision.ASK
+            return if (confidenceOk(asrConfidence, confidenceKnown)) {
+                ConfirmationDecision.AUTO
+            } else {
+                ConfirmationDecision.ASK
+            }
         }
 
         val completeSet = hasWeight && hasReps
@@ -48,7 +53,11 @@ object WorkoutVoiceConfirmationPolicy {
             return ConfirmationDecision.REJECT
         }
 
-        return if (confidenceOk(asrConfidence)) ConfirmationDecision.AUTO else ConfirmationDecision.ASK
+        return if (confidenceOk(asrConfidence, confidenceKnown)) {
+            ConfirmationDecision.AUTO
+        } else {
+            ConfirmationDecision.ASK
+        }
     }
 
     /** Back-compat helper used by existing call sites. */
@@ -56,10 +65,18 @@ object WorkoutVoiceConfirmationPolicy {
         interpretation: WorkoutVoiceInterpretation,
         asrConfidence: Float,
         draftHasWeightAndReps: Boolean = false,
-    ): Boolean = decide(interpretation, asrConfidence, draftHasWeightAndReps) == ConfirmationDecision.AUTO
+        confidenceKnown: Boolean = true,
+    ): Boolean = decide(
+        interpretation,
+        asrConfidence,
+        draftHasWeightAndReps,
+        confidenceKnown = confidenceKnown,
+    ) == ConfirmationDecision.AUTO
 
-    private fun confidenceOk(asrConfidence: Float): Boolean {
-        if (asrConfidence <= 0f) return true // engine did not provide scores
+    private fun confidenceOk(asrConfidence: Float, confidenceKnown: Boolean): Boolean {
+        // Vosk (y cualquier motor sin score real) no puede auto-confirmar por confianza inventada.
+        if (!confidenceKnown) return false
+        if (asrConfidence <= 0f) return true // nativo sin CONFIDENCE_SCORES (legacy)
         return asrConfidence >= WorkoutVoiceHypothesisScorer.AUTO_CONFIRM_MIN_CONFIDENCE
     }
 }

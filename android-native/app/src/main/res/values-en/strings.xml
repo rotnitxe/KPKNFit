@@ -201,6 +201,7 @@
     <string name="notif_channel_voice_ongoing_desc">Workout session with microphone active</string>
     <string name="notif_voice_ongoing_title">Voice control active</string>
     <string name="notif_voice_ongoing_body">Dictate sets, reps and intensity without opening the app</string>
+    <string name="notif_voice_ongoing_stop">Stop voice</string>
 
     <!-- ═══════════════════════════════════════════════════════════════
          SESSION — Fatigue labels

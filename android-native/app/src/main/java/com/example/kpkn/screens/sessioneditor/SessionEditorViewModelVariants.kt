@@ -9,6 +9,7 @@ fun SessionEditorViewModel.setTargetDuration(minutes: Int?) {
             session = updatedSession,
             targetDurationMinutes = minutes,
             hasUnsavedChanges = true,
+            dismissedTimeCoachIds = emptySet(),
         )
     }
     scheduleAutoSave()

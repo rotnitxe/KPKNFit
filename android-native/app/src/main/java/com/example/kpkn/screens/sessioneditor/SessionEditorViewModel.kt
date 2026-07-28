@@ -27,6 +27,7 @@ import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
 import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
+import com.example.kpkn.domain.sessionassistant.TimeCoachEngine
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
@@ -112,6 +113,7 @@ class SessionEditorViewModel(
     internal val augeRepository = AugeRepository.getInstance(application)
     internal val nutritionRepository = runCatching { NutritionRepository.getInstance() }.getOrNull()
     internal val templateRepository = SessionTemplateRepository.getInstance(application)
+    private val ruleTemplateStore = RuleTemplateStore.getInstance(application)
 
     /** Combined (system + user) template list, updated reactively. */
     val allTemplates: StateFlow<List<SessionTemplate>> = templateRepository.allTemplates
@@ -465,6 +467,7 @@ class SessionEditorViewModel(
             ruleDefaults = resolvedRuleDefaults,
             partRuleDefaults = resolvedPartRuleDefaults,
             ruleLimits = resolvedRuleLimits,
+            ruleTemplates = ruleTemplateStore.loadAll(),
             hasUnsavedChanges = loadedFromDraft,
             isSimpleProgram = program.isSimpleTemporalProgram,
             hasActiveLoops = program.loops.isNotEmpty() && program.loopState != null,
@@ -619,6 +622,8 @@ class SessionEditorViewModel(
                     mesoIndex = state.mesoIndex,
                     programId = state.programId,
                     targetDurationMinutes = session.targetDurationMinutes,
+                    supersetGroups = session.allSupersetGroups(),
+                    sessionWarmup = session.warmup,
                 ),
                 allTemplates = templates,
             )
@@ -630,6 +635,7 @@ class SessionEditorViewModel(
                 sessionWarmup = session.warmup,
             )
         }.getOrNull()
+        // TimeCoach se genera bajo demanda al abrir TIEMPO (evitar coste en cada edit/open de AUGE).
         _uiState.update {
             it.copy(
                 estimatedDurationMinutes = timeBreakdown?.totalMinutes
@@ -743,11 +749,114 @@ class SessionEditorViewModel(
         _uiState.update { state ->
             state.copy(
                 sheet = sheet,
+                rulesSheetInitialTab = if (sheet == SessionEditorSheet.RULES) 0 else state.rulesSheetInitialTab,
                 quickActionsPartId = if (sheet == SessionEditorSheet.QUICK_ACTIONS) state.quickActionsPartId else null,
                 quickActionsExerciseId = if (sheet == SessionEditorSheet.QUICK_ACTIONS) state.quickActionsExerciseId else null,
             )
         }
     }
+
+    fun openRulesSheet(initialTab: Int = 0) {
+        _uiState.update {
+            it.copy(
+                sheet = SessionEditorSheet.RULES,
+                rulesSheetInitialTab = initialTab.coerceIn(0, 1),
+            )
+        }
+        if (initialTab == 1) {
+            refreshTimeCoachSuggestions()
+        }
+    }
+
+    fun clearRulesSheetInitialTab() {
+        _uiState.update { it.copy(rulesSheetInitialTab = 0) }
+    }
+
+    /** Genera sugerencias del coach solo cuando el usuario abre TIEMPO. */
+    fun refreshTimeCoachSuggestions() {
+        viewModelScope.launch(Dispatchers.Default) {
+            val state = _uiState.value
+            val session = state.session ?: return@launch
+            val breakdown = state.sessionTimeBreakdown ?: runCatching {
+                calculateSessionTimeBreakdown(
+                    exercises = session.allExercises(),
+                    supersetGroups = session.allSupersetGroups(),
+                    sessionWarmup = session.warmup,
+                )
+            }.getOrNull() ?: return@launch
+            val suggestions = runCatching {
+                TimeCoachEngine.generate(
+                    session = session,
+                    breakdown = breakdown,
+                    targetDurationMinutes = session.targetDurationMinutes,
+                    exerciseIndex = exerciseIndex,
+                    dismissedIds = state.dismissedTimeCoachIds,
+                )
+            }.getOrDefault(emptyList())
+            updateUi { it.copy(timeCoachSuggestions = suggestions) }
+        }
+    }
+
+    fun applyRuleTemplate(templateId: String) {
+        val template = currentUiState.ruleTemplates.firstOrNull { it.id == templateId } ?: return
+        updateUi { state ->
+            state.copy(ruleDefaults = template.defaults)
+        }
+    }
+
+    fun saveCurrentRulesAsTemplate(name: String) {
+        val created = ruleTemplateStore.saveAsTemplate(name, currentUiState.ruleDefaults)
+        updateUi { it.copy(ruleTemplates = ruleTemplateStore.loadAll(), snackbarMessage = "Plantilla «${created.name}» guardada") }
+    }
+
+    fun renameRuleTemplate(templateId: String, name: String) {
+        updateUi { it.copy(ruleTemplates = ruleTemplateStore.rename(templateId, name)) }
+    }
+
+    fun deleteRuleTemplate(templateId: String) {
+        updateUi { it.copy(ruleTemplates = ruleTemplateStore.delete(templateId)) }
+    }
+
+    fun applyTimeCoachSuggestion(suggestionId: String) {
+        val suggestion = currentUiState.timeCoachSuggestions.firstOrNull { it.id == suggestionId } ?: return
+        updateSession { session ->
+            TimeCoachEngine.apply(session, suggestion.action)
+        }
+        val action = suggestion.action
+        if (action is com.example.kpkn.domain.sessionassistant.TimeCoachAction.ReduceRests &&
+            action.alsoUpdateRuleDefaults
+        ) {
+            updateUi { state ->
+                state.copy(
+                    ruleDefaults = state.ruleDefaults.copy(normalRestSeconds = action.targetRestSeconds),
+                    dismissedTimeCoachIds = state.dismissedTimeCoachIds + suggestionId,
+                    snackbarMessage = "Ajuste de tiempo aplicado (−${suggestion.minutesSaved} min)",
+                )
+            }
+        } else {
+            updateUi { state ->
+                state.copy(
+                    dismissedTimeCoachIds = state.dismissedTimeCoachIds + suggestionId,
+                    snackbarMessage = "Ajuste de tiempo aplicado (−${suggestion.minutesSaved} min)",
+                )
+            }
+        }
+        // Tras el recalc asíncrono, refrescar coach cuando termine (debounce corto).
+        viewModelScope.launch {
+            delay(400)
+            refreshTimeCoachSuggestions()
+        }
+    }
+
+    fun dismissTimeCoachSuggestion(suggestionId: String) {
+        updateUi {
+            it.copy(
+                dismissedTimeCoachIds = it.dismissedTimeCoachIds + suggestionId,
+                timeCoachSuggestions = it.timeCoachSuggestions.filterNot { s -> s.id == suggestionId },
+            )
+        }
+    }
+
     fun closeSheet() {
         _uiState.update {
             it.copy(

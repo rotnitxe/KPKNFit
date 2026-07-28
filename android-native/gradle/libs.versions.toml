@@ -22,6 +22,8 @@ healthConnect = "1.1.0-alpha12"
 firebaseAnalytics = "22.1.2"
 firebaseCrashlytics = "19.1.0"
 firebasePerf = "21.0.1"
+voskAndroid = "0.3.75"
+jna = "5.18.1"
 
 [libraries]
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
@@ -57,6 +59,8 @@ androidx-health-connect-client = { group = "androidx.health.connect", name = "co
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics", version.ref = "firebaseAnalytics" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 firebase-perf = { group = "com.google.firebase", name = "firebase-perf", version.ref = "firebasePerf" }
+vosk-android = { group = "com.alphacephei", name = "vosk-android", version.ref = "voskAndroid" }
+jna = { group = "net.java.dev.jna", name = "jna", version.ref = "jna" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

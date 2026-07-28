@@ -124,6 +124,7 @@ dependencies {
     implementation(libs.androidx.glance.material3)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.vosk.android)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")

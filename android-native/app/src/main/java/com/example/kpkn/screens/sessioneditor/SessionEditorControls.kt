@@ -762,39 +762,28 @@ internal fun SessionEstimatedRings(
                         style = Stroke(width = stroke),
                     )
                 }
-                // Pass 2: additive bloom glow behind the progress arcs
+                // Pass 2: soft glow + progress (menos capas = abrir Asistente más fluido)
                 centers.forEachIndexed { i, c ->
                     val color = colors[i]
                     val sweep = 360f * progresses[i].coerceIn(0f, 1f)
                     val topLeft = Offset(c.x - r, c.y - r)
                     val arcSize = Size(r * 2, r * 2)
-                    val glowLayers = listOf(
-                        18.dp.toPx() to 0.12f,
-                        12.dp.toPx() to 0.20f,
-                        7.dp.toPx() to 0.32f,
-                    )
-                    glowLayers.forEach { (w, a) ->
-                        drawArc(
-                            color = color.copy(alpha = a),
-                            startAngle = -90f,
-                            sweepAngle = sweep,
-                            useCenter = false,
-                            topLeft = topLeft,
-                            size = arcSize,
-                            style = Stroke(width = w, cap = StrokeCap.Round),
-                            blendMode = BlendMode.Plus,
-                        )
-                    }
-                }
-                // Pass 3: bright thin progress arcs on top
-                centers.forEachIndexed { i, c ->
                     drawArc(
-                        color = colors[i],
+                        color = color.copy(alpha = 0.28f),
                         startAngle = -90f,
-                        sweepAngle = 360f * progresses[i].coerceIn(0f, 1f),
+                        sweepAngle = sweep,
                         useCenter = false,
-                        topLeft = Offset(c.x - r, c.y - r),
-                        size = Size(r * 2, r * 2),
+                        topLeft = topLeft,
+                        size = arcSize,
+                        style = Stroke(width = 11.dp.toPx(), cap = StrokeCap.Round),
+                    )
+                    drawArc(
+                        color = color,
+                        startAngle = -90f,
+                        sweepAngle = sweep,
+                        useCenter = false,
+                        topLeft = topLeft,
+                        size = arcSize,
                         style = Stroke(width = stroke, cap = StrokeCap.Round),
                     )
                 }

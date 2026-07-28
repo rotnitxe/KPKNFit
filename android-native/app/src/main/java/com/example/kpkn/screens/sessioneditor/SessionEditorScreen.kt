@@ -95,6 +95,7 @@ import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionEditorSheets
 import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantGlassOverlay
 import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
+import com.example.kpkn.screens.sessioneditor.components.HeroTimeFab
 import com.example.kpkn.screens.sessioneditor.components.CompetitionConfigSheet
 import com.example.kpkn.screens.sessioneditor.components.CompetitionSessionEditor
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -511,6 +512,28 @@ fun SessionEditorScreen(
             onClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
         )
 
+        val showTimeFab =
+            session.targetDurationMinutes != null ||
+                session.allExercises().isNotEmpty() ||
+                uiState.estimatedDurationMinutes > 0
+        if (showTimeFab) {
+            val estimated = uiState.sessionTimeBreakdown?.totalMinutes
+                ?: uiState.estimatedDurationMinutes
+            HeroTimeFab(
+                estimatedMinutes = estimated,
+                limitMinutes = session.targetDurationMinutes,
+                hasSuggestions = session.targetDurationMinutes != null &&
+                    estimated > (session.targetDurationMinutes ?: Int.MAX_VALUE),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .navigationBarsPadding()
+                    .padding(end = 80.dp, bottom = fabBottomPadding)
+                    .zIndex(260f),
+                hazeState = hazeState,
+                onClick = { viewModel.openRulesSheet(initialTab = 1) },
+            )
+        }
+
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -779,6 +802,14 @@ fun SessionEditorScreen(
         setPartTargetDuration = viewModel::setPartTargetDuration,
         setExerciseTargetDuration = viewModel::setExerciseTargetDuration,
         onDistributeTargetAcrossParts = viewModel::distributeTargetDurationAcrossParts,
+        onApplyRuleTemplate = viewModel::applyRuleTemplate,
+        onSaveRuleTemplate = viewModel::saveCurrentRulesAsTemplate,
+        onRenameRuleTemplate = viewModel::renameRuleTemplate,
+        onDeleteRuleTemplate = viewModel::deleteRuleTemplate,
+        onApplyTimeCoachSuggestion = viewModel::applyTimeCoachSuggestion,
+        onDismissTimeCoachSuggestion = viewModel::dismissTimeCoachSuggestion,
+        onRefreshTimeCoach = viewModel::refreshTimeCoachSuggestions,
+        onRulesInitialTabConsumed = viewModel::clearRulesSheetInitialTab,
     )
 
     if (showDiscardDialog) {

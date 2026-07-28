@@ -20,7 +20,7 @@ import com.example.kpkn.data.models.AugeMetrics
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.SessionMuscleFilter
-import com.example.kpkn.domain.calculations.estimateSessionDurationMinutes
+import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.ceil
 import kotlin.math.roundToInt
@@ -35,34 +35,16 @@ object SessionAssistantEngine {
         val drain = calcularDrenajeEstimado(input)
         val thresholds = buildVolumeThresholds(input, volumeResult.volumeMap)
         val ajustes = generarAjustesPorRings(input, volumeResult, drain)
-                // 1. Total de descansos sumados (incluyendo transiciones de 60s entre ejercicios)
-        var totalRestSeconds = 0
-        for (ex in input.allExercisesInSession) {
-            val exRest = ex.restTime ?: 90
-            val setsCount = ex.sets.size
-            if (setsCount > 0) {
-                totalRestSeconds += exRest * (setsCount - 1)
-            }
-        }
-        val exerciseCount = input.allExercisesInSession.size
-        if (exerciseCount > 1) {
-            totalRestSeconds += (exerciseCount - 1) * 60
-        }
 
-        // 2. Set-up de cada ejercicio (tiempo dinámico desde la base de datos o fallback de 120s) + Ejecución de series (45s por serie)
-        val defaultSetupTime = 120
-        val workSecondsPerSet = 45
-        val totalWorkSeconds = volumeResult.totalSets * workSecondsPerSet
-        
-        var totalSetupSeconds = 0
-        for (ex in input.allExercisesInSession) {
-            val info = resolveExerciseInfo(ex, input.exerciseIndex)
-            val setupTime = info?.setupTime ?: defaultSetupTime
-            totalSetupSeconds += setupTime
-        }
-        val estimatedWorkSeconds = totalWorkSeconds + totalSetupSeconds
-
-        val duracion = ((totalRestSeconds + estimatedWorkSeconds) + 59) / 60
+        // Un solo reloj: mismo breakdown que el editor / TimeCoach.
+        val breakdown = calculateSessionTimeBreakdown(
+            exercises = input.allExercisesInSession,
+            supersetGroups = input.supersetGroups,
+            sessionWarmup = input.sessionWarmup,
+        )
+        val totalRestSeconds = breakdown.restSeconds
+        val estimatedWorkSeconds = breakdown.setupSeconds + breakdown.executionSeconds + breakdown.warmupSeconds
+        val duracion = breakdown.totalMinutes
 
         val timeAjustes = if (input.targetDurationMinutes != null && duracion > input.targetDurationMinutes) {
             val overage = duracion - input.targetDurationMinutes

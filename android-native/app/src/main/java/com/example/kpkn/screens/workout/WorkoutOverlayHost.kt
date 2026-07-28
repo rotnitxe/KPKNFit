@@ -2,10 +2,13 @@ package com.example.kpkn.screens.workout
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.SetOutcomeV2
@@ -61,13 +64,21 @@ internal fun WorkoutRestOverlayHost(
                 onMinimize = { viewModel.toggleRestMinimized() },
             )
         }
-    } else if (showMinimized && restState != null) {
-        Box(modifier = Modifier.fillMaxSize().zIndex(6f), contentAlignment = Alignment.TopCenter) {
+    } else if (showMinimized) {
+        val minimizedState = restState ?: return
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(6f)
+                .statusBarsPadding()
+                .padding(top = 10.dp),
+            contentAlignment = Alignment.TopCenter,
+        ) {
             RestRemainingReader(viewModel = viewModel) { restTimerRemaining ->
                 RestTimerPill(
                     remainingSeconds = if (isRestTimerRunning) restTimerRemaining else 0,
-                    totalSeconds = restState.activeSeconds.coerceAtLeast(1),
-                    exerciseName = restState.exerciseName,
+                    totalSeconds = minimizedState.activeSeconds.coerceAtLeast(1),
+                    exerciseName = minimizedState.exerciseName,
                     sessionAccentColor = sessionAccentColor,
                     onClick = { viewModel.toggleRestMinimized() },
                 )

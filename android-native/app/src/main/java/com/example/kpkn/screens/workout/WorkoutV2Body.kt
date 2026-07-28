@@ -121,7 +121,10 @@ internal fun WorkoutV2Body(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scroll, enabled = !uiState.isRestTimerRunning)
+                .verticalScroll(
+                    scroll,
+                    enabled = !(uiState.isRestTimerRunning && !uiState.isRestMinimized),
+                )
                 .hazeSource(state = cardsHazeState)
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Bottom))
                 .padding(bottom = 112.dp),
@@ -509,9 +512,36 @@ internal fun WorkoutV2Body(
                         }
                     }
 
+                    // Presupuestos locales independientes (ejercicio y/o grupo).
+                    val exerciseBudgetMin = currentExercise.targetDurationMinutes
+                    val partBudgetMin = currentPart?.targetDurationMinutes
+                    if (exerciseBudgetMin != null && exerciseBudgetMin > 0) {
+                        val progress = (exerciseSecondsElapsed.toFloat() / (exerciseBudgetMin * 60)).coerceIn(0f, 1f)
+                        LaunchedEffect("ex:${currentExercise.id}", progress) {
+                            viewModel.checkLocalBudgetGuide(
+                                scopeKey = "ex:${currentExercise.id}",
+                                scopeLabel = currentExercise.name,
+                                progress = progress,
+                                isExerciseScope = true,
+                            )
+                        }
+                    }
+                    if (partBudgetMin != null && partBudgetMin > 0) {
+                        val progress = (partSecondsElapsed.toFloat() / (partBudgetMin * 60)).coerceIn(0f, 1f)
+                        LaunchedEffect("part:${currentPart?.id}", progress) {
+                            viewModel.checkLocalBudgetGuide(
+                                scopeKey = "part:${currentPart?.id.orEmpty()}",
+                                scopeLabel = currentPart?.name.orEmpty(),
+                                progress = progress,
+                                isExerciseScope = false,
+                            )
+                        }
+                    }
+
                     val targetMin = currentExercise.targetDurationMinutes ?: currentPart?.targetDurationMinutes
                     if (targetMin != null && targetMin > 0) {
-                        val elapsedSeconds = if (currentExercise.targetDurationMinutes != null) exerciseSecondsElapsed else partSecondsElapsed
+                        val isExerciseBudget = currentExercise.targetDurationMinutes != null
+                        val elapsedSeconds = if (isExerciseBudget) exerciseSecondsElapsed else partSecondsElapsed
                         val targetSeconds = targetMin * 60
                         val progress = (elapsedSeconds.toFloat() / targetSeconds).coerceIn(0f, 1f)
                         val barColor = when {

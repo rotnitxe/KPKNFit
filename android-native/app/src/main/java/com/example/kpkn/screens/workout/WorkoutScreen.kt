@@ -151,6 +151,7 @@ import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.services.workout.PermissionGuideHelper
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
+import com.example.kpkn.services.workout.WorkoutVoicePermissionHelper
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
@@ -212,14 +213,6 @@ fun WorkoutScreen(
             ) == PackageManager.PERMISSION_GRANTED ||
                 grants[Manifest.permission.RECORD_AUDIO] == true
             if (micOk) {
-                viewModel.enableVoice()
-            }
-        }
-    )
-    val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            if (isGranted) {
                 viewModel.enableVoice()
             }
         }
@@ -670,32 +663,19 @@ fun WorkoutScreen(
             onPushToTalkStart = { viewModel.beginVoicePushToTalk() },
             onPushToTalkEnd = { viewModel.endVoicePushToTalk() },
             onToggleVoice = {
-                val hasMic = ContextCompat.checkSelfPermission(
-                    context, Manifest.permission.RECORD_AUDIO
-                ) == PackageManager.PERMISSION_GRANTED
-                val needsNotif = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                    ContextCompat.checkSelfPermission(
-                        context, Manifest.permission.POST_NOTIFICATIONS
-                    ) != PackageManager.PERMISSION_GRANTED
-                when {
-                    hasMic && !needsNotif -> viewModel.toggleVoiceSession()
-                    hasMic && needsNotif -> {
-                        // Mic already granted; request notifications then enable (or toggle off if already on).
-                        if (uiState.voiceSessionEnabled) {
-                            viewModel.toggleVoiceSession()
-                        } else {
-                            voicePermissionsLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
-                        }
-                    }
-                    !hasMic && needsNotif -> {
-                        voicePermissionsLauncher.launch(
-                            arrayOf(
-                                Manifest.permission.RECORD_AUDIO,
-                                Manifest.permission.POST_NOTIFICATIONS,
-                            )
+                if (uiState.voiceSessionEnabled) {
+                    viewModel.toggleVoiceSession()
+                } else {
+                    val needed = WorkoutVoicePermissionHelper
+                        .permissionsToRequestForVoiceEnable(
+                            context = context,
+                            includeNotifications = true,
                         )
+                    if (needed.isEmpty()) {
+                        viewModel.toggleVoiceSession()
+                    } else {
+                        voicePermissionsLauncher.launch(needed)
                     }
-                    else -> recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                 }
             },
             onPrimaryAction = { recordActionHolder.action?.invoke() },

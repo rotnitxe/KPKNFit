@@ -26,8 +26,9 @@ data class Settings(
     val ttsSpeechRate: Float = 1.0f,
     /** Continuous always-on mic vs hold-to-talk. */
     val voiceInputMode: VoiceInputMode = VoiceInputMode.CONTINUOUS,
-    /** First-time continuous-voice practice prompt. */
-    val hasSeenVoiceTutorial: Boolean = false,
+    /** Tutorial version for the current hybrid voice explanation. */
+    val voiceTutorialVersionSeen: Int = 0,
+
     /** User nicknames → exerciseId for voice matching. */
     val voiceExerciseAliases: Map<String, String> = emptyMap(),
     val showPRsInWorkout: Boolean = true,

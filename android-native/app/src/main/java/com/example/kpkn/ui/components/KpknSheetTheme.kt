@@ -52,6 +52,16 @@ object KpknSheetTokens {
     val ControlLabel = Color.Black
     val ControlLabelMuted = Color.Black.copy(alpha = 0.55f)
     val ControlPlaceholder = Color.Black.copy(alpha = 0.40f)
+
+    /** Soft glass controls for dense sheets (Rules/Time) — white text on translucent fill. */
+    val GlassControlFill = Color.White.copy(alpha = 0.12f)
+    val GlassControlFillStrong = Color.White.copy(alpha = 0.18f)
+    val GlassControlLabel = Color.White
+    val GlassControlLabelMuted = Color.White.copy(alpha = 0.65f)
+    val GlassControlPlaceholder = Color.White.copy(alpha = 0.40f)
+    val GlassSegmentIdle = Color.White.copy(alpha = 0.08f)
+    val GlassSegmentSelected = Color.White.copy(alpha = 0.22f)
+
     val Handle = Color.White.copy(alpha = 0.35f)
 
     val ContentPaddingHorizontal = 20.dp
@@ -227,6 +237,57 @@ fun kpknSheetWhiteFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedPlaceholderColor = KpknSheetTokens.ControlPlaceholder,
     unfocusedPlaceholderColor = KpknSheetTokens.ControlPlaceholder,
 )
+
+/** Soft translucent field: white labels/text on glass (for Rules/Time sheets). */
+@Composable
+fun kpknSheetGlassFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = KpknSheetTokens.GlassControlFillStrong,
+    unfocusedContainerColor = KpknSheetTokens.GlassControlFill,
+    disabledContainerColor = KpknSheetTokens.GlassControlFill,
+    focusedTextColor = KpknSheetTokens.GlassControlLabel,
+    unfocusedTextColor = KpknSheetTokens.GlassControlLabel,
+    disabledTextColor = KpknSheetTokens.GlassControlLabelMuted,
+    focusedLabelColor = KpknSheetTokens.GlassControlLabel,
+    unfocusedLabelColor = KpknSheetTokens.GlassControlLabelMuted,
+    disabledLabelColor = KpknSheetTokens.GlassControlLabelMuted,
+    cursorColor = KpknSheetTokens.GlassControlLabel,
+    focusedBorderColor = Color.White.copy(alpha = 0.28f),
+    unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+    disabledBorderColor = Color.Transparent,
+    focusedPlaceholderColor = KpknSheetTokens.GlassControlPlaceholder,
+    unfocusedPlaceholderColor = KpknSheetTokens.GlassControlPlaceholder,
+)
+
+/** Compact glass segment chip (white label, translucent well — for Transfer toolbar). */
+@Composable
+fun KpknSheetGlassChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .height(KpknSheetTokens.ChipHeight)
+            .clip(RoundedCornerShape(999.dp))
+            .background(
+                if (selected) KpknSheetTokens.GlassSegmentSelected
+                else KpknSheetTokens.GlassSegmentIdle,
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
+            color = if (selected) Color.White else Color.White.copy(alpha = 0.72f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
 
 /** @deprecated Use [kpknSheetWhiteFieldColors]. */
 @Composable

@@ -18,7 +18,7 @@ class ExerciseCatalogContractTest {
     @Test
     fun catalog_has_expected_unique_rows_and_preserves_submuscle_group() {
         // Canonical catalog after alias consolidation (duplicates redirected via exercise_id_aliases.json).
-        assertEquals(969, catalog.size)
+        assertEquals(848, catalog.size)
         assertEquals(catalog.size, catalog.map { it.id }.distinct().size)
         assertTrue(catalog.any { !it.subMuscleGroup.isNullOrBlank() })
     }

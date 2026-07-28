@@ -17,6 +17,8 @@ data class SessionAssistantInput(
     val targetDurationMinutes: Int? = null,
     val customDrain: PredictedDrain? = null,
     val customTemplateDrains: Map<String, PredictedDrain> = emptyMap(),
+    val supersetGroups: List<com.example.kpkn.data.models.SupersetGroup> = emptyList(),
+    val sessionWarmup: List<com.example.kpkn.data.models.WarmupExercise> = emptyList(),
 )
 
 enum class Verdict { OPTIMAL, WARNING, FATIGUING, CRITICAL }

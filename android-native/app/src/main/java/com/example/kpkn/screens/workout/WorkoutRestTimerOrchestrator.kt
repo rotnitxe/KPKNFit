@@ -72,6 +72,7 @@ class WorkoutRestTimerOrchestrator(
             it.copy(
                 restTimerTotal = seconds,
                 isRestTimerRunning = true,
+                isRestMinimized = false,
                 restModalState = it.restModalState?.copy(
                     exerciseId = activeExercise?.id,
                     exerciseName = activeExercise?.name ?: exerciseName,

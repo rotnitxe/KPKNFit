@@ -458,7 +458,7 @@ internal data class MuscleVolumeRow(
 )
 
 internal fun buildMuscleVolumeRows(session: Session): List<MuscleVolumeRow> {
-    val exerciseIndex = EXERCISE_DATABASE.associateBy { it.id.lowercase() }
+    val exerciseIndex = catalogIndexForVolume
     val direct = mutableMapOf<String, Double>()
     val indirect = mutableMapOf<String, Double>()
     val intensitySets = mutableMapOf<String, MutableList<com.example.kpkn.data.models.ExerciseSet>>()
@@ -488,6 +488,10 @@ internal fun buildMuscleVolumeRows(session: Session): List<MuscleVolumeRow> {
         )
     }.filter { it.directSets > 0.0 || it.indirectSets > 0.0 }
         .sortedByDescending { it.directSets }
+}
+
+private val catalogIndexForVolume: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo> by lazy {
+    EXERCISE_DATABASE.associateBy { it.id.lowercase() }
 }
 
 internal fun buildDisplayContributions(

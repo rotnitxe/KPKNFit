@@ -52,6 +52,7 @@ import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SessionCloneApplyMode
 import com.example.kpkn.screens.sessioneditor.SessionSaveScope
 import com.example.kpkn.screens.sessioneditor.sessionEditorDayLabel
+import com.example.kpkn.ui.components.KpknSheetGlassChip
 import com.example.kpkn.ui.components.KpknSheetLightChip
 import com.example.kpkn.ui.components.KpknSheetTokens
 import com.example.kpkn.ui.components.KpknSheetWhiteButton
@@ -117,38 +118,55 @@ internal fun SessionClonerSheet(
         ) {
             Text("Transferir", fontWeight = FontWeight.Black, fontSize = 18.sp, color = KpknSheetTokens.TitleStrong)
             Text(
-                "Copia esta sesión a otros días o tráela desde otra sesión. Los cambios quedan en borrador hasta que guardes.",
+                "Los cambios quedan en borrador hasta que guardes.",
                 color = KpknSheetTokens.MutedStrong,
+                style = MaterialTheme.typography.bodySmall,
             )
             if (uiState.pendingTransferToDays != null) {
                 Text(
-                    "Ya hay una transferencia pendiente a ${uiState.pendingTransferToDays.targetKeys.size} día(s).",
+                    "Pendiente: ${uiState.pendingTransferToDays.targetKeys.size} día(s) al guardar.",
                     color = KpknSheetTokens.Body,
                     fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.labelMedium,
                 )
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                KpknSheetLightChip(
-                    label = "Copiar hacia",
+            // One compact toolbar row: direction + apply mode (uses horizontal space).
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                KpknSheetGlassChip(
+                    label = "Copiar",
                     selected = mode == SessionClonerMode.CLONE_TO_DAYS,
                     onClick = { mode = SessionClonerMode.CLONE_TO_DAYS },
+                    modifier = Modifier.weight(1f),
                 )
-                KpknSheetLightChip(
-                    label = "Traer desde",
+                KpknSheetGlassChip(
+                    label = "Traer",
                     selected = mode == SessionClonerMode.IMPORT_FROM_DAY,
                     onClick = { mode = SessionClonerMode.IMPORT_FROM_DAY },
+                    modifier = Modifier.weight(1f),
                 )
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SessionCloneApplyMode.entries.forEach { candidate ->
-                    KpknSheetLightChip(
-                        label = if (candidate == SessionCloneApplyMode.APPEND) "Agregar" else "Reemplazar",
-                        selected = applyMode == candidate,
-                        onClick = { applyModeName = candidate.name },
-                    )
-                }
+                Box(
+                    Modifier
+                        .height(20.dp)
+                        .width(1.dp)
+                        .background(Color.White.copy(alpha = 0.2f)),
+                )
+                KpknSheetGlassChip(
+                    label = "Agregar",
+                    selected = applyMode == SessionCloneApplyMode.APPEND,
+                    onClick = { applyModeName = SessionCloneApplyMode.APPEND.name },
+                    modifier = Modifier.weight(1f),
+                )
+                KpknSheetGlassChip(
+                    label = "Reemplazar",
+                    selected = applyMode == SessionCloneApplyMode.REPLACE,
+                    onClick = { applyModeName = SessionCloneApplyMode.REPLACE.name },
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
 
@@ -161,32 +179,43 @@ internal fun SessionClonerSheet(
                     .padding(horizontal = KpknSheetTokens.ContentPaddingHorizontal),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Text("Días destino", fontWeight = FontWeight.Bold, color = KpknSheetTokens.Body)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    val currentWeekId = uiState.weekId
-                    val weekTargets = uiState.cloneDayOptions.filter {
-                        !it.isCurrentSessionDay && it.weekId == currentWeekId
-                    }
-                    val sameDayTargets = uiState.cloneDayOptions.filter {
-                        !it.isCurrentSessionDay && it.dayOfWeek == uiState.dayOfWeek
-                    }
-                    if (weekTargets.isNotEmpty()) {
-                        KpknSheetLightChip(
-                            label = "Esta semana",
-                            selected = selectedTargetKeys == weekTargets.map { it.key }.toSet(),
-                            onClick = {
-                                selectedTargetKeys = weekTargets.map { it.key }.toSet()
-                            },
-                        )
-                    }
-                    if (sameDayTargets.isNotEmpty()) {
-                        KpknSheetLightChip(
-                            label = "Mismo día",
-                            selected = selectedTargetKeys == sameDayTargets.map { it.key }.toSet(),
-                            onClick = {
-                                selectedTargetKeys = sameDayTargets.map { it.key }.toSet()
-                            },
-                        )
+                val currentWeekId = uiState.weekId
+                val weekTargets = uiState.cloneDayOptions.filter {
+                    !it.isCurrentSessionDay && it.weekId == currentWeekId
+                }
+                val sameDayTargets = uiState.cloneDayOptions.filter {
+                    !it.isCurrentSessionDay && it.dayOfWeek == uiState.dayOfWeek
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Días destino",
+                        fontWeight = FontWeight.Bold,
+                        color = KpknSheetTokens.Body,
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (weekTargets.isNotEmpty()) {
+                            KpknSheetGlassChip(
+                                label = "Esta semana",
+                                selected = selectedTargetKeys == weekTargets.map { it.key }.toSet(),
+                                onClick = {
+                                    selectedTargetKeys = weekTargets.map { it.key }.toSet()
+                                },
+                            )
+                        }
+                        if (sameDayTargets.isNotEmpty()) {
+                            KpknSheetGlassChip(
+                                label = "Mismo día",
+                                selected = selectedTargetKeys == sameDayTargets.map { it.key }.toSet(),
+                                onClick = {
+                                    selectedTargetKeys = sameDayTargets.map { it.key }.toSet()
+                                },
+                            )
+                        }
                     }
                 }
                 uiState.cloneDayOptions
@@ -386,7 +415,7 @@ private fun TransferToggleRow(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(label, color = KpknSheetTokens.Body)
-        KpknSheetLightChip(
+        KpknSheetGlassChip(
             label = if (enabled) "ON" else "OFF",
             selected = enabled,
             onClick = onToggle,

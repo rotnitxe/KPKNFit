@@ -15,9 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -26,6 +26,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,26 +35,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.domain.sessionassistant.TimeCoachFatigueDelta
 import com.example.kpkn.screens.sessioneditor.DefaultIntensityType
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SheetHeader
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
-import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
+import com.example.kpkn.ui.components.KpknSheetGlassChip
 import com.example.kpkn.ui.components.KpknSheetLightChip
 import com.example.kpkn.ui.components.KpknSheetTokens
 import com.example.kpkn.ui.components.KpknSheetWhiteButton
-import com.example.kpkn.ui.components.kpknSheetWhiteFieldColors
+import com.example.kpkn.ui.components.kpknSheetGlassFieldColors
 import java.util.Locale
 
 @Composable
@@ -67,28 +67,29 @@ internal fun RestTimeField(
     val secs = seconds % 60
     val displayValue = String.format(Locale.US, "%d:%02d", minutes, secs)
 
-    Box(modifier = modifier.clickable(onClick = onClick)) {
-        OutlinedTextField(
-            value = displayValue,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = false,
-            shape = RoundedCornerShape(KpknSheetTokens.ControlRadius),
-            textStyle = MaterialTheme.typography.bodySmall.copy(
-                fontWeight = FontWeight.Bold,
-                color = KpknSheetTokens.ControlLabel,
-            ),
-            colors = kpknSheetWhiteFieldColors(),
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = KpknSheetTokens.GlassControlLabelMuted,
+            fontWeight = FontWeight.SemiBold,
         )
         Box(
             modifier = Modifier
-                .matchParentSize()
-                .background(Color.Transparent)
-                .clickable(onClick = onClick),
-        )
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(KpknSheetTokens.ControlRadius))
+                .background(KpknSheetTokens.GlassControlFill)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Text(
+                displayValue,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = KpknSheetTokens.GlassControlLabel,
+            )
+        }
     }
 }
 
@@ -107,140 +108,61 @@ private fun SheetMiniField(
             local = it
             onCommit(it)
         },
-        label = { Text(label) },
+        label = {
+            Text(label, color = KpknSheetTokens.GlassControlLabelMuted)
+        },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         modifier = modifier,
         shape = RoundedCornerShape(KpknSheetTokens.ControlRadius),
         textStyle = MaterialTheme.typography.bodySmall.copy(
             fontWeight = FontWeight.Bold,
-            color = KpknSheetTokens.ControlLabel,
+            color = KpknSheetTokens.GlassControlLabel,
         ),
-        colors = kpknSheetWhiteFieldColors(),
+        colors = kpknSheetGlassFieldColors(),
     )
 }
 
 @Composable
-internal fun RestTimePickerDialog(
-    title: String,
-    initialSeconds: Int,
-    onConfirm: (Int) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var minInput by remember { mutableStateOf((initialSeconds / 60).toString()) }
-    var secInput by remember { mutableStateOf((initialSeconds % 60).toString()) }
-
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title, fontWeight = FontWeight.Bold, color = Color.White) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(
-                    "Ingresa los minutos y segundos para el descanso.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.85f),
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    OutlinedTextField(
-                        value = minInput,
-                        onValueChange = { minInput = it.filter(Char::isDigit).take(2) },
-                        label = { Text("Minutos") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = kpknSheetWhiteFieldColors(),
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(color = KpknSheetTokens.ControlLabel),
-                    )
-                    OutlinedTextField(
-                        value = secInput,
-                        onValueChange = {
-                            secInput = it.filter(Char::isDigit).take(2).let { raw ->
-                                val n = raw.toIntOrNull()
-                                if (n != null && n > 59) "59" else raw
-                            }
-                        },
-                        label = { Text("Segundos") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = kpknSheetWhiteFieldColors(),
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(color = KpknSheetTokens.ControlLabel),
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val m = minInput.toIntOrNull()?.coerceAtLeast(0) ?: 0
-                    val s = (secInput.toIntOrNull() ?: 0).coerceIn(0, 59)
-                    onConfirm(m * 60 + s)
-                },
-            ) {
-                Text("Aceptar", fontWeight = FontWeight.Bold, color = Color.White)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = Color.White.copy(alpha = 0.85f))
-            }
-        },
-    )
-}
-
-@Composable
-private fun WhiteMinuteField(
-    value: String,
-    onValueChange: (String) -> Unit,
+private fun DurationTapField(
+    label: String,
+    display: String,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit,
 ) {
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        textStyle = MaterialTheme.typography.bodyMedium.copy(
-            color = KpknSheetTokens.ControlLabel,
-            textAlign = TextAlign.End,
-            fontWeight = FontWeight.Bold,
-        ),
-        cursorBrush = SolidColor(KpknSheetTokens.ControlLabel),
-        modifier = modifier,
-        decorationBox = { innerTextField ->
-            Row(
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(KpknSheetTokens.ControlFill)
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-            ) {
-                Box(modifier = Modifier.weight(1f, fill = false).clipToBounds()) {
-                    if (value.isEmpty()) {
-                        Text(
-                            "– min",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = KpknSheetTokens.ControlPlaceholder,
-                        )
-                    }
-                    innerTextField()
-                }
-                if (value.isNotEmpty()) {
-                    Text(
-                        " min",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = KpknSheetTokens.ControlLabel,
-                    )
-                }
-            }
-        },
-    )
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (label.isNotBlank()) {
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = KpknSheetTokens.GlassControlLabelMuted,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(KpknSheetTokens.ControlRadius))
+                .background(KpknSheetTokens.GlassControlFill)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                display,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = KpknSheetTokens.GlassControlLabel,
+            )
+        }
+    }
+}
+
+private fun formatDurationMinutes(minutes: Int?): String {
+    if (minutes == null || minutes <= 0) return "Sin límite"
+    val h = minutes / 60
+    val m = minutes % 60
+    return if (h > 0) "%d h %02d min".format(h, m) else "$m min"
 }
 
 @Composable
@@ -255,6 +177,14 @@ internal fun RulesSheet(
     setPartTargetDuration: (String, Int?) -> Unit,
     setExerciseTargetDuration: (String, Int?) -> Unit,
     onDistributeTargetAcrossParts: () -> Unit = {},
+    onApplyRuleTemplate: (String) -> Unit = {},
+    onSaveRuleTemplate: (String) -> Unit = {},
+    onRenameRuleTemplate: (String, String) -> Unit = { _, _ -> },
+    onDeleteRuleTemplate: (String) -> Unit = {},
+    onApplyTimeCoachSuggestion: (String) -> Unit = {},
+    onDismissTimeCoachSuggestion: (String) -> Unit = {},
+    onRefreshTimeCoach: () -> Unit = {},
+    onInitialTabConsumed: () -> Unit = {},
     onSave: () -> Unit = {},
     onDismiss: () -> Unit = {},
 ) {
@@ -266,7 +196,19 @@ internal fun RulesSheet(
     onApplyGlobalIntensityAdjustment
 
     var activeTab by remember { mutableIntStateOf(0) }
+    LaunchedEffect(uiState.rulesSheetInitialTab) {
+        if (uiState.rulesSheetInitialTab == 1) {
+            activeTab = 1
+            onInitialTabConsumed()
+        }
+    }
+    LaunchedEffect(activeTab) {
+        if (activeTab == 1) onRefreshTimeCoach()
+    }
     var scopePartId by remember { mutableStateOf<String?>(null) }
+    var saveTemplateName by remember { mutableStateOf<String?>(null) }
+    var renameTemplate by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var templatesExpanded by remember { mutableStateOf(false) }
 
     val defaults = remember(scopePartId, uiState.ruleDefaults, uiState.partRuleDefaults) {
         if (scopePartId == null) uiState.ruleDefaults
@@ -274,6 +216,7 @@ internal fun RulesSheet(
     }
 
     var activeRestDialog by remember { mutableStateOf<String?>(null) }
+    var durationPickerTarget by remember { mutableStateOf<DurationPickerTarget?>(null) }
 
     if (activeRestDialog != null) {
         val (title, currentSecs, onConfirmCallback) = when (activeRestDialog) {
@@ -299,14 +242,36 @@ internal fun RulesSheet(
             )
             else -> Triple("", 0, { _: Int -> })
         }
-        RestTimePickerDialog(
+        KpknNativeTimePickerDialog(
             title = title,
-            initialSeconds = currentSecs,
-            onConfirm = {
-                onConfirmCallback(it)
+            initialHour = (currentSecs / 60).coerceIn(0, 23),
+            initialMinute = (currentSecs % 60).coerceIn(0, 59),
+            hint = "Minutos : segundos",
+            onConfirm = { hour, minute ->
+                onConfirmCallback(hour * 60 + minute)
                 activeRestDialog = null
             },
             onDismiss = { activeRestDialog = null },
+        )
+    }
+
+    durationPickerTarget?.let { target ->
+        val total = target.currentMinutes?.coerceAtLeast(0) ?: 0
+        KpknNativeTimePickerDialog(
+            title = target.title,
+            initialHour = (total / 60).coerceIn(0, 23),
+            initialMinute = (total % 60).coerceIn(0, 59),
+            hint = "Horas : minutos de presupuesto",
+            onConfirm = { hour, minute ->
+                val mins = (hour * 60 + minute).takeIf { it > 0 }
+                when (target) {
+                    is DurationPickerTarget.Global -> setTargetDuration(mins)
+                    is DurationPickerTarget.Part -> setPartTargetDuration(target.partId, mins)
+                    is DurationPickerTarget.Exercise -> setExerciseTargetDuration(target.exerciseId, mins)
+                }
+                durationPickerTarget = null
+            },
+            onDismiss = { durationPickerTarget = null },
         )
     }
 
@@ -323,7 +288,6 @@ internal fun RulesSheet(
             subtitle = "Configura límites de tiempo y reglas base de la sesión.",
         )
 
-        // Assistant-style tabs — white chips, black labels (never primary/yellow).
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -353,13 +317,13 @@ internal fun RulesSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
             ) {
-                KpknSheetLightChip(
+                KpknSheetGlassChip(
                     label = "Toda la sesión",
                     selected = scopePartId == null,
                     onClick = { scopePartId = null },
                 )
                 uiState.session?.parts?.forEach { part ->
-                    KpknSheetLightChip(
+                    KpknSheetGlassChip(
                         label = part.name,
                         selected = scopePartId == part.id,
                         onClick = { scopePartId = part.id },
@@ -398,7 +362,7 @@ internal fun RulesSheet(
                             DefaultIntensityType.RIR to "RIR",
                             DefaultIntensityType.FALLO to "Fallo",
                         ).forEach { (type, label) ->
-                            KpknSheetLightChip(
+                            KpknSheetGlassChip(
                                 label = label,
                                 selected = defaults.intensityType == type,
                                 onClick = {
@@ -451,10 +415,15 @@ internal fun RulesSheet(
                 }
 
                 Text(
-                    "Descansos (Min:Seg)",
+                    "Descansos",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Black,
                     color = Color.White,
+                )
+                Text(
+                    "Toca para abrir el reloj o teclado nativo de Android.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.55f),
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -483,8 +452,8 @@ internal fun RulesSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(KpknSheetTokens.ControlFill)
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                        .background(KpknSheetTokens.GlassControlFill)
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
@@ -493,12 +462,12 @@ internal fun RulesSheet(
                             "Aplicar a nuevos elementos",
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.labelMedium,
-                            color = KpknSheetTokens.ControlLabel,
+                            color = KpknSheetTokens.GlassControlLabel,
                         )
                         Text(
                             "Ejercicios, series, lados y supersets nuevos heredan estos valores.",
                             style = MaterialTheme.typography.labelSmall,
-                            color = KpknSheetTokens.ControlLabelMuted,
+                            color = KpknSheetTokens.GlassControlLabelMuted,
                         )
                     }
                     Switch(
@@ -508,9 +477,9 @@ internal fun RulesSheet(
                         },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
-                            checkedTrackColor = Color.Black,
-                            uncheckedThumbColor = Color.Black,
-                            uncheckedTrackColor = Color.Black.copy(alpha = 0.25f),
+                            checkedTrackColor = Color.White.copy(alpha = 0.35f),
+                            uncheckedThumbColor = Color.White.copy(alpha = 0.7f),
+                            uncheckedTrackColor = Color.White.copy(alpha = 0.12f),
                         ),
                     )
                 }
@@ -520,23 +489,219 @@ internal fun RulesSheet(
                 text = "Aplicar",
                 onClick = { onApplyRules(scopePartId) },
             )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(KpknSheetTokens.Panel)
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { templatesExpanded = !templatesExpanded }
+                        .padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Plantillas",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                        )
+                        Text(
+                            if (templatesExpanded) {
+                                "Toca una plantilla para precargar defaults."
+                            } else {
+                                "${uiState.ruleTemplates.size} guardadas · tocar para desplegar"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.55f),
+                        )
+                    }
+                    Text(
+                        if (templatesExpanded) "▲" else "▼",
+                        color = Color.White.copy(alpha = 0.65f),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                if (templatesExpanded) {
+                    uiState.ruleTemplates.forEach { template ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            KpknSheetGlassChip(
+                                label = template.name,
+                                selected = false,
+                                modifier = Modifier.weight(1f),
+                                onClick = { onApplyRuleTemplate(template.id) },
+                            )
+                            KpknSheetGlassChip(
+                                label = "✎",
+                                selected = false,
+                                onClick = { renameTemplate = template.id to template.name },
+                            )
+                            KpknSheetGlassChip(
+                                label = "✕",
+                                selected = false,
+                                onClick = { onDeleteRuleTemplate(template.id) },
+                            )
+                        }
+                    }
+                    KpknSheetGlassChip(
+                        label = "Guardar como plantilla…",
+                        selected = false,
+                        onClick = { saveTemplateName = "" },
+                    )
+                }
+            }
         } else {
             val session = uiState.session
             if (session != null) {
-                var globalMinutesInput by remember(session.targetDurationMinutes) {
-                    mutableStateOf(session.targetDurationMinutes?.toString().orEmpty())
-                }
-
-                fun applyGlobalTimeBudget() {
-                    val minutes = globalMinutesInput.toIntOrNull()?.takeIf { it > 0 }
-                    setTargetDuration(minutes)
-                }
-
-                // Part budget OR sum of its exercises (never both). Plus loose exercises.
                 val assignedMinutes = session.parts.sumOf { part ->
                     part.targetDurationMinutes
                         ?: part.exercises.sumOf { it.targetDurationMinutes ?: 0 }
                 } + session.exercises.sumOf { it.targetDurationMinutes ?: 0 }
+                val estimated = uiState.sessionTimeBreakdown?.totalMinutes
+                    ?: uiState.estimatedDurationMinutes
+                val limit = session.targetDurationMinutes
+                val gap = if (limit != null && estimated > 0) estimated - limit else null
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(KpknSheetTokens.Panel)
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text(
+                        "Reloj de sesión",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        TimeHeroStat(
+                            label = "Estimado",
+                            value = if (estimated > 0) "$estimated min" else "—",
+                            accent = Color.White,
+                        )
+                        TimeHeroStat(
+                            label = "Límite",
+                            value = limit?.let { "$it min" } ?: "Sin límite",
+                            accent = Color.White.copy(alpha = 0.9f),
+                        )
+                        TimeHeroStat(
+                            label = "Gap",
+                            value = when {
+                                gap == null -> "—"
+                                gap > 0 -> "+$gap min"
+                                gap < 0 -> "$gap min"
+                                else -> "0"
+                            },
+                            accent = when {
+                                gap == null -> Color.White.copy(alpha = 0.7f)
+                                gap > 0 -> Color(0xFFEF4444)
+                                gap < 0 -> Color(0xFF22C55E)
+                                else -> Color(0xFFF59E0B)
+                            },
+                        )
+                    }
+                    uiState.sessionTimeBreakdown?.let { bd ->
+                        Text(
+                            "Prep ${bd.setupMinutes} · Ejec ${bd.executionMinutes} · Descansos ${bd.restMinutes}" +
+                                if (bd.warmupMinutes > 0) " · Warmup ${bd.warmupMinutes}" else "",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.55f),
+                        )
+                    }
+                }
+
+                if (uiState.timeCoachSuggestions.isNotEmpty()) {
+                    Text(
+                        "Para entrar en tu límite",
+                        fontWeight = FontWeight.Black,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White,
+                    )
+                    uiState.timeCoachSuggestions.forEach { suggestion ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(KpknSheetTokens.Panel)
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    suggestion.title,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                Text(
+                                    "−${suggestion.minutesSaved} min",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF22C55E),
+                                )
+                            }
+                            Text(
+                                suggestion.explanation,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.7f),
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                KpknSheetGlassChip(
+                                    label = when (suggestion.fatigueDelta) {
+                                        TimeCoachFatigueDelta.LOWER -> "Fatiga ↓"
+                                        TimeCoachFatigueDelta.SIMILAR -> "Fatiga ≈"
+                                        TimeCoachFatigueDelta.HIGHER -> "Fatiga ↑"
+                                    },
+                                    selected = false,
+                                    onClick = {},
+                                )
+                                Spacer(Modifier.weight(1f))
+                                KpknSheetGlassChip(
+                                    label = "Descartar",
+                                    selected = false,
+                                    onClick = { onDismissTimeCoachSuggestion(suggestion.id) },
+                                )
+                                KpknSheetGlassChip(
+                                    label = "Aplicar",
+                                    selected = true,
+                                    onClick = { onApplyTimeCoachSuggestion(suggestion.id) },
+                                )
+                            }
+                        }
+                    }
+                } else if (limit != null && gap != null && gap > 0) {
+                    Text(
+                        "Calculando sugerencias… o no hay ajustes seguros aún.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.55f),
+                    )
+                }
 
                 Column(
                     modifier = Modifier
@@ -553,70 +718,42 @@ internal fun RulesSheet(
                         color = Color.White,
                     )
                     Text(
-                        "Presupuesto orientativo en minutos. Guía el ritmo en vivo; no corta el entrenamiento.",
+                        "Presupuesto orientativo. Guía el ritmo en vivo; no corta el entrenamiento.",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.65f),
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    ) {
                         listOf(30, 45, 60, 90).forEach { mins ->
-                            KpknSheetLightChip(
+                            KpknSheetGlassChip(
                                 label = "${mins}m",
-                                selected = globalMinutesInput == mins.toString(),
-                                onClick = {
-                                    globalMinutesInput = mins.toString()
-                                    setTargetDuration(mins)
-                                },
+                                selected = session.targetDurationMinutes == mins,
+                                onClick = { setTargetDuration(mins) },
                             )
                         }
-                        if (uiState.estimatedDurationMinutes > 0) {
-                            KpknSheetLightChip(
-                                label = "Estimado ${uiState.estimatedDurationMinutes}m",
-                                selected = globalMinutesInput == uiState.estimatedDurationMinutes.toString(),
-                                onClick = {
-                                    globalMinutesInput = uiState.estimatedDurationMinutes.toString()
-                                    setTargetDuration(uiState.estimatedDurationMinutes)
-                                },
+                        if (estimated > 0) {
+                            KpknSheetGlassChip(
+                                label = "Estimado",
+                                selected = session.targetDurationMinutes == estimated,
+                                onClick = { setTargetDuration(estimated) },
                             )
                         }
-                        KpknSheetLightChip(
+                        KpknSheetGlassChip(
                             label = "Sin límite",
-                            selected = globalMinutesInput.isBlank(),
-                            onClick = {
-                                globalMinutesInput = ""
-                                setTargetDuration(null)
-                            },
+                            selected = session.targetDurationMinutes == null,
+                            onClick = { setTargetDuration(null) },
                         )
                     }
-                    if (uiState.estimatedDurationMinutes > 0) {
-                        val budget = session.targetDurationMinutes
-                        Text(
-                            if (budget != null && budget > 0) {
-                                "Estimado de estructura: ${uiState.estimatedDurationMinutes} min · Objetivo: $budget min"
-                            } else {
-                                "Estimado de estructura: ${uiState.estimatedDurationMinutes} min"
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.85f),
-                        )
-                    }
-                    OutlinedTextField(
-                        value = globalMinutesInput,
-                        onValueChange = { globalMinutesInput = it.filter(Char::isDigit).take(3) },
-                        label = { Text("Minutos") },
-                        placeholder = {
-                            Text("60", color = KpknSheetTokens.ControlPlaceholder)
-                        },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    DurationTapField(
+                        label = "Presupuesto global",
+                        display = formatDurationMinutes(session.targetDurationMinutes),
                         modifier = Modifier.fillMaxWidth(),
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(
-                            textAlign = TextAlign.Center,
-                            color = KpknSheetTokens.ControlLabel,
-                        ),
-                        colors = kpknSheetWhiteFieldColors(),
-                        shape = RoundedCornerShape(KpknSheetTokens.ControlRadius),
-                        suffix = {
-                            Text("min", color = KpknSheetTokens.ControlLabelMuted)
+                        onClick = {
+                            durationPickerTarget = DurationPickerTarget.Global(
+                                currentMinutes = session.targetDurationMinutes,
+                            )
                         },
                     )
                     val sessionBudget = session.targetDurationMinutes ?: 0
@@ -643,12 +780,12 @@ internal fun RulesSheet(
                     color = Color.White,
                 )
                 Text(
-                    "Presupuestos en minutos (guía). Si el grupo tiene minutos, no se suman los de sus ejercicios al global.",
+                    "Toca el valor para abrir el reloj nativo. Si el grupo tiene minutos, no se suman los de sus ejercicios.",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.65f),
                 )
                 if (session.parts.size >= 2 && (session.targetDurationMinutes ?: 0) > 0) {
-                    KpknSheetLightChip(
+                    KpknSheetGlassChip(
                         label = "Repartir global en grupos",
                         selected = false,
                         onClick = onDistributeTargetAcrossParts,
@@ -656,9 +793,6 @@ internal fun RulesSheet(
                 }
 
                 session.parts.forEach { part ->
-                    var partMinutesInput by remember(part.targetDurationMinutes) {
-                        mutableStateOf(part.targetDurationMinutes?.toString() ?: "")
-                    }
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -679,12 +813,16 @@ internal fun RulesSheet(
                                 color = Color.White,
                                 modifier = Modifier.weight(1f),
                             )
-                            Box(modifier = Modifier.width(90.dp)) {
-                                WhiteMinuteField(
-                                    value = partMinutesInput,
-                                    onValueChange = {
-                                        partMinutesInput = it
-                                        setPartTargetDuration(part.id, it.toIntOrNull())
+                            Box(modifier = Modifier.width(110.dp)) {
+                                DurationTapField(
+                                    label = "",
+                                    display = formatDurationMinutes(part.targetDurationMinutes),
+                                    onClick = {
+                                        durationPickerTarget = DurationPickerTarget.Part(
+                                            partId = part.id,
+                                            title = part.name,
+                                            currentMinutes = part.targetDurationMinutes,
+                                        )
                                     },
                                 )
                             }
@@ -693,9 +831,6 @@ internal fun RulesSheet(
                         if (part.exercises.isNotEmpty()) {
                             HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
                             part.exercises.forEach { ex ->
-                                var exMinutesInput by remember(ex.targetDurationMinutes) {
-                                    mutableStateOf(ex.targetDurationMinutes?.toString() ?: "")
-                                }
                                 Row(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically,
@@ -710,12 +845,16 @@ internal fun RulesSheet(
                                         modifier = Modifier.weight(1f),
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Box(modifier = Modifier.width(80.dp)) {
-                                        WhiteMinuteField(
-                                            value = exMinutesInput,
-                                            onValueChange = {
-                                                exMinutesInput = it
-                                                setExerciseTargetDuration(ex.id, it.toIntOrNull())
+                                    Box(modifier = Modifier.width(100.dp)) {
+                                        DurationTapField(
+                                            label = "",
+                                            display = formatDurationMinutes(ex.targetDurationMinutes),
+                                            onClick = {
+                                                durationPickerTarget = DurationPickerTarget.Exercise(
+                                                    exerciseId = ex.id,
+                                                    title = ex.name,
+                                                    currentMinutes = ex.targetDurationMinutes,
+                                                )
                                             },
                                         )
                                     }
@@ -742,9 +881,6 @@ internal fun RulesSheet(
                         )
                         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
                         session.exercises.forEach { ex ->
-                            var exMinutesInput by remember(ex.targetDurationMinutes) {
-                                mutableStateOf(ex.targetDurationMinutes?.toString() ?: "")
-                            }
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically,
@@ -759,12 +895,16 @@ internal fun RulesSheet(
                                     modifier = Modifier.weight(1f),
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Box(modifier = Modifier.width(80.dp)) {
-                                    WhiteMinuteField(
-                                        value = exMinutesInput,
-                                        onValueChange = {
-                                            exMinutesInput = it
-                                            setExerciseTargetDuration(ex.id, it.toIntOrNull())
+                                Box(modifier = Modifier.width(100.dp)) {
+                                    DurationTapField(
+                                        label = "",
+                                        display = formatDurationMinutes(ex.targetDurationMinutes),
+                                        onClick = {
+                                            durationPickerTarget = DurationPickerTarget.Exercise(
+                                                exerciseId = ex.id,
+                                                title = ex.name,
+                                                currentMinutes = ex.targetDurationMinutes,
+                                            )
                                         },
                                     )
                                 }
@@ -775,9 +915,8 @@ internal fun RulesSheet(
 
                 Spacer(modifier = Modifier.height(4.dp))
                 KpknSheetWhiteButton(
-                    text = "Guardar cambios",
+                    text = "Listo",
                     onClick = {
-                        applyGlobalTimeBudget()
                         onSave()
                         onDismiss()
                     },
@@ -785,4 +924,105 @@ internal fun RulesSheet(
             }
         }
     }
+
+    saveTemplateName?.let { draftName ->
+        var localName by remember(draftName) { mutableStateOf(draftName) }
+        AlertDialog(
+            onDismissRequest = { saveTemplateName = null },
+            title = { Text("Guardar plantilla") },
+            text = {
+                OutlinedTextField(
+                    value = localName,
+                    onValueChange = { localName = it },
+                    label = { Text("Nombre") },
+                    singleLine = true,
+                    colors = kpknSheetGlassFieldColors(),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onSaveRuleTemplate(localName)
+                        saveTemplateName = null
+                    },
+                ) { Text("Guardar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { saveTemplateName = null }) { Text("Cancelar") }
+            },
+        )
+    }
+
+    renameTemplate?.let { (id, currentName) ->
+        var localName by remember(id, currentName) { mutableStateOf(currentName) }
+        AlertDialog(
+            onDismissRequest = { renameTemplate = null },
+            title = { Text("Renombrar plantilla") },
+            text = {
+                OutlinedTextField(
+                    value = localName,
+                    onValueChange = { localName = it },
+                    label = { Text("Nombre") },
+                    singleLine = true,
+                    colors = kpknSheetGlassFieldColors(),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onRenameRuleTemplate(id, localName)
+                        renameTemplate = null
+                    },
+                ) { Text("Guardar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { renameTemplate = null }) { Text("Cancelar") }
+            },
+        )
+    }
+}
+
+@Composable
+private fun TimeHeroStat(
+    label: String,
+    value: String,
+    accent: Color,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            label.uppercase(Locale.US),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.55f),
+            fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.titleMedium,
+            color = accent,
+            fontWeight = FontWeight.Black,
+        )
+    }
+}
+
+private sealed class DurationPickerTarget {
+    abstract val title: String
+    abstract val currentMinutes: Int?
+
+    data class Global(
+        override val currentMinutes: Int?,
+    ) : DurationPickerTarget() {
+        override val title: String = "Presupuesto global"
+    }
+
+    data class Part(
+        val partId: String,
+        override val title: String,
+        override val currentMinutes: Int?,
+    ) : DurationPickerTarget()
+
+    data class Exercise(
+        val exerciseId: String,
+        override val title: String,
+        override val currentMinutes: Int?,
+    ) : DurationPickerTarget()
 }

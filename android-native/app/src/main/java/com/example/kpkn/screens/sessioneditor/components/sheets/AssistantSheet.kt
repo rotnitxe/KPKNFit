@@ -305,14 +305,12 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
         } else {
             val maxDirect = volumeRows.maxOfOrNull { it.directSets }?.coerceAtLeast(1.0) ?: 1.0
             val maxIndirect = volumeRows.maxOfOrNull { it.indirectSets }?.coerceAtLeast(1.0) ?: 1.0
+            // Sin scroll anidado: el sheet padre ya scrollea (evita jank al abrir).
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 420.dp)
-                    .verticalScroll(rememberScrollState()),
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                volumeRows.forEach { row ->
+                volumeRows.take(12).forEach { row ->
                     MuscleVolumeCard(
                         muscle = row.muscle,
                         directSets = row.directSets,
@@ -323,6 +321,13 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
                         energyDrain = summary.muscleEnergyDrain[row.muscle] ?: 0,
                         spinalDrain = summary.muscleSpinalDrain[row.muscle] ?: 0,
                         muscleDrain = summary.muscleDrainProjection[row.muscle] ?: 0,
+                    )
+                }
+                if (volumeRows.size > 12) {
+                    Text(
+                        "+${volumeRows.size - 12} músculos más en el desglose interno",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.45f),
                     )
                 }
             }

@@ -79,6 +79,8 @@ object WorkoutVoiceIntentMatcher {
                 is VoiceSessionCommand.StopSpeaking -> parsed
                 else -> VoiceSessionCommand.Unknown(transcript)
             }
+            VoicePipelineStage.MIC_BUSY,
+            VoicePipelineStage.RECONNECTING,
             VoicePipelineStage.DISABLED -> VoiceSessionCommand.Unknown(transcript)
         }
     }

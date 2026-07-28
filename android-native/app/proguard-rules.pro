@@ -55,3 +55,10 @@
 # ── Compose & Navigation ──────────────────────────────────────────────────────
 -keep class androidx.compose.material.icons.** { *; }
 -keep class androidx.navigation.** { *; }
+
+# ── Vosk / JNA ───────────────────────────────────────────────────────────────
+-dontwarn java.awt.**
+-keep class com.sun.jna.** { *; }
+-keep class * extends com.sun.jna.** { *; }
+-keep class * implements com.sun.jna.** { *; }
+-keepclassmembers class * extends com.sun.jna.** { public *; }

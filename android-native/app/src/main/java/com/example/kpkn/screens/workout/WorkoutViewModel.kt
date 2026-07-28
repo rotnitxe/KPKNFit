@@ -906,6 +906,13 @@ class WorkoutViewModel(
 
     fun checkPaceCoachAlert() = pacingController.checkPaceCoachAlert()
 
+    fun checkLocalBudgetGuide(
+        scopeKey: String,
+        scopeLabel: String,
+        progress: Float,
+        isExerciseScope: Boolean,
+    ) = pacingController.checkLocalBudgetGuide(scopeKey, scopeLabel, progress, isExerciseScope)
+
     private fun adjustRestTimeForPace(baseSeconds: Int) = pacingController.adjustRestTimeForPace(baseSeconds)
 
     // ─── Navigation ───────────────────────────────────────────────────────────
@@ -1102,12 +1109,19 @@ class WorkoutViewModel(
 
 
     fun enableVoice() = run {
+        val settingsBeforeEnable = repository.settings.value
         voiceCommandHandler.enableVoice()
-        if (voiceController.isEnabled() && !repository.settings.value.hasSeenVoiceTutorial) {
-            voiceController.speakAnnouncement(
-                "Práctica rápida: di ochenta por ocho. En esta prueba no se registrará la serie.",
-            )
-            repository.updateSettings { it.copy(hasSeenVoiceTutorial = true) }
+        if (voiceController.isEnabled()) {
+            val needsTutorial =
+                settingsBeforeEnable.voiceTutorialVersionSeen < HYBRID_VOICE_TUTORIAL_VERSION
+            repository.updateSettings {
+                it.copy(voiceTutorialVersionSeen = HYBRID_VOICE_TUTORIAL_VERSION)
+            }
+            if (needsTutorial) {
+                voiceController.speakAnnouncement(
+                    "Voz local activada. Seguirá escuchando durante este entrenamiento hasta que la desactives desde el control o la notificación. El fallback del sistema es breve y ocasional.",
+                )
+            }
         }
     }
 
@@ -2640,6 +2654,8 @@ class WorkoutViewModel(
     }
 
     companion object {
+        private const val HYBRID_VOICE_TUTORIAL_VERSION = 3
+
         fun factory(
             appContext: Context,
             programId: String,

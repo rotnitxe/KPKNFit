@@ -1,12 +1,15 @@
 package com.example.kpkn.services.workout
 
 /**
- * ASR hypothesis with optional confidence from [android.speech.SpeechRecognizer].
- * Confidence is 0f when the engine does not provide CONFIDENCE_SCORES.
+ * ASR hypothesis with optional confidence.
+ *
+ * [confidenceKnown] = false para Vosk (no inventar scores). La política de auto-confirmación
+ * no debe tratar confianza ficticia como suficiente.
  */
 data class VoiceHypothesis(
     val text: String,
     val confidence: Float = 0f,
+    val confidenceKnown: Boolean = true,
 )
 
 /**

@@ -29,6 +29,7 @@ class WorkoutPacingController(
     val sessionTimeRemainingSeconds: StateFlow<Int?> = _sessionTimeRemainingSeconds.asStateFlow()
 
     private var sessionTimerJob: Job? = null
+    private val announcedBudgetThresholds = mutableSetOf<String>()
 
     private fun speakPacing(text: String) {
         if (isVoiceActive()) {
@@ -38,8 +39,47 @@ class WorkoutPacingController(
         }
     }
 
+    fun resetBudgetAnnouncements() {
+        announcedBudgetThresholds.clear()
+    }
+
+    /**
+     * Guía sonora de presupuesto local (ejercicio o grupo) al ~75 / 90 / 100%.
+     * No corta el workout: solo avisa ritmo.
+     */
+    fun checkLocalBudgetGuide(
+        scopeKey: String,
+        scopeLabel: String,
+        progress: Float,
+        isExerciseScope: Boolean,
+    ) {
+        if (progress < 0.75f) return
+        val threshold = when {
+            progress >= 1f -> 100
+            progress >= 0.9f -> 90
+            else -> 75
+        }
+        val key = "$scopeKey@$threshold"
+        if (!announcedBudgetThresholds.add(key)) return
+        val kind = if (isExerciseScope) "ejercicio" else "grupo"
+        val message = when (threshold) {
+            75 -> "Vas al 75 por ciento del presupuesto de $kind $scopeLabel. Es solo guía de ritmo."
+            90 -> "Vas al 90 por ciento del presupuesto de $kind $scopeLabel. Ajusta el ritmo si hace falta."
+            else -> "Presupuesto de $kind $scopeLabel agotado. Continúa con calma; es una guía, no un corte."
+        }
+        speakPacing(message)
+        pacingNotifications.notify(
+            when (threshold) {
+                75 -> "75% presupuesto · $scopeLabel"
+                90 -> "90% presupuesto · $scopeLabel"
+                else -> "Presupuesto agotado · $scopeLabel"
+            },
+        )
+    }
+
     fun startSessionTimer(totalSeconds: Int) {
         sessionTimerJob?.cancel()
+        announcedBudgetThresholds.clear()
         _sessionTimeRemainingSeconds.value = totalSeconds
         sessionTimerJob = scope.launch {
             var remaining = totalSeconds

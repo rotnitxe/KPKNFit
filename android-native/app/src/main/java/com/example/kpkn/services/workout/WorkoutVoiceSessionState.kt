@@ -10,6 +10,10 @@ enum class VoicePipelineStage {
     PROCESSING,
     CONFIRM_WAIT,
     TTS_SPEAKING,
+    /** Android silenció o retiró nuestra captura (llamada / otra app). */
+    MIC_BUSY,
+    /** Reabriendo AudioRecord tras ocupación. */
+    RECONNECTING,
     ERROR_RECOVERY,
 }
 
@@ -27,8 +31,14 @@ data class VoiceSessionState(
     val rmsLevel: Float = 0f,
     /** Short human summary of last understood action for the dock. */
     val lastHeardSummary: String = "",
-    /** True when the continuous engine is using on-device recognition. */
+    /** True when the continuous engine is using the local Vosk runtime. */
     val usingOnDeviceRecognizer: Boolean = false,
+    /** True while a native one-shot fallback is active. */
+    val usingNativeFallback: Boolean = false,
+    /** True when the fallback circuit is open and temporarily paused. */
+    val fallbackPaused: Boolean = false,
+    /** Human-readable mic route, when available. */
+    val activeRouteLabel: String? = null,
 ) {
     val isListening: Boolean get() = stage == VoicePipelineStage.LISTENING
     val isDucking: Boolean get() = duckHandle != null

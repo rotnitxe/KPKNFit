@@ -1,0 +1,15 @@
+Vosk API and Spanish speech model notice
+
+This application includes:
+
+1. Vosk API for Android
+   Project: https://github.com/alphacep/vosk-api
+   Version used by this application: 0.3.75
+   License: Apache License 2.0
+
+2. vosk-model-small-es-0.42
+   Model catalog: https://alphacephei.com/vosk/models
+   License: Apache License 2.0
+
+Copyright and attribution remain with their respective authors and contributors.
+The full Apache License 2.0 text is included in APACHE-2.0.txt.

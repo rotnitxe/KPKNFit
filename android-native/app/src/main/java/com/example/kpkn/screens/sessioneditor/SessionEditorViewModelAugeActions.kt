@@ -268,12 +268,20 @@ internal fun SessionEditorViewModel.convertToSupersetWithNext(session: Session, 
     if (targetIdx < 0) return session
     val partner = allExercises.getOrNull(targetIdx + 1) ?: return session
     if (partner.id == targetExerciseId) return session
+    val defaults = currentUiState.ruleDefaults
     val groupId = "superset_group_${System.currentTimeMillis()}"
-    return session.copy(
-        supersetGroups = session.supersetGroups + com.example.kpkn.data.models.SupersetGroup(
-            id = groupId,
-            exerciseOrder = listOf(targetExerciseId, partner.id),
-        ),
+    val anchorPartId = session.parts.firstOrNull { part ->
+        part.exercises.any { it.id == targetExerciseId }
+    }?.id
+    return SupersetRules.createSuperset(
+        session = session,
+        groupId = groupId,
+        exerciseIds = listOf(targetExerciseId, partner.id),
+        restBetweenExercises = defaults.supersetBetweenRestSeconds,
+        restAfterSuperset = defaults.supersetRoundRestSeconds,
+        rounds = null,
+        anchorPartId = anchorPartId,
+        anchorExerciseId = targetExerciseId,
     )
 }
 

@@ -12,6 +12,8 @@ object WorkoutVoiceSessionGate {
         VoicePipelineStage.PROCESSING,
         VoicePipelineStage.CONFIRM_WAIT,
         VoicePipelineStage.TTS_SPEAKING,
+        VoicePipelineStage.MIC_BUSY,
+        VoicePipelineStage.RECONNECTING,
     )
 
     /** TTS became ready — never force DISABLED over an active or wanted session. */
@@ -55,7 +57,8 @@ object WorkoutVoiceSessionGate {
     fun shouldAcceptFinalResult(stage: VoicePipelineStage): Boolean {
         return stage != VoicePipelineStage.DISABLED &&
             stage != VoicePipelineStage.ARMED &&
-            stage != VoicePipelineStage.TTS_SPEAKING
+            stage != VoicePipelineStage.TTS_SPEAKING &&
+            stage != VoicePipelineStage.MIC_BUSY
     }
 
     fun shouldProcessCommand(stage: VoicePipelineStage): Boolean {

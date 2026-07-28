@@ -20,7 +20,7 @@ class WorkoutVoiceController(
     sharedTtsManager: WorkoutTtsManager? = null,
 ) {
 
-    private val continuousEngine = WorkoutContinuousVoiceEngine(context)
+    private val continuousEngine = WorkoutVoiceRuntime.apply { initialize(context) }.speechEngine()
     private val ttsManager = sharedTtsManager ?: WorkoutTtsManager(context)
     private val audioHelper = SystemAudioHelper
     private val speechBus = WorkoutSpeechBus()
@@ -36,10 +36,17 @@ class WorkoutVoiceController(
     private var utteranceWatchdogJob: Job? = null
     private var rmsCollectJob: Job? = null
     private var onDeviceCollectJob: Job? = null
+    private var routeCollectJob: Job? = null
+    private var fallbackCollectJob: Job? = null
+    private var fallbackPausedCollectJob: Job? = null
     private var confirmedOrCancelled = false
     /** Debounce instant partial commands so one utterance does not fire twice. */
     private var lastInstantPartialKey: String? = null
     private var lastHypothesisConfidence: Float = 0f
+    private var lastHypothesisConfidenceKnown: Boolean = true
+    private var statusCollectJob: Job? = null
+    private var promptCollectJob: Job? = null
+    private var captureCollectJob: Job? = null
     private var announcedPostFeedbackPrompt = false
     private var announcedFinalFeedbackPrompt = false
     /** User wants continuous voice on; survives async TTS init without clobbering LISTENING. */
@@ -111,7 +118,7 @@ class WorkoutVoiceController(
                     armPushToTalkSession()
                 } else {
                     startListening()
-                    updateStage(VoicePipelineStage.LISTENING)
+                    updateStage(VoicePipelineStage.RECONNECTING)
                 }
                 _state.update { it.copy(consecutiveErrors = 0, errorMessage = null) }
                 announceVoiceOnIfReady()
@@ -180,7 +187,8 @@ class WorkoutVoiceController(
     private fun armPushToTalkSession() {
         val s = scope ?: return
         // Mute system beeps via start, then pause ASR until the user holds the mic.
-        continuousEngine.start(s)
+        // Release headset communication route while idle so music can stay on A2DP.
+        continuousEngine.start(s, holdMicRouteAcrossPause = false)
         continuousEngine.pause()
         updateStage(VoicePipelineStage.ARMED)
     }
@@ -452,6 +460,7 @@ class WorkoutVoiceController(
         if (!ttsManager.isInitialized) {
             speechBus.release(priority)
             activeSpeechPriority = null
+            continuousEngine.resumeDecoderAfterTts(0)
             resumeListening()
             return
         }
@@ -462,10 +471,44 @@ class WorkoutVoiceController(
             onComplete = {
                 scope?.launch {
                     releaseDucking()
+                    continuousEngine.resumeDecoderAfterTts()
                     resumeListening()
                 }
             },
             speak = block,
+        )
+    }
+
+    /**
+     * Prompt previo al fallback nativo: completa [request.signal] al terminar TTS
+     * y **no** reanuda Vosk (el engine retiene el mic para el one-shot on-device).
+     */
+    private fun speakFallbackPrompt(request: PromptSpeakRequest) {
+        val priority = WorkoutSpeechPriority.HIGH
+        val acquired = speechBus.tryAcquire(priority) {
+            ttsManager.stop()
+            activeSpeechPriority?.let { speechBus.release(it) }
+        }
+        if (!acquired) {
+            request.complete()
+            return
+        }
+        activeSpeechPriority = priority
+        continuousEngine.pause()
+        if (!ttsManager.isInitialized) {
+            speechBus.release(priority)
+            activeSpeechPriority = null
+            request.complete()
+            return
+        }
+        requestDucking()
+        runSpeakingOrSkip(
+            priority = priority,
+            onComplete = {
+                releaseDucking()
+                request.complete()
+            },
+            speak = { ttsManager.speakError(request.text) },
         )
     }
 
@@ -508,13 +551,23 @@ class WorkoutVoiceController(
         val scope = this.scope ?: return
 
         noiseProfileProvider?.invoke()?.let { continuousEngine.setNoiseProfile(it) }
+        continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.LISTENING)
 
         engineCollectJob?.cancel()
         partialCollectJob?.cancel()
         errorCollectJob?.cancel()
         rmsCollectJob?.cancel()
         onDeviceCollectJob?.cancel()
-        continuousEngine.start(scope)
+        routeCollectJob?.cancel()
+        fallbackCollectJob?.cancel()
+        fallbackPausedCollectJob?.cancel()
+        statusCollectJob?.cancel()
+        promptCollectJob?.cancel()
+        captureCollectJob?.cancel()
+        continuousEngine.start(
+            scope = scope,
+            holdMicRouteAcrossPause = !isPushToTalkMode(),
+        )
 
         engineCollectJob = scope.launch {
             continuousEngine.finalResults.collect { hypotheses ->
@@ -538,6 +591,69 @@ class WorkoutVoiceController(
         onDeviceCollectJob = scope.launch {
             continuousEngine.usingOnDeviceRecognizer.collect { onDevice ->
                 _state.update { it.copy(usingOnDeviceRecognizer = onDevice) }
+            }
+        }
+
+        routeCollectJob = scope.launch {
+            continuousEngine.activeRouteLabel.collect { route ->
+                _state.update { it.copy(activeRouteLabel = route) }
+            }
+        }
+
+        fallbackCollectJob = scope.launch {
+            continuousEngine.usingNativeFallback.collect { active ->
+                _state.update { it.copy(usingNativeFallback = active) }
+            }
+        }
+
+        fallbackPausedCollectJob = scope.launch {
+            continuousEngine.fallbackPaused.collect { paused ->
+                _state.update { it.copy(fallbackPaused = paused) }
+            }
+        }
+
+        statusCollectJob = scope.launch {
+            continuousEngine.statusMessages.collect { message ->
+                if (!sessionWanted) return@collect
+                // Límites de fallback / avisos no fatales: no forzar ERROR_RECOVERY.
+                _state.update {
+                    it.copy(
+                        fallbackPaused = continuousEngine.fallbackPaused.value ||
+                            message.contains("pausado", ignoreCase = true),
+                        errorMessage = message,
+                    )
+                }
+            }
+        }
+
+        promptCollectJob = scope.launch {
+            continuousEngine.promptSpeak.collect { request ->
+                if (!sessionWanted) {
+                    request.complete()
+                    return@collect
+                }
+                // No resumeListening aquí: el engine espera la señal y luego toma el mic nativo.
+                speakFallbackPrompt(request)
+            }
+        }
+
+        captureCollectJob = scope.launch {
+            continuousEngine.captureState.collect { capture ->
+                if (!sessionWanted) return@collect
+                when (capture) {
+                    VoiceCaptureState.STARTING -> updateStage(VoicePipelineStage.RECONNECTING)
+                    VoiceCaptureState.MIC_BUSY -> updateStage(VoicePipelineStage.MIC_BUSY)
+                    VoiceCaptureState.ERROR_RECOVERY -> updateStage(VoicePipelineStage.ERROR_RECOVERY)
+                    VoiceCaptureState.RECONNECTING -> updateStage(VoicePipelineStage.RECONNECTING)
+                    VoiceCaptureState.LISTENING -> {
+                        if (_state.value.stage == VoicePipelineStage.MIC_BUSY ||
+                            _state.value.stage == VoicePipelineStage.RECONNECTING
+                        ) {
+                            updateStage(VoicePipelineStage.LISTENING)
+                        }
+                    }
+                    VoiceCaptureState.IDLE -> Unit
+                }
             }
         }
 
@@ -567,6 +683,7 @@ class WorkoutVoiceController(
     private fun handleFinalHypotheses(hypotheses: List<VoiceHypothesis>) {
         val best = WorkoutVoiceHypothesisScorer.pickBest(hypotheses) ?: return
         lastHypothesisConfidence = best.confidence
+        lastHypothesisConfidenceKnown = best.confidenceKnown
         lastInstantPartialKey = null
         handleFinalResult(best.text)
     }
@@ -628,6 +745,7 @@ class WorkoutVoiceController(
             continuousEngine.pause()
             requestDucking()
             val info = exerciseInfoProvider?.invoke()
+            continuousEngine.updateCommandContext(info?.toVoiceCommandContext(), VoicePipelineStage.PROCESSING)
             processCommand(text, info)
         }
     }
@@ -708,6 +826,13 @@ class WorkoutVoiceController(
             }
             is VoiceSessionCommand.Unknown -> {
                 releaseDucking()
+                // Solo tras Vosk (confianza desconocida). Si ya vino del nativo, no bucles.
+                if (!lastHypothesisConfidenceKnown &&
+                    continuousEngine.requestNativeFallbackForUnresolved(command.raw)
+                ) {
+                    updateStage(VoicePipelineStage.LISTENING)
+                    return
+                }
                 resumeListening()
                 return
             }
@@ -735,9 +860,10 @@ class WorkoutVoiceController(
         runSpeakingOrSkip(
             onComplete = {
                 updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
                 val activeScope = scope
                 if (activeScope != null) {
-                    continuousEngine.start(activeScope)
+                    startEngineForCurrentInputMode(activeScope)
                     startAddSetPersistenceTimeout()
                 } else {
                     resumeListening()
@@ -769,6 +895,7 @@ class WorkoutVoiceController(
             interpretation = interpretation,
             asrConfidence = lastHypothesisConfidence,
             draftHasWeightAndReps = draftHasWeightAndReps,
+            confidenceKnown = lastHypothesisConfidenceKnown,
         )
         if (decision == ConfirmationDecision.AUTO) {
             val side = interpretation.side ?: exerciseInfo?.pendingUnilateralSide
@@ -816,9 +943,10 @@ class WorkoutVoiceController(
         runSpeakingOrSkip(
             onComplete = {
                 updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
                 val activeScope = scope
                 if (activeScope != null) {
-                    continuousEngine.start(activeScope)
+                    startEngineForCurrentInputMode(activeScope)
                     startConfirmationTimeout(interpretation)
                 } else {
                     resumeListening()
@@ -876,9 +1004,10 @@ class WorkoutVoiceController(
                         runSpeakingOrSkip(
                             onComplete = {
                                 updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                                continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
                                 val activeScope = scope
                                 if (activeScope != null) {
-                                    continuousEngine.start(activeScope)
+                                    startEngineForCurrentInputMode(activeScope)
                                     startConfirmationTimeout(reparsed.interpretation)
                                 }
                             },
@@ -906,7 +1035,8 @@ class WorkoutVoiceController(
                         runSpeakingOrSkip(
                             onComplete = {
                                 updateStage(VoicePipelineStage.CONFIRM_WAIT)
-                                continuousEngine.start(scope ?: return@runSpeakingOrSkip)
+                                continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
+                                startEngineForCurrentInputMode(scope ?: return@runSpeakingOrSkip)
                             },
                             speak = { ttsManager.speakError("Di sí para confirmar o no para cancelar.") },
                         )
@@ -932,7 +1062,8 @@ class WorkoutVoiceController(
                 runSpeakingOrSkip(
                     onComplete = {
                         updateStage(VoicePipelineStage.CONFIRM_WAIT)
-                        continuousEngine.start(scope ?: return@runSpeakingOrSkip)
+                        continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
+                        startEngineForCurrentInputMode(scope ?: return@runSpeakingOrSkip)
                     },
                     speak = {
                         ttsManager.speakError("Di solo esta sesión o para siempre.")
@@ -1066,8 +1197,30 @@ class WorkoutVoiceController(
                 pendingAddSetPersistence = false,
             )
         }
-        continuousEngine.start(scope ?: return)
-        updateStage(VoicePipelineStage.LISTENING)
+        continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.LISTENING)
+        if (!continuousEngine.isActive) {
+            continuousEngine.start(
+                scope = scope ?: return,
+                holdMicRouteAcrossPause = !isPushToTalkMode(),
+            )
+        } else {
+            continuousEngine.resumeDecoderAfterTts(0)
+        }
+        updateStage(
+            if (continuousEngine.captureState.value == VoiceCaptureState.LISTENING) {
+                VoicePipelineStage.LISTENING
+            } else {
+                VoicePipelineStage.RECONNECTING
+            },
+        )
+    }
+
+    private fun startEngineForCurrentInputMode(activeScope: CoroutineScope) {
+        continuousEngine.updateCommandContext(currentVoiceContext(), _state.value.stage)
+        continuousEngine.start(
+            scope = activeScope,
+            holdMicRouteAcrossPause = !isPushToTalkMode(),
+        )
     }
 
     private fun requestDucking() {
@@ -1095,6 +1248,18 @@ class WorkoutVoiceController(
         rmsCollectJob = null
         onDeviceCollectJob?.cancel()
         onDeviceCollectJob = null
+        routeCollectJob?.cancel()
+        routeCollectJob = null
+        fallbackCollectJob?.cancel()
+        fallbackCollectJob = null
+        fallbackPausedCollectJob?.cancel()
+        fallbackPausedCollectJob = null
+        statusCollectJob?.cancel()
+        statusCollectJob = null
+        promptCollectJob?.cancel()
+        promptCollectJob = null
+        captureCollectJob?.cancel()
+        captureCollectJob = null
         confirmationJob?.cancel()
         confirmationJob = null
         utteranceWatchdogJob?.cancel()
@@ -1165,6 +1330,28 @@ class WorkoutVoiceController(
             )
         }
     }
+
+    private fun currentVoiceContext(): VoiceCommandContext? =
+        exerciseInfoProvider?.invoke()?.toVoiceCommandContext()
+
+    private fun ExerciseInfo.toVoiceCommandContext(): VoiceCommandContext =
+        VoiceCommandContext(
+            exercise = exercise,
+            setIndex = setIndex,
+            totalSets = totalSets,
+            isTimeMode = isTimeMode,
+            isUnilateral = isUnilateral,
+            baseIntensityMode = baseIntensityMode,
+            setDraft = setDraft,
+            suggestedWeight = suggestedWeight,
+            restSecondsRemaining = restSecondsRemaining,
+            nextExerciseName = nextExerciseName,
+            showPostExerciseSheet = showPostExerciseSheet,
+            showFinishSheet = showFinishSheet,
+            supersetRound = supersetRound,
+            isUnilateralSidePending = isUnilateralSidePending,
+            completedSidesCount = completedSidesCount,
+            pendingUnilateralSide = pendingUnilateralSide,
+            exerciseAliases = setOf(exercise.name),
+        )
 }
-
-

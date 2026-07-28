@@ -171,6 +171,13 @@ data class SessionEditorUiState(
     val ruleDefaults: SessionEditorRuleDefaults = SessionEditorRuleDefaults(),
     val partRuleDefaults: Map<String, SessionEditorRuleDefaults> = emptyMap(),
     val ruleLimits: SessionEditorRuleLimits = SessionEditorRuleLimits(),
+    /** Plantillas de reglas (defaults) persistidas en el dispositivo. */
+    val ruleTemplates: List<RuleTemplate> = emptyList(),
+    /** 0 = REGLAS, 1 = TIEMPO al abrir el sheet. */
+    val rulesSheetInitialTab: Int = 0,
+    /** Sugerencias del coach de tiempo (estimado vs límite). */
+    val timeCoachSuggestions: List<com.example.kpkn.domain.sessionassistant.TimeCoachSuggestion> = emptyList(),
+    val dismissedTimeCoachIds: Set<String> = emptySet(),
     val pendingSessionSwitchId: String? = null,
     val pendingWeekId: String? = null,
     val pendingMacroIndex: Int? = null,

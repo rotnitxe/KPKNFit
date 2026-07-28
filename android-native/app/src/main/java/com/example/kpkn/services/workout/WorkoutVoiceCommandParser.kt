@@ -48,7 +48,7 @@ object WorkoutVoiceCommandParser {
         "cuanto falta", "cuánto falta", "descanso", "timer", "tiempo",
         "cronometro", "cronómetro", "cuanto queda", "cuánto queda",
         "restante", "falta",
-    )
+    ) + WorkoutVoiceGrammarLexicon.restStatusAliases
 
     private val WHAT_EXERCISE_KEYWORDS = setOf(
         "que toca", "qué toca", "que ejercicio", "qué ejercicio",
@@ -64,7 +64,7 @@ object WorkoutVoiceCommandParser {
     private val TURN_OFF_VOICE_KEYWORDS = setOf(
         "apagar voz", "silencio", "desactivar voz", "apagar microfono",
         "apagar micrófono", "callar",
-    )
+    ) + WorkoutVoiceGrammarLexicon.turnOffVoiceAliases
 
     private val FINISH_SESSION_KEYWORDS = setOf(
         "finalizar sesion", "finalizar entrenamiento", "terminar sesion",
@@ -80,7 +80,7 @@ object WorkoutVoiceCommandParser {
         "anade una serie", "añade una serie", "anadir serie", "añadir serie",
         "agregar serie", "agrega serie", "serie extra", "otra serie",
         "una serie mas", "una serie más", "suma una serie", "sumar serie",
-    )
+    ) + WorkoutVoiceGrammarLexicon.addSetAliases
 
     private val ADD_SET_SESSION_ONLY_KEYWORDS = setOf(
         "solo esta", "solo sesion", "solo esta sesion", "esta vez",
@@ -95,12 +95,12 @@ object WorkoutVoiceCommandParser {
     private val SKIP_REST_KEYWORDS = setOf(
         "saltar descanso", "saltar timer", "omitir descanso", "omitir timer",
         "ya estoy", "continuar", "listo",
-    )
+    ) + WorkoutVoiceGrammarLexicon.skipRestAliases
 
     private val USE_ADAPTIVE_REST_KEYWORDS = setOf(
         "usar sugerido", "descanso dinamico", "descanso dinámico",
         "usar adaptativo", "usar descanso adaptativo", "usar sugerencia",
-    )
+    ) + WorkoutVoiceGrammarLexicon.adaptiveRestAliases
 
     private val UNDO_KEYWORDS = setOf(
         "corregir", "deshacer", "borra eso", "borrar eso", "deshacer serie",
@@ -110,7 +110,7 @@ object WorkoutVoiceCommandParser {
         "cambialo", "cámbialo", "cambia a", "cambialo a", "cámbialo a",
         "cambia el peso", "en realidad", "eran", "era",
         "sube", "baja", "aumenta", "reduce",
-    )
+    ) + WorkoutVoiceGrammarLexicon.editLastSetAliases
 
     private val FATIGUE_KEYWORDS = setOf(
         "estoy fatigado", "estoy cansado", "voy muerto", "voy fatigado",
@@ -128,6 +128,73 @@ object WorkoutVoiceCommandParser {
     )
 
     private val STOP_SPEAKING_KEYWORDS = setOf("para", "calla", "silencio ya", "basta")
+
+    fun grammarTokensForStage(
+        stage: VoicePipelineStage,
+        includeFeedback: Boolean = false,
+    ): Set<String> {
+        val base = mutableSetOf<String>()
+        when (stage) {
+            VoicePipelineStage.CONFIRM_WAIT -> {
+                base += CONFIRM_KEYWORDS
+                base += CANCEL_KEYWORDS
+                base += STOP_SPEAKING_KEYWORDS
+            }
+            else -> {
+                base += STOP_SPEAKING_KEYWORDS
+                base += SKIP_SET_KEYWORDS
+                base += SKIP_KEYWORDS
+                base += PREVIOUS_KEYWORDS
+                base += SUGGEST_WEIGHT_KEYWORDS
+                base += REST_STATUS_KEYWORDS
+                base += WHAT_EXERCISE_KEYWORDS
+                base += NEXT_EXERCISE_KEYWORDS
+                base += TURN_OFF_VOICE_KEYWORDS
+                base += FINISH_SESSION_KEYWORDS
+                base += CANCEL_SESSION_KEYWORDS
+                base += ADD_SET_KEYWORDS
+                base += SKIP_REST_KEYWORDS
+                base += USE_ADAPTIVE_REST_KEYWORDS
+                base += UNDO_KEYWORDS
+                base += EDIT_LAST_SET_TRIGGERS
+                base += FATIGUE_KEYWORDS
+                base += PACE_STATUS_KEYWORDS
+                base += WEIGHT_REASON_KEYWORDS
+                base += ADD_SET_SESSION_ONLY_KEYWORDS
+                base += ADD_SET_PERMANENT_KEYWORDS
+            }
+        }
+        if (includeFeedback) {
+            base += setOf(
+                "guardar", "guardar y terminar", "guardar entrenamiento", "guardar sesion",
+                "terminar entrenamiento", "finalizar entrenamiento", "finalizar sesion",
+                "calidad", "tecnica", "ejecucion", "intensidad", "rpe", "esfuerzo",
+                "fatiga", "molestia", "dolor", "tiron", "hombro", "rodilla", "codo",
+                "lumbar", "espalda baja", "muneca", "muñeca", "cadera", "tobillo",
+                "sin molestia", "todo bien", "nota", "comentario", "observacion",
+                "observación", "neural", "nerviosa", "cns", "espinal", "columna", "espalda",
+            )
+        }
+        base += defaultNumericGrammarTokens()
+        // Conservar formas con tilde (modelo español) y también sin tilde.
+        return buildSet {
+            for (token in base) {
+                val trimmed = token.trim()
+                if (trimmed.isBlank()) continue
+                add(trimmed.lowercase())
+                add(normalizeText(trimmed))
+            }
+        }
+    }
+
+    fun defaultNumericGrammarTokens(): Set<String> = buildSet {
+        addAll(VOICE_INTEGER_WORDS.keys)
+        addAll(setOf("punto", "coma", "medio", "media", "kilo", "kilos", "peso", "carga"))
+        addAll(setOf("repeticion", "repetición", "repeticiones", "segundo", "segundos"))
+        addAll(setOf("minuto", "minutos", "esfuerzo", "intensidad", "porcentaje", "por"))
+        addAll(setOf("izquierda", "izquierdo", "derecha", "derecho", "fallo", "falla"))
+        // No añadir "0".."120" ni abreviaturas (rpe/reps/kg): Vosk small-es las descarta.
+    }
 
     fun parseCommand(
         transcript: String,
