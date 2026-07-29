@@ -223,6 +223,9 @@ class WorkoutViewModel(
             override fun updateCoachMessage(setDrain: SetDrain, sessionProgress: Double) =
                 this@WorkoutViewModel.updateCoachMessage(setDrain, sessionProgress)
             override fun checkPaceCoachAlert() = this@WorkoutViewModel.checkPaceCoachAlert()
+            override fun onSetRecordedMilestone(exercise: Exercise, weight: Double, reps: Int) {
+                this@WorkoutViewModel.considerSessionMilestoneForSet(exercise, weight, reps)
+            }
         },
     )
 
@@ -597,9 +600,22 @@ class WorkoutViewModel(
                 repository.programs.collectLatest { programs ->
                     if (_uiState.value.session == null && programs.any { it.id == programId }) {
                         loadSession()
+                        applyStoredPacingAlertModeIfNeeded()
                     }
                 }
+            } else {
+                applyStoredPacingAlertModeIfNeeded()
             }
+        }
+    }
+
+    private fun applyStoredPacingAlertModeIfNeeded() {
+        val stored = appContext.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE)
+            .getString("pacing_alert_mode", null)
+            ?: return
+        val mode = PacingAlertMode.fromStored(stored)
+        if (_uiState.value.pacingAlertMode != mode) {
+            pacingController.setPacingAlertMode(mode)
         }
     }
 
@@ -729,7 +745,14 @@ class WorkoutViewModel(
 
     // ─── Tag CRUD (new multi-tag system) ──────────────────────────────────────
 
-    fun createTag(exerciseId: String, name: String): WorkoutTag = tagsContextController.createTag(exerciseId, name)
+    fun createTag(exerciseId: String, name: String, setup: TagSetupInput? = null): WorkoutTag =
+        tagsContextController.createTag(exerciseId, name, setup)
+
+    fun upsertTagSetup(exerciseId: String, tagId: String, setup: TagSetupInput) =
+        tagsContextController.upsertTagSetup(exerciseId, tagId, setup)
+
+    fun profileForTag(exerciseId: String, tagId: String): WorkoutContextProfile? =
+        tagsContextController.profileForTag(exerciseId, tagId)
 
 
     fun deleteTag(exerciseId: String, tagId: String) = tagsContextController.deleteTag(exerciseId, tagId)
@@ -2031,6 +2054,142 @@ class WorkoutViewModel(
 
     fun adjustSessionTimeLimit(minutes: Int) = pacingController.adjustSessionTimeLimit(minutes)
 
+    fun setAbsoluteSessionTimeLimit(totalMinutes: Int, persistToSession: Boolean = false) {
+        pacingController.setAbsoluteSessionTimeLimit(totalMinutes)
+        if (persistToSession) {
+            persistSessionTargetDuration(totalMinutes)
+        }
+    }
+
+    fun setPacingAlertMode(mode: PacingAlertMode) {
+        pacingController.setPacingAlertMode(mode)
+        appContext.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putString("pacing_alert_mode", mode.toStored())
+            .apply()
+    }
+
+    private var exerciseNotePersistJob: Job? = null
+
+    fun setExerciseNote(exerciseId: String, note: String, flush: Boolean = false) {
+        val trimmed = note.trim()
+        _uiState.update {
+            it.copy(
+                exerciseNotes = if (trimmed.isBlank()) {
+                    it.exerciseNotes - exerciseId
+                } else {
+                    it.exerciseNotes + (exerciseId to trimmed)
+                },
+            )
+        }
+        exerciseNotePersistJob?.cancel()
+        if (flush) {
+            persistOngoingState()
+            return
+        }
+        exerciseNotePersistJob = viewModelScope.launch {
+            delay(450L)
+            persistOngoingState()
+        }
+    }
+
+    /** Forces any pending note debounce to disk (e.g. before finish / leave). */
+    fun flushExerciseNotes() {
+        exerciseNotePersistJob?.cancel()
+        exerciseNotePersistJob = null
+        persistOngoingState()
+    }
+
+    fun addExercisePhoto(exerciseId: String, sourceUri: android.net.Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val state = _uiState.value
+            val current = state.exercisePhotos[exerciseId].orEmpty()
+            if (current.size >= 2) return@launch
+            val dir = java.io.File(appContext.filesDir, "workout_photos/${state.session?.id ?: sessionId}/$exerciseId")
+            if (!dir.exists()) dir.mkdirs()
+            val dest = java.io.File(dir, "photo_${System.currentTimeMillis()}.jpg")
+            runCatching {
+                appContext.contentResolver.openInputStream(sourceUri)?.use { input ->
+                    dest.outputStream().use { output -> input.copyTo(output) }
+                }
+            }.onFailure { return@launch }
+            if (!dest.exists() || dest.length() <= 0L) return@launch
+            _uiState.update {
+                val existing = it.exercisePhotos[exerciseId].orEmpty()
+                if (existing.size >= 2) {
+                    it
+                } else {
+                    it.copy(exercisePhotos = it.exercisePhotos + (exerciseId to (existing + dest.absolutePath)))
+                }
+            }
+            persistOngoingState()
+        }
+    }
+
+    fun removeExercisePhoto(exerciseId: String, path: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { java.io.File(path).delete() }
+            _uiState.update {
+                val remaining = it.exercisePhotos[exerciseId].orEmpty().filterNot { photoPath -> photoPath == path }
+                it.copy(
+                    exercisePhotos = if (remaining.isEmpty()) {
+                        it.exercisePhotos - exerciseId
+                    } else {
+                        it.exercisePhotos + (exerciseId to remaining)
+                    },
+                )
+            }
+            persistOngoingState()
+        }
+    }
+
+    fun considerSessionMilestoneForSet(exercise: Exercise, weight: Double, reps: Int) {
+        if (weight <= 0 || reps <= 0) return
+        val e1rm = calculateHybrid1RM(weight, reps)
+        val historyBest = getExerciseHistory(canonicalExerciseKey(exercise), limit = 20)
+            .mapNotNull { it.e1rm }
+            .maxOrNull() ?: 0.0
+        val sessionBestPrevious = _uiState.value.sessionMilestones
+            .filter { it.exerciseId == exercise.id && it.kind == "pr_e1rm" }
+            .maxOfOrNull { it.value } ?: 0.0
+        val bestBaseline = maxOf(historyBest, sessionBestPrevious)
+        if (e1rm <= bestBaseline + 0.05) return
+        val milestone = SessionMilestone(
+            id = java.util.UUID.randomUUID().toString(),
+            exerciseId = exercise.id,
+            exerciseName = exercise.name,
+            kind = "pr_e1rm",
+            label = "Nuevo PR e1RM",
+            value = e1rm,
+            detail = "${weight.toTrimmedNumberString()} kg × $reps → ${e1rm.toTrimmedNumberString()} kg",
+            createdAtIso = java.time.Instant.now().toString(),
+        )
+        _uiState.update { state ->
+            val withoutOlderSame = state.sessionMilestones.filterNot { m ->
+                m.exerciseId == exercise.id && m.kind == "pr_e1rm" && m.value < e1rm
+            }
+            state.copy(sessionMilestones = withoutOlderSame + milestone)
+        }
+        persistOngoingState()
+    }
+
+    private fun persistSessionTargetDuration(totalMinutes: Int) {
+        val state = _uiState.value
+        val session = state.session ?: return
+        val updatedSession = session.copy(targetDurationMinutes = totalMinutes)
+        _uiState.update { it.copy(session = updatedSession, targetDurationMinutes = totalMinutes) }
+        if (state.programId.isNotBlank() && state.weekId.isNotBlank()) {
+            repository.upsertSessionInProgram(
+                programId = state.programId,
+                weekId = state.weekId,
+                macroIndex = state.macroIndex,
+                mesoIndex = state.mesoIndex,
+                session = updatedSession,
+            )
+        }
+        persistOngoingState()
+    }
+
     fun cancelWorkout() {
         pacingController.cancelSessionTimer()
         restTimer.abortHard()
@@ -2240,13 +2399,16 @@ class WorkoutViewModel(
         closingFeedback: SessionClosingFeedback,
         onPendingQuestionnaire: ((PendingQuestionnaire) -> Unit)? = null,
         onComplete: () -> Unit = {},
-    ) = finishController.finish(
-        notes = notes,
-        fatigueLevel = fatigueLevel,
-        closingFeedback = closingFeedback,
-        onPendingQuestionnaire = onPendingQuestionnaire,
-        onComplete = onComplete,
-    )
+    ) {
+        flushExerciseNotes()
+        finishController.finish(
+            notes = notes,
+            fatigueLevel = fatigueLevel,
+            closingFeedback = closingFeedback,
+            onPendingQuestionnaire = onPendingQuestionnaire,
+            onComplete = onComplete,
+        )
+    }
 
     fun acceptVolumeAdvance() {
         val state = _uiState.value
@@ -2395,6 +2557,7 @@ class WorkoutViewModel(
                 sets = ex.sets,
                 e1rm = best1rm,
                 tag = log.exerciseTags[ex.exerciseId],
+                notes = log.exerciseNotes[ex.exerciseId],
                 latestHistoryColor = latestV2Outcome?.historyColor,
                 latestMetricType = latestV2Outcome?.metricType,
                 latestMetricValue = latestV2Outcome?.metricValue,

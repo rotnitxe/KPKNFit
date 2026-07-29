@@ -99,6 +99,7 @@ class WorkoutSetRecorder(
             sessionProgress: Double,
         )
         fun checkPaceCoachAlert()
+        fun onSetRecordedMilestone(exercise: Exercise, weight: Double, reps: Int)
     }
 
     suspend fun record(
@@ -586,6 +587,7 @@ class WorkoutSetRecorder(
                 sessionProgress = sessionProgress,
             )
             ports.checkPaceCoachAlert()
+            ports.onSetRecordedMilestone(exercise, weight, actualReps)
         } finally {
             finishRecording(recordingKey)
             updateState { current ->

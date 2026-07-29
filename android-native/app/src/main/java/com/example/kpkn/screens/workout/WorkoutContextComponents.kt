@@ -48,6 +48,13 @@ internal enum class WorkoutExerciseContextTab {
     RM_CALC,
 }
 
+internal fun subTagCategoryLabel(category: SubTagCategory): String = when (category) {
+    SubTagCategory.MARCA -> "Marca"
+    SubTagCategory.SETUP -> "Setup"
+    SubTagCategory.TECNICA -> "Técnica"
+    SubTagCategory.LIBRE -> "Libre"
+}
+
 @Composable
 internal fun WorkoutExerciseTabs(
     currentExercise: Exercise,
@@ -85,22 +92,35 @@ internal fun WorkoutExerciseTabs(
     activeSubTagIds: List<String> = emptyList(),
     onMainTagToggle: (String) -> Unit = {},
     onSubTagToggle: (String) -> Unit = {},
-    onCreateTag: (String) -> Unit = {},
+    onCreateTag: (String, TagSetupInput?) -> Unit = { _, _ -> },
     onDeleteTag: (String) -> Unit = {},
     onAddSubTag: (String, String, SubTagCategory) -> Unit = { _, _, _ -> },
     onRemoveSubTag: (String, String) -> Unit = { _, _ -> },
+    onUpsertTagSetup: (String, TagSetupInput) -> Unit = { _, _ -> },
 ) {
-    val tagsOverflow = userWorkoutTags.size > 6
-    val tabs = listOf(
+    val primaryTabs = listOf(
         WorkoutExerciseContextTab.HISTORY to "Historial",
         WorkoutExerciseContextTab.TAGS to "Etiquetas",
-        WorkoutExerciseContextTab.DRAIN to "Drenaje",
-        WorkoutExerciseContextTab.ENERGY to "Gasto calórico",
-        WorkoutExerciseContextTab.REPLACE to "Reemplazar",
         WorkoutExerciseContextTab.EDIT to "Editar",
-        WorkoutExerciseContextTab.RM_CALC to "Calc. RM",
+        WorkoutExerciseContextTab.REPLACE to "Reemplazar",
     ).filter { (tab, _) ->
         allowExerciseManagementActions || (tab != WorkoutExerciseContextTab.REPLACE && tab != WorkoutExerciseContextTab.EDIT)
+    }
+    val overflowTabs = listOf(
+        WorkoutExerciseContextTab.DRAIN to "Drenaje",
+        WorkoutExerciseContextTab.ENERGY to "Gasto calórico",
+        WorkoutExerciseContextTab.RM_CALC to "Calc. RM",
+    )
+    val tagsOverflow = userWorkoutTags.size > 6
+    var overflowMenuExpanded by remember { mutableStateOf(false) }
+
+    fun activateTab(tab: WorkoutExerciseContextTab) {
+        when (tab) {
+            WorkoutExerciseContextTab.HISTORY -> onExpandHistory()
+            WorkoutExerciseContextTab.REPLACE -> onExpandReplace()
+            WorkoutExerciseContextTab.EDIT -> onExpandEdit()
+            else -> onSelectedTabChange(if (selectedTab == tab) null else tab)
+        }
     }
 
     Column(modifier = modifier) {
@@ -170,55 +190,80 @@ internal fun WorkoutExerciseTabs(
                 }
             }
         }
-        LazyRow(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 4.dp)
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            items(tabs) { (tab, title) ->
-                val isSelected = selectedTab == tab
-                val isDense = tab == WorkoutExerciseContextTab.HISTORY ||
-                              tab == WorkoutExerciseContextTab.REPLACE ||
-                              tab == WorkoutExerciseContextTab.EDIT
-
-                Surface(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable {
-                            if (isDense) {
-                                when (tab) {
-                                    WorkoutExerciseContextTab.HISTORY -> onExpandHistory()
-                                    WorkoutExerciseContextTab.REPLACE -> onExpandReplace()
-                                    WorkoutExerciseContextTab.EDIT -> onExpandEdit()
-                                    else -> {}
-                                }
-                            } else {
-                                onSelectedTabChange(if (isSelected) null else tab)
-                            }
-                        },
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (isSelected) sessionAccentColor.copy(alpha = 0.15f) else Color.Transparent,
-                    border = androidx.compose.foundation.BorderStroke(
-                        width = 1.dp,
-                        color = if (isSelected) sessionAccentColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+            LazyRow(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp),
+            ) {
+                items(primaryTabs) { (tab, title) ->
+                    val isSelected = selectedTab == tab
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { activateTab(tab) },
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isSelected) sessionAccentColor.copy(alpha = 0.15f) else Color.Transparent,
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = if (isSelected) sessionAccentColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                        ),
+                    ) {
+                        Text(
+                            text = title,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
+                            color = if (isSelected) sessionAccentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                    }
+                }
+            }
+            Box {
+                val overflowSelected = overflowTabs.any { it.first == selectedTab }
+                IconButton(onClick = { overflowMenuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Más opciones",
+                        tint = if (overflowSelected) sessionAccentColor else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+                DropdownMenu(
+                    expanded = overflowMenuExpanded,
+                    onDismissRequest = { overflowMenuExpanded = false },
                 ) {
-                    Text(
-                        text = title,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
-                        color = if (isSelected) sessionAccentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                    )
+                    overflowTabs.forEach { (tab, title) ->
+                        val isSelected = selectedTab == tab
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    title,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSelected) sessionAccentColor else MaterialTheme.colorScheme.onSurface,
+                                )
+                            },
+                            onClick = {
+                                overflowMenuExpanded = false
+                                activateTab(tab)
+                            },
+                        )
+                    }
                 }
             }
         }
 
         AnimatedVisibility(
-            visible = selectedTab != null,
+            visible = selectedTab != null &&
+                selectedTab != WorkoutExerciseContextTab.HISTORY &&
+                selectedTab != WorkoutExerciseContextTab.REPLACE &&
+                selectedTab != WorkoutExerciseContextTab.EDIT,
             enter = expandVertically() + fadeIn(),
             exit = shrinkVertically() + fadeOut()
         ) {
@@ -248,8 +293,10 @@ internal fun WorkoutExerciseTabs(
                                 onDeleteTag = onDeleteTag,
                                 onAddSubTag = onAddSubTag,
                                 onRemoveSubTag = onRemoveSubTag,
+                                onUpsertTagSetup = onUpsertTagSetup,
                                 sessionAccentColor = sessionAccentColor,
                                 maxVisibleTags = 6,
+                                profiles = profiles,
                             )
                             if (tagsOverflow) {
                                 TextButton(
@@ -422,19 +469,41 @@ internal fun WorkoutMultiTagContent(
     activeSubTagIds: List<String>,
     onMainTagToggle: (String) -> Unit,
     onSubTagToggle: (String) -> Unit,
-    onCreateTag: (String) -> Unit,
+    onCreateTag: (String, TagSetupInput?) -> Unit,
     onDeleteTag: (String) -> Unit,
     onAddSubTag: (String, String, SubTagCategory) -> Unit,
     onRemoveSubTag: (String, String) -> Unit,
+    onUpsertTagSetup: (String, TagSetupInput) -> Unit = { _, _ -> },
     sessionAccentColor: Color,
     maxVisibleTags: Int = Int.MAX_VALUE,
+    profiles: List<WorkoutContextProfile> = emptyList(),
 ) {
     var createTagText by remember { mutableStateOf("") }
+    var createMachineBrand by remember { mutableStateOf("") }
+    var createBaseLoad by remember { mutableStateOf("") }
+    var createSetupNotes by remember { mutableStateOf("") }
     var showCreateTagField by remember { mutableStateOf(false) }
     var editingTagId by remember { mutableStateOf<String?>(null) }
     var addSubTagForTagId by remember { mutableStateOf<String?>(null) }
     var subTagName by remember { mutableStateOf("") }
     var subTagCategory by remember { mutableStateOf(SubTagCategory.LIBRE) }
+    var editMachineBrand by remember { mutableStateOf("") }
+    var editBaseLoad by remember { mutableStateOf("") }
+    var editSetupNotes by remember { mutableStateOf("") }
+
+    fun profileFor(tagId: String, tagName: String): WorkoutContextProfile? =
+        profiles.firstOrNull { it.tagId == tagId || it.tagId == tagName }
+
+    fun setupSubtitle(profile: WorkoutContextProfile?): String? {
+        if (profile == null) return null
+        val parts = buildList {
+            profile.machineBrand?.takeIf { it.isNotBlank() }?.let { add(it) }
+            (profile.baseLoadKg ?: profile.setupDetails?.baseLoadKg)?.takeIf { it > 0 }?.let {
+                add("${it.toTrimmedNumberString()}kg base")
+            }
+        }
+        return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
+    }
 
     val visibleTags = if (maxVisibleTags < userWorkoutTags.size) {
         userWorkoutTags.take(maxVisibleTags)
@@ -451,21 +520,45 @@ internal fun WorkoutMultiTagContent(
             )
         }
 
-        // Tag chips
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             visibleTags.forEach { tag ->
                 val isActive = tag.id in activeMainTagIds
+                val subtitle = setupSubtitle(profileFor(tag.id, tag.name))
                 FilterChip(
                     selected = isActive,
                     onClick = { onMainTagToggle(tag.id) },
-                    label = { Text(tag.name, style = MaterialTheme.typography.labelSmall) },
+                    label = {
+                        Column {
+                            Text(tag.name, style = MaterialTheme.typography.labelSmall)
+                            if (subtitle != null) {
+                                Text(
+                                    subtitle,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                    },
                     trailingIcon = {
-                        IconButton(onClick = { editingTagId = if (editingTagId == tag.id) null else tag.id }, modifier = Modifier.size(16.dp)) {
+                        IconButton(onClick = {
+                            if (editingTagId == tag.id) {
+                                editingTagId = null
+                            } else {
+                                val profile = profileFor(tag.id, tag.name)
+                                editMachineBrand = profile?.machineBrand.orEmpty()
+                                editBaseLoad = (profile?.baseLoadKg ?: profile?.setupDetails?.baseLoadKg)
+                                    ?.toTrimmedNumberString().orEmpty()
+                                editSetupNotes = profile?.setupDetails?.equipmentNotes
+                                    ?: profile?.notes.orEmpty()
+                                editingTagId = tag.id
+                            }
+                        }, modifier = Modifier.size(16.dp)) {
                             Icon(Icons.Default.MoreVert, "Editar", Modifier.size(12.dp))
                         }
                     },
                 )
-                // Show active sub-tags under the main tag
                 val activeSubs = tag.subTags.filter { it.id in activeSubTagIds }
                 activeSubs.forEach { subTag ->
                     InputChip(
@@ -480,7 +573,6 @@ internal fun WorkoutMultiTagContent(
             }
         }
 
-        // Show sub-tag options for an active tag
         editingTagId?.let { tagId ->
             val tag = userWorkoutTags.firstOrNull { it.id == tagId } ?: return@let
             Surface(
@@ -498,14 +590,59 @@ internal fun WorkoutMultiTagContent(
                             Icon(Icons.Default.Delete, "Eliminar etiqueta", Modifier.size(14.dp), tint = MaterialTheme.colorScheme.error)
                         }
                     }
-                    // Sub-tags of this tag
+                    Text("Set-up de máquina", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                    OutlinedTextField(
+                        value = editMachineBrand,
+                        onValueChange = { editMachineBrand = it },
+                        label = { Text("Marca / máquina") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = editBaseLoad,
+                        onValueChange = { editBaseLoad = it.filter { ch -> ch.isDigit() || ch == '.' || ch == ',' } },
+                        label = { Text("Carga base (kg)") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = editSetupNotes,
+                        onValueChange = { editSetupNotes = it },
+                        label = { Text("Notas de set-up") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Button(
+                        onClick = {
+                            onUpsertTagSetup(
+                                tagId,
+                                TagSetupInput(
+                                    machineBrand = editMachineBrand,
+                                    baseLoadKg = editBaseLoad.replace(',', '.').toDoubleOrNull(),
+                                    setupNotes = editSetupNotes,
+                                ),
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Guardar set-up") }
+
                     tag.subTags.forEach { sub ->
                         val isActive = sub.id in activeSubTagIds
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             FilterChip(
                                 selected = isActive,
                                 onClick = { onSubTagToggle(sub.id) },
-                                label = { Text(sub.name, style = MaterialTheme.typography.labelSmall) },
+                                label = {
+                                    Column {
+                                        Text(sub.name, style = MaterialTheme.typography.labelSmall)
+                                        Text(
+                                            subTagCategoryLabel(sub.category),
+                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+                                        )
+                                    }
+                                },
                                 modifier = Modifier.weight(1f),
                             )
                             IconButton(onClick = { onRemoveSubTag(tagId, sub.id) }, modifier = Modifier.size(18.dp)) {
@@ -513,7 +650,6 @@ internal fun WorkoutMultiTagContent(
                             }
                         }
                     }
-                    // Add sub-tag
                     if (addSubTagForTagId == tagId) {
                         OutlinedTextField(
                             value = subTagName,
@@ -527,7 +663,7 @@ internal fun WorkoutMultiTagContent(
                                 FilterChip(
                                     selected = subTagCategory == cat,
                                     onClick = { subTagCategory = cat },
-                                    label = { Text(cat.name.take(4), style = MaterialTheme.typography.labelSmall) },
+                                    label = { Text(subTagCategoryLabel(cat), style = MaterialTheme.typography.labelSmall) },
                                 )
                             }
                         }
@@ -555,30 +691,65 @@ internal fun WorkoutMultiTagContent(
             }
         }
 
-        // Create tag field
         if (showCreateTagField) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = createTagText,
                     onValueChange = { createTagText = it },
                     label = { Text("Nueva etiqueta") },
                     singleLine = true,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                 )
-                IconButton(
-                    onClick = {
-                        if (createTagText.isNotBlank()) {
-                            onCreateTag(createTagText)
-                            createTagText = ""
-                            showCreateTagField = false
-                        }
-                    },
-                    enabled = createTagText.isNotBlank(),
-                ) {
-                    Icon(Icons.Default.Check, "Crear")
-                }
-                IconButton(onClick = { showCreateTagField = false; createTagText = "" }) {
-                    Icon(Icons.Default.Close, "Cancelar")
+                Text("Set-up de máquina (opcional)", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                OutlinedTextField(
+                    value = createMachineBrand,
+                    onValueChange = { createMachineBrand = it },
+                    label = { Text("Marca / máquina") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = createBaseLoad,
+                    onValueChange = { createBaseLoad = it.filter { ch -> ch.isDigit() || ch == '.' || ch == ',' } },
+                    label = { Text("Carga base (kg)") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = createSetupNotes,
+                    onValueChange = { createSetupNotes = it },
+                    label = { Text("Notas de set-up") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Button(
+                        onClick = {
+                            if (createTagText.isNotBlank()) {
+                                val setup = TagSetupInput(
+                                    machineBrand = createMachineBrand,
+                                    baseLoadKg = createBaseLoad.replace(',', '.').toDoubleOrNull(),
+                                    setupNotes = createSetupNotes,
+                                )
+                                onCreateTag(createTagText, setup.takeIf { it.hasContent })
+                                createTagText = ""
+                                createMachineBrand = ""
+                                createBaseLoad = ""
+                                createSetupNotes = ""
+                                showCreateTagField = false
+                            }
+                        },
+                        enabled = createTagText.isNotBlank(),
+                        modifier = Modifier.weight(1f),
+                    ) { Text("Crear") }
+                    TextButton(onClick = {
+                        showCreateTagField = false
+                        createTagText = ""
+                        createMachineBrand = ""
+                        createBaseLoad = ""
+                        createSetupNotes = ""
+                    }) { Text("Cancelar") }
                 }
             }
         } else {

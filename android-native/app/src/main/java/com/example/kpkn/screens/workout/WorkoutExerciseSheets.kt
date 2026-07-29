@@ -271,12 +271,7 @@ internal fun WorkoutTagManagerModal(
                                     Column {
                                         Text(subTag.name, style = MaterialTheme.typography.labelSmall)
                                         Text(
-                                            when (subTag.category) {
-                                                SubTagCategory.MARCA -> "Marca"
-                                                SubTagCategory.SETUP -> "Setup"
-                                                SubTagCategory.TECNICA -> "Técnica"
-                                                SubTagCategory.LIBRE -> "Libre"
-                                            },
+                                            subTagCategoryLabel(subTag.category),
                                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
                                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                         )
@@ -305,7 +300,7 @@ internal fun WorkoutTagManagerModal(
                                 FilterChip(
                                     selected = newSubTagCategory == cat,
                                     onClick = { newSubTagCategory = cat },
-                                    label = { Text(cat.name, style = MaterialTheme.typography.labelSmall) },
+                                    label = { Text(subTagCategoryLabel(cat), style = MaterialTheme.typography.labelSmall) },
                                 )
                             }
                         }

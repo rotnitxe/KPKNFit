@@ -61,10 +61,18 @@ internal fun WorkoutChronometer(
     isComplete: Boolean,
     sessionTimeRemainingSeconds: Int?,
     onAdjustTimeLimit: (Int) -> Unit,
+    onSetAbsoluteTimeLimit: (totalMinutes: Int, persistToSession: Boolean) -> Unit = { minutes, _ ->
+        onAdjustTimeLimit(minutes - ((sessionTimeRemainingSeconds ?: 0) / 60).coerceAtLeast(0))
+    },
+    pacingAlertMode: PacingAlertMode = PacingAlertMode.FINAL,
+    onPacingAlertModeChange: (PacingAlertMode) -> Unit = {},
+    currentTargetMinutes: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     var elapsedSeconds by remember(startTimeMs) { androidx.compose.runtime.mutableIntStateOf(0) }
     var showAdjustDialog by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+    var persistToSession by remember { mutableStateOf(false) }
 
     LaunchedEffect(startTimeMs, isComplete) {
         if (!isComplete) {
@@ -78,6 +86,12 @@ internal fun WorkoutChronometer(
     val hasLimit = sessionTimeRemainingSeconds != null
     val displayRemaining = sessionTimeRemainingSeconds ?: 0
     val isExceeded = hasLimit && displayRemaining < 0
+    val resolvedTargetMinutes = currentTargetMinutes
+        ?: if (hasLimit) {
+            ((elapsedSeconds + displayRemaining.coerceAtLeast(0)) / 60).coerceAtLeast(5)
+        } else {
+            60
+        }
 
     val text = if (hasLimit) {
         val absSeconds = kotlin.math.abs(displayRemaining)
@@ -107,44 +121,78 @@ internal fun WorkoutChronometer(
     if (showAdjustDialog) {
         KpknAlertDialog(
             onDismissRequest = { showAdjustDialog = false },
-            title = { Text("Límite de Tiempo de Sesión", style = MaterialTheme.typography.titleMedium) },
+            title = { Text("Tiempo de sesión", style = MaterialTheme.typography.titleMedium) },
             text = {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         if (hasLimit) {
-                            "Tiempo restante: ${displayRemaining / 60} min.\n¿Deseas ajustar la duración de la sesión?"
+                            "Restante: ${displayRemaining / 60} min. Define un tiempo con el teclado/reloj o usa un atajo."
                         } else {
-                            "No se ha configurado un límite de tiempo para esta sesión.\n¿Deseas fijar un límite?"
+                            "Sin límite. Define un tiempo con el teclado/reloj nativo."
                         },
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
                     )
-                    Spacer(Modifier.height(12.dp))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
-                        FilledTonalButton(onClick = { onAdjustTimeLimit(-5); showAdjustDialog = false }) {
-                            Text("-5 min")
-                        }
-                        FilledTonalButton(onClick = { onAdjustTimeLimit(5); showAdjustDialog = false }) {
-                            Text("+5 min")
-                        }
-                        FilledTonalButton(onClick = { onAdjustTimeLimit(15); showAdjustDialog = false }) {
-                            Text("+15 min")
+                        listOf(30, 45, 60).forEach { mins ->
+                            FilledTonalButton(
+                                onClick = {
+                                    onSetAbsoluteTimeLimit(mins, persistToSession)
+                                    showAdjustDialog = false
+                                },
+                            ) { Text("${mins}m") }
                         }
                     }
-                    if (!hasLimit) {
-                        Spacer(Modifier.height(8.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Button(onClick = { onAdjustTimeLimit(30); showAdjustDialog = false }) {
-                                Text("Fijar 30 min")
+                    Button(
+                        onClick = { showTimePicker = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.Timer, null, Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Elegir con reloj / teclado")
+                    }
+                    if (hasLimit) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilledTonalButton(onClick = { onAdjustTimeLimit(-5); showAdjustDialog = false }) {
+                                Text("-5")
                             }
-                            Button(onClick = { onAdjustTimeLimit(60); showAdjustDialog = false }) {
-                                Text("Fijar 60 min")
+                            FilledTonalButton(onClick = { onAdjustTimeLimit(5); showAdjustDialog = false }) {
+                                Text("+5")
                             }
+                            FilledTonalButton(onClick = { onAdjustTimeLimit(15); showAdjustDialog = false }) {
+                                Text("+15")
+                            }
+                        }
+                    }
+                    HorizontalDivider()
+                    Text("Guardar tiempo", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = !persistToSession,
+                            onClick = { persistToSession = false },
+                            label = { Text("Solo esta vez") },
+                        )
+                        FilterChip(
+                            selected = persistToSession,
+                            onClick = { persistToSession = true },
+                            label = { Text("Permanente") },
+                        )
+                    }
+                    Text("Alertas", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        listOf(
+                            PacingAlertMode.OFF to "Sin alertas",
+                            PacingAlertMode.FINAL to "Solo aviso final (15/5 min)",
+                            PacingAlertMode.SOFT to "Ritmo suave",
+                        ).forEach { (mode, label) ->
+                            FilterChip(
+                                selected = pacingAlertMode == mode,
+                                onClick = { onPacingAlertModeChange(mode) },
+                                label = { Text(label) },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                         }
                     }
                 }
@@ -153,7 +201,25 @@ internal fun WorkoutChronometer(
                 TextButton(onClick = { showAdjustDialog = false }) {
                     Text("Cerrar")
                 }
-            }
+            },
+        )
+    }
+
+    if (showTimePicker) {
+        val hours = resolvedTargetMinutes / 60
+        val minutes = resolvedTargetMinutes % 60
+        com.example.kpkn.ui.components.KpknNativeTimePickerDialog(
+            title = "Duración de sesión",
+            initialHour = hours.coerceIn(0, 23),
+            initialMinute = minutes.coerceIn(0, 59),
+            hint = "Horas : minutos",
+            onConfirm = { h, m ->
+                val total = (h * 60 + m).coerceAtLeast(5)
+                onSetAbsoluteTimeLimit(total, persistToSession)
+                showTimePicker = false
+                showAdjustDialog = false
+            },
+            onDismiss = { showTimePicker = false },
         )
     }
 }
@@ -168,6 +234,10 @@ internal fun WorkoutHeaderBar(
     background: SessionBackground?,
     sessionTimeRemainingSeconds: Int?,
     onAdjustTimeLimit: (Int) -> Unit,
+    onSetAbsoluteTimeLimit: (totalMinutes: Int, persistToSession: Boolean) -> Unit = { _, _ -> },
+    pacingAlertMode: PacingAlertMode = PacingAlertMode.FINAL,
+    onPacingAlertModeChange: (PacingAlertMode) -> Unit = {},
+    currentTargetMinutes: Int? = null,
     exerciseTag: String? = null,
     isSuperset: Boolean = false,
     exerciseReadiness: ExerciseReadiness? = null,
@@ -277,6 +347,10 @@ internal fun WorkoutHeaderBar(
                                 isComplete = isComplete,
                                 sessionTimeRemainingSeconds = sessionTimeRemainingSeconds,
                                 onAdjustTimeLimit = onAdjustTimeLimit,
+                                onSetAbsoluteTimeLimit = onSetAbsoluteTimeLimit,
+                                pacingAlertMode = pacingAlertMode,
+                                onPacingAlertModeChange = onPacingAlertModeChange,
+                                currentTargetMinutes = currentTargetMinutes,
                             )
                         }
 

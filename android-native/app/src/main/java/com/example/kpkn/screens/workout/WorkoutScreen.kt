@@ -643,6 +643,18 @@ fun WorkoutScreen(
             hazeState = overlayHazeState,
             mode = roadmapMode,
             onModeChange = { roadmapMode = it },
+            milestones = uiState.sessionMilestones,
+            exerciseNote = currentExercise?.id?.let { uiState.exerciseNotes[it] }.orEmpty(),
+            exercisePhotos = currentExercise?.id?.let { uiState.exercisePhotos[it] }.orEmpty(),
+            onExerciseNoteChange = { note ->
+                currentExercise?.id?.let { viewModel.setExerciseNote(it, note) }
+            },
+            onAddExercisePhoto = { uri ->
+                currentExercise?.id?.let { viewModel.addExercisePhoto(it, uri) }
+            },
+            onRemoveExercisePhoto = { path ->
+                currentExercise?.id?.let { viewModel.removeExercisePhoto(it, path) }
+            },
         )
     }
 

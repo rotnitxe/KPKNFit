@@ -78,14 +78,19 @@ internal fun resolveWorkoutHeaderGroupLabel(
     return normalizeWorkoutHeaderLabel(explicitPart ?: type?.trim()?.takeIf { it.isNotBlank() } ?: category?.trim())
 }
 
-private fun normalizeWorkoutHeaderLabel(raw: String?): String? {
+internal fun normalizeWorkoutHeaderLabel(raw: String?): String? {
     val value = raw?.trim()?.replace(Regex("\\s+"), " ") ?: return null
     if (value.isBlank()) return null
+    val letterChars = value.filter { it.isLetter() }
+    val upperRatio = if (letterChars.isEmpty()) {
+        0.0
+    } else {
+        letterChars.count { it.isUpperCase() }.toDouble() / letterChars.length
+    }
+    // Preserve intentional ALL CAPS (and repair mixed leftovers like PRINCIPALEs from IME).
+    if (upperRatio >= 0.75) return value.uppercase()
     if (value.equals("principales", ignoreCase = true)) return "Principales"
     if (value.equals("principal", ignoreCase = true)) return "Principal"
-    val letterChars = value.filter { it.isLetter() }
-    val upperRatio = if (letterChars.isEmpty()) 0.0 else letterChars.count { it.isUpperCase() }.toDouble() / letterChars.length
-    if (upperRatio >= 0.75) return value.uppercase()
     return value
         .replace(Regex("principales", RegexOption.IGNORE_CASE), "Principales")
         .replace(Regex("principal", RegexOption.IGNORE_CASE), "Principal")

@@ -18,7 +18,6 @@ import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -682,7 +681,6 @@ internal fun SetInputCardV2(
         mutableStateOf(draftValueText ?: defaultValue)
     }
     var showReadinessAdjustmentSheet by remember { mutableStateOf(false) }
-    var plannedSectionExpanded by rememberSaveable(exercise.id, setIndex) { mutableStateOf(false) }
     val targetLeftWeight = currentSet.leftTarget?.weight?.toTrimmedNumberString() ?: defaultWeight
     val targetRightWeight = currentSet.rightTarget?.weight?.toTrimmedNumberString() ?: defaultWeight
     val initialLeftWeight = if (initialSelectedSide == "left") draftWeightText ?: targetLeftWeight else targetLeftWeight
@@ -1245,48 +1243,22 @@ internal fun SetInputCardV2(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = WorkoutUiTokens.MinTouchTarget)
-                            .clickable { plannedSectionExpanded = !plannedSectionExpanded },
+                            .heightIn(min = WorkoutUiTokens.MinTouchTarget),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.weight(1f),
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = if (isFailedSet) MaterialTheme.colorScheme.error.copy(alpha = 0.15f) else sessionAccentColor.copy(alpha = 0.15f),
                         ) {
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = if (isFailedSet) MaterialTheme.colorScheme.error.copy(alpha = 0.15f) else sessionAccentColor.copy(alpha = 0.15f),
-                            ) {
-                                Text(
-                                    text = "Planificado",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isFailedSet) MaterialTheme.colorScheme.error else sessionAccentColor,
-                                    fontSize = WorkoutUiTokens.MinLabelSp,
-                                )
-                            }
-                            if (!plannedSectionExpanded) {
-                                val planSummary = buildString {
-                                    val reps = currentSet.targetReps
-                                    if (reps != null && reps > 0) append("${reps}r")
-                                    currentSet.intensityMode?.let { mode ->
-                                        if (isNotEmpty()) append(" · ")
-                                        append(mode.name.take(6))
-                                    }
-                                    if (isEmpty()) append("Ver plan")
-                                }
-                                Text(
-                                    planSummary,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
-                                    fontSize = WorkoutUiTokens.MinLabelSp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
+                            Text(
+                                text = "Planificado",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isFailedSet) MaterialTheme.colorScheme.error else sessionAccentColor,
+                                fontSize = WorkoutUiTokens.MinLabelSp,
+                            )
                         }
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -1320,21 +1292,10 @@ internal fun SetInputCardV2(
                                     )
                                 }
                             }
-                            Icon(
-                                imageVector = if (plannedSectionExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = if (plannedSectionExpanded) "Colapsar plan" else "Expandir plan",
-                                tint = Color.White.copy(alpha = 0.7f),
-                                modifier = Modifier.size(22.dp),
-                            )
                         }
                     }
 
-                    AnimatedVisibility(
-                        visible = plannedSectionExpanded,
-                        enter = expandVertically(),
-                        exit = shrinkVertically(),
-                    ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1523,7 +1484,6 @@ internal fun SetInputCardV2(
                             }
                         }
                     }
-                        }
                     }
                 }
             }

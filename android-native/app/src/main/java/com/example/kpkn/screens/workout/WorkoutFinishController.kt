@@ -220,6 +220,9 @@ class WorkoutFinishController(
                     environmentTags = closingFeedback.environmentTags,
                     planDeviations = state.planDeviations,
                     exerciseTags = state.exerciseTags,
+                    exerciseNotes = state.exerciseNotes,
+                    exercisePhotos = state.exercisePhotos,
+                    sessionMilestones = state.sessionMilestones,
                     contextualPerformanceStateV2 = state.contextualPerformanceCache,
                     globalPerformanceStateV3 = state.globalPerformanceCache,
                     contextProfilesV3 = state.contextProfilesV3,
@@ -248,6 +251,15 @@ class WorkoutFinishController(
                 ).normalizedIdentityFields()
 
                 repository.finalizeWorkout(log)
+                runCatching {
+                    com.example.kpkn.screens.sessioneditor.TrainedSessionVersionStore
+                        .getInstance(appContext)
+                        .maybeAppendAfterTraining(
+                            sessionId = sessionId,
+                            session = activeSession,
+                            reason = "Sesión entrenada",
+                        )
+                }
                 updatePredictionBias(closingFeedback)
                 restAlertManager.cancelRestAlerts()
                 restTimer.clearActiveTimerId()

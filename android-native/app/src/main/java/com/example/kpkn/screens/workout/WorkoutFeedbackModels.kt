@@ -111,6 +111,7 @@ data class ExerciseHistoryEntry(
     val sets: List<CompletedSet>,
     val e1rm: Double?,
     val tag: String? = null,  // tag usado en esa sesión para ese ejercicio
+    val notes: String? = null,
     val latestHistoryColor: HistoryColorV2? = null,
     val latestMetricType: String? = null,
     val latestMetricValue: Double? = null,

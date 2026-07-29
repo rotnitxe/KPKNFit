@@ -265,6 +265,10 @@ class WorkoutSessionHydrator(
                     },
                 customTargetDurationMinutes = resumedState?.customTargetDurationMinutes,
                 targetDurationMinutes = resumedState?.customTargetDurationMinutes ?: restoredSession.targetDurationMinutes,
+                pacingAlertMode = PacingAlertMode.fromStored(resumedState?.pacingAlertMode),
+                exerciseNotes = resumedState?.exerciseNotes.orEmpty(),
+                exercisePhotos = resumedState?.exercisePhotos.orEmpty(),
+                sessionMilestones = resumedState?.sessionMilestones.orEmpty(),
             )
         }
 

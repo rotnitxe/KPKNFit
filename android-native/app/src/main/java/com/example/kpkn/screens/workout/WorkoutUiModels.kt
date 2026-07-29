@@ -36,6 +36,23 @@ data class PendingRestSuggestion(
     val advancedFeedback: SetAdvancedFeedback?,
 )
 
+enum class PacingAlertMode {
+    OFF,
+    FINAL,
+    SOFT,
+    ;
+
+    companion object {
+        fun fromStored(raw: String?): PacingAlertMode = when (raw?.lowercase()) {
+            "off" -> OFF
+            "soft" -> SOFT
+            else -> FINAL
+        }
+    }
+
+    fun toStored(): String = name.lowercase()
+}
+
 data class WorkoutEditingState(
     val setKey: String,
     val exerciseId: String,
@@ -80,6 +97,9 @@ data class WorkoutUiState(
     val activeTagsByExercise: Map<String, List<String>> = emptyMap(), // exerciseId → active main tag IDs
     val activeSubTagsByExercise: Map<String, List<String>> = emptyMap(), // exerciseId → active sub-tag IDs
     val userCreatedTags: Map<String, List<WorkoutTag>> = emptyMap(), // exerciseKey → all user-created tags
+    val exerciseNotes: Map<String, String> = emptyMap(),
+    val exercisePhotos: Map<String, List<String>> = emptyMap(),
+    val sessionMilestones: List<SessionMilestone> = emptyList(),
     val showHistorySheet: Boolean = false,
     val historySheetExerciseDbId: String? = null,
     // Tanda 2: deviations
@@ -141,6 +161,7 @@ data class WorkoutUiState(
     val pacingAlertMessage: String? = null,
     val recordingSetKey: String? = null,
     val coachPaceAlert: String? = null,
+    val pacingAlertMode: PacingAlertMode = PacingAlertMode.FINAL,
     val pendingVolumeAdvances: List<MuscleAdvance> = emptyList(),
     val showVolumeAdvanceModal: Boolean = false,
     val isRestMinimized: Boolean = false,

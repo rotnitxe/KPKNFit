@@ -25,6 +25,9 @@ data class WorkoutLog(
     val stillPresentDiscomfortIds: List<String> = emptyList(),
     val planDeviations: List<PlanDeviation> = emptyList(), // deviations from planned session
     val exerciseTags: Map<String, String> = emptyMap(),    // exerciseId → tag used this session
+    val exerciseNotes: Map<String, String> = emptyMap(),   // exerciseId → note
+    val exercisePhotos: Map<String, List<String>> = emptyMap(), // exerciseId → local paths (max 2)
+    val sessionMilestones: List<SessionMilestone> = emptyList(),
     val contextualPerformanceStateV2: Map<String, ContextPerformanceStateV2> = emptyMap(),
     val globalPerformanceStateV3: Map<String, GlobalPerformanceStateV3> = emptyMap(),
     val contextProfilesV3: Map<String, WorkoutContextProfile> = emptyMap(),
@@ -193,6 +196,22 @@ data class OngoingWorkoutState(
     val persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
     val customTargetDurationMinutes: Int? = null,
+    val pacingAlertMode: String = "final", // off | final | soft
+    val exerciseNotes: Map<String, String> = emptyMap(),
+    val exercisePhotos: Map<String, List<String>> = emptyMap(),
+    val sessionMilestones: List<SessionMilestone> = emptyList(),
+)
+
+@Serializable
+data class SessionMilestone(
+    val id: String,
+    val exerciseId: String,
+    val exerciseName: String,
+    val kind: String,
+    val label: String,
+    val value: Double,
+    val detail: String? = null,
+    val createdAtIso: String = "",
 )
 
 /** Summary card data for the Home screen "Sesión de hoy" */

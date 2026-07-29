@@ -124,6 +124,13 @@ internal fun HistoryEntryCard(
                     }
                 }
             }
+            if (!entry.notes.isNullOrBlank()) {
+                Text(
+                    entry.notes,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.75f),
+                )
+            }
 
             entry.sets.filter { !it.isWarmup }.forEach { set ->
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

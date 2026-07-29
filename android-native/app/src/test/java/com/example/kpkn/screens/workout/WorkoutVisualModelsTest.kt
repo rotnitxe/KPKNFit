@@ -31,8 +31,16 @@ class WorkoutVisualModelsTest {
     @Test
     fun header_group_normalizes_principales_casing() {
         assertEquals(
-            "Principales",
+            "PRINCIPALES",
             resolveWorkoutHeaderGroupLabel(partName = "PRINCIPALEs", type = null, category = null),
+        )
+        assertEquals(
+            "PRINCIPALES",
+            resolveWorkoutHeaderGroupLabel(partName = "PRINCIPALES", type = null, category = null),
+        )
+        assertEquals(
+            "Principales",
+            resolveWorkoutHeaderGroupLabel(partName = "principales", type = null, category = null),
         )
     }
 }

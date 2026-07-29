@@ -12,7 +12,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.kpkn.R
 
-/** Critical session-pacing alerts during a live workout. */
+/** Soft session-pacing guidance during a live workout. */
 class WorkoutPacingNotificationManager(context: Context) {
     private val appContext = context.applicationContext
     private val notificationManager = NotificationManagerCompat.from(appContext)
@@ -32,9 +32,10 @@ class WorkoutPacingNotificationManager(context: Context) {
             .setContentTitle("Ritmo de sesión")
             .setContentText(message)
             .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .setSilent(false)
             .build()
         notificationManager.notify(NOTIFICATION_ID, notification)
     }
@@ -57,26 +58,22 @@ class WorkoutPacingNotificationManager(context: Context) {
     private fun ensureChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val nm = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        // Prefer the calmer channel; leave legacy critical channel untouched for old installs.
         val channel = NotificationChannel(
             CHANNEL_ID,
             "Ritmo de sesión",
-            NotificationManager.IMPORTANCE_HIGH,
+            NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
-            description = "Alertas críticas de ritmo de sesión"
-            setShowBadge(true)
-            enableVibration(true)
-            setSound(
-                android.provider.Settings.System.DEFAULT_NOTIFICATION_URI,
-                android.media.AudioAttributes.Builder()
-                    .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION_EVENT)
-                    .build(),
-            )
+            description = "Avisos suaves de ritmo y tiempo de sesión"
+            setShowBadge(false)
+            enableVibration(false)
+            setSound(null, null)
         }
         nm.createNotificationChannel(channel)
     }
 
     companion object {
         const val NOTIFICATION_ID = 9001
-        const val CHANNEL_ID = "workout_pacing_critical"
+        const val CHANNEL_ID = "workout_pacing_soft"
     }
 }

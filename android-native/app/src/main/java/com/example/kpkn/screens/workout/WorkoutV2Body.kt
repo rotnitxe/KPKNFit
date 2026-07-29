@@ -130,6 +130,7 @@ internal fun WorkoutV2Body(
                 .padding(bottom = 112.dp),
         ) {
             val currentExerciseReadiness = currentExercise?.let { exerciseReadinessMap[it.id] }
+            val sessionTimeRemainingSeconds by viewModel.sessionTimeRemainingSeconds.collectAsStateWithLifecycle()
             WorkoutHeaderBar(
                 exerciseName = headerExerciseName,
                 sessionName = headerSessionName,
@@ -137,8 +138,16 @@ internal fun WorkoutV2Body(
                 startTimeMs = headerStartTimeMs,
                 isComplete = headerIsComplete,
                 background = headerBackground,
-                sessionTimeRemainingSeconds = uiState.sessionTimeRemainingSeconds,
+                sessionTimeRemainingSeconds = sessionTimeRemainingSeconds,
                 onAdjustTimeLimit = { viewModel.adjustSessionTimeLimit(it) },
+                onSetAbsoluteTimeLimit = { minutes, persist ->
+                    viewModel.setAbsoluteSessionTimeLimit(minutes, persistToSession = persist)
+                },
+                pacingAlertMode = uiState.pacingAlertMode,
+                onPacingAlertModeChange = { viewModel.setPacingAlertMode(it) },
+                currentTargetMinutes = uiState.customTargetDurationMinutes
+                    ?: uiState.targetDurationMinutes
+                    ?: uiState.session?.targetDurationMinutes,
                 exerciseTag = headerExerciseTag,
                 isSuperset = currentExercise?.isInSuperset() == true,
                 exerciseReadiness = currentExerciseReadiness,
@@ -184,6 +193,9 @@ internal fun WorkoutV2Body(
             // ─── Create tag dialog ────────────────────────────────────────────
             if (showCreateTagDialog && currentExercise != null) {
                 var newTagName by remember { mutableStateOf("") }
+                var newMachineBrand by remember { mutableStateOf("") }
+                var newBaseLoad by remember { mutableStateOf("") }
+                var newSetupNotes by remember { mutableStateOf("") }
                 KpknAlertDialog(
                     onDismissRequest = { showCreateTagDialog = false },
                     title = { Text("Nueva etiqueta", fontWeight = FontWeight.Black) },
@@ -197,9 +209,30 @@ internal fun WorkoutV2Body(
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             Text(
-                                "Puedes agregar sub-etiquetas después de crearla.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                "Set-up de máquina (opcional)",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            OutlinedTextField(
+                                value = newMachineBrand,
+                                onValueChange = { newMachineBrand = it },
+                                label = { Text("Marca / máquina") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            OutlinedTextField(
+                                value = newBaseLoad,
+                                onValueChange = { newBaseLoad = it.filter { ch -> ch.isDigit() || ch == '.' || ch == ',' } },
+                                label = { Text("Carga base (kg)") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            OutlinedTextField(
+                                value = newSetupNotes,
+                                onValueChange = { newSetupNotes = it },
+                                label = { Text("Notas de set-up") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
                             )
                         }
                     },
@@ -207,7 +240,16 @@ internal fun WorkoutV2Body(
                         Button(
                             onClick = {
                                 if (newTagName.isNotBlank()) {
-                                    viewModel.createTag(currentExercise.id, newTagName)
+                                    val setup = TagSetupInput(
+                                        machineBrand = newMachineBrand,
+                                        baseLoadKg = newBaseLoad.replace(',', '.').toDoubleOrNull(),
+                                        setupNotes = newSetupNotes,
+                                    )
+                                    viewModel.createTag(
+                                        currentExercise.id,
+                                        newTagName,
+                                        setup.takeIf { it.hasContent },
+                                    )
                                 }
                                 showCreateTagDialog = false
                             },
@@ -297,10 +339,11 @@ internal fun WorkoutV2Body(
                         activeSubTagIds = currentExerciseActiveSubTags.map { it.id },
                         onMainTagToggle = { tagId -> viewModel.toggleMainTagActive(currentExercise.id, tagId) },
                         onSubTagToggle = { subTagId -> viewModel.toggleSubTagActive(currentExercise.id, subTagId) },
-                        onCreateTag = { name -> viewModel.createTag(currentExercise.id, name) },
+                        onCreateTag = { name, setup -> viewModel.createTag(currentExercise.id, name, setup) },
                         onDeleteTag = { tagId -> viewModel.deleteTag(currentExercise.id, tagId) },
                         onAddSubTag = { tagId, name, category -> viewModel.addSubTag(currentExercise.id, tagId, name, category) },
                         onRemoveSubTag = { tagId, subTagId -> viewModel.removeSubTag(currentExercise.id, tagId, subTagId) },
+                        onUpsertTagSetup = { tagId, setup -> viewModel.upsertTagSetup(currentExercise.id, tagId, setup) },
                     )
 
                     val setPagerPages = remember(currentExercise.id, currentExercise.mobilitySeries, currentExercise.warmupSets, currentExercise.sets, isUnilateral, currentExercise.unilateralSideOrder) {

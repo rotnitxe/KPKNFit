@@ -110,6 +110,10 @@ class WorkoutPersistenceController(
                     persistedLoadModeBySet = state.persistedLoadModeBySet,
                     persistedLoadModeByExercise = state.persistedLoadModeByExercise,
                     customTargetDurationMinutes = state.customTargetDurationMinutes,
+                    pacingAlertMode = state.pacingAlertMode.toStored(),
+                    exerciseNotes = state.exerciseNotes,
+                    exercisePhotos = state.exercisePhotos,
+                    sessionMilestones = state.sessionMilestones,
                 )
             }
         }

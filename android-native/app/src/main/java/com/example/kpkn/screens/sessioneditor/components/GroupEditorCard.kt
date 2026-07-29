@@ -466,7 +466,7 @@ internal fun GroupEditorCard(
                             BasicTextField(
                                 value = normalizedName.uppercase(),
                                 onValueChange = { input ->
-                                    onRename(input.trim())
+                                    onRename(input.trim().uppercase())
                                 },
                                 singleLine = true,
                                 cursorBrush = SolidColor(partColor),
