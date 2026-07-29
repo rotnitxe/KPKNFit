@@ -47,6 +47,7 @@ data class VoiceSessionState(
 
 sealed class VoiceSessionCommand {
     data class RegisterSet(val interpretation: WorkoutVoiceInterpretation) : VoiceSessionCommand()
+    data class ApplyTag(val tagName: String) : VoiceSessionCommand()
     data object Confirm : VoiceSessionCommand()
     data object Cancel : VoiceSessionCommand()
     data object SkipExercise : VoiceSessionCommand()

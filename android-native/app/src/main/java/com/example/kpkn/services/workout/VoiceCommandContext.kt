@@ -2,6 +2,8 @@ package com.example.kpkn.services.workout
 
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.screens.workout.WorkoutSetDraft
 
 /**
@@ -13,6 +15,11 @@ data class VoiceCommandContext(
     val setIndex: Int = 0,
     val totalSets: Int = 0,
     val isTimeMode: Boolean = false,
+    val unitMode: UnitModeV2 = if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
+    val loadMode: LoadModeV2 = LoadModeV2.LOAD,
+    val customUnit: String? = null,
+    val trackRom: Boolean = false,
+    val tagNames: Set<String> = emptySet(),
     val isUnilateral: Boolean = false,
     val baseIntensityMode: IntensityMode? = null,
     val setDraft: WorkoutSetDraft? = null,

@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.isEffectivelyUnilateral
@@ -17,8 +19,8 @@ import com.example.kpkn.services.workout.WorkoutVoiceExerciseAliasMatcher
 import com.example.kpkn.services.workout.WorkoutVoiceForegroundService
 import com.example.kpkn.services.workout.WorkoutVoicePermissionHelper
 import com.example.kpkn.services.workout.WorkoutVoiceRuntime
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -61,13 +63,15 @@ class WorkoutVoiceCommandHandler(
         ): WeightSuggestion?
         fun restSecondsRemaining(): Int?
         fun canonicalExerciseKey(exercise: Exercise): String
+        fun inferUnitMode(exercise: Exercise, setIdx: Int): UnitModeV2
+        fun effectiveLoadModeForExercise(exercise: Exercise, setIdx: Int): LoadModeV2
         suspend fun recordSetV2(
-            weight: Double,
-            value: Double,
-            intensity: Double?,
+            weight: Double, value: Double, intensity: Double?,
             advanced: SetAdvancedFeedback = SetAdvancedFeedback(),
-            side: String? = null,
-        )
+            loadMode: LoadModeV2? = null, unitMode: UnitModeV2? = null, side: String? = null,
+            expectedExerciseId: String? = null, expectedSetIdx: Int? = null, expectedSide: String? = null,
+        ): Boolean
+        fun setExerciseTag(exerciseId: String, tag: String)
         fun skipSet()
         fun skipRemainingCurrentExercise()
         fun prevSet()
@@ -100,6 +104,9 @@ class WorkoutVoiceCommandHandler(
         isTimeMode: Boolean,
         isUnilateral: Boolean,
     ) {
+        val exercise = ports.visibleExercises(getState()).firstOrNull { it.id == exerciseId }
+        val unitMode = exercise?.let { ports.inferUnitMode(it, setIdx) }
+            ?: if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS
         voiceJob?.cancel()
         updateState {
             it.copy(
@@ -140,6 +147,9 @@ class WorkoutVoiceCommandHandler(
                             transcript = state.text,
                             isTimeMode = isTimeMode,
                             isUnilateral = isUnilateral,
+                            unitMode = unitMode,
+                            customUnit = exercise?.customUnit,
+                            trackRom = exercise?.trackRom == true,
                         )
                         updateState { current ->
                             if (interpretation == null) {
@@ -248,11 +258,12 @@ class WorkoutVoiceCommandHandler(
         val resolvedSide = interpretation.side ?: side ?: draft.selectedSide
         val nextDraft = draft.copy(
             weightText = interpretation.weightKg?.toTrimmedNumberString() ?: draft.weightText,
-            valueText = interpretation.metricValue?.toString() ?: draft.valueText,
+            valueText = interpretation.resolvedMetricValue?.toTrimmedNumberString() ?: draft.valueText,
             intensityText = workoutVoiceIntensityText(interpretation, baseIntensityMode).ifBlank { draft.intensityText.orEmpty() },
             selectedSide = resolvedSide,
             reachedFailure = if (WorkoutVoiceField.FAILURE in interpretation.fields) interpretation.reachedFailure else draft.reachedFailure,
-            voiceFields = interpretation.fields,
+            rom = interpretation.romPercent ?: draft.rom,
+            voiceFields = draft.voiceFields + interpretation.fields,
             isDirty = true,
         )
         if (resolvedSide != side) {
@@ -367,6 +378,7 @@ class WorkoutVoiceCommandHandler(
 
         when (command) {
             is VoiceSessionCommand.RegisterSet -> handleVoiceRegisterSet(command.interpretation)
+            is VoiceSessionCommand.ApplyTag -> handleVoiceApplyTag(command.tagName)
             is VoiceSessionCommand.Confirm -> handleVoiceConfirmSet()
             is VoiceSessionCommand.Cancel -> handleVoiceCancelSet()
             is VoiceSessionCommand.SkipExercise -> handleVoiceSkipExercise()
@@ -617,99 +629,93 @@ class WorkoutVoiceCommandHandler(
 
     private fun handleVoiceRegisterSet(interpretation: WorkoutVoiceInterpretation) {
         val state = getState()
-        val allExercises = ports.visibleExercises(state)
-        val exercise = allExercises.getOrNull(state.currentExerciseIdx) ?: return
+        val exercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
         val setIdx = state.currentSetIdx
         val side = if (exercise.isEffectivelyUnilateral()) interpretation.side else null
-        val completedSidesBefore = if (exercise.isEffectivelyUnilateral()) {
-            listOf("L", "R").count { suffix ->
-                state.completedSets.containsKey("${exercise.id}_${setIdx}_$suffix")
-            }
-        } else {
-            0
-        }
-
-        val isTimeMode = exercise.trainingMode == TrainingMode.TIME
-        val baseIntensityMode = exercise.sets.getOrNull(setIdx)?.intensityMode
-
+        val unitMode = ports.inferUnitMode(exercise, setIdx)
+        val loadMode = ports.effectiveLoadModeForExercise(exercise, setIdx)
         val draft = ports.getSetDraft(exercise.id, setIdx, side) ?: WorkoutSetDraft(selectedSide = side)
         val resolvedSide = interpretation.side ?: side ?: draft.selectedSide
         val nextDraft = draft.copy(
             weightText = interpretation.weightKg?.toTrimmedNumberString() ?: draft.weightText,
-            valueText = interpretation.metricValue?.toString() ?: draft.valueText,
-            intensityText = workoutVoiceIntensityText(interpretation, baseIntensityMode).ifBlank { draft.intensityText.orEmpty() },
+            valueText = interpretation.resolvedMetricValue?.toTrimmedNumberString() ?: draft.valueText,
+            intensityText = workoutVoiceIntensityText(interpretation, exercise.sets.getOrNull(setIdx)?.intensityMode).ifBlank { draft.intensityText.orEmpty() },
             selectedSide = resolvedSide,
             reachedFailure = if (WorkoutVoiceField.FAILURE in interpretation.fields) interpretation.reachedFailure else draft.reachedFailure,
-            voiceFields = interpretation.fields,
+            rom = interpretation.romPercent ?: draft.rom,
+            voiceFields = draft.voiceFields + interpretation.fields,
             isDirty = true,
         )
-        if (resolvedSide != side) {
-            ports.clearDraftForSet(exercise.id, setIdx, side)
-        }
+        if (resolvedSide != side) ports.clearDraftForSet(exercise.id, setIdx, side)
         ports.updateSetDraft(exercise.id, setIdx, resolvedSide, nextDraft)
-        updateState {
-            it.copy(
-                voiceSessionState = voiceController.state.value,
-                voiceUiState = WorkoutVoiceUiState.Applied(
+        updateState { it.copy(
+            voiceSessionState = voiceController.state.value,
+            voiceUiState = WorkoutVoiceUiState.Applied(
+                exercise.id, setIdx, resolvedSide, interpretation,
+                workoutVoiceAppliedMessage(interpretation, unitMode == UnitModeV2.TIME),
+            ),
+        ) }
+        scope.launch { persistVoiceSet(exercise, setIdx, resolvedSide, interpretation, nextDraft, unitMode, loadMode) }
+    }
+
+    private suspend fun persistVoiceSet(
+        exercise: Exercise, setIdx: Int, resolvedSide: String?, interpretation: WorkoutVoiceInterpretation,
+        draft: WorkoutSetDraft, unitMode: UnitModeV2, loadMode: LoadModeV2,
+    ) {
+        val completedSidesBefore = if (exercise.isEffectivelyUnilateral()) {
+            listOf("L", "R").count { suffix ->
+                getState().completedSets.containsKey("${exercise.id}_${setIdx}_$suffix")
+            }
+        } else {
+            0
+        }
+        WorkoutVoiceDiagnosticLogger.event(
+            "set_persistence_started",
+            mapOf("exerciseId" to exercise.id, "setIndex" to setIdx, "side" to resolvedSide,
+                "interpretation" to interpretation.toString(), "draft" to draft.toString(),
+                "unitMode" to unitMode.name, "loadMode" to loadMode.name),
+        )
+        val value = interpretation.resolvedMetricValue ?: draft.valueText?.replace(',', '.')?.toDoubleOrNull()
+        val draftWeight = draft.weightText?.replace(',', '.')?.toDoubleOrNull()
+        val weight = interpretation.weightKg ?: draftWeight ?: if (loadMode == LoadModeV2.BODYWEIGHT) 0.0 else null
+        if (value == null || value <= 0.0 || weight == null || (loadMode != LoadModeV2.BODYWEIGHT && weight <= 0.0)) {
+            WorkoutVoiceDiagnosticLogger.event(
+                "set_persistence_rejected",
+                mapOf("reason" to "missing_or_invalid_required_values", "value" to value, "weight" to weight),
+            )
+            voiceController.onVoiceSetPersistenceFailed("Faltan datos para registrar la serie.")
+            return
+        }
+        val intensity = interpretation.intensityValue ?: draft.intensityText?.replace(',', '.')?.toDoubleOrNull()
+        val advanced = buildVoiceAdvancedFeedback(interpretation).copy(reachedFailure = draft.reachedFailure == true, rom = draft.rom)
+        try {
+            val recorded = ports.recordSetV2(
+                weight, value, intensity, advanced, loadMode, unitMode, resolvedSide,
+                exercise.id, setIdx, resolvedSide,
+            )
+            if (recorded) {
+                WorkoutVoiceDiagnosticLogger.event("set_persistence_succeeded", mapOf("exerciseId" to exercise.id, "setIndex" to setIdx, "side" to resolvedSide))
+                voiceController.onVoiceSetPersisted(
+                    interpretation = interpretation.copy(side = resolvedSide),
                     exerciseId = exercise.id,
                     setIdx = setIdx,
-                    side = resolvedSide,
-                    interpretation = interpretation,
-                    message = workoutVoiceAppliedMessage(interpretation, isTimeMode),
-                ),
-            )
-        }
-
-        scope.launch {
-            val weight = interpretation.weightKg
-            val reps = interpretation.metricValue
-            if (weight == null || weight <= 0.0 || reps == null || reps <= 0) {
-                voiceController.onVoiceSetPersistenceFailed("Faltan carga o repeticiones para registrar.")
-                return@launch
-            }
-            WorkoutVoiceDiagnosticLogger.event(
-                "set_persistence_started",
-                mapOf(
-                    "exerciseId" to exercise.id,
-                    "setIndex" to setIdx,
-                    "side" to resolvedSide,
-                    "interpretation" to interpretation.toString(),
-                ),
-            )
-            try {
-                ports.recordSetV2(
-                    weight = weight,
-                    value = reps.toDouble(),
-                    intensity = interpretation.intensityValue,
-                    advanced = buildVoiceAdvancedFeedback(interpretation),
-                    side = resolvedSide,
+                    isTimeMode = unitMode == UnitModeV2.TIME,
+                    isUnilateral = exercise.isEffectivelyUnilateral(),
+                    completedSidesBefore = completedSidesBefore,
                 )
-                val expectedKey = when (resolvedSide) {
-                    "left" -> "${exercise.id}_${setIdx}_L"
-                    "right" -> "${exercise.id}_${setIdx}_R"
-                    else -> "${exercise.id}_$setIdx"
-                }
-                if (getState().completedSets.containsKey(expectedKey)) {
-                    voiceController.onVoiceSetPersisted(
-                        interpretation = interpretation.copy(side = resolvedSide),
-                        isTimeMode = isTimeMode,
-                        isUnilateral = exercise.isEffectivelyUnilateral(),
-                        completedSidesBefore = completedSidesBefore,
-                    )
-                } else {
-                    voiceController.onVoiceSetPersistenceFailed()
-                }
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                Log.e("WorkoutVoiceCommand", "Voice set persistence failed", error)
-                WorkoutVoiceDiagnosticLogger.exception(
-                    "set_persistence_exception",
-                    error,
-                    mapOf("exerciseId" to exercise.id, "setIndex" to setIdx, "side" to resolvedSide),
-                )
+            } else {
+                WorkoutVoiceDiagnosticLogger.event("set_persistence_rejected", mapOf("reason" to "record_set_returned_false"))
                 voiceController.onVoiceSetPersistenceFailed()
             }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Log.e("WorkoutVoiceCommand", "Voice set persistence failed", error)
+            WorkoutVoiceDiagnosticLogger.exception(
+                "set_persistence_exception", error,
+                mapOf("exerciseId" to exercise.id, "setIndex" to setIdx, "side" to resolvedSide),
+            )
+            voiceController.onVoiceSetPersistenceFailed()
         }
     }
 
@@ -717,23 +723,30 @@ class WorkoutVoiceCommandHandler(
         voiceController.state.value.lastInterpretation?.let(::handleVoiceRegisterSet)
     }
 
+    private fun handleVoiceApplyTag(tagName: String) {
+        val state = getState()
+        val exercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
+        val safeName = tagName.trim().take(40)
+        if (safeName.isBlank()) return
+        ports.setExerciseTag(exercise.id, safeName)
+        voiceController.speakFeedbackUpdated("Etiqueta $safeName aplicada.")
+    }
+
     private fun buildVoiceAdvancedFeedback(interpretation: WorkoutVoiceInterpretation): SetAdvancedFeedback {
-        val reachedFailure = interpretation.reachedFailure
-        val intensity = interpretation.intensityValue
-        val intensityMode = when {
-            reachedFailure -> IntensityMode.FAILURE
+        val mode = when {
+            interpretation.reachedFailure -> IntensityMode.FAILURE
             interpretation.intensityKind == WorkoutVoiceIntensityKind.RPE -> IntensityMode.RPE
             interpretation.intensityKind == WorkoutVoiceIntensityKind.RIR -> IntensityMode.RIR
             else -> null
         }
         return SetAdvancedFeedback(
-            reachedFailure = reachedFailure,
-            actualIntensityMode = intensityMode,
-            actualIntensityValue = if (!reachedFailure) intensity else null,
-            rir = if (intensityMode == IntensityMode.RIR) intensity?.toInt() else null,
+            reachedFailure = interpretation.reachedFailure,
+            actualIntensityMode = mode,
+            actualIntensityValue = if (!interpretation.reachedFailure) interpretation.intensityValue else null,
+            rir = if (mode == IntensityMode.RIR) interpretation.intensityValue?.toInt() else null,
+            rom = interpretation.romPercent,
         )
     }
-
     private fun handleVoiceCancelSet() {
         updateState {
             it.copy(voiceSessionState = voiceController.state.value)

@@ -285,4 +285,40 @@ class WorkoutVoiceHandsFreeTest {
         )
         assertEquals(VoiceSessionCommand.StopSpeaking, cmd)
     }
+
+    @Test
+    fun confirmationPolicyAcceptsBodyweightMetricAndFeedbackOnDraft() {
+        val bodyweight = WorkoutVoiceInterpretation(
+            transcript = "12 repeticiones",
+            metricValue = 12,
+            fields = setOf(WorkoutVoiceField.VALUE),
+        )
+        val failure = WorkoutVoiceInterpretation(
+            transcript = "fallo",
+            reachedFailure = true,
+            fields = setOf(WorkoutVoiceField.FAILURE),
+        )
+        assertEquals(
+            ConfirmationDecision.AUTO,
+            WorkoutVoiceConfirmationPolicy.decide(bodyweight, 0.9f, requiresWeight = false),
+        )
+        assertEquals(
+            ConfirmationDecision.AUTO,
+            WorkoutVoiceConfirmationPolicy.decide(failure, 0.9f, draftHasWeightAndReps = true),
+        )
+    }
+
+    @Test
+    fun explicitTagCommandIsParsedWithoutGuessingNormalSpeech() {
+        val tag = WorkoutVoiceCommandParser.parseCommand(
+            transcript = "etiqueta agarre neutro", isTimeMode = false, isUnilateral = false,
+            hasPendingConfirmation = false, isRestTimerActive = false, tagNames = setOf("Agarre neutro"),
+        )
+        val ordinary = WorkoutVoiceCommandParser.parseCommand(
+            transcript = "agarre neutro", isTimeMode = false, isUnilateral = false,
+            hasPendingConfirmation = false, isRestTimerActive = false, tagNames = setOf("Agarre neutro"),
+        )
+        assertEquals(VoiceSessionCommand.ApplyTag("Agarre neutro"), tag)
+        assertTrue(ordinary is VoiceSessionCommand.Unknown)
+    }
 }

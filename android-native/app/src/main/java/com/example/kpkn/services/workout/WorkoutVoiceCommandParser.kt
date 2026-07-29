@@ -3,6 +3,7 @@ package com.example.kpkn.services.workout
 import com.example.kpkn.screens.workout.WorkoutVoiceField
 import com.example.kpkn.screens.workout.WorkoutVoiceInterpretation
 import com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind
+import com.example.kpkn.data.models.UnitModeV2
 import java.text.Normalizer
 import java.util.Locale
 import kotlin.math.abs
@@ -41,7 +42,7 @@ object WorkoutVoiceCommandParser {
     private val SUGGEST_WEIGHT_KEYWORDS = setOf(
         "cuanto peso", "cuánto peso", "carga sugerida", "que peso",
         "qué peso", "cuanto pongo", "cuánto pongo", "peso sugerido",
-        "carga", "cuanto levanto", "cuánto levanto",
+        "cuanto levanto", "cuánto levanto",
     )
 
     private val REST_STATUS_KEYWORDS = setOf(
@@ -191,7 +192,10 @@ object WorkoutVoiceCommandParser {
         addAll(VOICE_INTEGER_WORDS.keys)
         addAll(setOf("punto", "coma", "medio", "media", "kilo", "kilos", "peso", "carga"))
         addAll(setOf("repeticion", "repetición", "repeticiones", "segundo", "segundos"))
-        addAll(setOf("minuto", "minutos", "esfuerzo", "intensidad", "porcentaje", "por"))
+        addAll(setOf("minuto", "minutos", "esfuerzo", "intensidad", "reservas", "porcentaje", "por"))
+        addAll(setOf("metro", "metros", "kilometro", "kilómetros", "milla", "millas"))
+        addAll(setOf("unidad", "unidades", "caloria", "calorías", "vuelta", "vueltas", "etiqueta"))
+        addAll(setOf("rom", "rango", "recorrido"))
         addAll(setOf("izquierda", "izquierdo", "derecha", "derecho", "fallo", "falla"))
         // No añadir "0".."120" ni abreviaturas (rpe/reps/kg): Vosk small-es las descarta.
     }
@@ -203,6 +207,10 @@ object WorkoutVoiceCommandParser {
         hasPendingConfirmation: Boolean,
         isRestTimerActive: Boolean,
         pendingAddSetPersistence: Boolean = false,
+        unitMode: UnitModeV2 = if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
+        customUnit: String? = null,
+        trackRom: Boolean = false,
+        tagNames: Set<String> = emptySet(),
     ): VoiceSessionCommand {
         val lower = normalizeText(transcript)
 
@@ -258,6 +266,8 @@ object WorkoutVoiceCommandParser {
             return VoiceSessionCommand.AddSet
         }
 
+        parseTagCommand(lower, tagNames)?.let { return it }
+
         if (SKIP_SET_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.SkipSet
         }
@@ -286,12 +296,21 @@ object WorkoutVoiceCommandParser {
             return VoiceSessionCommand.NextExercise
         }
 
-        val interpretation = parseWorkoutVoiceTranscript(transcript, isTimeMode, isUnilateral)
+        val interpretation = com.example.kpkn.screens.workout.parseWorkoutVoiceTranscript(
+            transcript, isTimeMode, isUnilateral, unitMode, customUnit, trackRom,
+        )
         if (interpretation != null) {
             return VoiceSessionCommand.RegisterSet(interpretation)
         }
 
         return VoiceSessionCommand.Unknown(transcript)
+    }
+
+    private fun parseTagCommand(normalized: String, knownTagNames: Set<String>): VoiceSessionCommand.ApplyTag? {
+        val spoken = Regex("""\betiqueta\s+(.+)$""").find(normalized)?.groupValues?.get(1)
+            ?.trim(' ', '.', ',')?.take(40) ?: return null
+        if (spoken.isBlank()) return null
+        return VoiceSessionCommand.ApplyTag(knownTagNames.firstOrNull { normalizeText(it) == spoken } ?: spoken)
     }
 
     fun parseEditLastSet(normalized: String): VoiceSessionCommand.EditLastSet? {
@@ -689,8 +708,8 @@ object WorkoutVoiceCommandParser {
     private val REP_WORDS = setOf("rep", "reps", "repeticion", "repeticiones")
     private val SECOND_WORDS = setOf("seg", "segundo", "segundos")
     private val MINUTE_WORDS = setOf("min", "minuto", "minutos")
-    private val RPE_WORDS = setOf("rpe")
-    private val RIR_WORDS = setOf("rir")
+    private val RPE_WORDS = setOf("rpe", "esfuerzo", "intensidad")
+    private val RIR_WORDS = setOf("rir", "recamara", "recamaras", "reserva", "reservas")
     private val PERCENT_RM_WORDS = setOf("porcentaje", "%", "rm")
     private val FAILURE_WORDS = setOf("fallo", "falla")
     private val LEFT_SIDE_WORDS = setOf("izquierda", "izquierdo", "izq")

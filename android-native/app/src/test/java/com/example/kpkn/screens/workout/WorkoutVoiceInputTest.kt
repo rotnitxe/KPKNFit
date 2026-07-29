@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.UnitModeV2
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -139,5 +140,32 @@ class WorkoutVoiceInputTest {
 
         assertEquals(15, result?.metricValue)
         assertFalse(result?.fields?.contains(WorkoutVoiceField.WEIGHT) == true)
+    }
+
+    @Test
+    fun parses_vosk_intensity_aliases() {
+        val rpe = parseWorkoutVoiceTranscript("80 por 8 esfuerzo 9", false, false)
+        val rir = parseWorkoutVoiceTranscript("80 por 8 reservas 2", false, false)
+        assertEquals(WorkoutVoiceIntensityKind.RPE, rpe?.intensityKind)
+        assertEquals(9.0, rpe?.intensityValue ?: 0.0, 0.0)
+        assertEquals(WorkoutVoiceIntensityKind.RIR, rir?.intensityKind)
+        assertEquals(2.0, rir?.intensityValue ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun parses_decimal_distance_and_custom_unit() {
+        val distance = parseWorkoutVoiceTranscript("2.5 kilometros", false, false, UnitModeV2.DISTANCE)
+        val custom = parseWorkoutVoiceTranscript("20 calorias", false, false, UnitModeV2.CUSTOM, "calorias")
+        assertEquals(2.5, distance?.resolvedMetricValue ?: 0.0, 0.0)
+        assertEquals(20.0, custom?.resolvedMetricValue ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun rom_is_only_accepted_when_exercise_tracks_it() {
+        val enabled = parseWorkoutVoiceTranscript("80 por 8 rango 75", false, false, trackRom = true)
+        val disabled = parseWorkoutVoiceTranscript("80 por 8 rango 75", false, false, trackRom = false)
+        assertEquals(75, enabled?.romPercent)
+        assertTrue(enabled?.fields?.contains(WorkoutVoiceField.ROM) == true)
+        assertNull(disabled?.romPercent)
     }
 }

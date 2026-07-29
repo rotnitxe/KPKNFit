@@ -22,19 +22,21 @@ object WorkoutVoiceConfirmationPolicy {
         interpretation: WorkoutVoiceInterpretation,
         asrConfidence: Float,
         draftHasWeightAndReps: Boolean = false,
+        requiresWeight: Boolean = true,
         isEditPatch: Boolean = false,
         confidenceKnown: Boolean = true,
     ): ConfirmationDecision {
         val hasWeight = WorkoutVoiceField.WEIGHT in interpretation.fields &&
             interpretation.weightKg != null && interpretation.weightKg > 0.0
         val hasReps = WorkoutVoiceField.VALUE in interpretation.fields &&
-            interpretation.metricValue != null && interpretation.metricValue > 0
+            (interpretation.resolvedMetricValue ?: 0.0) > 0.0
         val hasIntensity = WorkoutVoiceField.INTENSITY in interpretation.fields &&
             interpretation.intensityValue != null
+        val hasSupplementalFeedback = hasIntensity || interpretation.reachedFailure || interpretation.romPercent != null
 
         if (isEditPatch) {
             // Edits are lower risk when at least one field is explicit.
-            if (!hasWeight && !hasReps && !hasIntensity && interpretation.weightKg == null) {
+            if (!hasWeight && !hasReps && !hasSupplementalFeedback && interpretation.weightKg == null) {
                 return ConfirmationDecision.REJECT
             }
             return if (confidenceOk(asrConfidence, confidenceKnown)) {
@@ -44,12 +46,12 @@ object WorkoutVoiceConfirmationPolicy {
             }
         }
 
-        val completeSet = hasWeight && hasReps
-        val intensityOnDraft = draftHasWeightAndReps && hasIntensity
+        val completeSet = (!requiresWeight || hasWeight) && hasReps
+        val intensityOnDraft = draftHasWeightAndReps && hasSupplementalFeedback
 
         if (!completeSet && !intensityOnDraft) {
             // Partial dictation — still ask if anything useful was heard.
-            if (hasWeight || hasReps || hasIntensity) return ConfirmationDecision.ASK
+            if (hasWeight || hasReps || hasSupplementalFeedback) return ConfirmationDecision.ASK
             return ConfirmationDecision.REJECT
         }
 
@@ -65,11 +67,13 @@ object WorkoutVoiceConfirmationPolicy {
         interpretation: WorkoutVoiceInterpretation,
         asrConfidence: Float,
         draftHasWeightAndReps: Boolean = false,
+        requiresWeight: Boolean = true,
         confidenceKnown: Boolean = true,
     ): Boolean = decide(
         interpretation,
         asrConfidence,
         draftHasWeightAndReps,
+        requiresWeight = requiresWeight,
         confidenceKnown = confidenceKnown,
     ) == ConfirmationDecision.AUTO
 

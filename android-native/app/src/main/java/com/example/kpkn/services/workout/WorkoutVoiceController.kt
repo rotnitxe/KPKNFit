@@ -3,6 +3,8 @@ package com.example.kpkn.services.workout
 import android.content.Context
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.screens.workout.WorkoutSetDraft
 import com.example.kpkn.screens.workout.WorkoutVoiceInterpretation
 import com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind
@@ -73,10 +75,20 @@ class WorkoutVoiceController(
 
     fun onVoiceSetPersisted(
         interpretation: WorkoutVoiceInterpretation,
+        exerciseId: String,
+        setIdx: Int,
         isTimeMode: Boolean,
         isUnilateral: Boolean,
         completedSidesBefore: Int,
     ) {
+        pendingUndo = VoiceUndoPayload(
+            setKey = VoiceUndoPayload.buildSetKey(exerciseId, setIdx, interpretation.side),
+            exerciseId = exerciseId,
+            setIdx = setIdx,
+            side = interpretation.side,
+            expiresAtMs = System.currentTimeMillis() + VoiceUndoPayload.WINDOW_MS,
+        )
+        _state.update { it.copy(errorMessage = null) }
         WorkoutVoiceDiagnosticLogger.event(
             "set_persistence_succeeded",
             mapOf("interpretation" to interpretation.toString()),
@@ -104,6 +116,8 @@ class WorkoutVoiceController(
     }
 
     fun onVoiceSetPersistenceFailed(message: String = "No pude registrar la serie.") {
+        pendingUndo = null
+        _state.update { it.copy(errorMessage = message) }
         WorkoutVoiceDiagnosticLogger.event("set_persistence_failed", mapOf("message" to message))
         runSpeakingOrSkip(
             priority = WorkoutSpeechPriority.HIGH,
@@ -120,6 +134,11 @@ class WorkoutVoiceController(
         val setIndex: Int,
         val totalSets: Int,
         val isTimeMode: Boolean,
+        val unitMode: UnitModeV2 = if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
+        val loadMode: LoadModeV2 = LoadModeV2.LOAD,
+        val customUnit: String? = null,
+        val trackRom: Boolean = false,
+        val tagNames: Set<String> = emptySet(),
         val isUnilateral: Boolean,
         val baseIntensityMode: IntensityMode?,
         val setDraft: WorkoutSetDraft?,
@@ -391,6 +410,7 @@ class WorkoutVoiceController(
                 }
             }
             is VoiceSessionCommand.EditLastSet -> "Serie editada"
+            is VoiceSessionCommand.ApplyTag -> "Etiqueta ${command.tagName}"
             is VoiceSessionCommand.SkipRest -> "Descanso saltado"
             is VoiceSessionCommand.UseAdaptiveRest -> "Descanso adaptativo"
             is VoiceSessionCommand.UndoLastSet -> "Serie deshecha"
@@ -865,6 +885,10 @@ class WorkoutVoiceController(
             showPostExerciseSheet = false,
             showFinishSheet = false,
             pendingAddSetPersistence = false,
+            unitMode = exerciseInfo?.unitMode ?: if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
+            customUnit = exerciseInfo?.customUnit,
+            trackRom = exerciseInfo?.trackRom == true,
+            tagNames = exerciseInfo?.tagNames.orEmpty(),
         ).let { cmd ->
             if (cmd is VoiceSessionCommand.RegisterSet && isUnilateral && cmd.interpretation.side == null) {
                 val side = exerciseInfo?.pendingUnilateralSide
@@ -885,6 +909,9 @@ class WorkoutVoiceController(
                 "command" to command.toString(),
                 "exerciseId" to exerciseInfo?.exercise?.id,
                 "setIndex" to exerciseInfo?.setIndex,
+                "unitMode" to exerciseInfo?.unitMode?.name,
+                "loadMode" to exerciseInfo?.loadMode?.name,
+                "trackRom" to exerciseInfo?.trackRom,
             ),
         )
 
@@ -980,11 +1007,13 @@ class WorkoutVoiceController(
 
         val isTimeMode = exerciseInfo?.isTimeMode ?: false
         val draft = exerciseInfo?.setDraft
-        val draftHasWeightAndReps = !draft?.weightText.isNullOrBlank() && !draft?.valueText.isNullOrBlank()
+        val requiresWeight = exerciseInfo?.loadMode != LoadModeV2.BODYWEIGHT
+        val draftHasWeightAndReps = (!requiresWeight || !draft?.weightText.isNullOrBlank()) && !draft?.valueText.isNullOrBlank()
         val decision = WorkoutVoiceConfirmationPolicy.decide(
             interpretation = interpretation,
             asrConfidence = lastHypothesisConfidence,
             draftHasWeightAndReps = draftHasWeightAndReps,
+            requiresWeight = requiresWeight,
             confidenceKnown = lastHypothesisConfidenceKnown,
         )
         if (decision == ConfirmationDecision.AUTO) {
@@ -994,33 +1023,12 @@ class WorkoutVoiceController(
             } else {
                 interpretation
             }
-            runSpeakingOrSkip(
-                onComplete = {
-                    if (exerciseInfo != null) {
-                        pendingUndo = VoiceUndoPayload(
-                            setKey = VoiceUndoPayload.buildSetKey(
-                                exerciseInfo.exercise.id,
-                                exerciseInfo.setIndex,
-                                resolved.side,
-                            ),
-                            exerciseId = exerciseInfo.exercise.id,
-                            setIdx = exerciseInfo.setIndex,
-                            side = resolved.side,
-                            expiresAtMs = System.currentTimeMillis() + VoiceUndoPayload.WINDOW_MS,
-                        )
-                    }
-                    onCommandDetected?.invoke(VoiceSessionCommand.RegisterSet(resolved))
-                    releaseDucking()
-                    resumeListening()
-                },
-                speak = {
-                    ttsManager.speakAutoConfirmedWithUndo(
-                        weightKg = resolved.weightKg,
-                        reps = resolved.metricValue,
-                        isTimeMode = isTimeMode,
-                    )
-                },
-            )
+            try {
+                onCommandDetected?.invoke(VoiceSessionCommand.RegisterSet(resolved))
+            } catch (error: Exception) {
+                WorkoutVoiceDiagnosticLogger.exception("set_dispatch_exception", error)
+                onVoiceSetPersistenceFailed()
+            }
             return
         }
 
@@ -1079,6 +1087,10 @@ class WorkoutVoiceController(
                     isUnilateral = info?.isUnilateral == true,
                     hasPendingConfirmation = false,
                     isRestTimerActive = false,
+                    unitMode = info?.unitMode ?: if (info?.isTimeMode == true) UnitModeV2.TIME else UnitModeV2.REPS,
+                    customUnit = info?.customUnit,
+                    trackRom = info?.trackRom == true,
+                    tagNames = info?.tagNames.orEmpty(),
                 )
                 when (reparsed) {
                     is VoiceSessionCommand.RegisterSet -> {
@@ -1407,6 +1419,11 @@ class WorkoutVoiceController(
             setIndex = setIndex,
             totalSets = totalSets,
             isTimeMode = isTimeMode,
+            unitMode = unitMode,
+            loadMode = loadMode,
+            customUnit = customUnit,
+            trackRom = trackRom,
+            tagNames = tagNames,
             isUnilateral = isUnilateral,
             baseIntensityMode = baseIntensityMode,
             setDraft = setDraft,

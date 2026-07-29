@@ -60,6 +60,21 @@ class WorkoutVoiceGrammarBuilderTest {
     }
 
     @Test
+    fun includesCustomUnitAndKnownTagNames() {
+        val grammar = WorkoutVoiceGrammarBuilder.build(
+            stage = VoicePipelineStage.LISTENING,
+            context = VoiceCommandContext(
+                customUnit = "calorias",
+                tagNames = setOf("Agarre neutro"),
+            ),
+        )
+
+        assertTrue(grammar.contains("\"calorias\""))
+        assertTrue(grammar.contains("\"agarre neutro\""))
+        assertTrue(grammar.contains("\"etiqueta\""))
+    }
+
+    @Test
     fun generatedCommandAliasesRemainParseable() {
         assertParsesAs(
             rawGrammarPhrase = "apagar micrófono",

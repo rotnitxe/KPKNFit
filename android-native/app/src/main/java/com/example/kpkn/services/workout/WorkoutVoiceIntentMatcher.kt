@@ -1,5 +1,7 @@
 package com.example.kpkn.services.workout
 
+import com.example.kpkn.data.models.UnitModeV2
+
 /**
  * Stage-aware grammar over [WorkoutVoiceCommandParser].
  * Illegal intents for the current stage become [VoiceSessionCommand.Unknown].
@@ -15,6 +17,10 @@ object WorkoutVoiceIntentMatcher {
         showPostExerciseSheet: Boolean,
         showFinishSheet: Boolean,
         pendingAddSetPersistence: Boolean = false,
+        unitMode: UnitModeV2 = if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
+        customUnit: String? = null,
+        trackRom: Boolean = false,
+        tagNames: Set<String> = emptySet(),
     ): VoiceSessionCommand {
         if (showFinishSheet) {
             return WorkoutVoiceCommandParser.parseFinalFeedbackCommand(transcript)
@@ -30,6 +36,10 @@ object WorkoutVoiceIntentMatcher {
             hasPendingConfirmation = stage == VoicePipelineStage.CONFIRM_WAIT,
             isRestTimerActive = isRestTimerActive,
             pendingAddSetPersistence = pendingAddSetPersistence,
+            unitMode = unitMode,
+            customUnit = customUnit,
+            trackRom = trackRom,
+            tagNames = tagNames,
         )
 
         return when (stage) {
@@ -38,6 +48,7 @@ object WorkoutVoiceIntentMatcher {
                 is VoiceSessionCommand.Cancel,
                 is VoiceSessionCommand.StopSpeaking,
                 is VoiceSessionCommand.RegisterSet,
+                is VoiceSessionCommand.ApplyTag,
                 is VoiceSessionCommand.AddSetSessionOnly,
                 is VoiceSessionCommand.AddSetPermanent,
                 -> parsed

@@ -29,6 +29,17 @@ object WorkoutVoiceGrammarBuilder {
             ?.let { nextExerciseName ->
                 expandForVosk(nextExerciseName.lowercase()).forEach { tokens += it }
             }
+        context?.customUnit
+            ?.trim()
+            ?.takeIf(String::isNotBlank)
+            ?.let { customUnit ->
+                expandForVosk(customUnit.lowercase()).forEach { tokens += it }
+            }
+        context?.tagNames.orEmpty().forEach { tagName ->
+            tagName.trim().takeIf(String::isNotBlank)?.let { raw ->
+                expandForVosk(raw.lowercase()).forEach { tokens += it }
+            }
+        }
         context?.exerciseAliases.orEmpty().forEach { alias ->
             alias.trim().takeIf(String::isNotBlank)?.let { raw ->
                 expandForVosk(raw.lowercase()).forEach { tokens += it }

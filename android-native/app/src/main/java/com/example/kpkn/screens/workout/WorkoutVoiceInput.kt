@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.kpkn.data.voice.VoiceNutritionRecognizer
 import com.example.kpkn.data.voice.VoiceState
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.UnitModeV2
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import java.text.Normalizer
@@ -18,6 +19,7 @@ enum class WorkoutVoiceField {
     INTENSITY,
     SIDE,
     FAILURE,
+    ROM,
 }
 
 @Serializable
@@ -61,12 +63,16 @@ data class WorkoutVoiceInterpretation(
     val transcript: String,
     val weightKg: Double? = null,
     val metricValue: Int? = null,
+    val metricDecimalValue: Double? = null,
     val intensityValue: Double? = null,
     val intensityKind: WorkoutVoiceIntensityKind? = null,
     val side: String? = null,
     val reachedFailure: Boolean = false,
+    val romPercent: Int? = null,
     val fields: Set<WorkoutVoiceField> = emptySet(),
-)
+) {
+    val resolvedMetricValue: Double? get() = metricDecimalValue ?: metricValue?.toDouble()
+}
 
 class WorkoutVoiceRecognizer(context: Context) {
     private val delegate = VoiceNutritionRecognizer(context)
@@ -83,6 +89,9 @@ internal fun parseWorkoutVoiceTranscript(
     transcript: String,
     isTimeMode: Boolean,
     isUnilateral: Boolean,
+    unitMode: UnitModeV2 = if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
+    customUnit: String? = null,
+    trackRom: Boolean = false,
 ): WorkoutVoiceInterpretation? {
     val tokens = normalizeWorkoutVoiceTranscript(transcript)
     if (tokens.isEmpty()) return null
@@ -99,6 +108,9 @@ internal fun parseWorkoutVoiceTranscript(
     val explicitMinutes = tokens.indexOfFirst { it in MINUTE_KEYWORDS }
         .takeIf { it >= 0 }
         ?.let { nearestVoiceNumber(tokens, it, preferBackward = true)?.toSafeWholeNumber()?.times(60) }
+    val explicitDistance = tokens.indexOfFirst { it in DISTANCE_KEYWORDS }.takeIf { it >= 0 }?.let { nearestVoiceNumber(tokens, it, preferBackward = true) }
+    val customUnitKeywords = normalizeWorkoutVoiceTranscript(customUnit.orEmpty()).toSet() + CUSTOM_UNIT_KEYWORDS
+    val explicitCustom = tokens.indexOfFirst { it in customUnitKeywords }.takeIf { it >= 0 }?.let { nearestVoiceNumber(tokens, it, preferBackward = true) }
     val explicitRpe = tokens.indexOfFirst { it in RPE_KEYWORDS }
         .takeIf { it >= 0 }
         ?.let { nearestVoiceNumber(tokens, it) }
@@ -111,6 +123,8 @@ internal fun parseWorkoutVoiceTranscript(
     val explicitFailureMetric = tokens.indexOfFirst { it in FAILURE_DISTANCE_KEYWORDS }
         .takeIf { it >= 0 }
         ?.let { nearestVoiceNumber(tokens, it, preferBackward = true) }
+    val explicitRom = if (trackRom) tokens.indexOfFirst { it in ROM_KEYWORDS }.takeIf { it >= 0 }
+        ?.let { nearestVoiceNumber(tokens, it)?.toSafeWholeNumber() }?.takeIf { it in 0..100 } else null
     val connectorPair = extractConnectedWeightAndMetric(tokens)
 
     val side = when {
@@ -121,15 +135,15 @@ internal fun parseWorkoutVoiceTranscript(
     }
     val reachedFailure = tokens.any { it in FAILURE_KEYWORDS }
 
-    val weightKg = if (isTimeMode) {
-        explicitWeight
-    } else {
-        explicitWeight ?: connectorPair?.first
+    val effectiveUnitMode = if (isTimeMode) UnitModeV2.TIME else unitMode
+    val weightKg = if (effectiveUnitMode != UnitModeV2.REPS) explicitWeight else explicitWeight ?: connectorPair?.first
+    val metricDecimalValue = when (effectiveUnitMode) {
+        UnitModeV2.TIME -> (explicitSeconds ?: explicitMinutes)?.toDouble() ?: connectorPair?.second
+        UnitModeV2.REPS -> explicitReps?.toDouble() ?: connectorPair?.second
+        UnitModeV2.DISTANCE -> explicitDistance ?: connectorPair?.second
+        UnitModeV2.CUSTOM -> explicitCustom ?: connectorPair?.second
     }
-    val metricValue = when {
-        isTimeMode -> explicitSeconds ?: explicitMinutes ?: connectorPair?.second
-        else -> explicitReps ?: connectorPair?.second
-    }
+    val metricValue = metricDecimalValue?.toSafeWholeNumber()
     val intensityValue = when {
         explicitRpe != null -> explicitRpe
         explicitRir != null -> explicitRir
@@ -147,10 +161,11 @@ internal fun parseWorkoutVoiceTranscript(
 
     val fields = buildSet {
         if (weightKg != null) add(WorkoutVoiceField.WEIGHT)
-        if (metricValue != null) add(WorkoutVoiceField.VALUE)
+        if (metricDecimalValue != null) add(WorkoutVoiceField.VALUE)
         if (intensityValue != null) add(WorkoutVoiceField.INTENSITY)
         if (side != null) add(WorkoutVoiceField.SIDE)
         if (reachedFailure) add(WorkoutVoiceField.FAILURE)
+        if (explicitRom != null) add(WorkoutVoiceField.ROM)
     }
 
     if (fields.isEmpty()) return null
@@ -158,10 +173,12 @@ internal fun parseWorkoutVoiceTranscript(
         transcript = transcript.trim(),
         weightKg = weightKg,
         metricValue = metricValue,
+        metricDecimalValue = metricDecimalValue,
         intensityValue = intensityValue,
         intensityKind = intensityKind,
         side = side,
         reachedFailure = reachedFailure,
+        romPercent = explicitRom,
         fields = fields,
     )
 }
@@ -231,11 +248,11 @@ private fun normalizeWorkoutVoiceTranscript(transcript: String): List<String> {
     return normalized.split(' ').filter { it.isNotBlank() }
 }
 
-private fun extractConnectedWeightAndMetric(tokens: List<String>): Pair<Double, Int>? {
+private fun extractConnectedWeightAndMetric(tokens: List<String>): Pair<Double, Double>? {
     tokens.forEachIndexed { index, token ->
         if (token !in CONNECTOR_KEYWORDS) return@forEachIndexed
         val left = readVoiceNumberBackward(tokens, index - 1)?.first
-        val right = readVoiceNumberForward(tokens, index + 1)?.first?.toSafeWholeNumber()
+        val right = readVoiceNumberForward(tokens, index + 1)?.first
         if (left != null && right != null) {
             return left to right
         }
@@ -353,11 +370,14 @@ private val WEIGHT_KEYWORDS = setOf("kg", "kilo", "kilos", "peso", "carga", "las
 private val REP_KEYWORDS = setOf("rep", "reps", "repeticion", "repeticiones")
 private val SECOND_KEYWORDS = setOf("seg", "segundo", "segundos")
 private val MINUTE_KEYWORDS = setOf("min", "minuto", "minutos")
-private val RPE_KEYWORDS = setOf("rpe")
-private val RIR_KEYWORDS = setOf("rir")
+private val RPE_KEYWORDS = setOf("rpe", "esfuerzo", "intensidad")
+private val RIR_KEYWORDS = setOf("rir", "recamara", "recamaras", "reserva", "reservas")
 private val PERCENT_RM_KEYWORDS = setOf("porcentaje", "%", "rm")
 private val FAILURE_KEYWORDS = setOf("fallo", "falla")
 private val FAILURE_DISTANCE_KEYWORDS = setOf("recamara", "recamaras", "reserva", "reservas")
+private val DISTANCE_KEYWORDS = setOf("metro", "metros", "kilometro", "kilometros", "km", "milla", "millas")
+private val CUSTOM_UNIT_KEYWORDS = setOf("unidad", "unidades", "caloria", "calorias", "vuelta", "vueltas", "piso", "pisos", "nivel", "niveles", "paso", "pasos")
+private val ROM_KEYWORDS = setOf("rom", "rango", "recorrido")
 private val LEFT_SIDE_KEYWORDS = setOf("izquierda", "izquierdo", "izq")
 private val RIGHT_SIDE_KEYWORDS = setOf("derecha", "derecho", "der")
 
@@ -424,6 +444,9 @@ internal suspend fun parseWorkoutVoiceTranscriptAsync(
     transcript: String,
     isTimeMode: Boolean,
     isUnilateral: Boolean,
+    unitMode: UnitModeV2 = if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
+    customUnit: String? = null,
+    trackRom: Boolean = false,
 ): WorkoutVoiceInterpretation? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-    parseWorkoutVoiceTranscript(transcript, isTimeMode, isUnilateral)
+    parseWorkoutVoiceTranscript(transcript, isTimeMode, isUnilateral, unitMode, customUnit, trackRom)
 }

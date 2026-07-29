@@ -363,8 +363,45 @@ class WorkoutViewModel(
                     loadSuggestionController.getWeightSuggestionWithAutoRegulation(exercise, setIdx, activeTag, side)
                 override fun restSecondsRemaining() = restTimer.remaining.value.takeIf { it > 0 }
                 override fun canonicalExerciseKey(exercise: Exercise) = this@WorkoutViewModel.canonicalExerciseKey(exercise)
-                override suspend fun recordSetV2(weight: Double, value: Double, intensity: Double?, advanced: SetAdvancedFeedback, side: String?) =
-                    this@WorkoutViewModel.recordSetV2(weight, value, intensity, advanced, side = side)
+                override fun inferUnitMode(exercise: Exercise, setIdx: Int): UnitModeV2 =
+                    exercise.sets.getOrNull(setIdx)?.let { this@WorkoutViewModel.inferUnitMode(exercise, it) }
+                        ?: when (exercise.trainingMode) {
+                            TrainingMode.TIME -> UnitModeV2.TIME
+                            TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
+                            TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
+                            else -> UnitModeV2.REPS
+                        }
+                override fun effectiveLoadModeForExercise(exercise: Exercise, setIdx: Int) =
+                    this@WorkoutViewModel.effectiveLoadModeForExercise(exercise, setIdx)
+                override suspend fun recordSetV2(
+                    weight: Double,
+                    value: Double,
+                    intensity: Double?,
+                    advanced: SetAdvancedFeedback,
+                    loadMode: LoadModeV2?,
+                    unitMode: UnitModeV2?,
+                    side: String?,
+                    expectedExerciseId: String?,
+                    expectedSetIdx: Int?,
+                    expectedSide: String?,
+                ): Boolean {
+                    val targetExerciseId = expectedExerciseId ?: return false
+                    val targetSetIdx = expectedSetIdx ?: return false
+                    val sideSuffix = when ((expectedSide ?: side)?.lowercase()) {
+                        "l", "left" -> "_L"
+                        "r", "right" -> "_R"
+                        else -> ""
+                    }
+                    val expectedKey = "${targetExerciseId}_${targetSetIdx}$sideSuffix"
+                    if (_uiState.value.completedSets.containsKey(expectedKey)) return false
+                    this@WorkoutViewModel.recordSetV2(
+                        weight, value, intensity, advanced, loadMode, unitMode, side = side,
+                        expectedExerciseId = targetExerciseId, expectedSetIdx = targetSetIdx,
+                        expectedSide = expectedSide,
+                    )
+                    return _uiState.value.completedSets.containsKey(expectedKey)
+                }
+                override fun setExerciseTag(exerciseId: String, tag: String) = this@WorkoutViewModel.setExerciseTag(exerciseId, tag)
                 override fun skipSet() = stepNavigator.skipSet()
                 override fun skipRemainingCurrentExercise() = stepNavigator.skipRemainingCurrentExercise()
                 override fun prevSet() = stepNavigator.prevSet()
@@ -537,6 +574,15 @@ class WorkoutViewModel(
             val s = _uiState.value
             val exercises = visibleExercises(s)
             val exercise = exercises.getOrNull(s.currentExerciseIdx) ?: return@provider null
+            val plannedSet = exercise.sets.getOrNull(s.currentSetIdx)
+            val unitMode = plannedSet?.let { inferUnitMode(exercise, it) } ?: when (exercise.trainingMode) {
+                TrainingMode.TIME -> UnitModeV2.TIME
+                TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
+                TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
+                else -> UnitModeV2.REPS
+            }
+            val loadMode = effectiveLoadModeForExercise(exercise, s.currentSetIdx)
+            val tagNames = s.userCreatedTags[canonicalExerciseKey(exercise)].orEmpty().map { it.name }.toSet()
             val currentStep = s.activeStepKey?.let { key -> workoutStepPositions(s).firstOrNull { it.stepKey == key } }
             val round = currentStep?.supersetRoundIndex?.let { it + 1 }
             val sidePending = exercise.isEffectivelyUnilateral() && (
@@ -558,7 +604,12 @@ class WorkoutViewModel(
                 exercise = exercise,
                 setIndex = s.currentSetIdx,
                 totalSets = exercise.sets.size,
-                isTimeMode = exercise.trainingMode == TrainingMode.TIME,
+                isTimeMode = unitMode == UnitModeV2.TIME,
+                unitMode = unitMode,
+                loadMode = loadMode,
+                customUnit = exercise.customUnit,
+                trackRom = exercise.trackRom,
+                tagNames = tagNames,
                 isUnilateral = exercise.isEffectivelyUnilateral(),
                 baseIntensityMode = exercise.sets.getOrNull(s.currentSetIdx)?.intensityMode,
                 setDraft = getSetDraft(exercise.id, s.currentSetIdx, pendingSide),
