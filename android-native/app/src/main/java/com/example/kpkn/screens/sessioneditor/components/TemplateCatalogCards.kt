@@ -172,10 +172,10 @@ internal fun CompactTemplateCard(
                     text = "Aplicar",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
-                    color = KpknSheetTokens.ControlLabel,
+                    color = KpknSheetTokens.GlassControlLabel,
                     modifier = Modifier
                         .clip(RoundedCornerShape(999.dp))
-                        .background(KpknSheetTokens.ControlFill)
+                        .background(KpknSheetTokens.GlassControlFillStrong)
                         .clickable(onClick = onApply)
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                         .semantics { contentDescription = "Aplicar plantilla ${template.name}" },

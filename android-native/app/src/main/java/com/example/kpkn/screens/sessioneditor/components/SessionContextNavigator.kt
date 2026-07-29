@@ -53,6 +53,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.lazy.LazyColumn
@@ -397,20 +398,26 @@ internal fun SessionContextNavigator(
             .firstOrNull { it !in availableVariants }
     }
 
-    val navShape = RoundedCornerShape(28.dp)
+    val navShape = RoundedCornerShape(22.dp)
     val navModifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 14.dp)
-        .padding(top = 8.dp, bottom = 0.dp)
+        .wrapContentWidth()
+        .padding(horizontal = 10.dp)
+        .padding(top = 2.dp, bottom = 0.dp)
         .kpknGlassOrFallback(hazeState, navShape)
-    Box(modifier = navModifier) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(modifier = navModifier) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 14.dp)
-                .padding(top = 8.dp, bottom = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+                .wrapContentWidth()
+                .padding(horizontal = 8.dp)
+                .padding(top = 5.dp, bottom = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Block chips for advanced programs
             if (!isSimpleProgram && uniqueBlocks.size > 1) {
@@ -730,6 +737,7 @@ internal fun SessionContextNavigator(
                     }
                 }
             }
+        }
         }
     }
 

@@ -380,10 +380,11 @@ internal fun SessionEditorSheets(
     setPartTargetDuration: (String, Int?) -> Unit,
     setExerciseTargetDuration: (String, Int?) -> Unit,
     onDistributeTargetAcrossParts: () -> Unit = {},
-    onApplyRuleTemplate: (String) -> Unit = {},
+    onApplyRuleTemplate: (String, String?) -> Unit = { _, _ -> },
     onSaveRuleTemplate: (String) -> Unit = {},
     onRenameRuleTemplate: (String, String) -> Unit = { _, _ -> },
     onDeleteRuleTemplate: (String) -> Unit = {},
+    onPatchRuleDefaults: (String?, (com.example.kpkn.screens.sessioneditor.SessionEditorRuleDefaults) -> com.example.kpkn.screens.sessioneditor.SessionEditorRuleDefaults) -> Unit = { _, _ -> },
     onApplyTimeCoachSuggestion: (String) -> Unit = {},
     onDismissTimeCoachSuggestion: (String) -> Unit = {},
     onRefreshTimeCoach: () -> Unit = {},
@@ -560,6 +561,7 @@ internal fun SessionEditorSheets(
 
     KpknSheet(
         onDismissRequest = onDismiss,
+        stableHeightFraction = if (uiState.sheet == SessionEditorSheet.RULES) 0.82f else null,
     ) {
         when (uiState.sheet) {
             SessionEditorSheet.EXERCISE_PICKER -> Unit
@@ -593,6 +595,7 @@ internal fun SessionEditorSheets(
                 onSaveRuleTemplate = onSaveRuleTemplate,
                 onRenameRuleTemplate = onRenameRuleTemplate,
                 onDeleteRuleTemplate = onDeleteRuleTemplate,
+                onPatchRuleDefaults = onPatchRuleDefaults,
                 onApplyTimeCoachSuggestion = onApplyTimeCoachSuggestion,
                 onDismissTimeCoachSuggestion = onDismissTimeCoachSuggestion,
                 onRefreshTimeCoach = onRefreshTimeCoach,

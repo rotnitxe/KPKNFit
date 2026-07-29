@@ -1,6 +1,10 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,13 +37,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -149,8 +156,27 @@ internal fun ExercisePickerSheet(
         }
     }
     val resultListState = rememberLazyListState()
+    var lastScrollIndex by remember { mutableIntStateOf(0) }
+    var filtersVisible by rememberSaveable { mutableStateOf(true) }
+    val scrollingDown by remember {
+        derivedStateOf {
+            val index = resultListState.firstVisibleItemIndex
+            val offset = resultListState.firstVisibleItemScrollOffset
+            index > 0 || offset > 24
+        }
+    }
+    LaunchedEffect(scrollingDown, resultListState.isScrollInProgress) {
+        val index = resultListState.firstVisibleItemIndex
+        if (index > lastScrollIndex || (index == lastScrollIndex && scrollingDown && resultListState.isScrollInProgress)) {
+            filtersVisible = false
+        } else if (index < lastScrollIndex || index == 0) {
+            filtersVisible = true
+        }
+        lastScrollIndex = index
+    }
     LaunchedEffect(normalizedQuery, sortMode, sortAscending, filterKey) {
         resultListState.scrollToItem(0)
+        filtersVisible = true
     }
 
     val infoExercise = remember(infoExerciseId, fullCatalog) { fullCatalog.firstOrNull { it.id == infoExerciseId } }
@@ -170,8 +196,8 @@ internal fun ExercisePickerSheet(
             .heightIn(max = pickerMaxHeight)
             .then(if (showSelectionDock) Modifier.height(pickerMaxHeight) else Modifier)
             .imePadding()
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -182,12 +208,12 @@ internal fun ExercisePickerSheet(
                 Text(
                     if (editingExisting) "Cambiar ejercicio" else "Catálogo",
                     fontWeight = FontWeight.Black,
-                    fontSize = 18.sp,
+                    fontSize = 17.sp,
                     color = KpknSheetTokens.TitleStrong,
                 )
                 Text(
                     if (results.isEmpty()) "Sin resultados" else "${results.size} ejercicios",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = KpknSheetTokens.MutedStrong,
                 )
             }
@@ -198,42 +224,54 @@ internal fun ExercisePickerSheet(
                 IconButton(
                     onClick = {
                         searchExpanded = !searchExpanded
+                        filtersVisible = true
                         if (!searchExpanded && query.isNotBlank()) onSearch("")
                     },
+                    modifier = Modifier.size(36.dp),
                 ) {
                     Icon(
                         if (searchExpanded || query.isNotBlank()) Icons.Default.Close else Icons.Default.Search,
                         contentDescription = if (searchExpanded) "Cerrar búsqueda" else "Buscar",
-                        tint = KpknSheetTokens.Body,
+                        tint = KpknSheetTokens.Body.copy(alpha = 0.88f),
+                        modifier = Modifier.size(18.dp),
                     )
                 }
                 FilledTonalButton(
                     onClick = onOpenExerciseCreator,
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                     shape = RoundedCornerShape(8.dp),
-                    colors = kpknSheetWhiteTonalButtonColors(),
+                    colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
+                        containerColor = Color.White.copy(alpha = 0.12f),
+                        contentColor = Color.White.copy(alpha = 0.92f),
+                    ),
                 ) {
-                    Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Add, null, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(4.dp))
                     Text("Crear", style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
 
-        AnimatedVisibility(visible = searchExpanded || query.isNotBlank()) {
-            CatalogSearchField(
-                value = query,
-                onValueChange = onSearch,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = "Buscar por nombre, músculo o equipo",
-            )
-        }
+        AnimatedVisibility(
+            visible = filtersVisible || searchExpanded || query.isNotBlank(),
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                AnimatedVisibility(visible = searchExpanded || query.isNotBlank()) {
+                    CatalogSearchField(
+                        value = query,
+                        onValueChange = onSearch,
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = "Buscar por nombre, músculo o equipo",
+                    )
+                }
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
                 "Ordenar",
                 style = MaterialTheme.typography.labelSmall,
-                color = KpknSheetTokens.ControlLabelMuted,
+                color = KpknSheetTokens.GlassControlLabelMuted,
                 fontWeight = FontWeight.Bold,
             )
             Row(
@@ -487,6 +525,8 @@ internal fun ExercisePickerSheet(
                 }
             }
         }
+        } // filters column
+        } // AnimatedVisibility filters
 
         LazyColumn(
             state = resultListState,

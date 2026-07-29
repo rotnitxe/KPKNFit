@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -118,7 +121,7 @@ internal fun AssistantGlassOverlay(
 ) {
     // Uses KpknSheet (portal + LocalHazeState) so blur samples MainActivity's hazeSource.
     // Do NOT pass the session-local hazeState — the sheet is not a sibling of that source.
-    KpknSheet(onDismissRequest = onDismiss) {
+    KpknSheet(onDismissRequest = onDismiss, stableHeightFraction = 0.82f) {
         AssistantSheet(
             uiState = uiState,
             templates = templates,
@@ -273,10 +276,30 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
         )
     }
 
-    // 3. Volumen
+    // 3. Volumen (colapsado por defecto)
     val session = uiState.session
     val volumeRows = remember(session) {
         session?.let { buildMuscleVolumeRows(it) }.orEmpty()
+    }
+    var volumeExpanded by rememberSaveable { mutableStateOf(false) }
+    fun toggleVolumeExpanded() {
+        val next = !volumeExpanded
+        // #region agent log
+        com.example.kpkn.screens.sessioneditor.SessionEditorDebugLog.log(
+            hypothesisId = "H-A",
+            location = "AssistantSheet.kt:volumeHeaderClick",
+            message = "Volume panel header clickable fired",
+            data = mapOf(
+                "wasExpanded" to volumeExpanded,
+                "willExpand" to next,
+                "rowCount" to volumeRows.size,
+                "clickOnFullColumn" to false,
+                "clickOnHeaderOnly" to true,
+            ),
+            runId = "post-fix",
+        )
+        // #endregion
+        volumeExpanded = next
     }
     Column(
         modifier = Modifier
@@ -286,12 +309,39 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            "Volumen de entreno de la sesión",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Black,
-            color = Color.White,
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { toggleVolumeExpanded() },
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "Volumen de entreno de la sesión",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    if (volumeExpanded) "▲" else "▼",
+                    color = Color.White.copy(alpha = 0.65f),
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            if (!volumeExpanded) {
+                Text(
+                    if (volumeRows.isEmpty()) "Sin volumen aún" else "${volumeRows.size} músculos · tocar para ver",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.5f),
+                )
+            }
+        }
+        if (volumeExpanded) {
         if (volumeRows.isEmpty()) {
             Text(
                 "Agrega ejercicios a la sesión para ver el volumen por músculo.",
@@ -332,27 +382,28 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
                 }
             }
         }
+        }
     }
 
-    // 4. Calorías bajo volumen (sin EPOC ni confianza)
-    if (energySummary.totalKcal.mid > 0) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.White.copy(alpha = 0.06f))
-                .padding(14.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                "Calorías estimadas",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-                color = Color.White,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-            )
+    // 4. Calorías (active + EPOC del motor auge-energy-v2)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White.copy(alpha = 0.06f))
+            .padding(14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            "Calorías estimadas",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Black,
+            color = Color.White,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+        )
+        if (energySummary.totalKcal.mid > 0) {
             Text(
                 "${energySummary.totalKcal.mid} kcal",
                 style = MaterialTheme.typography.titleLarge,
@@ -363,6 +414,36 @@ private fun AssistantMainTab(uiState: SessionEditorUiState) {
                 "${energySummary.totalKcal.low}–${energySummary.totalKcal.high}",
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.45f),
+            )
+            val loadHint = energySummary.notes.firstOrNull {
+                it.contains("1RM", ignoreCase = true) || it.contains("carga", ignoreCase = true)
+            }
+            if (loadHint != null) {
+                Text(
+                    loadHint,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.50f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+        } else {
+            Text(
+                "—",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Black,
+                color = Color.White.copy(alpha = 0.55f),
+            )
+            Text(
+                energySummary.notes.firstOrNull {
+                    it.contains("peso", ignoreCase = true) ||
+                        it.contains("1RM", ignoreCase = true) ||
+                        it.contains("estimar", ignoreCase = true)
+                } ?: "Completa pesos o 1RM en los ejercicios para estimar el gasto calórico",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.55f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
     }
@@ -558,12 +639,22 @@ internal fun AssistantTemplatesTab(
                 Text("La sesión ya tiene ejercicios. ¿Qué deseas hacer con la plantilla \"${applyDecision.template.name}\"?")
             },
             confirmButton = {
-                Button(onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.REPLACE) }) {
+                Button(
+                    onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.REPLACE) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White.copy(alpha = 0.14f),
+                        contentColor = Color.White,
+                    ),
+                ) {
                     Text("Reemplazar")
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.APPEND) }) {
+                OutlinedButton(
+                    onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.APPEND) },
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.85f)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)),
+                ) {
                     Text("Añadir al final")
                 }
             },

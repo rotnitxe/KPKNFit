@@ -106,7 +106,7 @@ fun SessionEditorViewModel.createSessionForDay(dayOfWeek: Int): SessionEditorSav
             selectedSiblingSessionId = newSession.id,
             siblingSessions = updatedWeekSessions.sortedBy { session -> session.dayOfWeek ?: 99 },
             weekSessions = updatedWeekSessions,
-            localDraftHistory = listOf(buildDraftSnapshot(session = newSession, previous = null, reason = "Nueva sesión")),
+            localDraftHistory = TrainedSessionVersionStore.getInstance(getApplication()).loadForSession(newSession.id),
             hasUnsavedChanges = false,
             draftBundle = it.draftBundle?.copy(sessionId = newSession.id, dayOfWeek = dayOfWeek),
             snackbarMessage = "Sesión creada para ${dayLabel(dayOfWeek)}",
@@ -174,7 +174,7 @@ fun SessionEditorViewModel.createCompetitionSessionForDay(dayOfWeek: Int): Sessi
             selectedSiblingSessionId = newSession.id,
             siblingSessions = updatedWeekSessions.sortedBy { session -> session.dayOfWeek ?: 99 },
             weekSessions = updatedWeekSessions,
-            localDraftHistory = listOf(buildDraftSnapshot(session = newSession, previous = null, reason = "Nueva sesión competición")),
+            localDraftHistory = TrainedSessionVersionStore.getInstance(getApplication()).loadForSession(newSession.id),
             hasUnsavedChanges = false,
             draftBundle = it.draftBundle?.copy(sessionId = newSession.id, dayOfWeek = dayOfWeek),
             snackbarMessage = "Sesión de competición creada para ${dayLabel(dayOfWeek)}",
@@ -300,7 +300,7 @@ internal fun SessionEditorViewModel.switchToSession(
             hasUnsavedChanges = persistedDraft != null,
             pendingSessionSwitchId = null,
             sheet = SessionEditorSheet.NONE,
-            localDraftHistory = listOf(buildDraftSnapshot(session = resolvedSession, previous = null, reason = "Cambio de sesión")),
+            localDraftHistory = TrainedSessionVersionStore.getInstance(getApplication()).loadForSession(resolvedSession.id),
             ruleDefaults = persistedDraft?.ruleDefaults ?: it.ruleDefaults,
             partRuleDefaults = persistedDraft?.partRuleDefaults ?: emptyMap(),
             ruleLimits = persistedDraft?.ruleLimits ?: it.ruleLimits,
@@ -374,7 +374,7 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
                 sessionId = draft.id,
                 dayOfWeek = draft.dayOfWeek,
             ),
-            localDraftHistory = listOf(buildDraftSnapshot(session = draft, previous = null, reason = "Guardado")),
+            localDraftHistory = TrainedSessionVersionStore.getInstance(getApplication()).loadForSession(draft.id),
             pendingSessionSwitchId = null,
             pendingWeekId = null,
             pendingMacroIndex = null,
@@ -437,7 +437,7 @@ internal fun SessionEditorViewModel.buildDraftSnapshot(
     )
 }
 
-internal fun SessionEditorViewModel.detectChangedFields(previous: Session, current: Session): List<String> {
+internal fun detectChangedFields(previous: Session, current: Session): List<String> {
     val changes = mutableListOf<String>()
     if (previous.name != current.name) changes += "nombre"
     if (previous.description != current.description) changes += "descripción"

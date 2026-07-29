@@ -38,16 +38,26 @@ class RuleTemplateStore(context: Context) {
             return seeded
         }
         return try {
-            json.decodeFromString<List<RuleTemplate>>(raw).ifEmpty {
+            val stored = json.decodeFromString<List<RuleTemplate>>(raw).ifEmpty {
                 val seeded = factoryPresets()
                 persist(seeded)
-                seeded
+                return seeded
             }
+            mergeMissingFactoryPresets(stored)
         } catch (_: Exception) {
             val seeded = factoryPresets()
             persist(seeded)
             seeded
         }
+    }
+
+    private fun mergeMissingFactoryPresets(stored: List<RuleTemplate>): List<RuleTemplate> {
+        val factories = factoryPresets()
+        val missing = factories.filter { factory -> stored.none { it.id == factory.id } }
+        if (missing.isEmpty()) return stored
+        val merged = stored + missing
+        persist(merged)
+        return merged
     }
 
     fun saveAsTemplate(name: String, defaults: SessionEditorRuleDefaults): RuleTemplate {
@@ -152,6 +162,31 @@ class RuleTemplateStore(context: Context) {
                         intensityType = DefaultIntensityType.RIR,
                     ),
                     createdAtMs = now + 2,
+                    isFactory = true,
+                ),
+                RuleTemplate(
+                    id = "factory_entreno_equilibrado",
+                    name = "Entreno equilibrado",
+                    defaults = SessionEditorRuleDefaults(
+                        setCount = 3,
+                        reps = 8,
+                        rpe = 8.0,
+                        normalRestSeconds = 150,
+                        betweenSidesRestSeconds = 15,
+                        supersetBetweenRestSeconds = 60,
+                        supersetRoundRestSeconds = 120,
+                        applyToNewItems = true,
+                        intensityType = DefaultIntensityType.RPE,
+                        compoundRestSeconds = 180,
+                        compoundReps = 6,
+                        compoundRpe = 8.0,
+                        compoundIntensityType = DefaultIntensityType.RPE,
+                        isolationRestSeconds = 105,
+                        isolationReps = 8,
+                        isolationRpe = 1.0,
+                        isolationIntensityType = DefaultIntensityType.RIR,
+                    ),
+                    createdAtMs = now + 3,
                     isFactory = true,
                 ),
             )

@@ -19,7 +19,25 @@ data class SessionEditorRuleDefaults(
     val supersetRoundRestSeconds: Int = 120,
     val applyToNewItems: Boolean = false,
     val intensityType: DefaultIntensityType = DefaultIntensityType.RPE,
-)
+    /** Optional overrides for compounds (SessionTemplateQualityRules.isCompound). */
+    val compoundRestSeconds: Int? = null,
+    val compoundReps: Int? = null,
+    val compoundRpe: Double? = null,
+    val compoundIntensityType: DefaultIntensityType? = null,
+    /** Optional overrides for isolations (SessionTemplateQualityRules.isIsolation). */
+    val isolationRestSeconds: Int? = null,
+    val isolationReps: Int? = null,
+    val isolationRpe: Double? = null,
+    val isolationIntensityType: DefaultIntensityType? = null,
+) {
+    val hasCompoundOverrides: Boolean
+        get() = compoundRestSeconds != null || compoundReps != null ||
+            compoundRpe != null || compoundIntensityType != null
+
+    val hasIsolationOverrides: Boolean
+        get() = isolationRestSeconds != null || isolationReps != null ||
+            isolationRpe != null || isolationIntensityType != null
+}
 
 @Serializable
 data class SessionEditorRuleLimits(

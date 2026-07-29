@@ -62,12 +62,37 @@ internal fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<Work
         ).withSharedPerformanceFromHistory(history)
     }
 
-internal fun Exercise.withSessionEditorDefaults(defaults: SessionEditorRuleDefaults): Exercise {
+internal fun Exercise.withSessionEditorDefaults(
+    defaults: SessionEditorRuleDefaults,
+    catalogInfo: ExerciseMuscleInfo? = null,
+): Exercise {
         if (!defaults.applyToNewItems || isCompetitionLift) return this
+        val isCompound = defaults.hasCompoundOverrides &&
+            com.example.kpkn.domain.templates.SessionTemplateQualityRules.isCompound(catalogInfo)
+        val isIsolation = !isCompound && defaults.hasIsolationOverrides &&
+            com.example.kpkn.domain.templates.SessionTemplateQualityRules.isIsolation(catalogInfo)
+        val intensityType = when {
+            isCompound -> defaults.compoundIntensityType ?: defaults.intensityType
+            isIsolation -> defaults.isolationIntensityType ?: defaults.intensityType
+            else -> defaults.intensityType
+        }
         val safeSetCount = defaults.setCount.coerceAtLeast(1)
-        val safeReps = defaults.reps.coerceAtLeast(1)
-        val safeRpe = defaults.rpe.coerceIn(1.0, 10.0)
-        val mode = when (defaults.intensityType) {
+        val safeReps = when {
+            isCompound -> (defaults.compoundReps ?: defaults.reps).coerceAtLeast(1)
+            isIsolation -> (defaults.isolationReps ?: defaults.reps).coerceAtLeast(1)
+            else -> defaults.reps.coerceAtLeast(1)
+        }
+        val safeRpe = when {
+            isCompound -> (defaults.compoundRpe ?: defaults.rpe).coerceIn(1.0, 10.0)
+            isIsolation -> (defaults.isolationRpe ?: defaults.rpe).coerceIn(0.0, 10.0)
+            else -> defaults.rpe.coerceIn(1.0, 10.0)
+        }
+        val safeRest = when {
+            isCompound -> (defaults.compoundRestSeconds ?: defaults.normalRestSeconds).coerceAtLeast(0)
+            isIsolation -> (defaults.isolationRestSeconds ?: defaults.normalRestSeconds).coerceAtLeast(0)
+            else -> defaults.normalRestSeconds.coerceAtLeast(0)
+        }
+        val mode = when (intensityType) {
             DefaultIntensityType.RIR -> IntensityMode.RIR
             DefaultIntensityType.FALLO -> IntensityMode.FAILURE
             else -> IntensityMode.RPE
@@ -84,7 +109,7 @@ internal fun Exercise.withSessionEditorDefaults(defaults: SessionEditorRuleDefau
             )
         }
         return copy(
-            restTime = defaults.normalRestSeconds.coerceAtLeast(0),
+            restTime = safeRest,
             restBetweenSidesSeconds = defaults.betweenSidesRestSeconds.takeIf { it > 0 },
             sets = nextSets,
         )

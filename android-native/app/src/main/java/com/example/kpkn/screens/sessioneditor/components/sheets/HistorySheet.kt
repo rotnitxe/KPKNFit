@@ -50,18 +50,38 @@ internal fun HistorySheet(
     ) {
         SheetHeader(
             "Versiones",
-            "Restaura un orden anterior de esta sesión.",
+            "Versiones estructurales guardadas al completar un entreno.",
         )
         if (uiState.localDraftHistory.isEmpty()) {
             Text(
-                "Todavía no hay versiones guardadas. Se crean al editar la estructura.",
+                "Todavía no hay versiones. Se guardan al terminar un entreno si la estructura cambió.",
                 color = KpknSheetTokens.MutedStrong,
             )
         } else {
             uiState.localDraftHistory.asReversed().forEachIndexed { index, snapshot ->
                 val title = snapshot.session.name.ifBlank { "Sesión" }
                 val diffSummary = snapshot.changedFields.take(3).joinToString(" · ").ifBlank { "ajustes" }
-                val isCurrent = currentSession != null && currentSession == snapshot.session
+                val isCurrentRaw = currentSession != null && currentSession == snapshot.session
+                val isCurrent = currentSession != null &&
+                    com.example.kpkn.screens.sessioneditor.TrainedSessionVersionStore.structuralEquals(
+                        currentSession,
+                        snapshot.session,
+                    )
+                // #region agent log
+                com.example.kpkn.screens.sessioneditor.SessionEditorDebugLog.log(
+                    hypothesisId = "H-C",
+                    location = "HistorySheet.kt:isCurrent",
+                    message = "Version row current flags",
+                    data = mapOf(
+                        "index" to index,
+                        "isCurrentRaw" to isCurrentRaw,
+                        "isCurrentStructural" to isCurrent,
+                        "mismatch" to (isCurrentRaw != isCurrent),
+                        "uiUsesStructural" to true,
+                    ),
+                    runId = "post-fix",
+                )
+                // #endregion
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()

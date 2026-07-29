@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -450,6 +451,10 @@ private fun CatalogDropdownButton(
                 .heightIn(min = 40.dp)
                 .widthIn(max = 180.dp)
                 .semantics { this.contentDescription = contentDescription },
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = Color.White.copy(alpha = 0.12f),
+                contentColor = Color.White.copy(alpha = 0.88f),
+            ),
         ) {
             Text(
                 text = label,

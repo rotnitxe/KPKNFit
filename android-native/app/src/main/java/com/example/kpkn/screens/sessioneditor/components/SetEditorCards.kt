@@ -484,8 +484,6 @@ fun SetIntensityBlock(
                     IntensityMode.RPE to "RPE",
                     IntensityMode.RIR to "RIR",
                     IntensityMode.FAILURE to "Fallo",
-                    IntensityMode.LOAD to "Carga",
-                    IntensityMode.SOLO_RM to "%RM",
                 ).forEach { (mode, label) ->
                     DropdownMenuItem(
                         text = { Text(label) },

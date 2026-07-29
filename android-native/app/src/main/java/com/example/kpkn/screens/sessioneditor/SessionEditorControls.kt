@@ -292,29 +292,21 @@ internal fun CompactGoalTrackingButton(
             .height(40.dp)
             .clip(RoundedCornerShape(999.dp))
             .combinedClickable(
-                onClick = onToggle,
-                onLongClick = { onOpenSheet?.invoke() ?: onToggle() },
+                onClick = { onOpenSheet?.invoke() ?: onToggle() },
+                onLongClick = onToggle,
             ),
         color = if (isActive) DarkEditorChipSelected else DarkEditorChip,
         border = if (isActive) BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.3f)) else null,
     ) {
-        Row(
+        Box(
             modifier = Modifier.padding(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = if (isActive) Icons.Default.Star else Icons.Default.StarBorder,
-                contentDescription = "Seguimiento de metas",
+                contentDescription = "Meta del ejercicio",
                 tint = if (isActive) Color(0xFFFFB300) else Color.White,
                 modifier = Modifier.size(18.dp),
-            )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                "Meta",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = if (isActive) Color(0xFFFFB300) else Color.White,
             )
         }
     }

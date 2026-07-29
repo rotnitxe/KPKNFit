@@ -24,6 +24,7 @@ object SessionEditorRulesEngine {
         session: Session,
         defaults: SessionEditorRuleDefaults,
         partId: String?,
+        exerciseIndex: Map<String, ExerciseMuscleInfo> = emptyMap(),
     ): Session {
         val safeSetCount = defaults.setCount.coerceAtLeast(1)
         val safeReps = defaults.reps.coerceAtLeast(1)
@@ -34,17 +35,43 @@ object SessionEditorRulesEngine {
         val safeRound = defaults.supersetRoundRestSeconds.coerceAtLeast(0)
 
         fun Exercise.applyRuleDefaults(): Exercise {
-            val mode = when (defaults.intensityType) {
+            val info = resolveExerciseInfo(this, exerciseIndex)
+            val isCompound = defaults.hasCompoundOverrides &&
+                com.example.kpkn.domain.templates.SessionTemplateQualityRules.isCompound(info)
+            val isIsolation = !isCompound && defaults.hasIsolationOverrides &&
+                com.example.kpkn.domain.templates.SessionTemplateQualityRules.isIsolation(info)
+
+            val intensityType = when {
+                isCompound -> defaults.compoundIntensityType ?: defaults.intensityType
+                isIsolation -> defaults.isolationIntensityType ?: defaults.intensityType
+                else -> defaults.intensityType
+            }
+            val mode = when (intensityType) {
                 DefaultIntensityType.RIR -> IntensityMode.RIR
                 DefaultIntensityType.FALLO -> IntensityMode.FAILURE
                 else -> IntensityMode.RPE
             }
+            val effectiveReps = when {
+                isCompound -> (defaults.compoundReps ?: safeReps).coerceAtLeast(1)
+                isIsolation -> (defaults.isolationReps ?: safeReps).coerceAtLeast(1)
+                else -> safeReps
+            }
+            val effectiveRpe = when {
+                isCompound -> (defaults.compoundRpe ?: safeRpe).coerceIn(1.0, 10.0)
+                isIsolation -> (defaults.isolationRpe ?: safeRpe).coerceIn(0.0, 10.0)
+                else -> safeRpe
+            }
+            val effectiveRest = when {
+                isCompound -> (defaults.compoundRestSeconds ?: safeRest).coerceAtLeast(0)
+                isIsolation -> (defaults.isolationRestSeconds ?: safeRest).coerceAtLeast(0)
+                else -> safeRest
+            }
             val nextSets = List(safeSetCount) { index ->
                 val existing = sets.getOrNull(index)
                 val target = (existing ?: ExerciseSet(id = UUID.randomUUID().toString())).copy(
-                    targetReps = safeReps,
-                    targetRPE = if (mode == IntensityMode.RPE) safeRpe else null,
-                    targetRIR = if (mode == IntensityMode.RIR) safeRpe.toInt().coerceIn(0, 5) else null,
+                    targetReps = effectiveReps,
+                    targetRPE = if (mode == IntensityMode.RPE) effectiveRpe else null,
+                    targetRIR = if (mode == IntensityMode.RIR) effectiveRpe.toInt().coerceIn(0, 5) else null,
                     intensityMode = mode,
                     targetPercentageRM = null,
                     isFailure = mode == IntensityMode.FAILURE,
@@ -53,7 +80,7 @@ object SessionEditorRulesEngine {
             }
             return copy(
                 sets = nextSets,
-                restTime = safeRest,
+                restTime = effectiveRest,
                 restBetweenSidesSeconds = safeSideRest.takeIf { it > 0 },
             )
         }

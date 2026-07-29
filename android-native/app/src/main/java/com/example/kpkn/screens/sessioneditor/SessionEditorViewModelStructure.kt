@@ -183,7 +183,7 @@ fun SessionEditorViewModel.addExerciseToPart(partId: String?, info: ExerciseMusc
     val currentSession = currentUiState.session
     val newExercise = createExerciseFromInfo(info, repository.history.value).let { base ->
         if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-    }.withSessionEditorDefaults(getRuleDefaultsForPart(partId))
+    }.withSessionEditorDefaults(getRuleDefaultsForPart(partId), info)
     updateSession { session ->
         if (partId == null) {
             session.copy(exercises = session.exercises + newExercise)
@@ -200,7 +200,7 @@ fun SessionEditorViewModel.addExercisesToPart(partId: String?, infos: List<Exerc
     val newExercises = infos.map { info ->
         createExerciseFromInfo(info, repository.history.value).let { base ->
             if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
-        }.withSessionEditorDefaults(getRuleDefaultsForPart(partId))
+        }.withSessionEditorDefaults(getRuleDefaultsForPart(partId), info)
     }
     updateSession { session ->
         if (partId == null) {
@@ -576,9 +576,26 @@ fun SessionEditorViewModel.applyRuleDefaultsToSession(partId: String? = null) {
             session = session,
             defaults = defaults,
             partId = partId,
+            exerciseIndex = exerciseIndex,
         )
     }
     closeSheet()
+}
+
+fun SessionEditorViewModel.patchRuleDefaults(
+    partId: String? = null,
+    transform: (SessionEditorRuleDefaults) -> SessionEditorRuleDefaults,
+) {
+    updateUi { state ->
+        if (partId == null) {
+            state.copy(ruleDefaults = transform(state.ruleDefaults))
+        } else {
+            val current = state.partRuleDefaults[partId] ?: state.ruleDefaults
+            val newMap = state.partRuleDefaults.toMutableMap()
+            newMap[partId] = transform(current)
+            state.copy(partRuleDefaults = newMap)
+        }
+    }
 }
 
 fun SessionEditorViewModel.updateRuleDefaults(

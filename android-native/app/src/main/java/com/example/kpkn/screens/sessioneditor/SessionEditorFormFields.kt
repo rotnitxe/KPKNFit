@@ -315,31 +315,31 @@ internal fun CatalogSearchField(
         modifier = modifier,
         singleLine = true,
         leadingIcon = {
-            Icon(Icons.Default.Search, null, tint = KpknSheetTokens.ControlLabel)
+            Icon(Icons.Default.Search, null, tint = KpknSheetTokens.GlassControlLabelMuted)
         },
         placeholder = {
             Text(
                 placeholder,
                 style = MaterialTheme.typography.bodySmall,
-                color = KpknSheetTokens.ControlPlaceholder,
+                color = KpknSheetTokens.GlassControlPlaceholder,
             )
         },
         shape = RoundedCornerShape(14.dp),
-        textStyle = MaterialTheme.typography.bodyMedium.copy(color = KpknSheetTokens.ControlLabel),
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = KpknSheetTokens.GlassControlLabel),
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = KpknSheetTokens.ControlFill,
-            unfocusedContainerColor = KpknSheetTokens.ControlFill,
-            disabledContainerColor = KpknSheetTokens.ChipIdle,
-            focusedTextColor = KpknSheetTokens.ControlLabel,
-            unfocusedTextColor = KpknSheetTokens.ControlLabel,
-            disabledTextColor = KpknSheetTokens.ControlLabelMuted,
+            focusedContainerColor = KpknSheetTokens.GlassControlFillStrong,
+            unfocusedContainerColor = KpknSheetTokens.GlassControlFill,
+            disabledContainerColor = KpknSheetTokens.GlassControlFill,
+            focusedTextColor = KpknSheetTokens.GlassControlLabel,
+            unfocusedTextColor = KpknSheetTokens.GlassControlLabel,
+            disabledTextColor = KpknSheetTokens.GlassControlLabelMuted,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
             errorIndicatorColor = Color.Transparent,
-            cursorColor = KpknSheetTokens.ControlLabel,
-            focusedLeadingIconColor = KpknSheetTokens.ControlLabel,
-            unfocusedLeadingIconColor = KpknSheetTokens.ControlLabel,
+            cursorColor = KpknSheetTokens.GlassControlLabel,
+            focusedLeadingIconColor = KpknSheetTokens.GlassControlLabel,
+            unfocusedLeadingIconColor = KpknSheetTokens.GlassControlLabelMuted,
         ),
     )
 }
@@ -352,10 +352,10 @@ internal fun CompactCatalogFilterChip(
     modifier: Modifier = Modifier,
     glassDark: Boolean = false,
 ) {
-    val idle = if (glassDark) Color.White.copy(alpha = 0.14f) else KpknSheetTokens.ChipIdle
-    val selectedBg = if (glassDark) Color.White.copy(alpha = 0.28f) else KpknSheetTokens.ChipSelected
-    val labelIdle = if (glassDark) Color.White.copy(alpha = 0.88f) else KpknSheetTokens.ChipLabel
-    val labelSelected = if (glassDark) Color.White else KpknSheetTokens.ChipLabel
+    val idle = if (glassDark) Color.White.copy(alpha = 0.08f) else KpknSheetTokens.ChipIdle
+    val selectedBg = if (glassDark) Color.White.copy(alpha = 0.16f) else KpknSheetTokens.ChipSelected
+    val labelIdle = if (glassDark) Color.White.copy(alpha = 0.72f) else KpknSheetTokens.ChipLabel
+    val labelSelected = if (glassDark) Color.White.copy(alpha = 0.92f) else KpknSheetTokens.ChipLabel
     FilterChip(
         selected = selected,
         onClick = onClick,

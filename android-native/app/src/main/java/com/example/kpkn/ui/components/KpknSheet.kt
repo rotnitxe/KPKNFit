@@ -56,6 +56,9 @@ import kotlinx.coroutines.launch
  *
  * Height is **content-proportional** (wrap), capped by [maxHeightFraction] so tall content
  * can still scroll without covering the whole screen by default.
+ *
+ * When [stableHeightFraction] is set, the sheet uses that fraction of the screen as a fixed
+ * height so tab switches (RULES / ASSISTANT) do not resize the panel.
  */
 @Composable
 fun KpknSheet(
@@ -70,6 +73,11 @@ fun KpknSheet(
     maxHeightFraction: Float = 0.92f,
     /** Alias treated as [maxHeightFraction] only (never forces full-height fill). */
     heightFraction: Float? = null,
+    /**
+     * When non-null, sheet height is fixed to this fraction of the screen (capped by max),
+     * so swapping tab content does not change the sheet size.
+     */
+    stableHeightFraction: Float? = null,
     @Suppress("UNUSED_PARAMETER") hazeState: HazeState? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -82,6 +90,7 @@ fun KpknSheet(
             dismissible = dismissible,
             showDragHandle = showDragHandle,
             maxHeightFraction = cap,
+            stableHeightFraction = stableHeightFraction?.coerceIn(0.35f, cap),
             hazeState = rootHaze,
             content = content,
         )
@@ -95,6 +104,7 @@ private fun KpknSheetBody(
     dismissible: Boolean,
     showDragHandle: Boolean,
     maxHeightFraction: Float,
+    stableHeightFraction: Float?,
     hazeState: HazeState?,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -138,6 +148,9 @@ private fun KpknSheetBody(
         val maxHeightPx = constraints.maxHeight.toFloat().coerceAtLeast(1f)
         val sheetCapPx = maxHeightPx * maxHeightFraction
         val sheetCapDp = with(density) { sheetCapPx.toDp() }
+        val stableHeightDp = stableHeightFraction?.let { frac ->
+            with(density) { (maxHeightPx * frac).toDp() }
+        }
         val dismissThresholdPx = with(density) {
             minOf(150.dp.toPx(), sheetCapPx * 0.25f)
         }
@@ -253,8 +266,10 @@ private fun KpknSheetBody(
             modifier = modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .wrapContentHeight()
-                .heightIn(max = sheetCapDp)
+                .then(
+                    if (stableHeightDp != null) Modifier.height(stableHeightDp)
+                    else Modifier.wrapContentHeight().heightIn(max = sheetCapDp),
+                )
                 .offset { IntOffset(0, totalOffsetPx.roundToInt()) }
                 .kpknGlassOrFallback(hazeState, sheetShape)
                 .clickable(
@@ -267,8 +282,10 @@ private fun KpknSheetBody(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .wrapContentHeight()
-                        .heightIn(max = sheetCapDp)
+                        .then(
+                            if (stableHeightDp != null) Modifier.fillMaxSize()
+                            else Modifier.wrapContentHeight().heightIn(max = sheetCapDp),
+                        )
                         .navigationBarsPadding()
                         .padding(bottom = 8.dp)
                         .nestedScroll(nestedScrollConnection)

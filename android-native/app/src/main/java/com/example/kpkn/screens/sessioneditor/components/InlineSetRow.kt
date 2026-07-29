@@ -415,8 +415,6 @@ internal fun InlineSetRow(
                                     IntensityMode.RPE to "RPE",
                                     IntensityMode.RIR to "RIR",
                                     IntensityMode.FAILURE to "Fallo",
-                                    IntensityMode.LOAD to "Carga",
-                                    IntensityMode.SOLO_RM to "%RM",
                                 ).forEach { (mode, label) ->
                                     DropdownMenuItem(
                                         text = { Text(label) },
@@ -427,8 +425,6 @@ internal fun InlineSetRow(
                                                     IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, targetRPE = it.targetRPE ?: 8.0, targetRIR = null, targetPercentageRM = null)
                                                     IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, targetRIR = it.targetRIR ?: 2, targetRPE = null, targetPercentageRM = null)
                                                     IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, targetRIR = null, targetRPE = null, targetPercentageRM = null)
-                                                    IntensityMode.LOAD -> it.copy(intensityMode = IntensityMode.LOAD, isFailure = false, targetRPE = null, targetRIR = null)
-                                                    IntensityMode.SOLO_RM -> it.copy(intensityMode = IntensityMode.SOLO_RM, isFailure = false, targetPercentageRM = it.targetPercentageRM ?: 70.0, targetRPE = null, targetRIR = null)
                                                     else -> it
                                                 }
                                             }

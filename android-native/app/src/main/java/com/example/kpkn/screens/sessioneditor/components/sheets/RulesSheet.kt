@@ -177,10 +177,11 @@ internal fun RulesSheet(
     setPartTargetDuration: (String, Int?) -> Unit,
     setExerciseTargetDuration: (String, Int?) -> Unit,
     onDistributeTargetAcrossParts: () -> Unit = {},
-    onApplyRuleTemplate: (String) -> Unit = {},
+    onApplyRuleTemplate: (String, String?) -> Unit = { _, _ -> },
     onSaveRuleTemplate: (String) -> Unit = {},
     onRenameRuleTemplate: (String, String) -> Unit = { _, _ -> },
     onDeleteRuleTemplate: (String) -> Unit = {},
+    onPatchRuleDefaults: (String?, (com.example.kpkn.screens.sessioneditor.SessionEditorRuleDefaults) -> com.example.kpkn.screens.sessioneditor.SessionEditorRuleDefaults) -> Unit = { _, _ -> },
     onApplyTimeCoachSuggestion: (String) -> Unit = {},
     onDismissTimeCoachSuggestion: (String) -> Unit = {},
     onRefreshTimeCoach: () -> Unit = {},
@@ -209,10 +210,14 @@ internal fun RulesSheet(
     var saveTemplateName by remember { mutableStateOf<String?>(null) }
     var renameTemplate by remember { mutableStateOf<Pair<String, String>?>(null) }
     var templatesExpanded by remember { mutableStateOf(false) }
+    var groupTimesExpanded by remember { mutableStateOf(false) }
 
     val defaults = remember(scopePartId, uiState.ruleDefaults, uiState.partRuleDefaults) {
         if (scopePartId == null) uiState.ruleDefaults
         else (uiState.partRuleDefaults[scopePartId] ?: uiState.ruleDefaults)
+    }
+    var compoundIsolationExpanded by remember(scopePartId) {
+        mutableStateOf(defaults.hasCompoundOverrides || defaults.hasIsolationOverrides)
     }
 
     var activeRestDialog by remember { mutableStateOf<String?>(null) }
@@ -239,6 +244,16 @@ internal fun RulesSheet(
                 "Descanso de rondas",
                 defaults.supersetRoundRestSeconds,
                 { secs: Int -> onRuleDefaultsChange(scopePartId, null, null, null, null, null, null, secs, null, null) },
+            )
+            "compound" -> Triple(
+                "Descanso compuestos",
+                defaults.compoundRestSeconds ?: defaults.normalRestSeconds,
+                { secs: Int -> onPatchRuleDefaults(scopePartId) { d -> d.copy(compoundRestSeconds = secs) } },
+            )
+            "isolation" -> Triple(
+                "Descanso aislamientos",
+                defaults.isolationRestSeconds ?: defaults.normalRestSeconds,
+                { secs: Int -> onPatchRuleDefaults(scopePartId) { d -> d.copy(isolationRestSeconds = secs) } },
             )
             else -> Triple("", 0, { _: Int -> })
         }
@@ -285,7 +300,11 @@ internal fun RulesSheet(
     ) {
         SheetHeader(
             title = "Reglas y tiempo",
-            subtitle = "Configura límites de tiempo y reglas base de la sesión.",
+            subtitle = if (activeTab == 0) {
+                "Defaults de series, intensidad y descansos para nuevos ejercicios."
+            } else {
+                "Presupuesto de duración y ajustes para entrar en tu límite."
+            },
         )
 
         Row(
@@ -421,7 +440,7 @@ internal fun RulesSheet(
                     color = Color.White,
                 )
                 Text(
-                    "Toca para abrir el reloj o teclado nativo de Android.",
+                    "Define descansos base para series, lados y superseries.",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.White.copy(alpha = 0.55f),
                 )
@@ -485,10 +504,152 @@ internal fun RulesSheet(
                 }
             }
 
-            KpknSheetWhiteButton(
-                text = "Aplicar",
-                onClick = { onApplyRules(scopePartId) },
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(KpknSheetTokens.Panel)
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { compoundIsolationExpanded = !compoundIsolationExpanded }
+                        .padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Compuestos vs aislamiento",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                        )
+                        Text(
+                            "Reglas distintas por tipo de ejercicio en este grupo.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.55f),
+                        )
+                    }
+                    Text(
+                        if (compoundIsolationExpanded) "▲" else "▼",
+                        color = Color.White.copy(alpha = 0.65f),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                if (compoundIsolationExpanded) {
+                    Text(
+                        "Básicos",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.85f),
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        RestTimeField(
+                            "Descanso",
+                            defaults.compoundRestSeconds ?: defaults.normalRestSeconds,
+                            modifier = Modifier.weight(1f),
+                        ) { activeRestDialog = "compound" }
+                        SheetMiniField(
+                            "Reps",
+                            (defaults.compoundReps ?: defaults.reps).toString(),
+                            keyboardType = KeyboardType.Number,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            onPatchRuleDefaults(scopePartId) { d ->
+                                d.copy(compoundReps = it.safeIntOrNull())
+                            }
+                        }
+                        SheetMiniField(
+                            if ((defaults.compoundIntensityType ?: defaults.intensityType) == DefaultIntensityType.RIR) "RIR" else "RPE",
+                            formatEditableNumber(defaults.compoundRpe ?: defaults.rpe),
+                            keyboardType = KeyboardType.Decimal,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            onPatchRuleDefaults(scopePartId) { d ->
+                                d.copy(compoundRpe = it.safeDoubleOrNull())
+                            }
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(
+                            DefaultIntensityType.RPE to "RPE",
+                            DefaultIntensityType.RIR to "RIR",
+                            DefaultIntensityType.FALLO to "Fallo",
+                        ).forEach { (type, label) ->
+                            KpknSheetGlassChip(
+                                label = label,
+                                selected = (defaults.compoundIntensityType ?: defaults.intensityType) == type,
+                                onClick = {
+                                    onPatchRuleDefaults(scopePartId) { d ->
+                                        d.copy(compoundIntensityType = type)
+                                    }
+                                },
+                            )
+                        }
+                    }
+
+                    Text(
+                        "Aislamientos",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.85f),
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        RestTimeField(
+                            "Descanso",
+                            defaults.isolationRestSeconds ?: defaults.normalRestSeconds,
+                            modifier = Modifier.weight(1f),
+                        ) { activeRestDialog = "isolation" }
+                        SheetMiniField(
+                            "Reps",
+                            (defaults.isolationReps ?: defaults.reps).toString(),
+                            keyboardType = KeyboardType.Number,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            onPatchRuleDefaults(scopePartId) { d ->
+                                d.copy(isolationReps = it.safeIntOrNull())
+                            }
+                        }
+                        SheetMiniField(
+                            if ((defaults.isolationIntensityType ?: defaults.intensityType) == DefaultIntensityType.RIR) "RIR" else "RPE",
+                            formatEditableNumber(defaults.isolationRpe ?: defaults.rpe),
+                            keyboardType = KeyboardType.Decimal,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            onPatchRuleDefaults(scopePartId) { d ->
+                                d.copy(isolationRpe = it.safeDoubleOrNull())
+                            }
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(
+                            DefaultIntensityType.RPE to "RPE",
+                            DefaultIntensityType.RIR to "RIR",
+                            DefaultIntensityType.FALLO to "Fallo",
+                        ).forEach { (type, label) ->
+                            KpknSheetGlassChip(
+                                label = label,
+                                selected = (defaults.isolationIntensityType ?: defaults.intensityType) == type,
+                                onClick = {
+                                    onPatchRuleDefaults(scopePartId) { d ->
+                                        d.copy(isolationIntensityType = type)
+                                    }
+                                },
+                            )
+                        }
+                    }
+                }
+            }
 
             Column(
                 modifier = Modifier
@@ -541,18 +702,57 @@ internal fun RulesSheet(
                                 label = template.name,
                                 selected = false,
                                 modifier = Modifier.weight(1f),
-                                onClick = { onApplyRuleTemplate(template.id) },
+                                onClick = {
+                                    // #region agent log
+                                    com.example.kpkn.screens.sessioneditor.SessionEditorDebugLog.log(
+                                        hypothesisId = "H-E",
+                                        location = "RulesSheet.kt:applyTemplate",
+                                        message = "Applying rule template",
+                                        data = mapOf(
+                                            "templateId" to template.id,
+                                            "templateName" to template.name,
+                                            "compoundIsolationExpandedBefore" to compoundIsolationExpanded,
+                                            "templateHasCompound" to template.defaults.hasCompoundOverrides,
+                                            "templateHasIsolation" to template.defaults.hasIsolationOverrides,
+                                        ),
+                                        runId = "post-fix",
+                                    )
+                                    // #endregion
+                                    onApplyRuleTemplate(template.id, scopePartId)
+                                    if (template.defaults.hasCompoundOverrides ||
+                                        template.defaults.hasIsolationOverrides
+                                    ) {
+                                        compoundIsolationExpanded = true
+                                    }
+                                    // #region agent log
+                                    com.example.kpkn.screens.sessioneditor.SessionEditorDebugLog.log(
+                                        hypothesisId = "H-E",
+                                        location = "RulesSheet.kt:applyTemplate:after",
+                                        message = "Template applied; compound section expand state",
+                                        data = mapOf(
+                                            "compoundIsolationExpandedAfter" to compoundIsolationExpanded,
+                                            "templateHasOverrides" to (
+                                                template.defaults.hasCompoundOverrides ||
+                                                    template.defaults.hasIsolationOverrides
+                                                ),
+                                        ),
+                                        runId = "post-fix",
+                                    )
+                                    // #endregion
+                                },
                             )
-                            KpknSheetGlassChip(
-                                label = "✎",
-                                selected = false,
-                                onClick = { renameTemplate = template.id to template.name },
-                            )
-                            KpknSheetGlassChip(
-                                label = "✕",
-                                selected = false,
-                                onClick = { onDeleteRuleTemplate(template.id) },
-                            )
+                            if (!template.isFactory) {
+                                KpknSheetGlassChip(
+                                    label = "✎",
+                                    selected = false,
+                                    onClick = { renameTemplate = template.id to template.name },
+                                )
+                                KpknSheetGlassChip(
+                                    label = "✕",
+                                    selected = false,
+                                    onClick = { onDeleteRuleTemplate(template.id) },
+                                )
+                            }
                         }
                     }
                     KpknSheetGlassChip(
@@ -562,6 +762,29 @@ internal fun RulesSheet(
                     )
                 }
             }
+
+            KpknSheetWhiteButton(
+                text = "Aplicar",
+                onClick = {
+                    // #region agent log
+                    com.example.kpkn.screens.sessioneditor.SessionEditorDebugLog.log(
+                        hypothesisId = "H-B",
+                        location = "RulesSheet.kt:Aplicar",
+                        message = "Apply button token snapshot at click",
+                        data = mapOf(
+                            "controlFillAlpha" to com.example.kpkn.ui.components.KpknSheetTokens.ControlFill.alpha,
+                            "controlLabelR" to com.example.kpkn.ui.components.KpknSheetTokens.ControlLabel.red,
+                            "controlLabelG" to com.example.kpkn.ui.components.KpknSheetTokens.ControlLabel.green,
+                            "controlLabelB" to com.example.kpkn.ui.components.KpknSheetTokens.ControlLabel.blue,
+                            "hasCompoundOverrides" to defaults.hasCompoundOverrides,
+                            "compoundIsolationExpanded" to compoundIsolationExpanded,
+                        ),
+                        runId = "post-fix",
+                    )
+                    // #endregion
+                    onApplyRules(scopePartId)
+                },
+            )
         } else {
             val session = uiState.session
             if (session != null) {
@@ -773,17 +996,39 @@ internal fun RulesSheet(
                     }
                 }
 
-                Text(
-                    "Tiempos por grupos y ejercicios",
-                    fontWeight = FontWeight.Black,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Color.White,
-                )
-                Text(
-                    "Toca el valor para abrir el reloj nativo. Si el grupo tiene minutos, no se suman los de sus ejercicios.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.65f),
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { groupTimesExpanded = !groupTimesExpanded }
+                        .padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Tiempos por grupos y ejercicios",
+                            fontWeight = FontWeight.Black,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = Color.White,
+                        )
+                        Text(
+                            if (groupTimesExpanded) {
+                                "Presupuesto por grupo o ejercicio. El del grupo prevalece."
+                            } else {
+                                "Tocar para desplegar presupuestos por grupo"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.65f),
+                        )
+                    }
+                    Text(
+                        if (groupTimesExpanded) "▲" else "▼",
+                        color = Color.White.copy(alpha = 0.65f),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                if (groupTimesExpanded) {
                 if (session.parts.size >= 2 && (session.targetDurationMinutes ?: 0) > 0) {
                     KpknSheetGlassChip(
                         label = "Repartir global en grupos",
@@ -912,6 +1157,8 @@ internal fun RulesSheet(
                         }
                     }
                 }
+
+                } // groupTimesExpanded
 
                 Spacer(modifier = Modifier.height(4.dp))
                 KpknSheetWhiteButton(

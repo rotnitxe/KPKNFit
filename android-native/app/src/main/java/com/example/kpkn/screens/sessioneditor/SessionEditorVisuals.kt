@@ -314,14 +314,19 @@ internal fun DarkChoiceChip(
     @Suppress("UNUSED_PARAMETER") accentColor: Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit,
 ) {
-    // Assistant-style: white well + black label (never gray / primary yellow).
+    // Same dark chip family as Descanso / Modo (no white wells in exercise config).
     Surface(
         modifier = modifier
             .height(38.dp)
             .clip(RoundedCornerShape(999.dp))
             .clickable { onClick() },
         shape = RoundedCornerShape(999.dp),
-        color = if (selected) KpknSheetTokens.ChipSelected else KpknSheetTokens.ChipIdle,
+        color = if (selected) DarkEditorChipSelected else DarkEditorChip,
+        border = if (selected) {
+            androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.22f))
+        } else {
+            null
+        },
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp),
@@ -329,13 +334,18 @@ internal fun DarkChoiceChip(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             if (selected) {
-                Icon(Icons.Default.Check, contentDescription = null, tint = KpknSheetTokens.ChipLabel, modifier = Modifier.size(15.dp))
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.92f),
+                    modifier = Modifier.size(15.dp),
+                )
             }
             Text(
                 label,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
-                color = KpknSheetTokens.ChipLabel,
+                color = Color.White.copy(alpha = if (selected) 0.94f else 0.82f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

@@ -114,6 +114,7 @@ class SessionEditorViewModel(
     internal val nutritionRepository = runCatching { NutritionRepository.getInstance() }.getOrNull()
     internal val templateRepository = SessionTemplateRepository.getInstance(application)
     private val ruleTemplateStore = RuleTemplateStore.getInstance(application)
+    private val trainedVersionStore = TrainedSessionVersionStore.getInstance(application)
 
     /** Combined (system + user) template list, updated reactively. */
     val allTemplates: StateFlow<List<SessionTemplate>> = templateRepository.allTemplates
@@ -463,7 +464,7 @@ class SessionEditorViewModel(
             cloneDayOptions = cloneDayOptions,
             cloneSourceOptions = cloneSourceOptions,
             selectedSiblingSessionId = draft.id,
-            localDraftHistory = listOf(buildDraftSnapshot(session = draft, previous = null, reason = "Inicio")),
+            localDraftHistory = trainedVersionStore.loadForSession(draft.id),
             ruleDefaults = resolvedRuleDefaults,
             partRuleDefaults = resolvedPartRuleDefaults,
             ruleLimits = resolvedRuleLimits,
@@ -515,12 +516,6 @@ class SessionEditorViewModel(
 
     internal fun updateSession(reason: String = "Edición", transform: (Session) -> Session) {
         val current = _uiState.value.session ?: return
-        _uiState.update { state ->
-            state.copy(localDraftHistory = appendDraftSnapshot(
-                history = state.localDraftHistory,
-                snapshot = buildDraftSnapshot(session = current, previous = state.localDraftHistory.lastOrNull()?.session, reason = reason),
-            ))
-        }
         _uiState.update { state ->
             val transformed = transform(current)
             val updated = if (transformed != current) {
@@ -660,24 +655,9 @@ class SessionEditorViewModel(
     fun updateSessionName(name: String) = updateSessionTextField { it.copy(name = name) }
     fun updateSessionDescription(description: String) = updateSessionTextField { it.copy(description = description) }
 
-    /** Text edits: one history snapshot per typing burst (debounce), not per keystroke. */
+    /** Text edits: debounce autosave/AUGE; versions are only created after trained workouts. */
     private fun updateSessionTextField(transform: (Session) -> Session) {
         val current = _uiState.value.session ?: return
-        if (textHistoryBaseline == null) {
-            textHistoryBaseline = current
-            _uiState.update { state ->
-                state.copy(
-                    localDraftHistory = appendDraftSnapshot(
-                        history = state.localDraftHistory,
-                        snapshot = buildDraftSnapshot(
-                            session = current,
-                            previous = state.localDraftHistory.lastOrNull()?.session,
-                            reason = "Edición",
-                        ),
-                    ),
-                )
-            }
-        }
         _uiState.update { state ->
             val base = state.session ?: return@update state
             val updated = transform(base).copy(lastModifiedAtMs = System.currentTimeMillis())
@@ -797,11 +777,9 @@ class SessionEditorViewModel(
         }
     }
 
-    fun applyRuleTemplate(templateId: String) {
+    fun applyRuleTemplate(templateId: String, partId: String? = null) {
         val template = currentUiState.ruleTemplates.firstOrNull { it.id == templateId } ?: return
-        updateUi { state ->
-            state.copy(ruleDefaults = template.defaults)
-        }
+        patchRuleDefaults(partId) { template.defaults }
     }
 
     fun saveCurrentRulesAsTemplate(name: String) {
@@ -882,23 +860,9 @@ class SessionEditorViewModel(
 
     fun restoreDraftSnapshot(snapshot: SessionDraftSnapshot) {
         _uiState.update { state ->
-            val current = state.session
-            val history = if (current != null) {
-                appendDraftSnapshot(
-                    history = state.localDraftHistory,
-                    snapshot = buildDraftSnapshot(
-                        session = current,
-                        previous = state.localDraftHistory.lastOrNull()?.session,
-                        reason = "Antes de restaurar",
-                    ),
-                )
-            } else {
-                state.localDraftHistory
-            }
             val restoredSession = snapshot.session
             state.copy(
                 session = restoredSession,
-                localDraftHistory = history,
                 hasUnsavedChanges = restoredSession != state.originalSession,
                 sheet = SessionEditorSheet.NONE,
                 snackbarMessage = "Versión restaurada · ${formatHistoryTimestamp(snapshot.savedAtMs)}",
@@ -908,6 +872,14 @@ class SessionEditorViewModel(
         textHistoryDebounceJob?.cancel()
         scheduleAugeRecalc()
         scheduleAutoSave()
+    }
+
+    /** Reloads trained versions for the current session (e.g. after finishing a workout). */
+    fun refreshTrainedVersions() {
+        val sessionId = _uiState.value.session?.id ?: return
+        _uiState.update {
+            it.copy(localDraftHistory = trainedVersionStore.loadForSession(sessionId))
+        }
     }
 
 }

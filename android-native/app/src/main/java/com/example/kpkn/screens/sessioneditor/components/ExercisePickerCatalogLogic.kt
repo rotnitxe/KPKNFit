@@ -162,10 +162,17 @@ internal fun oneSeriesVolumeContributions(exercise: ExerciseMuscleInfo): List<Mu
 }
 
 internal fun roleVolumeLabel(role: MuscleRole): String = when (role) {
-    MuscleRole.PRIMARY -> "Primario"
-    MuscleRole.SECONDARY -> "Secundario"
-    MuscleRole.STABILIZER -> "Estabilizador"
-    MuscleRole.NEUTRALIZER -> "Neutralizador"
+    MuscleRole.PRIMARY -> "Primario · motor principal del patrón"
+    MuscleRole.SECONDARY -> "Secundario · asiste y completa el movimiento"
+    MuscleRole.STABILIZER -> "Estabilizador · controla la postura"
+    MuscleRole.NEUTRALIZER -> "Neutralizador · evita compensación"
+}
+
+internal fun roleVolumeWhy(role: MuscleRole): String = when (role) {
+    MuscleRole.PRIMARY -> "Recibe la mayor parte del estímulo por serie."
+    MuscleRole.SECONDARY -> "Aporta volumen parcial; útil para equilibrio semanal."
+    MuscleRole.STABILIZER -> "Fatiga local sin ser el objetivo hipertrofia principal."
+    MuscleRole.NEUTRALIZER -> "Trabajo de control; no cuenta como volumen directo típico."
 }
 
 internal fun formatSeriesEquivalent(value: Double): String {

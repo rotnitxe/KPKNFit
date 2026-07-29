@@ -112,8 +112,10 @@ internal fun InlineSetRowTechniqueChips(
                                 ),
                             )
                             current.copy(
-                                plannedIntensityTechniques = current.plannedIntensityTechniques + newTechnique,
+                                plannedIntensityTechniques = current.plannedIntensityTechniques
+                                    .filter { it.type != TechniqueType.REST_PAUSE } + newTechnique,
                                 isDropSet = true,
+                                isRestPause = false,
                             )
                         }
                         showDropSetConfig = true
@@ -148,8 +150,10 @@ internal fun InlineSetRowTechniqueChips(
                                 ),
                             )
                             current.copy(
-                                plannedIntensityTechniques = current.plannedIntensityTechniques + newTechnique,
+                                plannedIntensityTechniques = current.plannedIntensityTechniques
+                                    .filter { it.type != TechniqueType.DROP_SET } + newTechnique,
                                 isRestPause = true,
+                                isDropSet = false,
                             )
                         }
                         showRestPauseConfig = true
@@ -223,59 +227,24 @@ internal fun InlineSetRowTechniqueChips(
                     .coerceIn(RestPausePlanDefaults.MinCount, RestPausePlanDefaults.MaxCount)
                 TechniqueConfigPanel(title = "Rest-pause programado") {
                     Text(
-                        "Pausa fija ${RestPausePlanDefaults.PauseSeconds}s · ${RestPausePlanDefaults.Reps} reps por mini-serie",
+                        "¿Cuántas mini-series tras la principal?",
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.White.copy(alpha = 0.62f),
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Text(
-                            "Cantidad",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.88f),
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        (RestPausePlanDefaults.MinCount..RestPausePlanDefaults.MaxCount).forEach { n ->
                             TechniqueStepChip(
-                                label = "−",
-                                selected = false,
+                                label = "$n",
+                                selected = rpCount == n,
+                                modifier = Modifier.weight(1f),
                                 onClick = {
-                                    val next = (rpCount - 1).coerceAtLeast(RestPausePlanDefaults.MinCount)
                                     onUpdate { current ->
                                         val updated = rpTechnique.copy(
                                             params = mapOf(
-                                                "count" to next.toString(),
-                                                "pauseSeconds" to RestPausePlanDefaults.PauseSeconds.toString(),
-                                                "reps" to RestPausePlanDefaults.Reps.toString(),
-                                            ),
-                                        )
-                                        current.copy(
-                                            plannedIntensityTechniques = current.plannedIntensityTechniques.map {
-                                                if (it.id == rpTechnique.id) updated else it
-                                            },
-                                        )
-                                    }
-                                },
-                            )
-                            Text(
-                                "$rpCount",
-                                modifier = Modifier.padding(horizontal = 14.dp),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Black,
-                                color = Color.White.copy(alpha = 0.94f),
-                            )
-                            TechniqueStepChip(
-                                label = "+",
-                                selected = false,
-                                onClick = {
-                                    val next = (rpCount + 1).coerceAtMost(RestPausePlanDefaults.MaxCount)
-                                    onUpdate { current ->
-                                        val updated = rpTechnique.copy(
-                                            params = mapOf(
-                                                "count" to next.toString(),
+                                                "count" to n.toString(),
                                                 "pauseSeconds" to RestPausePlanDefaults.PauseSeconds.toString(),
                                                 "reps" to RestPausePlanDefaults.Reps.toString(),
                                             ),
@@ -291,7 +260,7 @@ internal fun InlineSetRowTechniqueChips(
                         }
                     }
                     Text(
-                        "Resumen: $rpCount × ${RestPausePlanDefaults.Reps} reps · pausa ${RestPausePlanDefaults.PauseSeconds}s",
+                        "Pausa fija ${RestPausePlanDefaults.PauseSeconds}s · ${RestPausePlanDefaults.Reps} reps · $rpCount mini-series",
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.White.copy(alpha = 0.45f),
                     )

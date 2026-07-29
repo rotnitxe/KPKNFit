@@ -158,12 +158,21 @@ internal fun TemplatesSheet(
                 Text("La sesión ya tiene ejercicios. ¿Qué deseas hacer con la plantilla \"${applyDecision.template.name}\"?")
             },
             confirmButton = {
-                Button(onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.REPLACE) }) {
+                Button(
+                    onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.REPLACE) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White.copy(alpha = 0.14f),
+                        contentColor = Color.White,
+                    ),
+                ) {
                     Text("Reemplazar")
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.APPEND) }) {
+                OutlinedButton(
+                    onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.APPEND) },
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.85f)),
+                ) {
                     Text("Añadir al final")
                 }
             },

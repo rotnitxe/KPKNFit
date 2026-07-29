@@ -45,9 +45,10 @@ object KpknSheetTokens {
     /** Subtle glass panel behind groups (not a gray well). */
     val Panel = Color.White.copy(alpha = 0.06f)
 
-    val ChipIdle = Color.White.copy(alpha = 0.78f)
-    val ChipSelected = Color.White.copy(alpha = 0.90f)
-    val ChipLabel = Color.Black
+    val ChipIdle = Color.White.copy(alpha = 0.14f)
+    val ChipSelected = Color.White.copy(alpha = 0.24f)
+    val ChipLabel = Color.White.copy(alpha = 0.92f)
+    // Solid CTAs / white fields: opaque fill + dark label (do not reuse glass chip alphas).
     val ControlFill = Color.White.copy(alpha = 0.82f)
     val ControlLabel = Color.Black
     val ControlLabelMuted = Color.Black.copy(alpha = 0.55f)
@@ -166,9 +167,9 @@ fun KpknSheetTranslucentButton(
         shape = RoundedCornerShape(16.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.White.copy(alpha = 0.18f),
-            contentColor = Color.White,
-            disabledContainerColor = Color.White.copy(alpha = 0.08f),
+            containerColor = Color.White.copy(alpha = 0.12f),
+            contentColor = Color.White.copy(alpha = 0.92f),
+            disabledContainerColor = Color.White.copy(alpha = 0.06f),
             disabledContentColor = Color.White.copy(alpha = 0.35f),
         ),
     ) {

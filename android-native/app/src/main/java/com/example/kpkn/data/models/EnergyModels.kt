@@ -39,7 +39,7 @@ data class SessionEnergySummary(
     val projectedTotalKcal: Int? = null,
     val confidence: EnergyConfidence = EnergyConfidence.LOW,
     val source: EnergyEstimateSource = EnergyEstimateSource.PLANNED,
-    val methodVersion: String = "auge-energy-v1",
+    val methodVersion: String = "auge-energy-v2",
     val exerciseContributions: List<ExerciseEnergyContribution> = emptyList(),
     val notes: List<String> = emptyList(),
 )

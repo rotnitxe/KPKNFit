@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -377,114 +376,94 @@ internal fun ExerciseEditorCard(
                     }
                 }
 
-                // Compact rest + mode + goal tracking
-                LazyRow(
+                // Compact rest + mode + goal tracking (wraps to 2 rows; no horizontal scroll)
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    contentPadding = PaddingValues(end = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     if (!suppressIndividualRest) {
-                        item("rest") {
-                            CompactRestBundleButton(
-                                primaryLabel = if (exercise.isEffectivelyUnilateral() && !isSupersetExercise) "Series L/R" else "Descanso",
-                                primarySeconds = restSelectionSeconds,
-                                sideSeconds = if (exercise.isEffectivelyUnilateral() && !isSupersetExercise) exercise.restBetweenSidesSeconds ?: 0 else null,
-                                accentColor = accentColor,
-                                onConfirm = { primary, side ->
-                                    restSelectionSeconds = primary
-                                    onUpdateExercise { draft ->
-                                        draft.copy(
-                                            restTime = primary,
-                                            restBetweenSidesSeconds = side?.takeIf { it > 0 },
-                                        )
-                                    }
+                        CompactRestBundleButton(
+                            primaryLabel = if (exercise.isEffectivelyUnilateral() && !isSupersetExercise) "Series L/R" else "Descanso",
+                            primarySeconds = restSelectionSeconds,
+                            sideSeconds = if (exercise.isEffectivelyUnilateral() && !isSupersetExercise) exercise.restBetweenSidesSeconds ?: 0 else null,
+                            accentColor = accentColor,
+                            onConfirm = { primary, side ->
+                                restSelectionSeconds = primary
+                                onUpdateExercise { draft ->
+                                    draft.copy(
+                                        restTime = primary,
+                                        restBetweenSidesSeconds = side?.takeIf { it > 0 },
+                                    )
                                 }
-                            )
-                        }
-                    }
-                    
-                    // Mode selector (compact, no label)
-                    item("mode") {
-                        CompactModeSelector(
-                            currentMode = exercise.trainingMode,
-                            accentColor = accentColor,
-                        ) { mode ->
-                            onUpdateExercise { current -> current.copy(trainingMode = mode) }
-                        }
-                    }
-                    
-                    // Goal tracking star button
-                    item("goal") {
-                        CompactGoalTrackingButton(
-                            isActive = exercise.isStarTarget,
-                            accentColor = accentColor,
-                            onToggle = { onUpdateExercise { ex -> ex.copy(isStarTarget = !ex.isStarTarget) } },
-                            onOpenSheet = { showGoalSheet = true },
+                            }
                         )
                     }
 
-                    // Track ROM toggle chip
-                    item("track-rom") {
-                        DarkChoiceChip(
-                            label = "Medir ROM",
-                            selected = exercise.trackRom,
-                            accentColor = accentColor,
-                            onClick = {
-                                onUpdateExercise { current ->
-                                    current.copy(trackRom = !current.trackRom)
-                                }
-                            },
-                        )
+                    CompactModeSelector(
+                        currentMode = exercise.trainingMode,
+                        accentColor = accentColor,
+                    ) { mode ->
+                        onUpdateExercise { current -> current.copy(trainingMode = mode) }
                     }
 
-                    item("relationship") {
-                        DarkChoiceChip(
-                            label = relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar",
-                            selected = exercise.relativeToCanonicalExerciseId != null,
-                            accentColor = accentColor,
-                            modifier = Modifier.widthIn(max = 180.dp),
-                            onClick = {
-                                if (exercise.relativeToCanonicalExerciseId == null) onOpenRelationshipPicker() else onClearRelationship()
-                            },
-                        )
-                    }
+                    CompactGoalTrackingButton(
+                        isActive = exercise.isStarTarget,
+                        accentColor = accentColor,
+                        onToggle = { onUpdateExercise { ex -> ex.copy(isStarTarget = !ex.isStarTarget) } },
+                        onOpenSheet = { showGoalSheet = true },
+                    )
 
-                    item("unilateral") {
-                        UnilateralModeSelector(
-                            mode = exercise.unilateralMode,
-                            accentColor = accentColor,
-                            onToggleUnilateral = {
-                                onUpdateExercise { current -> current.toggledBilateralUnilateral() }
-                            },
-                        )
-                    }
+                    DarkChoiceChip(
+                        label = "Medir ROM",
+                        selected = exercise.trackRom,
+                        accentColor = accentColor,
+                        onClick = {
+                            onUpdateExercise { current ->
+                                current.copy(trackRom = !current.trackRom)
+                            }
+                        },
+                    )
 
-                    item("warmup") {
-                        DarkChoiceChip(
-                            label = if (exercise.warmupSets.isEmpty()) {
-                                "Aprox."
-                            } else {
-                                "Aprox. ${exercise.warmupSets.size}"
-                            },
-                            selected = exercise.warmupSets.isNotEmpty(),
-                            accentColor = accentColor,
-                            onClick = onOpenWarmup,
-                        )
-                    }
+                    DarkChoiceChip(
+                        label = relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar",
+                        selected = exercise.relativeToCanonicalExerciseId != null,
+                        accentColor = accentColor,
+                        modifier = Modifier.widthIn(max = 180.dp),
+                        onClick = {
+                            if (exercise.relativeToCanonicalExerciseId == null) onOpenRelationshipPicker() else onClearRelationship()
+                        },
+                    )
 
-                    item("mobility") {
-                        DarkChoiceChip(
-                            label = if (exercise.mobilitySeries.isEmpty()) {
-                                "Movilidad"
-                            } else {
-                                "Movilidad ${exercise.mobilitySeries.size}"
-                            },
-                            selected = exercise.mobilitySeries.isNotEmpty(),
-                            accentColor = accentColor,
-                            onClick = onOpenMobility,
-                        )
-                    }
+                    UnilateralModeSelector(
+                        mode = exercise.unilateralMode,
+                        accentColor = accentColor,
+                        onToggleUnilateral = {
+                            onUpdateExercise { current -> current.toggledBilateralUnilateral() }
+                        },
+                    )
+
+                    DarkChoiceChip(
+                        label = if (exercise.warmupSets.isEmpty()) {
+                            "Aprox."
+                        } else {
+                            "Aprox. ${exercise.warmupSets.size}"
+                        },
+                        selected = exercise.warmupSets.isNotEmpty(),
+                        accentColor = accentColor,
+                        onClick = onOpenWarmup,
+                    )
+
+                    DarkChoiceChip(
+                        label = if (exercise.mobilitySeries.isEmpty()) {
+                            "Movilidad"
+                        } else {
+                            "Movilidad ${exercise.mobilitySeries.size}"
+                        },
+                        selected = exercise.mobilitySeries.isNotEmpty(),
+                        accentColor = accentColor,
+                        onClick = onOpenMobility,
+                    )
                 }
 
                 Text(
@@ -623,7 +602,7 @@ internal fun ExerciseEditorCard(
                     ) {
                         Icon(Icons.Default.FitnessCenter, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Carga", fontWeight = FontWeight.Black)
+                        Text("Carga inteligente", fontWeight = FontWeight.Black)
                     }
                 }
 
