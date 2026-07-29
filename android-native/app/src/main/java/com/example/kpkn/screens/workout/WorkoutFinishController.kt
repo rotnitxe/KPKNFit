@@ -53,6 +53,7 @@ class WorkoutFinishController(
     private val catalogInfoForCompletedExercise: (CompletedExercise) -> ExerciseMuscleInfo?,
     private val updatePredictionBias: (SessionClosingFeedback) -> Unit,
     private val deferOnComplete: (() -> Unit) -> Unit,
+    private val prepareVoiceDiagnosticExport: () -> Unit,
 ) {
     fun finish(
         notes: String,
@@ -309,6 +310,7 @@ class WorkoutFinishController(
                         return@launch
                     }
                 }
+                prepareVoiceDiagnosticExport()
                 updateState {
                     it.copy(
                         isComplete = true,

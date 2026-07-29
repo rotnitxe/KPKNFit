@@ -30,6 +30,8 @@ class WorkoutVoiceController(
 
     private var scope: CoroutineScope? = null
     private var confirmationJob: Job? = null
+    private var voskAggregationJob: Job? = null
+    private val voskAccumulator = VoskUtteranceAccumulator()
     private var engineCollectJob: Job? = null
     private var partialCollectJob: Job? = null
     private var errorCollectJob: Job? = null
@@ -68,6 +70,50 @@ class WorkoutVoiceController(
     private var pendingUndo: VoiceUndoPayload? = null
     private var announcedTenSecondsForRest = false
     private var announcedRecoveredForRest = false
+
+    fun onVoiceSetPersisted(
+        interpretation: WorkoutVoiceInterpretation,
+        isTimeMode: Boolean,
+        isUnilateral: Boolean,
+        completedSidesBefore: Int,
+    ) {
+        WorkoutVoiceDiagnosticLogger.event(
+            "set_persistence_succeeded",
+            mapOf("interpretation" to interpretation.toString()),
+        )
+        runSpeakingOrSkip(
+            priority = WorkoutSpeechPriority.HIGH,
+            onComplete = {
+                releaseDucking()
+                resumeListening()
+            },
+            speak = {
+                if (isUnilateral && completedSidesBefore == 0) {
+                    val completedSide = interpretation.side ?: "left"
+                    val counterpart = if (completedSide == "left") "right" else "left"
+                    ttsManager.speakUnilateralSideRegistered(completedSide, counterpart)
+                } else {
+                    ttsManager.speakSetRegistered(
+                        weightKg = interpretation.weightKg,
+                        reps = interpretation.metricValue,
+                        isTimeMode = isTimeMode,
+                    )
+                }
+            },
+        )
+    }
+
+    fun onVoiceSetPersistenceFailed(message: String = "No pude registrar la serie.") {
+        WorkoutVoiceDiagnosticLogger.event("set_persistence_failed", mapOf("message" to message))
+        runSpeakingOrSkip(
+            priority = WorkoutSpeechPriority.HIGH,
+            onComplete = {
+                releaseDucking()
+                resumeListening()
+            },
+            speak = { ttsManager.speakError(message) },
+        )
+    }
 
     data class ExerciseInfo(
         val exercise: Exercise,
@@ -544,7 +590,12 @@ class WorkoutVoiceController(
             ttsManager.setOnUtteranceComplete(null)
             finish()
         }
-        speak()
+        try {
+            speak()
+        } catch (error: Exception) {
+            WorkoutVoiceDiagnosticLogger.exception("tts_exception", error)
+            finish()
+        }
     }
 
     private fun startListening() {
@@ -597,12 +648,14 @@ class WorkoutVoiceController(
         routeCollectJob = scope.launch {
             continuousEngine.activeRouteLabel.collect { route ->
                 _state.update { it.copy(activeRouteLabel = route) }
+                WorkoutVoiceDiagnosticLogger.event("audio_route_changed", mapOf("route" to route))
             }
         }
 
         fallbackCollectJob = scope.launch {
             continuousEngine.usingNativeFallback.collect { active ->
                 _state.update { it.copy(usingNativeFallback = active) }
+                WorkoutVoiceDiagnosticLogger.event("native_fallback_changed", mapOf("active" to active))
             }
         }
 
@@ -685,7 +738,23 @@ class WorkoutVoiceController(
         lastHypothesisConfidence = best.confidence
         lastHypothesisConfidenceKnown = best.confidenceKnown
         lastInstantPartialKey = null
-        handleFinalResult(best.text)
+        if (best.confidenceKnown) {
+            voskAggregationJob?.cancel()
+            voskAccumulator.clear()
+            handleFinalResult(best.text)
+            return
+        }
+        val combined = voskAccumulator.append(best.text)
+        WorkoutVoiceDiagnosticLogger.event(
+            "vosk_fragment",
+            mapOf("fragment" to best.text, "combined" to combined),
+        )
+        voskAggregationJob?.cancel()
+        voskAggregationJob = scope?.launch {
+            delay(VOSK_FRAGMENT_GRACE_MS)
+            val utterance = voskAccumulator.consume()
+            if (utterance.isNotBlank()) handleFinalResult(utterance)
+        }
     }
 
     private fun maybeHandleInstantPartial(text: String) {
@@ -734,6 +803,17 @@ class WorkoutVoiceController(
 
     private fun handleFinalResult(text: String) {
         val s = _state.value
+        WorkoutVoiceDiagnosticLogger.event(
+            "asr_final",
+            mapOf(
+                "transcript" to text,
+                "confidence" to lastHypothesisConfidence,
+                "confidenceKnown" to lastHypothesisConfidenceKnown,
+                "nativeFallback" to s.usingNativeFallback,
+                "route" to s.activeRouteLabel,
+                "stage" to s.stage.name,
+            ),
+        )
         if (!WorkoutVoiceSessionGate.shouldAcceptFinalResult(s.stage)) return
 
         if (s.stage == VoicePipelineStage.CONFIRM_WAIT) {
@@ -797,6 +877,16 @@ class WorkoutVoiceController(
                 cmd
             }
         }
+
+        WorkoutVoiceDiagnosticLogger.event(
+            "command_parsed",
+            mapOf(
+                "commandType" to command.javaClass.simpleName,
+                "command" to command.toString(),
+                "exerciseId" to exerciseInfo?.exercise?.id,
+                "setIndex" to exerciseInfo?.setIndex,
+            ),
+        )
 
         publishHeardSummary(command)
 
@@ -1116,41 +1206,14 @@ class WorkoutVoiceController(
             return
         }
 
-        val info = exerciseInfoProvider?.invoke()
-        val isUnilateral = info?.isUnilateral == true
-        val completedSidesBefore = info?.completedSidesCount ?: 0
-
-        onCommandDetected?.invoke(VoiceSessionCommand.RegisterSet(interpretation))
-
-        runSpeakingOrSkip(
-            onComplete = {
-                releaseDucking()
-                resumeListening()
-            },
-            speak = {
-                if (isUnilateral) {
-                    val completedSide = interpretation.side ?: "left"
-                    val counterpart = if (completedSide == "left") "right" else "left"
-                    if (completedSidesBefore == 0) {
-                        ttsManager.speakUnilateralSideRegistered(completedSide, counterpart)
-                    } else {
-                        ttsManager.speakSetRegistered(
-                            weightKg = interpretation.weightKg,
-                            reps = interpretation.metricValue,
-                            isTimeMode = info.isTimeMode,
-                        )
-                    }
-                } else {
-                    ttsManager.speakSetRegistered(
-                        weightKg = interpretation.weightKg,
-                        reps = interpretation.metricValue,
-                        isTimeMode = info?.isTimeMode ?: false,
-                    )
-                }
-            },
-        )
+        updateStage(VoicePipelineStage.PROCESSING)
+        try {
+            onCommandDetected?.invoke(VoiceSessionCommand.RegisterSet(interpretation))
+        } catch (error: Exception) {
+            WorkoutVoiceDiagnosticLogger.exception("set_dispatch_exception", error)
+            onVoiceSetPersistenceFailed()
+        }
     }
-
     private fun doCancel() {
         if (confirmedOrCancelled) return
         confirmedOrCancelled = true
@@ -1264,6 +1327,9 @@ class WorkoutVoiceController(
         confirmationJob = null
         utteranceWatchdogJob?.cancel()
         utteranceWatchdogJob = null
+        voskAggregationJob?.cancel()
+        voskAggregationJob = null
+        voskAccumulator.clear()
     }
 
     private fun resetState() {
@@ -1281,6 +1347,7 @@ class WorkoutVoiceController(
 
     private fun updateStage(stage: VoicePipelineStage) {
         _state.update { it.copy(stage = stage) }
+        WorkoutVoiceDiagnosticLogger.event("pipeline_stage_changed", mapOf("stage" to stage.name))
         onStageChanged?.invoke(stage)
         maybeHapticForStage(stage)
     }
@@ -1354,4 +1421,7 @@ class WorkoutVoiceController(
             pendingUnilateralSide = pendingUnilateralSide,
             exerciseAliases = setOf(exercise.name),
         )
+    private companion object {
+        const val VOSK_FRAGMENT_GRACE_MS = 1_500L
+    }
 }

@@ -10,6 +10,19 @@ import org.junit.Test
 class WorkoutVoiceInputTest {
 
     @Test
+    fun parses_reps_weight_and_rir_in_natural_spoken_order() {
+        val result = parseWorkoutVoiceTranscript(
+            transcript = "5 repeticiones 50 kilos rir 1",
+            isTimeMode = false,
+            isUnilateral = false,
+        )
+
+        assertEquals(5, result?.metricValue)
+        assertEquals(50.0, result?.weightKg ?: 0.0, 0.0)
+        assertEquals(1.0, result?.intensityValue ?: 0.0, 0.0)
+        assertEquals(WorkoutVoiceIntensityKind.RIR, result?.intensityKind)
+    }
+    @Test
     fun parses_connected_weight_metric_and_rpe() {
         val result = parseWorkoutVoiceTranscript(
             transcript = "80 por 8 rpe 9",

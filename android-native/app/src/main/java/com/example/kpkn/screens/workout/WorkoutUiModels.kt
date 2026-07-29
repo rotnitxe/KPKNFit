@@ -92,6 +92,7 @@ data class WorkoutUiState(
     val mobilityCompletedExerciseIds: Set<String> = emptySet(),
     val startTimeMs: Long = System.currentTimeMillis(),
     val isComplete: Boolean = false,
+    val pendingVoiceDiagnosticExportName: String? = null,
     // Tanda 1: tags, history
     val exerciseTags: Map<String, String> = emptyMap(),   // exerciseId → active tag (legacy compat)
     val activeTagsByExercise: Map<String, List<String>> = emptyMap(), // exerciseId → active main tag IDs

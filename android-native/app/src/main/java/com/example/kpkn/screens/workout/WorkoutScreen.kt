@@ -217,6 +217,10 @@ fun WorkoutScreen(
             }
         }
     )
+    val voiceDiagnosticExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/x-ndjson"),
+        onResult = viewModel::completeVoiceDiagnosticExport,
+    )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val session = uiState.session
@@ -269,9 +273,13 @@ fun WorkoutScreen(
         }
     }
 
-    // Auto-navigate to Home immediately once persistence marks the workout complete.
-    LaunchedEffect(uiState.isComplete) {
-        if (uiState.isComplete) {
+    LaunchedEffect(uiState.pendingVoiceDiagnosticExportName) {
+        uiState.pendingVoiceDiagnosticExportName?.let(voiceDiagnosticExportLauncher::launch)
+    }
+
+    // Navigation waits until the user saves or cancels the voice diagnostic export.
+    LaunchedEffect(uiState.isComplete, uiState.pendingVoiceDiagnosticExportName) {
+        if (uiState.isComplete && uiState.pendingVoiceDiagnosticExportName == null) {
             onComplete()
         }
     }

@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -27,6 +28,7 @@ import com.example.kpkn.services.workout.ActiveWorkoutHolder
 import com.example.kpkn.services.workout.TimerAction
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.services.workout.WorkoutVoiceController
+import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLogger
 import com.example.kpkn.services.workout.WorkoutTtsManager
 import com.example.kpkn.services.workout.VoiceSessionCommand
 import com.example.kpkn.services.workout.VoiceSessionState
@@ -78,6 +80,7 @@ class WorkoutViewModel(
 
     private val repository = ProgramRepository.getInstance()
     private var deferredOnComplete: (() -> Unit)? = null
+    private var pendingVoiceDiagnosticOnComplete: (() -> Unit)? = null
     private val exerciseIndex by lazy {
         val base = com.example.kpkn.data.exercises.EXERCISE_DATABASE.associateBy { it.id.lowercase() }
         val aliases = com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES.mapNotNull { (alias, canonical) ->
@@ -246,6 +249,7 @@ class WorkoutViewModel(
         catalogInfoForCompletedExercise = ::catalogInfoForCompletedExercise,
         updatePredictionBias = ::updatePredictionBiasFromClosingFeedback,
         deferOnComplete = { cb -> deferredOnComplete = cb },
+        prepareVoiceDiagnosticExport = ::prepareVoiceDiagnosticExport,
     )
 
     private val structuralPersistence = WorkoutStructuralPersistenceController(
@@ -1128,12 +1132,18 @@ class WorkoutViewModel(
     ) = voiceCommandHandler.confirmVoiceInput(exerciseId, setIdx, side, isTimeMode, baseIntensityMode)
 
 
-    fun toggleVoiceSession() = voiceCommandHandler.toggleVoiceSession()
+    fun toggleVoiceSession() {
+        if (_uiState.value.voiceSessionEnabled) disableVoice() else enableVoice()
+    }
 
 
     fun enableVoice() = run {
         val settingsBeforeEnable = repository.settings.value
+        WorkoutVoiceDiagnosticLogger.initialize(appContext)
+        WorkoutVoiceDiagnosticLogger.start(programId, sessionId)
+        WorkoutVoiceDiagnosticLogger.event("voice_enable_requested")
         voiceCommandHandler.enableVoice()
+        WorkoutVoiceDiagnosticLogger.event("voice_enable_result", mapOf("enabled" to voiceController.isEnabled()))
         if (voiceController.isEnabled()) {
             val needsTutorial =
                 settingsBeforeEnable.voiceTutorialVersionSeen < HYBRID_VOICE_TUTORIAL_VERSION
@@ -1149,7 +1159,34 @@ class WorkoutViewModel(
     }
 
 
-    fun disableVoice() = voiceCommandHandler.disableVoice()
+    fun disableVoice() {
+        WorkoutVoiceDiagnosticLogger.event("voice_disable_requested")
+        voiceCommandHandler.disableVoice()
+    }
+
+    private fun prepareVoiceDiagnosticExport() {
+        if (!WorkoutVoiceDiagnosticLogger.isActive()) return
+        WorkoutVoiceDiagnosticLogger.event("workout_completed")
+        _uiState.update {
+            it.copy(pendingVoiceDiagnosticExportName = WorkoutVoiceDiagnosticLogger.suggestedFileName())
+        }
+    }
+
+    fun completeVoiceDiagnosticExport(uri: Uri?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val exported = uri?.let(WorkoutVoiceDiagnosticLogger::exportTo) ?: false
+            WorkoutVoiceDiagnosticLogger.event(
+                if (uri == null) "export_cancelled" else if (exported) "export_succeeded" else "export_failed",
+            )
+            WorkoutVoiceDiagnosticLogger.close(if (exported) "exported" else "export_not_completed")
+            withContext(Dispatchers.Main) {
+                val callback = pendingVoiceDiagnosticOnComplete
+                pendingVoiceDiagnosticOnComplete = null
+                callback?.invoke()
+                _uiState.update { it.copy(pendingVoiceDiagnosticExportName = null) }
+            }
+        }
+    }
 
     fun beginVoicePushToTalk() = voiceController.beginPushToTalk()
 
@@ -2406,7 +2443,13 @@ class WorkoutViewModel(
             fatigueLevel = fatigueLevel,
             closingFeedback = closingFeedback,
             onPendingQuestionnaire = onPendingQuestionnaire,
-            onComplete = onComplete,
+            onComplete = {
+                if (_uiState.value.pendingVoiceDiagnosticExportName != null) {
+                    pendingVoiceDiagnosticOnComplete = onComplete
+                } else {
+                    onComplete()
+                }
+            },
         )
     }
 
@@ -2454,6 +2497,7 @@ class WorkoutViewModel(
             withContext(Dispatchers.Main) {
                 val cb = deferredOnComplete
                 deferredOnComplete = null
+                prepareVoiceDiagnosticExport()
                 _uiState.update { it.copy(
                     pendingVolumeAdvances = emptyList(),
                     showVolumeAdvanceModal = false,
@@ -2468,6 +2512,7 @@ class WorkoutViewModel(
     fun dismissVolumeAdvance() {
         val cb = deferredOnComplete
         deferredOnComplete = null
+        prepareVoiceDiagnosticExport()
         _uiState.update { it.copy(
             pendingVolumeAdvances = emptyList(),
             showVolumeAdvanceModal = false,

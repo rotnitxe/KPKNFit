@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import android.content.Context
+import android.util.Log
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.PostExerciseFeedback
@@ -11,11 +12,13 @@ import com.example.kpkn.services.workout.VoiceSessionCommand
 import com.example.kpkn.services.workout.VoicePipelineStage
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.services.workout.WorkoutVoiceController
+import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLogger
 import com.example.kpkn.services.workout.WorkoutVoiceExerciseAliasMatcher
 import com.example.kpkn.services.workout.WorkoutVoiceForegroundService
 import com.example.kpkn.services.workout.WorkoutVoicePermissionHelper
 import com.example.kpkn.services.workout.WorkoutVoiceRuntime
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -618,6 +621,13 @@ class WorkoutVoiceCommandHandler(
         val exercise = allExercises.getOrNull(state.currentExerciseIdx) ?: return
         val setIdx = state.currentSetIdx
         val side = if (exercise.isEffectivelyUnilateral()) interpretation.side else null
+        val completedSidesBefore = if (exercise.isEffectivelyUnilateral()) {
+            listOf("L", "R").count { suffix ->
+                state.completedSets.containsKey("${exercise.id}_${setIdx}_$suffix")
+            }
+        } else {
+            0
+        }
 
         val isTimeMode = exercise.trainingMode == TrainingMode.TIME
         val baseIntensityMode = exercise.sets.getOrNull(setIdx)?.intensityMode
@@ -654,48 +664,57 @@ class WorkoutVoiceCommandHandler(
             val weight = interpretation.weightKg
             val reps = interpretation.metricValue
             if (weight == null || weight <= 0.0 || reps == null || reps <= 0) {
+                voiceController.onVoiceSetPersistenceFailed("Faltan carga o repeticiones para registrar.")
                 return@launch
             }
-            val intensity = interpretation.intensityValue
-
-            ports.recordSetV2(
-                weight = weight,
-                value = reps.toDouble(),
-                intensity = intensity,
-                advanced = buildVoiceAdvancedFeedback(interpretation),
-                side = resolvedSide,
+            WorkoutVoiceDiagnosticLogger.event(
+                "set_persistence_started",
+                mapOf(
+                    "exerciseId" to exercise.id,
+                    "setIndex" to setIdx,
+                    "side" to resolvedSide,
+                    "interpretation" to interpretation.toString(),
+                ),
             )
+            try {
+                ports.recordSetV2(
+                    weight = weight,
+                    value = reps.toDouble(),
+                    intensity = interpretation.intensityValue,
+                    advanced = buildVoiceAdvancedFeedback(interpretation),
+                    side = resolvedSide,
+                )
+                val expectedKey = when (resolvedSide) {
+                    "left" -> "${exercise.id}_${setIdx}_L"
+                    "right" -> "${exercise.id}_${setIdx}_R"
+                    else -> "${exercise.id}_$setIdx"
+                }
+                if (getState().completedSets.containsKey(expectedKey)) {
+                    voiceController.onVoiceSetPersisted(
+                        interpretation = interpretation.copy(side = resolvedSide),
+                        isTimeMode = isTimeMode,
+                        isUnilateral = exercise.isEffectivelyUnilateral(),
+                        completedSidesBefore = completedSidesBefore,
+                    )
+                } else {
+                    voiceController.onVoiceSetPersistenceFailed()
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Log.e("WorkoutVoiceCommand", "Voice set persistence failed", error)
+                WorkoutVoiceDiagnosticLogger.exception(
+                    "set_persistence_exception",
+                    error,
+                    mapOf("exerciseId" to exercise.id, "setIndex" to setIdx, "side" to resolvedSide),
+                )
+                voiceController.onVoiceSetPersistenceFailed()
+            }
         }
     }
 
     private fun handleVoiceConfirmSet() {
-        val state = getState()
-        val allExercises = ports.visibleExercises(state)
-        val exercise = allExercises.getOrNull(state.currentExerciseIdx) ?: return
-        val interpretation = voiceController.state.value.lastInterpretation ?: return
-
-        scope.launch {
-            val weight = interpretation.weightKg
-            val reps = interpretation.metricValue
-            if (weight == null || weight <= 0.0 || reps == null || reps <= 0) {
-                return@launch
-            }
-            val intensity = interpretation.intensityValue
-
-            ports.recordSetV2(
-                weight = weight,
-                value = reps.toDouble(),
-                intensity = intensity,
-                advanced = buildVoiceAdvancedFeedback(interpretation),
-                side = interpretation.side,
-            )
-
-            updateState {
-                it.copy(
-                    voiceSessionState = voiceController.state.value,
-                )
-            }
-        }
+        voiceController.state.value.lastInterpretation?.let(::handleVoiceRegisterSet)
     }
 
     private fun buildVoiceAdvancedFeedback(interpretation: WorkoutVoiceInterpretation): SetAdvancedFeedback {
