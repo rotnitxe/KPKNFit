@@ -168,4 +168,16 @@ class WorkoutVoiceInputTest {
         assertTrue(enabled?.fields?.contains(WorkoutVoiceField.ROM) == true)
         assertNull(disabled?.romPercent)
     }
+
+    @Test
+    fun parsesObservedVoskRirAliasFromDiagnostic() {
+        val parsed = parseWorkoutVoiceTranscript(
+            "cien kilos seis repeticiones ritmo cero",
+            isTimeMode = false,
+            isUnilateral = false,
+        )
+
+        assertEquals(WorkoutVoiceIntensityKind.RIR, parsed?.intensityKind)
+        assertEquals(0.0, parsed?.intensityValue ?: -1.0, 0.0)
+    }
 }

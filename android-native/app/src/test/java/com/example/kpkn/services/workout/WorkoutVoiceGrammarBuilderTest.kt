@@ -57,6 +57,24 @@ class WorkoutVoiceGrammarBuilderTest {
         assertTrue(!grammar.contains("\"rpe\""))
         assertTrue(!grammar.contains("\"reps\""))
         assertTrue(grammar.contains("\"esfuerzo\"") || grammar.contains("\"repeticiones\""))
+        assertTrue(grammar.contains("\"ritmo\""))
+    }
+
+    @Test
+    fun listeningGrammarExcludesRomWhenExerciseDoesNotTrackIt() {
+        val disabled = WorkoutVoiceGrammarBuilder.build(
+            stage = VoicePipelineStage.LISTENING,
+            context = VoiceCommandContext(trackRom = false),
+        )
+        val enabled = WorkoutVoiceGrammarBuilder.build(
+            stage = VoicePipelineStage.LISTENING,
+            context = VoiceCommandContext(trackRom = true),
+        )
+
+        assertTrue(!disabled.contains("\"rom\""))
+        assertTrue(!disabled.contains("\"rango\""))
+        assertTrue(!disabled.contains("\"recorrido\""))
+        assertTrue(enabled.contains("\"rom\""))
     }
 
     @Test

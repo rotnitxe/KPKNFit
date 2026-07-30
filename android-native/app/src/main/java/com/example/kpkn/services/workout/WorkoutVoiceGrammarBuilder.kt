@@ -14,7 +14,9 @@ object WorkoutVoiceGrammarBuilder {
             stage = stage,
             includeFeedback =
                 context?.showFinishSheet == true || context?.showPostExerciseSheet == true,
-        ).forEach { token ->
+        ).filterNot { token ->
+            context?.trackRom != true && token.lowercase() in ROM_COMPONENTS
+        }.forEach { token ->
             expandForVosk(token).forEach { tokens += it }
         }
         context?.exercise?.name
@@ -49,8 +51,13 @@ object WorkoutVoiceGrammarBuilder {
         if (stage != VoicePipelineStage.CONFIRM_WAIT) {
             val numericWords = WorkoutVoiceCommandParser.defaultNumericGrammarTokens()
                 .filter { token -> token !in NON_NUMERIC_COMPONENTS && ' ' !in token }
+            val metricComponents = if (context?.trackRom == true) {
+                METRIC_COMPONENTS
+            } else {
+                METRIC_COMPONENTS - ROM_COMPONENTS
+            }
             numericWords.forEach { number ->
-                METRIC_COMPONENTS.forEach { metric -> phrases += "$number $metric" }
+                metricComponents.forEach { metric -> phrases += "$number $metric" }
                 INTENSITY_COMPONENTS.forEach { intensity -> phrases += "$intensity $number" }
             }
             context?.tagNames.orEmpty().forEach { tag ->
@@ -94,7 +101,8 @@ object WorkoutVoiceGrammarBuilder {
     private val METRIC_COMPONENTS = setOf(
         "repeticiones", "segundos", "minutos", "kilos", "metros", "kilómetros", "millas", "unidades", "rom",
     )
-    private val INTENSITY_COMPONENTS = setOf("esfuerzo", "intensidad", "reservas", "porcentaje")
+    private val ROM_COMPONENTS = setOf("rom", "rango", "recorrido")
+    private val INTENSITY_COMPONENTS = setOf("esfuerzo", "intensidad", "reservas", "ritmo", "porcentaje")
     private val NON_NUMERIC_COMPONENTS = METRIC_COMPONENTS + INTENSITY_COMPONENTS + setOf(
         "punto", "coma", "medio", "media", "kilo", "peso", "carga", "repeticion", "repetición",
         "segundo", "minuto", "metro", "kilometro", "milla", "unidad", "caloria", "calorías", "vuelta",

@@ -192,7 +192,7 @@ object WorkoutVoiceCommandParser {
         addAll(VOICE_INTEGER_WORDS.keys)
         addAll(setOf("punto", "coma", "medio", "media", "kilo", "kilos", "peso", "carga"))
         addAll(setOf("repeticion", "repetición", "repeticiones", "segundo", "segundos"))
-        addAll(setOf("minuto", "minutos", "esfuerzo", "intensidad", "reservas", "porcentaje", "por"))
+        addAll(setOf("minuto", "minutos", "esfuerzo", "intensidad", "reservas", "ritmo", "porcentaje", "por"))
         addAll(setOf("metro", "metros", "kilometro", "kilómetros", "milla", "millas"))
         addAll(setOf("unidad", "unidades", "caloria", "calorías", "vuelta", "vueltas", "etiqueta"))
         addAll(setOf("rom", "rango", "recorrido"))

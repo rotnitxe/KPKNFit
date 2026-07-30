@@ -751,23 +751,12 @@ class WorkoutVoiceController(
         captureCollectJob = scope.launch {
             continuousEngine.captureState.collect { capture ->
                 if (!sessionWanted) return@collect
-                when (capture) {
-                    VoiceCaptureState.STARTING -> updateStage(VoicePipelineStage.RECONNECTING)
-                    VoiceCaptureState.MIC_BUSY -> updateStage(VoicePipelineStage.MIC_BUSY)
-                    VoiceCaptureState.ERROR_RECOVERY -> updateStage(VoicePipelineStage.ERROR_RECOVERY)
-                    VoiceCaptureState.FAILED -> {
-                        sessionWanted = false
-                        updateStage(VoicePipelineStage.FAILED)
-                    }
-                    VoiceCaptureState.RECONNECTING -> updateStage(VoicePipelineStage.RECONNECTING)
-                    VoiceCaptureState.LISTENING -> {
-                        if (_state.value.stage == VoicePipelineStage.MIC_BUSY ||
-                            _state.value.stage == VoicePipelineStage.RECONNECTING
-                        ) {
-                            updateStage(VoicePipelineStage.LISTENING)
-                        }
-                    }
-                    VoiceCaptureState.IDLE -> Unit
+                if (capture == VoiceCaptureState.FAILED) sessionWanted = false
+                WorkoutVoiceSessionGate.stageAfterCaptureEvent(
+                    current = _state.value.stage,
+                    capture = capture,
+                )?.let { nextStage ->
+                    updateStage(nextStage)
                 }
             }
         }
@@ -1059,7 +1048,11 @@ class WorkoutVoiceController(
             metricDecimalValue = interpretation.metricDecimalValue ?: draftMetric,
             intensityValue = interpretation.intensityValue ?: draftIntensity,
             reachedFailure = interpretation.reachedFailure || draft?.reachedFailure == true,
-            romPercent = interpretation.romPercent ?: draft?.rom,
+            romPercent = if (exerciseInfo?.trackRom == true) {
+                interpretation.romPercent ?: draft?.rom
+            } else {
+                null
+            },
         )
         _state.update {
             it.copy(
@@ -1133,6 +1126,13 @@ class WorkoutVoiceController(
     }
 
     private fun handleConfirmInput(text: String) {
+        WorkoutVoiceDiagnosticLogger.event(
+            "confirmation_input_received",
+            mapOf(
+                "transcript" to text,
+                "stage" to _state.value.stage.name,
+            ),
+        )
         if (_state.value.pendingAddSetPersistence) {
             handleAddSetPersistenceInput(text)
             return
@@ -1386,10 +1386,22 @@ class WorkoutVoiceController(
 
     private fun startEngineForCurrentInputMode(activeScope: CoroutineScope) {
         continuousEngine.updateCommandContext(currentVoiceContext(), _state.value.stage)
-        continuousEngine.start(
-            scope = activeScope,
-            holdMicRouteAcrossPause = !isPushToTalkMode(),
+        WorkoutVoiceDiagnosticLogger.event(
+            "confirmation_rearm_requested",
+            mapOf(
+                "stage" to _state.value.stage.name,
+                "engineActive" to continuousEngine.isActive,
+                "captureState" to continuousEngine.captureState.value.name,
+            ),
         )
+        if (!continuousEngine.isActive) {
+            continuousEngine.start(
+                scope = activeScope,
+                holdMicRouteAcrossPause = !isPushToTalkMode(),
+            )
+        } else {
+            continuousEngine.resumeDecoderAfterTts(0L)
+        }
     }
 
     private fun requestDucking() {

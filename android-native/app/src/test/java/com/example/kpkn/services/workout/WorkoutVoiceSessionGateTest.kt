@@ -61,6 +61,46 @@ class WorkoutVoiceSessionGateTest {
     }
 
     @Test
+    fun captureReconnectCannotErasePendingConfirmation() {
+        assertNull(
+            WorkoutVoiceSessionGate.stageAfterCaptureEvent(
+                current = VoicePipelineStage.CONFIRM_WAIT,
+                capture = VoiceCaptureState.STARTING,
+            ),
+        )
+        assertNull(
+            WorkoutVoiceSessionGate.stageAfterCaptureEvent(
+                current = VoicePipelineStage.CONFIRM_WAIT,
+                capture = VoiceCaptureState.RECONNECTING,
+            ),
+        )
+        assertNull(
+            WorkoutVoiceSessionGate.stageAfterCaptureEvent(
+                current = VoicePipelineStage.CONFIRM_WAIT,
+                capture = VoiceCaptureState.LISTENING,
+            ),
+        )
+    }
+
+    @Test
+    fun captureEventsStillDriveTransportStagesWhileListening() {
+        assertEquals(
+            VoicePipelineStage.RECONNECTING,
+            WorkoutVoiceSessionGate.stageAfterCaptureEvent(
+                current = VoicePipelineStage.LISTENING,
+                capture = VoiceCaptureState.STARTING,
+            ),
+        )
+        assertEquals(
+            VoicePipelineStage.FAILED,
+            WorkoutVoiceSessionGate.stageAfterCaptureEvent(
+                current = VoicePipelineStage.CONFIRM_WAIT,
+                capture = VoiceCaptureState.FAILED,
+            ),
+        )
+    }
+
+    @Test
     fun confirmWaitTimeoutIsEightSeconds() {
         assertEquals(8_000L, WorkoutVoiceSessionGate.CONFIRM_WAIT_TIMEOUT_MS)
     }

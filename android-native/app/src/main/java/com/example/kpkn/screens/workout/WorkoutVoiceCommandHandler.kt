@@ -254,7 +254,17 @@ class WorkoutVoiceCommandHandler(
         if (confirmation.exerciseId != exerciseId || confirmation.setIdx != setIdx || confirmation.side != side) return
 
         val draft = ports.getSetDraft(exerciseId, setIdx, side) ?: WorkoutSetDraft(selectedSide = side)
-        val interpretation = confirmation.interpretation
+        val tracksRom = ports.visibleExercises(getState())
+            .firstOrNull { exercise -> exercise.id == exerciseId }
+            ?.trackRom == true
+        val interpretation = if (tracksRom) {
+            confirmation.interpretation
+        } else {
+            confirmation.interpretation.copy(
+                romPercent = null,
+                fields = confirmation.interpretation.fields - WorkoutVoiceField.ROM,
+            )
+        }
         val resolvedSide = interpretation.side ?: side ?: draft.selectedSide
         val nextDraft = draft.copy(
             weightText = interpretation.weightKg?.toTrimmedNumberString() ?: draft.weightText,
@@ -262,7 +272,7 @@ class WorkoutVoiceCommandHandler(
             intensityText = workoutVoiceIntensityText(interpretation, baseIntensityMode).ifBlank { draft.intensityText.orEmpty() },
             selectedSide = resolvedSide,
             reachedFailure = if (WorkoutVoiceField.FAILURE in interpretation.fields) interpretation.reachedFailure else draft.reachedFailure,
-            rom = interpretation.romPercent ?: draft.rom,
+            rom = if (tracksRom) interpretation.romPercent ?: draft.rom else null,
             voiceFields = draft.voiceFields + interpretation.fields,
             isDirty = true,
         )
@@ -630,20 +640,28 @@ class WorkoutVoiceCommandHandler(
     private fun handleVoiceRegisterSet(interpretation: WorkoutVoiceInterpretation) {
         val state = getState()
         val exercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
+        val acceptedInterpretation = if (exercise.trackRom) {
+            interpretation
+        } else {
+            interpretation.copy(
+                romPercent = null,
+                fields = interpretation.fields - WorkoutVoiceField.ROM,
+            )
+        }
         val setIdx = state.currentSetIdx
-        val side = if (exercise.isEffectivelyUnilateral()) interpretation.side else null
+        val side = if (exercise.isEffectivelyUnilateral()) acceptedInterpretation.side else null
         val unitMode = ports.inferUnitMode(exercise, setIdx)
         val loadMode = ports.effectiveLoadModeForExercise(exercise, setIdx)
         val draft = ports.getSetDraft(exercise.id, setIdx, side) ?: WorkoutSetDraft(selectedSide = side)
-        val resolvedSide = interpretation.side ?: side ?: draft.selectedSide
+        val resolvedSide = acceptedInterpretation.side ?: side ?: draft.selectedSide
         val nextDraft = draft.copy(
-            weightText = interpretation.weightKg?.toTrimmedNumberString() ?: draft.weightText,
-            valueText = interpretation.resolvedMetricValue?.toTrimmedNumberString() ?: draft.valueText,
-            intensityText = workoutVoiceIntensityText(interpretation, exercise.sets.getOrNull(setIdx)?.intensityMode).ifBlank { draft.intensityText.orEmpty() },
+            weightText = acceptedInterpretation.weightKg?.toTrimmedNumberString() ?: draft.weightText,
+            valueText = acceptedInterpretation.resolvedMetricValue?.toTrimmedNumberString() ?: draft.valueText,
+            intensityText = workoutVoiceIntensityText(acceptedInterpretation, exercise.sets.getOrNull(setIdx)?.intensityMode).ifBlank { draft.intensityText.orEmpty() },
             selectedSide = resolvedSide,
-            reachedFailure = if (WorkoutVoiceField.FAILURE in interpretation.fields) interpretation.reachedFailure else draft.reachedFailure,
-            rom = interpretation.romPercent ?: draft.rom,
-            voiceFields = draft.voiceFields + interpretation.fields,
+            reachedFailure = if (WorkoutVoiceField.FAILURE in acceptedInterpretation.fields) acceptedInterpretation.reachedFailure else draft.reachedFailure,
+            rom = if (exercise.trackRom) acceptedInterpretation.romPercent ?: draft.rom else null,
+            voiceFields = draft.voiceFields + acceptedInterpretation.fields,
             isDirty = true,
         )
         if (resolvedSide != side) ports.clearDraftForSet(exercise.id, setIdx, side)
@@ -651,11 +669,11 @@ class WorkoutVoiceCommandHandler(
         updateState { it.copy(
             voiceSessionState = voiceController.state.value,
             voiceUiState = WorkoutVoiceUiState.Applied(
-                exercise.id, setIdx, resolvedSide, interpretation,
-                workoutVoiceAppliedMessage(interpretation, unitMode == UnitModeV2.TIME),
+                exercise.id, setIdx, resolvedSide, acceptedInterpretation,
+                workoutVoiceAppliedMessage(acceptedInterpretation, unitMode == UnitModeV2.TIME),
             ),
         ) }
-        scope.launch { persistVoiceSet(exercise, setIdx, resolvedSide, interpretation, nextDraft, unitMode, loadMode) }
+        scope.launch { persistVoiceSet(exercise, setIdx, resolvedSide, acceptedInterpretation, nextDraft, unitMode, loadMode) }
     }
 
     private suspend fun persistVoiceSet(

@@ -54,6 +54,31 @@ object WorkoutVoiceSessionGate {
         return EnableAction.START_LISTENING
     }
 
+    /**
+     * Capture callbacks describe the microphone transport, not the active conversation.
+     * A reconnect/start callback must never erase a pending confirmation or a TTS/persist step.
+     */
+    fun stageAfterCaptureEvent(
+        current: VoicePipelineStage,
+        capture: VoiceCaptureState,
+    ): VoicePipelineStage? {
+        if (capture == VoiceCaptureState.FAILED) return VoicePipelineStage.FAILED
+        if (current == VoicePipelineStage.CONFIRM_WAIT ||
+            current == VoicePipelineStage.TTS_SPEAKING ||
+            current == VoicePipelineStage.PROCESSING
+        ) {
+            return null
+        }
+        return when (capture) {
+            VoiceCaptureState.STARTING, VoiceCaptureState.RECONNECTING -> VoicePipelineStage.RECONNECTING
+            VoiceCaptureState.MIC_BUSY -> VoicePipelineStage.MIC_BUSY
+            VoiceCaptureState.ERROR_RECOVERY -> VoicePipelineStage.ERROR_RECOVERY
+            VoiceCaptureState.LISTENING -> VoicePipelineStage.LISTENING
+            VoiceCaptureState.IDLE -> null
+            VoiceCaptureState.FAILED -> VoicePipelineStage.FAILED
+        }
+    }
+
     fun shouldAcceptFinalResult(stage: VoicePipelineStage): Boolean {
         return stage != VoicePipelineStage.DISABLED &&
             stage != VoicePipelineStage.ARMED &&

@@ -7,7 +7,7 @@ package com.example.kpkn.services.workout
 internal object WorkoutVoiceGrammarLexicon {
     val wordExpansions: Map<String, List<String>> = mapOf(
         "rpe" to listOf("esfuerzo", "intensidad"),
-        "rir" to listOf("reservas"),
+        "rir" to listOf("reservas", "ritmo"),
         "rm" to listOf("maximo", "máximo"),
         "rep" to listOf("repeticion", "repetición", "repeticiones"),
         "reps" to listOf("repeticiones"),
