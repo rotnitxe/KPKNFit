@@ -69,7 +69,7 @@ object WorkoutVoiceDiagnosticStorage {
             .getString(KEY_TREE_LABEL, null)
 
     fun createJsonl(context: Context, displayName: String): Uri? =
-        createDocument(context.applicationContext, displayName, "application/json")
+        createDocument(context.applicationContext, displayName, "application/x-ndjson")
 
     fun appendLine(context: Context, documentUri: Uri, line: String) {
         val appContext = context.applicationContext
@@ -93,7 +93,8 @@ object WorkoutVoiceDiagnosticStorage {
             files.filter(File::exists).forEach { source ->
                 runCatching {
                     val mime = when (source.extension.lowercase()) {
-                        "json", "jsonl" -> "application/json"
+                        "jsonl" -> "application/x-ndjson"
+                        "json" -> "application/json"
                         else -> "application/octet-stream"
                     }
                     val target = createDocument(appContext, source.name, mime)

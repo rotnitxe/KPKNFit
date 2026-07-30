@@ -1,5 +1,9 @@
 package com.example.kpkn.screens.settings
 
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -7,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -43,6 +49,7 @@ import com.example.kpkn.screens.settings.components.SettingsSegmentedButtonItem
 import com.example.kpkn.screens.settings.components.SettingsSliderItem
 import com.example.kpkn.screens.settings.components.SettingsSwitchItem
 import com.example.kpkn.screens.settings.components.SettingsTextFieldItem
+import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticStorage
 import java.text.Normalizer
 import java.util.Locale
 
@@ -52,11 +59,32 @@ fun SettingsTrainingScreen(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = viewModel { SettingsViewModel() },
 ) {
+    val context = LocalContext.current
     val settings by viewModel.settings.collectAsState()
     val weightUnitLabel = settings.weightUnit.name
     var aliasNickname by remember { mutableStateOf("") }
     var aliasExerciseQuery by remember { mutableStateOf("") }
     var aliasError by remember { mutableStateOf<String?>(null) }
+    var voiceDiagnosticsFolder by remember {
+        mutableStateOf(WorkoutVoiceDiagnosticStorage.configuredLabel(context))
+    }
+    val voiceDiagnosticsFolderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree(),
+    ) { uri: Uri? ->
+        uri ?: return@rememberLauncherForActivityResult
+        WorkoutVoiceDiagnosticStorage.configure(context, uri)
+            .onSuccess { label ->
+                voiceDiagnosticsFolder = label
+                Toast.makeText(context, "JSONL de voz se guardarán en $label", Toast.LENGTH_LONG).show()
+            }
+            .onFailure { error ->
+                Toast.makeText(
+                    context,
+                    "No se pudo usar la carpeta: ${error.message ?: "error desconocido"}",
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+    }
 
     Scaffold(
         topBar = {
@@ -175,6 +203,33 @@ fun SettingsTrainingScreen(
                         steps = 7,
                         valueLabel = { String.format("%.2f×", it) },
                     )
+                }
+            }
+
+            item { SettingsSectionHeader("Diagnósticos de voz") }
+            item {
+                SettingsSectionCard {
+                    SettingsActionItem(
+                        title = "Carpeta de JSONL automáticos",
+                        description = voiceDiagnosticsFolder?.let { folder ->
+                            "Activa: cada sesión con voz guarda sus diagnósticos en $folder"
+                        } ?: "Toca aquí para elegir una carpeta. Se crea un JSONL incremental al activar la voz.",
+                        icon = Icons.Default.Folder,
+                        onClick = { voiceDiagnosticsFolderLauncher.launch(null) },
+                    )
+                    if (voiceDiagnosticsFolder != null) {
+                        SettingsActionItem(
+                            title = "Desvincular carpeta",
+                            description = "Deja de copiar fuera de la app los próximos diagnósticos.",
+                            icon = Icons.Default.Delete,
+                            destructive = true,
+                            onClick = {
+                                WorkoutVoiceDiagnosticStorage.clear(context)
+                                voiceDiagnosticsFolder = null
+                                Toast.makeText(context, "Carpeta desvinculada", Toast.LENGTH_SHORT).show()
+                            },
+                        )
+                    }
                 }
             }
 
