@@ -1,7 +1,9 @@
 package com.example.kpkn.services.workout
 
+import android.app.ActivityManager
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.os.SystemClock
 import android.util.Log
 import kotlinx.serialization.json.JsonArray
@@ -15,6 +17,8 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 /**
  * Local, incremental diagnostics for workout voice. Audio is never stored.
@@ -29,6 +33,7 @@ object WorkoutVoiceDiagnosticLogger {
     private val lock = Any()
     private var appContext: Context? = null
     private var activeFile: File? = null
+    private var automaticFileUri: Uri? = null
     private var activeSessionKey: String? = null
     private var traceId: String? = null
     private var startedElapsedMs: Long = 0L
@@ -48,6 +53,9 @@ object WorkoutVoiceDiagnosticLogger {
             val id = UUID.randomUUID().toString()
             val stamp = FILE_TIME_FORMAT.format(Instant.now())
             activeFile = File(directory, "kpkn-voice-$stamp-${id.take(8)}.jsonl")
+            automaticFileUri = runCatching {
+                WorkoutVoiceDiagnosticStorage.createJsonl(context, activeFile!!.name)
+            }.onFailure { error -> Log.e(TAG, "Unable to create automatic JSONL copy", error) }.getOrNull()
             activeSessionKey = requestedKey
             traceId = id
             startedElapsedMs = SystemClock.elapsedRealtime()
@@ -57,6 +65,8 @@ object WorkoutVoiceDiagnosticLogger {
                     "programId" to programId,
                     "sessionId" to sessionId,
                     "audioStored" to false,
+                    "automaticCopyEnabled" to (automaticFileUri != null),
+                    "automaticCopyFolder" to WorkoutVoiceDiagnosticStorage.configuredLabel(context),
                     "privacy" to "Contains recognized text and voice workflow state. No audio.",
                 ),
             )
@@ -64,6 +74,7 @@ object WorkoutVoiceDiagnosticLogger {
         } catch (error: Exception) {
             Log.e(TAG, "Unable to start voice diagnostics", error)
             activeFile = null
+            automaticFileUri = null
             activeSessionKey = null
             traceId = null
             false
@@ -72,7 +83,18 @@ object WorkoutVoiceDiagnosticLogger {
 
     fun isActive(): Boolean = synchronized(lock) { activeFile?.exists() == true }
 
-    fun suggestedFileName(): String? = synchronized(lock) { activeFile?.name }
+    fun isAutomaticStorageConfigured(): Boolean = synchronized(lock) {
+        appContext?.let(WorkoutVoiceDiagnosticStorage::isConfigured) == true
+    }
+
+    fun hasExportableData(): Boolean = synchronized(lock) {
+        activeFile?.exists() == true || WorkoutVoiceExitInfoCollector.hasPendingBundle()
+    }
+
+    fun suggestedFileName(): String? = synchronized(lock) {
+        val sourceName = activeFile?.name ?: WorkoutVoiceExitInfoCollector.pendingFiles().firstOrNull()?.name
+        sourceName?.substringBeforeLast('.')?.plus(".zip")
+    }
 
     fun event(name: String, fields: Map<String, Any?> = emptyMap()): Unit = synchronized(lock) {
         if (activeFile == null) return@synchronized
@@ -96,12 +118,41 @@ object WorkoutVoiceDiagnosticLogger {
 
     fun exportTo(uri: Uri): Boolean = synchronized(lock) {
         val context = appContext ?: return false
-        val source = activeFile?.takeIf(File::exists) ?: return false
+        val sources = buildList {
+            activeFile?.takeIf(File::exists)?.let(::add)
+            File(context.filesDir, "voice_diagnostics").listFiles()
+                ?.filter { file -> file.isFile && file.extension in setOf("jsonl", "trace", "json") }
+                ?.sortedByDescending(File::lastModified)
+                ?.take(8)
+                ?.let(::addAll)
+            addAll(WorkoutVoiceExitInfoCollector.pendingFiles())
+        }.distinctBy(File::getAbsolutePath)
+        if (sources.isEmpty()) return false
         try {
-            appendLocked("export_started")
-            context.contentResolver.openOutputStream(uri, "w")?.use { output ->
-                source.inputStream().use { input -> input.copyTo(output) }
+            if (activeFile != null) appendLocked("export_started")
+            context.contentResolver.openOutputStream(uri, "w")?.use { raw ->
+                ZipOutputStream(raw.buffered()).use { zip ->
+                    sources.forEach { source ->
+                        zip.putNextEntry(ZipEntry(source.name))
+                        source.inputStream().use { input -> input.copyTo(zip) }
+                        zip.closeEntry()
+                    }
+                    val metadata = JsonObject(
+                        mapOf(
+                            "manufacturer" to JsonPrimitive(Build.MANUFACTURER),
+                            "model" to JsonPrimitive(Build.MODEL),
+                            "device" to JsonPrimitive(Build.DEVICE),
+                            "sdk" to JsonPrimitive(Build.VERSION.SDK_INT),
+                            "release" to JsonPrimitive(Build.VERSION.RELEASE),
+                            "audioStored" to JsonPrimitive(false),
+                        ),
+                    ).toString().toByteArray(Charsets.UTF_8)
+                    zip.putNextEntry(ZipEntry("device-build.json"))
+                    zip.write(metadata)
+                    zip.closeEntry()
+                }
             } ?: return false
+            WorkoutVoiceExitInfoCollector.consumePending()
             true
         } catch (error: Exception) {
             Log.e(TAG, "Unable to export voice diagnostics", error)
@@ -113,6 +164,14 @@ object WorkoutVoiceDiagnosticLogger {
         }
     }
 
+    fun updateProcessState(stage: VoicePipelineStage, sessionGeneration: Long = 0L) {
+        val context = appContext ?: return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+        val summary = "voice=${stage.name};gen=$sessionGeneration".toByteArray(Charsets.UTF_8).take(128).toByteArray()
+        runCatching {
+            context.getSystemService(ActivityManager::class.java)?.setProcessStateSummary(summary)
+        }
+    }
     fun close(reason: String) = synchronized(lock) { closeLocked(reason) }
 
     private fun closeLocked(reason: String) {
@@ -123,6 +182,7 @@ object WorkoutVoiceDiagnosticLogger {
             Log.e(TAG, "Unable to close voice diagnostics", error)
         } finally {
             activeFile = null
+            automaticFileUri = null
             activeSessionKey = null
             traceId = null
         }
@@ -143,6 +203,11 @@ object WorkoutVoiceDiagnosticLogger {
             it.append(line)
             it.newLine()
             it.flush()
+        }
+        automaticFileUri?.let { uri ->
+            appContext?.let { context ->
+                WorkoutVoiceDiagnosticStorage.appendLine(context, uri, line)
+            }
         }
     }
 

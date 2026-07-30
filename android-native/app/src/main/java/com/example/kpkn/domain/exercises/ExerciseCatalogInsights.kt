@@ -684,6 +684,23 @@ private fun meaningfulSearchTerms(value: String): List<String> =
 private fun normalizeMeaningfulSearchValue(value: String): String =
     meaningfulSearchTerms(value).joinToString(" ")
 
+/** Token/prefix match; longer terms may also match as substrings (compound words). */
+internal fun catalogFieldMatchesTerm(field: String, term: String): Boolean {
+    if (field.isBlank() || term.isBlank()) return false
+    val tokens = field.split(" ").filter { it.isNotBlank() }
+    if (tokens.any { it == term || it.startsWith(term) }) return true
+    return term.length >= 3 && field.contains(term)
+}
+
+/**
+ * Multi-word catalog search is AND across meaningful terms: every term must appear
+ * in at least one searchable field (name, alias, muscles, equipment, etc.).
+ */
+internal fun catalogMatchesAllSearchTerms(terms: List<String>, vararg fields: String): Boolean {
+    if (terms.isEmpty()) return false
+    return terms.all { term -> fields.any { catalogFieldMatchesTerm(it, term) } }
+}
+
 fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
     val normalizedQuery = normalizeCatalogSearchValue(query.trim())
     if (normalizedQuery.isBlank()) return 0
@@ -715,6 +732,22 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
         ).joinToString(" ")
     )
 
+    // Hard gate: every meaningful token must match somewhere. Prevents "Curl Femoral"
+    // from returning the whole catalog via OR (curl OR femoral) + alphabetical re-sort.
+    if (!catalogMatchesAllSearchTerms(
+            terms,
+            normalizedName,
+            aliasNormalized,
+            primaryMuscleNormalized,
+            equipmentNormalized,
+            descriptionNormalized,
+            regionNormalized,
+            searchBlob,
+        )
+    ) {
+        return 0
+    }
+
     if (normalizedName == normalizedQuery) return 10_000
     if (meaningfulQuery.isNotBlank() && meaningfulName == meaningfulQuery) return 9_800
     if (aliasNormalized == normalizedQuery) return 9_000
@@ -739,14 +772,8 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
         score += 80
     }
 
-    val allTermsMatch = terms.isNotEmpty() && terms.all { term ->
-        normalizedName.contains(term) ||
-            aliasNormalized.contains(term) ||
-            primaryMuscleNormalized.contains(term) ||
-            equipmentNormalized.contains(term) ||
-            descriptionNormalized.contains(term)
-    }
-    if (allTermsMatch) score += 120
+    val allTermsInName = terms.all { catalogFieldMatchesTerm(normalizedName, it) }
+    if (allTermsInName) score += 220
 
     terms.forEach { term ->
         if (normalizedName.split(" ").any { it == term }) score += 30

@@ -1,0 +1,30 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preBaseDebugBuild UP-TO-DATE
+> Task :app:generateBaseDebugBuildConfig UP-TO-DATE
+> Task :app:generateBaseDebugResources UP-TO-DATE
+> Task :app:packageBaseDebugResources UP-TO-DATE
+> Task :app:processBaseDebugNavigationResources UP-TO-DATE
+> Task :app:parseBaseDebugLocalResources UP-TO-DATE
+> Task :app:generateBaseDebugRFile UP-TO-DATE
+> Task :app:kspBaseDebugKotlin
+> Task :app:compileBaseDebugKotlin
+
+Daemon is stopping immediately stop command received
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle build daemon has been stopped: stop command received
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.

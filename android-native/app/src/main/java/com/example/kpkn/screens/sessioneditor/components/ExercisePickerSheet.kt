@@ -77,8 +77,15 @@ private enum class CatalogFilterBrowse {
     PATTERN,
 }
 
-private fun sortDirectionLabel(sortMode: ExerciseCatalogSort, ascending: Boolean): String = when (sortMode) {
-    ExerciseCatalogSort.NAME -> if (ascending) "A → Z" else "Z → A"
+private fun sortDirectionLabel(
+    sortMode: ExerciseCatalogSort,
+    ascending: Boolean,
+    hasActiveSearch: Boolean = false,
+): String = when {
+    hasActiveSearch &&
+        (sortMode == ExerciseCatalogSort.NAME || sortMode == ExerciseCatalogSort.RELEVANCE) ->
+        "Relevancia"
+    sortMode == ExerciseCatalogSort.NAME -> if (ascending) "A → Z" else "Z → A"
     else -> if (ascending) "Menos → más" else "Más → menos"
 }
 
@@ -280,16 +287,22 @@ internal fun ExercisePickerSheet(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 CompactCatalogFilterChip(
-                    selected = sortMode == ExerciseCatalogSort.NAME,
+                    selected = sortMode == ExerciseCatalogSort.NAME ||
+                        sortMode == ExerciseCatalogSort.RELEVANCE,
                     onClick = {
-                        if (sortMode == ExerciseCatalogSort.NAME) {
-                            sortAscending = !sortAscending
+                        if (sortMode == ExerciseCatalogSort.NAME ||
+                            sortMode == ExerciseCatalogSort.RELEVANCE
+                        ) {
+                            // While searching, relevance order is fixed (no A↔Z flip).
+                            if (normalizedQuery.isBlank()) {
+                                sortAscending = !sortAscending
+                            }
                         } else {
                             sortMode = ExerciseCatalogSort.NAME
                             sortAscending = true
                         }
                     },
-                    label = "Alfabético",
+                    label = if (normalizedQuery.isNotBlank()) "Relevancia" else "Alfabético",
                 )
                 CompactCatalogFilterChip(
                     selected = sortMode == ExerciseCatalogSort.FATIGUE_HIGH,
@@ -305,7 +318,14 @@ internal fun ExercisePickerSheet(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 TextButton(
-                    onClick = { sortAscending = !sortAscending },
+                    onClick = {
+                        val relevanceLocked = normalizedQuery.isNotBlank() &&
+                            (sortMode == ExerciseCatalogSort.NAME ||
+                                sortMode == ExerciseCatalogSort.RELEVANCE)
+                        if (!relevanceLocked) {
+                            sortAscending = !sortAscending
+                        }
+                    },
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                 ) {
                     Icon(
@@ -316,7 +336,11 @@ internal fun ExercisePickerSheet(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        sortDirectionLabel(sortMode, sortAscending),
+                        sortDirectionLabel(
+                            sortMode = sortMode,
+                            ascending = sortAscending,
+                            hasActiveSearch = normalizedQuery.isNotBlank(),
+                        ),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = KpknSheetTokens.Body,

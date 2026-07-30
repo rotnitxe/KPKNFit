@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,13 +56,17 @@ class WorkoutContinuousVoiceEngine internal constructor(
         )
     },
     private val persistentScope: CoroutineScope? = null,
-) {
+) : WorkoutVoiceEnginePort {
     private var scope: CoroutineScope? = null
     private var actorJob: Job? = null
     private var modelPrepareJob: Job? = null
     private var resumeJob: Job? = null
     private var fallbackJob: Job? = null
-    private val commands = Channel<EngineCommand>(Channel.UNLIMITED)
+    private val commands = Channel<EngineCommand>(
+        capacity = 32,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    private val queuedGrammarKey = AtomicLong(Long.MIN_VALUE)
     private val generationCounter = AtomicLong(0L)
 
     @Volatile
@@ -83,6 +89,9 @@ class WorkoutContinuousVoiceEngine internal constructor(
 
     @Volatile
     private var currentStage: VoicePipelineStage = VoicePipelineStage.LISTENING
+
+    @Volatile
+    private var grammarOverride: String? = null
 
     private val fallbackQueued = AtomicBoolean(false)
     private val fallbackInFlight = AtomicBoolean(false)
@@ -120,63 +129,67 @@ class WorkoutContinuousVoiceEngine internal constructor(
         extraBufferCapacity = 4,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
-    val partialResults: Flow<String> = _partialResults
+    override val partialResults: Flow<String> = _partialResults
 
     private val _finalResults = MutableSharedFlow<List<VoiceHypothesis>>(
         extraBufferCapacity = 2,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
-    val finalResults: Flow<List<VoiceHypothesis>> = _finalResults
+    override val finalResults: Flow<List<VoiceHypothesis>> = _finalResults
 
     private val _errors = MutableSharedFlow<String>(
         extraBufferCapacity = 2,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
-    val errors: Flow<String> = _errors
+    override val errors: Flow<String> = _errors
+    override val failures: Flow<WorkoutVoiceFailure> = _errors.map(::classifyVoiceFailure)
 
     private val _statusMessages = MutableSharedFlow<String>(
         extraBufferCapacity = 4,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
-    val statusMessages: Flow<String> = _statusMessages
+    override val statusMessages: Flow<String> = _statusMessages
 
     private val _promptSpeak = MutableSharedFlow<PromptSpeakRequest>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
-    val promptSpeak: Flow<PromptSpeakRequest> = _promptSpeak
+    override val promptSpeak: Flow<PromptSpeakRequest> = _promptSpeak
 
     private val _captureState = MutableStateFlow(VoiceCaptureState.IDLE)
-    val captureState: StateFlow<VoiceCaptureState> = _captureState.asStateFlow()
+    override val captureState: StateFlow<VoiceCaptureState> = _captureState.asStateFlow()
 
     private val _rmsLevel = MutableStateFlow(0f)
-    val rmsLevel: StateFlow<Float> = _rmsLevel.asStateFlow()
+    override val rmsLevel: StateFlow<Float> = _rmsLevel.asStateFlow()
 
     private val _usingOnDeviceRecognizer = MutableStateFlow(true)
-    val usingOnDeviceRecognizer: StateFlow<Boolean> = _usingOnDeviceRecognizer.asStateFlow()
-    val activeRouteLabel: StateFlow<String?> = micRouter.activeRouteLabel
+    override val usingOnDeviceRecognizer: StateFlow<Boolean> = _usingOnDeviceRecognizer.asStateFlow()
+    override val activeRouteLabel: StateFlow<String?> = micRouter.activeRouteLabel
 
     private val _usingNativeFallback = MutableStateFlow(false)
-    val usingNativeFallback: StateFlow<Boolean> = _usingNativeFallback.asStateFlow()
+    override val usingNativeFallback: StateFlow<Boolean> = _usingNativeFallback.asStateFlow()
 
     private val _fallbackPaused = MutableStateFlow(false)
-    val fallbackPaused: StateFlow<Boolean> = _fallbackPaused.asStateFlow()
+    override val fallbackPaused: StateFlow<Boolean> = _fallbackPaused.asStateFlow()
 
-    val isActive: Boolean get() = activeRequested
+    override val isActive: Boolean get() = activeRequested
 
     internal val isDiscardPcmOnly: Boolean get() = discardPcmOnly
     internal val isFallbackInFlight: Boolean get() = fallbackInFlight.get()
 
-    fun setNoiseProfile(profile: com.example.kpkn.data.models.VoiceNoiseProfile) {
+    override fun setNoiseProfile(profile: com.example.kpkn.data.models.VoiceNoiseProfile) {
         noiseProfile = profile
     }
 
-    fun updateCommandContext(
+    override fun updateCommandContext(
         context: VoiceCommandContext?,
-        stage: VoicePipelineStage = currentStage,
+        stage: VoicePipelineStage,
     ) {
         currentContext = context
         currentStage = stage
+        grammarOverride = null
+        val grammarKey = 31L * stage.ordinal + (context?.hashCode()?.toLong() ?: 0L)
+        if (queuedGrammarKey.getAndSet(grammarKey) == grammarKey) return
         commands.trySend(
             EngineCommand.UpdateGrammar(
                 generation = generationCounter.get(),
@@ -186,7 +199,19 @@ class WorkoutContinuousVoiceEngine internal constructor(
         )
     }
 
-    fun start(scope: CoroutineScope, holdMicRouteAcrossPause: Boolean = true) {
+    internal fun updateGrammarOverride(grammarJson: String, stage: VoicePipelineStage) {
+        grammarOverride = grammarJson
+        currentStage = stage
+        commands.trySend(
+            EngineCommand.UpdateGrammarOverride(
+                generation = generationCounter.get(),
+                grammarJson = grammarJson,
+                stage = stage,
+            ),
+        )
+    }
+
+    override fun start(scope: CoroutineScope, holdMicRouteAcrossPause: Boolean) {
         val actorScope = persistentScope ?: scope
         this.scope = actorScope
         this.holdMicRouteAcrossPause = holdMicRouteAcrossPause
@@ -212,7 +237,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         )
     }
 
-    fun pause() {
+    override fun pause() {
         if (!activeRequested) return
         discardPcmOnly = true
         _rmsLevel.value = 0f
@@ -220,11 +245,33 @@ class WorkoutContinuousVoiceEngine internal constructor(
             EngineCommand.Pause(
                 generation = generationCounter.get(),
                 releaseMic = !holdMicRouteAcrossPause,
+                acknowledgement = null,
             ),
         )
     }
 
-    fun resumeDecoderAfterTts(delayMs: Long = TTS_RESUME_DELAY_MS) {
+    override suspend fun pauseAndAwait(
+        releaseMic: Boolean,
+        timeoutMs: Long,
+    ): Boolean {
+        if (!activeRequested || actorJob?.isActive != true) return true
+        discardPcmOnly = true
+        _rmsLevel.value = 0f
+        val acknowledgement = CompletableDeferred<Unit>()
+        commands.send(
+            EngineCommand.Pause(
+                generation = generationCounter.get(),
+                releaseMic = releaseMic,
+                acknowledgement = acknowledgement,
+            ),
+        )
+        return withTimeoutOrNull(timeoutMs) {
+            acknowledgement.await()
+            true
+        } == true
+    }
+
+    override fun resumeDecoderAfterTts(delayMs: Long) {
         val ownerScope = scope ?: return
         val generation = generationCounter.get()
         resumeJob?.cancel()
@@ -241,7 +288,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         }
     }
 
-    fun stop() {
+    override fun stop() {
         val generation = generationCounter.incrementAndGet()
         activeRequested = false
         discardPcmOnly = false
@@ -254,7 +301,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         }
     }
 
-    suspend fun stopAndAwait(timeoutMs: Long = STOP_ACK_TIMEOUT_MS): Boolean {
+    override suspend fun stopAndAwait(timeoutMs: Long): Boolean {
         val generation = generationCounter.incrementAndGet()
         activeRequested = false
         discardPcmOnly = false
@@ -278,7 +325,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         } == true
     }
 
-    fun requestNativeFallbackForUnresolved(transcript: String): Boolean {
+    override fun requestNativeFallbackForUnresolved(transcript: String): Boolean {
         if (!activeRequested || micBusy || fallbackInFlight.get()) return false
         if (!shouldAttemptNativeFallback(transcript)) return false
         if (!fallbackQueued.compareAndSet(false, true)) return false
@@ -308,6 +355,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         var record: WorkoutVoiceAudioRecord? = null
         var recognizer: Recognizer? = null
         var model: Model? = null
+        var currentGrammarHash: Int? = null
         var recordOpenedAtMs = 0L
         var healthyRecord = false
         var hasListenedInGeneration = false
@@ -319,12 +367,29 @@ class WorkoutContinuousVoiceEngine internal constructor(
         var currentRecordSilenced: Boolean? = null
         var sawSpeechInCurrentUtterance = false
         var lastPartialText = ""
+        var lastPartialEmitAtMs = 0L
         val shortBuffer = ShortArray(PCM_FRAME_SHORTS)
         val leaseGuard = WorkoutVoiceMicLeaseGuard()
 
         fun closeRecognizer() {
             runCatching { recognizer?.close() }
             recognizer = null
+        }
+
+        fun createRecognizerForCurrentPhase(force: Boolean = true): Boolean {
+            val activeModel = model ?: return false
+            val grammar = grammarOverride ?: WorkoutVoiceGrammarBuilder.build(currentStage, currentContext)
+            val grammarHash = grammar.hashCode()
+            if (!force && recognizer != null && currentGrammarHash == grammarHash) return true
+            closeRecognizer()
+            WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "RECOGNIZER_CREATE", "state" to "START", "grammarHash" to grammarHash))
+            recognizer = Recognizer(activeModel, SAMPLE_RATE.toFloat(), grammar).apply {
+                setWords(false)
+                setPartialWords(false)
+            }
+            currentGrammarHash = grammarHash
+            WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "RECOGNIZER_CREATE", "state" to "READY", "grammarHash" to grammarHash))
+            return true
         }
 
         fun releaseRecord() {
@@ -562,6 +627,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                         releaseRecord()
                         micRouter.release()
                     }
+                    command.acknowledgement?.complete(Unit)
                 }
 
                 is EngineCommand.Resume -> {
@@ -571,7 +637,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     if (!fallbackInFlight.get()) {
                         captureDesired = true
                         micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_MUSIC_FIRST)
-                        runCatching { recognizer?.reset() }
+                        runCatching { createRecognizerForCurrentPhase(force = true) }
                         if (record == null) {
                             resetRecovery(clockMs(), immediate = true)
                             _captureState.value = VoiceCaptureState.RECONNECTING
@@ -585,26 +651,21 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     if (command.generation != actorGeneration && running) return
                     currentContext = command.context
                     currentStage = command.stage
-                    runCatching {
-                        recognizer?.setGrammar(
-                            WorkoutVoiceGrammarBuilder.build(command.stage, command.context),
-                        )
-                    }
+                    runCatching { createRecognizerForCurrentPhase(force = false) }
+                }
+
+                is EngineCommand.UpdateGrammarOverride -> {
+                    if (command.generation != actorGeneration && running) return
+                    grammarOverride = command.grammarJson
+                    currentStage = command.stage
+                    runCatching { createRecognizerForCurrentPhase(force = false) }
                 }
 
                 is EngineCommand.ModelReady -> {
                     if (!running || command.generation != actorGeneration) return
                     model = command.model
-                    closeRecognizer()
                     try {
-                        recognizer = Recognizer(
-                            command.model,
-                            SAMPLE_RATE.toFloat(),
-                            WorkoutVoiceGrammarBuilder.build(currentStage, currentContext),
-                        ).apply {
-                            setWords(false)
-                            setPartialWords(false)
-                        }
+                        createRecognizerForCurrentPhase(force = true)
                         nextOpenAtMs = clockMs()
                     } catch (e: Exception) {
                         _captureState.value = VoiceCaptureState.ERROR_RECOVERY
@@ -692,7 +753,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     captureDesired = true
                     micBusy = false
                     micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_MUSIC_FIRST)
-                    runCatching { recognizer?.reset() }
+                    runCatching { createRecognizerForCurrentPhase(force = true) }
                     resetRecovery(clockMs(), immediate = true)
                     _captureState.value = VoiceCaptureState.RECONNECTING
                 }
@@ -798,7 +859,11 @@ class WorkoutContinuousVoiceEngine internal constructor(
                                         ?.let { partial ->
                                             sawSpeechInCurrentUtterance = true
                                             lastPartialText = partial
-                                            _partialResults.emit(partial)
+                                            val partialNow = clockMs()
+                                            if (partialNow - lastPartialEmitAtMs >= PARTIAL_EMIT_INTERVAL_MS) {
+                                                lastPartialEmitAtMs = partialNow
+                                                _partialResults.emit(partial)
+                                            }
                                         }
                                 }
                             }
@@ -825,6 +890,13 @@ class WorkoutContinuousVoiceEngine internal constructor(
 
                 if (!handledCommand) delay(ACTOR_POLL_DELAY_MS)
             }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Throwable) {
+            activeRequested = false
+            _captureState.value = VoiceCaptureState.ERROR_RECOVERY
+            _errors.tryEmit("El motor local de voz se detuvo de forma segura" )
+            WorkoutVoiceDiagnosticLogger.exception("vosk_engine_fatal", error)
         } finally {
             cancelFallback()
             modelPrepareJob?.cancel()
@@ -903,6 +975,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         data class Pause(
             val generation: Long,
             val releaseMic: Boolean,
+            val acknowledgement: CompletableDeferred<Unit>?,
         ) : EngineCommand
 
         data class Resume(
@@ -913,6 +986,12 @@ class WorkoutContinuousVoiceEngine internal constructor(
         data class UpdateGrammar(
             val generation: Long,
             val context: VoiceCommandContext?,
+            val stage: VoicePipelineStage,
+        ) : EngineCommand
+
+        data class UpdateGrammarOverride(
+            val generation: Long,
+            val grammarJson: String,
             val stage: VoicePipelineStage,
         ) : EngineCommand
 
@@ -947,8 +1026,9 @@ class WorkoutContinuousVoiceEngine internal constructor(
 
     companion object {
         internal const val SAMPLE_RATE = 16_000
-        private const val PCM_FRAME_SHORTS = 640
+        private const val PCM_FRAME_SHORTS = 1_600
         private const val ACTOR_POLL_DELAY_MS = 10L
+        private const val PARTIAL_EMIT_INTERVAL_MS = 250L
         private const val PCM_START_WATCHDOG_MS = 1_500L
         private const val MIC_BUSY_TIMEOUT_MS = 5_000L
         private const val MISSING_SESSION_RETRY_MS = 300L
@@ -959,6 +1039,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         private const val NATIVE_FALLBACK_TIMEOUT_MS = 6_000L
         private const val PROMPT_TTS_TIMEOUT_MS = 8_000L
         private const val STOP_ACK_TIMEOUT_MS = 1_500L
+        private const val PAUSE_ACK_TIMEOUT_MS = 1_500L
     }
 }
 
@@ -969,4 +1050,5 @@ enum class VoiceCaptureState {
     MIC_BUSY,
     RECONNECTING,
     ERROR_RECOVERY,
+    FAILED,
 }

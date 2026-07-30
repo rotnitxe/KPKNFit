@@ -1,0 +1,73 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preBaseDebugBuild UP-TO-DATE
+> Task :app:generateBaseDebugBuildConfig UP-TO-DATE
+> Task :app:generateBaseDebugResources UP-TO-DATE
+> Task :app:packageBaseDebugResources UP-TO-DATE
+> Task :app:processBaseDebugNavigationResources UP-TO-DATE
+> Task :app:parseBaseDebugLocalResources UP-TO-DATE
+> Task :app:generateBaseDebugRFile UP-TO-DATE
+> Task :app:kspBaseDebugKotlin UP-TO-DATE
+> Task :app:compileBaseDebugKotlin
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/data/models/Program.kt:289:55 'val repeatEveryXCycles: Int?' is deprecated. Use loops[] instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/exercises/ExerciseMatchEngine.kt:194:24 'fun inferExerciseMetrics(type: String, force: String, equipment: String, category: String, isAxialLoaded: Boolean, exerciseName: String): InferredExerciseMetrics' is deprecated. Solo para prefill de UI en creaci¾n de ejercicios. Para drain calculations, usa AugeFatigueEngine.getDynamicAugeMetrics que retorna null cuando la DB no tiene datos.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/nutrition/SmartFoodResolver.kt:147:28 This is a delicate API and its use requires care. Make sure you fully read and understand documentation of the declaration that is marked as a delicate API.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/training/LoopEngine.kt:349:55 'val repeatEveryXCycles: Int?' is deprecated. Use loops[] instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/training/LoopEngine.kt:363:47 'val repeatEveryXCycles: Int?' is deprecated. Use loops[] instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/training/ProgramDetailHelpers.kt:184:26 'val repeatEveryXCycles: Int?' is deprecated. Use loops[] instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/domain/training/ProgramDetailHelpers.kt:190:47 'val repeatEveryXCycles: Int?' is deprecated. Use loops[] instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/BodyProgressScreen.kt:924:43 'val Icons.Filled.ShowChart: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ShowChart.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/BodyProgressScreen.kt:1081:53 'val Icons.Filled.TrendingDown: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingDown.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/BodyProgressScreen.kt:1081:85 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/BodyProgressScreen.kt:1108:39 'val Icons.Filled.ArrowForward: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowForward.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/MealHistoryScreen.kt:106:71 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/components/NutritionPlanEditorModal.kt:1111:125 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/components/NutritionWizardView.kt:56:29 'val Icons.Filled.TrendingDown: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingDown.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/components/NutritionWizardView.kt:58:29 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/components/NutritionWizardView.kt:310:44 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/components/NutritionWizardView.kt:399:86 'val Icons.Filled.ArrowForward: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowForward.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/components/NutritionWizardView.kt:536:47 'val Icons.Filled.DirectionsRun: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.DirectionsRun.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/components/NutritionWizardView.kt:822:48 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/components/NutritionWizardView.kt:915:76 'val Icons.Filled.ArrowForward: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowForward.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/components/NutritionWizardView.kt:995:31 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/nutrition/components/NutritionWizardView.kt:1035:36 'val Icons.Filled.ArrowForward: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowForward.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/profile/ProfileScreen.kt:106:86 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/components/CompactHeroBanner.kt:649:37 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/components/CompactHeroBanner.kt:654:20 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/components/CompactHeroBanner.kt:660:24 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/components/LoopsView.kt:70:71 'val repeatEveryXCycles: Int?' is deprecated. Use loops[] instead.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programdetail/components/SplitView.kt:489:43 'val Icons.Filled.CompareArrows: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.CompareArrows.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/programs/ProgramsScreen.kt:345:49 'val Icons.Filled.KeyboardArrowRight: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.KeyboardArrowRight.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/BiomechanicsScreen.kt:115:43 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/ExerciseDetailScreen.kt:78:44 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/JointDetailScreen.kt:83:44 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/JointsListScreen.kt:65:71 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/MovementPatternDetailScreen.kt:76:44 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/MovementPatternDetailScreen.kt:139:46 'val Icons.Filled.Rule: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Rule.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/MovementPatternDetailScreen.kt:289:44 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/MuscleCategoryScreen.kt:88:71 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/MuscleGroupDetailScreen.kt:99:44 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/MuscleGroupDetailScreen.kt:207:55 'val Icons.Filled.ArrowForward: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowForward.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/PatternsListScreen.kt:52:71 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/TendonDetailScreen.kt:67:44 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/TrainingConceptsScreen.kt:72:44 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/TrainingConceptsScreen.kt:266:44 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/wikilab/WikiLabScreen.kt:132:48 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutContextComponents.kt:365:102 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/SetExecutionCard.kt:2523:44 Condition is always 'true'.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutRestAlertManager.kt:544:60 'static field VIBRATOR_SERVICE: String' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutTtsManager.kt:54:42 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutTtsManager.kt:55:60 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutTtsManager.kt:57:46 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/services/workout/WorkoutTtsManager.kt:58:47 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: Detected multiple Kotlin daemon sessions at
+
+BUILD SUCCESSFUL in 4m 38s
+8 actionable tasks: 1 executed, 7 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

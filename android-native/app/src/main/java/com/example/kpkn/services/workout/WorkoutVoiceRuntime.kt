@@ -33,7 +33,7 @@ object WorkoutVoiceRuntime {
     private val stopDispatchInFlight = AtomicBoolean(false)
 
     @Volatile
-    private var engine: WorkoutContinuousVoiceEngine? = null
+    private var engine: WorkoutVoiceEnginePort? = null
 
     @Synchronized
     fun initialize(context: Context) {
@@ -57,12 +57,9 @@ object WorkoutVoiceRuntime {
     }
 
     @Synchronized
-    fun speechEngine(): WorkoutContinuousVoiceEngine {
+    internal fun speechEngine(): WorkoutVoiceEnginePort {
         requireInitialized()
-        return engine ?: WorkoutContinuousVoiceEngine(
-            context = appContext,
-            persistentScope = serviceScope,
-        ).also { engine = it }
+        return engine ?: WorkoutRemoteVoiceEngineClient(appContext).also { engine = it }
     }
 
     fun registerContextProvider(provider: (() -> VoiceCommandContext?)?) {
@@ -110,6 +107,10 @@ object WorkoutVoiceRuntime {
 
     suspend fun stopEngineAndAwaitWithoutUiCallback(): Boolean =
         engine?.stopAndAwait() ?: true
+
+    internal fun notifyRemoteStop() {
+        notifyStopHandlerOnce()
+    }
 
     private fun notifyStopHandlerOnce() {
         if (!stopDispatchInFlight.compareAndSet(false, true)) return

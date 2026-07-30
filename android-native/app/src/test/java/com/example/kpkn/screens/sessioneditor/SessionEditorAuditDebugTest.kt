@@ -18,7 +18,7 @@ import org.junit.Test
 class SessionEditorAuditDebugTest {
 
     @Test
-    fun `H-B token contrast ControlFill is translucent and ControlLabel is white`() {
+    fun `H-B token contrast ControlFill is solid and ControlLabel is dark`() {
         val fill = KpknSheetTokens.ControlFill
         val label = KpknSheetTokens.ControlLabel
         SessionEditorDebugLog.log(
@@ -29,6 +29,7 @@ class SessionEditorAuditDebugTest {
                 "controlFillAlpha" to fill.alpha,
                 "controlLabelAlpha" to label.alpha,
                 "controlLabelIsNearWhite" to (label.red > 0.9f && label.green > 0.9f && label.blue > 0.9f),
+                "controlLabelIsNearBlack" to (label.red < 0.1f && label.green < 0.1f && label.blue < 0.1f),
                 "chipIdleAlpha" to KpknSheetTokens.ChipIdle.alpha,
                 "chipLabelIsNearWhite" to (
                     KpknSheetTokens.ChipLabel.red > 0.9f &&
@@ -37,9 +38,9 @@ class SessionEditorAuditDebugTest {
                     ),
             ),
         )
-        // Evidence: CTA fill is glass (~0.14) with white label → not solid white+black
-        assertTrue("ControlFill should be translucent glass", fill.alpha < 0.4f)
-        assertTrue("ControlLabel is near-white", label.red > 0.9f)
+        // Primary sheet controls deliberately use a high-contrast white/black treatment.
+        assertTrue("ControlFill should remain visibly solid", fill.alpha > 0.75f)
+        assertTrue("ControlLabel should remain near-black", label.red < 0.1f)
     }
 
     @Test

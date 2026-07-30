@@ -69,6 +69,7 @@ data class WorkoutVoiceInterpretation(
     val side: String? = null,
     val reachedFailure: Boolean = false,
     val romPercent: Int? = null,
+    val tagName: String? = null,
     val fields: Set<WorkoutVoiceField> = emptySet(),
 ) {
     val resolvedMetricValue: Double? get() = metricDecimalValue ?: metricValue?.toDouble()

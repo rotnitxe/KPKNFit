@@ -266,7 +266,7 @@ object WorkoutVoiceCommandParser {
             return VoiceSessionCommand.AddSet
         }
 
-        parseTagCommand(lower, tagNames)?.let { return it }
+        val parsedTag = parseTagCommand(lower, tagNames)
 
         if (SKIP_SET_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.SkipSet
@@ -300,8 +300,11 @@ object WorkoutVoiceCommandParser {
             transcript, isTimeMode, isUnilateral, unitMode, customUnit, trackRom,
         )
         if (interpretation != null) {
-            return VoiceSessionCommand.RegisterSet(interpretation)
+            return VoiceSessionCommand.RegisterSet(
+                interpretation.copy(tagName = parsedTag?.tagName),
+            )
         }
+        if (parsedTag != null) return parsedTag
 
         return VoiceSessionCommand.Unknown(transcript)
     }

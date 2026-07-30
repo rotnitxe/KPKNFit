@@ -218,7 +218,7 @@ fun WorkoutScreen(
         }
     )
     val voiceDiagnosticExportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/x-ndjson"),
+        contract = ActivityResultContracts.CreateDocument("application/zip"),
         onResult = viewModel::completeVoiceDiagnosticExport,
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

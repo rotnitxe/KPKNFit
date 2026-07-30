@@ -3,7 +3,6 @@ package com.example.kpkn.services.workout
 import android.content.Context
 import android.content.res.AssetManager
 import java.io.File
-import java.security.MessageDigest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -20,19 +19,20 @@ object WorkoutVoskModelStore {
     private const val ASSET_DIR = "vosk/vosk-model-small-es-0.42"
     private const val VERSION = "vosk-model-small-es-0.42"
     private const val UUID_FILE = "uuid"
+    private const val MIN_FREE_BYTES = 180L * 1024L * 1024L
     private val modelMutex = Mutex()
     private var cachedModel: Model? = null
 
     suspend fun prepare(context: Context): Model = modelMutex.withLock {
         cachedModel?.let { return it }
         withContext(Dispatchers.IO) {
+            WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "MODEL_INSTALL", "state" to "CHECK"))
             val targetRoot = File(context.noBackupFilesDir, "voice-models")
             val targetDir = File(targetRoot, VERSION)
-            val assetHash = assetDigest(context.assets, ASSET_DIR)
             val assetUuid = readAssetText(
                 context.assets,
                 "$ASSET_DIR/$UUID_FILE",
-            ).ifBlank { assetHash }
+            ).ifBlank { VERSION }
             val diskUuid = File(targetDir, UUID_FILE)
                 .takeIf(File::exists)
                 ?.readText()
@@ -45,7 +45,11 @@ object WorkoutVoskModelStore {
                     assetUuid = assetUuid,
                 )
             }
-            Model(targetDir.absolutePath).also { cachedModel = it }
+            WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "MODEL_LOAD", "state" to "START"))
+            Model(targetDir.absolutePath).also { model ->
+                cachedModel = model
+                WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "MODEL_LOAD", "state" to "READY"))
+            }
         }
     }
 
@@ -63,6 +67,9 @@ object WorkoutVoskModelStore {
         assetUuid: String,
     ) {
         targetRoot.mkdirs()
+        check(targetRoot.usableSpace >= MIN_FREE_BYTES) {
+            "Espacio insuficiente para instalar el modelo Vosk"
+        }
         val stagingDir = File(targetRoot, "$VERSION.tmp")
         val previousDir = File(targetRoot, "$VERSION.previous")
         stagingDir.deleteRecursively()
@@ -70,7 +77,9 @@ object WorkoutVoskModelStore {
         check(stagingDir.mkdirs() || stagingDir.exists()) {
             "No se pudo crear staging para el modelo Vosk"
         }
+        WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "MODEL_INSTALL", "state" to "COPY"))
         copyAssetTree(assetManager, ASSET_DIR, stagingDir)
+        validateInstalledTree(stagingDir)
         File(stagingDir, UUID_FILE).writeText(assetUuid)
 
         if (targetDir.exists() && !targetDir.renameTo(previousDir)) {
@@ -90,32 +99,14 @@ object WorkoutVoskModelStore {
         previousDir.deleteRecursively()
     }
 
-    private fun assetDigest(assetManager: AssetManager, root: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        updateDigest(assetManager, root, digest)
-        return digest.digest().joinToString("") { "%02x".format(it) }
-    }
-
-    private fun updateDigest(
-        assetManager: AssetManager,
-        assetPath: String,
-        digest: MessageDigest,
-    ) {
-        val children = assetManager.list(assetPath).orEmpty().sorted()
-        if (children.isEmpty()) {
-            assetManager.open(assetPath).use { input ->
-                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                while (true) {
-                    val read = input.read(buffer)
-                    if (read <= 0) break
-                    digest.update(buffer, 0, read)
-                }
-            }
-            return
-        }
-        children.forEach { child ->
-            digest.update("$assetPath/$child".toByteArray())
-            updateDigest(assetManager, "$assetPath/$child", digest)
+    private fun validateInstalledTree(root: File) {
+        val required = listOf(
+            "am/final.mdl",
+            "conf/model.conf",
+            "graph/HCLr.fst",
+        )
+        check(required.all { relative -> File(root, relative).let { it.isFile && it.length() > 0L } }) {
+            "La copia del modelo Vosk quedó incompleta"
         }
     }
 

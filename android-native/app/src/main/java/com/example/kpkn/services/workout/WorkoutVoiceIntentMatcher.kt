@@ -92,6 +92,7 @@ object WorkoutVoiceIntentMatcher {
             }
             VoicePipelineStage.MIC_BUSY,
             VoicePipelineStage.RECONNECTING,
+            VoicePipelineStage.FAILED,
             VoicePipelineStage.DISABLED -> VoiceSessionCommand.Unknown(transcript)
         }
     }

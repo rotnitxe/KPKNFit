@@ -4,9 +4,12 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
 class WorkoutTtsManager(context: Context) {
@@ -15,15 +18,26 @@ class WorkoutTtsManager(context: Context) {
     private var tts: TextToSpeech? = null
     private var _isInitialized = false
     private var _initError: String? = null
-    private var _onUtteranceComplete: (() -> Unit)? = null
+    private var pendingCompletion: (() -> Unit)? = null
+    private val completions = ConcurrentHashMap<String, () -> Unit>()
+    private val mainHandler = Handler(Looper.getMainLooper())
     private val utteranceCounter = AtomicLong(0)
+    private var initializationStarted = false
+    private val readyCallbacks = mutableListOf<() -> Unit>()
+    private val errorCallbacks = mutableListOf<(String) -> Unit>()
 
     val isInitialized: Boolean get() = _isInitialized
     val initError: String? get() = _initError
 
     fun initialize(onReady: (() -> Unit)? = null, onError: ((String) -> Unit)? = null) {
-        tts?.stop()
-        tts?.shutdown()
+        if (_isInitialized) {
+            onReady?.let { mainHandler.post(it) }
+            return
+        }
+        onReady?.let(readyCallbacks::add)
+        onError?.let(errorCallbacks::add)
+        if (initializationStarted) return
+        initializationStarted = true
 
         tts = TextToSpeech(appContext) { status ->
             when (status) {
@@ -32,23 +46,17 @@ class WorkoutTtsManager(context: Context) {
                     ttsEngine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                         override fun onStart(utteranceId: String?) {}
                         override fun onDone(utteranceId: String?) {
-                            _onUtteranceComplete?.invoke()
-                            _onUtteranceComplete = null
+                            complete(utteranceId)
                         }
                         @Deprecated("Deprecated in Java")
                         override fun onError(utteranceId: String?) {
-                            _onUtteranceComplete?.invoke()
-                            _onUtteranceComplete = null
+                            complete(utteranceId)
                         }
                         override fun onError(utteranceId: String?, errorCode: Int) {
-                            _onUtteranceComplete?.invoke()
-                            _onUtteranceComplete = null
+                            complete(utteranceId)
                         }
                         override fun onStop(utteranceId: String?, interrupted: Boolean) {
-                            if (interrupted) {
-                                _onUtteranceComplete?.invoke()
-                                _onUtteranceComplete = null
-                            }
+                            if (interrupted) complete(utteranceId)
                         }
                     })
                     ttsEngine.language = Locale("es", "CL")
@@ -67,19 +75,28 @@ class WorkoutTtsManager(context: Context) {
                     }
                     _isInitialized = true
                     _initError = null
-                    onReady?.invoke()
+                    initializationStarted = false
+                    val callbacks = readyCallbacks.toList()
+                    readyCallbacks.clear()
+                    errorCallbacks.clear()
+                    callbacks.forEach { callback -> mainHandler.post(callback) }
                 }
                 else -> {
                     _isInitialized = false
                     _initError = "TTS init error: $status"
-                    onError?.invoke(_initError!!)
+                    initializationStarted = false
+                    val message = _initError!!
+                    val callbacks = errorCallbacks.toList()
+                    readyCallbacks.clear()
+                    errorCallbacks.clear()
+                    callbacks.forEach { callback -> mainHandler.post { callback(message) } }
                 }
             }
         }
     }
 
     fun setOnUtteranceComplete(callback: (() -> Unit)?) {
-        _onUtteranceComplete = callback
+        pendingCompletion = callback
     }
 
     fun setSpeechRate(rate: Float) {
@@ -91,22 +108,38 @@ class WorkoutTtsManager(context: Context) {
         speak("Carga sugerida para $exerciseName: $rounded.", queueFlush = true)
     }
 
-    fun speakSetConfirmation(weightKg: Double?, reps: Int?, rpe: Double?, rir: Int?, isTimeMode: Boolean) {
+    fun speakSetConfirmation(
+        weightKg: Double?,
+        metricValue: Double?,
+        metricLabel: String,
+        rpe: Double?,
+        rir: Int?,
+        reachedFailure: Boolean,
+        romPercent: Int?,
+        tagName: String?,
+    ) {
         val parts = mutableListOf<String>()
-        if (weightKg != null) parts.add("${formatWeight(weightKg)}")
-        if (reps != null) parts.add(if (isTimeMode) "$reps segundos" else "$reps repeticiones")
+        if (weightKg != null) parts.add(formatWeight(weightKg))
+        if (metricValue != null) parts.add("${formatDecimal(metricValue)} $metricLabel")
         if (rpe != null) parts.add("RPE ${formatDecimal(rpe)}")
         if (rir != null) parts.add("RIR $rir")
-        val summary = parts.joinToString(", ")
-        speak("$summary. ¿Confirmar?", queueFlush = true)
+        if (reachedFailure) parts.add("al fallo")
+        if (romPercent != null) parts.add("ROM $romPercent por ciento")
+        if (!tagName.isNullOrBlank()) parts.add("etiqueta $tagName")
+        speak("${parts.joinToString(", ")}. ¿Confirmar?", queueFlush = true)
     }
-
-    fun speakSetRegistered(weightKg: Double?, reps: Int?, isTimeMode: Boolean) {
+    fun speakSetRegistered(
+        weightKg: Double?,
+        reps: Double?,
+        metricLabel: String,
+        trailingText: String? = null,
+    ) {
         val summary = buildString {
             if (weightKg != null) append("${formatWeight(weightKg)}, ")
-            if (reps != null) append(if (isTimeMode) "$reps segundos. " else "$reps repeticiones. ")
+            if (reps != null) append("${formatDecimal(reps)} $metricLabel. ")
         }
-        speak("Serie registrada${if (summary.isNotBlank()) ": $summary" else "."}", queueFlush = true)
+        val base = "Serie registrada${if (summary.isNotBlank()) ": $summary" else "."}"
+        speak(listOfNotNull(base, trailingText?.trim()?.takeIf(String::isNotBlank)).joinToString(" "), queueFlush = true)
     }
 
     fun speakAutoConfirmed() {
@@ -207,6 +240,10 @@ class WorkoutTtsManager(context: Context) {
 
         val queueMode = if (queueFlush) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
         val utteranceId = "kpkn-tts-${utteranceCounter.incrementAndGet()}"
+        pendingCompletion?.let { callback ->
+            completions[utteranceId] = callback
+            pendingCompletion = null
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             val params = Bundle().apply {
@@ -231,11 +268,21 @@ class WorkoutTtsManager(context: Context) {
     }
 
     fun shutdown() {
-        _onUtteranceComplete = null
+        pendingCompletion = null
+        completions.clear()
+        readyCallbacks.clear()
+        errorCallbacks.clear()
+        initializationStarted = false
         tts?.stop()
         tts?.shutdown()
         tts = null
         _isInitialized = false
+    }
+
+    private fun complete(utteranceId: String?) {
+        val id = utteranceId ?: return
+        val callback = completions.remove(id) ?: return
+        mainHandler.post(callback)
     }
 
     private fun formatWeight(kg: Double): String {

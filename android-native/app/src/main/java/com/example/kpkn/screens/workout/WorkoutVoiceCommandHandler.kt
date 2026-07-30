@@ -669,6 +669,7 @@ class WorkoutVoiceCommandHandler(
         } else {
             0
         }
+        WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "PERSIST", "state" to "START"))
         WorkoutVoiceDiagnosticLogger.event(
             "set_persistence_started",
             mapOf("exerciseId" to exercise.id, "setIndex" to setIdx, "side" to resolvedSide,
@@ -694,12 +695,16 @@ class WorkoutVoiceCommandHandler(
                 exercise.id, setIdx, resolvedSide,
             )
             if (recorded) {
+                interpretation.tagName?.takeIf(String::isNotBlank)?.let { tag ->
+                    ports.setExerciseTag(exercise.id, tag.take(40))
+                }
                 WorkoutVoiceDiagnosticLogger.event("set_persistence_succeeded", mapOf("exerciseId" to exercise.id, "setIndex" to setIdx, "side" to resolvedSide))
                 voiceController.onVoiceSetPersisted(
                     interpretation = interpretation.copy(side = resolvedSide),
                     exerciseId = exercise.id,
                     setIdx = setIdx,
-                    isTimeMode = unitMode == UnitModeV2.TIME,
+                    unitMode = unitMode,
+                    customUnit = exercise.customUnit,
                     isUnilateral = exercise.isEffectivelyUnilateral(),
                     completedSidesBefore = completedSidesBefore,
                 )

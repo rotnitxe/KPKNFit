@@ -565,7 +565,6 @@ class WorkoutViewModel(
 
     init {
         initExtractedControllers()
-        sessionTtsManager.initialize()
         voiceController.initialize(viewModelScope)
         voiceController.verbosityProvider = { repository.settings.value.voiceVerbosity }
         voiceController.noiseProfileProvider = { repository.settings.value.voiceNoiseProfile }
@@ -628,9 +627,26 @@ class WorkoutViewModel(
         }
         voiceController.hapticEnabledProvider = { repository.settings.value.hapticFeedbackEnabled }
         sessionTtsManager.setSpeechRate(repository.settings.value.ttsSpeechRate)
+        viewModelScope.launch {
+            delay(1_000L)
+            if (
+                !WorkoutVoiceDiagnosticLogger.isAutomaticStorageConfigured() &&
+                WorkoutVoiceDiagnosticLogger.hasExportableData() &&
+                !WorkoutVoiceDiagnosticLogger.isActive()
+            ) {
+                _uiState.update {
+                    it.copy(pendingVoiceDiagnosticExportName = WorkoutVoiceDiagnosticLogger.suggestedFileName())
+                }
+            }
+        }
         voiceController.onCommandDetected = { command -> voiceCommandHandler.handleVoiceCommand(command) }
-        voiceController.onStageChanged = {
-            _uiState.update { it.copy(voiceSessionState = voiceController.state.value) }
+        voiceController.onStageChanged = { stage ->
+            _uiState.update { state ->
+                state.copy(
+                    voiceSessionEnabled = if (stage == VoicePipelineStage.FAILED) false else state.voiceSessionEnabled,
+                    voiceSessionState = voiceController.state.value,
+                )
+            }
         }
         voiceController.onError = {
             _uiState.update { it.copy(voiceSessionState = voiceController.state.value) }
@@ -1189,23 +1205,16 @@ class WorkoutViewModel(
 
 
     fun enableVoice() = run {
-        val settingsBeforeEnable = repository.settings.value
         WorkoutVoiceDiagnosticLogger.initialize(appContext)
         WorkoutVoiceDiagnosticLogger.start(programId, sessionId)
         WorkoutVoiceDiagnosticLogger.event("voice_enable_requested")
         voiceCommandHandler.enableVoice()
         WorkoutVoiceDiagnosticLogger.event("voice_enable_result", mapOf("enabled" to voiceController.isEnabled()))
         if (voiceController.isEnabled()) {
-            val needsTutorial =
-                settingsBeforeEnable.voiceTutorialVersionSeen < HYBRID_VOICE_TUTORIAL_VERSION
             repository.updateSettings {
                 it.copy(voiceTutorialVersionSeen = HYBRID_VOICE_TUTORIAL_VERSION)
             }
-            if (needsTutorial) {
-                voiceController.speakAnnouncement(
-                    "Voz local activada. Seguirá escuchando durante este entrenamiento hasta que la desactives desde el control o la notificación. El fallback del sistema es breve y ocasional.",
-                )
-            }
+
         }
     }
 
@@ -1216,8 +1225,12 @@ class WorkoutViewModel(
     }
 
     private fun prepareVoiceDiagnosticExport() {
-        if (!WorkoutVoiceDiagnosticLogger.isActive()) return
+        if (!WorkoutVoiceDiagnosticLogger.hasExportableData()) return
         WorkoutVoiceDiagnosticLogger.event("workout_completed")
+        if (WorkoutVoiceDiagnosticLogger.isAutomaticStorageConfigured()) {
+            WorkoutVoiceDiagnosticLogger.close("workout_completed_auto_saved")
+            return
+        }
         _uiState.update {
             it.copy(pendingVoiceDiagnosticExportName = WorkoutVoiceDiagnosticLogger.suggestedFileName())
         }

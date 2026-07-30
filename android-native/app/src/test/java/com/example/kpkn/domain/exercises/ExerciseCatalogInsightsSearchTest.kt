@@ -72,6 +72,40 @@ class ExerciseCatalogInsightsSearchTest {
     }
 
     @Test
+    fun multi_word_search_requires_every_term_not_or() {
+        val curlFemoral = ExerciseMuscleInfo(
+            id = "curl-femoral",
+            name = "Curl Femoral en Máquina",
+            description = "Aislamiento de isquios",
+        )
+        val onlyFemoralInDescription = ExerciseMuscleInfo(
+            id = "sentadilla",
+            name = "Sentadilla trasera",
+            description = "El recto femoral participa en la extensión",
+        )
+        val curlBiceps = ExerciseMuscleInfo(
+            id = "curl-biceps",
+            name = "Curl de Bíceps",
+            description = "Curl de brazo",
+        )
+
+        assertTrue(calculateSearchScore(curlFemoral, "Curl Femoral") > 0)
+        assertEquals(0, calculateSearchScore(onlyFemoralInDescription, "Curl Femoral"))
+        assertEquals(0, calculateSearchScore(curlBiceps, "Curl Femoral"))
+        assertTrue(calculateSearchScore(curlBiceps, "Curl") > 0)
+    }
+
+    @Test
+    fun partial_token_prefix_matches_while_typing() {
+        val curlFemoral = ExerciseMuscleInfo(
+            id = "curl-femoral",
+            name = "Curl Femoral Mentonera",
+        )
+        assertTrue(calculateSearchScore(curlFemoral, "Curl Fem") > 0)
+        assertTrue(calculateSearchScore(curlFemoral, "curl femora") > 0)
+    }
+
+    @Test
     fun visual_dedup_groups_custom_duplicate_by_normalized_name() {
         val system = ExerciseMuscleInfo(
             id = "system-sissy",

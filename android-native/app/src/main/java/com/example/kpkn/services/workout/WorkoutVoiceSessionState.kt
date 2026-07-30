@@ -15,6 +15,7 @@ enum class VoicePipelineStage {
     /** Reabriendo AudioRecord tras ocupación. */
     RECONNECTING,
     ERROR_RECOVERY,
+    FAILED,
 }
 
 data class VoiceSessionState(

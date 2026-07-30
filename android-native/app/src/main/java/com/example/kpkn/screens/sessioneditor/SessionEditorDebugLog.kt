@@ -1,10 +1,15 @@
 package com.example.kpkn.screens.sessioneditor
 
 import android.util.Log
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.UUID
 
 /**
  * Debug-mode NDJSON logger for session-editor audit (session 9ba5f2).
@@ -37,17 +42,20 @@ internal object SessionEditorDebugLog {
         data: Map<String, Any?> = emptyMap(),
         runId: String = "audit1",
     ) {
-        val payload = JSONObject()
-            .put("sessionId", SESSION_ID)
-            .put("hypothesisId", hypothesisId)
-            .put("location", location)
-            .put("message", message)
-            .put("timestamp", System.currentTimeMillis())
-            .put("runId", runId)
-            .put("data", JSONObject(data.mapValues { (_, v) -> v ?: JSONObject.NULL }))
-            .toString()
+        val payload = JsonObject(
+            linkedMapOf(
+                "sessionId" to JsonPrimitive(SESSION_ID),
+                "hypothesisId" to JsonPrimitive(hypothesisId),
+                "location" to JsonPrimitive(location),
+                "message" to JsonPrimitive(message),
+                "timestamp" to JsonPrimitive(System.currentTimeMillis()),
+                "runId" to JsonPrimitive(runId),
+                "eventId" to JsonPrimitive(UUID.randomUUID().toString()),
+                "data" to JsonObject(data.mapValues { (_, value) -> value.toJsonElement() }),
+            ),
+        ).toString()
 
-        Log.i(TAG, payload)
+        runCatching { Log.i(TAG, payload) }
 
         for (file in hostLogPaths + deviceLogPaths) {
             try {
@@ -76,5 +84,14 @@ internal object SessionEditorDebugLog {
                 }
             }
         }.start()
+    }
+
+    private fun Any?.toJsonElement(): JsonElement = when (this) {
+        null -> JsonNull
+        is Boolean -> JsonPrimitive(this)
+        is Number -> JsonPrimitive(this)
+        is Iterable<*> -> JsonArray(map { value -> value.toJsonElement() })
+        is Array<*> -> JsonArray(map { value -> value.toJsonElement() })
+        else -> JsonPrimitive(toString())
     }
 }

@@ -45,8 +45,20 @@ object WorkoutVoiceGrammarBuilder {
                 expandForVosk(raw.lowercase()).forEach { tokens += it }
             }
         }
-        tokens += "[unk]"
-        return tokens
+        val phrases = linkedSetOf<String>().apply { addAll(tokens) }
+        if (stage != VoicePipelineStage.CONFIRM_WAIT) {
+            val numericWords = WorkoutVoiceCommandParser.defaultNumericGrammarTokens()
+                .filter { token -> token !in NON_NUMERIC_COMPONENTS && ' ' !in token }
+            numericWords.forEach { number ->
+                METRIC_COMPONENTS.forEach { metric -> phrases += "$number $metric" }
+                INTENSITY_COMPONENTS.forEach { intensity -> phrases += "$intensity $number" }
+            }
+            context?.tagNames.orEmpty().forEach { tag ->
+                expandForVosk(tag).forEach { expanded -> phrases += "etiqueta $expanded" }
+            }
+        }
+        phrases += "[unk]"
+        return phrases
             .filter(String::isNotBlank)
             .distinct()
             .joinToString(
@@ -79,6 +91,15 @@ object WorkoutVoiceGrammarBuilder {
         return withAccentVariants(listOf(key))
     }
 
+    private val METRIC_COMPONENTS = setOf(
+        "repeticiones", "segundos", "minutos", "kilos", "metros", "kilómetros", "millas", "unidades", "rom",
+    )
+    private val INTENSITY_COMPONENTS = setOf("esfuerzo", "intensidad", "reservas", "porcentaje")
+    private val NON_NUMERIC_COMPONENTS = METRIC_COMPONENTS + INTENSITY_COMPONENTS + setOf(
+        "punto", "coma", "medio", "media", "kilo", "peso", "carga", "repeticion", "repetición",
+        "segundo", "minuto", "metro", "kilometro", "milla", "unidad", "caloria", "calorías", "vuelta",
+        "vueltas", "etiqueta", "rango", "recorrido", "izquierda", "izquierdo", "derecha", "derecho", "fallo", "falla", "por",
+    )
     private fun withAccentVariants(values: List<String>): List<String> = buildList {
         values.forEach { value ->
             add(value)

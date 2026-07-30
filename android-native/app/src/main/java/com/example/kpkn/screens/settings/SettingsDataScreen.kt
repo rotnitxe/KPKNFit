@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Upload
@@ -48,6 +49,7 @@ import com.example.kpkn.screens.settings.components.SettingsActionItem
 import com.example.kpkn.screens.settings.components.SettingsInfoRow
 import com.example.kpkn.screens.settings.components.SettingsSectionCard
 import com.example.kpkn.screens.settings.components.SettingsSectionHeader
+import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticStorage
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -63,6 +65,9 @@ fun SettingsDataScreen(
     val settings by viewModel.settings.collectAsState()
     val versionLabel = rememberVersionValue(context)
 
+    var voiceDiagnosticsFolder by remember {
+        mutableStateOf(WorkoutVoiceDiagnosticStorage.configuredLabel(context))
+    }
     var snapshots by remember { mutableStateOf(viewModel.getSnapshots(context)) }
 
     var showClearDataDialog by remember { mutableStateOf(false) }
@@ -88,6 +93,24 @@ fun SettingsDataScreen(
         }
     }
 
+    val voiceDiagnosticsFolderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree(),
+    ) { uri: Uri? ->
+        uri ?: return@rememberLauncherForActivityResult
+        WorkoutVoiceDiagnosticStorage.configure(context, uri)
+            .onSuccess { label ->
+                voiceDiagnosticsFolder = label
+                Toast.makeText(context, "Diagnósticos de voz guardados en $label", Toast.LENGTH_LONG).show()
+            }
+            .onFailure { error ->
+                Toast.makeText(
+                    context,
+                    "No se pudo usar la carpeta: ${error.message ?: "error desconocido"}",
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -106,6 +129,32 @@ fun SettingsDataScreen(
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         ) {
+            item { SettingsSectionHeader("Diagnósticos de voz") }
+            item {
+                SettingsSectionCard {
+                    SettingsActionItem(
+                        title = "Carpeta de guardado automático",
+                        description = voiceDiagnosticsFolder?.let { folder ->
+                            "Cada sesión con voz crea y actualiza un JSONL en: $folder"
+                        } ?: "Elige dónde copiar automáticamente los JSONL. La app conserva además una copia interna ante crashes.",
+                        icon = Icons.Default.Folder,
+                        onClick = { voiceDiagnosticsFolderLauncher.launch(null) },
+                    )
+                    if (voiceDiagnosticsFolder != null) {
+                        SettingsActionItem(
+                            title = "Desvincular carpeta",
+                            description = "Los diagnósticos nuevos seguirán protegidos dentro de la app, pero no se copiarán fuera.",
+                            icon = Icons.Default.Delete,
+                            onClick = {
+                                WorkoutVoiceDiagnosticStorage.clear(context)
+                                voiceDiagnosticsFolder = null
+                                Toast.makeText(context, "Carpeta de diagnósticos desvinculada", Toast.LENGTH_SHORT).show()
+                            },
+                        )
+                    }
+                }
+            }
+
             item { SettingsSectionHeader("Respaldo y Migración") }
             item {
                 SettingsSectionCard {

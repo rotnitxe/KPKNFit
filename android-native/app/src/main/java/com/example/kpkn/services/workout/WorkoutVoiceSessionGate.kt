@@ -58,7 +58,8 @@ object WorkoutVoiceSessionGate {
         return stage != VoicePipelineStage.DISABLED &&
             stage != VoicePipelineStage.ARMED &&
             stage != VoicePipelineStage.TTS_SPEAKING &&
-            stage != VoicePipelineStage.MIC_BUSY
+            stage != VoicePipelineStage.MIC_BUSY &&
+            stage != VoicePipelineStage.FAILED
     }
 
     fun shouldProcessCommand(stage: VoicePipelineStage): Boolean {

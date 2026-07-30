@@ -61,7 +61,7 @@ private class AndroidWorkoutVoiceAudioRecord(
 
     override fun read(buffer: ShortArray, offset: Int, size: Int): Int =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            delegate.read(buffer, offset, size, AudioRecord.READ_NON_BLOCKING)
+            delegate.read(buffer, offset, size, AudioRecord.READ_BLOCKING)
         } else {
             @Suppress("DEPRECATION")
             delegate.read(buffer, offset, size)

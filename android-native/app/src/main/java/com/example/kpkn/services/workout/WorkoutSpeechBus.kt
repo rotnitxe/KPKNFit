@@ -27,7 +27,7 @@ class WorkoutSpeechBus {
         onInterrupt: () -> Unit,
     ): Boolean {
         val current = speakingPriority
-        if (current != null && priority.ordinal < current.ordinal) {
+        if (current != null && priority.ordinal <= current.ordinal) {
             return false
         }
         if (current != null && priority.ordinal > current.ordinal) {

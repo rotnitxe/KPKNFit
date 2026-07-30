@@ -84,6 +84,8 @@
         <service
             android:name=".services.workout.WorkoutVoiceForegroundService"
             android:exported="false"
+            android:process=":voice"
+            android:stopWithTask="true"
             android:foregroundServiceType="microphone" />
 
         <receiver

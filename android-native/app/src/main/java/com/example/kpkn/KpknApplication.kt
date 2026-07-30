@@ -2,8 +2,11 @@ package com.example.kpkn
 
 import android.app.Application
 import android.content.Context
+import android.os.Build
 import android.os.StrictMode
 import com.example.kpkn.telemetry.KpknTelemetry
+import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLogger
+import com.example.kpkn.services.workout.WorkoutVoiceExitInfoCollector
 import com.example.kpkn.ui.locale.LocaleManager
 
 class KpknApplication : Application() {
@@ -14,6 +17,13 @@ class KpknApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        WorkoutVoiceDiagnosticLogger.initialize(this)
+        val isMainProcess = Build.VERSION.SDK_INT < Build.VERSION_CODES.P ||
+            Application.getProcessName() == packageName
+        if (isMainProcess) {
+            WorkoutVoiceExitInfoCollector.initialize(this)
+        }
 
         // Enable StrictMode in debug builds to catch disk/network on main thread and leaked closeables.
         if (BuildConfig.DEBUG) {

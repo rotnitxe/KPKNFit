@@ -25,8 +25,9 @@ internal fun filterAndSortExerciseCatalog(
     ascending: Boolean = true,
 ): List<ExerciseMuscleInfo> {
     val baseFiltered = fullCatalog.filter { matchesExclusiveCatalogFilter(it, exclusiveFilter) }
+    val hasActiveSearch = normalizedQuery.isNotBlank()
 
-    val searched = if (normalizedQuery.isBlank()) {
+    val searched = if (!hasActiveSearch) {
         baseFiltered
     } else {
         baseFiltered
@@ -44,14 +45,22 @@ internal fun filterAndSortExerciseCatalog(
     val byFatigueAsc = compareBy<ExerciseMuscleInfo> { calculateFriendlyFatigue(it).overall }
         .thenBy { it.name.lowercase() }
 
-    val sorted = when (sortMode) {
-        ExerciseCatalogSort.NAME ->
+    // With an active query, keep relevance ranking for alphabetical/relevance modes.
+    // Re-sorting A→Z was wiping search order and making multi-word queries look like
+    // a full alphabetical catalog (starting at "A").
+    val sorted = when {
+        hasActiveSearch &&
+            (sortMode == ExerciseCatalogSort.NAME || sortMode == ExerciseCatalogSort.RELEVANCE) ->
+            searched
+        sortMode == ExerciseCatalogSort.NAME ->
             if (ascending) searched.sortedWith(byNameAsc) else searched.sortedWith(byNameAsc.reversed())
-        ExerciseCatalogSort.FATIGUE_HIGH, ExerciseCatalogSort.FATIGUE_LOW ->
+        sortMode == ExerciseCatalogSort.FATIGUE_HIGH || sortMode == ExerciseCatalogSort.FATIGUE_LOW ->
             // ascending = menos → más fatigante; descending = más → menos
             if (ascending) searched.sortedWith(byFatigueAsc) else searched.sortedWith(byFatigueAsc.reversed())
-        ExerciseCatalogSort.GROUP_BY_MUSCLE ->
+        sortMode == ExerciseCatalogSort.GROUP_BY_MUSCLE ->
             searched.sortedWith(compareBy({ resolvePrimaryMuscleLabel(it) }, { it.name.lowercase() }))
+        sortMode == ExerciseCatalogSort.RELEVANCE ->
+            searched
         else ->
             if (ascending) searched.sortedWith(byNameAsc) else searched.sortedWith(byNameAsc.reversed())
     }
