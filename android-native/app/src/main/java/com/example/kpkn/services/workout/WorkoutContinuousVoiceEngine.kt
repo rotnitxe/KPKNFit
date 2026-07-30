@@ -8,6 +8,7 @@ import android.media.AudioRecordingConfiguration
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.speech.SpeechRecognizer
 import android.os.SystemClock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -562,9 +563,24 @@ class WorkoutContinuousVoiceEngine internal constructor(
                         } == true
                         if (!finished) prompt.complete()
                     }
+                    WorkoutVoiceDiagnosticLogger.event("native_fallback_attempt", mapOf("attempt" to 1))
                     withTimeoutOrNull(NATIVE_FALLBACK_TIMEOUT_MS) {
-                        withContext(Dispatchers.Main) {
+                        val first = withContext(Dispatchers.Main) {
                             nativeRecognizer.recognizeOnce()
+                        }
+                        if (first is NativeRecognitionResult.Error &&
+                            first.code in TRANSIENT_NATIVE_RECOGNIZER_ERRORS
+                        ) {
+                            WorkoutVoiceDiagnosticLogger.event(
+                                "native_fallback_retry",
+                                mapOf("code" to first.code, "message" to first.message),
+                            )
+                            delay(NATIVE_FALLBACK_RETRY_DELAY_MS)
+                            withContext(Dispatchers.Main) {
+                                nativeRecognizer.recognizeOnce()
+                            }
+                        } else {
+                            first
                         }
                     } ?: NativeRecognitionResult.Error("Timeout de reconocimiento nativo")
                 } catch (e: Exception) {
@@ -735,6 +751,10 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     }
                     when (val result = command.result) {
                         is NativeRecognitionResult.Success -> {
+                            WorkoutVoiceDiagnosticLogger.event(
+                                "native_fallback_result",
+                                mapOf("state" to "SUCCESS", "hypotheses" to result.hypotheses.size),
+                            )
                             fallbackPolicy.recordSuccess()
                             _fallbackPaused.value = fallbackPolicy.isCircuitOpen
                             if (result.hypotheses.isNotEmpty()) {
@@ -743,6 +763,10 @@ class WorkoutContinuousVoiceEngine internal constructor(
                         }
 
                         is NativeRecognitionResult.Error -> {
+                            WorkoutVoiceDiagnosticLogger.event(
+                                "native_fallback_result",
+                                mapOf("state" to "ERROR", "code" to result.code, "message" to result.message),
+                            )
                             fallbackPolicy.recordFailure()
                             _fallbackPaused.value = fallbackPolicy.isCircuitOpen
                             _statusMessages.emit(result.message)
@@ -840,16 +864,13 @@ class WorkoutContinuousVoiceEngine internal constructor(
                                         )
                                         sawSpeechInCurrentUtterance = false
                                         lastPartialText = ""
-                                    } else if (
-                                        sawSpeechInCurrentUtterance &&
-                                        shouldAttemptNativeFallback(lastPartialText) &&
-                                        fallbackQueued.compareAndSet(false, true)
-                                    ) {
-                                        beginFallback(
-                                            generation = actorGeneration,
-                                            transcript = lastPartialText,
-                                            announcePrompt = true,
-                                        )
+                                    } else {
+                                        if (sawSpeechInCurrentUtterance) {
+                                            WorkoutVoiceDiagnosticLogger.event(
+                                                "vosk_empty_final_discarded",
+                                                mapOf("partial" to lastPartialText),
+                                            )
+                                        }
                                         sawSpeechInCurrentUtterance = false
                                         lastPartialText = ""
                                     }
@@ -1037,7 +1058,12 @@ class WorkoutContinuousVoiceEngine internal constructor(
         private val RAPID_RETRY_DELAYS_MS = longArrayOf(300L, 1_000L, 2_000L)
         private const val TTS_RESUME_DELAY_MS = 300L
         private const val NATIVE_FALLBACK_TIMEOUT_MS = 6_000L
+        private const val NATIVE_FALLBACK_RETRY_DELAY_MS = 400L
         private const val PROMPT_TTS_TIMEOUT_MS = 8_000L
+        private val TRANSIENT_NATIVE_RECOGNIZER_ERRORS = setOf(
+            SpeechRecognizer.ERROR_CLIENT,
+            SpeechRecognizer.ERROR_RECOGNIZER_BUSY,
+        )
         private const val STOP_ACK_TIMEOUT_MS = 1_500L
         private const val PAUSE_ACK_TIMEOUT_MS = 1_500L
     }

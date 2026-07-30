@@ -26,6 +26,7 @@ class WorkoutVoiceController(
     private val ttsManager = sharedTtsManager ?: WorkoutTtsManager(context)
     private val audioHelper = SystemAudioHelper
     private val speechBus = WorkoutSpeechBus()
+    private val fallbackTriggerPolicy = WorkoutVoiceFallbackTriggerPolicy()
 
     private val _state = MutableStateFlow(VoiceSessionState())
     val state: StateFlow<VoiceSessionState> = _state.asStateFlow()
@@ -182,6 +183,7 @@ class WorkoutVoiceController(
     }
 
     fun enable() {
+        fallbackTriggerPolicy.recordResolved()
         sessionWanted = true
         announcedVoiceOn = false
         pushToTalkHeld = false
@@ -201,6 +203,7 @@ class WorkoutVoiceController(
     }
 
     fun disable() {
+        fallbackTriggerPolicy.recordResolved()
         val shouldAnnounce = sessionWanted && ttsManager.isInitialized
         sessionWanted = false
         announcedVoiceOn = false
@@ -572,13 +575,18 @@ class WorkoutVoiceController(
      * y **no** reanuda Vosk (el engine retiene el mic para el one-shot on-device).
      */
     private fun speakFallbackPrompt(request: PromptSpeakRequest) {
+        fun handOffToNativeRecognizer() {
+            updateStage(VoicePipelineStage.LISTENING)
+            WorkoutVoiceDiagnosticLogger.event("native_fallback_handoff", mapOf("state" to "LISTENING"))
+            request.complete()
+        }
         val priority = WorkoutSpeechPriority.HIGH
         val acquired = speechBus.tryAcquire(priority) {
             ttsManager.stop()
             activeSpeechPriority?.let { speechBus.release(it) }
         }
         if (!acquired) {
-            request.complete()
+            handOffToNativeRecognizer()
             return
         }
         activeSpeechPriority = priority
@@ -586,7 +594,7 @@ class WorkoutVoiceController(
         if (!ttsManager.isInitialized) {
             speechBus.release(priority)
             activeSpeechPriority = null
-            request.complete()
+            handOffToNativeRecognizer()
             return
         }
         requestDucking()
@@ -595,7 +603,7 @@ class WorkoutVoiceController(
             alreadyAcquired = true,
             onComplete = {
                 releaseDucking()
-                request.complete()
+                handOffToNativeRecognizer()
             },
             speak = { ttsManager.speakError(request.text) },
         )
@@ -948,6 +956,9 @@ class WorkoutVoiceController(
         )
 
         publishHeardSummary(command)
+        if (command !is VoiceSessionCommand.Unknown) {
+            fallbackTriggerPolicy.recordResolved()
+        }
 
         when (command) {
             is VoiceSessionCommand.RegisterSet -> {
@@ -975,8 +986,14 @@ class WorkoutVoiceController(
             }
             is VoiceSessionCommand.Unknown -> {
                 releaseDucking()
-                // Solo tras Vosk (confianza desconocida). Si ya vino del nativo, no bucles.
-                if (!lastHypothesisConfidenceKnown &&
+                // Una alucinación aislada de Vosk queda en silencio. El fallback se reserva
+                // para una segunda entrada no resuelta cercana y nunca se encadena al nativo.
+                val secondUnresolved = fallbackTriggerPolicy.shouldRequestFallback()
+                WorkoutVoiceDiagnosticLogger.event(
+                    "native_fallback_trigger_evaluated",
+                    mapOf("secondUnresolved" to secondUnresolved, "transcript" to command.raw),
+                )
+                if (secondUnresolved && !lastHypothesisConfidenceKnown &&
                     continuousEngine.requestNativeFallbackForUnresolved(command.raw)
                 ) {
                     updateStage(VoicePipelineStage.LISTENING)

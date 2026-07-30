@@ -43,6 +43,7 @@ class WorkoutNativeOneShotRecognizer(
 
     suspend fun recognizeOnce(maxResults: Int = 3): NativeRecognitionResult {
         unavailableReason()?.let { return NativeRecognitionResult.Error(it) }
+        WorkoutVoiceDiagnosticLogger.event("native_recognizer", mapOf("state" to "CREATE"))
         return suspendCancellableCoroutine { continuation ->
             val recognizer = try {
                 createOnDevice(context)
@@ -52,6 +53,7 @@ class WorkoutNativeOneShotRecognizer(
                         "No se pudo crear recognizer on-device: ${e.message ?: "error"}",
                     ),
                 )
+                WorkoutVoiceDiagnosticLogger.exception("native_recognizer_create_failed", e)
                 return@suspendCancellableCoroutine
             }
             var completed = false
@@ -69,11 +71,23 @@ class WorkoutNativeOneShotRecognizer(
             }
             try {
                 recognizer.setRecognitionListener(object : RecognitionListener {
-                    override fun onReadyForSpeech(params: Bundle?) = Unit
-                    override fun onBeginningOfSpeech() = Unit
+                    override fun onReadyForSpeech(params: Bundle?) {
+                        WorkoutVoiceDiagnosticLogger.event(
+                            "native_recognizer",
+                            mapOf("state" to "READY_FOR_SPEECH"),
+                        )
+                    }
+                    override fun onBeginningOfSpeech() {
+                        WorkoutVoiceDiagnosticLogger.event(
+                            "native_recognizer",
+                            mapOf("state" to "BEGINNING_OF_SPEECH"),
+                        )
+                    }
                     override fun onRmsChanged(rmsdB: Float) = Unit
                     override fun onBufferReceived(buffer: ByteArray?) = Unit
-                    override fun onEndOfSpeech() = Unit
+                    override fun onEndOfSpeech() {
+                        WorkoutVoiceDiagnosticLogger.event("native_recognizer", mapOf("state" to "END_OF_SPEECH"))
+                    }
                     override fun onEvent(eventType: Int, params: Bundle?) = Unit
 
                     override fun onPartialResults(partialResults: Bundle?) = Unit
@@ -81,6 +95,10 @@ class WorkoutNativeOneShotRecognizer(
                     override fun onResults(results: Bundle?) {
                         val texts = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).orEmpty()
                         val confidences = results?.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES)
+                        WorkoutVoiceDiagnosticLogger.event(
+                            "native_recognizer",
+                            mapOf("state" to "RESULTS", "count" to texts.size),
+                        )
                         val hypotheses = texts.mapIndexedNotNull { index, value ->
                             value?.trim()?.takeIf { it.isNotBlank() }?.let {
                                 val conf = confidences?.getOrNull(index)
@@ -95,9 +113,19 @@ class WorkoutNativeOneShotRecognizer(
                     }
 
                     override fun onError(error: Int) {
-                        finish(NativeRecognitionResult.Error("Error de reconocimiento nativo: $error"))
+                        WorkoutVoiceDiagnosticLogger.event(
+                            "native_recognizer",
+                            mapOf("state" to "ERROR", "code" to error, "name" to errorName(error)),
+                        )
+                        finish(
+                            NativeRecognitionResult.Error(
+                                message = "Error de reconocimiento nativo: ${errorName(error)} ($error)",
+                                code = error,
+                            ),
+                        )
                     }
                 })
+                WorkoutVoiceDiagnosticLogger.event("native_recognizer", mapOf("state" to "START_LISTENING"))
                 recognizer.startListening(
                     Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                         putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
@@ -120,9 +148,27 @@ class WorkoutNativeOneShotRecognizer(
             }
         }
     }
+
+    companion object {
+        internal fun errorName(error: Int): String = when (error) {
+            SpeechRecognizer.ERROR_AUDIO -> "AUDIO"
+            SpeechRecognizer.ERROR_CLIENT -> "CLIENT"
+            SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "INSUFFICIENT_PERMISSIONS"
+            SpeechRecognizer.ERROR_NETWORK -> "NETWORK"
+            SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "NETWORK_TIMEOUT"
+            SpeechRecognizer.ERROR_NO_MATCH -> "NO_MATCH"
+            SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "RECOGNIZER_BUSY"
+            SpeechRecognizer.ERROR_SERVER -> "SERVER"
+            SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "SPEECH_TIMEOUT"
+            else -> "UNKNOWN"
+        }
+    }
 }
 
 sealed interface NativeRecognitionResult {
     data class Success(val hypotheses: List<VoiceHypothesis>) : NativeRecognitionResult
-    data class Error(val message: String) : NativeRecognitionResult
+    data class Error(
+        val message: String,
+        val code: Int? = null,
+    ) : NativeRecognitionResult
 }
