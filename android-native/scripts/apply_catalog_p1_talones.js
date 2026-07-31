@@ -73,7 +73,7 @@ for (const [setup, sources] of Object.entries(groups)) {
     ]));
   }
   
-  setupCanon(canonicalId, canonicalId.replace(/_/g, ' '), setup + ' ajustable en chips.', canonicalId.replace(/_/g, ' '), aspects);
+  setupCanon(byId, canonicalId, sources[0].id, canonicalId.replace(/_/g, ' '), setup + ' ajustable en chips.', canonicalId.replace(/_/g, ' '), aspects);
   
   for (const s of sources) {
     const aspects = {};

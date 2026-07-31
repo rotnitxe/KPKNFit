@@ -339,3 +339,268 @@ Ver sección “Aplicado” al final tras cada oleada de cleanup.
 - MERGE biceps_curl_sentado_banco_plano_martillo_barra_neutra → biceps_curl_sentado_banco_plano {"grip_type":"martillo","implement":"barra_neutra","laterality":"bilateral"} (Curl sentado_banco_plano)
 - MERGE biceps_curl_sentado_banco_plano_martillo_mancuernas → biceps_curl_sentado_banco_plano {"grip_type":"martillo","implement":"mancuernas","laterality":"bilateral"} (Curl sentado_banco_plano)
 ... y 127 merges más
+
+## Aplicado — oleada P0 (2026-07-31)
+
+- Filas antes: 848
+- Filas después: 795
+- Eliminadas/fusionadas: 62
+- Aliases nuevos: 62
+
+### Detalle
+
+- back_remo_barra_t_ancho → back_remo_barra_t {"station":"libre","grip_width":"wide","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_cerrado → back_remo_barra_t {"station":"libre","grip_width":"close","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_pecho_apoyado_ancho → back_remo_barra_t {"station":"maquina","grip_width":"wide","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_pecho_apoyado_cerrado → back_remo_barra_t {"station":"maquina","grip_width":"close","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_maquina_ancho → back_remo_barra_t {"station":"maquina","grip_width":"wide","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_maquina_cerrado → back_remo_barra_t {"station":"maquina","grip_width":"close","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_maquina_pecho_apoyado_ancho → back_remo_barra_t {"station":"maquina","grip_width":"wide","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_maquina_pecho_apoyado_cerrado → back_remo_barra_t {"station":"maquina","grip_width":"close","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_recta_ancho → back_remo_barra {"grip_width":"wide","grip_orientation":"prono","implement":"recta"} (Remo barra)
+- back_remo_barra_recta_cerrado → back_remo_barra {"grip_width":"close","grip_orientation":"prono","implement":"recta"} (Remo barra)
+- back_remo_barra_ez → back_remo_barra {"grip_width":"medium","grip_orientation":"prono","implement":"ez"} (Remo barra)
+- back_remo_barra_neutra → back_remo_barra {"grip_width":"medium","grip_orientation":"neutro","implement":"neutra"} (Remo barra)
+- back_remo_maquina_smith_ancho → back_remo_smith {"grip_width":"wide","grip_orientation":"prono"} (Remo Smith)
+- back_remo_maquina_smith_cerrado → back_remo_smith {"grip_width":"close","grip_orientation":"prono"} (Remo Smith)
+- back_remo_maquina_ancho → back_remo_maquina {"grip_width":"wide","grip_orientation":"prono","laterality":"bilateral"} (Remo máquina)
+- back_remo_maquina_cerrado → back_remo_maquina {"grip_width":"close","grip_orientation":"prono","laterality":"bilateral"} (Remo máquina)
+- back_remo_polea_baja_ancho → back_remo_polea {"cable_height":"baja","grip_width":"wide","grip_orientation":"prono","laterality":"bilateral"} (Remo polea)
+- back_remo_polea_baja_cerrado → back_remo_polea {"cable_height":"baja","grip_width":"close","grip_orientation":"prono","laterality":"bilateral"} (Remo polea)
+- back_remo_polea_baja_unilateral → back_remo_polea {"cable_height":"baja","grip_width":"medium","grip_orientation":"prono","laterality":"unilateral"} (Remo polea)
+- back_remo_polea_media_ancho → back_remo_polea {"cable_height":"media","grip_width":"wide","grip_orientation":"prono","laterality":"bilateral"} (Remo polea)
+- back_remo_polea_media_cerrado → back_remo_polea {"cable_height":"media","grip_width":"close","grip_orientation":"prono","laterality":"bilateral"} (Remo polea)
+- back_remo_polea_media_unilateral → back_remo_polea {"cable_height":"media","grip_width":"medium","grip_orientation":"prono","laterality":"unilateral"} (Remo polea)
+- back_remo_polea_alta_ancho → back_remo_polea {"cable_height":"alta","grip_width":"wide","grip_orientation":"prono","laterality":"bilateral"} (Remo polea)
+- back_remo_polea_alta_cerrado → back_remo_polea {"cable_height":"alta","grip_width":"close","grip_orientation":"prono","laterality":"bilateral"} (Remo polea)
+- back_remo_polea_alta_unilateral → back_remo_polea {"cable_height":"alta","grip_width":"medium","grip_orientation":"prono","laterality":"unilateral"} (Remo polea)
+- back_remo_pecho_apoyado_polea_baja → back_remo_pecho_apoyado_polea {"grip_width":"medium","grip_orientation":"prono","cable_height":"baja","laterality":"bilateral"} (Remo pecho polea)
+- back_remo_pecho_apoyado_polea_baja_unilateral → back_remo_pecho_apoyado_polea {"grip_width":"medium","grip_orientation":"prono","cable_height":"baja","laterality":"unilateral"} (Remo pecho polea)
+- back_remo_pecho_apoyado_polea_media → back_remo_pecho_apoyado_polea {"grip_width":"medium","grip_orientation":"prono","cable_height":"media","laterality":"bilateral"} (Remo pecho polea)
+- back_remo_pecho_apoyado_polea_media_unilateral → back_remo_pecho_apoyado_polea {"grip_width":"medium","grip_orientation":"prono","cable_height":"media","laterality":"unilateral"} (Remo pecho polea)
+- back_remo_pecho_apoyado_polea_alta → back_remo_pecho_apoyado_polea {"grip_width":"medium","grip_orientation":"prono","cable_height":"alta","laterality":"bilateral"} (Remo pecho polea)
+- back_remo_pecho_apoyado_polea_alta_unilateral → back_remo_pecho_apoyado_polea {"grip_width":"medium","grip_orientation":"prono","cable_height":"alta","laterality":"unilateral"} (Remo pecho polea)
+- back_remo_gironda_ancho → back_remo_gironda {"grip_width":"wide","grip_orientation":"prono","laterality":"bilateral"} (Gironda)
+- back_remo_gironda_cerrado → back_remo_gironda {"grip_width":"close","grip_orientation":"prono","laterality":"bilateral"} (Gironda)
+- back_remo_gironda_unilateral → back_remo_gironda {"grip_width":"medium","grip_orientation":"prono","laterality":"unilateral"} (Gironda)
+- back_remo_banda_ancho → back_remo_banda {"grip_width":"wide","grip_orientation":"prono"} (Remo banda)
+- back_remo_banda_cerrado → back_remo_banda {"grip_width":"close","grip_orientation":"prono"} (Remo banda)
+- back_remo_kettlebell → back_remo_mancuerna {"implement":"kettlebell","grip_width":"medium","grip_orientation":"prono","laterality":"bilateral"} (Remo DB/KB)
+- back_remo_pecho_apoyado_kettlebell → back_remo_pecho_apoyado_mancuernas {"implement":"kettlebell"} (Remo pecho DB)
+- back_remo_seal_kettlebell → back_remo_seal_mancuernas {"implement":"kettlebell"} (specialty implement)
+- back_remo_gorilla_kettlebell → back_remo_gorilla_mancuernas {"implement":"kettlebell"} (specialty implement)
+- back_remo_renegado_kettlebell → back_remo_renegado_mancuernas {"implement":"kettlebell"} (specialty implement)
+- back_remo_invertido_barra_fija → back_remo_invertido {"equipment":"barra_fija"} (Invertido)
+- back_remo_invertido_trx → back_remo_invertido {"equipment":"trx"} (Invertido)
+- tren_superior_press_banca_plano_barra CANONICAL {"bar_path":"libre","bench_angle":"flat","grip_width":"medium"}
+- tren_superior_press_banca_inclinado_barra → tren_superior_press_banca_plano_barra {"bar_path":"libre","bench_angle":"incline","grip_width":"medium"} (Press barra)
+- tren_superior_press_banca_declinado_barra → tren_superior_press_banca_plano_barra {"bar_path":"libre","bench_angle":"decline","grip_width":"medium"} (Press barra)
+- tren_superior_press_pecho_maquina_smith → tren_superior_press_banca_plano_barra {"bar_path":"smith","bench_angle":"flat","grip_width":"medium"} (Press barra)
+- tren_superior_press_inclinado_smith → tren_superior_press_banca_plano_barra {"bar_path":"smith","bench_angle":"incline","grip_width":"medium"} (Press barra)
+- tren_superior_press_banca_inclinado_mancuernas → tren_superior_press_banca_plano_mancuernas {"bench_angle":"incline","grip_width":"medium"} (Press DB)
+- tren_superior_press_banca_declinado_mancuernas → tren_superior_press_banca_plano_mancuernas {"bench_angle":"decline","grip_width":"medium"} (Press DB)
+- tren_superior_press_banca_plano_mancuernas CANONICAL
+- tren_superior_press_spoto_barra KEEP_SPECIALTY
+- tren_superior_press_banca_cadenas KEEP_SPECIALTY
+- tren_superior_floor_press_barra KEEP_SPECIALTY
+- tren_superior_floor_press_mancuernas KEEP_SPECIALTY
+- tren_superior_press_inclinado_maquina_convergente → tren_superior_press_pecho_maquina_convergente {"bench_angle":"incline"} (Convergente)
+- NONSENSE biceps_curl_de_pie_martillo_barra_recta → biceps_curl_de_pie_martillo_mancuernas
+- NONSENSE biceps_curl_de_pie_martillo_barra_ez → biceps_curl_de_pie_martillo_mancuernas
+- NONSENSE biceps_curl_sentado_banco_plano_martillo_barra_recta → biceps_curl_sentado_banco_plano_martillo_mancuernas
+- NONSENSE biceps_curl_sentado_banco_plano_martillo_barra_ez → biceps_curl_sentado_banco_plano_martillo_mancuernas
+- NONSENSE biceps_curl_inclinado_martillo_barra_recta → biceps_curl_inclinado_martillo_mancuernas
+- NONSENSE biceps_curl_inclinado_martillo_barra_ez → biceps_curl_inclinado_martillo_mancuernas
+- NONSENSE biceps_curl_predicador_martillo_barra_recta → biceps_curl_predicador_martillo_mancuernas
+- NONSENSE biceps_curl_predicador_martillo_barra_ez → biceps_curl_predicador_martillo_mancuernas
+- NONSENSE biceps_curl_arana_martillo_barra_recta → biceps_curl_arana_martillo_mancuernas
+- NONSENSE biceps_curl_arana_martillo_barra_ez → biceps_curl_arana_martillo_mancuernas
+- NONSENSE biceps_curl_drag_martillo_barra_recta → biceps_curl_drag_martillo_mancuernas
+- NONSENSE biceps_curl_drag_martillo_barra_ez → biceps_curl_drag_martillo_mancuernas
+
+## Aplicado — oleada P1b Curl de Bíceps
+
+- Filas antes: 719
+- Filas después: 573
+- Eliminadas/fusionadas: 157
+- Aliases nuevos: 157
+
+### Detalle
+
+- MERGE biceps_curl_de_pie_supino_barra_recta → biceps_curl_de_pie {"grip_type":"supino","implement":"barra_recta","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_barra_ez → biceps_curl_de_pie {"grip_type":"supino","implement":"barra_ez","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_mancuernas → biceps_curl_de_pie {"grip_type":"supino","implement":"mancuernas","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_kettlebell → biceps_curl_de_pie {"grip_type":"supino","implement":"kettlebell","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_polea → biceps_curl_de_pie {"grip_type":"supino","implement":"polea","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_polea_unilateral → biceps_curl_de_pie {"grip_type":"supino","implement":"polea","laterality":"unilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_banda → biceps_curl_de_pie {"grip_type":"supino","implement":"banda","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_maquina → biceps_curl_de_pie {"grip_type":"supino","implement":"maquina","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_martillo_barra_neutra → biceps_curl_de_pie {"grip_type":"martillo","implement":"barra_neutra","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_martillo_mancuernas → biceps_curl_de_pie {"grip_type":"martillo","implement":"mancuernas","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_martillo_polea → biceps_curl_de_pie {"grip_type":"martillo","implement":"polea","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_martillo_polea_unilateral → biceps_curl_de_pie {"grip_type":"martillo","implement":"polea","laterality":"unilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_martillo_banda → biceps_curl_de_pie {"grip_type":"martillo","implement":"banda","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_martillo_maquina → biceps_curl_de_pie {"grip_type":"martillo","implement":"maquina","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_barra_recta → biceps_curl_de_pie {"grip_type":"inverso","implement":"barra_recta","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_barra_ez → biceps_curl_de_pie {"grip_type":"inverso","implement":"barra_ez","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_mancuernas → biceps_curl_de_pie {"grip_type":"inverso","implement":"mancuernas","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_polea → biceps_curl_de_pie {"grip_type":"inverso","implement":"polea","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_polea_unilateral → biceps_curl_de_pie {"grip_type":"inverso","implement":"polea","laterality":"unilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_banda → biceps_curl_de_pie {"grip_type":"inverso","implement":"banda","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_maquina → biceps_curl_de_pie {"grip_type":"inverso","implement":"maquina","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supinacion_mancuernas → biceps_curl_de_pie {"grip_type":"supinacion","implement":"mancuernas","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_sentado_banco_plano_supino_barra_recta → biceps_curl_sentado_banco_plano {"grip_type":"supino","implement":"barra_recta","laterality":"bilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_supino_barra_ez → biceps_curl_sentado_banco_plano {"grip_type":"supino","implement":"barra_ez","laterality":"bilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_supino_mancuernas → biceps_curl_sentado_banco_plano {"grip_type":"supino","implement":"mancuernas","laterality":"bilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_supino_polea → biceps_curl_sentado_banco_plano {"grip_type":"supino","implement":"polea","laterality":"bilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_supino_polea_unilateral → biceps_curl_sentado_banco_plano {"grip_type":"supino","implement":"polea","laterality":"unilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_supino_banda → biceps_curl_sentado_banco_plano {"grip_type":"supino","implement":"banda","laterality":"bilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_martillo_barra_neutra → biceps_curl_sentado_banco_plano {"grip_type":"martillo","implement":"barra_neutra","laterality":"bilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_martillo_mancuernas → biceps_curl_sentado_banco_plano {"grip_type":"martillo","implement":"mancuernas","laterality":"bilateral"} (Curl sentado_banco_plano)
+... y 127 merges más
+
+## Aplicado — oleada P0 (2026-07-31)
+
+- Filas antes: 848
+- Filas después: 795
+- Eliminadas/fusionadas: 62
+- Aliases nuevos: 62
+
+### Detalle
+
+- back_remo_barra_t_ancho → back_remo_barra_t {"station":"libre","grip_width":"wide","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_cerrado → back_remo_barra_t {"station":"libre","grip_width":"close","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_pecho_apoyado_ancho → back_remo_barra_t {"station":"maquina","grip_width":"wide","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_pecho_apoyado_cerrado → back_remo_barra_t {"station":"maquina","grip_width":"close","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_maquina_ancho → back_remo_barra_t {"station":"maquina","grip_width":"wide","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_maquina_cerrado → back_remo_barra_t {"station":"maquina","grip_width":"close","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_maquina_pecho_apoyado_ancho → back_remo_barra_t {"station":"maquina","grip_width":"wide","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_t_maquina_pecho_apoyado_cerrado → back_remo_barra_t {"station":"maquina","grip_width":"close","grip_orientation":"prono"} (Remo T)
+- back_remo_barra_recta_ancho → back_remo_barra {"grip_width":"wide","grip_orientation":"prono","implement":"recta"} (Remo barra)
+- back_remo_barra_recta_cerrado → back_remo_barra {"grip_width":"close","grip_orientation":"prono","implement":"recta"} (Remo barra)
+- back_remo_barra_ez → back_remo_barra {"grip_width":"medium","grip_orientation":"prono","implement":"ez"} (Remo barra)
+- back_remo_barra_neutra → back_remo_barra {"grip_width":"medium","grip_orientation":"neutro","implement":"neutra"} (Remo barra)
+- back_remo_maquina_smith_ancho → back_remo_smith {"grip_width":"wide","grip_orientation":"prono"} (Remo Smith)
+- back_remo_maquina_smith_cerrado → back_remo_smith {"grip_width":"close","grip_orientation":"prono"} (Remo Smith)
+- back_remo_maquina_ancho → back_remo_maquina {"grip_width":"wide","grip_orientation":"prono","laterality":"bilateral"} (Remo máquina)
+- back_remo_maquina_cerrado → back_remo_maquina {"grip_width":"close","grip_orientation":"prono","laterality":"bilateral"} (Remo máquina)
+- back_remo_polea_baja_ancho → back_remo_polea {"cable_height":"baja","grip_width":"wide","grip_orientation":"prono","laterality":"bilateral"} (Remo polea)
+- back_remo_polea_baja_cerrado → back_remo_polea {"cable_height":"baja","grip_width":"close","grip_orientation":"prono","laterality":"bilateral"} (Remo polea)
+- back_remo_polea_baja_unilateral → back_remo_polea {"cable_height":"baja","grip_width":"medium","grip_orientation":"prono","laterality":"unilateral"} (Remo polea)
+- back_remo_polea_media_ancho → back_remo_polea {"cable_height":"media","grip_width":"wide","grip_orientation":"prono","laterality":"bilateral"} (Remo polea)
+- back_remo_polea_media_cerrado → back_remo_polea {"cable_height":"media","grip_width":"close","grip_orientation":"prono","laterality":"bilateral"} (Remo polea)
+- back_remo_polea_media_unilateral → back_remo_polea {"cable_height":"media","grip_width":"medium","grip_orientation":"prono","laterality":"unilateral"} (Remo polea)
+- back_remo_polea_alta_ancho → back_remo_polea {"cable_height":"alta","grip_width":"wide","grip_orientation":"prono","laterality":"bilateral"} (Remo polea)
+- back_remo_polea_alta_cerrado → back_remo_polea {"cable_height":"alta","grip_width":"close","grip_orientation":"prono","laterality":"bilateral"} (Remo polea)
+- back_remo_polea_alta_unilateral → back_remo_polea {"cable_height":"alta","grip_width":"medium","grip_orientation":"prono","laterality":"unilateral"} (Remo polea)
+- back_remo_pecho_apoyado_polea_baja → back_remo_pecho_apoyado_polea {"grip_width":"medium","grip_orientation":"prono","cable_height":"baja","laterality":"bilateral"} (Remo pecho polea)
+- back_remo_pecho_apoyado_polea_baja_unilateral → back_remo_pecho_apoyado_polea {"grip_width":"medium","grip_orientation":"prono","cable_height":"baja","laterality":"unilateral"} (Remo pecho polea)
+- back_remo_pecho_apoyado_polea_media → back_remo_pecho_apoyado_polea {"grip_width":"medium","grip_orientation":"prono","cable_height":"media","laterality":"bilateral"} (Remo pecho polea)
+- back_remo_pecho_apoyado_polea_media_unilateral → back_remo_pecho_apoyado_polea {"grip_width":"medium","grip_orientation":"prono","cable_height":"media","laterality":"unilateral"} (Remo pecho polea)
+- back_remo_pecho_apoyado_polea_alta → back_remo_pecho_apoyado_polea {"grip_width":"medium","grip_orientation":"prono","cable_height":"alta","laterality":"bilateral"} (Remo pecho polea)
+- back_remo_pecho_apoyado_polea_alta_unilateral → back_remo_pecho_apoyado_polea {"grip_width":"medium","grip_orientation":"prono","cable_height":"alta","laterality":"unilateral"} (Remo pecho polea)
+- back_remo_gironda_ancho → back_remo_gironda {"grip_width":"wide","grip_orientation":"prono","laterality":"bilateral"} (Gironda)
+- back_remo_gironda_cerrado → back_remo_gironda {"grip_width":"close","grip_orientation":"prono","laterality":"bilateral"} (Gironda)
+- back_remo_gironda_unilateral → back_remo_gironda {"grip_width":"medium","grip_orientation":"prono","laterality":"unilateral"} (Gironda)
+- back_remo_banda_ancho → back_remo_banda {"grip_width":"wide","grip_orientation":"prono"} (Remo banda)
+- back_remo_banda_cerrado → back_remo_banda {"grip_width":"close","grip_orientation":"prono"} (Remo banda)
+- back_remo_kettlebell → back_remo_mancuerna {"implement":"kettlebell","grip_width":"medium","grip_orientation":"prono","laterality":"bilateral"} (Remo DB/KB)
+- back_remo_pecho_apoyado_kettlebell → back_remo_pecho_apoyado_mancuernas {"implement":"kettlebell"} (Remo pecho DB)
+- back_remo_seal_kettlebell → back_remo_seal_mancuernas {"implement":"kettlebell"} (specialty implement)
+- back_remo_gorilla_kettlebell → back_remo_gorilla_mancuernas {"implement":"kettlebell"} (specialty implement)
+- back_remo_renegado_kettlebell → back_remo_renegado_mancuernas {"implement":"kettlebell"} (specialty implement)
+- back_remo_invertido_barra_fija → back_remo_invertido {"equipment":"barra_fija"} (Invertido)
+- back_remo_invertido_trx → back_remo_invertido {"equipment":"trx"} (Invertido)
+- tren_superior_press_banca_plano_barra CANONICAL {"bar_path":"libre","bench_angle":"flat","grip_width":"medium"}
+- tren_superior_press_banca_inclinado_barra → tren_superior_press_banca_plano_barra {"bar_path":"libre","bench_angle":"incline","grip_width":"medium"} (Press barra)
+- tren_superior_press_banca_declinado_barra → tren_superior_press_banca_plano_barra {"bar_path":"libre","bench_angle":"decline","grip_width":"medium"} (Press barra)
+- tren_superior_press_pecho_maquina_smith → tren_superior_press_banca_plano_barra {"bar_path":"smith","bench_angle":"flat","grip_width":"medium"} (Press barra)
+- tren_superior_press_inclinado_smith → tren_superior_press_banca_plano_barra {"bar_path":"smith","bench_angle":"incline","grip_width":"medium"} (Press barra)
+- tren_superior_press_banca_inclinado_mancuernas → tren_superior_press_banca_plano_mancuernas {"bench_angle":"incline","grip_width":"medium"} (Press DB)
+- tren_superior_press_banca_declinado_mancuernas → tren_superior_press_banca_plano_mancuernas {"bench_angle":"decline","grip_width":"medium"} (Press DB)
+- tren_superior_press_banca_plano_mancuernas CANONICAL
+- tren_superior_press_spoto_barra KEEP_SPECIALTY
+- tren_superior_press_banca_cadenas KEEP_SPECIALTY
+- tren_superior_floor_press_barra KEEP_SPECIALTY
+- tren_superior_floor_press_mancuernas KEEP_SPECIALTY
+- tren_superior_press_inclinado_maquina_convergente → tren_superior_press_pecho_maquina_convergente {"bench_angle":"incline"} (Convergente)
+- NONSENSE biceps_curl_de_pie_martillo_barra_recta → biceps_curl_de_pie_martillo_mancuernas
+- NONSENSE biceps_curl_de_pie_martillo_barra_ez → biceps_curl_de_pie_martillo_mancuernas
+- NONSENSE biceps_curl_sentado_banco_plano_martillo_barra_recta → biceps_curl_sentado_banco_plano_martillo_mancuernas
+- NONSENSE biceps_curl_sentado_banco_plano_martillo_barra_ez → biceps_curl_sentado_banco_plano_martillo_mancuernas
+- NONSENSE biceps_curl_inclinado_martillo_barra_recta → biceps_curl_inclinado_martillo_mancuernas
+- NONSENSE biceps_curl_inclinado_martillo_barra_ez → biceps_curl_inclinado_martillo_mancuernas
+- NONSENSE biceps_curl_predicador_martillo_barra_recta → biceps_curl_predicador_martillo_mancuernas
+- NONSENSE biceps_curl_predicador_martillo_barra_ez → biceps_curl_predicador_martillo_mancuernas
+- NONSENSE biceps_curl_arana_martillo_barra_recta → biceps_curl_arana_martillo_mancuernas
+- NONSENSE biceps_curl_arana_martillo_barra_ez → biceps_curl_arana_martillo_mancuernas
+- NONSENSE biceps_curl_drag_martillo_barra_recta → biceps_curl_drag_martillo_mancuernas
+- NONSENSE biceps_curl_drag_martillo_barra_ez → biceps_curl_drag_martillo_mancuernas
+
+## Aplicado — oleada P1a Jalón + Dominadas
+
+- Filas antes: 712
+- Filas después: 699
+- Eliminadas/fusionadas: 17
+- Aliases nuevos: 17
+
+### Detalle
+
+- MERGE back_jalon_pecho_polea_ancho → back_jalon_pecho_polea {"grip_width":"wide","grip_orientation":"prono","laterality":"bilateral"} (Jalón polea)
+- MERGE back_jalon_pecho_polea_cerrado → back_jalon_pecho_polea {"grip_width":"close","grip_orientation":"prono","laterality":"bilateral"} (Jalón polea)
+- MERGE back_jalon_pecho_polea_unilateral → back_jalon_pecho_polea {"grip_width":"wide","grip_orientation":"prono","laterality":"unilateral"} (Jalón polea)
+- MERGE back_jalon_neutro_polea → back_jalon_pecho_polea {"grip_width":"medium","grip_orientation":"neutro","laterality":"bilateral"} (Jalón polea)
+- MERGE back_jalon_pecho_maquina_ancho → back_jalon_pecho_maquina {"grip_width":"wide"} (Jalón máquina)
+- MERGE back_jalon_pecho_maquina_cerrado → back_jalon_pecho_maquina {"grip_width":"close"} (Jalón máquina)
+- MERGE back_jalon_banda_ancho → back_jalon_banda {"grip_width":"wide"} (Jalón banda)
+- MERGE back_jalon_banda_cerrado → back_jalon_banda {"grip_width":"close"} (Jalón banda)
+- MERGE back_dominadas_pronas → back_dominadas {"grip_type":"prono","load_type":"bodyweight"} (Dominadas)
+- MERGE back_dominadas_supinas → back_dominadas {"grip_type":"supino","load_type":"bodyweight"} (Dominadas)
+- MERGE back_dominadas_neutras → back_dominadas {"grip_type":"neutro","load_type":"bodyweight"} (Dominadas)
+- MERGE back_dominadas_lastradas → back_dominadas {"grip_type":"prono","load_type":"loaded"} (Dominadas)
+- MERGE back_dominadas_asistidas_maquina → back_dominadas {"grip_type":"prono","load_type":"assisted_machine"} (Dominadas)
+- MERGE back_dominadas_asistidas_banda → back_dominadas {"grip_type":"prono","load_type":"assisted_band"} (Dominadas)
+- MERGE back_dominadas_anillas → back_dominadas {"grip_type":"neutro","load_type":"bodyweight"} (Dominadas)
+- MERGE biceps_dominadas_supinas_cerradas → back_dominadas {"grip_type":"supino","grip_width":"close","load_type":"bodyweight"} (Dominadas)
+- MERGE biceps_dominadas_supinas_lastradas → back_dominadas {"grip_type":"supino","load_type":"loaded"} (Dominadas)
+
+## Aplicado — oleada P1b Curl de Bíceps
+
+- Filas antes: 699
+- Filas después: 553
+- Eliminadas/fusionadas: 157
+- Aliases nuevos: 157
+
+### Detalle
+
+- MERGE biceps_curl_de_pie_supino_barra_recta → biceps_curl_de_pie {"grip_type":"supino","implement":"barra_recta","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_barra_ez → biceps_curl_de_pie {"grip_type":"supino","implement":"barra_ez","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_mancuernas → biceps_curl_de_pie {"grip_type":"supino","implement":"mancuernas","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_kettlebell → biceps_curl_de_pie {"grip_type":"supino","implement":"kettlebell","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_polea → biceps_curl_de_pie {"grip_type":"supino","implement":"polea","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_polea_unilateral → biceps_curl_de_pie {"grip_type":"supino","implement":"polea","laterality":"unilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_banda → biceps_curl_de_pie {"grip_type":"supino","implement":"banda","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supino_maquina → biceps_curl_de_pie {"grip_type":"supino","implement":"maquina","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_martillo_barra_neutra → biceps_curl_de_pie {"grip_type":"martillo","implement":"barra_neutra","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_martillo_mancuernas → biceps_curl_de_pie {"grip_type":"martillo","implement":"mancuernas","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_martillo_polea → biceps_curl_de_pie {"grip_type":"martillo","implement":"polea","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_martillo_polea_unilateral → biceps_curl_de_pie {"grip_type":"martillo","implement":"polea","laterality":"unilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_martillo_banda → biceps_curl_de_pie {"grip_type":"martillo","implement":"banda","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_martillo_maquina → biceps_curl_de_pie {"grip_type":"martillo","implement":"maquina","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_barra_recta → biceps_curl_de_pie {"grip_type":"inverso","implement":"barra_recta","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_barra_ez → biceps_curl_de_pie {"grip_type":"inverso","implement":"barra_ez","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_mancuernas → biceps_curl_de_pie {"grip_type":"inverso","implement":"mancuernas","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_polea → biceps_curl_de_pie {"grip_type":"inverso","implement":"polea","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_polea_unilateral → biceps_curl_de_pie {"grip_type":"inverso","implement":"polea","laterality":"unilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_banda → biceps_curl_de_pie {"grip_type":"inverso","implement":"banda","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_inverso_maquina → biceps_curl_de_pie {"grip_type":"inverso","implement":"maquina","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_de_pie_supinacion_mancuernas → biceps_curl_de_pie {"grip_type":"supinacion","implement":"mancuernas","laterality":"bilateral"} (Curl de_pie)
+- MERGE biceps_curl_sentado_banco_plano_supino_barra_recta → biceps_curl_sentado_banco_plano {"grip_type":"supino","implement":"barra_recta","laterality":"bilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_supino_barra_ez → biceps_curl_sentado_banco_plano {"grip_type":"supino","implement":"barra_ez","laterality":"bilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_supino_mancuernas → biceps_curl_sentado_banco_plano {"grip_type":"supino","implement":"mancuernas","laterality":"bilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_supino_polea → biceps_curl_sentado_banco_plano {"grip_type":"supino","implement":"polea","laterality":"bilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_supino_polea_unilateral → biceps_curl_sentado_banco_plano {"grip_type":"supino","implement":"polea","laterality":"unilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_supino_banda → biceps_curl_sentado_banco_plano {"grip_type":"supino","implement":"banda","laterality":"bilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_martillo_barra_neutra → biceps_curl_sentado_banco_plano {"grip_type":"martillo","implement":"barra_neutra","laterality":"bilateral"} (Curl sentado_banco_plano)
+- MERGE biceps_curl_sentado_banco_plano_martillo_mancuernas → biceps_curl_sentado_banco_plano {"grip_type":"martillo","implement":"mancuernas","laterality":"bilateral"} (Curl sentado_banco_plano)
+... y 127 merges más

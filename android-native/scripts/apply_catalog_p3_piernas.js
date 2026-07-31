@@ -101,7 +101,7 @@ for (const g of groups) {
     ]));
   }
   
-  setupCanon(g.canon, g.canon.replace(/_/g, ' '), g.canon.replace(/_/g, ' ') + ' ajustable en chips.', g.canon.replace(/_/g, ' '), aspects);
+  setupCanon(byId, g.canon, g.sources[0].id, g.canon.replace(/_/g, ' '), g.canon.replace(/_/g, ' ') + ' ajustable en chips.', g.canon.replace(/_/g, ' '), aspects);
   
   for (const s of g.sources) {
     const a = {};

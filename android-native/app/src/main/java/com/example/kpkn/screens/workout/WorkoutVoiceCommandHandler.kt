@@ -3,6 +3,7 @@ package com.example.kpkn.screens.workout
 import android.content.Context
 import android.os.SystemClock
 import android.util.Log
+import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
@@ -55,6 +56,7 @@ class WorkoutVoiceCommandHandler(
     interface Ports {
         fun visibleExercises(state: WorkoutUiState): List<Exercise>
         fun workoutStepPositions(state: WorkoutUiState): List<WorkoutStep>
+        fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean): Boolean
         fun getSetDraft(exerciseId: String, setIdx: Int, side: String?): WorkoutSetDraft?
         fun updateSetDraft(exerciseId: String, setIdx: Int, side: String?, draft: WorkoutSetDraft)
         fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?)
@@ -363,6 +365,8 @@ class WorkoutVoiceCommandHandler(
     }
 
     fun disableVoice() {
+        timedSetJob?.cancel()
+        timedSetJob = null
         // Cortar callbacks antes de detener el servicio evita reentrada desde onDestroy.
         WorkoutVoiceRuntime.registerStopCaptureHandler(null)
         WorkoutVoiceRuntime.registerActionSink(null)
@@ -445,11 +449,20 @@ class WorkoutVoiceCommandHandler(
             is VoiceSessionCommand.FinishSession -> handleFinishRequest()
             is VoiceSessionCommand.LeaveUpToHere -> {
                 val pending = pendingExerciseNames()
-                if (pending.isEmpty()) ports.finishUpToCurrentPoint()
+                if (pending.isEmpty()) {
+                    stopTimedSet()
+                    ports.finishUpToCurrentPoint()
+                }
                 else voiceController.requestFinishWithPendingConfirmation(pending)
             }
-            is VoiceSessionCommand.ConfirmFinishWithPending -> ports.finishUpToCurrentPoint()
-            is VoiceSessionCommand.CancelSession -> ports.cancelWorkout()
+            is VoiceSessionCommand.ConfirmFinishWithPending -> {
+                stopTimedSet()
+                ports.finishUpToCurrentPoint()
+            }
+            is VoiceSessionCommand.CancelSession -> {
+                stopTimedSet()
+                ports.cancelWorkout()
+            }
             is VoiceSessionCommand.LogFeedback -> handleVoiceLogFeedback(command)
             is VoiceSessionCommand.LogFinalFeedback -> handleVoiceLogFinalFeedback(command)
             is VoiceSessionCommand.AddSet -> ports.addSetToCurrentExercise()
@@ -507,6 +520,7 @@ class WorkoutVoiceCommandHandler(
     }
 
     private fun handleFinishRequest() {
+        stopTimedSet()
         val pending = pendingExerciseNames()
         if (pending.isEmpty()) {
             ports.finishUpToCurrentPoint()
@@ -518,9 +532,17 @@ class WorkoutVoiceCommandHandler(
 
     private fun pendingExerciseNames(): List<String> {
         val state = getState()
+        val exercises = ports.visibleExercises(state)
         return ports.workoutStepPositions(state).filter { step ->
             when (step.type) {
-                WorkoutStepType.WORKING_SET -> step.stepKey !in state.completedSets
+                WorkoutStepType.WORKING_SET -> {
+                    val exercise = exercises.firstOrNull { it.id == step.exerciseId }
+                    if (exercise != null && step.setIndex != null) {
+                        !ports.isSetDone(state.completedSets, exercise.id, step.setIndex, exercise.isEffectivelyUnilateral())
+                    } else {
+                        false
+                    }
+                }
                 WorkoutStepType.WARMUP -> step.stepKey !in state.warmupCompletedExerciseIds && step.exerciseId !in state.warmupCompletedExerciseIds
                 WorkoutStepType.MOBILITY -> step.stepKey !in state.mobilityCompletedExerciseIds
             }
@@ -983,11 +1005,13 @@ class WorkoutVoiceCommandHandler(
     }
 
     private fun handleVoiceSkipExercise() {
+        stopTimedSet()
         ports.skipRemainingCurrentExercise()
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
     }
 
     private fun handleVoicePreviousExercise() {
+        stopTimedSet()
         ports.prevSet()
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
     }

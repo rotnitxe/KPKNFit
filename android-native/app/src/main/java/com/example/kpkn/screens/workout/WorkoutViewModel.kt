@@ -359,6 +359,8 @@ class WorkoutViewModel(
             ports = object : WorkoutVoiceCommandHandler.Ports {
                 override fun visibleExercises(state: WorkoutUiState) = this@WorkoutViewModel.visibleExercises(state)
                 override fun workoutStepPositions(state: WorkoutUiState) = stepNavigator.workoutStepPositions(state)
+                override fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean) =
+                    this@WorkoutViewModel.isSetDone(completedSets, exerciseId, setIdx, isUnilateral)
                 override fun getSetDraft(exerciseId: String, setIdx: Int, side: String?) = this@WorkoutViewModel.getSetDraft(exerciseId, setIdx, side)
                 override fun updateSetDraft(exerciseId: String, setIdx: Int, side: String?, draft: WorkoutSetDraft) =
                     this@WorkoutViewModel.updateSetDraft(exerciseId, setIdx, side, draft)

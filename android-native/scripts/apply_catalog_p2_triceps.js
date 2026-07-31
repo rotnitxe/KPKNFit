@@ -65,7 +65,7 @@ for(const [canonId,sources] of Object.entries(groups)){
       makeOption(base.involvedMuscles,'unilateral','Unilateral','',[]),
     ]));
   }
-  setupCanon(canonId,canonId.replace(/_/g,' '),canonId.replace(/_/g,' ')+' ajustable en chips.',canonId.replace(/_/g,' '),aspects);
+  setupCanon(byId, canonId, sources[0].id, canonId.replace(/_/g,' '),canonId.replace(/_/g,' ')+' ajustable en chips.',canonId.replace(/_/g,' '),aspects);
   for(const s of sources){
     const a={}; if(s.aspects.bench_angle)a.bench_angle=s.aspects.bench_angle; if(s.aspects.equipment)a.equipment=s.aspects.equipment; if(s.aspects.laterality)a.laterality=s.aspects.laterality;
     mergeInto(s.id,canonId,a,canonId,{byId,removeIds,aliasAdds,applied});

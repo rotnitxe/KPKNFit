@@ -70,7 +70,7 @@ for (const [stem, list] of Object.entries(stems)) {
     ]));
   }
   
-  setupCanon(canonId, canonId.replace(/_/g,' '), canonId.replace(/_/g,' ')+' ajustable en chips.', canonId.replace(/_/g,' '), aspects);
+  setupCanon(byId, canonId, list[0].id, canonId.replace(/_/g,' '), canonId.replace(/_/g,' ')+' ajustable en chips.', canonId.replace(/_/g,' '), aspects);
   
   for (const item of list) {
     const a = { equipment: item.imp };

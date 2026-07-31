@@ -1,4 +1,5 @@
 // apply_catalog_p1_jalon_dominadas.js
+const fs = require('fs');
 const {
   loadDb, saveDb, loadAliases, saveAliases,
   makeAspect, makeOption, makeModifiers,

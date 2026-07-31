@@ -1535,11 +1535,37 @@ object AugeRecoveryEngine {
             precomputedMuscles = muscles,
             articularBatteries = articularBatteries,
         )
+        // Calcular baterías base (sin la sesión preview) para derivar drains netos
+        val baseMuscles = getPerMuscleBatteries(
+            history = baseHistory,
+            wellbeing = wellbeing,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            sleepLogs = sleepLogs,
+            nutritionLogs = nutritionLogs,
+            feedbacks = feedbacks,
+            adaptiveCache = adaptiveCache,
+        )
+        val baseBatteries = calculateGlobalBatteries(
+            history = baseHistory,
+            wellbeing = wellbeing,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            sleepLogs = sleepLogs,
+            nutritionLogs = nutritionLogs,
+            feedbacks = feedbacks,
+            adaptiveCache = adaptiveCache,
+            precomputedMuscles = baseMuscles,
+            articularBatteries = articularBatteries,
+        )
         return PostSessionPreview(
             neural = batteries.cnc,
             spinal = batteries.spinal,
             muscular = batteries.muscular,
             perMuscle = muscles,
+            globalCnsDrain = (baseBatteries.cnc - batteries.cnc).coerceIn(0, 100),
+            globalMuscularDrain = (baseBatteries.muscular - batteries.muscular).coerceIn(0, 100),
+            globalSpinalDrain = (baseBatteries.spinal - batteries.spinal).coerceIn(0, 100),
         )
     }
 }

@@ -14,7 +14,7 @@ const applied = [];
 
 const htBase = byId.get('glutes_hip_thrust_barra_recta');
 if (htBase) {
-  setupCanon('glutes_hip_thrust', 'Hip Thrust', 'Hip Thrust. Ajustable en lateralidad y equipo.', 'Hip Thrust', [
+  setupCanon(byId, 'glutes_hip_thrust', 'glutes_hip_thrust_barra_recta', 'Hip Thrust', 'Hip Thrust. Ajustable en lateralidad y equipo.', 'Hip Thrust', [
     makeAspect('laterality', 'Lateralidad', '', 'bilateral', [
       makeOption(htBase.involvedMuscles, 'bilateral', 'Bilateral', '', []),
       makeOption(htBase.involvedMuscles, 'unilateral', 'Unilateral', '', [['Glúteo Mayor', 'add', 0.1]]),

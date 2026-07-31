@@ -87,7 +87,7 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.PostExerciseFeedback
-import com.example.kpkn.data.models.PredictedDrain
+import com.example.kpkn.data.models.PostSessionPreview
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.SessionDiscomfortSummary
@@ -99,22 +99,6 @@ import com.example.kpkn.screens.workout.components.MinimalMuscleSlider
 import dev.chrisbanes.haze.HazeState
 
 internal const val FINISH_ROLE_STABILIZER_MULT = 0.4
-
-internal fun computeInitialFinishMuscleBatteries(
-    startBatteries: Map<String, Int>,
-    perMuscleMuscularDrain: Map<String, Int>,
-): Map<String, Int> {
-    if (startBatteries.isEmpty()) return emptyMap()
-    return startBatteries.mapValues { (muscle, rawStart) ->
-        val start = rawStart.coerceIn(0, 100)
-        val drain = perMuscleMuscularDrain[muscle]
-            ?: perMuscleMuscularDrain.entries.firstOrNull {
-                getAugeMusclePillarId(it.key) == getAugeMusclePillarId(muscle)
-            }?.value
-            ?: 0
-        (start - drain).coerceIn(0, 100)
-    }
-}
 
 internal fun computeSessionMuscleRoleWeightedSets(
     completedExercises: List<CompletedExercise>,
@@ -156,13 +140,9 @@ internal fun FinishWorkoutSheet(
     completedExercises: List<CompletedExercise>,
     durationMinutes: Int,
     sessionIntensityResult: SessionIntensityResult,
-    predictedDrain: PredictedDrain,
-    readinessNeuralStart: Int,
-    readinessSpinalStart: Int,
+    postSessionPreview: PostSessionPreview,
     hazeState: HazeState,
-    sessionMuscleStartBatteries: Map<String, Int> = emptyMap(),
     sessionMuscleVolumeByRoleSets: Map<String, Double> = emptyMap(),
-    perMuscleMuscularDrain: Map<String, Int> = emptyMap(),
     postExerciseFeedbackByExerciseId: Map<String, PostExerciseFeedback> = emptyMap(),
     sessionDiscomfortSummary: List<SessionDiscomfortSummary> = emptyList(),
     voiceFinalNotes: String? = null,
@@ -177,13 +157,10 @@ internal fun FinishWorkoutSheet(
     onShare: () -> Unit,
     onSummaryReady: (WorkoutSessionSummary) -> Unit,
 ) {
-    val neuralSeed = (readinessNeuralStart - predictedDrain.cns).coerceIn(0, 100)
-    val spinalSeed = (readinessSpinalStart - predictedDrain.spinal).coerceIn(0, 100)
-    val muscleSeed = remember(sessionMuscleStartBatteries, perMuscleMuscularDrain) {
-        computeInitialFinishMuscleBatteries(
-            startBatteries = sessionMuscleStartBatteries,
-            perMuscleMuscularDrain = perMuscleMuscularDrain,
-        )
+    val neuralSeed = postSessionPreview.neural.coerceIn(0, 100)
+    val spinalSeed = postSessionPreview.spinal.coerceIn(0, 100)
+    val muscleSeed = remember(postSessionPreview.perMuscle) {
+        postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
     }
     var neuralFinal by remember(neuralSeed) { mutableIntStateOf(neuralSeed) }
     var spinalFinal by remember(spinalSeed) { mutableIntStateOf(spinalSeed) }
@@ -197,8 +174,7 @@ internal fun FinishWorkoutSheet(
     val derivedMuscularFinal by remember(muscleFinal) {
         derivedStateOf {
             if (muscleFinal.isEmpty()) {
-                val predictedMuscularStart = sessionMuscleStartBatteries.values.average().takeIf { !it.isNaN() }?.toInt() ?: 100
-                (predictedMuscularStart - predictedDrain.muscular).coerceIn(0, 100)
+                postSessionPreview.muscular
             } else {
                 muscleFinal.values.average().toInt().coerceIn(0, 100)
             }
@@ -487,7 +463,7 @@ internal fun FinishWorkoutSheet(
                                 maxItemsInEachRow = 2,
                             ) {
                                 muscleFinal.keys.sortedByDescending { sessionMuscleVolumeByRoleSets[it] ?: 0.0 }.forEach { muscleId ->
-                                    val start = sessionMuscleStartBatteries[muscleId]?.coerceIn(0, 100) ?: 100
+                                    val start = postSessionPreview.perMuscle[muscleId]?.recoveryScore?.coerceIn(0, 100) ?: 100
                                     val current = muscleFinal[muscleId]?.coerceIn(0, 100) ?: start
                                     MinimalMuscleSlider(
                                         modifier = Modifier.weight(1f),
@@ -820,17 +796,17 @@ internal fun FinishWorkoutSheet(
 
                 val executeConfirm = {
                     val perceivedMuscularDrop = if (muscleFinal.isEmpty()) {
-                        predictedDrain.muscular.toDouble()
+                        postSessionPreview.globalMuscularDrain.toDouble()
                     } else {
                         muscleFinal.entries
                             .map { (muscle, finalValue) ->
-                                val start = sessionMuscleStartBatteries[muscle] ?: 100
+                                val start = postSessionPreview.perMuscle[muscle]?.recoveryScore ?: 100
                                 (start - finalValue).toDouble()
                             }
                             .average()
                     }
                     val muscularAdjustment = (
-                        perceivedMuscularDrop.toInt() - predictedDrain.muscular
+                        perceivedMuscularDrop.toInt() - postSessionPreview.globalMuscularDrain
                         ).coerceIn(-35, 35)
                     val discomfortLabels = selectedDiscomforts
                         .mapNotNull { id -> DISCOMFORT_CATALOG_BY_ID[id]?.label }
@@ -845,11 +821,11 @@ internal fun FinishWorkoutSheet(
                         SessionClosingFeedback(
                             overallFatigue = inferredFatigue,
                             systemAdjustment = (
-                                (readinessNeuralStart - neuralFinal) - predictedDrain.cns
+                                postSessionPreview.neural - neuralFinal
                                 ).coerceIn(-35, 35),
                             muscularAdjustment = muscularAdjustment,
                             structureAdjustment = (
-                                (readinessSpinalStart - spinalFinal) - predictedDrain.spinal
+                                postSessionPreview.spinal - spinalFinal
                                 ).coerceIn(-35, 35),
                             discomforts = discomfortLabels + listOfNotNull(
                                 additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },

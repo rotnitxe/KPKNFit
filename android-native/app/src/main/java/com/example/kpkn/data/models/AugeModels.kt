@@ -83,6 +83,10 @@ data class PostSessionPreview(
     val spinal: Int,
     val muscular: Int,
     val perMuscle: Map<String, MuscleRecoveryStatus>,
+    /** Drains globales de la sesión (para cálculo de ajustes post-sesión). */
+    val globalCnsDrain: Int,
+    val globalMuscularDrain: Int,
+    val globalSpinalDrain: Int,
 )
 
 data class MuscleRecoveryStatus(
