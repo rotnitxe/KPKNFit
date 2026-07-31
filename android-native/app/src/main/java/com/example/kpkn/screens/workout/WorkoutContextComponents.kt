@@ -497,7 +497,6 @@ internal fun WorkoutMultiTagContent(
     fun setupSubtitle(profile: WorkoutContextProfile?): String? {
         if (profile == null) return null
         val parts = buildList {
-            profile.machineBrand?.takeIf { it.isNotBlank() }?.let { add(it) }
             (profile.baseLoadKg ?: profile.setupDetails?.baseLoadKg)?.takeIf { it > 0 }?.let {
                 add("${it.toTrimmedNumberString()}kg base")
             }
@@ -529,7 +528,10 @@ internal fun WorkoutMultiTagContent(
                     onClick = { onMainTagToggle(tag.id) },
                     label = {
                         Column {
-                            Text(tag.name, style = MaterialTheme.typography.labelSmall)
+                            Text(
+                                workoutTagDisplayTitle(tag.name, profileFor(tag.id, tag.name)?.machineBrand),
+                                style = MaterialTheme.typography.labelSmall,
+                            )
                             if (subtitle != null) {
                                 Text(
                                     subtitle,
@@ -582,7 +584,11 @@ internal fun WorkoutMultiTagContent(
             ) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text(tag.name, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                        Text(
+                            workoutTagDisplayTitle(tag.name, profileFor(tag.id, tag.name)?.machineBrand),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
                         IconButton(onClick = {
                             onDeleteTag(tagId)
                             editingTagId = null
@@ -726,7 +732,7 @@ internal fun WorkoutMultiTagContent(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Button(
                         onClick = {
-                            if (createTagText.isNotBlank()) {
+                            if (createTagText.isNotBlank() || createMachineBrand.isNotBlank()) {
                                 val setup = TagSetupInput(
                                     machineBrand = createMachineBrand,
                                     baseLoadKg = createBaseLoad.replace(',', '.').toDoubleOrNull(),
@@ -740,7 +746,7 @@ internal fun WorkoutMultiTagContent(
                                 showCreateTagField = false
                             }
                         },
-                        enabled = createTagText.isNotBlank(),
+                        enabled = createTagText.isNotBlank() || createMachineBrand.isNotBlank(),
                         modifier = Modifier.weight(1f),
                     ) { Text("Crear") }
                     TextButton(onClick = {
@@ -844,7 +850,7 @@ internal fun WorkoutExerciseSetupContent(
                         )
                     ) {
                         Text(
-                            text = profile.setupLabel ?: profile.machineBrand ?: "Sin nombre",
+                            text = profile.tagDisplayTitle().ifBlank { "Sin nombre" },
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = if (isSelected) sessionAccentColor else MaterialTheme.colorScheme.onSurfaceVariant

@@ -229,16 +229,47 @@ fun WorkoutScreen(
     var showExitDialog by remember { mutableStateOf(false) }
     var roadmapMode by rememberSaveable(programId, sessionId) { mutableStateOf(RoadmapMode.COMPACT) }
 
-    BackHandler(enabled = !showExitDialog) {
-        showExitDialog = true
-    }
-
     // ─── Readiness sheet state ─────────────────────────────────────────────────
     val isMeetOrComp = session?.isCompetitionMeet == true
     // Local source keeps workout overlays as true siblings; the activity source is an ancestor.
     val overlayHazeState = remember { HazeState() }
     var readinessSheetDismissed by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
     val showReadinessSheet = !readinessSheetDismissed && !isMeetOrComp && uiState.readinessNeuralOverride == null
+    val structureSheets = rememberWorkoutStructureSheetsState()
+    val hasChildBackOverlay =
+        uiState.showVolumeAdvanceModal ||
+            uiState.showFinishSheet ||
+            uiState.showHistorySheet ||
+            structureSheets.hasOpenDrawer()
+
+    val backAction = resolveWorkoutBackAction(
+        WorkoutOverlayFlags(
+            showExitDialog = showExitDialog,
+            showVolumeAdvance = uiState.showVolumeAdvanceModal,
+            showNonDismissibleModal = uiState.showExecutionErrorDiscomfortSheet,
+            showFinishSheet = uiState.showFinishSheet,
+            hasDrawerOpen = uiState.showHistorySheet || structureSheets.hasOpenDrawer(),
+            showReadiness = showReadinessSheet,
+        ),
+    )
+    BackHandler(enabled = !showExitDialog) {
+        if (!hasChildBackOverlay) {
+        when (backAction) {
+            WorkoutBackAction.CONSUME_VOLUME_ADVANCE,
+            WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL,
+            -> Unit
+            WorkoutBackAction.DISMISS_FINISH_SHEET -> viewModel.hideFinish()
+            WorkoutBackAction.DISMISS_DRAWER -> {
+                if (uiState.showHistorySheet) viewModel.hideHistorySheet()
+                else structureSheets.exerciseContextExerciseId = null
+            }
+            WorkoutBackAction.SHOW_EXIT_DIALOG -> showExitDialog = true
+            WorkoutBackAction.DISMISS_EXIT_DIALOG,
+            WorkoutBackAction.DISMISS_MOBILITY_PICKER,
+            -> Unit
+        }
+        }
+    }
 
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
 
@@ -483,7 +514,6 @@ fun WorkoutScreen(
     val cardsHazeStateDock = remember { HazeState() }
 
     var lastAnnouncedSetKey by rememberSaveable { mutableStateOf<String?>(null) }
-    val structureSheets = rememberWorkoutStructureSheetsState()
     val rmSelectedWeight = remember { mutableStateOf<Double?>(null) }
 
     val renderedParts = remember(modeSession) {
@@ -870,6 +900,7 @@ fun WorkoutScreen(
             voiceFinalSpinal = uiState.voiceFinalSpinal,
             voiceFinalConfirmTriggered = uiState.voiceFinalConfirmTriggered,
             hazeState = overlayHazeState,
+            onSummaryReady = viewModel::announceWorkoutSessionSummary,
             onConfirm = { notes, fatigue, closingFeedback, shareToStory ->
                 val share = shareToStory
                 val sessionName = session.name

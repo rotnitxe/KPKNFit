@@ -40,15 +40,56 @@ data class VoiceSessionState(
     val fallbackPaused: Boolean = false,
     /** Human-readable mic route, when available. */
     val activeRouteLabel: String? = null,
+    val pendingAction: VoicePendingAction? = null,
 ) {
     val isListening: Boolean get() = stage == VoicePipelineStage.LISTENING
     val isDucking: Boolean get() = duckHandle != null
     val hasPendingConfirmation: Boolean get() = stage == VoicePipelineStage.CONFIRM_WAIT
 }
 
+sealed interface VoicePendingAction {
+    val baseInterpretation: WorkoutVoiceInterpretation
+
+    data class IntensityKind(
+        override val baseInterpretation: WorkoutVoiceInterpretation,
+        val value: Double,
+    ) : VoicePendingAction
+
+    data class LoadMode(
+        override val baseInterpretation: WorkoutVoiceInterpretation,
+    ) : VoicePendingAction
+
+    data class ExerciseNavigation(
+        override val baseInterpretation: WorkoutVoiceInterpretation = WorkoutVoiceInterpretation(""),
+        val command: VoiceSessionCommand.NavigateToExercise,
+        val exerciseName: String,
+    ) : VoicePendingAction
+
+    data class DiscomfortSelection(
+        override val baseInterpretation: WorkoutVoiceInterpretation = WorkoutVoiceInterpretation(""),
+        val candidates: Map<String, String>,
+    ) : VoicePendingAction
+
+    data class TagCreation(
+        override val baseInterpretation: WorkoutVoiceInterpretation = WorkoutVoiceInterpretation(""),
+        val tagName: String,
+    ) : VoicePendingAction
+
+    data class FinishWithPending(
+        override val baseInterpretation: WorkoutVoiceInterpretation = WorkoutVoiceInterpretation(""),
+        val pendingExerciseNames: List<String>,
+    ) : VoicePendingAction
+
+    data class TechniqueDetails(
+        override val baseInterpretation: WorkoutVoiceInterpretation,
+        val technique: String,
+    ) : VoicePendingAction
+}
+
 sealed class VoiceSessionCommand {
     data class RegisterSet(val interpretation: WorkoutVoiceInterpretation) : VoiceSessionCommand()
     data class ApplyTag(val tagName: String) : VoiceSessionCommand()
+    data class ApplyConfirmedTag(val tagName: String) : VoiceSessionCommand()
     data object Confirm : VoiceSessionCommand()
     data object Cancel : VoiceSessionCommand()
     data object SkipExercise : VoiceSessionCommand()
@@ -58,8 +99,12 @@ sealed class VoiceSessionCommand {
     data object RestStatus : VoiceSessionCommand()
     data object WhatExercise : VoiceSessionCommand()
     data object NextExercise : VoiceSessionCommand()
+    data class GoToExercise(val spokenName: String) : VoiceSessionCommand()
+    data class NavigateToExercise(val exerciseId: String) : VoiceSessionCommand()
     data object TurnOffVoice : VoiceSessionCommand()
     data object FinishSession : VoiceSessionCommand()
+    data object LeaveUpToHere : VoiceSessionCommand()
+    data object ConfirmFinishWithPending : VoiceSessionCommand()
     data object CancelSession : VoiceSessionCommand()
     /** Add an extra set to the current exercise (live session). */
     data object AddSet : VoiceSessionCommand()
@@ -83,6 +128,10 @@ sealed class VoiceSessionCommand {
     data object FatigueAdvice : VoiceSessionCommand()
     /** Coach: session pace status. */
     data object PaceStatus : VoiceSessionCommand()
+    data class SetSessionTimeLimit(val minutes: Int, val persistToProgram: Boolean) : VoiceSessionCommand()
+    data object StartTimedSet : VoiceSessionCommand()
+    data object StopTimedSet : VoiceSessionCommand()
+    data object CompletePreparationStep : VoiceSessionCommand()
     /** Stop current TTS utterance (barge-in). */
     data object StopSpeaking : VoiceSessionCommand()
     data class LogFeedback(
@@ -91,6 +140,7 @@ sealed class VoiceSessionCommand {
         val perceivedIntensity: Double?,
         val isSaveAction: Boolean = false,
         val exerciseSearchName: String? = null,
+        val discomfortCandidates: Map<String, String> = emptyMap(),
     ) : VoiceSessionCommand()
     data class LogFinalFeedback(
         val notes: String? = null,

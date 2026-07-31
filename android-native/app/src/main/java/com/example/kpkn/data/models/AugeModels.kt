@@ -74,6 +74,17 @@ data class GlobalBatteries(
     val structure: Int get() = spinal
 }
 
+/**
+ * Preview de baterías post-sesión calculado con el motor de recuperación.
+ * Garantiza que finish-sheet y home-screen muestren los mismos valores.
+ */
+data class PostSessionPreview(
+    val neural: Int,
+    val spinal: Int,
+    val muscular: Int,
+    val perMuscle: Map<String, MuscleRecoveryStatus>,
+)
+
 data class MuscleRecoveryStatus(
     val muscleName: String,
     val recoveryScore: Int,           // 0-100

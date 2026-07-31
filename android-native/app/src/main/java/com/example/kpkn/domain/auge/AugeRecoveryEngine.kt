@@ -1493,4 +1493,53 @@ object AugeRecoveryEngine {
             sampleCount = recent.size,
         )
     }
+
+    // ─── Post-Session Preview (finish-sheet ↔ home-screen consistency) ─────────
+
+    /**
+     * Calcula el estado de baterías **después** de agregar un log transitorio
+     * al historial existente. Usa exactamente las mismas fórmulas que el home.
+     */
+    fun previewPostSessionBatteries(
+        baseHistory: List<WorkoutLog>,
+        previewLog: WorkoutLog,
+        wellbeing: DailyWellbeingLog?,
+        settings: Settings,
+        exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
+        sleepLogs: List<SleepLog> = emptyList(),
+        nutritionLogs: List<NutritionLog> = emptyList(),
+        feedbacks: List<PostSessionFeedback> = emptyList(),
+        adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
+        articularBatteries: Map<ArticularBattery, ArticularBatteryState> = emptyMap(),
+    ): PostSessionPreview {
+        val historyWithPreview = baseHistory + previewLog
+        val muscles = getPerMuscleBatteries(
+            history = historyWithPreview,
+            wellbeing = wellbeing,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            sleepLogs = sleepLogs,
+            nutritionLogs = nutritionLogs,
+            feedbacks = feedbacks,
+            adaptiveCache = adaptiveCache,
+        )
+        val batteries = calculateGlobalBatteries(
+            history = historyWithPreview,
+            wellbeing = wellbeing,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            sleepLogs = sleepLogs,
+            nutritionLogs = nutritionLogs,
+            feedbacks = feedbacks,
+            adaptiveCache = adaptiveCache,
+            precomputedMuscles = muscles,
+            articularBatteries = articularBatteries,
+        )
+        return PostSessionPreview(
+            neural = batteries.cnc,
+            spinal = batteries.spinal,
+            muscular = batteries.muscular,
+            perMuscle = muscles,
+        )
+    }
 }

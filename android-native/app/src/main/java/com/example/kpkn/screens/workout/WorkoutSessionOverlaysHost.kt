@@ -180,6 +180,7 @@ internal fun WorkoutSessionOverlaysHost(
     }
 
     if (showMobilityPicker) {
+        BackHandler(enabled = true) { showMobilityPicker = false }
         var mobilitySearchQuery by remember { mutableStateOf("") }
         val filteredMobility = remember(mobilitySearchQuery) {
             if (mobilitySearchQuery.isBlank()) mobilityExercisesForSession

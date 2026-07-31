@@ -156,9 +156,9 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Push Day · PPL",
             parts = listOf(
                 part("p-push-1", "Pecho + Hombros", "#1B4965", listOf(
-                    ex("p1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("p1-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("p1e1", 3, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("p1-ex2", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
+                    ex("p1-ex2", "Press de Banca con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("p1e2", 2, 10, 7.5), restTime = 120, damageProfile = DamageProfile.STRETCH),
                     ex("p1-ex3", "Elevaciones Laterales de Pie en Polea", "deltoides_elevaciones_laterales_de_pie_polea",
                         nSets("p1e3", 2, 12, 8.5), restTime = 75),
@@ -357,11 +357,11 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Torso A",
             parts = listOf(
                 part("p-ua-1", "Pecho + Espalda", "#1B4965", listOf(
-                    ex("ua1-ex1", "Press de Banca Plano con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
+                    ex("ua1-ex1", "Press de Banca con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("ua1e1", 3, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("ua1-ex2", "Remo en Máquina (Agarre Ancho)", "back_remo_maquina_ancho",
+                    ex("ua1-ex2", "Remo en Máquina", "back_remo_maquina",
                         nSets("ua1e2", 2, 8, 7.5), restTime = 120),
-                    ex("ua1-ex3", "Press Inclinado en Máquina Convergente", "tren_superior_press_inclinado_maquina_convergente",
+                    ex("ua1-ex3", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente",
                         nSets("ua1e3", 2, 10, 7.5), restTime = 120),
                     ex("ua1-ex4", "Jalón al Pecho en Polea (Agarre Ancho)", "back_jalon_pecho_polea_ancho",
                         nSets("ua1e4", 2, 10, 7.5), restTime = 90),
@@ -461,7 +461,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                         nSets("sbd1e2", 2, 5, 7.0), restTime = 180),
                 )),
                 part("p-sbd-2", "Banca", "#1B4965", listOf(
-                    ex("sbd2-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("sbd2-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("sbd2e1", 3, 3, 8.0), restTime = 210),
                     ex("sbd2-ex2", "Floor Press con Barra", "tren_superior_floor_press_barra",
                         nSets("sbd2e2", 2, 5, 7.0), restTime = 150),
@@ -504,7 +504,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             exercises = listOf(
                 ex("min-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "quads_sentadilla_trasera_barra_alta",
                     nSets("mine1", 3, 5, 8.0), restTime = 180),
-                ex("min-ex2", "Press de Banca Plano con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
+                ex("min-ex2", "Press de Banca con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                     nSets("mine2", 3, 5, 8.0), restTime = 150),
                 ex("min-ex3", "Peso Muerto Convencional con Barra Recta", "hams_peso_muerto_convencional_barra_recta",
                     nSets("mine3", 3, 5, 8.0), restTime = 180),
@@ -545,11 +545,11 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Pecho Day",
             parts = listOf(
                 part("p-ch-1", "Pecho principal", "#1B4965", listOf(
-                    ex("ch1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("ch1-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("ch1e1", 2, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
                     ex("ch1-ex2", "Press de Hombros Sentado en Máquina", "deltoides_press_hombros_sentado_maquina",
                         nSets("ch1e2", 2, 10, 7.5), restTime = 90),
-                    ex("ch1-ex3", "Press de Banca Declinado con Mancuernas", "tren_superior_press_banca_declinado_mancuernas",
+                    ex("ch1-ex3", "Press de Banca con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("ch1e3", 2, 10, 7.5), restTime = 120, damageProfile = DamageProfile.STRETCH),
                     ex("ch1-ex4", "Cruce de Poleas Altas", "tren_superior_cruce_poleas_altas",
                         nSets("ch1e4", 2, 12, 8.5), restTime = 90, damageProfile = DamageProfile.SQUEEZE),
@@ -649,17 +649,17 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Pecho / Espalda",
             parts = listOf(
                 part("p-cba-1", "Antagonistas", "#1B4965", listOf(
-                    ex("cba1-ex1", "Press de Banca Inclinado con Barra", "tren_superior_press_banca_inclinado_barra",
+                    ex("cba1-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("cba1e1", 2, 8, 8.0), restTime = 120),
                     ex("cba1-ex2", "Remo Pendlay con Barra Recta", "back_remo_pendlay_barra_recta",
                         nSets("cba1e2", 2, 8, 8.0), restTime = 120),
-                    ex("cba1-ex3", "Press de Banca Plano con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
+                    ex("cba1-ex3", "Press de Banca con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("cba1e3", 2, 10, 7.5), restTime = 120),
                     ex("cba1-ex4", "Pullover en Polea Alta", "back_pullover_polea",
                         nSets("cba1e4", 2, 12, 8.0), restTime = 90),
                     ex("cba1-ex5", "Aperturas Planas con Mancuernas", "tren_superior_aperturas_planas_mancuernas",
                         nSets("cba1e5", 2, 12, 8.5), restTime = 90),
-                    ex("cba1-ex6", "Remo en Polea Baja (Agarre Ancho)", "back_remo_polea_baja_ancho",
+                    ex("cba1-ex6", "Remo en Polea", "back_remo_polea",
                         nSets("cba1e6", 2, 12, 7.5), restTime = 90),
                 )),
             ),
@@ -919,7 +919,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Banca Volumen",
             parts = listOf(
                 part("p-bvp-1", "Banca Principal", "#1B4965", listOf(
-                    ex("bvp1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("bvp1-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("bvp1e1", 5, 5, 8.0), restTime = 180),
                 )),
                 part("p-bvp-2", "Accesorios y Tracciones", "#244B3C", listOf(
@@ -964,11 +964,11 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                 part("p-sbp-1", "Sentadilla & Banca", "#7F1D1D", listOf(
                     ex("sbp1-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "quads_sentadilla_trasera_barra_alta",
                         nSets("sbp1e1", 4, 5, 8.0), restTime = 180),
-                    ex("sbp1-ex2", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("sbp1-ex2", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("sbp1e2", 4, 5, 8.0), restTime = 180),
                 )),
                 part("p-sbp-2", "Espalda Accesoria", "#244B3C", listOf(
-                    ex("sbp2-ex1", "Remo en Barra T (Agarre Cerrado)", "back_remo_barra_t_cerrado",
+                    ex("sbp2-ex1", "Remo en Barra T", "back_remo_barra_t",
                         nSets("sbp2e1", 3, 10, 7.5), restTime = 120),
                 )),
             ),
@@ -1006,7 +1006,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                         nSets("dlp1e1", 3, 5, 8.0), restTime = 210),
                 )),
                 part("p-dlp-2", "Accesorios", "#1B4965", listOf(
-                    ex("dlp2-ex1", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
+                    ex("dlp2-ex1", "Press de Banca con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("dlp2e1", 3, 8, 7.5), restTime = 120),
                     ex("dlp2-ex2", "Dominadas Neutras", "back_dominadas_neutras",
                         nSets("dlp2e2", 3, 8, 7.5), restTime = 120),
@@ -1045,7 +1045,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                     nSets("gzse1", 3, 3, 8.5), restTime = 180),
                 ex("gzs-ex2", "Peso Muerto Rumano con Barra Recta", "hams_peso_muerto_rumano_barra_recta",
                     nSets("gzse2", 3, 8, 7.5), restTime = 120),
-                ex("gzs-ex3", "Remo Gironda en Polea (Agarre Ancho)", "back_remo_gironda_ancho",
+                ex("gzs-ex3", "Remo Gironda", "back_remo_gironda",
                     nSets("gzse3", 4, 12, 8.0), restTime = 75),
             ),
         ),
@@ -1077,9 +1077,9 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             id = "tpl-t1-bench-gzcl",
             name = "T1 Banca · GZCL",
             exercises = listOf(
-                ex("gzb-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                ex("gzb-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                     nSets("gzbe1", 3, 3, 8.5), restTime = 180),
-                ex("gzb-ex2", "Press Inclinado en Máquina Convergente", "tren_superior_press_inclinado_maquina_convergente",
+                ex("gzb-ex2", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente",
                     nSets("gzbe2", 3, 8, 7.5), restTime = 120),
                 ex("gzb-ex3", "Jalón Neutro en Polea", "back_jalon_neutro_polea",
                     nSets("gzbe3", 4, 12, 8.0), restTime = 75),
@@ -1193,7 +1193,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                 part("p-aca-1", "Empujes Pierna + Torso", "#7F1D1D", listOf(
                     ex("aca1-ex1", "Sentadilla en Máquina Hack", "quads_sentadilla_hack_maquina",
                         nSets("aca1e1", 2, 8, 8.0), restTime = 150),
-                    ex("aca1-ex2", "Press de Banca Plano con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
+                    ex("aca1-ex2", "Press de Banca con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("aca1e2", 2, 8, 8.0), restTime = 120),
                     ex("aca1-ex3", "Prensa de Piernas a 45º en Máquina", "quads_prensa_piernas_45_maquina",
                         nSets("aca1e3", 2, 10, 7.5), restTime = 120),
@@ -1801,7 +1801,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                         nSets("pbe1", 2, 10, 7.0), restTime = 120),
                     ex("pb1-ex2", "Press de Hombros Sentado en Máquina", "deltoides_press_hombros_sentado_maquina",
                         nSets("pbe2", 2, 10, 7.0), restTime = 90),
-                    ex("pb1-ex3", "Press Inclinado en Máquina Convergente", "tren_superior_press_inclinado_maquina_convergente",
+                    ex("pb1-ex3", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente",
                         nSets("pbe3", 2, 12, 7.0), restTime = 90),
                     ex("pb1-ex4", "Elevaciones Laterales Sentado en Máquina", "deltoides_elevaciones_laterales_sentado_maquina",
                         nSets("pbe4", 2, 12, 7.5), restTime = 60),
@@ -1835,11 +1835,11 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Push · Avanzado",
             parts = listOf(
                 part("p-pa-1", "Empuje", "#1B4965", listOf(
-                    ex("pa1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("pa1-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("pae1", 3, 6, 8.5), restTime = 180),
                     ex("pa1-ex2", "Press de Hombros Sentado en Máquina", "deltoides_press_hombros_sentado_maquina",
                         nSets("pae2", 2, 8, 7.5), restTime = 120),
-                    ex("pa1-ex3", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
+                    ex("pa1-ex3", "Press de Banca con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("pae3", 3, 8, 8.5), restTime = 120),
                     ex("pa1-ex4", "Elevaciones Laterales Super ROM con Mancuernas", "deltoides_elevaciones_laterales_super_rom_mancuernas",
                         nSets("pae4", 2, 12, 8.0), restTime = 60),
@@ -1875,7 +1875,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                 part("p-plb-1", "Tirón guiado", "#0F3D5E", listOf(
                     ex("plb1-ex1", "Jalón al Pecho en Máquina (Agarre Ancho)", "back_jalon_pecho_maquina_ancho",
                         nSets("plbe1", 2, 10, 7.0), restTime = 120),
-                    ex("plb1-ex2", "Remo en Máquina (Agarre Cerrado)", "back_remo_maquina_cerrado",
+                    ex("plb1-ex2", "Remo en Máquina", "back_remo_maquina",
                         nSets("plbe2", 2, 10, 7.0), restTime = 90),
                     ex("plb1-ex3", "Curl Predicador en Máquina", "biceps_curl_predicador_supino_maquina",
                         nSets("plbe3", 2, 12, 7.5), restTime = 75),
@@ -1915,7 +1915,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                         nSets("plae2", 2, 6, 8.5), restTime = 150),
                     ex("pla1-ex3", "Curl Bayesian con Mancuernas", "biceps_curl_bayesian_supino_mancuernas",
                         nSets("plae3", 2, 10, 8.5), restTime = 75),
-                    ex("pla1-ex4", "Remo en Polea Alta Unilateral", "back_remo_polea_alta_unilateral",
+                    ex("pla1-ex4", "Remo en Polea", "back_remo_polea",
                         nSets("plae4", 2, 10, 8.0), restTime = 90),
                     ex("pla1-ex5", "Face Pull en Polea", "deltoides_face_pull_polea",
                         nSets("plae5", 2, 15, 8.0), restTime = 75),
@@ -2031,7 +2031,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                         nSets("fbae2", 3, 6, 8.0), restTime = 150),
                 )),
                 part("p-fba-2", "Empuje", "#1B4965", listOf(
-                    ex("fba2-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("fba2-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("fbae3", 3, 5, 8.0), restTime = 150),
                     ex("fba2-ex2", "Press de Hombros de Pie con Mancuernas", "deltoides_press_hombros_de_pie_mancuernas",
                         nSets("fbae4", 2, 8, 7.5), restTime = 90),
@@ -2069,9 +2069,9 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                 part("p-ub-1", "Empuje / tirón", "#1B4965", listOf(
                     ex("ub1-ex1", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente",
                         nSets("ube1", 2, 10, 7.0), restTime = 120),
-                    ex("ub1-ex2", "Remo en Máquina (Agarre Ancho)", "back_remo_maquina_ancho",
+                    ex("ub1-ex2", "Remo en Máquina", "back_remo_maquina",
                         nSets("ube2", 2, 10, 7.0), restTime = 90),
-                    ex("ub1-ex3", "Press Inclinado en Máquina Convergente", "tren_superior_press_inclinado_maquina_convergente",
+                    ex("ub1-ex3", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente",
                         nSets("ube3", 2, 12, 7.0), restTime = 90),
                     ex("ub1-ex4", "Jalón al Pecho en Máquina (Agarre Cerrado)", "back_jalon_pecho_maquina_cerrado",
                         nSets("ube4", 2, 12, 7.0), restTime = 75),
@@ -2267,7 +2267,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                 part("p-ucb-1", "Pecho máquina", "#1B4965", listOf(
                     ex("ucb1-ex1", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente",
                         nSets("ucbe1", 2, 10, 7.0), restTime = 120),
-                    ex("ucb1-ex2", "Press Inclinado en Máquina Convergente", "tren_superior_press_inclinado_maquina_convergente",
+                    ex("ucb1-ex2", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente",
                         nSets("ucbe2", 2, 12, 7.0), restTime = 90),
                     ex("ucb1-ex3", "Elevaciones Laterales Sentado en Máquina", "deltoides_elevaciones_laterales_sentado_maquina",
                         nSets("ucbe3", 2, 12, 7.5), restTime = 60),
@@ -2303,11 +2303,11 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Pecho · Intermedio",
             parts = listOf(
                 part("p-uci-1", "Pecho", "#1B4965", listOf(
-                    ex("uci1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("uci1-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("ucie1", 2, 8, 8.0), restTime = 150),
                     ex("uci1-ex2", "Press de Hombros Sentado en Máquina", "deltoides_press_hombros_sentado_maquina",
                         nSets("ucie2", 2, 10, 7.5), restTime = 90),
-                    ex("uci1-ex3", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
+                    ex("uci1-ex3", "Press de Banca con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("ucie3", 2, 10, 7.5), restTime = 120),
                     ex("uci1-ex4", "Cruce de Poleas Altas", "tren_superior_cruce_poleas_altas",
                         nSets("ucie4", 2, 12, 8.5), restTime = 90),
@@ -2341,9 +2341,9 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Pecho · Avanzado",
             parts = listOf(
                 part("p-uca-1", "Pecho avanzado", "#1B4965", listOf(
-                    ex("uca1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("uca1-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("ucae1", 3, 6, 8.5), restTime = 180),
-                    ex("uca1-ex2", "Press de Banca Declinado con Mancuernas", "tren_superior_press_banca_declinado_mancuernas",
+                    ex("uca1-ex2", "Press de Banca con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("ucae2", 2, 8, 8.5), restTime = 120),
                     ex("uca1-ex3", "Elevaciones Laterales de Pie con Mancuernas", "deltoides_elevaciones_laterales_de_pie_mancuernas",
                         nSets("ucae3", 2, 15, 8.0), restTime = 60),
@@ -2381,7 +2381,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                 part("p-ubb-1", "Tirón máquina", "#0F3D5E", listOf(
                     ex("ubb1-ex1", "Jalón al Pecho en Máquina (Agarre Cerrado)", "back_jalon_pecho_maquina_cerrado",
                         nSets("ubbe1", 2, 10, 7.0), restTime = 120),
-                    ex("ubb1-ex2", "Remo en Máquina (Agarre Ancho)", "back_remo_maquina_ancho",
+                    ex("ubb1-ex2", "Remo en Máquina", "back_remo_maquina",
                         nSets("ubbe2", 2, 10, 7.0), restTime = 90),
                     ex("ubb1-ex3", "Curl Predicador en Máquina", "biceps_curl_predicador_supino_maquina",
                         nSets("ubbe3", 2, 12, 7.5), restTime = 75),
@@ -2419,7 +2419,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                 part("p-ubi-1", "Espalda", "#0F3D5E", listOf(
                     ex("ubi1-ex1", "Jalón Neutro en Polea", "back_jalon_neutro_polea",
                         nSets("ubie1", 2, 10, 7.5), restTime = 120),
-                    ex("ubi1-ex2", "Remo en Máquina (Agarre Cerrado)", "back_remo_maquina_cerrado",
+                    ex("ubi1-ex2", "Remo en Máquina", "back_remo_maquina",
                         nSets("ubie2", 2, 10, 7.5), restTime = 90),
                     ex("ubi1-ex3", "Curl de Bíceps de Pie con Mancuernas", "biceps_curl_de_pie_supino_mancuernas",
                         nSets("ubie3", 2, 10, 8.5), restTime = 75),
@@ -2461,7 +2461,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                         nSets("ubae2", 2, 8, 8.5), restTime = 120),
                     ex("uba1-ex3", "Curl Martillo de Pie con Mancuernas", "biceps_curl_de_pie_martillo_mancuernas",
                         nSets("ubae3", 2, 12, 8.5), restTime = 75),
-                    ex("uba1-ex4", "Remo en Polea Baja (Agarre Ancho)", "back_remo_polea_baja_ancho",
+                    ex("uba1-ex4", "Remo en Polea", "back_remo_polea",
                         nSets("ubae4", 2, 10, 8.0), restTime = 90),
                     ex("uba1-ex5", "Pullover en Polea Alta", "back_pullover_polea",
                         nSets("ubae5", 2, 12, 8.5), restTime = 75),
@@ -2716,9 +2716,9 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Pecho · Especialización",
             parts = listOf(
                 part("p-cs-1", "Pecho", "#1B4965", listOf(
-                    ex("cs1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("cs1-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("cse1", 3, 6, 8.5), restTime = 180),
-                    ex("cs1-ex2", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
+                    ex("cs1-ex2", "Press de Banca con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("cse2", 2, 8, 8.5), restTime = 150),
                     ex("cs1-ex3", "Elevaciones Laterales de Pie con Mancuernas", "deltoides_elevaciones_laterales_de_pie_mancuernas",
                         nSets("cse3", 2, 15, 8.0), restTime = 60),
@@ -2828,7 +2828,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Upper · Volumen",
             parts = listOf(
                 part("p-uv-1", "Empuje / Tirón", "#1B4965", listOf(
-                    ex("uv1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("uv1-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("uve1", 3, 6, 8.5), restTime = 180),
                     ex("uv1-ex2", "Jalón Neutro en Polea", "back_jalon_neutro_polea",
                         nSets("uve2", 3, 8, 8.5), restTime = 150),
@@ -2906,7 +2906,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Deload · Activo",
             parts = listOf(
                 part("p-da-1", "Full ligero", "#244B3C", listOf(
-                    ex("da1-ex1", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("da1-ex1", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("dae1", 2, 8, 6.5), restTime = 120),
                     ex("da1-ex2", "Jalón Neutro en Polea", "back_jalon_neutro_polea",
                         nSets("dae2", 2, 10, 6.5), restTime = 120),
@@ -2942,7 +2942,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Torso · Densidad",
             parts = listOf(
                 part("p-td-1", "Densidad", "#1B4965", listOf(
-                    ex("td1-ex1", "Press de Banca Inclinado con Mancuernas", "tren_superior_press_banca_inclinado_mancuernas",
+                    ex("td1-ex1", "Press de Banca con Mancuernas", "tren_superior_press_banca_plano_mancuernas",
                         nSets("tde1", 3, 8, 8.5), restTime = 90),
                     ex("td1-ex2", "Remo con Pecho Apoyado con Mancuernas", "back_remo_pecho_apoyado_mancuernas",
                         nSets("tde2", 3, 8, 8.5), restTime = 90),
@@ -3018,7 +3018,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                 part("p-ae-1", "Anterior", "#1E3A8A", listOf(
                     ex("ae1-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "quads_sentadilla_trasera_barra_alta",
                         nSets("aee1", 3, 6, 8.5), restTime = 180),
-                    ex("ae1-ex2", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("ae1-ex2", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("aee3", 2, 8, 8.0), restTime = 150),
                     ex("ae1-ex3", "Extensión de Cuádriceps en Máquina", "quads_extension_cuadriceps_maquina",
                         nSets("aee2", 3, 12, 8.5), restTime = 90),
@@ -3054,7 +3054,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                 part("p-fd-1", "Full", "#244B3C", listOf(
                     ex("fd1-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "quads_sentadilla_trasera_barra_alta",
                         nSets("fde1", 3, 5, 8.5), restTime = 210),
-                    ex("fd1-ex2", "Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra",
+                    ex("fd1-ex2", "Press de Banca con Barra", "tren_superior_press_banca_plano_barra",
                         nSets("fde2", 3, 6, 8.5), restTime = 180),
                     ex("fd1-ex3", "Jalón Neutro en Polea", "back_jalon_neutro_polea",
                         nSets("fde3", 3, 8, 8.5), restTime = 150),

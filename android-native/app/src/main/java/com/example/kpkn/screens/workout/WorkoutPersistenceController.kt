@@ -114,6 +114,9 @@ class WorkoutPersistenceController(
                     exerciseNotes = state.exerciseNotes,
                     exercisePhotos = state.exercisePhotos,
                     sessionMilestones = state.sessionMilestones,
+                    voiceTimedSet = state.voiceTimedSet,
+                    voiceExerciseQueue = state.voiceExerciseQueue,
+                    voicePendingFeedbackExerciseIds = state.voicePendingFeedbackExerciseIds,
                 )
             }
         }

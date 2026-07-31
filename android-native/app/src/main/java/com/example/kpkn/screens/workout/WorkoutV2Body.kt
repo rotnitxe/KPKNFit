@@ -239,7 +239,7 @@ internal fun WorkoutV2Body(
                     confirmButton = {
                         Button(
                             onClick = {
-                                if (newTagName.isNotBlank()) {
+                                if (newTagName.isNotBlank() || newMachineBrand.isNotBlank()) {
                                     val setup = TagSetupInput(
                                         machineBrand = newMachineBrand,
                                         baseLoadKg = newBaseLoad.replace(',', '.').toDoubleOrNull(),
@@ -253,7 +253,7 @@ internal fun WorkoutV2Body(
                                 }
                                 showCreateTagDialog = false
                             },
-                            enabled = newTagName.isNotBlank()
+                            enabled = newTagName.isNotBlank() || newMachineBrand.isNotBlank()
                         ) { Text("Crear") }
                     },
                     dismissButton = {

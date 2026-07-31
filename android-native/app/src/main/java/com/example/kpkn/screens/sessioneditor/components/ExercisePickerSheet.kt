@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,7 +47,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -66,8 +65,6 @@ import com.example.kpkn.screens.sessioneditor.VariantFlowResultCache
 import com.example.kpkn.screens.sessioneditor.VariantFlowSheet
 import com.example.kpkn.ui.components.KpknSheetTokens
 import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 private enum class CatalogFilterBrowse {
     CLOSED,
@@ -121,6 +118,7 @@ internal fun ExercisePickerSheet(
     var searchExpanded by rememberSaveable { mutableStateOf(false) }
     var infoExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
     var variantFlowExercise by remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
+    var aspectsByExerciseId by remember { mutableStateOf<Map<String, Map<String, String>>>(emptyMap()) }
 
     val exclusiveFilter = remember(filterKey) {
         ExerciseCatalogExclusiveFilter.fromStorageKey(filterKey)
@@ -136,31 +134,52 @@ internal fun ExercisePickerSheet(
         selectionOrder.mapNotNull(byId::get).filter { it.id in selectedExercisesIds }
     }
 
+    fun aspectsFor(info: ExerciseMuscleInfo): Map<String, String> =
+        aspectsByExerciseId[info.id] ?: defaultAspectSelection(info)
+
+    fun updateAspects(info: ExerciseMuscleInfo, aspects: Map<String, String>) {
+        aspectsByExerciseId = aspectsByExerciseId + (info.id to aspects)
+        if (!info.technicalAspects.isNullOrEmpty()) {
+            VariantFlowResultCache.store(
+                exerciseDbId = info.id,
+                variantName = info.variantName,
+                variantGroupId = info.variantGroupId,
+                variantGroupName = info.variantGroupName,
+                selectedAspects = aspects,
+            )
+        }
+    }
+
     fun handleSelect(info: ExerciseMuscleInfo) {
         if (editingExisting) {
+            val aspects = aspectsFor(info)
+            if (!info.technicalAspects.isNullOrEmpty()) {
+                updateAspects(info, aspects)
+            }
             onSelect(info)
         } else {
-            selectionOrder = if (info.id in selectedExercisesIds) {
+            val selecting = info.id !in selectedExercisesIds
+            selectionOrder = if (!selecting) {
                 selectionOrder - info.id
             } else {
                 selectionOrder + info.id
+            }
+            if (selecting && !info.technicalAspects.isNullOrEmpty()) {
+                updateAspects(info, aspectsFor(info))
             }
             onToggleExerciseSelection(info.id)
         }
     }
 
     val normalizedQuery = query.trim()
-    var results by remember { mutableStateOf<List<ExerciseMuscleInfo>>(emptyList()) }
-    LaunchedEffect(query, fullCatalog, sortMode, sortAscending, filterKey) {
-        results = withContext(Dispatchers.Default) {
-            filterAndSortExerciseCatalog(
-                fullCatalog = fullCatalog,
-                normalizedQuery = normalizedQuery,
-                sortMode = sortMode,
-                exclusiveFilter = exclusiveFilter,
-                ascending = sortAscending,
-            )
-        }
+    val results = remember(normalizedQuery, fullCatalog, sortMode, sortAscending, exclusiveFilter) {
+        filterAndSortExerciseCatalog(
+            fullCatalog = fullCatalog,
+            normalizedQuery = normalizedQuery,
+            sortMode = sortMode,
+            exclusiveFilter = exclusiveFilter,
+            ascending = sortAscending,
+        )
     }
     val resultListState = rememberLazyListState()
     var lastScrollIndex by remember { mutableIntStateOf(0) }
@@ -194,14 +213,10 @@ internal fun ExercisePickerSheet(
     }
 
     val showSelectionDock = !editingExisting && selectedExercises.isNotEmpty()
-    val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
-    val pickerMaxHeight = screenHeightDp * 0.78f
-
     Column(
         Modifier
             .fillMaxWidth()
-            .heightIn(max = pickerMaxHeight)
-            .then(if (showSelectionDock) Modifier.height(pickerMaxHeight) else Modifier)
+            .fillMaxSize()
             .imePadding()
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -556,10 +571,7 @@ internal fun ExercisePickerSheet(
             state = resultListState,
             modifier = Modifier
                 .fillMaxWidth()
-                .then(
-                    if (showSelectionDock) Modifier.weight(1f)
-                    else Modifier.heightIn(max = 480.dp),
-                ),
+                .weight(1f),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (highlightedExercise != null ||
@@ -602,6 +614,8 @@ internal fun ExercisePickerSheet(
                     onSelect = { handleSelect(info) },
                     onInfo = { infoExerciseId = info.id },
                     onOpenVariantFlow = { variantFlowExercise = info },
+                    selectedAspects = aspectsFor(info),
+                    onAspectsChange = { updateAspects(info, it) },
                 )
             }
             item { Spacer(Modifier.height(4.dp)) }

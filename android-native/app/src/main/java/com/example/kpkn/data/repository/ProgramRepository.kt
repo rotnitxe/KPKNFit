@@ -536,6 +536,11 @@ class ProgramRepository private constructor(
         scope.launch { db.workoutV2Dao().upsertContextProfile(profile.toEntity()) }
     }
 
+    fun deleteContextProfile(profileId: String) {
+        _contextProfiles.update { it - profileId }
+        scope.launch { db.workoutV2Dao().deleteContextProfile(profileId) }
+    }
+
     fun getReplacementDecisions(programId: String): List<ExerciseReplacementDecisionV2> =
         _replacementDecisions.value.filter { it.programId == programId }
 

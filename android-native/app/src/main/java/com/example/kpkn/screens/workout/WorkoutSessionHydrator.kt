@@ -269,6 +269,9 @@ class WorkoutSessionHydrator(
                 exerciseNotes = resumedState?.exerciseNotes.orEmpty(),
                 exercisePhotos = resumedState?.exercisePhotos.orEmpty(),
                 sessionMilestones = resumedState?.sessionMilestones.orEmpty(),
+                voiceTimedSet = resumedState?.voiceTimedSet?.copy(isRunning = false),
+                voiceExerciseQueue = resumedState?.voiceExerciseQueue.orEmpty(),
+                voicePendingFeedbackExerciseIds = resumedState?.voicePendingFeedbackExerciseIds.orEmpty(),
             )
         }
 

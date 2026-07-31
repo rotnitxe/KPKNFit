@@ -139,6 +139,7 @@ private fun KpknSheetBody(
     }
 
     BackHandler(enabled = dismissible) { dismissAnimated() }
+    BackHandler(enabled = !dismissible) { /* Non-dismissible sheets consume Back. */ }
 
     BoxWithConstraints(
         modifier = Modifier

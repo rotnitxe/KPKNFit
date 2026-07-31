@@ -160,9 +160,11 @@ class WorkoutTagsContextController(
         val state = getState()
         val exercise = ports.visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return WorkoutTag()
         val exKey = ports.canonicalExerciseKey(exercise)
+        val normalizedName = name.trim().ifBlank { setup?.machineBrand?.trim().orEmpty() }
+        if (normalizedName.isBlank()) return WorkoutTag()
         val tag = WorkoutTag(
             id = UUID.randomUUID().toString(),
-            name = name.trim(),
+            name = normalizedName,
             exerciseKey = exKey,
             createdAtIso = java.time.Instant.now().toString(),
             lastUsedAtIso = java.time.Instant.now().toString(),
@@ -174,9 +176,7 @@ class WorkoutTagsContextController(
         }
         persistOngoingState()
         toggleMainTagActive(exerciseId, tag.id)
-        if (setup != null && setup.hasContent) {
-            upsertTagSetup(exerciseId, tag.id, setup, makeActive = true)
-        }
+        upsertTagSetup(exerciseId, tag.id, setup ?: TagSetupInput(), makeActive = true)
         return tag
     }
 
@@ -233,9 +233,15 @@ class WorkoutTagsContextController(
         val exKey = ports.canonicalExerciseKey(exercise)
         val tagName = state.userCreatedTags[exKey].orEmpty().firstOrNull { it.id == tagId }?.name
         val existingForEx = state.userCreatedTags[exKey].orEmpty().filter { it.id != tagId }
+        val profileId = profileForTag(exerciseId, tagId)?.id
+        repository.deleteContextProfile(profileId ?: "$exKey|tag|$tagId")
+        if (profileId != null && profileId != "$exKey|tag|$tagId") {
+            repository.deleteContextProfile("$exKey|tag|$tagId")
+        }
         updateState {
             it.copy(
                 userCreatedTags = it.userCreatedTags + (exKey to existingForEx),
+                contextProfilesV3 = it.contextProfilesV3 - listOfNotNull(profileId, "$exKey|tag|$tagId"),
                 activeTagsByExercise = it.activeTagsByExercise.mapValues { (exId, tagIds) ->
                     if (exId == exerciseId) tagIds.filter { it != tagId } else tagIds
                 },
@@ -252,6 +258,7 @@ class WorkoutTagsContextController(
         val trimmedName = newName.trim()
         val oldTag = state.userCreatedTags[exKey].orEmpty().firstOrNull { it.id == tagId } ?: return
         val oldName = oldTag.name
+        val existingProfile = profileForTag(exerciseId, tagId)
         val updatedForEx = state.userCreatedTags[exKey].orEmpty().map { tag ->
             if (tag.id == tagId) tag.copy(name = trimmedName) else tag
         }
@@ -265,6 +272,16 @@ class WorkoutTagsContextController(
                 },
             )
         }
+        upsertTagSetup(
+            exerciseId = exerciseId,
+            tagId = tagId,
+            setup = TagSetupInput(
+                machineBrand = existingProfile?.machineBrand,
+                baseLoadKg = existingProfile?.baseLoadKg ?: existingProfile?.setupDetails?.baseLoadKg,
+                setupNotes = existingProfile?.notes ?: existingProfile?.setupDetails?.equipmentNotes,
+            ),
+            makeActive = false,
+        )
         persistOngoingState()
     }
 
@@ -402,8 +419,11 @@ class WorkoutTagsContextController(
                     profile.setupDetails?.equipmentNotes?.let { add(WorkoutSubTag(name = it, category = SubTagCategory.SETUP)) }
                 }
                 WorkoutTag(
-                    id = profile.id,
-                    name = profile.tagId ?: profile.setupLabel ?: "Migrado",
+                    id = profile.tagId ?: profile.id,
+                    name = workoutTagDisplayTitle(
+                        tagName = profile.setupLabel ?: profile.tagId,
+                        machineBrand = profile.machineBrand,
+                    ).ifBlank { "Migrado" },
                     exerciseKey = profile.exerciseKey,
                     subTags = subTags,
                     createdAtIso = profile.createdAtIso ?: "",

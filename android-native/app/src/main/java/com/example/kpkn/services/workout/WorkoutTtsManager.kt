@@ -117,6 +117,7 @@ class WorkoutTtsManager(context: Context) {
         reachedFailure: Boolean,
         romPercent: Int?,
         tagName: String?,
+        advancedDetails: List<String> = emptyList(),
     ) {
         val parts = mutableListOf<String>()
         if (weightKg != null) parts.add(formatWeight(weightKg))
@@ -126,6 +127,7 @@ class WorkoutTtsManager(context: Context) {
         if (reachedFailure) parts.add("al fallo")
         if (romPercent != null) parts.add("ROM $romPercent por ciento")
         if (!tagName.isNullOrBlank()) parts.add("etiqueta $tagName")
+        parts.addAll(advancedDetails.filter(String::isNotBlank))
         speak("${parts.joinToString(", ")}. ¿Confirmar?", queueFlush = true)
     }
     fun speakSetRegistered(

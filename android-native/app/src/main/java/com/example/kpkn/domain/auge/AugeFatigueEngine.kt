@@ -590,12 +590,19 @@ object AugeFatigueEngine {
 
         completedExercises.forEach { ex ->
             val lookupId = (ex.exerciseDbId ?: ex.exerciseId)?.lowercase()
-            val dbInfo = lookupId?.let { exerciseDb[it] }
+            val resolvedId = lookupId?.let { raw ->
+                com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES[raw] ?: raw
+            }
+            val dbInfo = resolvedId?.let { exerciseDb[it] }
+                ?: exerciseDb.values.find { it.name.equals(ex.exerciseName, ignoreCase = true) }
+            val resolvedIdStr = resolvedId ?: dbInfo?.let { info ->
+                exerciseDb.entries.find { it.value === info }?.key
+            } ?: lookupId ?: "n/a"
             val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo)
                 ?: run {
                     android.util.Log.d(
                         "AugeFatigueEngine",
-                        "Sin métricas de fatiga para '${ex.exerciseName}' (id=$lookupId) — ejercicio omitido del drenaje",
+                        "Sin métricas de fatiga para '${ex.exerciseName}' (id=$resolvedIdStr) — ejercicio omitido del drenaje",
                     )
                     return@forEach
                 }

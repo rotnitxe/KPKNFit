@@ -200,6 +200,19 @@ data class OngoingWorkoutState(
     val exerciseNotes: Map<String, String> = emptyMap(),
     val exercisePhotos: Map<String, List<String>> = emptyMap(),
     val sessionMilestones: List<SessionMilestone> = emptyList(),
+    val voiceTimedSet: VoiceTimedSetState? = null,
+    val voiceExerciseQueue: List<String> = emptyList(),
+    val voicePendingFeedbackExerciseIds: Set<String> = emptySet(),
+)
+
+@Serializable
+data class VoiceTimedSetState(
+    val exerciseId: String,
+    val setIndex: Int,
+    val targetSeconds: Int,
+    val elapsedSeconds: Int = 0,
+    val isRunning: Boolean = false,
+    val targetAnnounced: Boolean = false,
 )
 
 @Serializable

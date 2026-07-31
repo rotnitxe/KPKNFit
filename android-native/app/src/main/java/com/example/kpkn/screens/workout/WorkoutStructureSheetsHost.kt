@@ -115,6 +115,18 @@ internal class WorkoutStructureSheetsState {
     var showReorderCrossBoundaryConfirm by mutableStateOf(false)
     var reorderCrossBoundaryMessages by mutableStateOf<List<String>>(emptyList())
     var pendingGlobalReorderIds by mutableStateOf<List<String>>(emptyList())
+
+    fun hasOpenDrawer(): Boolean =
+        exerciseContextExerciseId != null ||
+            showReplaceExercisePicker ||
+            setupSheetExerciseId != null ||
+            tagSheetExerciseId != null ||
+            editSheetExerciseId != null ||
+            showWorkoutSupersetCreator ||
+            supersetSettingsGroupId != null ||
+            addCatalogToSupersetGroupId != null ||
+            addExerciseAfterId != null ||
+            showReorderSheet
 }
 
 @Composable
@@ -922,7 +934,7 @@ internal fun WorkoutStructureSheetsHost(
                     onTagSet = { tag -> if (tag.isBlank()) viewModel.clearExerciseTag(setupEx.id) else viewModel.setExerciseTag(setupEx.id, tag) },
                     onSelectProfile = { profileId: String -> viewModel.setActiveContextProfile(setupEx.id, profileId) },
                     onSaveProfile = { profile: WorkoutContextProfile -> viewModel.upsertContextProfile(setupEx, profile) },
-                    onUpdateExercise = { transform -> viewModel.updateExerciseDefinition(setupEx.id, transform) },
+                    onUpdateExercise = { transform -> viewModel.updateExerciseDefinition(setupEx.id, transform = transform) },
                     onUpdateSet = { setId, transform -> viewModel.updateExerciseSetPlan(setupEx.id, setId, transform) },
                     onDismiss = { state.setupSheetExerciseId = null },
                     sessionAccentColor = sessionAccentColor,
@@ -1092,6 +1104,7 @@ internal fun WorkoutStructureSheetsHost(
                                     ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
                                     ReplacementPersistenceScopeV2.PERMANENT -> "Guardar permanente"
                                     ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> "Guardar en sesiones coincidentes del mesociclo"
+                                    ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Aplicar a todo el bloque"
                                 }
                             )
                         }
@@ -1154,6 +1167,7 @@ internal fun WorkoutStructureSheetsHost(
                                     ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
                                     ReplacementPersistenceScopeV2.PERMANENT -> "Guardar permanente"
                                     ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> "Guardar en sesiones coincidentes del mesociclo"
+                                    ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Aplicar a todo el bloque"
                                 }
                             )
                         }

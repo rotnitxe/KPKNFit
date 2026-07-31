@@ -135,6 +135,9 @@ interface WorkoutV2Dao {
     @Upsert
     suspend fun upsertContextProfile(entity: WorkoutContextProfileEntity)
 
+    @Query("DELETE FROM workout_context_profiles WHERE id = :profileId")
+    suspend fun deleteContextProfile(profileId: String)
+
     @Query("SELECT * FROM workout_replacement_decisions WHERE programId = :programId ORDER BY createdAt DESC")
     suspend fun getReplacementDecisions(programId: String): List<WorkoutReplacementDecisionEntity>
 

@@ -76,6 +76,7 @@ enum class ReplacementPersistenceScopeV2 {
     SESSION_ONLY,
     PERMANENT,
     MESOCYCLE_MATCHING,
+    BLOCK_MATCHING,
 }
 
 @Serializable

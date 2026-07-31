@@ -44,6 +44,49 @@ class WorkoutBackNavigationTest {
     }
 
     @Test
+    fun nonDismissibleModalConsumesBackWithoutExitDialog() {
+        assertEquals(
+            WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL,
+            resolveWorkoutBackAction(
+                WorkoutOverlayFlags(showNonDismissibleModal = true),
+            ),
+        )
+    }
+
+    @Test
+    fun readinessSheetConsumesBackWithoutExitDialog() {
+        assertEquals(
+            WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL,
+            resolveWorkoutBackAction(WorkoutOverlayFlags(showReadiness = true)),
+        )
+    }
+
+    @Test
+    fun volumeAdvanceHasPriorityOverOtherOverlays() {
+        assertEquals(
+            WorkoutBackAction.CONSUME_VOLUME_ADVANCE,
+            resolveWorkoutBackAction(
+                WorkoutOverlayFlags(
+                    showVolumeAdvance = true,
+                    showNonDismissibleModal = true,
+                    showFinishSheet = true,
+                    hasDrawerOpen = true,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun exitDialogHasPriorityAndIsDismissedBeforeEverythingElse() {
+        assertEquals(
+            WorkoutBackAction.DISMISS_EXIT_DIALOG,
+            resolveWorkoutBackAction(
+                WorkoutOverlayFlags(showExitDialog = true, showNonDismissibleModal = true),
+            ),
+        )
+    }
+
+    @Test
     fun dockClearanceExpandsWithRoadmap() {
         assertEquals(118, dockBottomClearanceDp(roadmapExpanded = false))
         assertEquals(210, dockBottomClearanceDp(roadmapExpanded = true))

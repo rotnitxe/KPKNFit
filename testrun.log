@@ -1,0 +1,48 @@
+Starting a Gradle Daemon, 1 busy Daemon could not be reused, use --status for details
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preBaseDebugBuild UP-TO-DATE
+> Task :app:compileBaseDebugAidl UP-TO-DATE
+> Task :app:generateBaseDebugBuildConfig UP-TO-DATE
+> Task :app:generateBaseDebugResources UP-TO-DATE
+> Task :app:packageBaseDebugResources UP-TO-DATE
+> Task :app:processBaseDebugNavigationResources UP-TO-DATE
+> Task :app:parseBaseDebugLocalResources UP-TO-DATE
+> Task :app:generateBaseDebugRFile UP-TO-DATE
+> Task :app:javaPreCompileBaseDebug UP-TO-DATE
+> Task :app:checkBaseDebugAarMetadata UP-TO-DATE
+> Task :app:mapBaseDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileBaseDebugNavigationResources UP-TO-DATE
+> Task :app:mergeBaseDebugResources UP-TO-DATE
+> Task :app:createBaseDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksBaseDebug UP-TO-DATE
+> Task :app:processBaseDebugMainManifest UP-TO-DATE
+> Task :app:processBaseDebugManifest UP-TO-DATE
+> Task :app:processBaseDebugManifestForPackage UP-TO-DATE
+> Task :app:processBaseDebugResources UP-TO-DATE
+> Task :app:preBaseDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileBaseDebugUnitTest UP-TO-DATE
+> Task :app:generateBaseDebugAssets UP-TO-DATE
+> Task :app:mergeBaseDebugAssets UP-TO-DATE
+> Task :app:packageBaseDebugUnitTestForUnitTest UP-TO-DATE
+> Task :app:processBaseDebugUnitTestManifest UP-TO-DATE
+> Task :app:generateBaseDebugUnitTestConfig UP-TO-DATE
+> Task :app:kspBaseDebugKotlin
+> Task :app:compileBaseDebugKotlin UP-TO-DATE
+> Task :app:compileBaseDebugJavaWithJavac UP-TO-DATE
+> Task :app:bundleBaseDebugClassesToRuntimeJar UP-TO-DATE
+> Task :app:bundleBaseDebugClassesToCompileJar UP-TO-DATE
+> Task :app:kspBaseDebugUnitTestKotlin UP-TO-DATE
+> Task :app:compileBaseDebugUnitTestKotlin UP-TO-DATE
+> Task :app:compileBaseDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processBaseDebugJavaRes UP-TO-DATE
+> Task :app:processBaseDebugUnitTestJavaRes UP-TO-DATE
+> Task :app:testBaseDebugUnitTest
+
+BUILD SUCCESSFUL in 1m 14s
+33 actionable tasks: 2 executed, 31 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

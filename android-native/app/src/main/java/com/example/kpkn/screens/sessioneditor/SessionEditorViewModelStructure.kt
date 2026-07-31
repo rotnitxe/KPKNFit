@@ -243,8 +243,14 @@ fun SessionEditorViewModel.addCompetitionMovement(name: String): String {
 
 fun SessionEditorViewModel.replaceExerciseInPart(partId: String?, exerciseId: String, info: ExerciseMuscleInfo) {
     updateExercise(partId, exerciseId) { current ->
-        current.replacedWithCatalogExercise(info)
-            .withSharedPerformanceFromHistory(repository.history.value)
+        val cached = VariantFlowResultCache.consume(info.id)
+        current.replacedWithCatalogExercise(
+            info = info,
+            selectedAspects = cached?.selectedAspects,
+            variantName = cached?.variantName,
+            variantGroupId = cached?.variantGroupId,
+            variantGroupName = cached?.variantGroupName,
+        ).withSharedPerformanceFromHistory(repository.history.value)
     }
     closeSheet()
 }

@@ -15,6 +15,7 @@ import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
+import com.example.kpkn.screens.sessioneditor.VariantFlowResultCache
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.ProgramCalendarEngine
@@ -129,7 +130,10 @@ class WorkoutViewModel(
 
         // Legacy: tags from context profiles
         profilesMap.values.forEach { profile ->
-            profile.tagId?.takeIf { it.isNotBlank() }?.let { tags.add(it) }
+            workoutTagDisplayTitle(
+                tagName = profile.setupLabel ?: profile.tagId,
+                machineBrand = profile.machineBrand,
+            ).takeIf { it.isNotBlank() }?.let { tags.add(it) }
         }
 
         tags.filter { it.isNotBlank() }.toList()
@@ -418,7 +422,10 @@ class WorkoutViewModel(
                 }
                 override fun commitStructuralPersistencePermanent() {
                     if (_uiState.value.pendingStructuralPersistence != null) {
-                        commitStructuralPersistence(com.example.kpkn.data.models.ReplacementPersistenceScopeV2.PERMANENT)
+                        val scope = replacementScopeOptions()
+                            .lastOrNull { it != ReplacementPersistenceScopeV2.SESSION_ONLY }
+                            ?: ReplacementPersistenceScopeV2.SESSION_ONLY
+                        commitStructuralPersistence(scope)
                     }
                 }
                 override fun clearPendingStructuralPersistence() = this@WorkoutViewModel.clearPendingStructuralPersistence()
@@ -450,6 +457,19 @@ class WorkoutViewModel(
                         sampleCount = range.sampleCount,
                         showPRsInWorkout = repository.settings.value.showPRsInWorkout,
                     )
+                }
+                override fun setSessionTimeLimit(minutes: Int, persistToProgram: Boolean) {
+                    this@WorkoutViewModel.setAbsoluteSessionTimeLimit(minutes, persistToSession = persistToProgram)
+                }
+                override fun selectExercise(index: Int) = this@WorkoutViewModel.selectExercise(index)
+                override fun persistVoiceRuntimeState() = this@WorkoutViewModel.persistOngoingState()
+                override fun markWarmupComplete(exerciseId: String, warmupSetId: String) =
+                    this@WorkoutViewModel.markWarmupComplete(exerciseId, warmupSetId)
+                override fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String) =
+                    this@WorkoutViewModel.markMobilityComplete(exerciseId, mobilitySeriesId)
+                override fun setVoiceExerciseQueue(exerciseIds: List<String>) {
+                    _uiState.update { it.copy(voiceExerciseQueue = exerciseIds) }
+                    this@WorkoutViewModel.persistOngoingState()
                 }
             },
         )
@@ -697,7 +717,7 @@ class WorkoutViewModel(
     fun replacementScopeOptions(): List<ReplacementPersistenceScopeV2> {
         val program = repository.getProgramById(programId)
             ?: return listOf(ReplacementPersistenceScopeV2.SESSION_ONLY)
-        return WorkoutEditingRules.replacementPersistenceOptions(program)
+        return WorkoutEditingRules.replacementPersistenceOptions(program, sessionId)
     }
 
     fun setHeaderWidgetVisibility(
@@ -1542,10 +1562,41 @@ class WorkoutViewModel(
                 isRestTimerRunning = false,
             )
         }
-        if (voiceController.isEnabled()) {
-            voiceController.announceFeedbackSheetPrompt(isFinal = true)
-        }
         persistOngoingState()
+    }
+
+    fun announceWorkoutSessionSummary(summary: WorkoutSessionSummary) {
+        if (!voiceController.isEnabled()) return
+        val nextSessionText = repository.programs.value.firstOrNull { it.id == programId }?.let { program ->
+            val projection = ProgramCalendarEngine.project(program)
+            val today = java.time.LocalDate.now()
+            program.macrocycles.asSequence()
+                .flatMap { it.blocks.asSequence() }
+                .flatMap { it.mesocycles.asSequence() }
+                .flatMap { it.weeks.asSequence() }
+                .flatMap { week -> week.sessions.asSequence().map { session -> week.id to session } }
+                .mapNotNull { (weekId, session) ->
+                    projection.scheduledDateFor(session, weekId)?.takeIf { !it.isBefore(today) }?.let { it to session.name }
+                }
+                .minByOrNull { it.first }
+                ?.let { (date, name) ->
+                    val days = java.time.temporal.ChronoUnit.DAYS.between(today, date)
+                    if (days == 0L) "Tu próxima sesión es $name hoy."
+                    else "Tu próxima sesión es $name en $days días."
+                }
+        } ?: "No existe una próxima sesión programada fiable."
+        val discomfortText = if (summary.discomforts.isEmpty()) {
+            "No registraste molestias."
+        } else {
+            "Molestias: ${summary.discomforts.joinToString("; ")} ."
+        }
+        val muscleText = summary.lowestMuscle?.let { "El músculo con menor batería es $it." }.orEmpty()
+        voiceController.announceSessionSummary(
+            "Tu sesión fue ${summary.intensityDescriptor.lowercase()}. $discomfortText " +
+                "Tu RING muscular quedó en ${summary.muscularRing} por ciento. $muscleText " +
+                "Tu RING de energía quedó en ${summary.energyRing} por ciento y tu columna en ${summary.spinalRing} por ciento. " +
+                "$nextSessionText Para finalizar, di sesión terminada.",
+        )
     }
 
 
@@ -1622,7 +1673,10 @@ class WorkoutViewModel(
                 supersetId = groupId,
                 supersetRestBetween = group.restBetweenExercises,
                 supersetRestAfter = group.restAfterSuperset,
-            ).replacedWithCatalogExercise(catalogExercise)
+            ).replacedWithCatalogExercise(
+                info = catalogExercise,
+                selectedAspects = VariantFlowResultCache.consume(catalogExercise.id)?.selectedAspects,
+            )
 
             val memberIds = members.map { it.id }
             val inserted = insertExerciseAfterSupersetMembers(modeSession, memberIds, newExercise)
@@ -1703,7 +1757,7 @@ class WorkoutViewModel(
         }
         if (updatedSession == base) return
 
-        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId)
+        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId, persistToProgram = false)
     }
 
     fun reorderExercisesPreservingParts(orderedExerciseIds: List<String>) {
@@ -1730,7 +1784,7 @@ class WorkoutViewModel(
             }
         }
         if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId)
+        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId, persistToProgram = false)
     }
 
     fun reorderExercisesGlobally(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>) {
@@ -1741,7 +1795,7 @@ class WorkoutViewModel(
             modeSession.globalReorder(orderedExerciseIds.distinct(), originalPartMap)
         }
         if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId)
+        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId, persistToProgram = false)
     }
 
     fun applyReorderAndPromptPersistence(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>, isGlobal: Boolean) {
@@ -1750,16 +1804,23 @@ class WorkoutViewModel(
         } else {
             reorderExercisesPreservingParts(orderedExerciseIds)
         }
+        val activeSession = _uiState.value.session?.let { withModeSession(it, _uiState.value.activeMode) { active -> active } }
+        val orderedCanonicalKeys = activeSession?.allExercises()?.map { it.resolvedCanonicalExerciseId() }.orEmpty()
+        val orderedPartKeys = activeSession?.parts?.flatMap { part ->
+            part.exercises.map { part.name }
+        }.orEmpty()
         _uiState.update { it.copy(
             pendingStructuralPersistence = PendingStructuralChange.ReorderExercises(
                 orderedExerciseIds = orderedExerciseIds.distinct(),
                 originalPartMap = originalPartMap,
                 isGlobal = isGlobal,
+                orderedExerciseCanonicalKeys = orderedCanonicalKeys,
+                orderedExercisePartKeys = orderedPartKeys,
             )
         )}
     }
 
-    fun updateExerciseDefinition(exerciseId: String, transform: (Exercise) -> Exercise) {
+    fun updateExerciseDefinition(exerciseId: String, persistToProgram: Boolean = true, transform: (Exercise) -> Exercise) {
         val state = _uiState.value
         val base = state.session ?: return
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
@@ -1768,7 +1829,7 @@ class WorkoutViewModel(
             }
         }
         if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = exerciseId)
+        applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = persistToProgram)
     }
 
     fun updateExerciseSetPlan(exerciseId: String, setId: String, transform: (ExerciseSet) -> ExerciseSet) {
@@ -1786,7 +1847,7 @@ class WorkoutViewModel(
         val currentExerciseId = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)?.id ?: return
         val exerciseName = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)?.name ?: ""
         // Add the set to the live session immediately
-        updateExerciseDefinition(currentExerciseId) { exercise ->
+        updateExerciseDefinition(currentExerciseId, persistToProgram = false) { exercise ->
             val lastSet = exercise.sets.lastOrNull()
             val lastSetIdx = exercise.sets.lastIndex
             val effectiveMode = effectiveLoadModeForExercise(exercise, lastSetIdx)
@@ -1810,6 +1871,8 @@ class WorkoutViewModel(
             pendingStructuralPersistence = PendingStructuralChange.AddSet(
                 exerciseId = currentExerciseId,
                 exerciseName = exerciseName,
+                exerciseSlot = visibleExercises(_uiState.value).indexOfFirst { it.id == currentExerciseId }.takeIf { it >= 0 },
+                exerciseCanonicalKey = visibleExercises(_uiState.value).firstOrNull { it.id == currentExerciseId }?.resolvedCanonicalExerciseId(),
             )
         )}
     }
@@ -1819,6 +1882,11 @@ class WorkoutViewModel(
         val base = state.session ?: return
         val newId = UUID.randomUUID().toString()
         val newExerciseName = info.name
+        val activeBase = withModeSession(base, state.activeMode) { active -> active }
+        val afterExerciseSlot = activeBase.allExercises()
+            .indexOfFirst { it.id == exerciseId }.takeIf { it >= 0 }
+        val afterExerciseCanonicalKey = activeBase.allExercises().firstOrNull { it.id == exerciseId }?.resolvedCanonicalExerciseId()
+        var newExerciseTemplate: Exercise? = null
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
             val template = modeSession.allExercises().firstOrNull { it.id == exerciseId }
                 ?: modeSession.allExercises().lastOrNull()
@@ -1827,16 +1895,20 @@ class WorkoutViewModel(
                 id = newId,
                 sets = listOf(ExerciseSet(id = UUID.randomUUID().toString())),
             )
+            newExerciseTemplate = newExercise
             structuralPersistence.insertExerciseAfter(modeSession, exerciseId, newExercise)
         }
         if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = newId)
+        applySessionMutation(updatedSession, preferredExerciseId = newId, persistToProgram = false)
         _uiState.update { it.copy(
             pendingEditSheetExerciseId = newId,
             pendingStructuralPersistence = PendingStructuralChange.AddExercise(
                 afterExerciseId = exerciseId,
                 newExerciseId = newId,
                 newExerciseName = newExerciseName,
+                afterExerciseSlot = afterExerciseSlot,
+                afterExerciseCanonicalKey = afterExerciseCanonicalKey,
+                newExerciseTemplate = newExerciseTemplate,
             ),
         )}
     }
@@ -1859,7 +1931,8 @@ class WorkoutViewModel(
         updatedSession: Session,
         preferredExerciseId: String? = null,
         preferredSetId: String? = null,
-    ) = structuralPersistence.applySessionMutation(updatedSession, preferredExerciseId, preferredSetId)
+        persistToProgram: Boolean = true,
+    ) = structuralPersistence.applySessionMutation(updatedSession, preferredExerciseId, preferredSetId, persistToProgram)
 
     fun addMobilityExerciseToSession(name: String, durationSeconds: Int = 60) {
         val mobilityExercise = Exercise(
@@ -2429,12 +2502,13 @@ class WorkoutViewModel(
         // Bridge: try to find or create a WorkoutTag with this name
         val state = _uiState.value
         val existingTags = tagsForExercise(exerciseId)
-        val match = existingTags.firstOrNull { it.name == tag }
+        val normalizedRequestedTag = normalizeVoiceTagName(tag)
+        val match = existingTags.firstOrNull { normalizeVoiceTagName(it.name) == normalizedRequestedTag }
         if (match != null) {
             toggleMainTagActive(exerciseId, match.id)
         } else {
-            val created = createTag(exerciseId, tag)
-            toggleMainTagActive(exerciseId, created.id)
+            // createTag ya deja la etiqueta activa. Un segundo toggle la apagaba.
+            createTag(exerciseId, tag)
         }
         // Legacy compat: also set exerciseTags
         _uiState.update { it.copy(exerciseTags = it.exerciseTags + (exerciseId to tag)) }
@@ -2451,6 +2525,10 @@ class WorkoutViewModel(
         }
         persistOngoingState()
     }
+
+    private fun normalizeVoiceTagName(value: String): String =
+        java.text.Normalizer.normalize(value.trim().lowercase(), java.text.Normalizer.Form.NFD)
+            .replace("\\p{Mn}+".toRegex(), "")
 
     fun clearExerciseTag(exerciseId: String) {
         clearAllTags(exerciseId)
@@ -2941,7 +3019,3 @@ class WorkoutViewModel(
             }
     }
 }
-
-
-
-

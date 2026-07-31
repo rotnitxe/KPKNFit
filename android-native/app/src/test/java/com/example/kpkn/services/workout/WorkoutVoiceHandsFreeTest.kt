@@ -309,6 +309,28 @@ class WorkoutVoiceHandsFreeTest {
     }
 
     @Test
+    fun timedSetCommandsAreContextual() {
+        val start = WorkoutVoiceCommandParser.parseCommand("iniciar", true, false, false, false)
+        val stopTimed = WorkoutVoiceCommandParser.parseCommand("para", true, false, false, false)
+        val stopSpeech = WorkoutVoiceCommandParser.parseCommand("para", false, false, false, false)
+
+        assertTrue(start is VoiceSessionCommand.StartTimedSet)
+        assertTrue(stopTimed is VoiceSessionCommand.StopTimedSet)
+        assertTrue(stopSpeech is VoiceSessionCommand.StopSpeaking)
+    }
+
+    @Test
+    fun parsesSessionTimeLimitAsSessionOnlyByDefault() {
+        val temporary = WorkoutVoiceCommandParser.parseCommand("maximo 90 minutos", false, false, false, false)
+        val permanent = WorkoutVoiceCommandParser.parseCommand(
+            "maximo 90 minutos guardar este limite en el programa", false, false, false, false,
+        )
+
+        assertEquals(VoiceSessionCommand.SetSessionTimeLimit(90, false), temporary)
+        assertEquals(VoiceSessionCommand.SetSessionTimeLimit(90, true), permanent)
+    }
+
+    @Test
     fun explicitTagCommandIsParsedWithoutGuessingNormalSpeech() {
         val tag = WorkoutVoiceCommandParser.parseCommand(
             transcript = "etiqueta agarre neutro", isTimeMode = false, isUnilateral = false,

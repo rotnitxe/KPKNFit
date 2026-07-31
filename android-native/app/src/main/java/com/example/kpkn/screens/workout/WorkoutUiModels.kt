@@ -14,16 +14,23 @@ sealed class PendingStructuralChange {
     data class AddSet(
         val exerciseId: String,
         val exerciseName: String,
+        val exerciseSlot: Int? = null,
+        val exerciseCanonicalKey: String? = null,
     ) : PendingStructuralChange()
     data class AddExercise(
         val afterExerciseId: String,
         val newExerciseId: String,
         val newExerciseName: String,
+        val afterExerciseSlot: Int? = null,
+        val afterExerciseCanonicalKey: String? = null,
+        val newExerciseTemplate: Exercise? = null,
     ) : PendingStructuralChange()
     data class ReorderExercises(
         val orderedExerciseIds: List<String>,
         val originalPartMap: Map<String, String>,
         val isGlobal: Boolean,
+        val orderedExerciseCanonicalKeys: List<String> = emptyList(),
+        val orderedExercisePartKeys: List<String?> = emptyList(),
     ) : PendingStructuralChange()
 }
 
@@ -167,6 +174,19 @@ data class WorkoutUiState(
     val showVolumeAdvanceModal: Boolean = false,
     val isRestMinimized: Boolean = false,
     val pendingEditSheetExerciseId: String? = null,
+    val voiceTimedSet: VoiceTimedSetState? = null,
+    val voiceExerciseQueue: List<String> = emptyList(),
+    val voicePendingFeedbackExerciseIds: Set<String> = emptySet(),
+)
+
+data class WorkoutSessionSummary(
+    val intensityDescriptor: String,
+    val discomforts: List<String>,
+    val muscularRing: Int,
+    val lowestMuscle: String?,
+    val energyRing: Int,
+    val spinalRing: Int,
+    val nextSessionText: String,
 )
 
 data class WorkoutShareSnapshot(

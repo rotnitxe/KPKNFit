@@ -4,6 +4,9 @@ import android.content.Context
 import com.example.kpkn.data.voice.VoiceNutritionRecognizer
 import com.example.kpkn.data.voice.VoiceState
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.DropSetData
+import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.UnitModeV2
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
@@ -19,6 +22,11 @@ enum class WorkoutVoiceField {
     INTENSITY,
     SIDE,
     FAILURE,
+    FAILED_SET,
+    HELPED_REPS,
+    LOAD_MODE,
+    DROP_SET,
+    REST_PAUSE,
     ROM,
 }
 
@@ -68,6 +76,16 @@ data class WorkoutVoiceInterpretation(
     val intensityKind: WorkoutVoiceIntensityKind? = null,
     val side: String? = null,
     val reachedFailure: Boolean = false,
+    val isFailedSet: Boolean = false,
+    val failureReason: String? = null,
+    /** Repeticiones realizadas con ayuda externa de una persona. */
+    val helpedReps: Int? = null,
+    val loadModeOverride: LoadModeV2? = null,
+    val dropSets: List<DropSetData> = emptyList(),
+    val restPauses: List<RestPauseData> = emptyList(),
+    val ambiguousIntensityValue: Double? = null,
+    val timerElapsedSeconds: Int? = null,
+    val incompleteTechnique: String? = null,
     val romPercent: Int? = null,
     val tagName: String? = null,
     val fields: Set<WorkoutVoiceField> = emptySet(),
@@ -100,9 +118,11 @@ internal fun parseWorkoutVoiceTranscript(
     val explicitWeight = tokens.indexOfFirst { it in WEIGHT_KEYWORDS }
         .takeIf { it >= 0 }
         ?.let { nearestVoiceNumber(tokens, it, preferBackward = true) }
-    val explicitReps = tokens.indexOfFirst { it in REP_KEYWORDS }
+    val techniqueStart = tokens.indexOfFirst { it in TECHNIQUE_KEYWORDS }.takeIf { it >= 0 } ?: tokens.size
+    val mainTokens = tokens.take(techniqueStart)
+    val explicitReps = mainTokens.indexOfFirst { it in REP_KEYWORDS }
         .takeIf { it >= 0 }
-        ?.let { nearestVoiceNumber(tokens, it, preferBackward = true)?.toSafeWholeNumber() }
+        ?.let { nearestVoiceNumber(mainTokens, it, preferBackward = true)?.toSafeWholeNumber() }
     val explicitSeconds = tokens.indexOfFirst { it in SECOND_KEYWORDS }
         .takeIf { it >= 0 }
         ?.let { nearestVoiceNumber(tokens, it, preferBackward = true)?.toSafeWholeNumber() }
@@ -134,7 +154,26 @@ internal fun parseWorkoutVoiceTranscript(
         tokens.any { it in RIGHT_SIDE_KEYWORDS } && tokens.none { it in LEFT_SIDE_KEYWORDS } -> "right"
         else -> null
     }
-    val reachedFailure = tokens.any { it in FAILURE_KEYWORDS }
+    val normalizedText = tokens.joinToString(" ")
+    val isFailedSet = FAILED_SET_PHRASES.any(normalizedText::contains)
+    val reachedFailure = !isFailedSet && (
+        FAILURE_PHRASES.any(normalizedText::contains) || tokens.any { it in FAILURE_KEYWORDS }
+    )
+    val helpedReps = extractNumberBeforePhrase(tokens, listOf("con", "ayuda"))?.toSafeWholeNumber()
+    val loadModeOverride = when {
+        tokens.any { it in LASTRE_KEYWORDS } -> LoadModeV2.LASTRE
+        tokens.any { it in ASSISTED_LOAD_KEYWORDS } -> LoadModeV2.ASSISTED
+        BODYWEIGHT_PHRASES.any(normalizedText::contains) -> LoadModeV2.BODYWEIGHT
+        tokens.any { it in NORMAL_LOAD_KEYWORDS } -> LoadModeV2.LOAD
+        else -> null
+    }
+    val dropSets = extractDropSets(tokens)
+    val restPauses = extractRestPauses(tokens)
+    val incompleteTechnique = when {
+        tokens.any { it in DROP_SET_KEYWORDS } && dropSets.isEmpty() -> "dropset"
+        tokens.any { it in REST_PAUSE_KEYWORDS } && restPauses.isEmpty() -> "restpause"
+        else -> null
+    }
 
     val effectiveUnitMode = if (isTimeMode) UnitModeV2.TIME else unitMode
     val weightKg = if (effectiveUnitMode != UnitModeV2.REPS) explicitWeight else explicitWeight ?: connectorPair?.first
@@ -159,6 +198,9 @@ internal fun parseWorkoutVoiceTranscript(
         explicitFailureMetric != null -> WorkoutVoiceIntensityKind.RIR
         else -> null
     }
+    val orphanIntensity = if (intensityValue == null && weightKg != null && metricDecimalValue != null) {
+        trailingVoiceNumber(tokens)?.takeIf { it in 0.0..10.0 }
+    } else null
 
     val fields = buildSet {
         if (weightKg != null) add(WorkoutVoiceField.WEIGHT)
@@ -166,6 +208,11 @@ internal fun parseWorkoutVoiceTranscript(
         if (intensityValue != null) add(WorkoutVoiceField.INTENSITY)
         if (side != null) add(WorkoutVoiceField.SIDE)
         if (reachedFailure) add(WorkoutVoiceField.FAILURE)
+        if (isFailedSet) add(WorkoutVoiceField.FAILED_SET)
+        if (helpedReps != null) add(WorkoutVoiceField.HELPED_REPS)
+        if (loadModeOverride != null) add(WorkoutVoiceField.LOAD_MODE)
+        if (dropSets.isNotEmpty()) add(WorkoutVoiceField.DROP_SET)
+        if (restPauses.isNotEmpty()) add(WorkoutVoiceField.REST_PAUSE)
         if (explicitRom != null) add(WorkoutVoiceField.ROM)
     }
 
@@ -179,6 +226,13 @@ internal fun parseWorkoutVoiceTranscript(
         intensityKind = intensityKind,
         side = side,
         reachedFailure = reachedFailure,
+        isFailedSet = isFailedSet,
+        helpedReps = helpedReps?.coerceAtMost(metricValue ?: helpedReps),
+        loadModeOverride = loadModeOverride,
+        dropSets = dropSets,
+        restPauses = restPauses,
+        ambiguousIntensityValue = orphanIntensity,
+        incompleteTechnique = incompleteTechnique,
         romPercent = explicitRom,
         fields = fields,
     )
@@ -204,6 +258,10 @@ internal fun workoutVoiceSummary(
         add(if (side == "left") "Izquierda" else "Derecha")
     }
     if (interpretation.reachedFailure) add("Fallo")
+    if (interpretation.isFailedSet) add("Serie fallida")
+    interpretation.helpedReps?.let { add("$it con ayuda") }
+    interpretation.dropSets.forEach { add("Dropset ${it.weight.toTrimmedNumberString()} kg, ${it.reps} reps") }
+    interpretation.restPauses.forEach { add("Rest-pause ${it.restTime} s, ${it.reps} reps") }
 }.joinToString(" · ")
 
 internal fun workoutVoiceAppliedMessage(
@@ -242,6 +300,9 @@ internal fun workoutVoiceIntensityText(
 private fun normalizeWorkoutVoiceTranscript(transcript: String): List<String> {
     val normalized = Normalizer.normalize(transcript.lowercase(Locale.ROOT), Normalizer.Form.NFD)
         .replace("\\p{Mn}+".toRegex(), "")
+        .replace(Regex("\\berre\\s+pe\\s+e\\b"), "rpe")
+        .replace(Regex("\\berre\\s+i\\s+erre\\b"), "rir")
+        .replace("repeticiones en reserva", "rir")
         .replace("×", " x ")
         .replace(Regex("[^a-z0-9.,% ]"), " ")
         .replace(Regex("\\s+"), " ")
@@ -259,6 +320,38 @@ private fun extractConnectedWeightAndMetric(tokens: List<String>): Pair<Double, 
         }
     }
     return null
+}
+
+private fun extractNumberBeforePhrase(tokens: List<String>, phrase: List<String>): Double? {
+    val index = tokens.indices.firstOrNull { start ->
+        start + phrase.size <= tokens.size && tokens.subList(start, start + phrase.size) == phrase
+    } ?: return null
+    return readVoiceNumberBackward(tokens, index - 1)?.first
+}
+
+private fun trailingVoiceNumber(tokens: List<String>): Double? =
+    readVoiceNumberBackward(tokens, tokens.lastIndex)?.first
+
+private fun extractDropSets(tokens: List<String>): List<DropSetData> {
+    val start = tokens.indexOfFirst { it in DROP_SET_KEYWORDS }
+    if (start < 0) return emptyList()
+    val segment = tokens.drop(start + 1)
+    val weightIndex = segment.indexOfFirst { it in WEIGHT_KEYWORDS }
+    val repsIndex = segment.indexOfFirst { it in REP_KEYWORDS }
+    val weight = weightIndex.takeIf { it >= 0 }?.let { nearestVoiceNumber(segment, it, true) }
+    val reps = repsIndex.takeIf { it >= 0 }?.let { nearestVoiceNumber(segment, it, true)?.toSafeWholeNumber() }
+    return if (weight != null && reps != null) listOf(DropSetData(weight, reps)) else emptyList()
+}
+
+private fun extractRestPauses(tokens: List<String>): List<RestPauseData> {
+    val start = tokens.indexOfFirst { it in REST_PAUSE_KEYWORDS }
+    if (start < 0) return emptyList()
+    val segment = tokens.drop(start + 1)
+    val restIndex = segment.indexOfFirst { it in SECOND_KEYWORDS }
+    val repsIndex = segment.indexOfFirst { it in REP_KEYWORDS }
+    val rest = restIndex.takeIf { it >= 0 }?.let { nearestVoiceNumber(segment, it, true)?.toSafeWholeNumber() }
+    val reps = repsIndex.takeIf { it >= 0 }?.let { nearestVoiceNumber(segment, it, true)?.toSafeWholeNumber() }
+    return if (rest != null && reps != null) listOf(RestPauseData(rest, reps)) else emptyList()
 }
 
 private fun nearestVoiceNumber(
@@ -375,6 +468,15 @@ private val RPE_KEYWORDS = setOf("rpe", "esfuerzo", "intensidad")
 private val RIR_KEYWORDS = setOf("rir", "recamara", "recamaras", "reserva", "reservas", "ritmo")
 private val PERCENT_RM_KEYWORDS = setOf("porcentaje", "%", "rm")
 private val FAILURE_KEYWORDS = setOf("fallo", "falla")
+private val FAILURE_PHRASES = setOf("al fallo", "llegue al fallo", "llegar al fallo")
+private val FAILED_SET_PHRASES = setOf("serie fallida", "no pude completarla", "falle el intento", "intento fallido")
+private val DROP_SET_KEYWORDS = setOf("dropset", "drop-set", "descendente")
+private val REST_PAUSE_KEYWORDS = setOf("rest-pause", "restpause", "pausa-descanso")
+private val TECHNIQUE_KEYWORDS = DROP_SET_KEYWORDS + REST_PAUSE_KEYWORDS
+private val LASTRE_KEYWORDS = setOf("lastre", "lastrado", "lastrada")
+private val ASSISTED_LOAD_KEYWORDS = setOf("asistencia", "contrapeso")
+private val NORMAL_LOAD_KEYWORDS = setOf("carga")
+private val BODYWEIGHT_PHRASES = setOf("peso corporal", "sin carga")
 private val FAILURE_DISTANCE_KEYWORDS = setOf("recamara", "recamaras", "reserva", "reservas")
 private val DISTANCE_KEYWORDS = setOf("metro", "metros", "kilometro", "kilometros", "km", "milla", "millas")
 private val CUSTOM_UNIT_KEYWORDS = setOf("unidad", "unidades", "caloria", "calorias", "vuelta", "vueltas", "piso", "pisos", "nivel", "niveles", "paso", "pasos")

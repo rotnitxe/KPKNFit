@@ -436,9 +436,13 @@ internal fun SessionEditorSheets(
                  onDismiss()
              }
          }
-         KpknSheet(onDismissRequest = requestPickerDismiss) {
+         KpknSheet(
+             onDismissRequest = requestPickerDismiss,
+             maxHeightFraction = 0.78f,
+             stableHeightFraction = 0.76f,
+         ) {
               Column(
-                  modifier = Modifier.fillMaxWidth(),
+                 modifier = Modifier.fillMaxSize(),
               ) {
                   if (showInlineCreator) {
                       Row(

@@ -13,6 +13,8 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import java.text.Normalizer
 import kotlin.math.roundToInt
 
 enum class WorkoutLiveEditPersistenceScope {
@@ -74,16 +76,80 @@ object WorkoutEditingRules {
     fun canPersistLiveStructuralChanges(program: Program): Boolean =
         liveEditPersistenceScope(program) == WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED
 
-    fun replacementPersistenceOptions(program: Program): List<ReplacementPersistenceScopeV2> {
-        return if (canPersistLiveStructuralChanges(program)) {
-            listOf(
-                ReplacementPersistenceScopeV2.SESSION_ONLY,
-                ReplacementPersistenceScopeV2.PERMANENT,
-            )
-        } else {
-            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY)
-        }
+    fun replacementPersistenceOptions(
+        program: Program,
+        sessionId: String? = null,
+    ): List<ReplacementPersistenceScopeV2> = when {
+        canPersistLiveStructuralChanges(program) -> listOf(
+            ReplacementPersistenceScopeV2.SESSION_ONLY,
+            ReplacementPersistenceScopeV2.PERMANENT,
+        )
+        program.structure.name == "COMPLEX" &&
+            sessionId != null &&
+            hasRepeatedLogicalSessionInBlock(program, sessionId) -> listOf(
+            ReplacementPersistenceScopeV2.SESSION_ONLY,
+            ReplacementPersistenceScopeV2.BLOCK_MATCHING,
+        )
+        else -> listOf(ReplacementPersistenceScopeV2.SESSION_ONLY)
     }
+
+    fun hasRepeatedLogicalSessionInBlock(program: Program, sessionId: String): Boolean {
+        program.macrocycles.forEach { macro ->
+            macro.blocks.forEach { block ->
+                block.mesocycles.forEach { mesocycle ->
+                    mesocycle.weeks.forEach { week ->
+                        val targetSlot = week.sessions.indexOfFirst { it.id == sessionId }
+                        if (targetSlot < 0) return@forEach
+                        val target = week.sessions[targetSlot]
+                        val repeated = block.mesocycles
+                            .flatMap { it.weeks }
+                            .flatMap { candidateWeek ->
+                                candidateWeek.sessions.withIndex().map { indexed -> candidateWeek to indexed }
+                            }
+                            .any { (_, indexed) ->
+                                indexed.value.id != sessionId &&
+                                    isEquivalentLogicalSession(target, targetSlot, indexed.value, indexed.index)
+                            }
+                        if (repeated) return true
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+    internal fun isEquivalentLogicalSession(
+        target: com.example.kpkn.data.models.Session,
+        targetSlot: Int,
+        candidate: com.example.kpkn.data.models.Session,
+        candidateSlot: Int,
+    ): Boolean {
+        val targetDay = target.dayOfWeek ?: target.assignedDays.firstOrNull()
+        val candidateDay = candidate.dayOfWeek ?: candidate.assignedDays.firstOrNull()
+        return normalizeSessionRole(target) == normalizeSessionRole(candidate) &&
+            (targetSlot == candidateSlot || (targetDay != null && targetDay == candidateDay)) &&
+            sessionStructureSignature(target) == sessionStructureSignature(candidate)
+    }
+
+    private fun normalizeSessionRole(session: com.example.kpkn.data.models.Session): String =
+        normalizeRoleText(session.scheduleLabel?.takeIf { it.isNotBlank() } ?: session.name)
+
+    private fun normalizeRoleText(value: String?): String =
+        Normalizer.normalize(value.orEmpty().trim(), Normalizer.Form.NFD)
+            .replace("\\p{M}+".toRegex(), "")
+            .lowercase()
+            .replace("[^a-z0-9]+".toRegex(), " ")
+            .trim()
+            .replace("\\s+".toRegex(), " ")
+
+    private fun sessionStructureSignature(session: com.example.kpkn.data.models.Session): String =
+        session.parts.joinToString("|") { part ->
+            normalizeRoleText(part.name) + ":" + part.exercises.joinToString(",") { exercise ->
+                exercise.resolvedCanonicalExerciseId().lowercase()
+            }
+        }.ifBlank {
+            session.exercises.joinToString(",") { it.resolvedCanonicalExerciseId().lowercase() }
+        }
 
     fun unitModeForTrainingMode(mode: TrainingMode): UnitModeV2 = when (mode) {
         TrainingMode.TIME -> UnitModeV2.TIME

@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -34,6 +33,7 @@ import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,7 +76,6 @@ import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.CompactGoalTrackingButton
 import com.example.kpkn.screens.sessioneditor.CompactRestBundleButton
-import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
@@ -88,6 +87,7 @@ import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.screens.sessioneditor.DarkEditorChip
+import com.example.kpkn.ui.components.KpknDropdownMenu
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -129,6 +129,7 @@ internal fun ExerciseEditorCard(
     var showCustomUnitModal by remember { mutableStateOf(false) }
     var showSmartLoadSheet by remember { mutableStateOf(false) }
     var showGoalSheet by remember { mutableStateOf(false) }
+    var showExerciseOptionsMenu by remember { mutableStateOf(false) }
 
     val resolved1RM = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM) {
         resolveReferenceCapacity(exercise)
@@ -376,11 +377,11 @@ internal fun ExerciseEditorCard(
                     }
                 }
 
-                // Compact rest + mode + goal tracking (wraps to 2 rows; no horizontal scroll)
-                FlowRow(
+                // Keep the primary controls stable; secondary configuration lives in overflow.
+                Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (!suppressIndividualRest) {
                         CompactRestBundleButton(
@@ -414,56 +415,91 @@ internal fun ExerciseEditorCard(
                         onOpenSheet = { showGoalSheet = true },
                     )
 
-                    DarkChoiceChip(
-                        label = "Medir ROM",
-                        selected = exercise.trackRom,
-                        accentColor = accentColor,
-                        onClick = {
-                            onUpdateExercise { current ->
-                                current.copy(trackRom = !current.trackRom)
-                            }
-                        },
-                    )
-
-                    DarkChoiceChip(
-                        label = relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar",
-                        selected = exercise.relativeToCanonicalExerciseId != null,
-                        accentColor = accentColor,
-                        modifier = Modifier.widthIn(max = 180.dp),
-                        onClick = {
-                            if (exercise.relativeToCanonicalExerciseId == null) onOpenRelationshipPicker() else onClearRelationship()
-                        },
-                    )
-
-                    UnilateralModeSelector(
-                        mode = exercise.unilateralMode,
-                        accentColor = accentColor,
-                        onToggleUnilateral = {
-                            onUpdateExercise { current -> current.toggledBilateralUnilateral() }
-                        },
-                    )
-
-                    DarkChoiceChip(
-                        label = if (exercise.warmupSets.isEmpty()) {
-                            "Aprox."
-                        } else {
-                            "Aprox. ${exercise.warmupSets.size}"
-                        },
-                        selected = exercise.warmupSets.isNotEmpty(),
-                        accentColor = accentColor,
-                        onClick = onOpenWarmup,
-                    )
-
-                    DarkChoiceChip(
-                        label = if (exercise.mobilitySeries.isEmpty()) {
-                            "Movilidad"
-                        } else {
-                            "Movilidad ${exercise.mobilitySeries.size}"
-                        },
-                        selected = exercise.mobilitySeries.isNotEmpty(),
-                        accentColor = accentColor,
-                        onClick = onOpenMobility,
-                    )
+                    Spacer(Modifier.weight(1f))
+                    Box {
+                        IconButton(
+                            onClick = { showExerciseOptionsMenu = true },
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = "Más opciones del ejercicio",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        KpknDropdownMenu(
+                            expanded = showExerciseOptionsMenu,
+                            onDismissRequest = { showExerciseOptionsMenu = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(if (exercise.trackRom) "Desactivar medir ROM" else "Medir ROM") },
+                                onClick = {
+                                    showExerciseOptionsMenu = false
+                                    onUpdateExercise { current -> current.copy(trackRom = !current.trackRom) }
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar ejercicio",
+                                    )
+                                },
+                                onClick = {
+                                    showExerciseOptionsMenu = false
+                                    if (exercise.relativeToCanonicalExerciseId == null) {
+                                        onOpenRelationshipPicker()
+                                    } else {
+                                        onClearRelationship()
+                                    }
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        if (exercise.isEffectivelyUnilateral()) {
+                                            "Cambiar a bilateral"
+                                        } else {
+                                            "Cambiar a unilateral"
+                                        },
+                                    )
+                                },
+                                onClick = {
+                                    showExerciseOptionsMenu = false
+                                    onUpdateExercise { current -> current.toggledBilateralUnilateral() }
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        if (exercise.warmupSets.isEmpty()) {
+                                            "Series de aproximación"
+                                        } else {
+                                            "Series de aproximación (${exercise.warmupSets.size})"
+                                        },
+                                    )
+                                },
+                                onClick = {
+                                    showExerciseOptionsMenu = false
+                                    onOpenWarmup()
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        if (exercise.mobilitySeries.isEmpty()) {
+                                            "Series de movilidad"
+                                        } else {
+                                            "Series de movilidad (${exercise.mobilitySeries.size})"
+                                        },
+                                    )
+                                },
+                                onClick = {
+                                    showExerciseOptionsMenu = false
+                                    onOpenMobility()
+                                },
+                            )
+                        }
+                    }
                 }
 
                 Text(

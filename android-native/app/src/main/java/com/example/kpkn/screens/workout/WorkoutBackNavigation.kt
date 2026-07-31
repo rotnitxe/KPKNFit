@@ -7,16 +7,17 @@ package com.example.kpkn.screens.workout
 enum class WorkoutBackAction {
     DISMISS_EXIT_DIALOG,
     CONSUME_VOLUME_ADVANCE,
+    CONSUME_NON_DISMISSIBLE_MODAL,
     DISMISS_FINISH_SHEET,
     DISMISS_MOBILITY_PICKER,
     DISMISS_DRAWER,
-    DISMISS_READINESS,
     SHOW_EXIT_DIALOG,
 }
 
 data class WorkoutOverlayFlags(
     val showExitDialog: Boolean = false,
     val showVolumeAdvance: Boolean = false,
+    val showNonDismissibleModal: Boolean = false,
     val showFinishSheet: Boolean = false,
     val showMobilityPicker: Boolean = false,
     val hasDrawerOpen: Boolean = false,
@@ -26,10 +27,11 @@ data class WorkoutOverlayFlags(
 fun resolveWorkoutBackAction(flags: WorkoutOverlayFlags): WorkoutBackAction = when {
     flags.showExitDialog -> WorkoutBackAction.DISMISS_EXIT_DIALOG
     flags.showVolumeAdvance -> WorkoutBackAction.CONSUME_VOLUME_ADVANCE
+    flags.showNonDismissibleModal -> WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL
     flags.showFinishSheet -> WorkoutBackAction.DISMISS_FINISH_SHEET
     flags.showMobilityPicker -> WorkoutBackAction.DISMISS_MOBILITY_PICKER
     flags.hasDrawerOpen -> WorkoutBackAction.DISMISS_DRAWER
-    flags.showReadiness -> WorkoutBackAction.DISMISS_READINESS
+    flags.showReadiness -> WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL
     else -> WorkoutBackAction.SHOW_EXIT_DIALOG
 }
 

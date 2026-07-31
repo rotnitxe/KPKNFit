@@ -187,7 +187,13 @@ fun OngoingWorkoutState.normalizedIdentityFields(): OngoingWorkoutState = copy(
     session = session.normalizedIdentityFields(),
 )
 
-fun Exercise.replacedWithCatalogExercise(info: ExerciseMuscleInfo): Exercise {
+fun Exercise.replacedWithCatalogExercise(
+    info: ExerciseMuscleInfo,
+    selectedAspects: Map<String, String>? = null,
+    variantName: String? = null,
+    variantGroupId: String? = null,
+    variantGroupName: String? = null,
+): Exercise {
     val setup = info.setupDetails?.let {
         ExerciseSetupDetails(
             seatPosition = it.seatPosition,
@@ -203,6 +209,20 @@ fun Exercise.replacedWithCatalogExercise(info: ExerciseMuscleInfo): Exercise {
         fallbackId = id,
     )
     val defaultLoadMode = defaultReplacementLoadMode(info)
+    val effectiveMuscles = if (selectedAspects != null && !info.technicalAspects.isNullOrEmpty()) {
+        val selectedOptions = selectedAspects.mapNotNull { (aspectId, optId) ->
+            info.technicalAspects
+                ?.firstOrNull { it.id == aspectId }
+                ?.options
+                ?.firstOrNull { it.id == optId }
+        }
+        TechnicalAspectEngine.computeEffectiveMuscles(
+            baseMuscles = info.involvedMuscles,
+            selectedOptions = selectedOptions,
+        ).effectiveMuscles
+    } else {
+        null
+    }
     return copy(
         name = info.name,
         exerciseDbId = info.id,
@@ -219,7 +239,11 @@ fun Exercise.replacedWithCatalogExercise(info: ExerciseMuscleInfo): Exercise {
         targetSessionGoal = null,
         isStarTarget = false,
         setupDetails = setup,
-        variantName = null,
+        variantName = variantName ?: info.variantName,
+        variantGroupId = variantGroupId ?: info.variantGroupId,
+        variantGroupName = variantGroupName ?: info.variantGroupName,
+        selectedAspects = selectedAspects,
+        effectiveMuscles = effectiveMuscles,
         prFor1RM = null,
         consolidatedWeight = null,
         brandEquivalencies = emptyList(),

@@ -175,6 +175,7 @@ internal fun FinishWorkoutSheet(
     onConfirm: (String, Int, SessionClosingFeedback, Boolean) -> Unit,
     onDismiss: () -> Unit,
     onShare: () -> Unit,
+    onSummaryReady: (WorkoutSessionSummary) -> Unit,
 ) {
     val neuralSeed = (readinessNeuralStart - predictedDrain.cns).coerceIn(0, 100)
     val spinalSeed = (readinessSpinalStart - predictedDrain.spinal).coerceIn(0, 100)
@@ -202,6 +203,29 @@ internal fun FinishWorkoutSheet(
                 muscleFinal.values.average().toInt().coerceIn(0, 100)
             }
         }
+    }
+    val lowestMuscle = muscleFinal.minByOrNull { it.value }?.key
+    LaunchedEffect(
+        sessionIntensityResult.displayLabel,
+        sessionDiscomfortSummary,
+        derivedMuscularFinal,
+        lowestMuscle,
+        neuralFinal,
+        spinalFinal,
+    ) {
+        onSummaryReady(
+            WorkoutSessionSummary(
+                intensityDescriptor = sessionIntensityResult.displayLabel,
+                discomforts = sessionDiscomfortSummary.map { summary ->
+                    "${summary.label} en ${summary.reportedInExercises.joinToString(", ")}"
+                },
+                muscularRing = derivedMuscularFinal,
+                lowestMuscle = lowestMuscle,
+                energyRing = neuralFinal,
+                spinalRing = spinalFinal,
+                nextSessionText = "No existe una próxima fecha fiable calculada.",
+            ),
+        )
     }
 
     var showMuscleSetsBreakdown by remember { mutableStateOf(false) }
@@ -572,11 +596,7 @@ internal fun FinishWorkoutSheet(
                         modifier = Modifier.weight(1f),
                         title = "Intensidad",
                         value = sessionIntensityResult.displayLabel,
-                        subtitle = if (sessionIntensityResult.normalizationFactor < 1.0) {
-                            "RPE prom. (aj. ×${"%.1f".format(sessionIntensityResult.normalizationFactor)})"
-                        } else {
-                            "RPE promedio"
-                        },
+                        subtitle = "Intensidad global de la sesión",
                         valueColor = intensityColor
                     )
                     MetricValueCard(

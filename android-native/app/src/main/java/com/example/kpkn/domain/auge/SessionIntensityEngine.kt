@@ -69,10 +69,12 @@ object SessionIntensityEngine {
         val numericValue = baseAverage.coerceIn(1.0, 10.0)
         val adjustedNumeric = adjustedAverage.coerceIn(0.5, 10.0)
 
-        val displayLabel = buildString {
-            append("%.1f".format(adjustedNumeric))
-            if (failureFlag) append("+")
-            if (techniquesFlag) append("+")
+        val displayLabel = when {
+            adjustedNumeric >= 9.5 -> "Máxima"
+            adjustedNumeric >= 8.5 -> "Muy intensa"
+            adjustedNumeric >= 7.0 -> "Intensa"
+            adjustedNumeric >= 5.0 -> "Moderada"
+            else -> "Suave"
         }
 
         return SessionIntensityResult(

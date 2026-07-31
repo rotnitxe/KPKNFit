@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.screens.workout.WorkoutSetDraft
 import com.example.kpkn.screens.workout.WorkoutVoiceInterpretation
 import com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind
+import com.example.kpkn.screens.workout.WorkoutVoiceField
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -54,6 +55,7 @@ class WorkoutVoiceController(
     private var captureCollectJob: Job? = null
     private var announcedPostFeedbackPrompt = false
     private var announcedFinalFeedbackPrompt = false
+    private var announcedSessionSummary = false
     /** User wants continuous voice on; survives async TTS init without clobbering LISTENING. */
     private var sessionWanted = false
     private var announcedVoiceOn = false
@@ -481,13 +483,9 @@ class WorkoutVoiceController(
         setNumber: Int,
         totalSets: Int,
         round: Int? = null,
-        rangeHint: String? = null,
     ) {
         speakWhilePaused(priority = WorkoutSpeechPriority.NORMAL, kind = VoiceAnnouncementKind.ESSENTIAL) {
             ttsManager.speakCurrentExercise(exerciseName, setNumber, totalSets, round)
-            if (!rangeHint.isNullOrBlank() && allows(VoiceAnnouncementKind.COMPLETE)) {
-                ttsManager.speak(rangeHint, queueFlush = false)
-            }
         }
     }
 
@@ -501,6 +499,68 @@ class WorkoutVoiceController(
         speakWhilePaused {
             ttsManager.speakError(message)
         }
+    }
+
+    fun announceSessionSummary(text: String) {
+        if (!sessionWanted || announcedSessionSummary) return
+        announcedSessionSummary = true
+        speakWhilePaused { ttsManager.speakError(text) }
+        WorkoutVoiceDiagnosticLogger.event("session_summary_announced", mapOf("text" to text))
+    }
+
+    fun requestExerciseNavigationConfirmation(exerciseId: String, exerciseName: String) {
+        confirmedOrCancelled = false
+        _state.update {
+            it.copy(
+                pendingAction = VoicePendingAction.ExerciseNavigation(
+                    command = VoiceSessionCommand.NavigateToExercise(exerciseId),
+                    exerciseName = exerciseName,
+                ),
+            )
+        }
+        runSpeakingOrSkip(
+            onComplete = {
+                updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
+                scope?.let(::startEngineForCurrentInputMode)
+            },
+            speak = { ttsManager.speakError("¿Quieres ir a $exerciseName?") },
+        )
+    }
+
+    fun requestDiscomfortSelection(candidates: Map<String, String>) {
+        if (candidates.isEmpty()) return
+        _state.update { it.copy(pendingAction = VoicePendingAction.DiscomfortSelection(candidates = candidates)) }
+        runSpeakingOrSkip(
+            onComplete = { resumeListening() },
+            speak = { ttsManager.speakError("Elige una molestia: ${candidates.values.joinToString(", ")}.") },
+        )
+    }
+
+    fun requestTagCreationConfirmation(tagName: String) {
+        confirmedOrCancelled = false
+        _state.update { it.copy(pendingAction = VoicePendingAction.TagCreation(tagName = tagName)) }
+        runSpeakingOrSkip(
+            onComplete = {
+                updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
+                scope?.let(::startEngineForCurrentInputMode)
+            },
+            speak = { ttsManager.speakError("No existe. ¿Quieres crear la etiqueta $tagName?") },
+        )
+    }
+
+    fun requestFinishWithPendingConfirmation(pendingExerciseNames: List<String>) {
+        confirmedOrCancelled = false
+        _state.update { it.copy(pendingAction = VoicePendingAction.FinishWithPending(pendingExerciseNames = pendingExerciseNames)) }
+        runSpeakingOrSkip(
+            onComplete = {
+                updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
+                scope?.let(::startEngineForCurrentInputMode)
+            },
+            speak = { ttsManager.speakError("Quedan ${pendingExerciseNames.size} ejercicios: ${pendingExerciseNames.joinToString(", ")}. ¿Confirmas dejar hasta acá?") },
+        )
     }
 
     fun speakFeedbackSaved() {
@@ -914,7 +974,66 @@ class WorkoutVoiceController(
         val isTimeMode = exerciseInfo?.isTimeMode ?: false
         val isUnilateral = exerciseInfo?.isUnilateral ?: false
 
-        val command = WorkoutVoiceIntentMatcher.match(
+        val pendingClarification = _state.value.pendingAction
+        val normalizedClarification = transcript.lowercase()
+        val clarifiedCommand = when (pendingClarification) {
+            is VoicePendingAction.IntensityKind -> when {
+                normalizedClarification.contains("rpe") || normalizedClarification.contains("erre pe e") ->
+                    VoiceSessionCommand.RegisterSet(
+                        WorkoutVoiceInterpretation(
+                            transcript = transcript,
+                            intensityValue = pendingClarification.value,
+                            intensityKind = WorkoutVoiceIntensityKind.RPE,
+                            fields = setOf(WorkoutVoiceField.INTENSITY),
+                        ),
+                    )
+                normalizedClarification.contains("rir") || normalizedClarification.contains("erre i erre") ||
+                    normalizedClarification.contains("reserva") -> VoiceSessionCommand.RegisterSet(
+                        WorkoutVoiceInterpretation(
+                            transcript = transcript,
+                            intensityValue = pendingClarification.value,
+                            intensityKind = WorkoutVoiceIntensityKind.RIR,
+                            fields = setOf(WorkoutVoiceField.INTENSITY),
+                        ),
+                    )
+                else -> null
+            }
+            is VoicePendingAction.LoadMode -> when {
+                normalizedClarification.contains("lastre") -> LoadModeV2.LASTRE
+                normalizedClarification.contains("asistencia") || normalizedClarification.contains("contrapeso") -> LoadModeV2.ASSISTED
+                normalizedClarification.contains("peso corporal") -> LoadModeV2.BODYWEIGHT
+                normalizedClarification.contains("carga") -> LoadModeV2.LOAD
+                else -> null
+            }?.let { mode ->
+                VoiceSessionCommand.RegisterSet(
+                    WorkoutVoiceInterpretation(
+                        transcript = transcript,
+                        loadModeOverride = mode,
+                        fields = setOf(WorkoutVoiceField.LOAD_MODE),
+                    ),
+                )
+            }
+            is VoicePendingAction.ExerciseNavigation -> null
+            is VoicePendingAction.DiscomfortSelection -> pendingClarification.candidates.entries
+                .firstOrNull { normalizedClarification.contains(it.value.lowercase()) }
+                ?.let { VoiceSessionCommand.LogFeedback(null, it.key, null) }
+            is VoicePendingAction.TagCreation -> null
+            is VoicePendingAction.FinishWithPending -> null
+            is VoicePendingAction.TechniqueDetails -> WorkoutVoiceCommandParser.parseCommand(
+                transcript = "${pendingClarification.technique} $transcript",
+                isTimeMode = isTimeMode,
+                isUnilateral = isUnilateral,
+                hasPendingConfirmation = false,
+                isRestTimerActive = false,
+                unitMode = exerciseInfo?.unitMode ?: UnitModeV2.REPS,
+                customUnit = exerciseInfo?.customUnit,
+                trackRom = exerciseInfo?.trackRom == true,
+                tagNames = exerciseInfo?.tagNames.orEmpty(),
+            )
+            null -> null
+        }
+
+        val command = clarifiedCommand ?: WorkoutVoiceIntentMatcher.match(
             transcript = transcript,
             stage = _state.value.stage.let {
                 if (it == VoicePipelineStage.PROCESSING) VoicePipelineStage.LISTENING else it
@@ -956,6 +1075,9 @@ class WorkoutVoiceController(
         )
 
         publishHeardSummary(command)
+        if (pendingClarification is VoicePendingAction.DiscomfortSelection && command is VoiceSessionCommand.LogFeedback) {
+            _state.update { it.copy(pendingAction = null) }
+        }
         if (command !is VoiceSessionCommand.Unknown) {
             fallbackTriggerPolicy.recordResolved()
         }
@@ -1047,10 +1169,26 @@ class WorkoutVoiceController(
     ) {
         confirmedOrCancelled = false
 
+        val pendingAction = _state.value.pendingAction
+        val mergedInterpretation = pendingAction?.baseInterpretation?.let { base ->
+            base.copy(
+                transcript = listOf(base.transcript, interpretation.transcript).joinToString(" "),
+                intensityValue = interpretation.intensityValue ?: base.intensityValue,
+                intensityKind = interpretation.intensityKind ?: base.intensityKind,
+                loadModeOverride = interpretation.loadModeOverride ?: base.loadModeOverride,
+                dropSets = interpretation.dropSets.ifEmpty { base.dropSets },
+                restPauses = interpretation.restPauses.ifEmpty { base.restPauses },
+                incompleteTechnique = interpretation.incompleteTechnique,
+                ambiguousIntensityValue = null,
+                fields = base.fields + interpretation.fields,
+            )
+        } ?: interpretation
+        if (pendingAction != null) _state.update { it.copy(pendingAction = null) }
+
         _state.update {
             it.copy(
-                lastInterpretation = interpretation,
-                lastCommand = VoiceSessionCommand.RegisterSet(interpretation),
+                lastInterpretation = mergedInterpretation,
+                lastCommand = VoiceSessionCommand.RegisterSet(mergedInterpretation),
             )
         }
 
@@ -1058,15 +1196,20 @@ class WorkoutVoiceController(
         val draft = exerciseInfo?.setDraft
         val draftWeight = draft?.weightText?.replace(',', '.')?.toDoubleOrNull()
         val draftMetric = draft?.valueText?.replace(',', '.')?.toDoubleOrNull()
-        val draftIntensity = draft?.intensityText?.replace(',', '.')?.toDoubleOrNull()
-        val resolvedInterpretation = interpretation.copy(
-            weightKg = interpretation.weightKg ?: draftWeight,
-            metricValue = interpretation.metricValue ?: draftMetric?.takeIf { it % 1.0 == 0.0 }?.toInt(),
-            metricDecimalValue = interpretation.metricDecimalValue ?: draftMetric,
-            intensityValue = interpretation.intensityValue ?: draftIntensity,
-            reachedFailure = interpretation.reachedFailure || draft?.reachedFailure == true,
+        val resolvedInterpretation = mergedInterpretation.copy(
+            weightKg = mergedInterpretation.weightKg ?: draftWeight,
+            metricValue = mergedInterpretation.metricValue ?: draftMetric?.takeIf { it % 1.0 == 0.0 }?.toInt(),
+            metricDecimalValue = mergedInterpretation.metricDecimalValue ?: draftMetric,
+            // La intensidad programada permanece en el borrador. Nunca se marca
+            // como reconocida por voz si el usuario no la pronunció.
+            intensityValue = mergedInterpretation.intensityValue,
+            reachedFailure = if (WorkoutVoiceField.FAILURE in mergedInterpretation.fields) {
+                mergedInterpretation.reachedFailure
+            } else {
+                draft?.reachedFailure == true
+            },
             romPercent = if (exerciseInfo?.trackRom == true) {
-                interpretation.romPercent ?: draft?.rom
+                mergedInterpretation.romPercent ?: draft?.rom
             } else {
                 null
             },
@@ -1077,7 +1220,56 @@ class WorkoutVoiceController(
                 lastCommand = VoiceSessionCommand.RegisterSet(resolvedInterpretation),
             )
         }
-        val requiresWeight = exerciseInfo?.loadMode != LoadModeV2.BODYWEIGHT
+        if (resolvedInterpretation.ambiguousIntensityValue != null) {
+            _state.update {
+                it.copy(
+                    pendingAction = VoicePendingAction.IntensityKind(
+                        resolvedInterpretation,
+                        resolvedInterpretation.ambiguousIntensityValue,
+                    ),
+                )
+            }
+            runSpeakingOrSkip(
+                onComplete = { resumeListening() },
+                speak = {
+                    ttsManager.speakError(
+                        "¿Ese ${resolvedInterpretation.ambiguousIntensityValue.toInt()} es RPE o RIR?",
+                    )
+                },
+            )
+            return
+        }
+        if (resolvedInterpretation.incompleteTechnique != null) {
+            _state.update {
+                it.copy(
+                    pendingAction = VoicePendingAction.TechniqueDetails(
+                        resolvedInterpretation,
+                        resolvedInterpretation.incompleteTechnique,
+                    ),
+                )
+            }
+            val missing = if (resolvedInterpretation.incompleteTechnique == "dropset") {
+                "Indica la carga y las repeticiones del dropset."
+            } else {
+                "Indica el descanso y las repeticiones del rest pause."
+            }
+            runSpeakingOrSkip(onComplete = { resumeListening() }, speak = { ttsManager.speakError(missing) })
+            return
+        }
+        if (
+            exerciseInfo?.loadMode == LoadModeV2.BODYWEIGHT &&
+            resolvedInterpretation.weightKg != null &&
+            resolvedInterpretation.loadModeOverride == null
+        ) {
+            _state.update { it.copy(pendingAction = VoicePendingAction.LoadMode(resolvedInterpretation)) }
+            runSpeakingOrSkip(
+                onComplete = { resumeListening() },
+                speak = { ttsManager.speakError("¿Es carga normal o lastre?") },
+            )
+            return
+        }
+        val effectiveLoadMode = resolvedInterpretation.loadModeOverride ?: exerciseInfo?.loadMode
+        val requiresWeight = effectiveLoadMode != LoadModeV2.BODYWEIGHT
         val draftHasWeightAndReps = (!requiresWeight || !draft?.weightText.isNullOrBlank()) && !draft?.valueText.isNullOrBlank()
         val missing = buildList {
             if (resolvedInterpretation.resolvedMetricValue == null) add(metricLabel(exerciseInfo?.unitMode ?: UnitModeV2.REPS, exerciseInfo?.customUnit))
@@ -1137,6 +1329,12 @@ class WorkoutVoiceController(
                     reachedFailure = resolvedInterpretation.reachedFailure,
                     romPercent = resolvedInterpretation.romPercent,
                     tagName = resolvedInterpretation.tagName,
+                    advancedDetails = buildList {
+                        resolvedInterpretation.helpedReps?.let { add("$it repeticiones con ayuda") }
+                        if (resolvedInterpretation.isFailedSet) add("serie fallida")
+                        resolvedInterpretation.dropSets.forEach { add("dropset de ${it.weight} kilos y ${it.reps} repeticiones") }
+                        resolvedInterpretation.restPauses.forEach { add("rest pause de ${it.restTime} segundos y ${it.reps} repeticiones") }
+                    },
                 )
             },
         )
@@ -1218,6 +1416,12 @@ class WorkoutVoiceController(
                                     reachedFailure = reparsed.interpretation.reachedFailure,
                                     romPercent = reparsed.interpretation.romPercent,
                                     tagName = reparsed.interpretation.tagName,
+                                    advancedDetails = buildList {
+                                        reparsed.interpretation.helpedReps?.let { add("$it repeticiones con ayuda") }
+                                        if (reparsed.interpretation.isFailedSet) add("serie fallida")
+                                        reparsed.interpretation.dropSets.forEach { add("dropset de ${it.weight} kilos y ${it.reps} repeticiones") }
+                                        reparsed.interpretation.restPauses.forEach { add("rest pause de ${it.restTime} segundos y ${it.reps} repeticiones") }
+                                    },
                                 )
                             },
                         )
@@ -1303,6 +1507,31 @@ class WorkoutVoiceController(
         confirmedOrCancelled = true
         confirmationJob?.cancel()
 
+        val navigation = _state.value.pendingAction as? VoicePendingAction.ExerciseNavigation
+        if (navigation != null) {
+            _state.update { it.copy(pendingAction = null) }
+            onCommandDetected?.invoke(navigation.command)
+            releaseDucking()
+            resumeListening()
+            return
+        }
+        val tagCreation = _state.value.pendingAction as? VoicePendingAction.TagCreation
+        if (tagCreation != null) {
+            _state.update { it.copy(pendingAction = null) }
+            onCommandDetected?.invoke(VoiceSessionCommand.ApplyConfirmedTag(tagCreation.tagName))
+            releaseDucking()
+            resumeListening()
+            return
+        }
+        val finishPending = _state.value.pendingAction as? VoicePendingAction.FinishWithPending
+        if (finishPending != null) {
+            _state.update { it.copy(pendingAction = null) }
+            onCommandDetected?.invoke(VoiceSessionCommand.ConfirmFinishWithPending)
+            releaseDucking()
+            resumeListening()
+            return
+        }
+
         val interpretation = _state.value.lastInterpretation ?: run {
             releaseDucking()
             resumeListening()
@@ -1341,7 +1570,7 @@ class WorkoutVoiceController(
         confirmedOrCancelled = true
         confirmationJob?.cancel()
 
-        _state.update { it.copy(lastInterpretation = null, lastCommand = VoiceSessionCommand.Cancel) }
+        _state.update { it.copy(lastInterpretation = null, lastCommand = VoiceSessionCommand.Cancel, pendingAction = null) }
 
         runSpeakingOrSkip(
             onComplete = {
@@ -1476,6 +1705,7 @@ class WorkoutVoiceController(
                 errorMessage = null,
                 consecutiveErrors = 0,
                 pendingAddSetPersistence = false,
+                pendingAction = null,
             )
         }
     }

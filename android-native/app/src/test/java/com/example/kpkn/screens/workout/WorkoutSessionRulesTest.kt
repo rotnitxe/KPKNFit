@@ -171,6 +171,23 @@ class WorkoutSessionRulesTest {
             timelineStartDate = "2026-05-18",
             calendarization = ProgramCalendarization(ProgramCalendarizationMode.ADVANCED_COMPETITION),
         )
+        val advancedRepeated = advanced.copy(
+            macrocycles = advanced.macrocycles.map { macro ->
+                macro.copy(blocks = macro.blocks.mapIndexed { blockIndex, block ->
+                    if (blockIndex != 0) block else block.copy(
+                        mesocycles = block.mesocycles.map { mesocycle ->
+                            mesocycle.copy(
+                                weeks = mesocycle.weeks + ProgramWeek(
+                                    id = "week-2",
+                                    name = "Semana 2",
+                                    sessions = listOf(Session(id = "session-2", name = "Día")),
+                                ),
+                            )
+                        },
+                    )
+                })
+            },
+        )
 
         assertEquals(WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED, WorkoutEditingRules.liveEditPersistenceScope(simpleCyclic))
         assertEquals(WorkoutLiveEditPersistenceScope.SESSION_ONLY, WorkoutEditingRules.liveEditPersistenceScope(simpleCalendarized))
@@ -192,6 +209,31 @@ class WorkoutSessionRulesTest {
             listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
             WorkoutEditingRules.replacementPersistenceOptions(advancedCalendarized),
         )
+        assertEquals(
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.BLOCK_MATCHING),
+            WorkoutEditingRules.replacementPersistenceOptions(advancedRepeated, "session"),
+        )
+        assertTrue(WorkoutEditingRules.hasRepeatedLogicalSessionInBlock(advancedRepeated, "session"))
+        assertEquals(
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
+            WorkoutEditingRules.replacementPersistenceOptions(advancedRepeated, "missing"),
+        )
+    }
+
+    @Test
+    fun repeated_logical_session_can_match_by_day_when_slot_changes() {
+        val target = Session(
+            id = "target",
+            name = "Torso",
+            dayOfWeek = 2,
+        )
+        val candidate = Session(
+            id = "candidate",
+            name = "Torso",
+            dayOfWeek = 2,
+        )
+
+        assertTrue(WorkoutEditingRules.isEquivalentLogicalSession(target, 0, candidate, 1))
     }
 
     @Test

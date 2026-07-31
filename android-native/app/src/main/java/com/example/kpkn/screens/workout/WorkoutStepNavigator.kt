@@ -114,7 +114,19 @@ class WorkoutStepNavigator(
             includeCurrent -> currentStepIdx
             else -> currentStepIdx + 1
         }
-        return steps.drop(start).firstOrNull { step ->
+        val orderedCandidates = if (start <= 0) {
+            steps
+        } else {
+            steps.drop(start) + steps.take(start.coerceAtMost(steps.size))
+        }
+        val queueOrder = state.voiceExerciseQueue.withIndex().associate { it.value to it.index }
+        val prioritizedCandidates = if (queueOrder.isEmpty()) orderedCandidates else {
+            orderedCandidates.sortedWith(
+                compareBy<WorkoutStep> { queueOrder[it.exerciseId] ?: Int.MAX_VALUE }
+                    .thenBy { orderedCandidates.indexOf(it) },
+            )
+        }
+        return prioritizedCandidates.firstOrNull { step ->
             !isWorkoutStepDone(
                 step = step,
                 visible = visible,
@@ -345,6 +357,24 @@ class WorkoutStepNavigator(
             val feedbackTarget = buildPostExerciseFeedbackTargetInternal(state, currentEx)
             val shouldShowFeedback = feedbackTarget.unrecordedFeedbackExerciseIds(state).isNotEmpty()
             if (shouldShowFeedback) {
+                if (state.voiceSessionEnabled) {
+                    val pendingFeedbackIds = feedbackTarget.unrecordedFeedbackExerciseIds(state).toSet()
+                    updateState {
+                        it.copy(
+                            currentExerciseIdx = nextExerciseIdx,
+                            currentSetIdx = nextSetIdx,
+                            activeStepKey = nextStep.stepKey,
+                            showPostExerciseSheet = false,
+                            postExerciseTargetIdx = -1,
+                            postExerciseFeedbackTarget = null,
+                            pendingPostExerciseIdx = -1,
+                            voicePendingFeedbackExerciseIds = it.voicePendingFeedbackExerciseIds + pendingFeedbackIds,
+                            editingState = ports.buildEditingStateForPosition(it.completedSets, nextExercise, nextSetIdx),
+                        )
+                    }
+                    ports.persistOngoingState()
+                    return
+                }
                 val transitionTarget = state.session?.let {
                     buildWorkoutContinuityTransitionTarget(
                         session = it,

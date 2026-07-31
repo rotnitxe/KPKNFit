@@ -54,7 +54,16 @@ class WorkoutStructuralPersistenceController(
         val program = repository.getProgramById(programId)
         val location = program?.let { findSessionLocation(it, sessionId) }
 
-        if (program != null && location != null && scope != ReplacementPersistenceScopeV2.SESSION_ONLY) {
+        if (program != null && location != null && scope == ReplacementPersistenceScopeV2.BLOCK_MATCHING) {
+            val updatedProgram = applyStructuralChangeToBlock(program, location, change, state)
+            if (updatedProgram != program) {
+                repository.updateProgram(updatedProgram)
+            }
+        }
+
+        if (program != null && location != null &&
+            scope != ReplacementPersistenceScopeV2.SESSION_ONLY &&
+            scope != ReplacementPersistenceScopeV2.BLOCK_MATCHING) {
             when (change) {
                 is PendingStructuralChange.AddSet -> {
                     val week = program.macrocycles
@@ -156,10 +165,151 @@ class WorkoutStructuralPersistenceController(
         }
     }
 
+    private fun applyStructuralChangeToBlock(
+        program: Program,
+        location: SessionLocationCursor,
+        change: PendingStructuralChange,
+        state: WorkoutUiState,
+    ): Program {
+        val macro = program.macrocycles.getOrNull(location.macroIndex) ?: return program
+        val block = macro.blocks.getOrNull(location.blockIndex) ?: return program
+        val sourceSession = block.mesocycles
+            .getOrNull(location.mesoLocalIndex)
+            ?.weeks
+            ?.firstOrNull { it.id == location.weekId }
+            ?.sessions
+            ?.firstOrNull { it.id == sessionId }
+            ?: return program
+
+        val updatedBlock = block.copy(
+            mesocycles = block.mesocycles.map { mesocycle ->
+                mesocycle.copy(
+                    weeks = mesocycle.weeks.map { week ->
+                        week.copy(
+                            sessions = week.sessions.mapIndexed { sessionSlot, target ->
+                                val applies = target.id == sessionId ||
+                                    WorkoutEditingRules.isEquivalentLogicalSession(
+                                        sourceSession,
+                                        location.sessionSlot,
+                                        target,
+                                        sessionSlot,
+                                    )
+                                if (applies) applyPendingStructuralChangeToSession(target, change, state) else target
+                            },
+                        )
+                    },
+                )
+            },
+        )
+        return program.copy(
+            macrocycles = program.macrocycles.mapIndexed { macroIndex, currentMacro ->
+                if (macroIndex == location.macroIndex) {
+                    currentMacro.copy(
+                        blocks = currentMacro.blocks.mapIndexed { blockIndex, currentBlock ->
+                            if (blockIndex == location.blockIndex) updatedBlock else currentBlock
+                        },
+                    )
+                } else currentMacro
+            },
+        )
+    }
+
+    private fun applyPendingStructuralChangeToSession(
+        targetSession: Session,
+        change: PendingStructuralChange,
+        state: WorkoutUiState,
+    ): Session = withModeSession(targetSession, state.activeMode) { modeSession ->
+        when (change) {
+            is PendingStructuralChange.AddSet -> {
+                val targetExercise = change.exerciseSlot?.let { modeSession.exerciseAtSlot(it) }
+                    ?: change.exerciseCanonicalKey?.let { key ->
+                        modeSession.allExercises().firstOrNull { it.resolvedCanonicalExerciseId().equals(key, ignoreCase = true) }
+                    }
+                    ?: return@withModeSession modeSession
+                modeSession.replaceExerciseById(targetExercise.id) { exercise ->
+                    val lastSet = exercise.sets.lastOrNull()
+                    val newSet = ExerciseSet(
+                        id = UUID.randomUUID().toString(),
+                        targetReps = lastSet?.targetReps,
+                        targetRPE = lastSet?.targetRPE,
+                        targetRIR = lastSet?.targetRIR,
+                        weight = lastSet?.weight,
+                        loadModeV2 = exercise.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD,
+                        unitModeV2 = lastSet?.unitModeV2,
+                        intensityMode = lastSet?.intensityMode,
+                        targetDuration = lastSet?.targetDuration,
+                        targetPercentageRM = lastSet?.targetPercentageRM,
+                        isAmrap = false,
+                    )
+                    WorkoutEditingRules.normalizeLiveEditedExercise(exercise.copy(sets = exercise.sets + newSet))
+                }
+            }
+            is PendingStructuralChange.AddExercise -> {
+                val afterExercise = change.afterExerciseSlot?.let { modeSession.exerciseAtSlot(it) }
+                    ?: change.afterExerciseCanonicalKey?.let { key ->
+                        modeSession.allExercises().firstOrNull { it.resolvedCanonicalExerciseId().equals(key, ignoreCase = true) }
+                    }
+                val template = change.newExerciseTemplate ?: return@withModeSession modeSession
+                val cloned = template.copy(
+                    id = UUID.randomUUID().toString(),
+                    sets = template.sets.map { it.copy(id = UUID.randomUUID().toString()) },
+                )
+                if (afterExercise == null) insertExerciseAtEnd(modeSession, cloned)
+                else insertExerciseAfter(modeSession, afterExercise.id, cloned)
+            }
+            is PendingStructuralChange.ReorderExercises -> {
+                reorderSessionByCanonicalKeys(modeSession, change)
+            }
+        }
+    }
+
+    private fun reorderSessionByCanonicalKeys(
+        session: Session,
+        change: PendingStructuralChange.ReorderExercises,
+    ): Session {
+        val keys = change.orderedExerciseCanonicalKeys
+        if (keys.isEmpty()) return session
+        val ordered = reorderExercisesByCanonicalKeys(session.allExercises(), keys)
+        if (session.parts.isEmpty()) return session.copy(exercises = ordered)
+        if (!change.isGlobal) {
+            return session.copy(parts = session.parts.map { part ->
+                val partKeys = keys.filter { key -> part.exercises.any { it.resolvedCanonicalExerciseId().equals(key, ignoreCase = true) } }
+                part.copy(exercises = reorderExercisesByCanonicalKeys(part.exercises, partKeys))
+            })
+        }
+        if (change.orderedExercisePartKeys.size == keys.size) {
+            return session.copy(parts = session.parts.map { part ->
+                val desiredKeys = keys.zip(change.orderedExercisePartKeys)
+                    .filter { (_, partKey) -> partKey?.trim().equals(part.name.trim(), ignoreCase = true) }
+                    .map { it.first }
+                part.copy(exercises = reorderExercisesByCanonicalKeys(part.exercises, desiredKeys))
+            })
+        }
+        var cursor = 0
+        return session.copy(parts = session.parts.map { part ->
+            val slice = ordered.drop(cursor).take(part.exercises.size)
+            cursor += slice.size
+            part.copy(exercises = slice)
+        })
+    }
+
+    private fun reorderExercisesByCanonicalKeys(
+        exercises: List<Exercise>,
+        keys: List<String>,
+    ): List<Exercise> {
+        val pools = exercises.groupBy { it.resolvedCanonicalExerciseId().lowercase() }
+            .mapValues { (_, value) -> value.toMutableList() }
+            .toMutableMap()
+        val selected = keys.mapNotNull { key -> pools[key.lowercase()]?.removeFirstOrNull() }
+        val selectedIds = selected.map { it.id }.toSet()
+        return selected + exercises.filterNot { it.id in selectedIds }
+    }
+
     fun applySessionMutation(
         updatedSession: Session,
         preferredExerciseId: String? = null,
         preferredSetId: String? = null,
+        persistToProgram: Boolean = true,
     ) {
         val state = getState()
         val normalizedSession = ports.normalizeSupersetsForWorkout(updatedSession)
@@ -229,7 +379,7 @@ class WorkoutStructuralPersistenceController(
         }
         ports.refreshLoadSuggestions(getState())
         ports.persistOngoingState()
-        persistSessionToProgram(normalizedSession)
+        if (persistToProgram) persistSessionToProgram(normalizedSession)
     }
 
     fun persistSessionToProgram(updatedSession: Session) {
@@ -331,7 +481,11 @@ class WorkoutStructuralPersistenceController(
             repository.upsertContextProfile(refreshedProfile)
         }
 
-        if (deferPersistencePrompt && repository.getProgramById(programId)?.let(WorkoutEditingRules::canPersistLiveStructuralChanges) == true) {
+        if (deferPersistencePrompt && repository.getProgramById(programId)?.let { program ->
+                WorkoutEditingRules.canPersistLiveStructuralChanges(program) ||
+                    (program.structure.name == "COMPLEX" &&
+                        WorkoutEditingRules.hasRepeatedLogicalSessionInBlock(program, sessionId))
+            } == true) {
             deferredReplacementPrompt = PendingReplacementPersistencePrompt(
                 exerciseId = exerciseId,
                 replacement = replacement,
@@ -419,7 +573,14 @@ class WorkoutStructuralPersistenceController(
     }
 
     fun buildReplacementExercise(old: Exercise, replacement: ExerciseMuscleInfo): Exercise {
-        val replaced = old.replacedWithCatalogExercise(replacement)
+        val cached = com.example.kpkn.screens.sessioneditor.VariantFlowResultCache.consume(replacement.id)
+        val replaced = old.replacedWithCatalogExercise(
+            info = replacement,
+            selectedAspects = cached?.selectedAspects,
+            variantName = cached?.variantName,
+            variantGroupId = cached?.variantGroupId,
+            variantGroupName = cached?.variantGroupName,
+        )
         val defaultLoadMode = replaced.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD
         return replaced.copy(
             trainingMode = TrainingMode.REPS,
@@ -465,6 +626,8 @@ class WorkoutStructuralPersistenceController(
 
     private data class SessionLocationCursor(
         val macroIndex: Int,
+        val blockIndex: Int,
+        val mesoLocalIndex: Int,
         val mesoIndex: Int,
         val weekId: String,
         val weekIndex: Int,
@@ -475,7 +638,7 @@ class WorkoutStructuralPersistenceController(
     private fun findSessionLocation(program: Program, targetSessionId: String): SessionLocationCursor? {
         program.macrocycles.forEachIndexed { macroIndex, macro ->
             var mesoOffset = 0
-            macro.blocks.forEach { block ->
+            macro.blocks.forEachIndexed { blockIndex, block ->
                 block.mesocycles.forEachIndexed { mesoLocalIdx, meso ->
                     val flattenedMeso = mesoOffset + mesoLocalIdx
                     meso.weeks.forEachIndexed { weekIndex, week ->
@@ -484,6 +647,8 @@ class WorkoutStructuralPersistenceController(
                             val session = week.sessions[sessionSlot]
                             return SessionLocationCursor(
                                 macroIndex = macroIndex,
+                                blockIndex = blockIndex,
+                                mesoLocalIndex = mesoLocalIdx,
                                 mesoIndex = flattenedMeso,
                                 weekId = week.id,
                                 weekIndex = weekIndex,
@@ -497,6 +662,31 @@ class WorkoutStructuralPersistenceController(
             }
         }
         return null
+    }
+
+    private fun sourceSessionAtLocation(
+        program: Program,
+        location: SessionLocationCursor,
+    ): Session? = program.macrocycles
+        .getOrNull(location.macroIndex)
+        ?.blocks
+        ?.getOrNull(location.blockIndex)
+        ?.mesocycles
+        ?.getOrNull(location.mesoLocalIndex)
+        ?.weeks
+        ?.firstOrNull { it.id == location.weekId }
+        ?.sessions
+        ?.firstOrNull { it.id == sessionId }
+
+    private fun matchesBlockLogicalSession(
+        program: Program,
+        location: SessionLocationCursor,
+        candidate: Session,
+        candidateSlot: Int,
+    ): Boolean {
+        val source = sourceSessionAtLocation(program, location) ?: return false
+        return location.macroIndex >= 0 &&
+            WorkoutEditingRules.isEquivalentLogicalSession(source, location.sessionSlot, candidate, candidateSlot)
     }
 
     private fun matchesSourceExercise(
@@ -623,6 +813,13 @@ class WorkoutStructuralPersistenceController(
                                             (session.dayOfWeek ?: -1) == (cursor.dayOfWeek ?: -1)
                                     }
                                 }
+                                ReplacementPersistenceScopeV2.BLOCK_MATCHING -> {
+                                    val cursor = currentLocation
+                                    cursor != null &&
+                                        macroIndex == cursor.macroIndex &&
+                                        block.id == program.macrocycles[cursor.macroIndex].blocks[cursor.blockIndex].id &&
+                                        matchesBlockLogicalSession(program, cursor, session, sessionSlot)
+                                }
                             }
 
                             if (!applyNow) {
@@ -634,7 +831,7 @@ class WorkoutStructuralPersistenceController(
                                     sourceExerciseId = sourceExerciseId,
                                     sourceExerciseSlot = sourceExerciseSlot,
                                     replacement = replacement,
-                                    slotStrict = scope == ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING,
+                                    slotStrict = scope == ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING || scope == ReplacementPersistenceScopeV2.BLOCK_MATCHING,
                                 )
                                 if (updated != session) changed = true
                                 updated
@@ -662,13 +859,18 @@ class WorkoutStructuralPersistenceController(
         requested: ReplacementPersistenceScopeV2,
     ): ReplacementPersistenceScopeV2 {
         if (program == null) return ReplacementPersistenceScopeV2.SESSION_ONLY
-        if (!WorkoutEditingRules.canPersistLiveStructuralChanges(program)) {
-            return ReplacementPersistenceScopeV2.SESSION_ONLY
-        }
+        val permanentAllowed = WorkoutEditingRules.canPersistLiveStructuralChanges(program)
+        val blockAllowed = program.structure.name == "COMPLEX" &&
+            WorkoutEditingRules.hasRepeatedLogicalSessionInBlock(program, sessionId)
         return when (requested) {
-            ReplacementPersistenceScopeV2.PERMANENT -> ReplacementPersistenceScopeV2.PERMANENT
+            ReplacementPersistenceScopeV2.PERMANENT -> if (permanentAllowed) {
+                ReplacementPersistenceScopeV2.PERMANENT
+            } else ReplacementPersistenceScopeV2.SESSION_ONLY
             ReplacementPersistenceScopeV2.SESSION_ONLY -> ReplacementPersistenceScopeV2.SESSION_ONLY
             ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ReplacementPersistenceScopeV2.SESSION_ONLY
+            ReplacementPersistenceScopeV2.BLOCK_MATCHING -> if (blockAllowed) {
+                ReplacementPersistenceScopeV2.BLOCK_MATCHING
+            } else ReplacementPersistenceScopeV2.SESSION_ONLY
         }
     }
 

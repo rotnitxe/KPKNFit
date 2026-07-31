@@ -9,6 +9,27 @@ import java.util.Locale
  */
 object WorkoutVoiceExerciseAliasMatcher {
 
+    data class RankedExercise(val exerciseId: String, val exerciseName: String, val score: Double)
+
+    fun rank(
+        spoken: String,
+        exercises: List<Pair<String, String>>,
+        userAliases: Map<String, String>,
+    ): List<RankedExercise> {
+        val spokenTokens = normalize(spoken).split(' ').filter(String::isNotBlank).toSet()
+        if (spokenTokens.isEmpty()) return emptyList()
+        return exercises.map { (id, name) ->
+            val candidateTokens = buildSet {
+                addAll(normalize(name).split(' ').filter(String::isNotBlank))
+                userAliases.filterValues { it == id }.keys.forEach { addAll(normalize(it).split(' ').filter(String::isNotBlank)) }
+            }
+            val overlap = spokenTokens.intersect(candidateTokens).size.toDouble()
+            val union = spokenTokens.union(candidateTokens).size.coerceAtLeast(1)
+            val exactBonus = if (normalize(name) == normalize(spoken)) 1.0 else 0.0
+            RankedExercise(id, name, exactBonus + overlap / union)
+        }.filter { it.score > 0.0 }.sortedByDescending(RankedExercise::score)
+    }
+
     fun matchesSpokenName(
         spoken: String,
         exerciseId: String,

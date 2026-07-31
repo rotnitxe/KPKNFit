@@ -4,6 +4,7 @@ import com.example.kpkn.screens.workout.WorkoutVoiceField
 import com.example.kpkn.screens.workout.WorkoutVoiceInterpretation
 import com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind
 import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.DISCOMFORT_CATALOG
 import java.text.Normalizer
 import java.util.Locale
 import kotlin.math.abs
@@ -176,7 +177,9 @@ object WorkoutVoiceCommandParser {
                 "observación", "neural", "nerviosa", "cns", "espinal", "columna", "espalda",
             )
         }
-        base += defaultNumericGrammarTokens()
+        if (stage != VoicePipelineStage.CONFIRM_WAIT) {
+            base += defaultNumericGrammarTokens()
+        }
         // Conservar formas con tilde (modelo español) y también sin tilde.
         return buildSet {
             for (token in base) {
@@ -192,11 +195,18 @@ object WorkoutVoiceCommandParser {
         addAll(VOICE_INTEGER_WORDS.keys)
         addAll(setOf("punto", "coma", "medio", "media", "kilo", "kilos", "peso", "carga"))
         addAll(setOf("repeticion", "repetición", "repeticiones", "segundo", "segundos"))
-        addAll(setOf("minuto", "minutos", "esfuerzo", "intensidad", "reservas", "ritmo", "porcentaje", "por"))
+        addAll(setOf(
+            "minuto", "minutos", "esfuerzo", "intensidad", "reservas", "reserva", "ritmo", "porcentaje", "por",
+            "erre pe e", "erre i erre", "repeticiones en reserva",
+        ))
         addAll(setOf("metro", "metros", "kilometro", "kilómetros", "milla", "millas"))
         addAll(setOf("unidad", "unidades", "caloria", "calorías", "vuelta", "vueltas", "etiqueta"))
         addAll(setOf("rom", "rango", "recorrido"))
-        addAll(setOf("izquierda", "izquierdo", "derecha", "derecho", "fallo", "falla"))
+        addAll(setOf(
+            "izquierda", "izquierdo", "derecha", "derecho", "fallo", "falla", "serie fallida",
+            "con ayuda", "dropset", "drop set", "rest pause", "pausa descanso", "lastre", "contrapeso", "asistencia", "peso corporal",
+            "recamara", "recámara", "descendente", "rpe", "rir",
+        ))
         // No añadir "0".."120" ni abreviaturas (rpe/reps/kg): Vosk small-es las descarta.
     }
 
@@ -234,6 +244,16 @@ object WorkoutVoiceCommandParser {
             parseRestAwareCommand(lower)?.let { return it }
         }
 
+        if (isTimeMode && lower in setOf("iniciar", "inicia", "empezar", "empieza", "comenzar", "comienza")) {
+            return VoiceSessionCommand.StartTimedSet
+        }
+        if (isTimeMode && lower in setOf("para", "parar", "detener", "deten")) {
+            return VoiceSessionCommand.StopTimedSet
+        }
+        if (lower in setOf("hecha", "hecho", "completada", "completado", "movilidad hecha", "aproximacion hecha")) {
+            return VoiceSessionCommand.CompletePreparationStep
+        }
+
         if (STOP_SPEAKING_KEYWORDS.any { matchesAnyKeyword(lower, setOf(normalizeText(it))) }) {
             return VoiceSessionCommand.StopSpeaking
         }
@@ -250,6 +270,24 @@ object WorkoutVoiceCommandParser {
             return VoiceSessionCommand.SuggestWeightReasoned
         }
 
+        val hasTemporalContext = lower.contains("minuto") || lower.contains("minutos") ||
+            lower.contains("segundo") || lower.contains("segundos") ||
+            lower.contains("hora") || lower.contains("horas")
+        val isSessionLimitIntent = lower.contains("quiero entrenar") ||
+            lower.contains("limite de sesion") || lower.contains("limite de entrenamiento")
+        if ((lower.contains("maximo") && hasTemporalContext) || isSessionLimitIntent) {
+            val minutes = extractNumberFromText(lower)?.toInt()
+            if (minutes != null && minutes >= 5) {
+                return VoiceSessionCommand.SetSessionTimeLimit(
+                    minutes = minutes,
+                    persistToProgram = lower.contains("guardar este limite en el programa"),
+                )
+            }
+        }
+
+        if (lower.contains("dejar hasta aca") || lower.contains("dejarlo hasta aca")) {
+            return VoiceSessionCommand.LeaveUpToHere
+        }
         if (FINISH_SESSION_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.FinishSession
         }
@@ -279,6 +317,9 @@ object WorkoutVoiceCommandParser {
         if (PREVIOUS_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.PreviousExercise
         }
+
+        Regex("(?:ir|ve|cambiar|continuar)\\s+(?:a|con)\\s+(.+)").find(lower)?.groupValues?.getOrNull(1)
+            ?.trim()?.takeIf(String::isNotBlank)?.let { return VoiceSessionCommand.GoToExercise(it) }
 
         if (SUGGEST_WEIGHT_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.SuggestWeight
@@ -564,7 +605,7 @@ object WorkoutVoiceCommandParser {
     private fun normalizeText(text: String): String {
         return Normalizer.normalize(text.lowercase(Locale.ROOT), Normalizer.Form.NFD)
             .replace("\\p{Mn}+".toRegex(), "")
-            .replace(Regex("[^a-záéíóúüñ0-9.,% ]"), " ")
+            .replace(Regex("[^a-záéíóúüñ0-9.,% -]"), " ")
             .replace(Regex("\\s+"), " ")
             .trim()
     }
@@ -760,8 +801,11 @@ object WorkoutVoiceCommandParser {
         }
 
         var discomfortId: String? = null
+        var discomfortCandidates: Map<String, String> = emptyMap()
         if (lower.contains("molestia") || lower.contains("dolor") || lower.contains("tiron")) {
-            discomfortId = matchDiscomfortJointId(lower)
+            val matches = matchDiscomfortCandidates(lower)
+            discomfortId = matches.singleOrNull()?.id
+            discomfortCandidates = if (matches.size > 1) matches.associate { it.id to it.label } else emptyMap()
         }
 
         return VoiceSessionCommand.LogFeedback(
@@ -769,7 +813,8 @@ object WorkoutVoiceCommandParser {
             discomfortId = discomfortId,
             perceivedIntensity = perceivedIntensity,
             isSaveAction = isSaveAction,
-            exerciseSearchName = lower
+            exerciseSearchName = lower,
+            discomfortCandidates = discomfortCandidates,
         )
     }
 
@@ -830,17 +875,17 @@ object WorkoutVoiceCommandParser {
     }
 
     private fun matchDiscomfortJointId(text: String): String? {
-        return when {
-            text.contains("hombro") -> "shoulder_anterior"
-            text.contains("rodilla") -> "knee_patellar"
-            text.contains("codo") -> "elbow_lateral"
-            text.contains("lumbar") || text.contains("espalda baja") -> "lower_back"
-            text.contains("muneca") || text.contains("muñeca") -> "wrist"
-            text.contains("cadera") -> "hip"
-            text.contains("tobillo") -> "ankle"
-            text.contains("ninguna") || text.contains("sin molestia") || text.contains("todo bien") -> "none"
-            else -> null
-        }
+        return matchDiscomfortCandidates(text).singleOrNull()?.id
+    }
+
+    private fun matchDiscomfortCandidates(text: String) = when {
+        text.contains("ninguna") || text.contains("sin molestia") || text.contains("todo bien") ->
+            DISCOMFORT_CATALOG.filter { it.id == "none" }
+        else -> DISCOMFORT_CATALOG.filter { entry ->
+            val haystack = normalizeText("${entry.label} ${entry.description} ${entry.section.label}")
+            val relevant = normalizeText(text).split(' ').filter { it.length >= 4 && it !in setOf("dolor", "molestia", "tengo") }
+            relevant.any(haystack::contains)
+        }.take(3)
     }
 
     private fun extractNumberFromText(text: String): Double? {

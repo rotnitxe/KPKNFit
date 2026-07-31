@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -87,6 +88,8 @@ internal fun WorkoutDrawer(
         showContent = false
         onDismiss()
     }
+
+    BackHandler(enabled = dismissible) { handleDismiss() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedVisibility(

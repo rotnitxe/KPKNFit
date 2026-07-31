@@ -180,4 +180,61 @@ class WorkoutVoiceInputTest {
         assertEquals(WorkoutVoiceIntensityKind.RIR, parsed?.intensityKind)
         assertEquals(0.0, parsed?.intensityValue ?: -1.0, 0.0)
     }
+
+    @Test
+    fun explicit_rpe_overrides_programmed_mode_semantically() {
+        val parsed = parseWorkoutVoiceTranscript("80 kilos 8 repeticiones erre pe e 9", false, false)
+
+        assertEquals(WorkoutVoiceIntensityKind.RPE, parsed?.intensityKind)
+        assertEquals(9.0, parsed?.intensityValue ?: -1.0, 0.0)
+    }
+
+    @Test
+    fun orphan_intensity_is_ambiguous_and_not_silently_saved() {
+        val parsed = parseWorkoutVoiceTranscript("10 kilos una repeticion 9", false, false)
+
+        assertNull(parsed?.intensityValue)
+        assertNull(parsed?.intensityKind)
+        assertEquals(9.0, parsed?.ambiguousIntensityValue ?: -1.0, 0.0)
+    }
+
+    @Test
+    fun helped_repetitions_are_part_of_total_not_extra() {
+        val parsed = parseWorkoutVoiceTranscript("80 kilos 5 repeticiones 2 con ayuda", false, false)
+
+        assertEquals(5, parsed?.metricValue)
+        assertEquals(2, parsed?.helpedReps)
+        assertTrue(parsed?.fields?.contains(WorkoutVoiceField.HELPED_REPS) == true)
+    }
+
+    @Test
+    fun parses_inline_drop_set_and_rest_pause() {
+        val drop = parseWorkoutVoiceTranscript(
+            "80 kilos 8 repeticiones dropset 60 kilos 6 repeticiones",
+            false,
+            false,
+        )
+        val restPause = parseWorkoutVoiceTranscript(
+            "80 kilos 8 repeticiones restpause 20 segundos 3 repeticiones",
+            false,
+            false,
+        )
+
+        assertEquals(8, drop?.metricValue)
+        assertEquals(60.0, drop?.dropSets?.single()?.weight ?: -1.0, 0.0)
+        assertEquals(6, drop?.dropSets?.single()?.reps)
+        assertEquals(20, restPause?.restPauses?.single()?.restTime)
+        assertEquals(3, restPause?.restPauses?.single()?.reps)
+    }
+
+    @Test
+    fun distinguishes_muscular_failure_from_failed_set() {
+        val failure = parseWorkoutVoiceTranscript("80 por 8 al fallo", false, false)
+        val failedSet = parseWorkoutVoiceTranscript("80 por 8 serie fallida", false, false)
+
+        assertTrue(failure?.reachedFailure == true)
+        assertFalse(failure?.isFailedSet == true)
+        assertTrue(failedSet?.isFailedSet == true)
+        assertFalse(failedSet?.reachedFailure == true)
+    }
 }

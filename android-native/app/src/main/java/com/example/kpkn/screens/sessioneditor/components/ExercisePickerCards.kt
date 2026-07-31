@@ -124,9 +124,12 @@ internal fun ExercisePickerDetailedCard(
     onSelect: () -> Unit,
     onInfo: () -> Unit,
     onOpenVariantFlow: (() -> Unit)? = null,
+    selectedAspects: Map<String, String> = emptyMap(),
+    onAspectsChange: ((Map<String, String>) -> Unit)? = null,
 ) {
     val primaryMuscle = resolvePrimaryMuscleLabel(info)
     val bgAlpha = if (isSelected) 0.44f else 0.28f
+    val hasAspects = !info.technicalAspects.isNullOrEmpty()
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -163,7 +166,8 @@ internal fun ExercisePickerDetailedCard(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                if (onOpenVariantFlow != null && !info.variantGroupId.isNullOrBlank()) {
+                // Legacy Tune only if group exists and no inline aspects yet
+                if (onOpenVariantFlow != null && !info.variantGroupId.isNullOrBlank() && !hasAspects) {
                     IconButton(onClick = onOpenVariantFlow) {
                         Icon(
                             Icons.Default.Tune,
@@ -189,13 +193,22 @@ internal fun ExercisePickerDetailedCard(
                 }
             }
 
-            if (!info.description.isNullOrBlank()) {
+            if (!info.description.isNullOrBlank() && !(isSelected && hasAspects)) {
                 Text(
                     info.description,
                     style = MaterialTheme.typography.bodySmall,
                     color = KpknSheetTokens.MutedStrong,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            if (isSelected && hasAspects && onAspectsChange != null) {
+                ExerciseAspectChipsInline(
+                    exercise = info,
+                    selectedAspects = selectedAspects.ifEmpty { defaultAspectSelection(info) },
+                    onAspectsChange = onAspectsChange,
+                    modifier = Modifier.padding(top = 4.dp),
                 )
             }
         }
