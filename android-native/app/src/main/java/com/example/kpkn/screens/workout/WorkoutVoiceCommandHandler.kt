@@ -106,6 +106,7 @@ class WorkoutVoiceCommandHandler(
 
     private var voiceJob: Job? = null
     private var timedSetJob: Job? = null
+    private var lastAnnouncedStepKey: String? = null
 
     fun startVoiceInput(
         exerciseId: String,
@@ -601,6 +602,9 @@ class WorkoutVoiceCommandHandler(
                 val step = updatedState.activeStepKey?.let { key ->
                     ports.workoutStepPositions(updatedState).firstOrNull { it.stepKey == key }
                 }
+                val stepKey = step?.stepKey
+                if (stepKey != null && lastAnnouncedStepKey == stepKey) return
+                lastAnnouncedStepKey = stepKey
                 if (step?.type == WorkoutStepType.MOBILITY) {
                     val mobility = nextEx.mobilitySeries.firstOrNull { it.id == step.mobilitySeriesId }
                     val target = mobility?.durationSeconds?.let { "$it segundos" }
@@ -617,13 +621,11 @@ class WorkoutVoiceCommandHandler(
                     return
                 }
                 val round = step?.supersetRoundIndex?.let { it + 1 }
-                val rangeHint = ports.enteringExerciseRangeHint(nextEx)
                 voiceController.speakCurrentExercise(
                     nextEx.name,
                     updatedState.currentSetIdx + 1,
                     nextEx.sets.size,
                     round = round,
-                    rangeHint = rangeHint,
                 )
             }
         }

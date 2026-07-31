@@ -374,6 +374,67 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
+     * Calcula un **preview** de baterías post-sesión usando el motor de recuperación.
+     * Garantiza que finish-sheet y home-screen muestren los mismos valores.
+     */
+    suspend fun computePostSessionPreview(
+        completedExercises: List<CompletedExercise>,
+        durationMinutes: Int,
+        settings: Settings,
+    ): PostSessionPreview {
+        val previewLog = WorkoutLog(
+            id = "preview",
+            programId = "",
+            sessionId = "",
+            sessionName = "preview",
+            date = LocalDate.now().toString(),
+            completedExercises = completedExercises,
+            durationMinutes = durationMinutes,
+        )
+
+        val todayWellbeing = augeRepo.getTodayWellbeing()
+        val overrideWellbeing = augeRepo.getActiveWellbeingWithManualOverrides()
+        val todayHasManualOverrides = todayWellbeing != null && (
+            todayWellbeing.manualNeuralBattery != null ||
+                todayWellbeing.manualSpinalBattery != null ||
+                todayWellbeing.manualMuscularBattery != null ||
+                todayWellbeing.manualMuscleBatteries.isNotEmpty()
+            )
+        val wellbeing = if (overrideWellbeing != null && !todayHasManualOverrides) {
+            overrideWellbeing
+        } else {
+            todayWellbeing
+        }
+        val feedbacks = augeRepo.getPostSessionFeedbacks()
+        val sleepLogs = augeRepo.getLastNSleepLogs(7)
+        val nutritionLogs = nutritionRepo.nutritionLogs.value
+        val adaptiveCache = augeRepo.getAdaptiveCache().let { raw ->
+            raw.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(raw.muscleDrainMultipliers))
+        }
+        val wellbeingNormalized = wellbeing?.copy(
+            manualMuscleBatteries = remapMuscleIntMapToPillars(wellbeing.manualMuscleBatteries),
+        )
+
+        return withContext(Dispatchers.Default) {
+            val articular = AugeTtcEngine.calculateArticularBatteries(
+                programRepo.history.value, exerciseDb, feedbacks, wellbeingNormalized
+            )
+            AugeRecoveryEngine.previewPostSessionBatteries(
+                baseHistory = programRepo.history.value,
+                previewLog = previewLog,
+                wellbeing = wellbeingNormalized,
+                settings = settings,
+                exerciseDb = exerciseDb,
+                sleepLogs = sleepLogs,
+                nutritionLogs = nutritionLogs,
+                feedbacks = feedbacks,
+                adaptiveCache = adaptiveCache,
+                articularBatteries = articular,
+            )
+        }
+    }
+
+    /**
      * Applies manual battery overrides immediately so Home rings update right away.
      * Null neural/spinal and empty/null perMuscle leave existing wellbeing overrides untouched
      * for that channel (opt-in overrides after finish).
