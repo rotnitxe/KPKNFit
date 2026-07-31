@@ -56,6 +56,7 @@ class WorkoutVoiceController(
     private var announcedPostFeedbackPrompt = false
     private var announcedFinalFeedbackPrompt = false
     private var announcedSessionSummary = false
+    private var lastAnnouncedSessionSummaryText: String? = null
     /** User wants continuous voice on; survives async TTS init without clobbering LISTENING. */
     private var sessionWanted = false
     private var announcedVoiceOn = false
@@ -395,6 +396,7 @@ class WorkoutVoiceController(
         announcedPostFeedbackPrompt = false
         announcedFinalFeedbackPrompt = false
         announcedSessionSummary = false
+        lastAnnouncedSessionSummaryText = null
     }
 
     fun speakSetUpdated(
@@ -503,8 +505,10 @@ class WorkoutVoiceController(
     }
 
     fun announceSessionSummary(text: String) {
-        if (!sessionWanted || announcedSessionSummary) return
+        if (!sessionWanted) return
+        if (announcedSessionSummary && text == lastAnnouncedSessionSummaryText) return
         announcedSessionSummary = true
+        lastAnnouncedSessionSummaryText = text
         speakWhilePaused { ttsManager.speakError(text) }
         WorkoutVoiceDiagnosticLogger.event("session_summary_announced", mapOf("text" to text))
     }

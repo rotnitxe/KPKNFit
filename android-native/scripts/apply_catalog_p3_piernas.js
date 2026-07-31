@@ -3,6 +3,7 @@ const {
   loadDb, saveDb, loadAliases, saveAliases,
   setupCanon, makeAspect, makeOption, mergeInto, rebuildCatalog, finalizeAliases,
 } = require('./catalog_transform_base');
+const { prettifyId } = require('./catalog_names');
 
 const db = loadDb();
 const aliases = loadAliases();
@@ -101,7 +102,7 @@ for (const g of groups) {
     ]));
   }
   
-  setupCanon(byId, g.canon, g.sources[0].id, g.canon.replace(/_/g, ' '), g.canon.replace(/_/g, ' ') + ' ajustable en chips.', g.canon.replace(/_/g, ' '), aspects);
+  setupCanon(byId, g.canon, g.sources[0].id, prettifyId(g.canon), prettifyId(g.canon) + ' ajustable en chips.', prettifyId(g.canon), aspects);
   
   for (const s of g.sources) {
     const a = {};

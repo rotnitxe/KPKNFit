@@ -200,6 +200,7 @@ internal fun FinishWorkoutSheet(
                 energyRing = neuralFinal,
                 spinalRing = spinalFinal,
                 nextSessionText = "No existe una próxima fecha fiable calculada.",
+                isPlaceholder = postSessionPreview.perMuscle.isEmpty(),
             ),
         )
     }

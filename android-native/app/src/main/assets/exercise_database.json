@@ -496,7 +496,7 @@
   },
   {
     "id": "tren_superior_flexiones",
-    "name": "tren superior flexiones",
+    "name": "Flexiones de Brazos",
     "description": "tren superior flexiones ajustable en chips.",
     "involvedMuscles": [
       {
@@ -1335,7 +1335,7 @@
   },
   {
     "id": "triceps_press_frances",
-    "name": "triceps press frances",
+    "name": "Press Francés",
     "description": "triceps press frances ajustable en chips.",
     "involvedMuscles": [
       {
@@ -1469,7 +1469,7 @@
   },
   {
     "id": "triceps_overhead",
-    "name": "triceps overhead",
+    "name": "Extensión de Tríceps Overhead",
     "description": "triceps overhead ajustable en chips.",
     "involvedMuscles": [
       {
@@ -1578,7 +1578,7 @@
   },
   {
     "id": "triceps_patada",
-    "name": "triceps patada",
+    "name": "Patada de Tríceps",
     "description": "triceps patada ajustable en chips.",
     "involvedMuscles": [
       {
@@ -1663,7 +1663,7 @@
   },
   {
     "id": "triceps_pushdown",
-    "name": "triceps pushdown",
+    "name": "Pushdown de Tríceps",
     "description": "triceps pushdown ajustable en chips.",
     "involvedMuscles": [
       {
@@ -2884,7 +2884,7 @@
   },
   {
     "id": "triceps_rolling_extension",
-    "name": "triceps rolling extension",
+    "name": "Rolling Extension de Tríceps",
     "description": "triceps rolling extension ajustable en chips.",
     "involvedMuscles": [
       {
@@ -2936,7 +2936,7 @@
   },
   {
     "id": "triceps_extension",
-    "name": "triceps extension",
+    "name": "Extensión de Tríceps",
     "description": "triceps extension ajustable en chips.",
     "involvedMuscles": [
       {
@@ -5623,7 +5623,7 @@
   },
   {
     "id": "back_pullover",
-    "name": "back pullover",
+    "name": "Pullover",
     "description": "back pullover ajustable en chips.",
     "involvedMuscles": [
       {
@@ -6025,7 +6025,7 @@
   },
   {
     "id": "back_y_raises",
-    "name": "back y raises",
+    "name": "Y-Raises",
     "description": "back y raises ajustable en chips.",
     "involvedMuscles": [
       {
@@ -6363,7 +6363,7 @@
   },
   {
     "id": "back_jefferson_curl",
-    "name": "back jefferson curl",
+    "name": "Jefferson Curl",
     "description": "back jefferson curl ajustable en chips.",
     "involvedMuscles": [
       {
@@ -6448,7 +6448,7 @@
   },
   {
     "id": "back_extension_lumbar",
-    "name": "back extension lumbar",
+    "name": "Extensión Lumbar",
     "description": "back extension lumbar ajustable en chips.",
     "involvedMuscles": [
       {
@@ -6507,7 +6507,7 @@
   },
   {
     "id": "back_buenos_dias",
-    "name": "back buenos dias",
+    "name": "Buenos Días",
     "description": "back buenos dias ajustable en chips.",
     "involvedMuscles": [
       {
@@ -8699,7 +8699,7 @@
   },
   {
     "id": "deltoides_press_militar_de_pie",
-    "name": "deltoides press militar de pie",
+    "name": "Press Militar de Pie",
     "description": "deltoides press militar de pie ajustable en chips.",
     "involvedMuscles": [
       {
@@ -8760,7 +8760,7 @@
   },
   {
     "id": "deltoides_press_hombros_de_pie",
-    "name": "deltoides press hombros de pie",
+    "name": "Press de Hombros de Pie",
     "description": "deltoides press hombros de pie ajustable en chips.",
     "involvedMuscles": [
       {
@@ -8859,7 +8859,7 @@
   },
   {
     "id": "deltoides_press_hombros_sentado",
-    "name": "deltoides press hombros sentado",
+    "name": "Press de Hombros Sentado",
     "description": "deltoides press hombros sentado ajustable en chips.",
     "involvedMuscles": [
       {
@@ -9448,7 +9448,7 @@
   },
   {
     "id": "deltoides_push_press",
-    "name": "deltoides push press",
+    "name": "Push Press",
     "description": "deltoides push press ajustable en chips.",
     "involvedMuscles": [
       {
@@ -9571,7 +9571,7 @@
   },
   {
     "id": "deltoides_elevaciones_frontales",
-    "name": "deltoides elevaciones frontales",
+    "name": "Elevaciones Frontales",
     "description": "deltoides elevaciones frontales ajustable en chips.",
     "involvedMuscles": [
       {
@@ -9679,7 +9679,7 @@
   },
   {
     "id": "deltoides_elevaciones_laterales_de_pie",
-    "name": "deltoides elevaciones laterales de pie",
+    "name": "Elevaciones Laterales de Pie",
     "description": "deltoides elevaciones laterales de pie ajustable en chips.",
     "involvedMuscles": [
       {
@@ -9779,7 +9779,7 @@
   },
   {
     "id": "deltoides_elevaciones_laterales_sentado",
-    "name": "deltoides elevaciones laterales sentado",
+    "name": "Elevaciones Laterales Sentado",
     "description": "deltoides elevaciones laterales sentado ajustable en chips.",
     "involvedMuscles": [
       {
@@ -9873,7 +9873,7 @@
   },
   {
     "id": "deltoides_elevaciones_laterales",
-    "name": "deltoides elevaciones laterales",
+    "name": "Elevaciones Laterales",
     "description": "deltoides elevaciones laterales ajustable en chips.",
     "involvedMuscles": [
       {
@@ -9935,7 +9935,7 @@
   },
   {
     "id": "deltoides_y_raises_sentado_banco_inclinado",
-    "name": "deltoides y raises sentado banco inclinado",
+    "name": "Y-Raises Sentado en Banco Inclinado",
     "description": "deltoides y raises sentado banco inclinado ajustable en chips.",
     "involvedMuscles": [
       {
@@ -10014,7 +10014,7 @@
   },
   {
     "id": "deltoides_elevaciones_laterales_acostado_banco_plano",
-    "name": "deltoides elevaciones laterales acostado banco plano",
+    "name": "Elevaciones Laterales Acostado en Banco Plano",
     "description": "deltoides elevaciones laterales acostado banco plano ajustable en chips.",
     "involvedMuscles": [
       {
@@ -10082,7 +10082,7 @@
   },
   {
     "id": "deltoides_elevaciones_laterales_inclinadas",
-    "name": "deltoides elevaciones laterales inclinadas",
+    "name": "Elevaciones Laterales Inclinadas",
     "description": "deltoides elevaciones laterales inclinadas ajustable en chips.",
     "involvedMuscles": [
       {
@@ -10144,7 +10144,7 @@
   },
   {
     "id": "deltoides_elevaciones_laterales_recostado",
-    "name": "deltoides elevaciones laterales recostado",
+    "name": "Elevaciones Laterales Recostado",
     "description": "deltoides elevaciones laterales recostado ajustable en chips.",
     "involvedMuscles": [
       {
@@ -10446,7 +10446,7 @@
   },
   {
     "id": "deltoides_lu_raises",
-    "name": "deltoides lu raises",
+    "name": "LU-Raises",
     "description": "deltoides lu raises ajustable en chips.",
     "involvedMuscles": [
       {
@@ -10507,7 +10507,7 @@
   },
   {
     "id": "deltoides_remo_menton",
-    "name": "deltoides remo menton",
+    "name": "Remo al Mentón",
     "description": "deltoides remo menton ajustable en chips.",
     "involvedMuscles": [
       {
@@ -10594,7 +10594,7 @@
   },
   {
     "id": "deltoides_elevaciones_posteriores_de_pie",
-    "name": "deltoides elevaciones posteriores de pie",
+    "name": "Elevaciones Posteriores de Pie",
     "description": "deltoides elevaciones posteriores de pie ajustable en chips.",
     "involvedMuscles": [
       {
@@ -10679,7 +10679,7 @@
   },
   {
     "id": "deltoides_elevaciones_posteriores_sentado_banco_plano",
-    "name": "deltoides elevaciones posteriores sentado banco plano",
+    "name": "Elevaciones Posteriores Sentado en Banco Plano",
     "description": "deltoides elevaciones posteriores sentado banco plano ajustable en chips.",
     "involvedMuscles": [
       {
@@ -10772,7 +10772,7 @@
   },
   {
     "id": "deltoides_elevaciones_posteriores_pecho_apoyado",
-    "name": "deltoides elevaciones posteriores pecho apoyado",
+    "name": "Elevaciones Posteriores con Pecho Apoyado",
     "description": "deltoides elevaciones posteriores pecho apoyado ajustable en chips.",
     "involvedMuscles": [
       {
@@ -10865,7 +10865,7 @@
   },
   {
     "id": "deltoides_elevaciones_posteriores_acostado_banco_plano",
-    "name": "deltoides elevaciones posteriores acostado banco plano",
+    "name": "Elevaciones Posteriores Acostado en Banco Plano",
     "description": "deltoides elevaciones posteriores acostado banco plano ajustable en chips.",
     "involvedMuscles": [
       {
@@ -10938,7 +10938,7 @@
   },
   {
     "id": "deltoides_elevaciones_posteriores_arana",
-    "name": "deltoides elevaciones posteriores arana",
+    "name": "Elevaciones Posteriores Araña",
     "description": "deltoides elevaciones posteriores arana ajustable en chips.",
     "involvedMuscles": [
       {
@@ -11162,7 +11162,7 @@
   },
   {
     "id": "quads_sentadilla_trasera",
-    "name": "quads sentadilla trasera",
+    "name": "Sentadilla Trasera",
     "description": "quads sentadilla trasera ajustable en chips.",
     "involvedMuscles": [
       {
@@ -11254,7 +11254,7 @@
   },
   {
     "id": "quads_sentadilla_frontal",
-    "name": "quads sentadilla frontal",
+    "name": "Sentadilla Frontal",
     "description": "quads sentadilla frontal ajustable en chips.",
     "involvedMuscles": [
       {
@@ -11340,7 +11340,7 @@
   },
   {
     "id": "quads_sentadilla_bazuca",
-    "name": "quads sentadilla bazuca",
+    "name": "Sentadilla Bazuca",
     "description": "quads sentadilla bazuca ajustable en chips.",
     "involvedMuscles": [
       {
@@ -11416,7 +11416,7 @@
   },
   {
     "id": "quads_sentadilla_somersault",
-    "name": "quads sentadilla somersault",
+    "name": "Sentadilla Somersault",
     "description": "quads sentadilla somersault ajustable en chips.",
     "involvedMuscles": [
       {
@@ -11550,7 +11550,7 @@
   },
   {
     "id": "quads_sentadilla_copa",
-    "name": "quads sentadilla copa",
+    "name": "Sentadilla Copa",
     "description": "quads sentadilla copa ajustable en chips.",
     "involvedMuscles": [
       {
@@ -11615,7 +11615,7 @@
   },
   {
     "id": "quads_sentadilla_hack",
-    "name": "quads sentadilla hack",
+    "name": "Sentadilla Hack",
     "description": "quads sentadilla hack ajustable en chips.",
     "involvedMuscles": [
       {
@@ -12034,7 +12034,7 @@
   },
   {
     "id": "quads_prensa_piernas",
-    "name": "quads prensa piernas",
+    "name": "Prensa de Piernas",
     "description": "quads prensa piernas ajustable en chips.",
     "involvedMuscles": [
       {
@@ -12109,7 +12109,7 @@
   },
   {
     "id": "quads_extension_cuadriceps",
-    "name": "quads extension cuadriceps",
+    "name": "Extensión de Cuádriceps",
     "description": "quads extension cuadriceps ajustable en chips.",
     "involvedMuscles": [
       {
@@ -12197,7 +12197,7 @@
   },
   {
     "id": "quads_sentadilla_bulgara",
-    "name": "quads sentadilla bulgara",
+    "name": "Sentadilla Búlgara",
     "description": "quads sentadilla bulgara ajustable en chips.",
     "involvedMuscles": [
       {
@@ -12286,7 +12286,7 @@
   },
   {
     "id": "quads_zancada_frontal",
-    "name": "quads zancada frontal",
+    "name": "Zancada Frontal",
     "description": "quads zancada frontal ajustable en chips.",
     "involvedMuscles": [
       {
@@ -12357,7 +12357,7 @@
   },
   {
     "id": "quads_zancada_inversa",
-    "name": "quads zancada inversa",
+    "name": "Zancada Inversa",
     "description": "quads zancada inversa ajustable en chips.",
     "involvedMuscles": [
       {
@@ -12428,7 +12428,7 @@
   },
   {
     "id": "quads_zancada_caminando",
-    "name": "quads zancada caminando",
+    "name": "Zancada Caminando",
     "description": "quads zancada caminando ajustable en chips.",
     "involvedMuscles": [
       {
@@ -12493,7 +12493,7 @@
   },
   {
     "id": "quads_step_up_cajon",
-    "name": "quads step up cajon",
+    "name": "Step-Up a Cajón",
     "description": "quads step up cajon ajustable en chips.",
     "involvedMuscles": [
       {
@@ -12564,7 +12564,7 @@
   },
   {
     "id": "quads_sentadilla_pistola",
-    "name": "quads sentadilla pistola",
+    "name": "Sentadilla Pistola",
     "description": "quads sentadilla pistola ajustable en chips.",
     "involvedMuscles": [
       {
@@ -12680,7 +12680,7 @@
   },
   {
     "id": "quads_sentadilla_cosaca",
-    "name": "quads sentadilla cosaca",
+    "name": "Sentadilla Cosaca",
     "description": "quads sentadilla cosaca ajustable en chips.",
     "involvedMuscles": [
       {
@@ -12776,7 +12776,7 @@
   },
   {
     "id": "quads_sentadilla_sumo",
-    "name": "quads sentadilla sumo",
+    "name": "Sentadilla Sumo",
     "description": "quads sentadilla sumo ajustable en chips.",
     "involvedMuscles": [
       {
@@ -12852,7 +12852,7 @@
   },
   {
     "id": "quads_sentadilla_v_squat",
-    "name": "quads sentadilla v squat",
+    "name": "Sentadilla en V-Squat",
     "description": "quads sentadilla v squat ajustable en chips.",
     "involvedMuscles": [
       {
@@ -12985,7 +12985,7 @@
   },
   {
     "id": "quads_sentadilla_jefferson",
-    "name": "quads sentadilla jefferson",
+    "name": "Sentadilla Jefferson",
     "description": "quads sentadilla jefferson ajustable en chips.",
     "involvedMuscles": [
       {
@@ -13052,7 +13052,7 @@
   },
   {
     "id": "quads_sentadilla_anderson",
-    "name": "quads sentadilla anderson",
+    "name": "Sentadilla Anderson",
     "description": "quads sentadilla anderson ajustable en chips.",
     "involvedMuscles": [
       {
@@ -13167,7 +13167,7 @@
   },
   {
     "id": "quads_sentadilla_cajon",
-    "name": "quads sentadilla cajon",
+    "name": "Sentadilla a Cajón",
     "description": "quads sentadilla cajon ajustable en chips.",
     "involvedMuscles": [
       {
@@ -13465,7 +13465,7 @@
   },
   {
     "id": "quads_sentadilla_bulgara_frontal",
-    "name": "quads sentadilla bulgara frontal",
+    "name": "Sentadilla Búlgara Frontal",
     "description": "quads sentadilla bulgara frontal ajustable en chips.",
     "involvedMuscles": [
       {
@@ -13541,7 +13541,7 @@
   },
   {
     "id": "quads_sentadilla_bulgara_zercher",
-    "name": "quads sentadilla bulgara zercher",
+    "name": "Sentadilla Búlgara Zercher",
     "description": "quads sentadilla bulgara zercher ajustable en chips.",
     "involvedMuscles": [
       {
@@ -13608,7 +13608,7 @@
   },
   {
     "id": "quads_sentadilla_bulgara_somersault",
-    "name": "quads sentadilla bulgara somersault",
+    "name": "Sentadilla Búlgara Somersault",
     "description": "quads sentadilla bulgara somersault ajustable en chips.",
     "involvedMuscles": [
       {
@@ -13682,7 +13682,7 @@
   },
   {
     "id": "quads_sentadilla_bulgara_jefferson",
-    "name": "quads sentadilla bulgara jefferson",
+    "name": "Sentadilla Búlgara Jefferson",
     "description": "quads sentadilla bulgara jefferson ajustable en chips.",
     "involvedMuscles": [
       {
@@ -13761,7 +13761,7 @@
   },
   {
     "id": "quads_step_up_cajon_frontal",
-    "name": "quads step up cajon frontal",
+    "name": "Step-Up a Cajón Frontal",
     "description": "quads step up cajon frontal ajustable en chips.",
     "involvedMuscles": [
       {
@@ -13820,7 +13820,7 @@
   },
   {
     "id": "quads_step_up_cajon_zercher",
-    "name": "quads step up cajon zercher",
+    "name": "Step-Up a Cajón Zercher",
     "description": "quads step up cajon zercher ajustable en chips.",
     "involvedMuscles": [
       {
@@ -13882,7 +13882,7 @@
   },
   {
     "id": "quads_zancada_frontal_zercher",
-    "name": "quads zancada frontal zercher",
+    "name": "Zancada Frontal Zercher",
     "description": "quads zancada frontal zercher ajustable en chips.",
     "involvedMuscles": [
       {
@@ -13944,7 +13944,7 @@
   },
   {
     "id": "quads_zancada_inversa_frontal",
-    "name": "quads zancada inversa frontal",
+    "name": "Zancada Inversa Frontal",
     "description": "quads zancada inversa frontal ajustable en chips.",
     "involvedMuscles": [
       {
@@ -14003,7 +14003,7 @@
   },
   {
     "id": "quads_zancada_inversa_zercher",
-    "name": "quads zancada inversa zercher",
+    "name": "Zancada Inversa Zercher",
     "description": "quads zancada inversa zercher ajustable en chips.",
     "involvedMuscles": [
       {
@@ -14172,7 +14172,7 @@
   },
   {
     "id": "quads_sentadilla_sumo_frontal",
-    "name": "quads sentadilla sumo frontal",
+    "name": "Sentadilla Sumo Frontal",
     "description": "quads sentadilla sumo frontal ajustable en chips.",
     "involvedMuscles": [
       {
@@ -14253,7 +14253,7 @@
   },
   {
     "id": "quads_sentadilla_sumo_zercher",
-    "name": "quads sentadilla sumo zercher",
+    "name": "Sentadilla Sumo Zercher",
     "description": "quads sentadilla sumo zercher ajustable en chips.",
     "involvedMuscles": [
       {
@@ -14746,7 +14746,7 @@
   },
   {
     "id": "glutes_patada_gluteo",
-    "name": "glutes patada gluteo",
+    "name": "Patada de Glúteo",
     "description": "glutes patada gluteo ajustable en chips.",
     "involvedMuscles": [
       {
@@ -14983,7 +14983,7 @@
   },
   {
     "id": "glutes_abduccion_cadera",
-    "name": "glutes abduccion cadera",
+    "name": "Abducción de Cadera",
     "description": "glutes abduccion cadera ajustable en chips.",
     "involvedMuscles": [
       {
@@ -15136,7 +15136,7 @@
   },
   {
     "id": "hams_peso_muerto_rumano",
-    "name": "hams peso muerto rumano",
+    "name": "Peso Muerto Rumano",
     "description": "hams peso muerto rumano ajustable en chips.",
     "involvedMuscles": [
       {
@@ -15248,7 +15248,7 @@
   },
   {
     "id": "hams_peso_muerto_rumano_b_stance",
-    "name": "hams peso muerto rumano b stance",
+    "name": "Peso Muerto Rumano B-Stance",
     "description": "hams peso muerto rumano b stance ajustable en chips.",
     "involvedMuscles": [
       {
@@ -15311,7 +15311,7 @@
   },
   {
     "id": "hams_peso_muerto_piernas_rigidas",
-    "name": "hams peso muerto piernas rigidas",
+    "name": "Peso Muerto Piernas Rígidas",
     "description": "hams peso muerto piernas rigidas ajustable en chips.",
     "involvedMuscles": [
       {
@@ -15381,7 +15381,7 @@
   },
   {
     "id": "hams_buenos_dias",
-    "name": "hams buenos dias",
+    "name": "Buenos Días",
     "description": "hams buenos dias ajustable en chips.",
     "involvedMuscles": [
       {
@@ -15783,7 +15783,7 @@
   },
   {
     "id": "hams_peso_muerto_rumano_zercher",
-    "name": "hams peso muerto rumano zercher",
+    "name": "Peso Muerto Rumano Zercher",
     "description": "hams peso muerto rumano zercher ajustable en chips.",
     "involvedMuscles": [
       {
@@ -15856,7 +15856,7 @@
   },
   {
     "id": "hams_buenos_dias_zercher",
-    "name": "hams buenos dias zercher",
+    "name": "Buenos Días Zercher",
     "description": "hams buenos dias zercher ajustable en chips.",
     "involvedMuscles": [
       {
@@ -15929,7 +15929,7 @@
   },
   {
     "id": "glutes_patada_gluteo_lateral",
-    "name": "glutes patada gluteo lateral",
+    "name": "Patada de Glúteo Lateral",
     "description": "glutes patada gluteo lateral ajustable en chips.",
     "involvedMuscles": [
       {
@@ -16018,7 +16018,7 @@
   },
   {
     "id": "glutes_step_up_gluteo",
-    "name": "glutes step up gluteo",
+    "name": "Step-Up de Glúteo",
     "description": "glutes step up gluteo ajustable en chips.",
     "involvedMuscles": [
       {
@@ -16094,7 +16094,7 @@
   },
   {
     "id": "glutes_zancada_cruzada",
-    "name": "glutes zancada cruzada",
+    "name": "Zancada Cruzada",
     "description": "glutes zancada cruzada ajustable en chips.",
     "involvedMuscles": [
       {
@@ -16176,7 +16176,7 @@
   },
   {
     "id": "glutes_hiperextension_45",
-    "name": "glutes hiperextension 45",
+    "name": "Hiperextensión 45°",
     "description": "glutes hiperextension 45 ajustable en chips.",
     "involvedMuscles": [
       {
@@ -16260,7 +16260,7 @@
   },
   {
     "id": "glutes_reverse_hyper",
-    "name": "glutes reverse hyper",
+    "name": "Reverse Hyper",
     "description": "glutes reverse hyper ajustable en chips.",
     "involvedMuscles": [
       {
@@ -16337,7 +16337,7 @@
   },
   {
     "id": "hams_peso_muerto_convencional",
-    "name": "hams peso muerto convencional",
+    "name": "Peso Muerto Convencional",
     "description": "hams peso muerto convencional ajustable en chips.",
     "involvedMuscles": [
       {
@@ -16422,7 +16422,7 @@
   },
   {
     "id": "hams_peso_muerto_sumo",
-    "name": "hams peso muerto sumo",
+    "name": "Peso Muerto Sumo",
     "description": "hams peso muerto sumo ajustable en chips.",
     "involvedMuscles": [
       {
@@ -16501,7 +16501,7 @@
   },
   {
     "id": "hams_peso_muerto",
-    "name": "hams peso muerto",
+    "name": "Peso Muerto",
     "description": "hams peso muerto ajustable en chips.",
     "involvedMuscles": [
       {
@@ -16595,7 +16595,7 @@
   },
   {
     "id": "hams_pull_through",
-    "name": "hams pull through",
+    "name": "Pull-Through",
     "description": "hams pull through ajustable en chips.",
     "involvedMuscles": [
       {
@@ -16787,7 +16787,7 @@
   },
   {
     "id": "hams_buenos_dias_sentado",
-    "name": "hams buenos dias sentado",
+    "name": "Buenos Días Sentado",
     "description": "hams buenos dias sentado ajustable en chips.",
     "involvedMuscles": [
       {
@@ -16845,7 +16845,7 @@
   },
   {
     "id": "hams_peso_muerto_rumano_sumo",
-    "name": "hams peso muerto rumano sumo",
+    "name": "Peso Muerto Rumano Sumo",
     "description": "hams peso muerto rumano sumo ajustable en chips.",
     "involvedMuscles": [
       {
@@ -16930,7 +16930,7 @@
   },
   {
     "id": "hams_peso_muerto_convencional_deficit",
-    "name": "hams peso muerto convencional deficit",
+    "name": "Peso Muerto Convencional en Déficit",
     "description": "hams peso muerto convencional deficit ajustable en chips.",
     "involvedMuscles": [
       {
@@ -17010,7 +17010,7 @@
   },
   {
     "id": "hams_peso_muerto_rumano_deficit",
-    "name": "hams peso muerto rumano deficit",
+    "name": "Peso Muerto Rumano en Déficit",
     "description": "hams peso muerto rumano deficit ajustable en chips.",
     "involvedMuscles": [
       {
@@ -17090,7 +17090,7 @@
   },
   {
     "id": "hams_peso_muerto_sumo_deficit",
-    "name": "hams peso muerto sumo deficit",
+    "name": "Peso Muerto Sumo en Déficit",
     "description": "hams peso muerto sumo deficit ajustable en chips.",
     "involvedMuscles": [
       {
@@ -17170,7 +17170,7 @@
   },
   {
     "id": "hams_peso_muerto_piernas_rigidas_deficit",
-    "name": "hams peso muerto piernas rigidas deficit",
+    "name": "Peso Muerto Piernas Rígidas en Déficit",
     "description": "hams peso muerto piernas rigidas deficit ajustable en chips.",
     "involvedMuscles": [
       {
@@ -17240,7 +17240,7 @@
   },
   {
     "id": "hams_peso_muerto_rumano_sumo_deficit",
-    "name": "hams peso muerto rumano sumo deficit",
+    "name": "Peso Muerto Rumano Sumo en Déficit",
     "description": "hams peso muerto rumano sumo deficit ajustable en chips.",
     "involvedMuscles": [
       {
@@ -17556,7 +17556,7 @@
   },
   {
     "id": "adductors_aduccion_cadera",
-    "name": "adductors aduccion cadera",
+    "name": "Aducción de Cadera",
     "description": "adductors aduccion cadera ajustable en chips.",
     "involvedMuscles": [
       {
@@ -17749,7 +17749,7 @@
   },
   {
     "id": "calves_talones_de_pie",
-    "name": "calves talones de pie",
+    "name": "Elevación de Talones de Pie",
     "description": "talones_de_pie ajustable en chips.",
     "involvedMuscles": [
       {
@@ -17886,7 +17886,7 @@
   },
   {
     "id": "calves_talones_donkey",
-    "name": "calves talones donkey",
+    "name": "Elevación de Talones Donkey",
     "description": "talones_donkey ajustable en chips.",
     "involvedMuscles": [
       {
@@ -17963,7 +17963,7 @@
   },
   {
     "id": "calves_talones_sentado",
-    "name": "calves talones sentado",
+    "name": "Elevación de Talones Sentado",
     "description": "talones_sentado ajustable en chips.",
     "involvedMuscles": [
       {
@@ -18076,7 +18076,7 @@
   },
   {
     "id": "calves_tibial_anterior",
-    "name": "calves tibial anterior",
+    "name": "Tibial Anterior",
     "description": "tibial_anterior ajustable en chips.",
     "involvedMuscles": [
       {
@@ -18176,7 +18176,7 @@
   },
   {
     "id": "forearms_curl_muneca_sentado",
-    "name": "forearms curl muneca sentado",
+    "name": "Curl de Muñeca Sentado",
     "description": "forearms curl muneca sentado ajustable en chips.",
     "involvedMuscles": [
       {
@@ -18299,7 +18299,7 @@
   },
   {
     "id": "forearms_curl_muneca_inverso_sentado",
-    "name": "forearms curl muneca inverso sentado",
+    "name": "Curl de Muñeca Inverso Sentado",
     "description": "forearms curl muneca inverso sentado ajustable en chips.",
     "involvedMuscles": [
       {
@@ -18368,7 +18368,7 @@
   },
   {
     "id": "forearms_paseo_del_granjero",
-    "name": "forearms paseo del granjero",
+    "name": "Paseo del Granjero",
     "description": "forearms paseo del granjero ajustable en chips.",
     "involvedMuscles": [
       {
@@ -18600,7 +18600,7 @@
   },
   {
     "id": "neck_flexion_cuello_recostado",
-    "name": "neck flexion cuello recostado",
+    "name": "Flexión de Cuello Recostado",
     "description": "neck flexion cuello recostado ajustable en chips.",
     "involvedMuscles": [
       {
@@ -18699,7 +18699,7 @@
   },
   {
     "id": "neck_extension_cuello_boca_abajo",
-    "name": "neck extension cuello boca abajo",
+    "name": "Extensión de Cuello Boca Abajo",
     "description": "neck extension cuello boca abajo ajustable en chips.",
     "involvedMuscles": [
       {
@@ -18810,7 +18810,7 @@
   },
   {
     "id": "neck_flexion_lateral_cuello",
-    "name": "neck flexion lateral cuello",
+    "name": "Flexión Lateral de Cuello",
     "description": "neck flexion lateral cuello ajustable en chips.",
     "involvedMuscles": [
       {
@@ -19134,7 +19134,7 @@
   },
   {
     "id": "core_press_pallof",
-    "name": "core press pallof",
+    "name": "Press Pallof",
     "description": "core press pallof ajustable en chips.",
     "involvedMuscles": [
       {
@@ -19196,7 +19196,7 @@
   },
   {
     "id": "core_inclinacion_lateral",
-    "name": "core inclinacion lateral",
+    "name": "Inclinación Lateral",
     "description": "core inclinacion lateral ajustable en chips.",
     "involvedMuscles": [
       {
@@ -19253,7 +19253,7 @@
   },
   {
     "id": "calves_talones_prensa",
-    "name": "calves talones prensa",
+    "name": "Elevación de Talones en Prensa",
     "description": "talones_prensa ajustable en chips.",
     "involvedMuscles": [
       {

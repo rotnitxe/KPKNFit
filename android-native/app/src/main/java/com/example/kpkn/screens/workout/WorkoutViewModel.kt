@@ -1569,6 +1569,7 @@ class WorkoutViewModel(
 
     fun announceWorkoutSessionSummary(summary: WorkoutSessionSummary) {
         if (!voiceController.isEnabled()) return
+        if (summary.isPlaceholder) return
         val nextSessionText = repository.programs.value.firstOrNull { it.id == programId }?.let { program ->
             val projection = ProgramCalendarEngine.project(program)
             val today = java.time.LocalDate.now()

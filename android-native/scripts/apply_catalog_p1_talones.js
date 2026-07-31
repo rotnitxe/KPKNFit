@@ -4,6 +4,7 @@ const {
   loadDb, saveDb, loadAliases, saveAliases,
   setupCanon, makeAspect, makeOption, mergeInto, rebuildCatalog, finalizeAliases,
 } = require('./catalog_transform_base');
+const { prettifyId } = require('./catalog_names');
 
 const db = loadDb();
 const aliases = loadAliases();
@@ -73,7 +74,7 @@ for (const [setup, sources] of Object.entries(groups)) {
     ]));
   }
   
-  setupCanon(byId, canonicalId, sources[0].id, canonicalId.replace(/_/g, ' '), setup + ' ajustable en chips.', canonicalId.replace(/_/g, ' '), aspects);
+  setupCanon(byId, canonicalId, sources[0].id, prettifyId(canonicalId), setup + ' ajustable en chips.', prettifyId(canonicalId), aspects);
   
   for (const s of sources) {
     const aspects = {};

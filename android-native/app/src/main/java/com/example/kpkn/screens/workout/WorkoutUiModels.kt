@@ -187,6 +187,7 @@ data class WorkoutSessionSummary(
     val energyRing: Int,
     val spinalRing: Int,
     val nextSessionText: String,
+    val isPlaceholder: Boolean = false,
 )
 
 data class WorkoutShareSnapshot(
