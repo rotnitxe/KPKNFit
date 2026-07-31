@@ -394,6 +394,7 @@ class WorkoutVoiceController(
     fun resetFeedbackPromptFlags() {
         announcedPostFeedbackPrompt = false
         announcedFinalFeedbackPrompt = false
+        announcedSessionSummary = false
     }
 
     fun speakSetUpdated(
@@ -977,41 +978,49 @@ class WorkoutVoiceController(
         val pendingClarification = _state.value.pendingAction
         val normalizedClarification = transcript.lowercase()
         val clarifiedCommand = when (pendingClarification) {
-            is VoicePendingAction.IntensityKind -> when {
-                normalizedClarification.contains("rpe") || normalizedClarification.contains("erre pe e") ->
-                    VoiceSessionCommand.RegisterSet(
-                        WorkoutVoiceInterpretation(
-                            transcript = transcript,
-                            intensityValue = pendingClarification.value,
-                            intensityKind = WorkoutVoiceIntensityKind.RPE,
-                            fields = setOf(WorkoutVoiceField.INTENSITY),
-                        ),
-                    )
-                normalizedClarification.contains("rir") || normalizedClarification.contains("erre i erre") ||
-                    normalizedClarification.contains("reserva") -> VoiceSessionCommand.RegisterSet(
-                        WorkoutVoiceInterpretation(
-                            transcript = transcript,
-                            intensityValue = pendingClarification.value,
-                            intensityKind = WorkoutVoiceIntensityKind.RIR,
-                            fields = setOf(WorkoutVoiceField.INTENSITY),
-                        ),
-                    )
-                else -> null
+            is VoicePendingAction.IntensityKind -> {
+                val base = pendingClarification.baseInterpretation
+                when {
+                    normalizedClarification.contains("rpe") || normalizedClarification.contains("erre pe e") ->
+                        VoiceSessionCommand.RegisterSet(
+                            base.copy(
+                                transcript = transcript,
+                                intensityValue = pendingClarification.value,
+                                intensityKind = WorkoutVoiceIntensityKind.RPE,
+                                ambiguousIntensityValue = null,
+                                fields = base.fields + WorkoutVoiceField.INTENSITY,
+                            ),
+                        )
+                    normalizedClarification.contains("rir") || normalizedClarification.contains("erre i erre") ||
+                        normalizedClarification.contains("reserva") -> VoiceSessionCommand.RegisterSet(
+                            base.copy(
+                                transcript = transcript,
+                                intensityValue = pendingClarification.value,
+                                intensityKind = WorkoutVoiceIntensityKind.RIR,
+                                ambiguousIntensityValue = null,
+                                fields = base.fields + WorkoutVoiceField.INTENSITY,
+                            ),
+                        )
+                    else -> null
+                }
             }
-            is VoicePendingAction.LoadMode -> when {
-                normalizedClarification.contains("lastre") -> LoadModeV2.LASTRE
-                normalizedClarification.contains("asistencia") || normalizedClarification.contains("contrapeso") -> LoadModeV2.ASSISTED
-                normalizedClarification.contains("peso corporal") -> LoadModeV2.BODYWEIGHT
-                normalizedClarification.contains("carga") -> LoadModeV2.LOAD
-                else -> null
-            }?.let { mode ->
-                VoiceSessionCommand.RegisterSet(
-                    WorkoutVoiceInterpretation(
-                        transcript = transcript,
-                        loadModeOverride = mode,
-                        fields = setOf(WorkoutVoiceField.LOAD_MODE),
-                    ),
-                )
+            is VoicePendingAction.LoadMode -> {
+                val base = pendingClarification.baseInterpretation
+                when {
+                    normalizedClarification.contains("lastre") -> LoadModeV2.LASTRE
+                    normalizedClarification.contains("asistencia") || normalizedClarification.contains("contrapeso") -> LoadModeV2.ASSISTED
+                    normalizedClarification.contains("peso corporal") -> LoadModeV2.BODYWEIGHT
+                    normalizedClarification.contains("carga") -> LoadModeV2.LOAD
+                    else -> null
+                }?.let { mode ->
+                    VoiceSessionCommand.RegisterSet(
+                        base.copy(
+                            transcript = transcript,
+                            loadModeOverride = mode,
+                            fields = base.fields + WorkoutVoiceField.LOAD_MODE,
+                        ),
+                    )
+                }
             }
             is VoicePendingAction.ExerciseNavigation -> null
             is VoicePendingAction.DiscomfortSelection -> pendingClarification.candidates.entries
