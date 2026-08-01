@@ -139,6 +139,8 @@ import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.auge.lookupMuscleScore
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
+import com.example.kpkn.domain.exercises.exerciseDisplayParts
+import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
@@ -235,6 +237,7 @@ fun WorkoutScreen(
     var readinessSheetDismissed by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
     val showReadinessSheet = !readinessSheetDismissed && !isMeetOrComp && uiState.readinessNeuralOverride == null
     val structureSheets = rememberWorkoutStructureSheetsState()
+    val hasContextTabOpen = structureSheets.selectedExerciseContextTab != null
     val hasChildBackOverlay =
         uiState.showVolumeAdvanceModal ||
             uiState.showFinishSheet ||
@@ -248,6 +251,7 @@ fun WorkoutScreen(
             showNonDismissibleModal = uiState.showExecutionErrorDiscomfortSheet,
             showFinishSheet = uiState.showFinishSheet,
             hasDrawerOpen = uiState.showHistorySheet || structureSheets.hasOpenDrawer(),
+            hasContextTabOpen = hasContextTabOpen,
             showReadiness = showReadinessSheet,
         ),
     )
@@ -260,6 +264,7 @@ fun WorkoutScreen(
             WorkoutBackAction.DISMISS_FINISH_SHEET -> viewModel.hideFinish()
             WorkoutBackAction.DISMISS_DRAWER -> {
                 if (uiState.showHistorySheet) viewModel.hideHistorySheet()
+                else if (hasContextTabOpen) structureSheets.selectedExerciseContextTab = null
                 else structureSheets.exerciseContextExerciseId = null
             }
             WorkoutBackAction.SHOW_EXIT_DIALOG -> showExitDialog = true
@@ -351,13 +356,12 @@ fun WorkoutScreen(
 
     val sessionRelevantMuscles = remember(modeSession, modeExercises) {
         val upperOnlySession = isUpperOnlyWorkoutSession(modeSession, modeExercises)
-        modeExercises
+            modeExercises
             .mapNotNull { ex ->
-                val dbInfo = EXERCISE_DATABASE_BY_ID[ex.exerciseDbId ?: ex.exerciseId]
-                dbInfo?.involvedMuscles
-                    ?.filter { it.role == MuscleRole.PRIMARY || it.role == MuscleRole.SECONDARY }
-                    ?.map { involved -> getAugeMusclePillarId(involved.muscle, involved.emphasis) }
-                    ?.filterNot { muscleId ->
+                ExerciseMuscleResolver.effectiveMusclesForVolume(ex, EXERCISE_DATABASE_BY_ID)
+                    .filter { it.role == MuscleRole.PRIMARY || it.role == MuscleRole.SECONDARY }
+                    .map { involved -> getAugeMusclePillarId(involved.muscle, involved.emphasis) }
+                    .filterNot { muscleId ->
                         upperOnlySession && normalizeWorkoutMuscleKey(muscleId) in LOWER_SESSION_MUSCLE_KEYS
                     }
                     .orEmpty()
@@ -408,8 +412,11 @@ fun WorkoutScreen(
             }
             CompletedExercise(
                 exerciseId = exercise.id,
-                exerciseName = exercise.name,
+                exerciseName = exerciseDisplayParts(exercise, workoutCatalogInfo(exercise)).text,
                 exerciseDbId = exercise.exerciseDbId ?: exercise.exerciseId,
+                variantName = exercise.variantName,
+                selectedAspects = exercise.selectedAspects,
+                effectiveMuscles = exercise.effectiveMuscles,
                 restTime = exercise.restTime ?: 90,
                 supersetId = exercise.supersetGroupRefOrLegacyId(),
                 sets = sets,
@@ -444,6 +451,9 @@ fun WorkoutScreen(
             currentExercise?.sets?.lastIndex?.let { uiState.currentSetIdx < it } == true
         }
     val activeTag = currentExercise?.let { uiState.exerciseTags[it.id] }
+    val activeTagDisplay = activeTag?.let { tag ->
+        workoutTagDisplayTitle(tag, currentExercise?.let { viewModel.activeContextProfile(it.id)?.machineBrand })
+    }
     val ghostSet = currentExercise?.let {
         viewModel.getGhostForSet(it.id, uiState.currentSetIdx, it.exerciseDbId ?: it.exerciseId, activeTag)
     }
@@ -582,13 +592,13 @@ fun WorkoutScreen(
             rmSelectedWeight = rmSelectedWeight.value,
             onRmWeightConsumed = { rmSelectedWeight.value = null },
             sessionAccentColor = sessionAccentColor,
-            headerExerciseName = currentExercise?.name ?: session.name,
+            headerExerciseName = currentExercise?.let { exerciseDisplayParts(it, headerExerciseInfo).text } ?: session.name,
             headerSessionName = session.name,
             headerGroupName = headerGroup,
             headerStartTimeMs = uiState.startTimeMs,
             headerIsComplete = uiState.isComplete,
             headerBackground = session.background,
-            headerExerciseTag = activeTag,
+            headerExerciseTag = activeTagDisplay,
             exerciseReadinessMap = uiState.exerciseReadinessMap,
             recordActionHolder = recordActionHolder,
             cardsHazeState = cardsHazeStateDock,
@@ -721,14 +731,14 @@ fun WorkoutScreen(
                     .filter { it.supersetGroupRefOrLegacyId() == groupId }
                     .mapNotNull { member ->
                         val key = "${member.id}_${uiState.currentSetIdx}"
-                        uiState.completedSets[key]?.let { member.name to it }
+                        uiState.completedSets[key]?.let { displayWorkoutExerciseName(member) to it }
                     }
             }
             .orEmpty()
 
         val restState = activeRestModalState ?: WorkoutRestModalState(
             exerciseId = postExerciseTarget?.id,
-            exerciseName = postExerciseTarget?.name.orEmpty(),
+            exerciseName = postExerciseTarget?.let(::displayWorkoutExerciseName).orEmpty(),
             kind = RestTimerKind.STANDARD,
             plannedSeconds = postExerciseTarget?.restTime ?: 90,
             endsAtMs = 0L,
@@ -753,7 +763,7 @@ fun WorkoutScreen(
             skipExerciseLabel = if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
                 "Saltar ronda"
             } else {
-                currentExercise?.name?.let { exerciseName ->
+                currentExercise?.let(::displayWorkoutExerciseName)?.let { exerciseName ->
                     "Saltar series restantes de $exerciseName e ir al siguiente ejercicio"
                 }
             },
@@ -824,7 +834,7 @@ fun WorkoutScreen(
     // ─── Quick discomfort sheet (execution error, non-last-set) ────────────────
     if (uiState.showExecutionErrorDiscomfortSheet && currentExercise != null) {
         QuickExecutionErrorDiscomfortSheet(
-            exerciseName = currentExercise.name,
+            exerciseName = displayWorkoutExerciseName(currentExercise),
             onSave = { discomfortIds -> viewModel.dismissExecutionErrorDiscomfortSheet(discomfortIds) },
             onDismiss = { viewModel.dismissExecutionErrorDiscomfortSheet(emptyList()) },
         )

@@ -557,7 +557,11 @@ private fun LooseSupersetItem(
                             (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == memberIndex)
                         ) && draggingExerciseId != member.id,
                     isPartDropTarget = exerciseDropTargetPartId == partId && draggingExerciseId != member.id,
-                    onBoundsChange = { rect -> exerciseBounds["$partId|${member.id}"] = rect },
+                    onBoundsChange = { rect ->
+                        // The first member key represents the whole superset
+                        // block; its card must not overwrite the group bounds.
+                        if (member.id != firstMember.id) exerciseBounds["$partId|${member.id}"] = rect
+                    },
                     onDragStart = { beginExerciseDrag(partId, member.id) },
                     onDrag = updateExerciseDrag,
                     onDragEnd = { endExerciseDrag() },
@@ -676,7 +680,9 @@ private fun PartSupersetItem(
                             (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == memberIndex)
                         ) && draggingExerciseId != member.id,
                     isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != member.id,
-                    onBoundsChange = { rect -> exerciseBounds["${part.id}|${member.id}"] = rect },
+                    onBoundsChange = { rect ->
+                        if (member.id != firstMember.id) exerciseBounds["${part.id}|${member.id}"] = rect
+                    },
                     onDragStart = { beginExerciseDrag(part.id, member.id) },
                     onDrag = updateExerciseDrag,
                     onDragEnd = { endExerciseDrag() },

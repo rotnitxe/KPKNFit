@@ -304,7 +304,9 @@ fun SessionEditorViewModel.moveExerciseToPart(
                 val mutable = list.toMutableList()
                 val adjustedIndex = if (sourcePartId == targetPartId && targetIndex != null) {
                     val firstSourceIndex = sourceExercises.indexOfFirst { it.id == memberIds.first() }
-                    if (targetIndex > firstSourceIndex) targetIndex - moving.size + 1 else targetIndex
+                    // The drag controller reports the index in the pre-removal list.
+                    // Removing the moving block shifts every later target left by its size.
+                    if (targetIndex > firstSourceIndex) targetIndex - moving.size else targetIndex
                 } else {
                     targetIndex ?: mutable.size
                 }
@@ -346,7 +348,14 @@ fun SessionEditorViewModel.moveExerciseToPart(
 
     if (targetPartId == null) {
         val mutable = strippedSession.exercises.toMutableList()
-        val safeIndex = (targetIndex ?: mutable.size).coerceIn(0, mutable.size)
+        val sourceIndex = sourceExercises.indexOfFirst { it.id == exerciseId }
+        val requestedIndex = targetIndex ?: mutable.size
+        val adjustedIndex = if (sourcePartId == targetPartId && requestedIndex > sourceIndex) {
+            requestedIndex - 1
+        } else {
+            requestedIndex
+        }
+        val safeIndex = adjustedIndex.coerceIn(0, mutable.size)
         mutable.add(safeIndex, dragged)
         strippedSession.copy(exercises = mutable.toList())
     } else {
@@ -355,7 +364,14 @@ fun SessionEditorViewModel.moveExerciseToPart(
                 if (part.id != targetPartId) part
                 else {
                     val mutable = part.exercises.toMutableList()
-                    val safeIndex = (targetIndex ?: mutable.size).coerceIn(0, mutable.size)
+                    val sourceIndex = sourceExercises.indexOfFirst { it.id == exerciseId }
+                    val requestedIndex = targetIndex ?: mutable.size
+                    val adjustedIndex = if (sourcePartId == targetPartId && requestedIndex > sourceIndex) {
+                        requestedIndex - 1
+                    } else {
+                        requestedIndex
+                    }
+                    val safeIndex = adjustedIndex.coerceIn(0, mutable.size)
                     mutable.add(safeIndex, dragged)
                     part.copy(exercises = mutable.toList())
                 }

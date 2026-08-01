@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -66,6 +67,8 @@ fun KpknSheet(
     modifier: Modifier = Modifier,
     dismissible: Boolean = true,
     showDragHandle: Boolean = true,
+    /** Adds top safe-area padding for edge-to-edge sheets whose content reaches the status bar. */
+    safeTopInset: Boolean = false,
     /**
      * Maximum fraction of the screen the sheet may occupy. Does NOT force-fill —
      * short content stays short.
@@ -89,6 +92,7 @@ fun KpknSheet(
             modifier = modifier,
             dismissible = dismissible,
             showDragHandle = showDragHandle,
+            safeTopInset = safeTopInset,
             maxHeightFraction = cap,
             stableHeightFraction = stableHeightFraction?.coerceIn(0.35f, cap),
             hazeState = rootHaze,
@@ -103,6 +107,7 @@ private fun KpknSheetBody(
     modifier: Modifier,
     dismissible: Boolean,
     showDragHandle: Boolean,
+    safeTopInset: Boolean,
     maxHeightFraction: Float,
     stableHeightFraction: Float?,
     hazeState: HazeState?,
@@ -287,6 +292,7 @@ private fun KpknSheetBody(
                             if (stableHeightDp != null) Modifier.fillMaxSize()
                             else Modifier.wrapContentHeight().heightIn(max = sheetCapDp),
                         )
+                        .then(if (safeTopInset) Modifier.statusBarsPadding() else Modifier)
                         .navigationBarsPadding()
                         .padding(bottom = 8.dp)
                         .nestedScroll(nestedScrollConnection)

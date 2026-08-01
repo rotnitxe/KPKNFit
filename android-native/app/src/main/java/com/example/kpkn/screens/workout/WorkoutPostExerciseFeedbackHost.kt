@@ -258,7 +258,7 @@ internal fun WorkoutPostExerciseFeedbackContent(
         val currentArticulations = remember(feedbackExercises) {
             feedbackExercises.flatMap { ex ->
                 val dbInfo = EXERCISE_DATABASE_BY_ID[ex.exerciseDbId ?: ex.exerciseId]
-                dbInfo?.involvedMuscles.orEmpty()
+                (ex.effectiveMuscles?.takeIf { it.isNotEmpty() } ?: dbInfo?.involvedMuscles.orEmpty())
                 .flatMap { im -> AugeTtcEngine.articularBatteriesFor(im.muscle, im.emphasis) }
             }.distinct()
         }
@@ -473,7 +473,7 @@ internal fun WorkoutPostExerciseFeedbackContent(
                     viewModel.savePostExerciseFeedback(
                         PostExerciseFeedback(
                             exerciseId = ex.id,
-                            exerciseName = ex.name,
+                            exerciseName = displayWorkoutExerciseName(ex),
                             technicalQuality = tech,
                             discomfortIds = selectedDiscomfortIds.toList().ifEmpty { listOf("none") },
                             perceivedIntensityRpe = intensity,

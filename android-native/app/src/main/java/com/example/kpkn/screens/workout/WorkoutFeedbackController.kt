@@ -103,7 +103,7 @@ class WorkoutFeedbackController(
                         exercise.id to PostExerciseFeedback(
                             exerciseId = exercise.id,
                             exerciseDbId = ports.canonicalExerciseKey(exercise),
-                            exerciseName = exercise.name,
+                            exerciseName = displayWorkoutExerciseName(exercise),
                             technicalQuality = 8,
                             discomfortIds = listOf("none"),
                         )
@@ -128,7 +128,7 @@ class WorkoutFeedbackController(
                 postExerciseFeedbackByExerciseId = it.postExerciseFeedbackByExerciseId + (exercise.id to PostExerciseFeedback(
                     exerciseId = exercise.id,
                     exerciseDbId = ports.canonicalExerciseKey(exercise),
-                    exerciseName = exercise.name,
+                    exerciseName = displayWorkoutExerciseName(exercise),
                     technicalQuality = 5,
                     discomfortIds = discomfortIds,
                 )),

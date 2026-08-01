@@ -83,14 +83,21 @@ class SessionEditorDragController {
                 .entries
                 .sortedBy { it.value.center.y }
             val before = orderedKeys.firstOrNull { (_, rect) -> center.y < rect.center.y }
-            exerciseDropTargetKey = before?.key
-            exerciseDropTargetIndex = if (before != null) {
+            val targetIndex = if (before != null) {
                 val targetExerciseId = before.key.substringAfter("|")
                 exerciseListFor(session, targetPartId(targetPartId))
                     .indexOfFirst { it.id == targetExerciseId }
-                    .takeIf { it >= 0 } ?: 0
+                    .takeIf { it >= 0 }
             } else {
                 exerciseListFor(session, targetPartId(targetPartId)).size
+            }
+            // A stale bounds entry must not silently become "insert at 0".
+            if (before != null && targetIndex == null) {
+                exerciseDropTargetKey = null
+                exerciseDropTargetIndex = null
+            } else {
+                exerciseDropTargetKey = before?.key
+                exerciseDropTargetIndex = targetIndex
             }
         } else {
             exerciseDropTargetKey = null

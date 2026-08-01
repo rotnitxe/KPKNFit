@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.components.KpknSheet
@@ -113,7 +114,7 @@ internal fun SetAdjustmentOverlay(
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
-                        "${exercise.name} · Serie ${setIndex + 1}/${exercise.sets.size}",
+                        "${exercise.displayNameWithSelectedChips()} · Serie ${setIndex + 1}/${exercise.sets.size}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )

@@ -21,6 +21,7 @@ data class WorkoutOverlayFlags(
     val showFinishSheet: Boolean = false,
     val showMobilityPicker: Boolean = false,
     val hasDrawerOpen: Boolean = false,
+    val hasContextTabOpen: Boolean = false,
     val showReadiness: Boolean = false,
 )
 
@@ -30,7 +31,7 @@ fun resolveWorkoutBackAction(flags: WorkoutOverlayFlags): WorkoutBackAction = wh
     flags.showNonDismissibleModal -> WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL
     flags.showFinishSheet -> WorkoutBackAction.DISMISS_FINISH_SHEET
     flags.showMobilityPicker -> WorkoutBackAction.DISMISS_MOBILITY_PICKER
-    flags.hasDrawerOpen -> WorkoutBackAction.DISMISS_DRAWER
+    flags.hasDrawerOpen || flags.hasContextTabOpen -> WorkoutBackAction.DISMISS_DRAWER
     flags.showReadiness -> WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL
     else -> WorkoutBackAction.SHOW_EXIT_DIALOG
 }

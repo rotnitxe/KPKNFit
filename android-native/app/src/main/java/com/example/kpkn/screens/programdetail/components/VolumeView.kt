@@ -48,7 +48,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
-import com.example.kpkn.domain.auge.SessionMuscleFilter
+import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.buildExerciseCatalogLookup
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
@@ -61,6 +62,8 @@ import com.example.kpkn.domain.training.ExerciseDiscomfortAssociationEntry
 import com.example.kpkn.domain.training.ProgramAnalyticsReport
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.exercises.MuscleHeadResolution
+import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
+import com.example.kpkn.domain.exercises.exerciseDisplayName
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -163,6 +166,7 @@ fun VolumeView(
         VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
             logs = programLogs,
             exerciseList = EXERCISE_DATABASE,
+            aliases = EXERCISE_ID_ALIASES,
             weeksCount = program.volumeRecommendations.firstOrNull()?.let {
                 (programLogs.size / 3).coerceAtLeast(1)
             } ?: 1
@@ -1211,29 +1215,26 @@ private fun calculateExerciseBreakdownForMuscle(
     // principales, mostrando solo directos o directos+indirectos según corresponda.
     countIndirect: Boolean = false,
 ): List<ExerciseVolumeBreakdown> {
-    val exerciseIndex = EXERCISE_DATABASE.associateBy { it.id.lowercase() }
+    val exerciseIndex = buildExerciseCatalogLookup(EXERCISE_DATABASE)
     val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
     val breakdownMap = mutableMapOf<String, Pair<Double, Int>>()
 
     weeks.flatMap { it.sessions }.flatMap { it.allExercises() }.forEach { exercise ->
         val countedSets = countEffectiveSets(exercise.sets)
         if (countedSets > 0) {
-            val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] }
-            if (dbInfo != null) {
-                val musclesToCount = SessionMuscleFilter.relevantMusclesFor(dbInfo)
-                    .filter { involvement ->
-                        if (countIndirect) true
-                        else involvement.role == com.example.kpkn.data.models.MuscleRole.PRIMARY
-                    }
-                val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(musclesToCount)
-                val multiplier = contributions[muscleName]
-                if (multiplier != null && multiplier > 0.0) {
-                    // Agrupamos por exerciseDbId (fallback a nombre) para evitar fusionar
-                    // ejercicios distintos que casualmente compartan el mismo nombre.
-                    val key = exercise.exerciseDbId?.takeIf { it.isNotBlank() } ?: exercise.name
-                    val currentVal = breakdownMap[key] ?: (0.0 to 0)
-                    breakdownMap[key] = (currentVal.first + countedSets * multiplier) to (currentVal.second + countedSets)
+            val musclesToCount = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
+                .filter { involvement ->
+                    if (countIndirect) true
+                    else involvement.role == com.example.kpkn.data.models.MuscleRole.PRIMARY
                 }
+            val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(musclesToCount)
+            val multiplier = contributions[muscleName]
+            if (multiplier != null && multiplier > 0.0) {
+                // Agrupamos por exerciseDbId (fallback a nombre) para evitar fusionar
+                // ejercicios distintos que casualmente compartan el mismo nombre.
+                val key = exercise.exerciseDbId?.takeIf { it.isNotBlank() } ?: exercise.name
+                val currentVal = breakdownMap[key] ?: (0.0 to 0)
+                breakdownMap[key] = (currentVal.first + countedSets * multiplier) to (currentVal.second + countedSets)
             }
         }
     }
@@ -1243,7 +1244,7 @@ private fun calculateExerciseBreakdownForMuscle(
             // Recuperamos el nombre del ejercicio para mostrar en UI
             val displayName = weeks.flatMap { it.sessions }.flatMap { it.allExercises() }
                 .firstOrNull { (it.exerciseDbId?.takeIf { id -> id.isNotBlank() } ?: it.name) == key }
-                ?.name ?: key
+                ?.let { exerciseDisplayName(it, exerciseIndex) } ?: key
             ExerciseVolumeBreakdown(
                 exerciseName = displayName,
                 weeklySetsContribution = (pair.first / divisor * 10.0).toInt() / 10.0,
@@ -1367,27 +1368,20 @@ private fun calculateDisplayWeeklyMuscleVolume(
 ): List<CanonicalMuscleVolumeEntry> {
     val sessions = weeks.flatMap { it.sessions }
     val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
-    val exerciseIndex = EXERCISE_DATABASE.associateBy { it.id.lowercase() }
-    val volumeMap = mutableMapOf<String, Double>()
-    
-    for (session in sessions) {
-        for (exercise in session.allExercises()) {
-            val effectiveSets = countDisplaySets(exercise.sets, adjustByIntensity)
-            if (effectiveSets <= 0.0) continue
-            val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: continue
-            
-            val contributions = buildDisplayContributions(dbInfo.involvedMuscles, countIndirect)
-            contributions.forEach { (canonical, multiplier) ->
-                volumeMap[canonical] = (volumeMap[canonical] ?: 0.0) + effectiveSets * multiplier
-            }
-        }
-    }
-    
-    return volumeMap.entries.map { (muscleName, totalSets) ->
+    val roleSeparated = VolumeCalculator.calculateRoleSeparatedMuscleVolume(
+        sessions = sessions,
+        exerciseList = EXERCISE_DATABASE,
+        aliases = EXERCISE_ID_ALIASES,
+        divisor = divisor,
+        adjustByIntensity = adjustByIntensity,
+    )
+
+    return roleSeparated.map { (muscleName, volume) ->
+        val selectedSets = if (countIndirect) volume.totalSets else volume.directSets
         CanonicalMuscleVolumeEntry(
             muscleId = muscleName.lowercase().replace(" ", "-"),
             muscleName = muscleName,
-            weeklySets = ((totalSets / divisor) * 10.0).toInt() / 10.0
+            weeklySets = (selectedSets * 10.0).toInt() / 10.0
         )
     }.sortedByDescending { it.weeklySets }
 }
@@ -1441,11 +1435,11 @@ private fun calculateSubMuscleBreakdown(
         for (exercise in session.allExercises()) {
             val effectiveSets = countDisplaySets(exercise.sets, adjustByIntensity)
             if (effectiveSets <= 0.0) continue
-            val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: continue
-            
-            dbInfo.involvedMuscles.forEach { involvement ->
+            val musclesToCount = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
+
+            musclesToCount.forEach { involvement ->
                 val isMatch = if (countIndirect) {
-                    involvement.role == com.example.kpkn.data.models.MuscleRole.SECONDARY || involvement.role == com.example.kpkn.data.models.MuscleRole.STABILIZER
+                    involvement.role != com.example.kpkn.data.models.MuscleRole.NEUTRALIZER
                 } else {
                     involvement.role == com.example.kpkn.data.models.MuscleRole.PRIMARY
                 }
@@ -1456,9 +1450,10 @@ private fun calculateSubMuscleBreakdown(
                         val map = subMuscleVolumes[subMuscle]
                         if (map != null) {
                             val contribution = com.example.kpkn.data.models.resolveMuscleVolumeContribution(involvement)
-                            val current = map[exercise.name] ?: 0.0
+                            val displayName = exerciseDisplayName(exercise, exerciseIndex)
+                            val current = map[displayName] ?: 0.0
                             if (effectiveSets * contribution > current) {
-                                map[exercise.name] = effectiveSets * contribution
+                                map[displayName] = effectiveSets * contribution
                             }
                         }
                     }

@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.InvolvedMuscle
+import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.domain.exercises.ExerciseCatalogSort
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -94,5 +96,62 @@ class ExercisePickerCatalogLogicTest {
         )
 
         assertEquals(listOf(curlFemoral.id), results.map { it.id })
+    }
+
+    @Test
+    fun editing_existing_exercise_shows_aspect_chips_before_selection() {
+        assertTrue(
+            shouldShowExerciseAspectChips(
+                hasAspects = true,
+                isSelected = false,
+                hasHighlightedOptions = false,
+                showAspects = true,
+            ),
+        )
+        assertFalse(
+            shouldShowExerciseAspectChips(
+                hasAspects = true,
+                isSelected = false,
+                hasHighlightedOptions = false,
+                showAspects = false,
+            ),
+        )
+    }
+    @Test
+    fun canonical_grouping_uses_one_row_and_max_activation_for_deltoid_heads() {
+        val exercise = ExerciseMuscleInfo(
+            id = "press-deltoid-heads",
+            name = "Press de hombros",
+            description = "Press vertical",
+            movementPattern = "Empuje Vertical",
+            force = "Empuje",
+            involvedMuscles = listOf(
+                InvolvedMuscle(
+                    muscle = "Deltoides anterior",
+                    role = MuscleRole.SECONDARY,
+                    volumeContribution = 0.5,
+                    emphasis = "anterior",
+                ),
+                InvolvedMuscle(
+                    muscle = "Deltoides lateral",
+                    role = MuscleRole.SECONDARY,
+                    volumeContribution = 0.8,
+                    emphasis = "lateral",
+                ),
+                InvolvedMuscle(
+                    muscle = "Tríceps",
+                    role = MuscleRole.SECONDARY,
+                    volumeContribution = 0.5,
+                ),
+            ),
+        )
+
+        val contributions = oneSeriesVolumeContributions(exercise)
+        val deltoidRows = contributions.filter { it.muscle == "Deltoides" }
+
+        assertEquals(1, deltoidRows.size)
+        assertEquals(0.8, deltoidRows.single().seriesEquivalent, 0.0001)
+        assertEquals("lateral", deltoidRows.single().emphasis)
+        assertEquals(MuscleRole.SECONDARY, deltoidRows.single().role)
     }
 }

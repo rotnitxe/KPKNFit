@@ -19,8 +19,8 @@ import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.models.AugeMetrics
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
+import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.ceil
 import kotlin.math.roundToInt
@@ -189,6 +189,7 @@ object SessionAssistantEngine {
 
         val exerciseInsights = input.allExercisesInSession.mapNotNull { exercise ->
             val info = resolveExerciseInfo(exercise, input.exerciseIndex) ?: return@mapNotNull null
+            val musclesForVolume = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, input.exerciseIndex)
             val validSets = exercise.validAugeSets()
             if (validSets.isEmpty()) return@mapNotNull null
 
@@ -196,7 +197,7 @@ object SessionAssistantEngine {
             if (metrics == null) {
                 // Exercise without AUGE metrics: count volume but skip drain calculation
                 val perExerciseContrib = VolumeCalculator.buildPerExerciseMuscleContributions(
-                    SessionMuscleFilter.relevantMusclesFor(info),
+                    musclesForVolume,
                 )
                 validSets.forEach { set ->
                     val effectiveRpe = set.effectiveTargetRpe()
@@ -217,9 +218,9 @@ object SessionAssistantEngine {
             totalSets += validSets.size
 
             val perExerciseContrib = VolumeCalculator.buildPerExerciseMuscleContributions(
-                SessionMuscleFilter.relevantMusclesFor(info),
+                musclesForVolume,
             )
-            val primaryMuscle = info.involvedMuscles
+            val primaryMuscle = musclesForVolume
                 .find { it.role == MuscleRole.PRIMARY }
                 ?.let { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) }
                 ?: "Core"
@@ -237,7 +238,7 @@ object SessionAssistantEngine {
                     bucket.effective += hyperFactor * volumeMultiplier
                     if (effectiveRpe >= 9.5) bucket.fail += hyperFactor
                 }
-                SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
+                musclesForVolume.filter(VolumeCalculator::isStandardVolumeMuscle).forEach { muscle ->
                     val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
                     val roleBucket = roleMap.getOrPut(normalized) { MuscleRoleBreakdown() }
                     when (muscle.role) {
@@ -288,7 +289,7 @@ object SessionAssistantEngine {
             }
             muscleSetCounters[primaryMuscle] = accumulated
 
-            SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
+            musclesForVolume.filter(VolumeCalculator::isStandardVolumeMuscle).forEach { muscle ->
                 val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
                 val ctx = recommendationContext.getOrPut(normalized) { MuscleRecommendationContext() }
                 if (exercise.trainingMode == TrainingMode.RM) ctx.usesPercent = true
@@ -594,13 +595,14 @@ object SessionAssistantEngine {
     internal fun calcularVolumenSemanal(input: SessionAssistantInput): Map<String, Double> {
         val weeklyMap = mutableMapOf<String, Double>()
         input.weekSessions.forEach { session ->
-            val exercises = session.exercises + session.parts.flatMap { it.exercises }
+            val exercises = session.allExercises()
             exercises.forEach { exercise ->
                 val info = resolveExerciseInfo(exercise, input.exerciseIndex) ?: return@forEach
+                val musclesForVolume = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, input.exerciseIndex)
                 exercise.validAugeSets().forEach { set ->
                     val effectiveRpe = set.effectiveTargetRpe()
                     val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(effectiveRpe)
-                    SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
+                    musclesForVolume.filter(VolumeCalculator::isStandardVolumeMuscle).forEach { muscle ->
                         val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
                         val hyperFactor = resolveMuscleVolumeContribution(muscle)
                         weeklyMap[normalized] = (weeklyMap[normalized] ?: 0.0) + hyperFactor * volumeMultiplier
@@ -943,7 +945,7 @@ object SessionAssistantEngine {
     ): Set<String> {
         return exercises.flatMap { exercise ->
             val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return@flatMap emptyList()
-            SessionMuscleFilter.relevantMusclesFor(info).map { muscle ->
+            ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex).map { muscle ->
                 VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
             }
         }.toSet()
@@ -960,7 +962,7 @@ object SessionAssistantEngine {
             validSets.forEach { set ->
                 val effectiveRpe = set.effectiveTargetRpe()
                 val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(effectiveRpe)
-                SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
+                ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex).forEach { muscle ->
                     val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
                     val hyperFactor = resolveMuscleVolumeContribution(muscle)
                     volumeMap[normalized] = (volumeMap[normalized] ?: 0.0) + hyperFactor * volumeMultiplier
@@ -1161,13 +1163,12 @@ object SessionAssistantEngine {
         for (muscleId in targetMuscles) {
             var plannedSets = 0.0
             for (ex in currentSession.allExercises()) {
-                val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
-                val info = exerciseIndex[dbId] ?: continue
-                for (m in info.involvedMuscles) {
+                val muscles = ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)
+                for (m in muscles) {
                     if (m.role != com.example.kpkn.data.models.MuscleRole.PRIMARY) continue
                     val mId = VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis)
                     if (mId == muscleId) {
-                        plannedSets += ex.sets.size
+                        plannedSets += VolumeCalculator.countEffectiveSets(ex.sets)
                     }
                 }
             }
@@ -1176,9 +1177,8 @@ object SessionAssistantEngine {
             for (ex in currentSession.allExercises()) {
                 val sets = completedByExercise[ex.id] ?: 0
                 if (sets == 0) continue
-                val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
-                val info = exerciseIndex[dbId] ?: continue
-                for (m in info.involvedMuscles) {
+                val muscles = ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)
+                for (m in muscles) {
                     if (m.role != com.example.kpkn.data.models.MuscleRole.PRIMARY) continue
                     val mId = VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis)
                     if (mId == muscleId) {
@@ -1195,10 +1195,8 @@ object SessionAssistantEngine {
             
             for (ex in nextSession.allExercises()) {
                 if (remainingDiscount <= 0.0) break
-                val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
-                val info = exerciseIndex[dbId] ?: continue
                 var trainsMuscle = false
-                for (m in info.involvedMuscles) {
+                for (m in ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)) {
                     if (m.role != com.example.kpkn.data.models.MuscleRole.PRIMARY) continue
                     val mId = VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis)
                     if (mId == muscleId) {

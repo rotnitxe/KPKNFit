@@ -203,6 +203,11 @@ fun SessionEditorScreen(
     val partContentBounds = dragController.partContentBounds
     val exerciseBounds = dragController.exerciseBounds
     var looseContentBounds by dragController::looseContentBounds
+    LaunchedEffect(session?.id, session, uiState.collapsedPartIds) {
+        // Bounds belong to the current flattened list. Do not retain rectangles
+        // from removed or collapsed items as valid drop zones.
+        dragController.clearBounds()
+    }
     var draggingPartId by dragController::draggingPartId
     var draggingPartOffsetY by dragController::draggingPartOffsetY
     var partDropTargetId by dragController::partDropTargetId
@@ -420,10 +425,10 @@ fun SessionEditorScreen(
                     },
                     onOpenCompetitionConfig = { showCompetitionConfigSheet = true },
                     onLooseBoundsReport = { rect ->
-                        looseContentBounds = mergeBounds(looseContentBounds, rect)
+                        looseContentBounds = rect
                     },
                     onPartContentBoundsReport = { partId, rect ->
-                        partContentBounds[partId] = mergeBounds(partContentBounds[partId], rect)
+                        partContentBounds[partId] = rect
                     },
                     beginExerciseDrag = ::beginExerciseDrag,
                     updateExerciseDrag = ::updateExerciseDrag,

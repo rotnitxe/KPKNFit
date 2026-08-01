@@ -59,6 +59,7 @@ import com.example.kpkn.domain.exercises.ALL_MUSCLES
 import com.example.kpkn.domain.exercises.CATALOG_MOVEMENT_PATTERNS
 import com.example.kpkn.domain.exercises.ExerciseCatalogExclusiveFilter
 import com.example.kpkn.domain.exercises.ExerciseCatalogSort
+import com.example.kpkn.domain.exercises.matchingTechnicalAspectOptions
 import com.example.kpkn.screens.sessioneditor.CatalogSearchField
 import com.example.kpkn.screens.sessioneditor.CompactCatalogFilterChip
 import com.example.kpkn.screens.sessioneditor.VariantFlowResultCache
@@ -116,9 +117,10 @@ internal fun ExercisePickerSheet(
     var filterKey by rememberSaveable { mutableStateOf(ExerciseCatalogExclusiveFilter.None.storageKey) }
     var filterBrowse by rememberSaveable { mutableStateOf(CatalogFilterBrowse.CLOSED) }
     var searchExpanded by rememberSaveable { mutableStateOf(false) }
-    var infoExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
+    var expandedInfoExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
     var variantFlowExercise by remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
     var aspectsByExerciseId by remember { mutableStateOf<Map<String, Map<String, String>>>(emptyMap()) }
+    val normalizedQuery = query.trim()
 
     val exclusiveFilter = remember(filterKey) {
         ExerciseCatalogExclusiveFilter.fromStorageKey(filterKey)
@@ -135,7 +137,8 @@ internal fun ExercisePickerSheet(
     }
 
     fun aspectsFor(info: ExerciseMuscleInfo): Map<String, String> =
-        aspectsByExerciseId[info.id] ?: defaultAspectSelection(info)
+        aspectsByExerciseId[info.id]
+            ?: (defaultAspectSelection(info) + matchingTechnicalAspectOptions(info, normalizedQuery))
 
     fun updateAspects(info: ExerciseMuscleInfo, aspects: Map<String, String>) {
         aspectsByExerciseId = aspectsByExerciseId + (info.id to aspects)
@@ -148,6 +151,10 @@ internal fun ExercisePickerSheet(
                 selectedAspects = aspects,
             )
         }
+    }
+
+    fun toggleInfo(info: ExerciseMuscleInfo) {
+        expandedInfoExerciseId = if (expandedInfoExerciseId == info.id) null else info.id
     }
 
     fun handleSelect(info: ExerciseMuscleInfo) {
@@ -171,7 +178,6 @@ internal fun ExercisePickerSheet(
         }
     }
 
-    val normalizedQuery = query.trim()
     val results = remember(normalizedQuery, fullCatalog, sortMode, sortAscending, exclusiveFilter) {
         filterAndSortExerciseCatalog(
             fullCatalog = fullCatalog,
@@ -180,6 +186,9 @@ internal fun ExercisePickerSheet(
             exclusiveFilter = exclusiveFilter,
             ascending = sortAscending,
         )
+    }
+    val matchedAspectOptionsByExerciseId = remember(results, normalizedQuery) {
+        results.associate { it.id to matchingTechnicalAspectOptions(it, normalizedQuery) }
     }
     val resultListState = rememberLazyListState()
     var lastScrollIndex by remember { mutableIntStateOf(0) }
@@ -204,9 +213,6 @@ internal fun ExercisePickerSheet(
         resultListState.scrollToItem(0)
         filtersVisible = true
     }
-
-    val infoExercise = remember(infoExerciseId, fullCatalog) { fullCatalog.firstOrNull { it.id == infoExerciseId } }
-    val discomfortByExercise = remember(workoutLogs) { discomfortCountsByExercise(workoutLogs) }
     val createdCatalog = remember(customExercises) { customExercises.sortedBy { it.name.lowercase() } }
     val highlightedExercise = remember(highlightedExerciseId, fullCatalog) {
         highlightedExerciseId?.let { id -> fullCatalog.firstOrNull { it.id == id } }
@@ -586,23 +592,29 @@ internal fun ExercisePickerSheet(
                             color = KpknSheetTokens.Body,
                         )
                         highlightedExercise?.let { info ->
-                            ExercisePickerDetailedCard(
-                                info = info,
-                                isSelected = info.id in selectedExercisesIds,
-                                onSelect = { handleSelect(info) },
-                                onInfo = { infoExerciseId = info.id },
-                            )
+                         ExercisePickerDetailedCard(
+                             info = info,
+                             isSelected = info.id in selectedExercisesIds,
+                             onSelect = { handleSelect(info) },
+                             isInfoExpanded = expandedInfoExerciseId == info.id,
+                             onToggleInfo = { toggleInfo(info) },
+                             onOpenExerciseDetail = { onOpenExerciseDetail(info.id) },
+                             showAspects = editingExisting,
+                         )
                         }
                         createdCatalog
                             .filterNot { it.id == highlightedExercise?.id }
                             .take(4)
                             .forEach { info ->
-                                ExercisePickerDetailedCard(
-                                    info = info,
-                                    isSelected = info.id in selectedExercisesIds,
-                                    onSelect = { handleSelect(info) },
-                                    onInfo = { infoExerciseId = info.id },
-                                )
+                                 ExercisePickerDetailedCard(
+                                     info = info,
+                                     isSelected = info.id in selectedExercisesIds,
+                                     onSelect = { handleSelect(info) },
+                                     isInfoExpanded = expandedInfoExerciseId == info.id,
+                                     onToggleInfo = { toggleInfo(info) },
+                                     onOpenExerciseDetail = { onOpenExerciseDetail(info.id) },
+                                     showAspects = editingExisting,
+                                 )
                             }
                     }
                 }
@@ -612,11 +624,15 @@ internal fun ExercisePickerSheet(
                     info = info,
                     isSelected = info.id in selectedExercisesIds,
                     onSelect = { handleSelect(info) },
-                    onInfo = { infoExerciseId = info.id },
+                    isInfoExpanded = expandedInfoExerciseId == info.id,
+                    onToggleInfo = { toggleInfo(info) },
+                    onOpenExerciseDetail = { onOpenExerciseDetail(info.id) },
                     onOpenVariantFlow = { variantFlowExercise = info },
                     selectedAspects = aspectsFor(info),
-                    onAspectsChange = { updateAspects(info, it) },
-                )
+                     highlightedAspectOptions = matchedAspectOptionsByExerciseId[info.id].orEmpty(),
+                     onAspectsChange = { updateAspects(info, it) },
+                     showAspects = editingExisting,
+                 )
             }
             item { Spacer(Modifier.height(4.dp)) }
         }
@@ -633,17 +649,6 @@ internal fun ExercisePickerSheet(
                 onMultiSelect = onMultiSelect,
             )
         }
-    }
-
-    infoExercise?.let { selected ->
-        ExerciseCatalogInfoDialog(
-            exercise = selected,
-            catalog = fullCatalog,
-            associatedDiscomforts = discomfortByExercise[selected.id].orEmpty(),
-            onOpenExercise = onOpenExerciseDetail,
-            onDismiss = { infoExerciseId = null },
-            onOpenVariantFlow = { ex -> variantFlowExercise = ex },
-        )
     }
 
     variantFlowExercise?.let { exercise ->

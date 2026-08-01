@@ -226,8 +226,8 @@ fun mapWorkoutToPostSessionFeedback(
     val grouped = postExerciseFeedback.groupBy { feedback ->
         val exercise = log.completedExercises.find { it.exerciseId == feedback.exerciseId }
         val dbInfo = exerciseDbById[exercise?.exerciseDbId ?: exercise?.exerciseId]
-        val primary = dbInfo?.involvedMuscles
-            ?.firstOrNull { it.role == MuscleRole.PRIMARY }
+        val primary = (exercise?.effectiveMuscles?.takeIf { it.isNotEmpty() } ?: dbInfo?.involvedMuscles.orEmpty())
+            .firstOrNull { it.role == MuscleRole.PRIMARY }
         if (primary != null) {
             val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, primary.emphasis)
             getAugeMusclePillarId(canonical, primary.emphasis)

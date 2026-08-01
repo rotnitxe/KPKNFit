@@ -50,7 +50,7 @@ class WorkoutRestTimerOrchestrator(
         val sessionName = state.session?.name ?: "Entrenamiento"
         val exerciseName = ports.visibleExercises(state)
             .getOrNull(state.currentExerciseIdx)
-            ?.name
+            ?.let(::displayWorkoutExerciseName)
             ?: "Siguiente serie"
 
         val now = System.currentTimeMillis()
@@ -75,7 +75,7 @@ class WorkoutRestTimerOrchestrator(
                 isRestMinimized = false,
                 restModalState = it.restModalState?.copy(
                     exerciseId = activeExercise?.id,
-                    exerciseName = activeExercise?.name ?: exerciseName,
+                    exerciseName = activeExercise?.let(::displayWorkoutExerciseName) ?: exerciseName,
                     kind = kind,
                     activeSeconds = seconds,
                     endsAtMs = endMs,
@@ -85,7 +85,7 @@ class WorkoutRestTimerOrchestrator(
                     soundReady = alertCapability.soundReady,
                 ) ?: WorkoutRestModalState(
                     exerciseId = activeExercise?.id,
-                    exerciseName = activeExercise?.name ?: exerciseName,
+                    exerciseName = activeExercise?.let(::displayWorkoutExerciseName) ?: exerciseName,
                     kind = kind,
                     plannedSeconds = seconds,
                     suggestedSeconds = seconds,

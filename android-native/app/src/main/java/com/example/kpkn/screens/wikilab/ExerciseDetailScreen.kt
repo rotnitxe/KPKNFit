@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -27,6 +29,7 @@ import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.screens.wikilab.components.CaupolicanSquatInteractiveViewer
 import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
 import com.example.kpkn.screens.wikilab.components.SquatVariant
+import com.example.kpkn.domain.exercises.adaptedExerciseDescription
 
 // ─── MAIN SCREEN ──────────────────────────────────────────────────────────
 
@@ -58,6 +61,7 @@ fun ExerciseDetailScreen(
         name.contains("barra alta") || name.contains("barra baja") ||
         name.contains("high bar") || name.contains("low bar")
     }
+    var selectedTechnicalOption by remember(exercise.id) { mutableStateOf<Pair<TechnicalAspect, AspectOption>?>(null) }
 
     Scaffold(
         containerColor = Color.Black,
@@ -126,6 +130,46 @@ fun ExerciseDetailScreen(
                                 lineHeight = 22.sp,
                             ),
                         )
+                    }
+                }
+            }
+
+            if (!exercise.technicalAspects.isNullOrEmpty()) {
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            "Variantes técnicas",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                        )
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(
+                                exercise.technicalAspects.orEmpty().flatMap { aspect ->
+                                    aspect.options.map { aspect to it }
+                                },
+                            ) { (aspect, option) ->
+                                AssistChip(
+                                    onClick = { selectedTechnicalOption = aspect to option },
+                                    label = { Text(option.name) },
+                                )
+                            }
+                        }
+                        selectedTechnicalOption?.let { (aspect, option) ->
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color.White.copy(alpha = 0.08f),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                            ) {
+                                Text(
+                                    adaptedExerciseDescription(exercise, mapOf(aspect.id to option.id)),
+                                    modifier = Modifier.padding(12.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White.copy(alpha = 0.86f),
+                                )
+                            }
+                        }
                     }
                 }
             }

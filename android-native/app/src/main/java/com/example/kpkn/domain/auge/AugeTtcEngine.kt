@@ -274,7 +274,10 @@ object AugeTtcEngine {
                 val info = exerciseDb[ex.exerciseDbId ?: ex.exerciseId]
                     ?: exerciseDb.values.find { it.name.equals(ex.exerciseName, ignoreCase = true) }
 
-                val weights = getArticularWeightsForExercise(info)
+                val weights = getArticularWeightsForExercise(
+                    info = info,
+                    effectiveMuscles = ex.effectiveMuscles?.takeIf { it.isNotEmpty() },
+                )
                 if (weights.values.all { it == 0.0 }) continue
 
                 val ttc = calculateTTC(ex.exerciseName, info?.equipment)
@@ -482,11 +485,12 @@ object AugeTtcEngine {
      */
     private fun getArticularWeightsForExercise(
         info: ExerciseMuscleInfo?,
+        effectiveMuscles: List<InvolvedMuscle>? = null,
     ): Map<ArticularBattery, Double> {
         val result = mutableMapOf<ArticularBattery, Double>()
         if (info == null) return result
 
-        for (involved in info.involvedMuscles) {
+        for (involved in effectiveMuscles ?: info.involvedMuscles) {
             if (involved.role != MuscleRole.PRIMARY && involved.role != MuscleRole.SECONDARY) continue
             val articulars = articularBatteriesFor(involved.muscle, involved.emphasis)
             if (articulars.isEmpty()) continue

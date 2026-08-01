@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.MobilitySeries
+import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.screens.workout.toTrimmedNumberString
 
 private data class SanitizedWarmupSet(
@@ -277,7 +278,7 @@ fun WorkoutSupersetWarmupRevealCard(
                     color = sessionAccentColor,
                 )
                 Text(
-                    text = exercise.name,
+                    text = exercise.displayNameWithSelectedChips(),
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.White.copy(alpha = 0.6f),
                     maxLines = 1,
@@ -379,7 +380,7 @@ fun WorkoutWarmupChecklistCard(
                         color = Color.White,
                     )
                     Text(
-                        text = exercise.name,
+                        text = exercise.displayNameWithSelectedChips(),
                         style = MaterialTheme.typography.labelMedium,
                         color = Color.White.copy(alpha = 0.62f),
                         maxLines = 1,
@@ -560,7 +561,7 @@ internal fun WorkoutWarmupSheet(
         }
 
         Text(
-            text = exercise.name,
+            text = exercise.displayNameWithSelectedChips(),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Bold

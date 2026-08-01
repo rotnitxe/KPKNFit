@@ -96,6 +96,8 @@ data class InvolvedMuscle(
     @SerialName("activation")
     val volumeContribution: Double? = null,
     val emphasis: String? = null, // e.g. "anterior", "superior"
+    /** Optional editorial override for the inline biomechanical explanation. */
+    val biomechanicalReason: String? = null,
 )
 
 @Serializable

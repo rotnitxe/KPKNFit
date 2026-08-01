@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -39,6 +40,8 @@ fun ExerciseAspectChipsInline(
     exercise: ExerciseMuscleInfo,
     selectedAspects: Map<String, String>,
     onAspectsChange: (Map<String, String>) -> Unit,
+    highlightedOptionIds: Set<String> = emptySet(),
+    onOptionInfo: ((TechnicalAspect, com.example.kpkn.data.models.AspectOption) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val aspects = exercise.technicalAspects.orEmpty()
@@ -57,17 +60,21 @@ fun ExerciseAspectChipsInline(
                 onSelect = { optId ->
                     onAspectsChange(selectedAspects + (aspect.id to optId))
                 },
+                highlightedOptionIds = highlightedOptionIds,
+                onOptionInfo = onOptionInfo,
             )
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun AspectChipRow(
     aspect: TechnicalAspect,
     selectedOptionId: String?,
     onSelect: (String) -> Unit,
+    highlightedOptionIds: Set<String>,
+    onOptionInfo: ((TechnicalAspect, com.example.kpkn.data.models.AspectOption) -> Unit)?,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -85,13 +92,19 @@ private fun AspectChipRow(
         ) {
             aspect.options.forEach { option ->
                 val selected = option.id == selectedOptionId
+                val highlighted = option.id in highlightedOptionIds
                 Surface(
                     modifier = Modifier
                         .clip(RoundedCornerShape(999.dp))
-                        .clickable { onSelect(option.id) },
+                        .combinedClickable(
+                            onClick = { onSelect(option.id) },
+                            onLongClick = { onOptionInfo?.invoke(aspect, option) },
+                        ),
                     shape = RoundedCornerShape(999.dp),
                     color = if (selected) {
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)
+                    } else if (highlighted) {
+                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.24f)
                     } else {
                         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
                     },

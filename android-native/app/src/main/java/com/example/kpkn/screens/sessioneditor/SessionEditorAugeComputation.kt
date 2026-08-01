@@ -5,7 +5,6 @@ import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
 import com.example.kpkn.domain.calculations.estimateSessionDurationMinutes
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
@@ -322,6 +321,7 @@ internal fun computeSessionAugeComputation(
         val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return@mapNotNull null
         val validSets = exercise.validAugeSets()
         if (validSets.isEmpty()) return@mapNotNull null
+        val musclesForVolume = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
 
         val metrics = AugeFatigueEngine.getDynamicAugeMetrics(exercise.name, info.equipment, info) ?: AugeMetrics()
         var muscular = 0.0
@@ -343,7 +343,7 @@ internal fun computeSessionAugeComputation(
 
             val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(effectiveRpe)
             val perExerciseContrib = VolumeCalculator.buildPerExerciseMuscleContributions(
-                SessionMuscleFilter.relevantMusclesFor(info),
+                musclesForVolume,
             )
             perExerciseContrib.forEach { (normalized, hyperFactor) ->
                 val bucket = volumeMap.getOrPut(normalized) { AugeVolumeAccumulator() }
@@ -351,7 +351,7 @@ internal fun computeSessionAugeComputation(
                 bucket.effective += hyperFactor * volumeMultiplier
                 if (effectiveRpe >= 9.5) bucket.fail += hyperFactor
             }
-            SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
+            musclesForVolume.filter(VolumeCalculator::isStandardVolumeMuscle).forEach { muscle ->
                 val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
                 val roleBucket = roleMap.getOrPut(normalized) { MuscleRoleBreakdown() }
                 when (muscle.role) {
@@ -400,7 +400,7 @@ internal fun computeSessionAugeComputation(
             spinal += drain.spinalDrainPct
 
             val roleWeightByMuscle = linkedMapOf<String, Double>()
-            VolumeCalculator.buildPerExerciseMuscleContributions(SessionMuscleFilter.relevantMusclesFor(info))
+            VolumeCalculator.buildPerExerciseMuscleContributions(musclesForVolume)
                 .forEach { (muscle, contribution) ->
                     roleWeightByMuscle[muscle] = contribution
                 }
@@ -425,7 +425,7 @@ internal fun computeSessionAugeComputation(
         }
         muscleSetCounters[primaryMuscle] = accumulated
 
-        SessionMuscleFilter.relevantMusclesFor(info).forEach { muscle ->
+        musclesForVolume.filter(VolumeCalculator::isStandardVolumeMuscle).forEach { muscle ->
             val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
             val ctx = recommendationContext.getOrPut(normalized) { MuscleRecommendationContext() }
             if (exercise.trainingMode == TrainingMode.RM) ctx.usesPercent = true
@@ -518,7 +518,7 @@ internal fun accumulateSessionVolume(
     targetMap: MutableMap<String, AugeVolumeAccumulator>,
 ) {
     session.allExercises().forEach { exercise ->
-        val muscles = ExerciseMuscleResolver.effectiveMuscles(exercise, exerciseIndex)
+        val muscles = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
         if (muscles.isEmpty()) return@forEach
         exercise.validAugeSets().forEach { set ->
             val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(set.effectiveTargetRpe())

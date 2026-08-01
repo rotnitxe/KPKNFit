@@ -2,6 +2,7 @@ package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.ui.graphics.Color
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.discomfortLabel
@@ -141,6 +142,8 @@ internal data class MuscleVolumeContribution(
     val muscle: String,
     val role: MuscleRole,
     val seriesEquivalent: Double,
+    val emphasis: String? = null,
+    val sourceInvolvement: InvolvedMuscle? = null,
 )
 
 internal fun oneSeriesVolumeContributions(exercise: ExerciseMuscleInfo): List<MuscleVolumeContribution> {
@@ -157,15 +160,19 @@ internal fun oneSeriesVolumeContributions(exercise: ExerciseMuscleInfo): List<Mu
         val muscle = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
         val contribution = resolveMuscleVolumeContribution(involvement)
         grouped.getOrPut(muscle) { mutableListOf() }
-            .add(MuscleVolumeContribution(muscle, involvement.role, contribution))
+            .add(MuscleVolumeContribution(muscle, involvement.role, contribution, involvement.emphasis, involvement))
     }
 
     return grouped.values.map { entries ->
         val topRole = entries.minByOrNull { rolePriority[it.role] ?: 99 }?.role ?: MuscleRole.SECONDARY
+        val source = entries.filter { it.role == topRole }.maxByOrNull { it.seriesEquivalent }
+            ?: entries.maxByOrNull { it.seriesEquivalent }
         MuscleVolumeContribution(
             muscle = entries.first().muscle,
             role = topRole,
             seriesEquivalent = entries.maxOf { it.seriesEquivalent }.coerceIn(0.0, 1.0),
+            emphasis = source?.emphasis,
+            sourceInvolvement = source?.sourceInvolvement,
         )
     }.sortedByDescending { it.seriesEquivalent }
 }

@@ -21,6 +21,7 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
+import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
@@ -72,6 +73,9 @@ class WorkoutFinishController(
         val allExercises = activeSession.allExercises()
 
         val completedExercises = allExercises.map { exercise ->
+            val catalogInfo = exerciseIndex[canonicalExerciseKey(exercise).lowercase()]
+                ?: exerciseIndex.values.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
+            val displayName = com.example.kpkn.domain.exercises.exerciseDisplayParts(exercise, catalogInfo).text
             val sets = exercise.sets.indices.flatMap { setIdx ->
                 val bilateral = state.completedSets["${exercise.id}_$setIdx"]
                 val left = state.completedSets["${exercise.id}_${setIdx}_L"]
@@ -80,10 +84,13 @@ class WorkoutFinishController(
             }
             CompletedExercise(
                 exerciseId = exercise.id,
-                exerciseName = exercise.name,
+                exerciseName = displayName,
                 exerciseDbId = canonicalExerciseKey(exercise),
                 canonicalExerciseId = exercise.canonicalExerciseId ?: canonicalExerciseKey(exercise),
                 relativeToCanonicalExerciseId = exercise.relativeToCanonicalExerciseId,
+                variantName = exercise.variantName,
+                selectedAspects = exercise.selectedAspects,
+                effectiveMuscles = exercise.effectiveMuscles,
                 restTime = exercise.restTime ?: 90,
                 supersetId = exercise.supersetGroupRefOrLegacyId(),
                 supersetExerciseCount = exercise.supersetGroupRefOrLegacyId()
@@ -102,10 +109,16 @@ class WorkoutFinishController(
                 state.completedSets.keys.none { key -> key.startsWith("${exercise.id}_") }
         }
         val omittedExercises = skippedWithNoSets.map { exercise ->
+            val catalogInfo = exerciseIndex[canonicalExerciseKey(exercise).lowercase()]
+                ?: exerciseIndex.values.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
+            val displayName = com.example.kpkn.domain.exercises.exerciseDisplayParts(exercise, catalogInfo).text
             OmittedExercise(
                 exerciseId = exercise.id,
-                exerciseName = exercise.name,
+                exerciseName = displayName,
                 exerciseDbId = canonicalExerciseKey(exercise),
+                variantName = exercise.variantName,
+                selectedAspects = exercise.selectedAspects,
+                effectiveMuscles = exercise.effectiveMuscles,
             )
         }
 
@@ -171,7 +184,8 @@ class WorkoutFinishController(
                 val muscleGroups = completedExercises
                     .mapNotNull { ex ->
                         val info = catalogInfoForCompletedExercise(ex)
-                        val primary = info?.involvedMuscles?.firstOrNull { m -> m.role == MuscleRole.PRIMARY }
+                        val primary = (ex.effectiveMuscles?.takeIf { it.isNotEmpty() } ?: info?.involvedMuscles.orEmpty())
+                            .firstOrNull { m -> m.role == MuscleRole.PRIMARY }
                         if (primary != null) {
                             val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, primary.emphasis)
                             getAugeMusclePillarId(canonical, primary.emphasis)
@@ -381,7 +395,7 @@ internal fun computeWorkoutVolumeDelta(
     for (ex in plannedSession.allExercises()) {
         val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
         val info = exerciseIndex[dbId] ?: continue
-        for (muscle in info.involvedMuscles) {
+        for (muscle in ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)) {
             if (muscle.role != MuscleRole.PRIMARY) continue
             val muscleId = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
             plannedPerMuscle[muscleId] = (plannedPerMuscle[muscleId] ?: 0.0) + ex.sets.size
@@ -400,7 +414,7 @@ internal fun computeWorkoutVolumeDelta(
         if (sets == 0) continue
         val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
         val info = exerciseIndex[dbId] ?: continue
-        for (muscle in info.involvedMuscles) {
+        for (muscle in ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)) {
             if (muscle.role != MuscleRole.PRIMARY) continue
             val muscleId = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
             actualPerMuscle[muscleId] = (actualPerMuscle[muscleId] ?: 0.0) + sets

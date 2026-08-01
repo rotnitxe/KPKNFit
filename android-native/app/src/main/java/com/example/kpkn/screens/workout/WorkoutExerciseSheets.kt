@@ -147,12 +147,25 @@ internal fun ExerciseTagSheetContent(
     onDismiss: () -> Unit,
     userTags: List<String> = emptyList(),
     suggestedTag: String? = null,
+    profiles: List<WorkoutContextProfile> = emptyList(),
 ) {
+    fun profileForTagText(tag: String): WorkoutContextProfile? =
+        profiles.firstOrNull { profile ->
+            profile.tagId == tag ||
+                profile.setupLabel == tag ||
+                profile.persistentTagName() == tag ||
+                profile.tagDisplayTitle() == tag
+        }
+
+    fun displayTag(tag: String): String =
+        profileForTagText(tag)?.tagDisplayTitle() ?: tag
+
     var tagText by remember { mutableStateOf(currentTag ?: "") }
-    val commonTags = remember(userTags, suggestedTag) {
-        val base = userTags.distinct()
-        if (suggestedTag != null && suggestedTag !in base) {
-            listOf(suggestedTag) + base
+    val commonTags = remember(userTags, suggestedTag, profiles) {
+        val base = userTags.map(::displayTag).filter { it.isNotBlank() }.distinct()
+        val displayedSuggested = suggestedTag?.let(::displayTag)
+        if (displayedSuggested != null && displayedSuggested !in base) {
+            listOf(displayedSuggested) + base
         } else {
             base
         }
@@ -371,6 +384,7 @@ internal fun ExerciseSetupSheetContent(
             onDismiss = {},
             userTags = userTags,
             suggestedTag = suggestedTag,
+            profiles = profiles,
         )
 
         HorizontalDivider(color = Color.White.copy(alpha = 0.1f))

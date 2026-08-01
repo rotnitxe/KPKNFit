@@ -18,7 +18,7 @@ class ExerciseCatalogContractTest {
     @Test
     fun catalog_has_expected_unique_rows_and_preserves_submuscle_group() {
         // Canonical catalog after alias consolidation (duplicates redirected via exercise_id_aliases.json).
-        assertEquals(795, catalog.size)
+        assertEquals(257, catalog.size)
         assertEquals(catalog.size, catalog.map { it.id }.distinct().size)
         assertTrue(catalog.any { !it.subMuscleGroup.isNullOrBlank() })
     }
@@ -42,7 +42,10 @@ class ExerciseCatalogContractTest {
 
     @Test
     fun technical_modifiers_use_canonical_parent_names() {
-        val allowed = setOf("Pectorales", "Tríceps", "Core", "Erectores Espinales")
+        val allowed = setOf(
+            "Antebrazo", "Bíceps", "Core", "Deltoides", "Dorsales",
+            "Erectores Espinales", "Glúteo Mayor", "Pectorales", "Trapecio", "Tríceps",
+        )
         val unknown = catalog.flatMap { exercise ->
             exercise.technicalAspects.orEmpty().flatMap { aspect ->
                 aspect.options.flatMap { option ->
@@ -53,6 +56,15 @@ class ExerciseCatalogContractTest {
             }
         }
         assertEquals(emptyList<String>(), unknown)
+    }
+
+    @Test
+    fun descriptions_are_capitalized_and_technical_options_are_documented() {
+        assertTrue(catalog.all { !it.description.isNullOrBlank() })
+        assertTrue(catalog.none { it.description.orEmpty().contains("ajustable en chips", ignoreCase = true) })
+        val options = catalog.flatMap { it.technicalAspects.orEmpty() }.flatMap { it.options }
+        assertTrue(options.isNotEmpty())
+        assertTrue(options.all { !it.description.isNullOrBlank() })
     }
 
     @Test

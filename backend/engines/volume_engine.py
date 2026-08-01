@@ -153,23 +153,19 @@ def calculate_volume_adjustment(
 def normalize_muscle_group(specific_muscle: str) -> str:
     low = specific_muscle.lower().strip()
 
-    # Hombros
-    if "posterior" in low and ("deltoides" in low or "hombro" in low):
-        return "Deltoides Posterior"
-    if ("lateral" in low or "medio" in low) and ("deltoides" in low or "hombro" in low):
-        return "Deltoides Lateral"
-    if ("anterior" in low or "frontal" in low) and ("deltoides" in low or "hombro" in low):
-        return "Deltoides Anterior"
+    # The mobile volume contract aggregates deltoid heads into one bucket.
     if "deltoides" in low or "hombro" in low:
-        return "Deltoides Anterior"
+        return "Deltoides"
 
     # Espalda
-    if any(k in low for k in ("trapecio", "romboides", "espinal", "alta")):
+    if "romboide" in low:
+        return "Romboides"
+    if any(k in low for k in ("trapecio", "alta")):
         return "Trapecio"
     if any(k in low for k in ("dorsal", "lat", "redondo", "ancho")):
         return "Dorsales"
     if any(k in low for k in ("erector", "lumbar", "baja")):
-        return "Espalda Baja"
+        return "Erectores Espinales"
     if "espalda" in low:
         return "Dorsales"
 
@@ -186,16 +182,18 @@ def normalize_muscle_group(specific_muscle: str) -> str:
         return "Isquiosurales"
     if any(k in low for k in ("cuádriceps", "cuadriceps", "recto femoral", "vasto")):
         return "Cuádriceps"
-    if "glúteo" in low or "gluteo" in low:
+    if "glúteo" in low or "gluteo" in low or "tensor fascia" in low or "tensor de la fascia" in low:
         return "Glúteos"
     if any(k in low for k in ("gemelo", "sóleo", "soleo", "pantorrilla")):
-        return "Gemelos"
+        return "Pantorrillas"
 
     # Core / Otros
     if "pectoral" in low or "pecho" in low:
-        return "Pectoral"
-    if any(k in low for k in ("abdominal", "oblicuo", "core")):
-        return "Abdominales"
+        return "Pectorales"
+    if "core" in low or "transverso" in low or "serrato" in low:
+        return "Core"
+    if any(k in low for k in ("abdominal", "abdomen", "oblicuo")):
+        return "Abdomen"
 
     return specific_muscle[0].upper() + specific_muscle[1:] if specific_muscle else specific_muscle
 

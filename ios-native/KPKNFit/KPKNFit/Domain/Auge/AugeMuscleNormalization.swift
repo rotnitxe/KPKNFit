@@ -30,16 +30,16 @@ func resolveAugeMuscle(rawMuscle: String, rawEmphasis: String? = nil) -> AugeMus
     if source.contains("erector") || source.contains("lumbar") || source.contains("espalda baja") || source.contains("lower back") {
         return AugeMuscleResolution(broad: "Erectores Espinales", specific: nil)
     }
-    if source == "core" {
+    if source == "core" || source.contains("transverso") || source.contains("serrato") {
         return AugeMuscleResolution(broad: "Core", specific: nil)
     }
-    if source.contains("abdomen") || source.contains("abdominal") || source.contains("oblicuo") || source.contains("transverso") {
+    if source.contains("abdomen") || source.contains("abdominal") || source.contains("oblicuo") {
         return AugeMuscleResolution(broad: "Abdomen", specific: nil)
     }
     if source.contains("pantorrilla") || source.contains("gemelo") || source.contains("gastrocnemio") || source.contains("soleo") || source.contains("calf") {
         return AugeMuscleResolution(broad: "Pantorrillas", specific: nil)
     }
-    if source.contains("gluteo") || source.contains("gluteos") {
+    if source.contains("gluteo") || source.contains("gluteos") || source.contains("tensor") {
         return AugeMuscleResolution(broad: "Glúteos", specific: nil)
     }
     if source.contains("isquio") || source.contains("hamstring") || source.contains("femoral") || source.contains("semitendinoso") || source.contains("semimembranoso") {

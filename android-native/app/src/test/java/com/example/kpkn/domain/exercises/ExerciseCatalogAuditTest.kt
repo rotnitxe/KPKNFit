@@ -72,7 +72,7 @@ class ExerciseCatalogAuditTest {
         )
         assertEquals("tren_superior_press_banca_plano_barra", firstResult("press inclinado smith")?.id)
         val sissyFirstId = firstResult("sentadilla sissy")?.id
-        assertTrue(sissyFirstId == "quads_sentadilla_sissy_libre" || sissyFirstId == "tren_inferior_sentadilla_sissy")
+        assertEquals("quads_sentadilla_sissy", sissyFirstId)
         assertTrue(catalog().none { it.id == "nuevo_extension_cuadriceps_unilateral" })
     }
 

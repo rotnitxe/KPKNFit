@@ -1,0 +1,82 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preBaseDebugBuild UP-TO-DATE
+> Task :app:compileBaseDebugAidl UP-TO-DATE
+> Task :app:generateBaseDebugBuildConfig UP-TO-DATE
+> Task :app:generateBaseDebugResources UP-TO-DATE
+> Task :app:packageBaseDebugResources UP-TO-DATE
+> Task :app:processBaseDebugNavigationResources UP-TO-DATE
+> Task :app:parseBaseDebugLocalResources UP-TO-DATE
+> Task :app:generateBaseDebugRFile UP-TO-DATE
+> Task :app:kspBaseDebugKotlin
+
+> Task :app:compileBaseDebugKotlin
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:159:25 Unresolved reference 'PostSessionPreview'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:176:41 Unresolved reference 'neural'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:177:41 Unresolved reference 'spinal'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:178:22 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:178:22 Not enough information to infer type argument for 'T'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:178:50 Unresolved reference 'perMuscle'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:179:28 Unresolved reference 'perMuscle'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:179:38 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:179:38 Not enough information to infer type argument for 'K'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:179:38 Not enough information to infer type argument for 'V'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:179:59 Unresolved reference 'recoveryScore'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:193:36 Unresolved reference 'muscular'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:482:68 Unresolved reference 'perMuscle'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:482:89 Unresolved reference 'recoveryScore'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:815:44 Unresolved reference 'globalMuscularDrain'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:819:64 Unresolved reference 'perMuscle'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:819:83 Unresolved reference 'recoveryScore'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:825:76 Unresolved reference 'globalMuscularDrain'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:840:52 Unresolved reference 'neural'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishHost.kt:844:52 Unresolved reference 'spinal'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:882:32 Property delegate must have a 'getValue(Nothing?, KProperty0<*>)' method. None of the following functions is applicable:
+fun FloatState.getValue(thisObj: Any?, property: KProperty<*>): Float
+fun DoubleState.getValue(thisObj: Any?, property: KProperty<*>): Double
+fun IntState.getValue(thisObj: Any?, property: KProperty<*>): Int
+fun LongState.getValue(thisObj: Any?, property: KProperty<*>): Long
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:882:48 Unresolved reference 'PostSessionPreview'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:883:28 Unresolved reference 'PostSessionPreview'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:887:59 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:888:21 Unresolved reference 'MuscleRecoveryStatus'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:901:20 Argument type mismatch: actual type is 'List<CompletedExercise>', but 'Any?' was expected.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:902:20 Argument type mismatch: actual type is 'Int', but 'Any?' was expected.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:903:20 Argument type mismatch: actual type is 'Settings', but 'Any?' was expected.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:904:11 Argument type mismatch: actual type is 'SuspendFunction1<ProduceStateScope<uninferred T (of fun <T> produceState)>, Unit>', but 'SuspendFunction1<ProduceStateScope<uninferred T (of fun <T> produceState)>, Unit>' was expected.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:906:38 Argument type mismatch: actual type is 'List<CompletedExercise>', but 'List<CompletedExercise>' was expected.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:907:35 Argument type mismatch: actual type is 'Int', but 'Int' was expected.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:908:28 Argument type mismatch: actual type is 'Settings', but 'Settings' was expected.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:951:71 Unresolved reference 'perMuscle'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:951:81 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:951:102 Unresolved reference 'recoveryScore'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:969:70 Unresolved reference 'globalCnsDrain'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:970:73 Unresolved reference 'globalSpinalDrain'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:971:73 Unresolved reference 'globalMuscularDrain'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:972:77 Unresolved reference 'neural'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutScreen.kt:973:77 Unresolved reference 'spinal'.
+
+> Task :app:compileBaseDebugKotlin FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileBaseDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 55s
+9 actionable tasks: 2 executed, 7 up-to-date

@@ -72,6 +72,49 @@ class SessionEditorDragControllerTest {
     }
 
     @Test
+    fun movingExerciseDownUsesThePositionShownByTheDropIndicator() {
+        val controller = SessionEditorDragController()
+        val session = Session(
+            id = "s1",
+            name = "Test",
+            exercises = listOf(
+                Exercise(id = "e1", name = "A", exerciseDbId = "a"),
+                Exercise(id = "e2", name = "B", exerciseDbId = "b"),
+                Exercise(id = "e3", name = "C", exerciseDbId = "c"),
+            ),
+        )
+        controller.looseContentBounds = Rect(0f, 0f, 200f, 500f)
+        controller.exerciseBounds["__loose__|e1"] = Rect(0f, 0f, 100f, 80f)
+        controller.exerciseBounds["__loose__|e2"] = Rect(0f, 100f, 100f, 180f)
+        controller.exerciseBounds["__loose__|e3"] = Rect(0f, 200f, 100f, 280f)
+        controller.beginExerciseDrag("__loose__", "e1")
+        controller.updateExerciseDrag(Offset(0f, 150f), session)
+
+        var result = session
+        controller.endExerciseDrag(session) { from, exerciseId, to, index ->
+            result = result.moveExerciseForTest(from, exerciseId, to, index)
+        }
+
+        assertEquals(listOf("e2", "e1", "e3"), result.exercises.map { it.id })
+    }
+
+    private fun Session.moveExerciseForTest(
+        sourcePartId: String?,
+        exerciseId: String,
+        targetPartId: String?,
+        targetIndex: Int?,
+    ): Session {
+        val source = if (sourcePartId == null) exercises else parts.first { it.id == sourcePartId }.exercises
+        val dragged = source.first { it.id == exerciseId }
+        val remaining = source.filterNot { it.id == exerciseId }.toMutableList()
+        val requested = targetIndex ?: remaining.size
+        val sourceIndex = source.indexOfFirst { it.id == exerciseId }
+        val adjusted = if (sourcePartId == targetPartId && requested > sourceIndex) requested - 1 else requested
+        remaining.add(adjusted.coerceIn(0, remaining.size), dragged)
+        return if (targetPartId == null) copy(exercises = remaining) else this
+    }
+
+    @Test
     fun endPartDrag_movesToTargetIndex() {
         val controller = SessionEditorDragController()
         val parts = listOf(

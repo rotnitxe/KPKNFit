@@ -1,0 +1,257 @@
+﻿tren_superior_press_banca_plano_barra | Press de Banca con Barra
+tren_superior_press_banca_plano_mancuernas | Press de Banca con Mancuernas
+tren_superior_press_pecho_maquina_convergente | Press de Pecho en M├íquina Convergente
+tren_superior_floor_press_barra | Floor Press con Barra
+tren_superior_floor_press_mancuernas | Floor Press con Mancuernas
+tren_superior_flexiones_clasicas | Flexiones de Brazos Cl├ísicas
+tren_superior_flexiones | tren superior flexiones
+tren_superior_flexiones_pies_elevados | Flexiones con Pies Elevados
+tren_superior_press_unilateral_polea | Press Unilateral en Polea
+tren_superior_press_spoto_barra | Press Spoto con Barra
+tren_superior_press_banda_resistencia | Press con Banda de Resistencia
+tren_superior_press_banca_cadenas | Press de Banca con Cadenas
+tren_superior_aperturas_planas_mancuernas | Aperturas Planas con Mancuernas
+tren_superior_aperturas_inclinadas_mancuernas | Aperturas Inclinadas con Mancuernas
+tren_superior_aperturas_declinadas_mancuernas | Aperturas Declinadas con Mancuernas
+tren_superior_aperturas_pec_deck | Aperturas en M├íquina Pec Deck
+tren_superior_aperturas_suelo_mancuernas | Aperturas en el Suelo con Mancuernas
+tren_superior_squeeze_press_mancuernas | Squeeze Press con Mancuernas
+tren_superior_aperturas_banda | Aperturas con Banda de Resistencia
+triceps_press_frances | triceps press frances
+triceps_overhead | triceps overhead
+triceps_patada | triceps patada
+triceps_pushdown | triceps pushdown
+triceps_jm_press_barra_ez | JM Press con Barra EZ
+triceps_jm_press_mancuernas | JM Press con Mancuernas
+triceps_tate_press_mancuernas | Tate Press con Mancuernas
+triceps_tate_press_polea | Tate Press en Polea
+triceps_katana_polea | Extensiones Katana en Polea
+triceps_katana_polea_unilateral | Extensiones Katana en Polea Unilateral
+triceps_katana_mancuerna | Extensiones Katana con Mancuerna
+triceps_katana_kettlebell | Extensiones Katana con Kettlebell
+triceps_katana_banda | Extensiones Katana en Banda El├ística
+triceps_crossbody_polea | Extensi├│n de Tr├¡ceps Cruzada en Polea
+triceps_crossbody_polea_unilateral | Extensi├│n de Tr├¡ceps Cruzada en Polea Unilateral
+triceps_crossbody_mancuerna | Extensi├│n de Tr├¡ceps Cruzada con Mancuerna
+triceps_crossbody_kettlebell | Extensi├│n de Tr├¡ceps Cruzada con Kettlebell
+triceps_crossbody_banda | Extensi├│n de Tr├¡ceps Cruzada en Banda El├ística
+triceps_press_california_barra_recta | Press California con Barra Recta
+triceps_press_california_barra_ez | Press California con Barra EZ
+triceps_press_california_mancuernas | Press California con Mancuernas
+triceps_extension_pjr_mancuerna | Extensi├│n de Tr├¡ceps PJR con Mancuerna
+triceps_rolling_extension | triceps rolling extension
+triceps_extension | triceps extension
+triceps_overhead_maquina | Extensi├│n de Tr├¡ceps Overhead en M├íquina
+triceps_press_maquina | Press de Tr├¡ceps en M├íquina
+triceps_flexiones_esfinge | Extensiones de Tr├¡ceps en Suelo (Flexiones Esfinge / Sphinx Push-Up)
+triceps_fondos_entre_bancos | Fondos Entre Bancos
+triceps_katana_barra_ez | Extensiones Katana con Barra EZ
+back_remo_barra | Remo con Barra
+back_remo_pendlay_barra_recta | Remo Pendlay con Barra Recta
+back_remo_mancuerna | Remo con Mancuernas
+back_remo_banda | Remo en Banda El├ística
+back_remo_barra_t | Remo en Barra T
+back_remo_pecho_apoyado_mancuernas | Remo con Pecho Apoyado con Mancuernas
+back_remo_pecho_apoyado_polea | Remo con Pecho Apoyado en Polea
+back_remo_polea | Remo en Polea
+back_remo_gironda | Remo Gironda
+back_remo_seal_barra_recta | Remo Seal con Barra Recta
+back_remo_seal_mancuernas | Remo Seal con Mancuernas
+back_remo_renegado_mancuernas | Remo Renegado con Mancuernas
+back_remo_gorilla_mancuernas | Remo Gorilla con Mancuernas
+back_remo_maquina | Remo en M├íquina
+back_remo_smith | Remo en M├íquina Smith
+back_remo_invertido | Remo Invertido
+back_jalon_pecho_polea | Jal├│n al Pecho en Polea
+back_jalon_pecho_maquina | Jal├│n al Pecho en M├íquina
+back_jalon_banda | Jal├│n al Pecho con Banda
+back_dominadas | Dominadas
+back_pullover | back pullover
+back_encogimientos | Encogimientos
+back_encogimientos_kelso | Encogimientos Kelso
+back_band_pull_apart | Band Pull-Apart
+back_y_raises | back y raises
+back_dominadas_escapulares | Dominadas Escapulares
+back_hiperextensiones_45_lastradas | Hiperextensiones a 45┬║ Lastradas
+back_reverse_hyper | Reverse Hyper
+back_superman_suelo | Superman en Suelo
+back_jefferson_curl | back jefferson curl
+back_extension_lumbar | back extension lumbar
+back_buenos_dias | back buenos dias
+back_buenos_dias_zercher_barra | Buenos D├¡as Zercher con Barra
+biceps_curl_de_pie | Curl de B├¡ceps (de pie)
+biceps_curl_sentado_banco_plano | Curl de B├¡ceps (sentado banco plano)
+biceps_curl_inclinado | Curl de B├¡ceps (inclinado)
+biceps_curl_declinado | Curl de B├¡ceps (declinado)
+biceps_curl_predicador | Curl de B├¡ceps (predicador)
+biceps_curl_arana | Curl de B├¡ceps (arana)
+biceps_curl_concentrado | Curl de B├¡ceps (concentrado)
+biceps_curl_drag | Curl de B├¡ceps (drag)
+biceps_curl_bayesian | Curl de B├¡ceps (bayesian)
+biceps_curl_superman | Curl de B├¡ceps (superman)
+biceps_curl_crucifijo | Curl de B├¡ceps (crucifijo)
+biceps_curl_zottman_mancuernas | Curl Zottman con Mancuernas
+biceps_curl_disco | Curl de B├¡ceps con Disco (Waiter Curl)
+biceps_curl_trx | Curl de B├¡ceps en TRX
+deltoides_press_militar_de_pie | deltoides press militar de pie
+deltoides_press_hombros_de_pie | deltoides press hombros de pie
+deltoides_press_hombros_sentado | deltoides press hombros sentado
+deltoides_press_arnold_mancuernas | Press Arnold con Mancuernas
+deltoides_press_arnold_kettlebell | Press Arnold con Kettlebell
+deltoides_press_arnold_polea | Press Arnold en Polea
+deltoides_press_z_barra_recta | Press Z con Barra Recta
+deltoides_press_z_barra_ez | Press Z con Barra EZ
+deltoides_press_z_mancuernas | Press Z con Mancuernas
+deltoides_press_z_kettlebell | Press Z con Kettlebell
+deltoides_push_press | deltoides push press
+deltoides_press_landmine_unilateral | Press Landmine Unilateral
+deltoides_elevaciones_frontales | deltoides elevaciones frontales
+deltoides_elevaciones_laterales_de_pie | deltoides elevaciones laterales de pie
+deltoides_elevaciones_laterales_sentado | deltoides elevaciones laterales sentado
+deltoides_elevaciones_laterales | deltoides elevaciones laterales
+deltoides_y_raises_sentado_banco_inclinado | deltoides y raises sentado banco inclinado
+deltoides_elevaciones_laterales_acostado_banco_plano | deltoides elevaciones laterales acostado banco plano
+deltoides_elevaciones_laterales_inclinadas | deltoides elevaciones laterales inclinadas
+deltoides_elevaciones_laterales_recostado | deltoides elevaciones laterales recostado
+deltoides_elevaciones_laterales_super_rom_mancuernas | Elevaciones Laterales Super ROM con Mancuernas
+deltoides_elevaciones_laterales_super_rom_polea | Elevaciones Laterales Super ROM en Polea
+deltoides_elevaciones_laterales_super_rom_polea_unilateral | Elevaciones Laterales Super ROM en Polea Unilateral
+deltoides_lu_raises | deltoides lu raises
+deltoides_remo_menton | deltoides remo menton
+deltoides_elevaciones_posteriores_de_pie | deltoides elevaciones posteriores de pie
+deltoides_elevaciones_posteriores_sentado_banco_plano | deltoides elevaciones posteriores sentado banco plano
+deltoides_elevaciones_posteriores_pecho_apoyado | deltoides elevaciones posteriores pecho apoyado
+deltoides_elevaciones_posteriores_acostado_banco_plano | deltoides elevaciones posteriores acostado banco plano
+deltoides_elevaciones_posteriores_arana | deltoides elevaciones posteriores arana
+deltoides_aperturas_inversas_maquina_pec_deck | Aperturas Inversas en M├íquina Pec Deck (Reverse Pec Fly)
+deltoides_face_pull | Face Pull
+quads_sentadilla_trasera | quads sentadilla trasera
+quads_sentadilla_frontal | quads sentadilla frontal
+quads_sentadilla_bazuca | quads sentadilla bazuca
+quads_sentadilla_somersault | quads sentadilla somersault
+quads_sentadilla_zercher_barra_recta | Sentadilla Zercher con Barra Recta
+quads_sentadilla_copa | quads sentadilla copa
+quads_sentadilla_hack | quads sentadilla hack
+quads_sentadilla_hack_invertida_maquina | Sentadilla Invertida en M├íquina Hack
+quads_sentadilla_pendulo_maquina | Sentadilla en M├íquina P├®ndulo
+quads_sentadilla_belt_squat_maquina | Sentadilla en M├íquina Belt Squat
+quads_sentadilla_sissy_maquina_smith | Sentadilla Sissy en M├íquina Smith
+quads_sentadilla_sissy_maquina_hack | Sentadilla Sissy en M├íquina Hack
+quads_reverse_nordic_peso_corporal | Curl N├│rdico Inverso (Reverse Nordic Curl)
+quads_prensa_piernas | quads prensa piernas
+quads_extension_cuadriceps | quads extension cuadriceps
+quads_sentadilla_bulgara | quads sentadilla bulgara
+quads_zancada_frontal | quads zancada frontal
+quads_zancada_inversa | quads zancada inversa
+quads_zancada_caminando | quads zancada caminando
+quads_step_up_cajon | quads step up cajon
+quads_sentadilla_pistola | quads sentadilla pistola
+quads_sentadilla_pistola_asistida_trx | Sentadilla Pistola Asistida en TRX
+quads_sentadilla_cosaca | quads sentadilla cosaca
+quads_sentadilla_sumo | quads sentadilla sumo
+quads_sentadilla_v_squat | quads sentadilla v squat
+quads_sentadilla_v_squat_invertida_maquina | Sentadilla Invertida en M├íquina V-Squat
+quads_sentadilla_jefferson | quads sentadilla jefferson
+quads_sentadilla_anderson | quads sentadilla anderson
+quads_sentadilla_anderson_frontal_barra_recta | Sentadilla Anderson Frontal con Barra Recta
+quads_sentadilla_cajon | quads sentadilla cajon
+quads_sentadilla_pendulo_unilateral_maquina | Sentadilla Unilateral en M├íquina P├®ndulo
+quads_sentadilla_belt_squat_unilateral_maquina | Sentadilla Unilateral en M├íquina Belt Squat
+quads_zancada_inversa_maquina_hack | Zancada Inversa en M├íquina Hack
+quads_zancada_inversa_maquina_v_squat | Zancada Inversa en M├íquina V-Squat
+quads_sentadilla_bulgara_frontal | quads sentadilla bulgara frontal
+quads_sentadilla_bulgara_zercher | quads sentadilla bulgara zercher
+quads_sentadilla_bulgara_somersault | quads sentadilla bulgara somersault
+quads_sentadilla_bulgara_jefferson | quads sentadilla bulgara jefferson
+quads_step_up_cajon_frontal | quads step up cajon frontal
+quads_step_up_cajon_zercher | quads step up cajon zercher
+quads_zancada_frontal_zercher | quads zancada frontal zercher
+quads_zancada_inversa_frontal | quads zancada inversa frontal
+quads_zancada_inversa_zercher | quads zancada inversa zercher
+quads_zancada_caminando_frontal_barra_recta | Zancada Caminando Frontal con Barra Recta
+quads_zancada_caminando_zercher_barra_recta | Zancada Caminando Zercher con Barra Recta
+quads_sentadilla_sumo_frontal | quads sentadilla sumo frontal
+quads_sentadilla_sumo_zercher | quads sentadilla sumo zercher
+quads_sentadilla_sissy_barra_recta | Sentadilla Sissy con Barra Recta
+quads_sentadilla_sissy_frontal_barra_recta | Sentadilla Sissy Frontal con Barra Recta
+quads_sentadilla_sissy_zercher_barra_recta | Sentadilla Sissy Zercher con Barra Recta
+glutes_hip_thrust | Hip Thrust
+glutes_puente_gluteos | Puente de Gl├║teos
+glutes_patada_gluteo | glutes patada gluteo
+glutes_patada_gluteo_polea_diagonal | Patada de Gl├║teos Diagonal en Polea
+glutes_frog_pumps | Frog Pumps
+glutes_abduccion_cadera_sentado_maquina | Abducci├│n de Cadera Sentado en M├íquina
+glutes_abduccion_cadera | glutes abduccion cadera
+glutes_clamshells_banda | Clamshells (Almejas) con Banda El├ística
+glutes_monster_walk_banda | Caminata del Monstruo (Monster Walk) con Banda
+hams_peso_muerto_rumano | hams peso muerto rumano
+hams_peso_muerto_rumano_b_stance | hams peso muerto rumano b stance
+hams_peso_muerto_piernas_rigidas | hams peso muerto piernas rigidas
+hams_buenos_dias | hams buenos dias
+hams_curl_femoral | Curl Femoral
+hams_curl_femoral_tumbado_unilateral_maquina | Curl Femoral Tumbado Unilateral en M├íquina
+hams_curl_femoral_sentado_unilateral_maquina | Curl Femoral Sentado Unilateral en M├íquina
+hams_curl_femoral_pie_polea | Curl Femoral de Pie en Polea
+hams_curl_nordic_peso_corporal | Curl N├│rdico (Nordic Hamstring Curl)
+hams_peso_muerto_rumano_zercher | hams peso muerto rumano zercher
+hams_buenos_dias_zercher | hams buenos dias zercher
+glutes_patada_gluteo_lateral | glutes patada gluteo lateral
+glutes_step_up_gluteo | glutes step up gluteo
+glutes_zancada_cruzada | glutes zancada cruzada
+glutes_hiperextension_45 | glutes hiperextension 45
+glutes_reverse_hyper | glutes reverse hyper
+hams_peso_muerto_convencional | hams peso muerto convencional
+hams_peso_muerto_sumo | hams peso muerto sumo
+hams_peso_muerto | hams peso muerto
+hams_pull_through | hams pull through
+hams_swing_kettlebell_dos_manos | Swing con Kettlebell a Dos Manos
+hams_swing_kettlebell_unilateral | Swing con Kettlebell a Una Mano
+hams_buenos_dias_sentado | hams buenos dias sentado
+hams_peso_muerto_rumano_sumo | hams peso muerto rumano sumo
+hams_peso_muerto_convencional_deficit | hams peso muerto convencional deficit
+hams_peso_muerto_rumano_deficit | hams peso muerto rumano deficit
+hams_peso_muerto_sumo_deficit | hams peso muerto sumo deficit
+hams_peso_muerto_piernas_rigidas_deficit | hams peso muerto piernas rigidas deficit
+hams_peso_muerto_rumano_sumo_deficit | hams peso muerto rumano sumo deficit
+glutes_hiperextension_45_unilateral | Hiperextension 45┬░ Unilateral
+glutes_hiperextension_45_zercher_maquina_smith | Hiperextensi├│n a 45┬║ Zercher en M├íquina Smith
+hams_glute_ham_raise_lastrado_disco | Glute Ham Raise (GHR) Lastrado con Disco en M├íquina GHD
+adductors_aduccion_cadera_sentado_maquina | Aducci├│n de Cadera Sentado en M├íquina
+adductors_aduccion_cadera | adductors aduccion cadera
+adductors_plancha_copenhagen_peso_corporal | Plancha Copenhagen (Copenhagen Plank)
+adductors_plancha_copenhagen_dinamica | Plancha Copenhagen Din├ímica
+calves_talones_de_pie | calves talones de pie
+calves_talones_donkey | calves talones donkey
+calves_talones_sentado | calves talones sentado
+calves_tibial_anterior | calves tibial anterior
+forearms_curl_muneca_sentado | forearms curl muneca sentado
+forearms_curl_muneca_de_pie_tras_espalda_barra | Curl de Mu├▒eca de Pie Tras Espalda con Barra
+forearms_curl_muneca_inverso_sentado | forearms curl muneca inverso sentado
+forearms_paseo_del_granjero | forearms paseo del granjero
+forearms_paseo_del_granjero_barras_trap | Paseo del Granjero con Barra Hexagonal / Agarres
+forearms_enrollamiento_muneca_rodillo | Enrollamiento de Mu├▒eca con Rodillo y Cuerda
+forearms_suspension_isometrica_barra_fija | Suspensi├│n Isom├®trica en Barra Fija (Dead Hang)
+neck_flexion_cuello_recostado | neck flexion cuello recostado
+neck_flexion_cuello_arnes_polea | Flexi├│n de Cuello con Arn├®s en Polea
+neck_extension_cuello_boca_abajo | neck extension cuello boca abajo
+neck_extension_cuello_arnes_polea | Extensi├│n de Cuello con Arn├®s en Polea
+neck_flexion_lateral_cuello | neck flexion lateral cuello
+core_crunch_en_polea_alta | Crunch Abdominal de Rodillas en Polea Alta
+core_crunch_maquina | Crunch Abdominal en M├íquina
+core_crunch_banco_declinado_lastrado_disco | Crunch Abdominal en Banco Declinado Lastrado con Disco
+core_crunch_suelo_peso_corporal | Crunch Abdominal en Suelo
+core_dragon_flag_banco_plano | Dragon Flag en Banco Plano
+core_press_pallof | core press pallof
+core_inclinacion_lateral | core inclinacion lateral
+calves_talones_prensa | calves talones prensa
+tren_superior_fondos | Fondos
+tren_superior_cruce_poleas | Cruce de Poleas
+back_hiperextensiones | Hiperextensiones
+quads_sentadilla_sissy | Sentadilla Sissy
+quads_sentadilla_bulgara_maquina | Bulgaria en M├íquina
+hams_glute_ham_raise | Glute-Ham Raise
+core_rueda_abdominal | Rueda Abdominal
+core_elevacion_piernas | Elevaci├│n Piernas
+core_lenador_polea | Lenador en Polea
+core_plancha | Plancha
+forearms_pinza_de_discos | Pinza de Discos

@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
@@ -336,7 +337,8 @@ private fun ExerciseRoadmapCard(
     onClick: () -> Unit,
     onLongClick: (() -> Unit)?,
 ) {
-    val nameLength = exercise.name.length
+    val displayName = exercise.displayNameWithSelectedChips()
+    val nameLength = displayName.length
     val minWidth = when {
         nameLength > 30 -> 130.dp
         nameLength > 22 -> 110.dp
@@ -395,7 +397,7 @@ private fun ExerciseRoadmapCard(
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = exercise.name,
+                    text = displayName,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelSmall,

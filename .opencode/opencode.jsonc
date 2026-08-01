@@ -1,0 +1,45 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "orquestador",
+  "permission": {
+    "read": {
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "**/*.env": "deny",
+      "**/*.env.*": "deny",
+      "*.keystore": "deny",
+      "**/*.keystore": "deny",
+      ".cursor/mcp.json": "deny",
+    },
+    "edit": {
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "**/*.env": "deny",
+      "**/*.env.*": "deny",
+      "*.keystore": "deny",
+      "**/*.keystore": "deny",
+      ".cursor/mcp.json": "deny",
+      ".opencode/pipeline.json": "deny",
+    },
+    "memory": "allow",
+    "kpkn_map": "allow",
+    "session_search": "allow",
+    "skill_manage": "allow",
+    "pipeline": "allow",
+    "mode_config": "allow",
+  },
+  "agent": {
+    "orquestador": {
+      "description": "Investiga y prepara planes KPKN con subagentes antes de editar producto.",
+      "color": "#FFD400",
+    },
+    "constructor_kpkn": {
+      "description": "Implementa planes KPKN aprobados y valida los cambios.",
+      "color": "#00D9FF",
+    },
+    "auditor": {
+      "description": "Audita cambios KPKN y devuelve hallazgos accionables.",
+      "color": "#FF4D9D",
+    },
+  },
+}

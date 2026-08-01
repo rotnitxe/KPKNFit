@@ -105,7 +105,9 @@ internal fun computeSessionMuscleRoleWeightedSets(
 ): Map<String, Double> {
     val result = mutableMapOf<String, Double>()
     completedExercises.forEach { ex ->
-        val dbInfo = EXERCISE_DATABASE_BY_ID[ex.exerciseDbId ?: ex.exerciseId]
+        val rawId = (ex.exerciseDbId ?: ex.exerciseId)?.lowercase()
+        val resolvedId = rawId?.let { com.example.kpkn.data.exercises.resolveExerciseId(it) } ?: rawId
+        val dbInfo = resolvedId?.let(EXERCISE_DATABASE_BY_ID::get)
             ?: EXERCISE_DATABASE_BY_ID.values.firstOrNull { it.name.equals(ex.exerciseName, ignoreCase = true) }
             ?: return@forEach
 
@@ -114,15 +116,17 @@ internal fun computeSessionMuscleRoleWeightedSets(
         }
         if (effectiveSetCount <= 0) return@forEach
 
-        dbInfo.involvedMuscles.forEach { involvement ->
+        val involvedMuscles = ex.effectiveMuscles?.takeIf { it.isNotEmpty() } ?: dbInfo.involvedMuscles
+        involvedMuscles.forEach { involvement ->
             val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
             val muscleId = getAugeMusclePillarId(canonical, involvement.emphasis)
             val roleMultiplier = when (involvement.role) {
                 MuscleRole.PRIMARY -> 1.0
                 MuscleRole.SECONDARY -> 0.5
                 MuscleRole.STABILIZER -> FINISH_ROLE_STABILIZER_MULT
-                MuscleRole.NEUTRALIZER -> FINISH_ROLE_STABILIZER_MULT
+                MuscleRole.NEUTRALIZER -> 0.0
             }
+            if (roleMultiplier <= 0.0) return@forEach
             val weighted = effectiveSetCount * roleMultiplier
             result[muscleId] = (result[muscleId] ?: 0.0) + weighted
         }

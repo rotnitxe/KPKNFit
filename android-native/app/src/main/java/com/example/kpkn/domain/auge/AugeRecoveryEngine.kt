@@ -72,6 +72,12 @@ object AugeRecoveryEngine {
             supersetRestAfter = ex.supersetRestAfter,
         )
 
+    private fun involvedMusclesFor(
+        exercise: CompletedExercise,
+        info: ExerciseMuscleInfo?,
+    ): List<InvolvedMuscle> = exercise.effectiveMuscles?.takeIf { it.isNotEmpty() }
+        ?: info?.involvedMuscles.orEmpty()
+
     private fun normKey(s: String) = s
         .lowercase().trim()
         .replace("á","a").replace("é","e").replace("í","i")
@@ -322,8 +328,9 @@ object AugeRecoveryEngine {
 
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
+                val involvedMuscles = involvedMusclesFor(ex, dbInfo)
 
-                val involvement = dbInfo?.involvedMuscles?.find {
+                val involvement = involvedMuscles.find {
                     muscleMatchesCategory(it.muscle, muscleName)
                 } ?: return@forEach
 
@@ -441,14 +448,15 @@ object AugeRecoveryEngine {
 
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
-                val involvement = dbInfo?.involvedMuscles?.find {
+                val involvedMuscles = involvedMusclesFor(ex, dbInfo)
+                val involvement = involvedMuscles.find {
                     muscleMatchesCategory(it.muscle, muscleName)
                 }
 
                 val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo)
                 val densityMult = densityMultiplierForCompletedExercise(ex)
-                val primaryMuscle = dbInfo?.involvedMuscles
-                    ?.find { it.role == MuscleRole.PRIMARY }
+                val primaryMuscle = involvedMuscles
+                    .find { it.role == MuscleRole.PRIMARY }
                     ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
                     ?: "Core"
                 var accumulated = overallMuscleVolumeMap[primaryMuscle] ?: 0
@@ -569,14 +577,15 @@ object AugeRecoveryEngine {
 
         log.completedExercises.forEach { ex ->
             val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
-            val involvement = dbInfo?.involvedMuscles?.find {
+            val involvedMuscles = involvedMusclesFor(ex, dbInfo)
+            val involvement = involvedMuscles.find {
                 muscleMatchesCategory(it.muscle, muscleName)
             }
 
             val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo)
             val densityMult = densityMultiplierForCompletedExercise(ex)
-            val primaryMuscle = dbInfo?.involvedMuscles
-                ?.find { it.role == MuscleRole.PRIMARY }
+            val primaryMuscle = involvedMuscles
+                .find { it.role == MuscleRole.PRIMARY }
                 ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
                 ?: "Core"
             var accumulated = overallMuscleVolumeMap[primaryMuscle] ?: 0
@@ -663,8 +672,9 @@ object AugeRecoveryEngine {
 
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
-                val primaryMuscle = dbInfo?.involvedMuscles
-                    ?.find { it.role == MuscleRole.PRIMARY }
+                val involvedMuscles = involvedMusclesFor(ex, dbInfo)
+                val primaryMuscle = involvedMuscles
+                    .find { it.role == MuscleRole.PRIMARY }
                     ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
                     ?: "Core"
                 var accumulated = overallMuscleVolumeMap[primaryMuscle] ?: 0
@@ -837,8 +847,9 @@ object AugeRecoveryEngine {
 
             log.completedExercises.forEach { ex ->
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
-                val primaryMuscle = dbInfo?.involvedMuscles
-                    ?.find { it.role == MuscleRole.PRIMARY }
+                val involvedMuscles = involvedMusclesFor(ex, dbInfo)
+                val primaryMuscle = involvedMuscles
+                    .find { it.role == MuscleRole.PRIMARY }
                     ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
                     ?: "Core"
                 var accumulated = overallMuscleVolumeMap[primaryMuscle] ?: 0

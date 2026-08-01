@@ -366,7 +366,7 @@ class WorkoutSetRecorder(
             val newDeviations = plannedSet?.let {
                 WorkoutPlanDeviationSupport.detect(
                     exerciseId = exercise.id,
-                    exerciseName = exercise.name,
+                    exerciseName = displayWorkoutExerciseName(exercise),
                     setIdx = targetSetIdx,
                     plannedSet = it,
                     actualWeight = weight.coerceAtLeast(0.0),
@@ -530,7 +530,7 @@ class WorkoutSetRecorder(
                 val pendingSuggestion = PendingRestSuggestion(
                     plannedSeconds = effectivePlanned,
                     adaptiveSeconds = adjustedAdaptive.coerceAtLeast(10),
-                    exerciseName = exercise.name,
+                    exerciseName = displayWorkoutExerciseName(exercise),
                     exerciseId = exercise.id,
                     lastSet = completedSet,
                     advancedFeedback = advanced,

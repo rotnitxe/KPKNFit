@@ -31,7 +31,9 @@ object DiscomfortAggregationEngine {
                 ?: exerciseDb.values.firstOrNull { it.name.equals(exercise.exerciseName, ignoreCase = true) }
             if (dbInfo == null) continue
 
-            val relatedArticulars = dbInfo.involvedMuscles
+            val involvedMuscles = exercise.effectiveMuscles?.takeIf { it.isNotEmpty() }
+                ?: dbInfo.involvedMuscles
+            val relatedArticulars = involvedMuscles
                 .flatMap { im -> AugeTtcEngine.articularBatteriesFor(im.muscle, im.emphasis) }
                 .distinct()
 

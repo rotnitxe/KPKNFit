@@ -49,6 +49,7 @@ import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
+import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import kotlinx.coroutines.delay
 
 internal enum class WorkoutContinuityPhase {
@@ -104,10 +105,10 @@ internal fun buildWorkoutContinuityState(
         return WorkoutContinuityState(
             phase = WorkoutContinuityPhase.SUPERSET,
             eyebrow = blockLabel,
-            title = "Empalma con ${nextExercise.name}",
+            title = "Empalma con ${nextExercise.displayNameWithSelectedChips()}",
             body = "Superset en la misma ronda. Despues de cerrar aqui, sigues con Serie ${supersetTarget.second + 1}.",
             progressLabel = progressLabel,
-            nextExerciseName = nextExercise.name,
+            nextExerciseName = nextExercise.displayNameWithSelectedChips(),
             nextSetLabel = "Serie ${supersetTarget.second + 1}",
             accentHex = currentPart?.color,
             feedbackPrompt = feedbackPrompt,
@@ -121,13 +122,13 @@ internal fun buildWorkoutContinuityState(
             phase = WorkoutContinuityPhase.CURRENT_EXERCISE,
             eyebrow = blockLabel,
             title = if (remainingSets == 1) {
-                "Ultima serie para cerrar ${currentExercise.name}"
+                "Ultima serie para cerrar ${currentExercise.displayNameWithSelectedChips()}"
             } else {
-                "Quedan $remainingSets series en ${currentExercise.name}"
+                "Quedan $remainingSets series en ${currentExercise.displayNameWithSelectedChips()}"
             },
             body = "Mantienes el foco en ${currentPart?.name ?: session.name}. Ahora vas por Serie $currentSetNumber.",
             progressLabel = progressLabel,
-            nextExerciseName = currentExercise.name,
+            nextExerciseName = currentExercise.displayNameWithSelectedChips(),
             nextSetLabel = "Serie ${currentSetNumber + 1}",
             accentHex = currentPart?.color,
             feedbackPrompt = feedbackPrompt,
@@ -155,15 +156,15 @@ internal fun buildWorkoutContinuityState(
         title = if (entersNewBlock) {
             "Se abre ${nextPart.name}"
         } else {
-            "Sigue con ${nextExercise.name}"
+            "Sigue con ${nextExercise.displayNameWithSelectedChips()}"
         },
         body = if (entersNewBlock) {
-            "Cierras ${currentExercise.name} y entras al siguiente bloque con una transicion limpia."
+            "Cierras ${currentExercise.displayNameWithSelectedChips()} y entras al siguiente bloque con una transicion limpia."
         } else {
             "Despues de esta serie, el flujo continua sin salir del ritmo actual."
         },
         progressLabel = progressLabel,
-        nextExerciseName = nextExercise.name,
+        nextExerciseName = nextExercise.displayNameWithSelectedChips(),
         nextSetLabel = "Serie 1",
         accentHex = nextPart?.color ?: currentPart?.color,
         feedbackPrompt = feedbackPrompt,
@@ -187,7 +188,7 @@ internal fun buildWorkoutContinuityTransitionTarget(
         title = if (entersNewBlock) {
             "Entras a ${currentPart.name}"
         } else {
-            "Ahora sigue ${currentExercise.name}"
+            "Ahora sigue ${currentExercise.displayNameWithSelectedChips()}"
         },
         body = if (entersNewBlock) {
             "El flujo cambia de bloque, pero mantienes el ritmo de la sesión."

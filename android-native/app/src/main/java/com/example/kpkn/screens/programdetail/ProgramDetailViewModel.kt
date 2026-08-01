@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Exercise
@@ -211,6 +212,7 @@ class ProgramDetailViewModel(
         val completedVolumes = VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
             logs = logs,
             exerciseList = exerciseList,
+            aliases = EXERCISE_ID_ALIASES,
             weeksCount = p.volumeRecommendations.firstOrNull()?.let {
                 (logs.size / 3).coerceAtLeast(1)
             } ?: 1

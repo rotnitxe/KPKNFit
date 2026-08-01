@@ -242,6 +242,7 @@ internal fun WorkoutHeaderBar(
     isSuperset: Boolean = false,
     exerciseReadiness: ExerciseReadiness? = null,
     activeMainTags: List<WorkoutTag> = emptyList(),
+    activeMainTagLabels: Map<String, String> = emptyMap(),
     activeSubTags: List<WorkoutSubTag> = emptyList(),
     onTagClick: (String) -> Unit = {},
     onRemoveSubTag: (String) -> Unit = {},
@@ -428,7 +429,7 @@ internal fun WorkoutHeaderBar(
                                     horizontalArrangement = Arrangement.spacedBy(3.dp),
                                 ) {
                                     Text(
-                                        text = tag.name,
+                                        text = activeMainTagLabels[tag.id] ?: tag.name,
                                         style = MaterialTheme.typography.labelSmall,
                                         color = Color.White.copy(alpha = 0.9f),
                                         fontWeight = FontWeight.Black,

@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WorkoutLog
@@ -128,20 +129,7 @@ data class RatioMetric(
 
 object ProgramAnalyticsEngine {
 
-    private val trackedMuscles = listOf(
-        "Pectorales",
-        "Dorsales",
-        "Deltoides",
-        "Bíceps",
-        "Tríceps",
-        "Cuádriceps",
-        "Isquiosurales",
-        "Glúteos",
-        "Pantorrillas",
-        "Erectores Espinales",
-        "Core",
-        "Abdomen",
-    )
+    private val trackedMuscles = VolumeCalculator.standardVolumeMuscles.toList()
 
     private val tendonStructureKeywords = mapOf(
         "Rodilla" to listOf("cuadriceps", "sentadilla", "prensa", "zancada", "sissy"),
@@ -201,7 +189,7 @@ object ProgramAnalyticsEngine {
             val stabilityLabel = stabilityBucketLabel(stability)
             stabilityBuckets[stabilityLabel] = stabilityBuckets.orZero(stabilityLabel) + sets
             stabilityDemand += stability * sets
-            val relevantMuscles = row.info?.let { com.example.kpkn.domain.auge.SessionMuscleFilter.relevantMusclesFor(it) }.orEmpty()
+            val relevantMuscles = effectiveVolumeMuscles(row.exercise.effectiveMuscles, row.info)
             val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(relevantMuscles)
             contributions.forEach { (canonical, contribution) ->
                 setsByMuscle[canonical] = setsByMuscle.orZero(canonical) + sets * contribution
@@ -289,11 +277,7 @@ object ProgramAnalyticsEngine {
             }
             if (bodyPart == "upper") upper += sets
             if (bodyPart == "lower") lower += sets
-            val muscles = if (!row.exercise.effectiveMuscles.isNullOrEmpty()) {
-                row.exercise.effectiveMuscles!!
-            } else {
-                info.involvedMuscles
-            }
+            val muscles = effectiveVolumeMuscles(row.exercise.effectiveMuscles, info)
             muscles.forEach { muscle ->
                 val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
                 val contribution = resolveMuscleVolumeContribution(muscle)
@@ -347,7 +331,7 @@ object ProgramAnalyticsEngine {
             if (info.strapsRecommended == true || info.involvedMuscles.any { it.muscle.normalizeForAnalytics().contains("antebrazo") }) {
                 grip += sets * 1.0
             }
-            info.involvedMuscles.forEach { muscle ->
+            row.muscles.forEach { muscle ->
                 val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
                 val contribution = resolveMuscleVolumeContribution(muscle)
                 muscleStress[canonical] = muscleStress.orZero(canonical) + localStress * contribution
@@ -580,6 +564,7 @@ object ProgramAnalyticsEngine {
         val rpe: Double?,
         val dayLabel: String?,
         val info: ExerciseMuscleInfo?,
+        val muscles: List<InvolvedMuscle>,
     )
 
     private fun PlannedExerciseRow.asFatigueSource(): FatigueSourceRow =
@@ -588,6 +573,7 @@ object ProgramAnalyticsEngine {
             rpe = exercise.sets.mapNotNull { it.targetRPE }.averageOrNull(),
             dayLabel = dayOfWeek?.let(::dayLabel) ?: sessionName,
             info = info,
+            muscles = effectiveVolumeMuscles(exercise.effectiveMuscles, info),
         )
 
     private fun CompletedExerciseRow.asFatigueSource(): FatigueSourceRow =
@@ -596,7 +582,14 @@ object ProgramAnalyticsEngine {
             rpe = exercise.sets.mapNotNull { it.rpe }.averageOrNull(),
             dayLabel = log.sessionName.ifBlank { log.date.take(10) },
             info = info,
+            muscles = effectiveVolumeMuscles(exercise.effectiveMuscles, info),
         )
+
+    private fun effectiveVolumeMuscles(
+        effectiveMuscles: List<InvolvedMuscle>?,
+        info: ExerciseMuscleInfo?,
+    ): List<InvolvedMuscle> = (effectiveMuscles?.takeIf { it.isNotEmpty() } ?: info?.involvedMuscles.orEmpty())
+        .filter { it.role != MuscleRole.NEUTRALIZER }
 
     private fun Program.plannedExercises(): List<PlannedExerciseRow> =
         macrocycles.flatMap { it.blocks }

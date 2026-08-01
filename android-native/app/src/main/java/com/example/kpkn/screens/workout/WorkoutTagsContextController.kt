@@ -99,14 +99,15 @@ class WorkoutTagsContextController(
     fun setActiveContextProfile(exerciseId: String, profileId: String) {
         val profile = getState().contextProfilesV3[profileId] ?: return
         updateState {
-            val tagIds = if (profile.tagId != null) {
-                val existingTags = tagsForExercise(exerciseId)
-                val match = existingTags.firstOrNull { it.id == profile.tagId || it.name == profile.tagId }
-                if (match != null) listOf(match.id) else emptyList()
-            } else emptyList()
+            val existingTags = tagsForExercise(exerciseId)
+            val match = profile.tagId?.let { tagId ->
+                existingTags.firstOrNull { it.id == tagId || it.name == tagId }
+            }
+            val tagIds = match?.let { listOf(it.id) }.orEmpty()
+            val tagName = match?.name ?: profile.legacyTagName()
             it.copy(
                 activeContextProfileByExerciseId = it.activeContextProfileByExerciseId + (exerciseId to profileId),
-                exerciseTags = if (profile.tagId != null) it.exerciseTags + (exerciseId to profile.tagId) else it.exerciseTags,
+                exerciseTags = if (tagName != null) it.exerciseTags + (exerciseId to tagName) else it.exerciseTags,
                 activeTagsByExercise = if (tagIds.isNotEmpty()) it.activeTagsByExercise + (exerciseId to tagIds) else it.activeTagsByExercise,
             )
         }
@@ -125,11 +126,10 @@ class WorkoutTagsContextController(
         )
         repository.upsertContextProfile(updated)
         updateState {
-            val tagIds = if (updated.tagId != null && makeActive) {
-                val existingTags = tagsForExercise(exercise.id)
-                val match = existingTags.firstOrNull { it.id == updated.tagId || it.name == updated.tagId }
-                if (match != null) listOf(match.id) else emptyList()
-            } else emptyList()
+            val existingTags = tagsForExercise(exercise.id)
+            val match = updated.tagId?.let { tagId -> existingTags.firstOrNull { it.id == tagId || it.name == tagId } }
+            val tagIds = if (makeActive) match?.let { listOf(it.id) }.orEmpty() else emptyList()
+            val tagName = match?.name ?: updated.legacyTagName()
             it.copy(
                 contextProfilesV3 = it.contextProfilesV3 + (updated.id to updated),
                 activeContextProfileByExerciseId = if (makeActive) {
@@ -137,15 +137,9 @@ class WorkoutTagsContextController(
                 } else {
                     it.activeContextProfileByExerciseId
                 },
-                exerciseTags = if (updated.tagId != null) {
-                    val tagName = tagsForExercise(exercise.id)
-                        .firstOrNull { it.id == updated.tagId || it.name == updated.tagId }
-                        ?.name
-                        ?: updated.tagId
-                    it.exerciseTags + (exercise.id to tagName)
-                } else {
-                    it.exerciseTags
-                },
+                exerciseTags = tagName?.let { name ->
+                    it.exerciseTags + (exercise.id to name)
+                } ?: it.exerciseTags,
                 activeTagsByExercise = if (tagIds.isNotEmpty()) it.activeTagsByExercise + (exercise.id to tagIds) else it.activeTagsByExercise,
             )
         }
@@ -234,6 +228,7 @@ class WorkoutTagsContextController(
         val tagName = state.userCreatedTags[exKey].orEmpty().firstOrNull { it.id == tagId }?.name
         val existingForEx = state.userCreatedTags[exKey].orEmpty().filter { it.id != tagId }
         val profileId = profileForTag(exerciseId, tagId)?.id
+        val deletedProfileIds = setOfNotNull(profileId, "$exKey|tag|$tagId")
         repository.deleteContextProfile(profileId ?: "$exKey|tag|$tagId")
         if (profileId != null && profileId != "$exKey|tag|$tagId") {
             repository.deleteContextProfile("$exKey|tag|$tagId")
@@ -242,6 +237,8 @@ class WorkoutTagsContextController(
             it.copy(
                 userCreatedTags = it.userCreatedTags + (exKey to existingForEx),
                 contextProfilesV3 = it.contextProfilesV3 - listOfNotNull(profileId, "$exKey|tag|$tagId"),
+                activeContextProfileByExerciseId = it.activeContextProfileByExerciseId
+                    .filterValues { activeProfileId -> activeProfileId !in deletedProfileIds },
                 activeTagsByExercise = it.activeTagsByExercise.mapValues { (exId, tagIds) ->
                     if (exId == exerciseId) tagIds.filter { it != tagId } else tagIds
                 },
@@ -418,12 +415,10 @@ class WorkoutTagsContextController(
                     }
                     profile.setupDetails?.equipmentNotes?.let { add(WorkoutSubTag(name = it, category = SubTagCategory.SETUP)) }
                 }
+                val persistentName = profile.persistentTagName()
                 WorkoutTag(
                     id = profile.tagId ?: profile.id,
-                    name = workoutTagDisplayTitle(
-                        tagName = profile.setupLabel ?: profile.tagId,
-                        machineBrand = profile.machineBrand,
-                    ).ifBlank { "Migrado" },
+                    name = persistentName ?: "Migrado",
                     exerciseKey = profile.exerciseKey,
                     subTags = subTags,
                     createdAtIso = profile.createdAtIso ?: "",

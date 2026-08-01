@@ -211,7 +211,9 @@ object InterferenceEngine {
                     restTime        = ce.supersetRestBetween ?: ce.restTime,
                     weightUnit      = settings.weightUnit,
                 )
-                info.involvedMuscles.forEach { im ->
+                val involvedMuscles = ce.effectiveMuscles?.takeIf { it.isNotEmpty() }
+                    ?: info.involvedMuscles
+                involvedMuscles.forEach { im ->
                     val roleW = ROLE_DRAIN_WEIGHT[im.role] ?: 0.0
                     if (roleW > 0.0) {
                         val muscleKey = getAugeMusclePillarId(im.muscle, im.emphasis)
@@ -237,7 +239,9 @@ object InterferenceEngine {
         val usages = mutableMapOf<String, Double>()
         log.completedExercises.forEach { ce ->
             val info = resolveExercise(ce.exerciseDbId, ce.exerciseName, exerciseDb) ?: return@forEach
-            info.involvedMuscles.forEach { im ->
+            val involvedMuscles = ce.effectiveMuscles?.takeIf { it.isNotEmpty() }
+                ?: info.involvedMuscles
+            involvedMuscles.forEach { im ->
                 val roleW = ROLE_DRAIN_WEIGHT[im.role] ?: 0.0
                 if (roleW > 0.0) {
                     val muscleKey = getAugeMusclePillarId(im.muscle, im.emphasis)
@@ -303,7 +307,11 @@ object InterferenceEngine {
             involvedMuscles.forEach { im ->
                 val roleW = ROLE_DRAIN_WEIGHT[im.role] ?: 0.0
                 if (roleW > 0.0) {
-                    usages[im.muscle] = maxOf(usages[im.muscle] ?: 0.0, roleW)
+                    // Drains and usages must share the AUGE pillar key. Raw
+                    // chip names such as "Glúteo Mayor" otherwise miss
+                    // planned/logged "Glúteos" in the intersection.
+                    val muscleKey = getAugeMusclePillarId(im.muscle, im.emphasis)
+                    usages[muscleKey] = maxOf(usages[muscleKey] ?: 0.0, roleW)
                 }
             }
         }

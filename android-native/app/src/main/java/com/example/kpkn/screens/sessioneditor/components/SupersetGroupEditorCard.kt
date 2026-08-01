@@ -53,6 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.PART_COLORS
 import com.example.kpkn.screens.sessioneditor.resolvePartAccent
@@ -215,7 +216,7 @@ internal fun SupersetGroupEditorCard(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
                             Text(
-                                exercise.name,
+                                exercise.displayNameWithSelectedChips(),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,

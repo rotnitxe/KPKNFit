@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.workout.BaseLoadPolicy
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.data.models.WorkoutContextProfile
@@ -288,11 +289,9 @@ class WorkoutLoadSuggestionController(
             else -> "Del programa"
         }
 
-        val dbInfo = EXERCISE_DATABASE_BY_ID[exerciseDbId]
-        val involvedMuscleIds = dbInfo?.involvedMuscles
-            ?.filter { resolveMuscleVolumeContribution(it) > 0.0 }
-            ?.mapNotNull { getAugeMusclePillarId(it.muscle, it.emphasis) }
-            ?: emptyList()
+        val involvedMuscleIds = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, EXERCISE_DATABASE_BY_ID)
+            .filter { resolveMuscleVolumeContribution(it) > 0.0 }
+            .map { getAugeMusclePillarId(it.muscle, it.emphasis) }
 
         val readinessFactor = WorkoutAutoRegulation.computeReadinessAdjustmentFactor(
             readinessNeural = state.readinessNeuralOverride,

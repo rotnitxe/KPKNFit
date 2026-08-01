@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.AspectOption
+import com.example.kpkn.data.models.TechnicalAspect
 import com.example.kpkn.domain.exercises.ExerciseCatalogSort
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -45,5 +47,31 @@ class ExercisePickerCatalogSearchRegressionTest {
         )
 
         assertEquals(listOf(curlFemoral.id), results.map { it.id })
+    }
+
+    @Test
+    fun variant_search_returns_the_canonical_parent() {
+        val canonical = curlFemoral.copy(
+            id = "biceps_curl_de_pie",
+            name = "Curl de Bíceps de Pie",
+            technicalAspects = listOf(
+                TechnicalAspect(
+                    id = "grip_type",
+                    name = "Tipo de agarre",
+                    defaultOptionId = "supino",
+                    options = listOf(
+                        AspectOption("supino", "Supino"),
+                        AspectOption("martillo", "Martillo"),
+                    ),
+                ),
+            ),
+        )
+        val results = filterAndSortExerciseCatalog(
+            fullCatalog = listOf(canonical),
+            normalizedQuery = "Curl Martillo",
+            sortMode = ExerciseCatalogSort.NAME,
+        )
+
+        assertEquals(listOf(canonical.id), results.map { it.id })
     }
 }

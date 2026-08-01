@@ -1,0 +1,378 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preBaseDebugBuild UP-TO-DATE
+> Task :app:compileBaseDebugAidl UP-TO-DATE
+> Task :app:generateBaseDebugBuildConfig UP-TO-DATE
+> Task :app:generateBaseDebugResources UP-TO-DATE
+> Task :app:packageBaseDebugResources UP-TO-DATE
+> Task :app:processBaseDebugNavigationResources UP-TO-DATE
+> Task :app:parseBaseDebugLocalResources UP-TO-DATE
+> Task :app:generateBaseDebugRFile UP-TO-DATE
+> Task :app:kspBaseDebugKotlin UP-TO-DATE
+
+> Task :app:compileBaseDebugKotlin
+Unable to release compile session, maybe daemon is already down
+java.rmi.ConnectException: Connection refused to host: 127.0.0.1; nested exception is: 
+	java.net.ConnectException: Connection refused: connect
+	at java.rmi/sun.rmi.transport.tcp.TCPEndpoint.newSocket(TCPEndpoint.java:625)
+	at java.rmi/sun.rmi.transport.tcp.TCPChannel.createConnection(TCPChannel.java:217)
+	at java.rmi/sun.rmi.transport.tcp.TCPChannel.newConnection(TCPChannel.java:204)
+	at java.rmi/sun.rmi.server.UnicastRef.invoke(UnicastRef.java:134)
+	at java.rmi/java.rmi.server.RemoteObjectInvocationHandler.invokeRemoteMethod(RemoteObjectInvocationHandler.java:215)
+	at java.rmi/java.rmi.server.RemoteObjectInvocationHandler.invoke(RemoteObjectInvocationHandler.java:160)
+	at jdk.proxy4/jdk.proxy4.$Proxy134.releaseCompileSession(Unknown Source)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.compileWithDaemon(GradleKotlinCompilerWork.kt:261)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.compileWithDaemonOrFallbackImpl(GradleKotlinCompilerWork.kt:159)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.run(GradleKotlinCompilerWork.kt:111)
+	at org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction.execute(GradleCompilerRunnerWithWorkers.kt:74)
+	at org.gradle.workers.internal.DefaultWorkerServer.execute(DefaultWorkerServer.java:68)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:64)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:61)
+	at org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader(ClassLoaderUtils.java:102)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.lambda$execute$0(NoIsolationWorkerFactory.java:61)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:44)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:41)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:210)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:205)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+	at org.gradle.workers.internal.AbstractWorker.executeWrappedInBuildOperation(AbstractWorker.java:41)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.execute(NoIsolationWorkerFactory.java:58)
+	at org.gradle.workers.internal.DefaultWorkerExecutor.lambda$submitWork$0(DefaultWorkerExecutor.java:176)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runExecution(DefaultConditionalExecutionQueue.java:194)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.access$700(DefaultConditionalExecutionQueue.java:127)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner$1.run(DefaultConditionalExecutionQueue.java:169)
+	at org.gradle.internal.Factories$1.create(Factories.java:30)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.lambda$withLocksAcquired$0(DefaultWorkerLeaseService.java:275)
+	at org.gradle.internal.work.ResourceLockStatistics$1.measure(ResourceLockStatistics.java:43)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocksAcquired(DefaultWorkerLeaseService.java:273)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:265)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:128)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:133)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runBatch(DefaultConditionalExecutionQueue.java:164)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.run(DefaultConditionalExecutionQueue.java:133)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.net.ConnectException: Connection refused: connect
+	at java.base/sun.nio.ch.Net.connect0(Native Method)
+	at java.base/sun.nio.ch.Net.connect(Net.java:589)
+	at java.base/sun.nio.ch.Net.connect(Net.java:578)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:583)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at java.base/java.net.Socket.connect(Socket.java:686)
+	at java.base/java.net.Socket.<init>(Socket.java:555)
+	at java.base/java.net.Socket.<init>(Socket.java:356)
+	at org.jetbrains.kotlin.daemon.common.LoopbackNetworkInterface$ClientLoopbackSocketFactory.socketCreate(NetworkUtils.kt:94)
+	at org.jetbrains.kotlin.daemon.common.LoopbackNetworkInterface$ClientLoopbackSocketFactory.socketCreate(NetworkUtils.kt:93)
+	at org.jetbrains.kotlin.daemon.common.LoopbackNetworkInterface$AbstractClientLoopbackSocketFactory.createSocket(NetworkUtils.kt:83)
+	at org.jetbrains.kotlin.daemon.common.LoopbackNetworkInterface$ClientLoopbackSocketFactory.createSocket(NetworkUtils.kt:93)
+	at java.rmi/sun.rmi.transport.tcp.TCPEndpoint.newSocket(TCPEndpoint.java:619)
+	... 47 more
+e: Daemon compilation failed: Connection to the Kotlin daemon has been unexpectedly lost. This might be caused by the daemon being killed by another process or the operating system, or by JVM crash.
+org.jetbrains.kotlin.gradle.tasks.DaemonCrashedException: Connection to the Kotlin daemon has been unexpectedly lost. This might be caused by the daemon being killed by another process or the operating system, or by JVM crash.
+	at org.jetbrains.kotlin.gradle.tasks.TasksUtilsKt.wrapCompilationExceptionIfNeeded(tasksUtils.kt:54)
+	at org.jetbrains.kotlin.gradle.tasks.TasksUtilsKt.wrapAndRethrowCompilationException(tasksUtils.kt:65)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.compileWithDaemon(GradleKotlinCompilerWork.kt:243)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.compileWithDaemonOrFallbackImpl(GradleKotlinCompilerWork.kt:159)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.run(GradleKotlinCompilerWork.kt:111)
+	at org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction.execute(GradleCompilerRunnerWithWorkers.kt:74)
+	at org.gradle.workers.internal.DefaultWorkerServer.execute(DefaultWorkerServer.java:68)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:64)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:61)
+	at org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader(ClassLoaderUtils.java:102)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.lambda$execute$0(NoIsolationWorkerFactory.java:61)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:44)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:41)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:210)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:205)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+	at org.gradle.workers.internal.AbstractWorker.executeWrappedInBuildOperation(AbstractWorker.java:41)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.execute(NoIsolationWorkerFactory.java:58)
+	at org.gradle.workers.internal.DefaultWorkerExecutor.lambda$submitWork$0(DefaultWorkerExecutor.java:176)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runExecution(DefaultConditionalExecutionQueue.java:194)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.access$700(DefaultConditionalExecutionQueue.java:127)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner$1.run(DefaultConditionalExecutionQueue.java:169)
+	at org.gradle.internal.Factories$1.create(Factories.java:30)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.lambda$withLocksAcquired$0(DefaultWorkerLeaseService.java:275)
+	at org.gradle.internal.work.ResourceLockStatistics$1.measure(ResourceLockStatistics.java:43)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocksAcquired(DefaultWorkerLeaseService.java:273)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:265)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:128)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:133)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runBatch(DefaultConditionalExecutionQueue.java:164)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.run(DefaultConditionalExecutionQueue.java:133)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.rmi.UnmarshalException: Error unmarshaling return header; nested exception is: 
+	java.net.SocketException: Connection reset
+	at java.rmi/sun.rmi.transport.StreamRemoteCall.executeCall(StreamRemoteCall.java:255)
+	at java.rmi/sun.rmi.server.UnicastRef.invoke(UnicastRef.java:166)
+	at java.rmi/java.rmi.server.RemoteObjectInvocationHandler.invokeRemoteMethod(RemoteObjectInvocationHandler.java:215)
+	at java.rmi/java.rmi.server.RemoteObjectInvocationHandler.invoke(RemoteObjectInvocationHandler.java:160)
+	at jdk.proxy4/jdk.proxy4.$Proxy134.compile(Unknown Source)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.incrementalCompilationWithDaemon(GradleKotlinCompilerWork.kt:328)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.compileWithDaemon(GradleKotlinCompilerWork.kt:235)
+	... 40 more
+Caused by: java.net.SocketException: Connection reset
+	at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:318)
+	at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:346)
+	at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:796)
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:1099)
+	at java.base/java.io.BufferedInputStream.fill(BufferedInputStream.java:291)
+	at java.base/java.io.BufferedInputStream.implRead(BufferedInputStream.java:325)
+	at java.base/java.io.BufferedInputStream.read(BufferedInputStream.java:312)
+	at java.base/java.io.DataInputStream.readUnsignedByte(DataInputStream.java:295)
+	at java.base/java.io.DataInputStream.readByte(DataInputStream.java:275)
+	at java.rmi/sun.rmi.transport.StreamRemoteCall.executeCall(StreamRemoteCall.java:241)
+	... 46 more
+
+Failed to compile with Kotlin daemon: org.jetbrains.kotlin.gradle.tasks.DaemonCrashedException: Connection to the Kotlin daemon has been unexpectedly lost. This might be caused by the daemon being killed by another process or the operating system, or by JVM crash.
+	at org.jetbrains.kotlin.gradle.tasks.TasksUtilsKt.wrapCompilationExceptionIfNeeded(tasksUtils.kt:54)
+	at org.jetbrains.kotlin.gradle.tasks.TasksUtilsKt.wrapAndRethrowCompilationException(tasksUtils.kt:65)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.compileWithDaemon(GradleKotlinCompilerWork.kt:243)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.compileWithDaemonOrFallbackImpl(GradleKotlinCompilerWork.kt:159)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.run(GradleKotlinCompilerWork.kt:111)
+	at org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction.execute(GradleCompilerRunnerWithWorkers.kt:74)
+	at org.gradle.workers.internal.DefaultWorkerServer.execute(DefaultWorkerServer.java:68)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:64)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:61)
+	at org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader(ClassLoaderUtils.java:102)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.lambda$execute$0(NoIsolationWorkerFactory.java:61)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:44)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:41)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:210)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:205)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+	at org.gradle.workers.internal.AbstractWorker.executeWrappedInBuildOperation(AbstractWorker.java:41)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.execute(NoIsolationWorkerFactory.java:58)
+	at org.gradle.workers.internal.DefaultWorkerExecutor.lambda$submitWork$0(DefaultWorkerExecutor.java:176)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runExecution(DefaultConditionalExecutionQueue.java:194)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.access$700(DefaultConditionalExecutionQueue.java:127)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner$1.run(DefaultConditionalExecutionQueue.java:169)
+	at org.gradle.internal.Factories$1.create(Factories.java:30)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.lambda$withLocksAcquired$0(DefaultWorkerLeaseService.java:275)
+	at org.gradle.internal.work.ResourceLockStatistics$1.measure(ResourceLockStatistics.java:43)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocksAcquired(DefaultWorkerLeaseService.java:273)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:265)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:128)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:133)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runBatch(DefaultConditionalExecutionQueue.java:164)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.run(DefaultConditionalExecutionQueue.java:133)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.rmi.UnmarshalException: Error unmarshaling return header; nested exception is: 
+	java.net.SocketException: Connection reset
+	at java.rmi/sun.rmi.transport.StreamRemoteCall.executeCall(StreamRemoteCall.java:255)
+	at java.rmi/sun.rmi.server.UnicastRef.invoke(UnicastRef.java:166)
+	at java.rmi/java.rmi.server.RemoteObjectInvocationHandler.invokeRemoteMethod(RemoteObjectInvocationHandler.java:215)
+	at java.rmi/java.rmi.server.RemoteObjectInvocationHandler.invoke(RemoteObjectInvocationHandler.java:160)
+	at jdk.proxy4/jdk.proxy4.$Proxy134.compile(Unknown Source)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.incrementalCompilationWithDaemon(GradleKotlinCompilerWork.kt:328)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.compileWithDaemon(GradleKotlinCompilerWork.kt:235)
+	... 40 more
+Caused by: java.net.SocketException: Connection reset
+	at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:318)
+	at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:346)
+	at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:796)
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:1099)
+	at java.base/java.io.BufferedInputStream.fill(BufferedInputStream.java:291)
+	at java.base/java.io.BufferedInputStream.implRead(BufferedInputStream.java:325)
+	at java.base/java.io.BufferedInputStream.read(BufferedInputStream.java:312)
+	at java.base/java.io.DataInputStream.readUnsignedByte(DataInputStream.java:295)
+	at java.base/java.io.DataInputStream.readByte(DataInputStream.java:275)
+	at java.rmi/sun.rmi.transport.StreamRemoteCall.executeCall(StreamRemoteCall.java:241)
+	... 46 more
+Using fallback strategy: Compile without Kotlin daemon
+Try ./gradlew --stop if this issue persists
+If it does not look related to your configuration, please file an issue with logs to https://kotl.in/issue
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:159:25: error: unresolved reference 'PostSessionPreview'.
+exception:     postSessionPreview: PostSessionPreview,
+exception:                         ^^^^^^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:176:41: error: unresolved reference 'neural'.
+exception:     val neuralSeed = postSessionPreview.neural.coerceIn(0, 100)
+exception:                                         ^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:177:41: error: unresolved reference 'spinal'.
+exception:     val spinalSeed = postSessionPreview.spinal.coerceIn(0, 100)
+exception:                                         ^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:178:22: error: cannot infer type for this parameter. Specify it explicitly.
+exception:     val muscleSeed = remember(postSessionPreview.perMuscle) {
+exception:                      ^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:178:22: error: not enough information to infer type argument for 'T'.
+exception:     val muscleSeed = remember(postSessionPreview.perMuscle) {
+exception:                      ^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:178:50: error: unresolved reference 'perMuscle'.
+exception:     val muscleSeed = remember(postSessionPreview.perMuscle) {
+exception:                                                  ^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:179:28: error: unresolved reference 'perMuscle'.
+exception:         postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
+exception:                            ^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:179:38: error: cannot infer type for this parameter. Specify it explicitly.
+exception:         postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
+exception:                                      ^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:179:38: error: not enough information to infer type argument for 'K'.
+exception:         postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
+exception:                                      ^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:179:38: error: not enough information to infer type argument for 'V'.
+exception:         postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
+exception:                                      ^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:179:59: error: unresolved reference 'recoveryScore'.
+exception:         postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
+exception:                                                           ^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:193:36: error: unresolved reference 'muscular'.
+exception:                 postSessionPreview.muscular
+exception:                                    ^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:482:68: error: unresolved reference 'perMuscle'.
+exception:                                     val start = postSessionPreview.perMuscle[muscleId]?.recoveryScore?.coerceIn(0, 100) ?: 100
+exception:                                                                    ^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:482:89: error: unresolved reference 'recoveryScore'.
+exception:                                     val start = postSessionPreview.perMuscle[muscleId]?.recoveryScore?.coerceIn(0, 100) ?: 100
+exception:                                                                                         ^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:815:44: error: unresolved reference 'globalMuscularDrain'.
+exception:                         postSessionPreview.globalMuscularDrain.toDouble()
+exception:                                            ^^^^^^^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:819:64: error: unresolved reference 'perMuscle'.
+exception:                                 val start = postSessionPreview.perMuscle[muscle]?.recoveryScore ?: 100
+exception:                                                                ^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:819:83: error: unresolved reference 'recoveryScore'.
+exception:                                 val start = postSessionPreview.perMuscle[muscle]?.recoveryScore ?: 100
+exception:                                                                                   ^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:825:76: error: unresolved reference 'globalMuscularDrain'.
+exception:                         perceivedMuscularDrop.toInt() - postSessionPreview.globalMuscularDrain
+exception:                                                                            ^^^^^^^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:840:52: error: unresolved reference 'neural'.
+exception:                                 postSessionPreview.neural - neuralFinal
+exception:                                                    ^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutFinishHost.kt:844:52: error: unresolved reference 'spinal'.
+exception:                                 postSessionPreview.spinal - spinalFinal
+exception:                                                    ^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:882:32: error: property delegate must have a 'getValue(Nothing?, KProperty0<*>)' method. None of the following functions is applicable:
+exception: fun FloatState.getValue(thisObj: Any?, property: KProperty<*>): Float
+exception: fun DoubleState.getValue(thisObj: Any?, property: KProperty<*>): Double
+exception: fun IntState.getValue(thisObj: Any?, property: KProperty<*>): Int
+exception: fun LongState.getValue(thisObj: Any?, property: KProperty<*>): Long
+exception: fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+exception:         val postSessionPreview by produceState<PostSessionPreview>(
+exception:                                ^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:882:48: error: unresolved reference 'PostSessionPreview'.
+exception:         val postSessionPreview by produceState<PostSessionPreview>(
+exception:                                                ^^^^^^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:883:28: error: unresolved reference 'PostSessionPreview'.
+exception:             initialValue = PostSessionPreview(
+exception:                            ^^^^^^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:887:59: error: cannot infer type for this parameter. Specify it explicitly.
+exception:                 perMuscle = finishMuscleStartingBatteries.mapValues { (muscle, start) ->
+exception:                                                           ^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:888:21: error: unresolved reference 'MuscleRecoveryStatus'.
+exception:                     MuscleRecoveryStatus(
+exception:                     ^^^^^^^^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:901:20: error: argument type mismatch: actual type is 'List<CompletedExercise>', but 'Any?' was expected.
+exception:             key1 = completedExercisesForSummary,
+exception:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:902:20: error: argument type mismatch: actual type is 'Int', but 'Any?' was expected.
+exception:             key2 = duration,
+exception:                    ^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:903:20: error: argument type mismatch: actual type is 'Settings', but 'Any?' was expected.
+exception:             key3 = settings,
+exception:                    ^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:904:11: error: argument type mismatch: actual type is 'SuspendFunction1<ProduceStateScope<uninferred T (of fun <T> produceState)>, Unit>', but 'SuspendFunction1<ProduceStateScope<uninferred T (of fun <T> produceState)>, Unit>' was expected.
+exception:         ) {
+exception:           ^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:906:38: error: argument type mismatch: actual type is 'List<CompletedExercise>', but 'List<CompletedExercise>' was expected.
+exception:                 completedExercises = completedExercisesForSummary,
+exception:                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:907:35: error: argument type mismatch: actual type is 'Int', but 'Int' was expected.
+exception:                 durationMinutes = duration,
+exception:                                   ^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:908:28: error: argument type mismatch: actual type is 'Settings', but 'Settings' was expected.
+exception:                 settings = settings,
+exception:                            ^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:951:71: error: unresolved reference 'perMuscle'.
+exception:                             val predictedMuscles = postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
+exception:                                                                       ^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:951:81: error: cannot infer type for this parameter. Specify it explicitly.
+exception:                             val predictedMuscles = postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
+exception:                                                                                 ^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:951:102: error: unresolved reference 'recoveryScore'.
+exception:                             val predictedMuscles = postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
+exception:                                                                                                      ^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:969:70: error: unresolved reference 'globalCnsDrain'.
+exception:                                 sessionCnsDrain = postSessionPreview.globalCnsDrain.toDouble(),
+exception:                                                                      ^^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:970:73: error: unresolved reference 'globalSpinalDrain'.
+exception:                                 sessionSpinalDrain = postSessionPreview.globalSpinalDrain.toDouble(),
+exception:                                                                         ^^^^^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:971:73: error: unresolved reference 'globalMuscularDrain'.
+exception:                                 sessionMuscleDrain = postSessionPreview.globalMuscularDrain.toDouble(),
+exception:                                                                         ^^^^^^^^^^^^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:972:77: error: unresolved reference 'neural'.
+exception:                                 predictedNeuralBattery = postSessionPreview.neural,
+exception:                                                                             ^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutScreen.kt:973:77: error: unresolved reference 'spinal'.
+exception:                                 predictedSpinalBattery = postSessionPreview.spinal,
+exception:                                                                             ^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutViewModel.kt:359:21: error: class '<anonymous>' is not abstract and does not implement abstract member:
+exception: fun isSetDone(completedSets: Map<String, ERROR CLASS: Symbol not found for CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean): Boolean
+exception:             ports = object : WorkoutVoiceCommandHandler.Ports {
+exception:                     ^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutViewModel.kt:362:17: error: 'isSetDone' overrides nothing. Potential signatures for overriding:
+exception: fun isSetDone(completedSets: Map<String, ERROR CLASS: Symbol not found for CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean): Boolean
+exception:                 override fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean) =
+exception:                 ^^^^^^^^
+exception: app\src\main\java\com\example\kpkn\screens\workout\WorkoutVoiceCommandHandler.kt:58:50: error: unresolved reference 'CompletedSet'.
+exception:         fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean): Boolean
+exception:                                                  ^^^^^^^^^^^^
+
+> Task :app:compileBaseDebugKotlin FAILED
+w: Detected multiple Kotlin daemon sessions at 
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileBaseDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 16s
+9 actionable tasks: 1 executed, 8 up-to-date

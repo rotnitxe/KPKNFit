@@ -32,6 +32,16 @@ class WorkoutBackNavigationTest {
             ),
         )
     }
+    @Test
+    fun contextTabDismissesBeforeExit() {
+        assertEquals(
+            WorkoutBackAction.DISMISS_DRAWER,
+            resolveWorkoutBackAction(
+                WorkoutOverlayFlags(hasContextTabOpen = true),
+            ),
+        )
+    }
+
 
     @Test
     fun finishBeatsDrawer() {

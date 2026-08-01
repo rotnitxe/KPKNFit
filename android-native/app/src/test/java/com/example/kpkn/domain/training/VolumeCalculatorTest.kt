@@ -47,6 +47,75 @@ class VolumeCalculatorTest {
             weight = weight,
         )
 
+    @Test
+    fun roleSeparatedVolume_counts_stabilizers_as_indirect_without_ssc_gate() {
+        val info = ExerciseMuscleInfo(
+            id = "knee_control",
+            name = "Control de Rodilla",
+            ssc = 0.0,
+            involvedMuscles = listOf(
+                InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY, 1.0),
+                InvolvedMuscle("Glúteos", MuscleRole.STABILIZER, 0.4, "medio"),
+            ),
+        )
+        val session = makeSession("stability", listOf(makeExercise("knee_control", listOf(makeSet(), makeSet()))))
+
+        val result = VolumeCalculator.calculateRoleSeparatedMuscleVolume(listOf(session), listOf(info))
+
+        assertEquals(2.0, result["Cuádriceps"]?.directSets ?: 0.0, 0.01)
+        assertEquals(0.8, result["Glúteos"]?.indirectSets ?: 0.0, 0.01)
+    }
+
+    @Test
+    fun roleSeparatedVolume_uses_chip_effective_muscles_and_collapses_tensor_into_glutes() {
+        val info = ExerciseMuscleInfo(
+            id = "hip_variant",
+            name = "Bisagra",
+            involvedMuscles = listOf(InvolvedMuscle("Isquiosurales", MuscleRole.PRIMARY, 1.0)),
+        )
+        val exercise = makeExercise("hip_variant", listOf(makeSet())).copy(
+            effectiveMuscles = listOf(InvolvedMuscle("Tensor Fascia Lata", MuscleRole.STABILIZER, 0.4)),
+        )
+
+        val result = VolumeCalculator.calculateRoleSeparatedMuscleVolume(
+            sessions = listOf(makeSession("hip", listOf(exercise))),
+            exerciseList = listOf(info),
+        )
+
+        assertEquals(0.4, result["Glúteos"]?.indirectSets ?: 0.0, 0.01)
+        assertFalse(result.containsKey("Tensor Fascia Lata"))
+    }
+
+    @Test
+    fun unifiedVolume_includes_loose_exercises_when_session_also_has_parts() {
+        val loose = makeExercise("squat", listOf(makeSet()))
+        val grouped = makeExercise("bench", listOf(makeSet()))
+        val session = Session(
+            id = "mixed",
+            name = "Mixed",
+            exercises = listOf(loose),
+            parts = listOf(SessionPart("p1", "Grupo", listOf(grouped))),
+        )
+
+        val result = VolumeCalculator.calculateUnifiedMuscleVolume(listOf(session), exerciseDb)
+
+        assertEquals(1.0, result.first { it.muscleName == "Cuádriceps" }.displayVolume, 0.01)
+        assertEquals(1.0, result.first { it.muscleName == "Pectorales" }.displayVolume, 0.01)
+    }
+
+    @Test
+    fun unifiedVolume_resolves_legacy_alias_ids() {
+        val session = makeSession("alias", listOf(makeExercise("legacy_squat", listOf(makeSet(), makeSet()))))
+
+        val result = VolumeCalculator.calculateUnifiedMuscleVolume(
+            sessions = listOf(session),
+            exerciseList = exerciseDb,
+            aliases = mapOf("legacy_squat" to "squat"),
+        )
+
+        assertEquals(2.0, result.first { it.muscleName == "Cuádriceps" }.displayVolume, 0.01)
+    }
+
     // ─── normalizeMuscleGroup ───
 
     @Test
@@ -527,17 +596,18 @@ class VolumeCalculatorTest {
         val glutes = result.find { it.muscleName == "Glúteos" }
         assertNull("Glúteos as NEUTRALIZER must NOT appear in plank volume", glutes)
         val quads = result.find { it.muscleName == "Cuádriceps" }
-        assertNull("Cuádriceps STABILIZER with SSC<1.5 must NOT appear", quads)
+        assertEquals("Cuádriceps stabilizer counts as indirect volume", 1.2, quads!!.displayVolume, 0.01)
         val core = result.find { it.muscleName == "Core" }
         assertNotNull(core)
         assertEquals(3.0, core!!.displayVolume, 0.01)
     }
 
     /**
-     * Estabilizador en ejercicio de baja carga axial (SSC < 1.5) debe excluirse.
+     * Estabilizador en ejercicio de baja carga axial (SSC < 1.5) cuenta como
+     * volumen indirecto; el SSC no filtra el volumen.
      */
     @Test
-    fun lowSsc_stabilizer_excluded() {
+    fun lowSsc_stabilizer_counts_as_indirect_volume() {
         val shoulderPressMuscles = listOf(
             InvolvedMuscle("Deltoides", MuscleRole.PRIMARY, 1.0),
             InvolvedMuscle("Trapecio", MuscleRole.STABILIZER, 0.4),
@@ -548,7 +618,7 @@ class VolumeCalculatorTest {
         val result = VolumeCalculator.calculateUnifiedMuscleVolume(listOf(session), db)
 
         val traps = result.find { it.muscleName == "Trapecio" }
-        assertNull("Trapecio STABILIZER with SSC=0.9 must be excluded", traps)
+        assertEquals("Trapecio stabilizer counts regardless of SSC", 1.2, traps!!.displayVolume, 0.01)
         val delts = result.find { it.muscleName == "Deltoides" }
         assertNotNull(delts)
         assertEquals(3.0, delts!!.displayVolume, 0.01)

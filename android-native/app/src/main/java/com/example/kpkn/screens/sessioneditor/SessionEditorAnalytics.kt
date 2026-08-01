@@ -203,6 +203,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE
 import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.buildExerciseCatalogLookup
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.sessions.SessionTemplate
@@ -458,32 +459,31 @@ internal data class MuscleVolumeRow(
 )
 
 internal fun buildMuscleVolumeRows(session: Session): List<MuscleVolumeRow> {
+    val volumes = VolumeCalculator.calculateRoleSeparatedMuscleVolume(
+        sessions = listOf(session),
+        exerciseList = EXERCISE_DATABASE,
+        aliases = EXERCISE_ID_ALIASES,
+    )
     val exerciseIndex = catalogIndexForVolume
-    val direct = mutableMapOf<String, Double>()
-    val indirect = mutableMapOf<String, Double>()
     val intensitySets = mutableMapOf<String, MutableList<com.example.kpkn.data.models.ExerciseSet>>()
 
     session.allExercises().forEach { exercise ->
-        val effectiveSets = countDisplaySets(exercise.sets, adjustByIntensity = false)
-        if (effectiveSets <= 0.0) return@forEach
-        val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: return@forEach
-        val primary = buildDisplayContributions(dbInfo.involvedMuscles, countIndirect = false)
-        val secondary = buildDisplayContributions(dbInfo.involvedMuscles, countIndirect = true)
-        primary.forEach { (muscle, mult) ->
-            direct[muscle] = (direct[muscle] ?: 0.0) + effectiveSets * mult
-            intensitySets.getOrPut(muscle) { mutableListOf() }.addAll(exercise.sets.filterNot { it.isIneffective })
-        }
-        secondary.forEach { (muscle, mult) ->
-            indirect[muscle] = (indirect[muscle] ?: 0.0) + effectiveSets * mult
-        }
+        if (VolumeCalculator.countEffectiveSets(exercise.sets) <= 0) return@forEach
+        val muscles = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
+        muscles.filter { it.role == MuscleRole.PRIMARY }
+            .map { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) }
+            .distinct()
+            .forEach { muscle ->
+                intensitySets.getOrPut(muscle) { mutableListOf() }
+                    .addAll(exercise.sets.filterNot { it.isIneffective })
+            }
     }
 
-    val muscles = (direct.keys + indirect.keys).toSet()
-    return muscles.map { muscle ->
+    return volumes.map { (muscle, volume) ->
         MuscleVolumeRow(
             muscle = muscle,
-            directSets = direct[muscle] ?: 0.0,
-            indirectSets = indirect[muscle] ?: 0.0,
+            directSets = volume.directSets,
+            indirectSets = volume.indirectSets,
             intensity = averageSessionIntensityTier(intensitySets[muscle].orEmpty()),
         )
     }.filter { it.directSets > 0.0 || it.indirectSets > 0.0 }
@@ -491,7 +491,7 @@ internal fun buildMuscleVolumeRows(session: Session): List<MuscleVolumeRow> {
 }
 
 private val catalogIndexForVolume: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo> by lazy {
-    EXERCISE_DATABASE.associateBy { it.id.lowercase() }
+    buildExerciseCatalogLookup(EXERCISE_DATABASE)
 }
 
 internal fun buildDisplayContributions(
@@ -553,9 +553,9 @@ internal fun calculateSubMuscleBreakdown(
     session.allExercises().forEach { exercise ->
         val effectiveSets = countDisplaySets(exercise.sets, adjustByIntensity)
         if (effectiveSets <= 0.0) return@forEach
-        val dbInfo = exercise.exerciseDbId?.let { exerciseIndex[it.lowercase()] } ?: return@forEach
-        
-        dbInfo.involvedMuscles.forEach { involvement ->
+        val musclesToCount = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
+
+        musclesToCount.forEach { involvement ->
             val isMatch = if (countIndirect) {
                 involvement.role == com.example.kpkn.data.models.MuscleRole.SECONDARY || involvement.role == com.example.kpkn.data.models.MuscleRole.STABILIZER
             } else {

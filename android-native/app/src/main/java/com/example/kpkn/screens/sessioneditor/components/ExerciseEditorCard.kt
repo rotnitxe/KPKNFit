@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -162,6 +163,9 @@ internal fun ExerciseEditorCard(
     }
     val accent = remember(accentHex) { resolvePartAccent(accentHex) }
     val accentColor = accent.primary
+    val displayParts = remember(exercise, exerciseInfo) {
+        exerciseDisplayParts(exercise, exerciseInfo)
+    }
     val predictedWeights = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM, exercise.sets) {
         exercise.sets.associate { set ->
             set.id to calculateSuggestedLoad(exercise, set)
@@ -270,7 +274,10 @@ internal fun ExerciseEditorCard(
                         onLongClick = onOpenQuickActions,
                     ),
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
                     if (exercise.supersetGroupRefOrLegacyId() != null) {
                         Icon(
                             Icons.Default.SwapHoriz,
@@ -280,13 +287,19 @@ internal fun ExerciseEditorCard(
                         )
                     }
                     Text(
-                        text = exercise.name.ifBlank { "Seleccionar ejercicio" },
+                        text = displayParts.parentName.ifBlank { "Seleccionar ejercicio" },
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color.White.copy(alpha = 0.94f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    displayParts.chips.forEach { chip ->
+                        AssistChip(
+                            onClick = {},
+                            label = { Text(chip, style = MaterialTheme.typography.labelSmall) },
+                        )
+                    }
                 }
                 Text(
                     text = buildString {

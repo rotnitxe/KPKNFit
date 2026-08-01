@@ -1,6 +1,8 @@
 package com.example.kpkn.domain.exercises
 
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.AspectOption
+import com.example.kpkn.data.models.TechnicalAspect
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -103,6 +105,28 @@ class ExerciseCatalogInsightsSearchTest {
         )
         assertTrue(calculateSearchScore(curlFemoral, "Curl Fem") > 0)
         assertTrue(calculateSearchScore(curlFemoral, "curl femora") > 0)
+    }
+
+    @Test
+    fun technical_chip_name_matches_and_returns_the_option_to_preselect() {
+        val curl = ExerciseMuscleInfo(
+            id = "biceps_curl_de_pie",
+            name = "Curl de Bíceps de Pie",
+            technicalAspects = listOf(
+                TechnicalAspect(
+                    id = "grip_type",
+                    name = "Tipo de agarre",
+                    defaultOptionId = "supino",
+                    options = listOf(
+                        AspectOption("supino", "Supino"),
+                        AspectOption("martillo", "Martillo"),
+                    ),
+                ),
+            ),
+        )
+
+        assertTrue(calculateSearchScore(curl, "Curl Martillo") > 0)
+        assertEquals(mapOf("grip_type" to "martillo"), matchingTechnicalAspectOptions(curl, "Curl Martillo"))
     }
 
     @Test

@@ -438,8 +438,9 @@ internal fun SessionEditorSheets(
          }
          KpknSheet(
              onDismissRequest = requestPickerDismiss,
-             maxHeightFraction = 0.78f,
-             stableHeightFraction = 0.76f,
+             safeTopInset = true,
+             maxHeightFraction = 1f,
+             stableHeightFraction = 1f,
          ) {
               Column(
                  modifier = Modifier.fillMaxSize(),

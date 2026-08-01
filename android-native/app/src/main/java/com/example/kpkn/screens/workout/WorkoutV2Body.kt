@@ -27,6 +27,7 @@ import com.example.kpkn.data.exercises.EXERCISE_DATABASE
 import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeFatigueEngine
+import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import dev.chrisbanes.haze.HazeState
@@ -102,6 +103,21 @@ internal fun WorkoutV2Body(
         val subTagIds = uiState.activeSubTagsByExercise[exId].orEmpty()
         currentExerciseTags.flatMap { it.subTags }.filter { it.id in subTagIds }
     }
+    val currentExerciseProfiles = currentExercise?.let { viewModel.profilesForExercise(it) }.orEmpty()
+    val currentExerciseActiveTagLabels = remember(
+        currentExercise?.id,
+        currentExerciseActiveMainTags,
+        currentExerciseProfiles,
+    ) {
+        currentExerciseActiveMainTags.associate { tag ->
+            tag.id to workoutTagDisplayTitle(
+                tagName = tag.name,
+                machineBrand = currentExerciseProfiles.firstOrNull { profile ->
+                    profile.tagId == tag.id || profile.tagId == tag.name
+                }?.machineBrand,
+            )
+        }
+    }
     var drainOverlayState by remember { mutableStateOf<ExerciseDrainOverlayState?>(null) }
     var expandedSupersetWarmups by remember { mutableStateOf<Set<String>>(emptySet()) }
 
@@ -152,6 +168,7 @@ internal fun WorkoutV2Body(
                 isSuperset = currentExercise?.isInSuperset() == true,
                 exerciseReadiness = currentExerciseReadiness,
                 activeMainTags = currentExerciseActiveMainTags,
+                activeMainTagLabels = currentExerciseActiveTagLabels,
                 activeSubTags = currentExerciseActiveSubTags,
                 onTagClick = { tagId -> tagManagerTagId = tagId },
                 onRemoveSubTag = { subTagId -> viewModel.toggleSubTagActive(currentExercise?.id ?: "", subTagId) },
@@ -277,8 +294,11 @@ internal fun WorkoutV2Body(
                     val currentExerciseCompleted = remember(currentExercise, uiState.completedSets) {
                         CompletedExercise(
                             exerciseId = currentExercise.id,
-                            exerciseName = currentExercise.name,
+                            exerciseName = exerciseDisplayParts(currentExercise, currentExerciseInfo).text,
                             exerciseDbId = currentExercise.exerciseDbId ?: currentExercise.exerciseId,
+                            variantName = currentExercise.variantName,
+                            selectedAspects = currentExercise.selectedAspects,
+                            effectiveMuscles = currentExercise.effectiveMuscles,
                             restTime = currentExercise.restTime ?: 90,
                             supersetId = currentExercise.supersetGroupRefOrLegacyId(),
                             sets = currentExercise.sets.indices.flatMap { setIdx ->
@@ -309,7 +329,7 @@ internal fun WorkoutV2Body(
                         currentExerciseInfo = currentExerciseInfo,
                         drain = currentExerciseDrain,
                         exerciseTag = uiState.exerciseTags[currentExercise.id],
-                        profiles = viewModel.profilesForExercise(currentExercise),
+                        profiles = currentExerciseProfiles,
                         activeProfileId = uiState.activeContextProfileByExerciseId[currentExercise.id],
                         selectedTab = selectedContextTab,
                         onSelectedTabChange = onSelectedContextTabChange,

@@ -12,9 +12,13 @@ object ExerciseMuscleResolver {
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
     ): List<InvolvedMuscle> {
         if (!exercise.effectiveMuscles.isNullOrEmpty()) {
-            return exercise.effectiveMuscles!!
+            return exercise.effectiveMuscles!!.filter {
+                it.role != com.example.kpkn.data.models.MuscleRole.NEUTRALIZER
+            }
         }
         val dbInfo = resolveCatalogInfo(exercise, exerciseIndex)
+        val selected = selectedTechnicalMuscles(exercise, dbInfo)
+        if (selected != null) return selected
         return SessionMuscleFilter.relevantMusclesFor(dbInfo)
     }
 
@@ -26,10 +30,23 @@ object ExerciseMuscleResolver {
             return exercise.effectiveMuscles!!
         }
         val dbInfo = resolveCatalogInfo(exercise, exerciseIndex)
-        return dbInfo?.involvedMuscles.orEmpty()
+        return selectedTechnicalMuscles(exercise, dbInfo) ?: dbInfo?.involvedMuscles.orEmpty()
     }
 
-    private fun resolveCatalogInfo(
+    /**
+     * Muscle rows used by the training-volume counter.
+     *
+     * Volume treats secondary and stabilizer work as indirect volume. A
+     * stabilizer must not disappear merely because an exercise has a low SSC;
+     * that SSC rule belongs to fatigue filtering, not volume accounting.
+     */
+    fun effectiveMusclesForVolume(
+        exercise: Exercise,
+        exerciseIndex: Map<String, ExerciseMuscleInfo>,
+    ): List<InvolvedMuscle> = effectiveMusclesWithoutFilter(exercise, exerciseIndex)
+        .filter { it.role != com.example.kpkn.data.models.MuscleRole.NEUTRALIZER }
+
+    internal fun resolveCatalogInfo(
         exercise: Exercise,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
     ): ExerciseMuscleInfo? {
@@ -38,5 +55,19 @@ object ExerciseMuscleResolver {
             ?: exerciseIndex.values.firstOrNull {
                 it.name.equals(exercise.name, ignoreCase = true)
             }
+    }
+
+    private fun selectedTechnicalMuscles(
+        exercise: Exercise,
+        catalogInfo: ExerciseMuscleInfo?,
+    ): List<InvolvedMuscle>? {
+        val selected = exercise.selectedAspects?.takeIf { it.isNotEmpty() } ?: return null
+        val info = catalogInfo ?: return null
+        val options = info.technicalAspects.orEmpty().mapNotNull { aspect ->
+            val optionId = selected[aspect.id] ?: return@mapNotNull null
+            aspect.options.firstOrNull { it.id == optionId }
+        }
+        if (options.isEmpty()) return null
+        return TechnicalAspectEngine.computeEffectiveMuscles(info.involvedMuscles, options).effectiveMuscles
     }
 }

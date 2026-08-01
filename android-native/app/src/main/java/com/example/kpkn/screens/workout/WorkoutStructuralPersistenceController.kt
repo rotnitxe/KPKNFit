@@ -53,8 +53,9 @@ class WorkoutStructuralPersistenceController(
         val change = state.pendingStructuralPersistence ?: return
         val program = repository.getProgramById(programId)
         val location = program?.let { findSessionLocation(it, sessionId) }
+        val effectiveScope = sanitizeLiveEditPersistenceScope(program, scope)
 
-        if (program != null && location != null && scope == ReplacementPersistenceScopeV2.BLOCK_MATCHING) {
+        if (program != null && location != null && effectiveScope == ReplacementPersistenceScopeV2.BLOCK_MATCHING) {
             val updatedProgram = applyStructuralChangeToBlock(program, location, change, state)
             if (updatedProgram != program) {
                 repository.updateProgram(updatedProgram)
@@ -62,8 +63,8 @@ class WorkoutStructuralPersistenceController(
         }
 
         if (program != null && location != null &&
-            scope != ReplacementPersistenceScopeV2.SESSION_ONLY &&
-            scope != ReplacementPersistenceScopeV2.BLOCK_MATCHING) {
+            effectiveScope != ReplacementPersistenceScopeV2.SESSION_ONLY &&
+            effectiveScope != ReplacementPersistenceScopeV2.BLOCK_MATCHING) {
             when (change) {
                 is PendingStructuralChange.AddSet -> {
                     val week = program.macrocycles

@@ -47,6 +47,7 @@ import com.example.kpkn.domain.exercises.ExerciseCatalogRegion
 import com.example.kpkn.domain.exercises.resolvePrimaryMuscleLabel
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
+import com.example.kpkn.domain.exercises.adaptedExerciseDescription
 
 @Composable
 internal fun ExerciseCatalogInfoDialog(
@@ -118,6 +119,11 @@ internal fun ExerciseCatalogInfoDialog(
                 shortExerciseBlurb(exercise),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.78f),
+            )
+
+            TechnicalAspectDescriptionChips(
+                exercise = exercise,
+                onChipTap = { title, description -> chipExplain = title to description },
             )
 
             CatalogDescriptorChips(
@@ -274,6 +280,48 @@ internal fun ExerciseCatalogInfoDialog(
                 )
                 cues.forEach { cue ->
                     Text("· $cue", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.7f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TechnicalAspectDescriptionChips(
+    exercise: ExerciseMuscleInfo,
+    onChipTap: (String, String) -> Unit,
+) {
+    val options = exercise.technicalAspects.orEmpty().flatMap { aspect ->
+        aspect.options.map { aspect to it }
+    }
+    if (options.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            "Variantes técnicas",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Black,
+            color = Color.White.copy(alpha = 0.92f),
+        )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            items(options) { (aspect, option) ->
+                Surface(
+                    modifier = Modifier.clickable {
+                        onChipTap(
+                            option.name,
+                            adaptedExerciseDescription(exercise, mapOf(aspect.id to option.id)),
+                        )
+                    },
+                    shape = RoundedCornerShape(999.dp),
+                    color = Color.White.copy(alpha = 0.10f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                ) {
+                    Text(
+                        option.name,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White.copy(alpha = 0.82f),
+                    )
                 }
             }
         }

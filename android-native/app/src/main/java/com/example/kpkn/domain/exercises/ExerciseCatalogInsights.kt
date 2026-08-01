@@ -718,6 +718,13 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
     val primaryMuscleNormalized = normalizeCatalogSearchValue(resolvePrimaryMuscleLabel(info))
     val regionNormalized = normalizeCatalogSearchValue(resolveExerciseRegion(info).label)
     val descriptionNormalized = normalizeCatalogSearchValue(info.description ?: "")
+    val variantNormalized = normalizeCatalogSearchValue(info.variantName ?: "")
+    val aspectNamesNormalized = normalizeCatalogSearchValue(
+        info.technicalAspects.orEmpty().joinToString(" ") { it.name },
+    )
+    val optionNamesNormalized = normalizeCatalogSearchValue(
+        info.technicalAspects.orEmpty().flatMap { it.options }.joinToString(" ") { it.name },
+    )
 
     val searchBlob = normalizeCatalogSearchValue(
         listOfNotNull(
@@ -728,7 +735,14 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
             info.category,
             info.type,
             resolvePrimaryMuscleLabel(info),
-            info.involvedMuscles.joinToString(" ") { it.muscle }
+            info.involvedMuscles.joinToString(" ") { it.muscle },
+            info.variantName,
+            info.variantGroupName,
+            info.technicalAspects.orEmpty().joinToString(" ") { aspect ->
+                (listOf(aspect.name, aspect.description.orEmpty()) + aspect.options.flatMap { option ->
+                    listOf(option.name, option.description.orEmpty())
+                }).joinToString(" ")
+            },
         ).joinToString(" ")
     )
 
@@ -741,6 +755,9 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
             primaryMuscleNormalized,
             equipmentNormalized,
             descriptionNormalized,
+            variantNormalized,
+            aspectNamesNormalized,
+            optionNamesNormalized,
             regionNormalized,
             searchBlob,
         )
@@ -756,6 +773,10 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
     if (meaningfulQuery.isNotBlank() && meaningfulName.startsWith(meaningfulQuery)) return 7_900 + meaningfulQuery.length
     if (aliasNormalized.startsWith(normalizedQuery) && aliasNormalized.isNotBlank()) return 7_000 + normalizedQuery.length
     if (meaningfulQuery.isNotBlank() && meaningfulAlias.startsWith(meaningfulQuery)) return 6_900 + meaningfulQuery.length
+    if (optionNamesNormalized == normalizedQuery) return 7_600
+    if (optionNamesNormalized.startsWith(normalizedQuery) && optionNamesNormalized.isNotBlank()) {
+        return 7_400 + normalizedQuery.length
+    }
 
     var score = 0
     if (nameTokens.any { it == normalizedQuery }) score += 160
@@ -782,10 +803,32 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
         if (primaryMuscleNormalized.contains(term)) score += 16
         if (equipmentNormalized.contains(term)) score += 10
         if (descriptionNormalized.contains(term)) score += 6
+        if (variantNormalized.contains(term)) score += 65
+        if (aspectNamesNormalized.contains(term)) score += 35
+        if (optionNamesNormalized.contains(term)) score += 85
         if (searchBlob.contains(term)) score += 10
     }
 
     return score
+}
+
+/**
+ * Returns the technical options whose labels match the query. This is kept
+ * separate from the numeric score so existing relevance callers remain stable.
+ */
+fun matchingTechnicalAspectOptions(
+    info: ExerciseMuscleInfo,
+    query: String,
+): Map<String, String> {
+    val terms = meaningfulSearchTerms(query)
+    if (terms.isEmpty()) return emptyMap()
+    return info.technicalAspects.orEmpty().mapNotNull { aspect ->
+        val option = aspect.options.firstOrNull { candidate ->
+            val normalizedOption = normalizeCatalogSearchValue(candidate.name)
+            terms.any { term -> catalogFieldMatchesTerm(normalizedOption, term) }
+        } ?: return@mapNotNull null
+        aspect.id to option.id
+    }.toMap()
 }
 
 fun deduplicateCatalogVisualResults(items: List<ExerciseMuscleInfo>): List<ExerciseMuscleInfo> {

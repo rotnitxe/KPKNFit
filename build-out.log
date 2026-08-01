@@ -1,0 +1,70 @@
+Starting Gradle build :app:assembleBaseRelease ...
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preBaseReleaseBuild UP-TO-DATE
+> Task :app:mergeBaseReleaseJniLibFolders UP-TO-DATE
+> Task :app:mergeBaseReleaseNativeLibs UP-TO-DATE
+> Task :app:stripBaseReleaseDebugSymbols UP-TO-DATE
+> Task :app:extractBaseReleaseNativeSymbolTables UP-TO-DATE
+> Task :app:mergeBaseReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:mergeBaseReleaseArtProfile UP-TO-DATE
+> Task :app:expandBaseReleaseL8ArtProfileWildcards UP-TO-DATE
+> Task :app:checkBaseReleaseDuplicateClasses UP-TO-DATE
+> Task :app:compileBaseReleaseAidl UP-TO-DATE
+> Task :app:generateBaseReleaseBuildConfig UP-TO-DATE
+> Task :app:generateBaseReleaseResources UP-TO-DATE
+> Task :app:packageBaseReleaseResources UP-TO-DATE
+> Task :app:processBaseReleaseNavigationResources UP-TO-DATE
+> Task :app:parseBaseReleaseLocalResources UP-TO-DATE
+> Task :app:generateBaseReleaseRFile UP-TO-DATE
+> Task :app:javaPreCompileBaseRelease UP-TO-DATE
+> Task :app:checkBaseReleaseAarMetadata UP-TO-DATE
+> Task :app:mapBaseReleaseSourceSetPaths UP-TO-DATE
+> Task :app:compileBaseReleaseNavigationResources UP-TO-DATE
+> Task :app:mergeBaseReleaseResources UP-TO-DATE
+> Task :app:createBaseReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksBaseRelease UP-TO-DATE
+> Task :app:processBaseReleaseMainManifest UP-TO-DATE
+> Task :app:processBaseReleaseManifest UP-TO-DATE
+> Task :app:processBaseReleaseManifestForPackage UP-TO-DATE
+> Task :app:processBaseReleaseResources UP-TO-DATE
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:mergeBaseReleaseStartupProfile UP-TO-DATE
+> Task :app:generateBaseReleaseAssets UP-TO-DATE
+> Task :app:mergeBaseReleaseAssets UP-TO-DATE
+> Task :app:compressBaseReleaseAssets UP-TO-DATE
+> Task :app:extractBaseReleaseVersionControlInfo UP-TO-DATE
+> Task :app:collectBaseReleaseDependencies UP-TO-DATE
+> Task :app:sdkBaseReleaseDependencyData UP-TO-DATE
+> Task :app:validateSigningBaseRelease UP-TO-DATE
+> Task :app:writeBaseReleaseAppMetadata UP-TO-DATE
+> Task :app:writeBaseReleaseSigningConfigVersions UP-TO-DATE
+> Task :app:kspBaseReleaseKotlin
+> Task :app:compileBaseReleaseKotlin
+> Task :app:compileBaseReleaseJavaWithJavac
+> Task :app:mergeBaseReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :app:processBaseReleaseJavaRes UP-TO-DATE
+> Task :app:mergeBaseReleaseJavaResource UP-TO-DATE
+> Task :app:generateBaseReleaseLintVitalReportModel
+> Task :app:expandBaseReleaseArtProfileWildcards
+> Task :app:lintVitalAnalyzeBaseRelease
+> Task :app:minifyBaseReleaseWithR8
+> Task :app:lintVitalReportBaseRelease
+> Task :app:lintVitalBaseRelease
+> Task :app:convertShrunkResourcesToBinaryBaseRelease UP-TO-DATE
+> Task :app:optimizeBaseReleaseResources UP-TO-DATE
+> Task :app:l8DexDesugarLibBaseRelease
+> Task :app:compileBaseReleaseArtProfile
+> Task :app:packageBaseRelease
+> Task :app:createBaseReleaseApkListingFileRedirect
+> Task :app:assembleBaseRelease
+
+BUILD SUCCESSFUL in 9m 32s
+53 actionable tasks: 13 executed, 40 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

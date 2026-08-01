@@ -900,6 +900,7 @@ internal fun WorkoutStructureSheetsHost(
                     onTagSet = { tag -> if (tag.isBlank()) viewModel.clearExerciseTag(tagEx.id) else viewModel.setExerciseTag(tagEx.id, tag) },
                     onDismiss = { state.tagSheetExerciseId = null },
                     userTags = allUserTags,
+                    profiles = viewModel.profilesForExercise(tagEx),
                 )
             }
         }
@@ -955,6 +956,9 @@ internal fun WorkoutStructureSheetsHost(
                 state.addCatalogSearchQuery = ""
                 state.addCatalogSelectedIds = emptySet()
             },
+            safeTopInset = true,
+            maxHeightFraction = 1f,
+            stableHeightFraction = 1f
         ) {
             LiveExercisePickerWithCreator(
                 query = state.addCatalogSearchQuery,
@@ -1005,6 +1009,9 @@ internal fun WorkoutStructureSheetsHost(
                 state.addExerciseSearchQuery = ""
                 state.addExerciseSelectedIds = emptySet()
             },
+            safeTopInset = true,
+            maxHeightFraction = 1f,
+            stableHeightFraction = 1f
         ) {
             LiveExercisePickerWithCreator(
                 query = state.addExerciseSearchQuery,
@@ -1054,6 +1061,9 @@ internal fun WorkoutStructureSheetsHost(
                 state.showReplaceExercisePicker = false
                 state.replaceTargetExerciseId = null
             },
+            safeTopInset = true,
+            maxHeightFraction = 1f,
+            stableHeightFraction = 1f
         ) {
             LiveExercisePickerWithCreator(
                 query = state.replaceSearchQuery,

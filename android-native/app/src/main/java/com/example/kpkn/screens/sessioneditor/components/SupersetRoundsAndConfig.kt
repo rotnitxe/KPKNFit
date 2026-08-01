@@ -47,6 +47,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.domain.calculations.calculateEstimatedMetric
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
@@ -94,7 +95,7 @@ internal fun SupersetExerciseConfigOverlay(
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(exercise.name, modifier = Modifier.weight(1f), fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(exercise.displayNameWithSelectedChips(), modifier = Modifier.weight(1f), fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
                     Icon(Icons.Default.Close, contentDescription = "Cerrar configuración", modifier = Modifier.size(16.dp))
                 }
@@ -354,7 +355,7 @@ internal fun SupersetRoundsCarousel(
                         exercises.forEach { exercise ->
                             val set = exercise.sets.getOrNull(roundIndex)
                             if (set != null) {
-                                Text(exercise.name, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(exercise.displayNameWithSelectedChips(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 val orderedSides = when (exercise.unilateralSideOrder) {
                                     UnilateralSideOrder.LEFT_RIGHT -> listOf("L", "R")
                                     UnilateralSideOrder.RIGHT_LEFT -> listOf("R", "L")

@@ -24,6 +24,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.example.kpkn.R
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.exercises.buildExerciseCatalogLookup
+import com.example.kpkn.domain.exercises.exerciseDisplayName
 
 @Composable
 fun SessionCard(
@@ -38,7 +41,8 @@ fun SessionCard(
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
-    val exercises = if (session.parts.isNotEmpty()) session.parts.flatMap { it.exercises } else session.exercises
+    val exercises = session.allExercises()
+    val exerciseLookup = remember { buildExerciseCatalogLookup(EXERCISE_DATABASE) }
     val totalSets = exercises.sumOf { it.sets.size }
     val estimatedMinutes = totalSets * 3
 
@@ -102,7 +106,7 @@ fun SessionCard(
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.clickable { isExpanded = !isExpanded }) {
                     items(exercises.take(if (isExpanded) exercises.size else 4)) { exercise ->
                         Box(Modifier.clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)).padding(horizontal = 10.dp, vertical = 6.dp)) {
-                            Text(exercise.name, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
+                            Text(exerciseDisplayName(exercise, exerciseLookup), fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
                         }
                     }
                     if (!isExpanded && exercises.size > 4) {

@@ -93,7 +93,9 @@ fun WorkoutCommandDock(
         voiceSessionState.stage == VoicePipelineStage.PROCESSING -> "Procesando..."
         voiceSessionState.stage == VoicePipelineStage.CONFIRM_WAIT -> {
             if (voiceSessionState.pendingAddSetPersistence) {
-                "¿Solo sesión o permanente?"
+                voiceSessionState.pendingAddSetPersistencePrompt
+                    .takeIf { it.isNotBlank() }
+                    ?: "¿Solo sesión o permanente?"
             } else {
                 "¿Confirmar? Di \"Sí\" o \"No\""
             }

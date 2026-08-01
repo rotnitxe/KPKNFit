@@ -56,6 +56,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            ndk {
+                // El release solo apunta a teléfonos (arm64 + 32-bit legacy);
+                // x86/x86_64 quedan fuera: APK más chico y menos footprint en disco.
+                abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+            }
         }
         debug {
             // El debug también usa la firma de release para evitar conflictos de instalación

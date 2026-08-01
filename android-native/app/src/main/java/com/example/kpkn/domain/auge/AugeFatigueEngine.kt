@@ -613,7 +613,10 @@ object AugeFatigueEngine {
                 supersetRounds = ex.supersetRounds,
                 supersetRestAfter = ex.supersetRestAfter,
             )
-            val involved = dbInfo?.involvedMuscles.orEmpty()
+            // Completed logs carry the chip-adjusted snapshot. Fall back to the
+            // catalog only for logs created before chip metadata was persisted.
+            val involved = ex.effectiveMuscles?.takeIf { it.isNotEmpty() }
+                ?: dbInfo?.involvedMuscles.orEmpty()
             val primaryMuscle = involved
                 .find { it.role == MuscleRole.PRIMARY }
                 ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }

@@ -131,7 +131,7 @@ class WorkoutSessionHydrator(
         val restoredActiveProfiles = hydratedProfiles.second.toMutableMap()
         val restoredTags = (resumedState?.exerciseTags ?: emptyMap()).toMutableMap().apply {
             hydratedProfiles.second.forEach { (exerciseId, profileId) ->
-                val profileTag = hydratedProfiles.first[profileId]?.tagId ?: return@forEach
+                val profileTag = hydratedProfiles.first[profileId]?.legacyTagName() ?: return@forEach
                 putIfAbsent(exerciseId, profileTag)
             }
         }
@@ -148,15 +148,23 @@ class WorkoutSessionHydrator(
         val restoredActiveSubTags = resumedState?.activeSubTags?.toMutableMap() ?: mutableMapOf()
         val restoredUserCreatedTags = resumedState?.userCreatedTags?.toMutableMap() ?: mutableMapOf()
 
-        if (resumedState == null) {
-            exercisesForMode.forEach { exercise ->
-                val exKey = ports.canonicalExerciseKey(exercise)
-                if (!restoredUserCreatedTags.containsKey(exKey)) {
-                    val migrated = ports.migrateContextProfilesToTags(hydratedProfiles.first, exKey)
-                    if (migrated.isNotEmpty()) {
-                        restoredUserCreatedTags[exKey] = migrated
+        exercisesForMode.forEach { exercise ->
+            val exKey = ports.canonicalExerciseKey(exercise)
+            val migrated = ports.migrateContextProfilesToTags(hydratedProfiles.first, exKey)
+            if (migrated.isNotEmpty()) {
+                val existing = restoredUserCreatedTags[exKey].orEmpty()
+                val merged = buildList {
+                    addAll(existing)
+                    migrated.forEach { migratedTag ->
+                        if (existing.none { existingTag ->
+                                existingTag.id == migratedTag.id ||
+                                    existingTag.name.equals(migratedTag.name, ignoreCase = true)
+                            }) {
+                            add(migratedTag)
+                        }
                     }
                 }
+                restoredUserCreatedTags[exKey] = merged
             }
         }
 

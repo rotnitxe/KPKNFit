@@ -370,6 +370,10 @@ internal fun SessionEditorViewModel.orderedExerciseIdsForAlert(alert: SessionEdi
 internal fun SessionEditorViewModel.exerciseMatchesPrimaryMuscle(exercise: Exercise, muscle: String?): Boolean {
     if (muscle.isNullOrBlank()) return false
     val muscles = ExerciseMuscleResolver.effectiveMuscles(exercise, exerciseIndex)
-    return muscles.any { it.muscle.equals(muscle, ignoreCase = true) && it.role == MuscleRole.PRIMARY }
+    val target = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle)
+    return muscles.any {
+        it.role == MuscleRole.PRIMARY &&
+            VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) == target
+    }
 }
 

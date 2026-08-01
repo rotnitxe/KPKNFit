@@ -10,9 +10,17 @@ import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
+import com.example.kpkn.domain.auge.AugeClassifiers
+
+data class RoleSeparatedMuscleVolume(
+    val directSets: Double = 0.0,
+    val indirectSets: Double = 0.0,
+) {
+    val totalSets: Double
+        get() = directSets + indirectSets
+}
 
 data class MuscleVolumeEntry(
     val muscleId: String,
@@ -28,6 +36,27 @@ data class CanonicalMuscleVolumeEntry(
 )
 
 object VolumeCalculator {
+
+    /** Muscles shown by the established volume UI. Other raw labels are never rows. */
+    val standardVolumeMuscles: Set<String> = setOf(
+        "Cuello",
+        "Trapecio",
+        "Deltoides",
+        "Pectorales",
+        "Bíceps",
+        "Tríceps",
+        "Antebrazo",
+        "Dorsales",
+        "Erectores Espinales",
+        "Core",
+        "Abdomen",
+        "Glúteos",
+        "Aductores",
+        "Cuádriceps",
+        "Isquiosurales",
+        "Pantorrillas",
+        "Romboides",
+    )
 
     private val muscleNormalization = mapOf(
         "cuádriceps" to "Cuádriceps",
@@ -158,6 +187,7 @@ object VolumeCalculator {
         val grouped = linkedMapOf<String, Double>()
         involvedMuscles.forEach { involvement ->
             val canonicalMuscle = normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
+            if (canonicalMuscle !in standardVolumeMuscles) return@forEach
             val contribution = resolveMuscleVolumeContribution(involvement)
             val current = grouped[canonicalMuscle] ?: 0.0
             if (contribution > current) {
@@ -167,7 +197,10 @@ object VolumeCalculator {
         return grouped.filterValues { it > 0.0 }
     }
 
-    private fun countEffectiveSets(exerciseSets: List<ExerciseSet>): Int {
+    fun isStandardVolumeMuscle(involvement: com.example.kpkn.data.models.InvolvedMuscle): Boolean =
+        normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis) in standardVolumeMuscles
+
+    fun countEffectiveSets(exerciseSets: List<ExerciseSet>): Int {
         val counted = exerciseSets.count { set ->
             if (set.isIneffective) {
                 false
@@ -180,25 +213,104 @@ object VolumeCalculator {
         return if (counted == 0) exerciseSets.count { !it.isIneffective } else counted
     }
 
+    /**
+     * Single source of truth for the direct/indirect volume cards.
+     *
+     * The divisor is applied after all sessions are accumulated, so a session,
+     * a week and a macrocycle use identical math and only differ in scope.
+     */
+    fun calculateRoleSeparatedMuscleVolume(
+        sessions: List<Session>,
+        exerciseList: List<ExerciseMuscleInfo>,
+        aliases: Map<String, String> = emptyMap(),
+        divisor: Double = 1.0,
+        adjustByIntensity: Boolean = false,
+    ): Map<String, RoleSeparatedMuscleVolume> {
+        val baseIndex = exerciseList.associateBy { it.id.lowercase() }.toMutableMap()
+        aliases.forEach { (alias, canonical) ->
+            baseIndex[alias.lowercase()]?.let { return@forEach }
+            baseIndex[canonical.lowercase()]?.let { baseIndex[alias.lowercase()] = it }
+        }
+        val totals = mutableMapOf<String, MutableRoleVolume>()
+        val safeDivisor = divisor.takeIf { it > 0.0 } ?: 1.0
+
+        sessions.flatMap { it.allExercises() }.forEach { exercise ->
+            val effectiveSets = countEffectiveSets(exercise.sets)
+            if (effectiveSets <= 0) return@forEach
+            val setWeight = if (adjustByIntensity) {
+                exercise.sets.filterNot { it.isIneffective }
+                    .sumOf { set ->
+                        val rpe = when {
+                            set.isFailure || set.intensityMode == com.example.kpkn.data.models.IntensityMode.FAILURE -> 10.0
+                            set.targetRPE != null -> set.targetRPE.coerceIn(1.0, 10.0)
+                            set.targetRIR != null -> (10 - set.targetRIR).toDouble().coerceIn(1.0, 10.0)
+                            else -> 8.0
+                        }
+                        AugeClassifiers.getEffectiveVolumeMultiplier(rpe)
+                    }
+                    .takeIf { it > 0.0 }
+                    ?: effectiveSets.toDouble()
+            } else {
+                effectiveSets.toDouble()
+            }
+            val muscles = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, baseIndex)
+            if (muscles.isEmpty()) return@forEach
+
+            // Collapse duplicate heads within one exercise by role, not by raw row.
+            val perExercise = mutableMapOf<String, MutableRoleVolume>()
+            muscles.forEach { involvement ->
+                val canonical = normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
+                if (canonical !in standardVolumeMuscles) return@forEach
+                val contribution = resolveMuscleVolumeContribution(involvement)
+                val bucket = perExercise.getOrPut(canonical) { MutableRoleVolume() }
+                when (involvement.role) {
+                    MuscleRole.PRIMARY -> bucket.direct = maxOf(bucket.direct, contribution)
+                    MuscleRole.SECONDARY, MuscleRole.STABILIZER -> bucket.indirect = maxOf(bucket.indirect, contribution)
+                    MuscleRole.NEUTRALIZER -> Unit
+                }
+            }
+            perExercise.forEach { (muscle, contribution) ->
+                val total = totals.getOrPut(muscle) { MutableRoleVolume() }
+                total.direct += setWeight * contribution.direct
+                total.indirect += setWeight * contribution.indirect
+            }
+        }
+
+        return totals.mapValues { (_, value) ->
+            RoleSeparatedMuscleVolume(
+                directSets = value.direct / safeDivisor,
+                indirectSets = value.indirect / safeDivisor,
+            )
+        }
+    }
+
+    private data class MutableRoleVolume(
+        var direct: Double = 0.0,
+        var indirect: Double = 0.0,
+    )
+
     fun calculateUnifiedMuscleVolume(
         sessions: List<Session>,
         exerciseList: List<ExerciseMuscleInfo>,
+        aliases: Map<String, String> = emptyMap(),
     ): List<MuscleVolumeEntry> {
         val volumeMap = mutableMapOf<String, Pair<Double, Int>>()
-        val exIndex = exerciseList.associateBy { it.id.lowercase() }
+        val exIndex = exerciseList.associateBy { it.id.lowercase() }.toMutableMap().apply {
+            aliases.forEach { (alias, canonical) ->
+                this[canonical.lowercase()]?.let { this[alias.lowercase()] = it }
+            }
+        }
 
         for (session in sessions) {
-            val allExercises = if (session.parts.isNotEmpty()) {
-                session.parts.flatMap { it.exercises }
-            } else {
-                session.exercises
-            }
+            // A session may contain loose exercises and grouped exercises at the
+            // same time; never discard the loose portion when parts exist.
+            val allExercises = session.allExercises()
 
             for (exercise in allExercises) {
                 val validSetsCount = countEffectiveSets(exercise.sets)
 
                 if (validSetsCount > 0) {
-                    val musclesToCount = ExerciseMuscleResolver.effectiveMuscles(exercise, exIndex)
+                    val musclesToCount = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exIndex)
 
                     if (musclesToCount.isNotEmpty()) {
                         val uniqueMultipliers = buildPerExerciseMuscleContributions(musclesToCount)
@@ -293,7 +405,7 @@ object VolumeCalculator {
             val effectiveSets = countEffectiveSets(exercise.sets)
             if (effectiveSets <= 0) return@forEach
 
-            val musclesToCount = ExerciseMuscleResolver.effectiveMuscles(exercise, exerciseIndex)
+            val musclesToCount = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
             if (musclesToCount.isEmpty()) return@forEach
             val contributions = buildPerExerciseMuscleContributions(musclesToCount)
             contributions.forEach { (canonical, multiplier) ->
@@ -307,7 +419,7 @@ object VolumeCalculator {
     fun calculateMuscleVolume(
         sessions: List<Session>,
         exerciseList: List<ExerciseMuscleInfo>,
-        useFilter: Boolean = true,
+        useFilter: Boolean = false,
     ): Map<String, Double> {
         val exerciseIndex = exerciseList.associateBy { it.id.lowercase() }
         val volumeMap = mutableMapOf<String, Double>()
@@ -318,9 +430,11 @@ object VolumeCalculator {
                 if (effectiveSets <= 0) continue
 
                 val musclesToCount = if (useFilter) {
+                    // Preserve the legacy SSC-filtered path only for explicit
+                    // callers; normal volume accounting is role-based.
                     ExerciseMuscleResolver.effectiveMuscles(exercise, exerciseIndex)
                 } else {
-                    ExerciseMuscleResolver.effectiveMusclesWithoutFilter(exercise, exerciseIndex)
+                    ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
                 }
                 if (musclesToCount.isEmpty()) continue
                 val contributions = buildPerExerciseMuscleContributions(musclesToCount)
@@ -381,6 +495,7 @@ object VolumeCalculator {
         logs: List<WorkoutLog>,
         exerciseList: List<ExerciseMuscleInfo>,
         weeksCount: Int = 1,
+        aliases: Map<String, String> = emptyMap(),
     ): List<CanonicalMuscleVolumeEntry> {
         if (logs.isEmpty()) return emptyList()
 
@@ -393,6 +508,8 @@ object VolumeCalculator {
                         id = ex.exerciseId,
                         name = ex.exerciseName,
                         exerciseDbId = ex.exerciseDbId,
+                        selectedAspects = ex.selectedAspects,
+                        effectiveMuscles = ex.effectiveMuscles,
                         sets = ex.sets.map { set ->
                             ExerciseSet(
                                 id = set.id,
@@ -407,7 +524,7 @@ object VolumeCalculator {
             )
         }
 
-        val muscleVolumeEntries = calculateUnifiedMuscleVolume(virtualSessions, exerciseList)
+        val muscleVolumeEntries = calculateUnifiedMuscleVolume(virtualSessions, exerciseList, aliases)
         val divisor = weeksCount.coerceAtLeast(1).toDouble()
 
         return muscleVolumeEntries.map { entry ->

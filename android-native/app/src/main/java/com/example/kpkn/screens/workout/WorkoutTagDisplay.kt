@@ -16,9 +16,20 @@ internal fun workoutTagDisplayTitle(
         name.isBlank() -> brand
         brand.isBlank() -> name
         name.equals(brand, ignoreCase = true) -> name
+        name.substringAfterLast('·').trim().equals(brand, ignoreCase = true) -> name
         else -> "$name · $brand"
     }
 }
 
+internal fun WorkoutContextProfile.persistentTagName(): String? {
+    val setupName = setupLabel?.trim().takeIf { !it.isNullOrBlank() }
+    val brandName = machineBrand?.trim().takeIf { !it.isNullOrBlank() }
+    val legacyId = tagId?.trim().takeIf { !it.isNullOrBlank() && !isInternalWorkoutTagId(it) }
+    return setupName ?: brandName ?: legacyId
+}
+
 internal fun WorkoutContextProfile.tagDisplayTitle(): String =
-    workoutTagDisplayTitle(setupLabel ?: tagId, machineBrand)
+    workoutTagDisplayTitle(persistentTagName(), machineBrand)
+
+internal fun WorkoutContextProfile.legacyTagName(): String? =
+    persistentTagName()

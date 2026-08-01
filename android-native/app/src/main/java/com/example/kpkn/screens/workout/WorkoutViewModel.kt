@@ -821,7 +821,9 @@ class WorkoutViewModel(
 
     fun dominantMuscleGroupFor(exercise: Exercise): String? {
         val info = catalogInfoForExercise(exercise) ?: return null
-        val dominant = info.involvedMuscles
+        val involvedMuscles = com.example.kpkn.domain.exercises.ExerciseMuscleResolver
+            .effectiveMusclesForVolume(exercise, EXERCISE_DATABASE_BY_ID)
+        val dominant = involvedMuscles
             .filter { resolveMuscleVolumeContribution(it, capAtOne = false) > 0.0 }
             .maxByOrNull { involvement ->
                 resolveMuscleVolumeContribution(involvement, capAtOne = false) + when (involvement.role) {
@@ -831,7 +833,7 @@ class WorkoutViewModel(
                     MuscleRole.NEUTRALIZER -> 0.10
                 }
             }
-            ?: info.involvedMuscles.firstOrNull()
+            ?: involvedMuscles.firstOrNull()
             ?: return null
         return VolumeCalculator.normalizeCanonicalMuscleGroup(dominant.muscle, dominant.emphasis)
     }
@@ -1392,9 +1394,12 @@ class WorkoutViewModel(
             }
             CompletedExercise(
                 exerciseId = exercise.id,
-                exerciseName = exercise.name,
+                exerciseName = displayWorkoutExerciseName(exercise),
                 exerciseDbId = exercise.exerciseDbId ?: exercise.exerciseId,
                 canonicalExerciseId = exercise.canonicalExerciseId ?: canonicalExerciseKey(exercise),
+                variantName = exercise.variantName,
+                selectedAspects = exercise.selectedAspects,
+                effectiveMuscles = exercise.effectiveMuscles,
                 restTime = exercise.restTime ?: 90,
                 supersetId = exercise.supersetGroupRefOrLegacyId(),
                 sets = sets,
@@ -1873,7 +1878,9 @@ class WorkoutViewModel(
     fun addSetToCurrentExercise() {
         val currentExerciseIdx = _uiState.value.currentExerciseIdx
         val currentExerciseId = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)?.id ?: return
-        val exerciseName = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)?.name ?: ""
+        val exerciseName = visibleExercises(_uiState.value).getOrNull(currentExerciseIdx)
+            ?.let(::displayWorkoutExerciseName)
+            ?: ""
         // Add the set to the live session immediately
         updateExerciseDefinition(currentExerciseId, persistToProgram = false) { exercise ->
             val lastSet = exercise.sets.lastOrNull()
@@ -2359,7 +2366,7 @@ class WorkoutViewModel(
         val milestone = SessionMilestone(
             id = java.util.UUID.randomUUID().toString(),
             exerciseId = exercise.id,
-            exerciseName = exercise.name,
+            exerciseName = displayWorkoutExerciseName(exercise),
             kind = "pr_e1rm",
             label = "Nuevo PR e1RM",
             value = e1rm,
