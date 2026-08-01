@@ -14,12 +14,17 @@ import java.util.concurrent.atomic.AtomicLong
 
 class WorkoutTtsManager(context: Context) {
 
+    private class CompletionGroup(var remaining: Int, val callback: () -> Unit)
+
     private val appContext = context.applicationContext
     private var tts: TextToSpeech? = null
     private var _isInitialized = false
     private var _initError: String? = null
-    private var pendingCompletion: (() -> Unit)? = null
-    private val completions = ConcurrentHashMap<String, () -> Unit>()
+    private val completionGroups = ConcurrentHashMap<String, CompletionGroup>()
+    private val completionIds = ConcurrentHashMap<String, String>()
+    private var openGroupKey: String? = null
+    private var latestGroupKey: String? = null
+    private var groupCounter = 0L
     private val mainHandler = Handler(Looper.getMainLooper())
     private val utteranceCounter = AtomicLong(0)
     private var initializationStarted = false
@@ -95,8 +100,21 @@ class WorkoutTtsManager(context: Context) {
         }
     }
 
+    /**
+     * Vincula el callback de completado al grupo de utterances que se hablen a
+     * continuación: el callback corre cuando TODAS terminan (no en la primera).
+     * Si otro grupo más nuevo se crea antes, el viejo queda superseded y nunca
+     * dispara — así una preempción no reanuda el ASR a mitad de la última voz.
+     */
     fun setOnUtteranceComplete(callback: (() -> Unit)?) {
-        pendingCompletion = callback
+        if (callback == null) {
+            openGroupKey = null
+            return
+        }
+        val key = "g${groupCounter++}"
+        completionGroups[key] = CompletionGroup(remaining = 0, callback = callback)
+        openGroupKey = key
+        latestGroupKey = key
     }
 
     fun setSpeechRate(rate: Float) {
@@ -242,9 +260,11 @@ class WorkoutTtsManager(context: Context) {
 
         val queueMode = if (queueFlush) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
         val utteranceId = "kpkn-tts-${utteranceCounter.incrementAndGet()}"
-        pendingCompletion?.let { callback ->
-            completions[utteranceId] = callback
-            pendingCompletion = null
+        openGroupKey?.let { key ->
+            completionGroups[key]?.let { group ->
+                group.remaining += 1
+                completionIds[utteranceId] = key
+            }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -270,8 +290,10 @@ class WorkoutTtsManager(context: Context) {
     }
 
     fun shutdown() {
-        pendingCompletion = null
-        completions.clear()
+        openGroupKey = null
+        latestGroupKey = null
+        completionGroups.clear()
+        completionIds.clear()
         readyCallbacks.clear()
         errorCallbacks.clear()
         initializationStarted = false
@@ -283,8 +305,17 @@ class WorkoutTtsManager(context: Context) {
 
     private fun complete(utteranceId: String?) {
         val id = utteranceId ?: return
-        val callback = completions.remove(id) ?: return
-        mainHandler.post(callback)
+        val key = completionIds.remove(id) ?: return
+        val group = completionGroups[key] ?: return
+        group.remaining -= 1
+        if (group.remaining <= 0) {
+            completionGroups.remove(key)
+            if (key == latestGroupKey) {
+                latestGroupKey = null
+                openGroupKey = null
+                mainHandler.post(group.callback)
+            }
+        }
     }
 
     private fun formatWeight(kg: Double): String {

@@ -52,6 +52,9 @@ data class OmittedExercise(
     val exerciseId: String,
     val exerciseName: String,
     val exerciseDbId: String? = null,
+    val variantName: String? = null,
+    val selectedAspects: Map<String, String>? = null,
+    val effectiveMuscles: List<InvolvedMuscle>? = null,
 )
 
 @Serializable
@@ -90,6 +93,9 @@ data class CompletedExercise(
     val exerciseDbId: String? = null,  // AUGE: link to ExerciseDatabase for metrics
     val canonicalExerciseId: String? = null,
     val relativeToCanonicalExerciseId: String? = null,
+    val variantName: String? = null,
+    val selectedAspects: Map<String, String>? = null,
+    val effectiveMuscles: List<InvolvedMuscle>? = null,
     val sets: List<CompletedSet> = emptyList(),
     val restTime: Int = 90,            // AUGE: rest interval in seconds for drain calc
     val supersetId: String? = null,

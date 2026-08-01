@@ -101,6 +101,20 @@ val EXERCISE_DATABASE_BY_ID: Map<String, ExerciseMuscleInfo>
 val EXERCISE_ID_ALIASES: Map<String, String>
     get() = exerciseAliasCache
 
+/**
+ * Lookup used by analytics and workout history. Legacy ids are resolved to the
+ * current catalog entry before callers attempt to read muscle metadata.
+ */
+fun buildExerciseCatalogLookup(
+    catalog: List<ExerciseMuscleInfo> = EXERCISE_DATABASE,
+): Map<String, ExerciseMuscleInfo> {
+    val base = catalog.associateBy { it.id.lowercase() }
+    val aliases = EXERCISE_ID_ALIASES.mapNotNull { (alias, canonical) ->
+        base[canonical.lowercase()]?.let { alias.lowercase() to it }
+    }
+    return base + aliases
+}
+
 fun resolveExerciseId(rawId: String?): String? {
     val normalized = rawId?.trim()?.lowercase().orEmpty()
     if (normalized.isBlank()) return null

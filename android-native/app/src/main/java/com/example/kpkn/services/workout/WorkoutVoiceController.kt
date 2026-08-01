@@ -1,21 +1,25 @@
 package com.example.kpkn.services.workout
 
 import android.content.Context
+import android.os.SystemClock
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.screens.workout.WorkoutSetDraft
 import com.example.kpkn.screens.workout.WorkoutVoiceInterpretation
 import com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind
 import com.example.kpkn.screens.workout.WorkoutVoiceField
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class WorkoutVoiceController(
@@ -34,7 +38,10 @@ class WorkoutVoiceController(
 
     private var scope: CoroutineScope? = null
     private var confirmationJob: Job? = null
+    private var idleMonitorJob: Job? = null
     private var voskAggregationJob: Job? = null
+    /** Commits a stable partial when Vosk never emits an endpoint/final result. */
+    private var partialFallbackJob: Job? = null
     private val voskAccumulator = VoskUtteranceAccumulator()
     private var engineCollectJob: Job? = null
     private var partialCollectJob: Job? = null
@@ -46,6 +53,14 @@ class WorkoutVoiceController(
     private var fallbackCollectJob: Job? = null
     private var fallbackPausedCollectJob: Job? = null
     private var confirmedOrCancelled = false
+    /** Marca de conversación: cada cambio de etapa invalida finales capturados antes. */
+    private var captureEpoch = 0L
+    /** Una confirmación ya fue re-preguntada por timeout; la segunda expira y cancela. */
+    private var confirmationReprompted = false
+    /** Generación de confirmación; invalida timeouts y finales de ventanas anteriores. */
+    private var confirmationToken = 0L
+    /** Última actividad de voz (fragmento/final); alimenta la suspensión por inactividad. */
+    private var lastVoiceActivityAtMs = 0L
     /** Debounce instant partial commands so one utterance does not fire twice. */
     private var lastInstantPartialKey: String? = null
     private var lastHypothesisConfidence: Float = 0f
@@ -73,6 +88,9 @@ class WorkoutVoiceController(
     var verbosityProvider: (() -> com.example.kpkn.data.models.VoiceVerbosity)? = null
     var noiseProfileProvider: (() -> com.example.kpkn.data.models.VoiceNoiseProfile)? = null
     var hapticEnabledProvider: (() -> Boolean)? = null
+    var structuralPersistenceOptionsProvider: (() -> Set<ReplacementPersistenceScopeV2>)? = null
+    var structuralPersistencePromptProvider: (() -> String)? = null
+    var structuralPersistenceSuccessProvider: (() -> String)? = null
     var inputModeProvider: (() -> com.example.kpkn.data.models.VoiceInputMode)? = null
 
     private var pendingUndo: VoiceUndoPayload? = null
@@ -99,10 +117,6 @@ class WorkoutVoiceController(
         val restAnnouncement = pendingRestAnnouncement?.spokenText()
         pendingRestAnnouncement = null
         _state.update { it.copy(errorMessage = null) }
-        WorkoutVoiceDiagnosticLogger.event(
-            "set_persistence_succeeded",
-            mapOf("interpretation" to interpretation.toString()),
-        )
         runSpeakingOrSkip(
             priority = WorkoutSpeechPriority.HIGH,
             onComplete = {
@@ -170,15 +184,13 @@ class WorkoutVoiceController(
         this.scope = scope
         ttsManager.initialize(
             onReady = {
-                // Never force DISABLED over an active session (race with enable()).
-                WorkoutVoiceSessionGate.stageAfterTtsReady(sessionWanted, _state.value.stage)
                 announceVoiceOnIfReady()
             },
             onError = { msg ->
                 val next = WorkoutVoiceSessionGate.stageAfterTtsError(sessionWanted, _state.value.stage)
                 if (next != null) {
-                    _state.update { it.copy(stage = next, errorMessage = msg) }
-                    onStageChanged?.invoke(next)
+                    _state.update { it.copy(errorMessage = msg) }
+                    updateStage(next)
                     onError?.invoke(msg)
                 }
             },
@@ -728,6 +740,13 @@ class WorkoutVoiceController(
 
     private fun startListening() {
         val scope = this.scope ?: return
+        lastVoiceActivityAtMs = SystemClock.elapsedRealtime()
+        lastInstantPartialKey = null
+        lastHypothesisConfidence = 0f
+        lastHypothesisConfidenceKnown = true
+        confirmedOrCancelled = false
+        confirmationReprompted = false
+        confirmationToken++
 
         noiseProfileProvider?.invoke()?.let { continuousEngine.setNoiseProfile(it) }
         continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.LISTENING)
@@ -743,23 +762,22 @@ class WorkoutVoiceController(
         statusCollectJob?.cancel()
         promptCollectJob?.cancel()
         captureCollectJob?.cancel()
-        continuousEngine.start(
-            scope = scope,
-            holdMicRouteAcrossPause = !isPushToTalkMode(),
-        )
-
-        engineCollectJob = scope.launch {
+        engineCollectJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
             continuousEngine.finalResults.collect { hypotheses ->
                 handleFinalHypotheses(hypotheses)
             }
         }
 
-        partialCollectJob = scope.launch {
+        partialCollectJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
             continuousEngine.partialResults.collect { text ->
                 _state.update { it.copy(partialText = text) }
-                if (text.isNotBlank() && voskAggregationJob?.isActive == true) {
-                    scheduleVoskCloseWindow()
+                if (text.isNotBlank()) {
+                    lastVoiceActivityAtMs = SystemClock.elapsedRealtime()
+                    if (voskAggregationJob?.isActive == true) {
+                        scheduleVoskCloseWindow()
+                    }
                 }
+                schedulePartialFinalFallback(text)
                 maybeHandleInstantPartial(text)
             }
         }
@@ -777,9 +795,13 @@ class WorkoutVoiceController(
         }
 
         routeCollectJob = scope.launch {
+            var lastRoute: String? = null
             continuousEngine.activeRouteLabel.collect { route ->
                 _state.update { it.copy(activeRouteLabel = route) }
-                WorkoutVoiceDiagnosticLogger.event("audio_route_changed", mapOf("route" to route))
+                if (route != lastRoute) {
+                    lastRoute = route
+                    WorkoutVoiceDiagnosticLogger.event("audio_route_changed", mapOf("route" to route))
+                }
             }
         }
 
@@ -796,7 +818,7 @@ class WorkoutVoiceController(
             }
         }
 
-        statusCollectJob = scope.launch {
+        statusCollectJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
             continuousEngine.statusMessages.collect { message ->
                 if (!sessionWanted) return@collect
                 // Límites de fallback / avisos no fatales: no forzar ERROR_RECOVERY.
@@ -810,7 +832,7 @@ class WorkoutVoiceController(
             }
         }
 
-        promptCollectJob = scope.launch {
+        promptCollectJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
             continuousEngine.promptSpeak.collect { request ->
                 if (!sessionWanted) {
                     request.complete()
@@ -824,7 +846,11 @@ class WorkoutVoiceController(
         captureCollectJob = scope.launch {
             continuousEngine.captureState.collect { capture ->
                 if (!sessionWanted) return@collect
-                if (capture == VoiceCaptureState.FAILED) sessionWanted = false
+                if (capture == VoiceCaptureState.FAILED) {
+                    sessionWanted = false
+                    continuousEngine.stop()
+                    WorkoutVoiceForegroundService.stop(context)
+                }
                 WorkoutVoiceSessionGate.stageAfterCaptureEvent(
                     current = _state.value.stage,
                     capture = capture,
@@ -834,20 +860,20 @@ class WorkoutVoiceController(
             }
         }
 
-        errorCollectJob = scope.launch {
+        errorCollectJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
             continuousEngine.errors.collect { error ->
                 val terminal = continuousEngine.captureState.value == VoiceCaptureState.FAILED
                 if (!sessionWanted && !terminal) return@collect
                 if (terminal) sessionWanted = false
                 val errors = _state.value.consecutiveErrors + 1
+                val nextStage = if (terminal) VoicePipelineStage.FAILED else VoicePipelineStage.ERROR_RECOVERY
                 _state.update {
                     it.copy(
-                        stage = if (terminal) VoicePipelineStage.FAILED else VoicePipelineStage.ERROR_RECOVERY,
                         errorMessage = error,
                         consecutiveErrors = errors,
                     )
                 }
-                onStageChanged?.invoke(if (terminal) VoicePipelineStage.FAILED else VoicePipelineStage.ERROR_RECOVERY)
+                updateStage(nextStage)
                 onError?.invoke(error)
                 if (errors <= WorkoutVoiceSessionGate.MAX_CONSECUTIVE_ENGINE_ERRORS) {
                     delay(WorkoutVoiceSessionGate.engineErrorBackoffMs(errors))
@@ -857,10 +883,53 @@ class WorkoutVoiceController(
                 }
             }
         }
+
+        continuousEngine.start(
+            scope = scope,
+            holdMicRouteAcrossPause = !isPushToTalkMode(),
+        )
+
+        idleMonitorJob?.cancel()
+        idleMonitorJob = scope.launch {
+            while (isActive) {
+                delay(WorkoutVoiceSessionGate.IDLE_CHECK_INTERVAL_MS)
+                if (!sessionWanted) break
+                val stage = _state.value.stage
+                if (stage != VoicePipelineStage.LISTENING && stage != VoicePipelineStage.RECONNECTING) continue
+                val idleMs = SystemClock.elapsedRealtime() - lastVoiceActivityAtMs
+                when {
+                    idleMs >= WorkoutVoiceSessionGate.IDLE_UNLOAD_MS -> {
+                        WorkoutVoiceDiagnosticLogger.event("voice_idle_unload", mapOf("idleMs" to idleMs))
+                        sessionWanted = false
+                        continuousEngine.stop()
+                        _state.update {
+                            it.copy(errorMessage = "Voz en reposo por inactividad. Tocá el micrófono para reanudar.")
+                        }
+                        updateStage(VoicePipelineStage.DISABLED)
+                        WorkoutVoiceForegroundService.stop(context)
+                        break
+                    }
+                    idleMs >= WorkoutVoiceSessionGate.IDLE_SLEEP_MS -> {
+                        WorkoutVoiceDiagnosticLogger.event("voice_idle_sleep", mapOf("idleMs" to idleMs))
+                        val paused = continuousEngine.pauseAndAwait(releaseMic = true)
+                        if (paused) {
+                            sessionWanted = false
+                            _state.update {
+                                it.copy(errorMessage = "Voz en pausa por inactividad. Tocá el micrófono para reanudar.")
+                            }
+                            updateStage(VoicePipelineStage.DISABLED)
+                        }
+                        break
+                    }
+                }
+            }
+        }
     }
 
     private fun handleFinalHypotheses(hypotheses: List<VoiceHypothesis>) {
         val best = WorkoutVoiceHypothesisScorer.pickBest(hypotheses) ?: return
+        partialFallbackJob?.cancel()
+        partialFallbackJob = null
         lastHypothesisConfidence = best.confidence
         lastHypothesisConfidenceKnown = best.confidenceKnown
         lastInstantPartialKey = null
@@ -868,17 +937,42 @@ class WorkoutVoiceController(
 
         WorkoutVoiceDiagnosticLogger.event(
             "vosk_fragment",
-            mapOf("fragment" to best.text, "combined" to combined),
+            mapOf("fragment" to best.text, "combined" to combined, "fromPartial" to best.fromPartial),
         )
         scheduleVoskCloseWindow()
     }
 
-    private fun scheduleVoskCloseWindow() {
+    private fun schedulePartialFinalFallback(text: String, epoch: Long = captureEpoch) {
+        val candidate = text.trim()
+        if (candidate.isBlank() || isNoiseTranscript(candidate)) return
+        partialFallbackJob?.cancel()
+        partialFallbackJob = scope?.launch {
+            delay(PARTIAL_FINAL_FALLBACK_MS)
+            val current = _state.value
+            val stillCurrent = current.partialText.trim().equals(candidate, ignoreCase = true)
+            if (!stillCurrent || epoch != captureEpoch) return@launch
+            partialFallbackJob = null
+            if (current.stage == VoicePipelineStage.CONFIRM_WAIT) {
+                WorkoutVoiceDiagnosticLogger.event("asr_partial_fallback", mapOf("transcript" to candidate, "stage" to current.stage.name))
+                handleConfirmInput(candidate)
+                return@launch
+            }
+            if (!WorkoutVoiceSessionGate.shouldProcessCommand(current.stage)) return@launch
+            voskAggregationJob?.cancel()
+            voskAccumulator.clear()
+            lastHypothesisConfidence = 0f
+            lastHypothesisConfidenceKnown = false
+            WorkoutVoiceDiagnosticLogger.event("asr_partial_fallback", mapOf("transcript" to candidate, "stage" to current.stage.name))
+            handleFinalResult(candidate, epoch)
+        }
+    }
+
+    private fun scheduleVoskCloseWindow(epoch: Long = captureEpoch) {
         voskAggregationJob?.cancel()
         voskAggregationJob = scope?.launch {
             delay(VOSK_FRAGMENT_GRACE_MS)
             val utterance = voskAccumulator.consume()
-            if (utterance.isNotBlank()) handleFinalResult(utterance)
+            if (utterance.isNotBlank()) handleFinalResult(utterance, epoch)
         }
     }
 
@@ -926,12 +1020,24 @@ class WorkoutVoiceController(
         }
     }
 
-    private fun handleFinalResult(text: String) {
+    private fun handleFinalResult(text: String, epoch: Long) {
+        if (epoch != captureEpoch) {
+            // Final capturado en una ventana de conversación anterior (p.ej. el "no" de una
+            // confirmación que llegó tarde): nunca procesarlo como comando nuevo.
+            WorkoutVoiceDiagnosticLogger.event(
+                "stale_final_discarded",
+                mapOf("transcript" to text, "epoch" to epoch, "currentEpoch" to captureEpoch),
+            )
+            return
+        }
+        lastVoiceActivityAtMs = SystemClock.elapsedRealtime()
         val s = _state.value
+        val sanitized = text.replace("[unk]", " ").replace(Regex("\\s+"), " ").trim()
         WorkoutVoiceDiagnosticLogger.event(
             "asr_final",
             mapOf(
                 "transcript" to text,
+                "sanitized" to sanitized,
                 "confidence" to lastHypothesisConfidence,
                 "confidenceKnown" to lastHypothesisConfidenceKnown,
                 "nativeFallback" to s.usingNativeFallback,
@@ -941,8 +1047,14 @@ class WorkoutVoiceController(
         )
         if (!WorkoutVoiceSessionGate.shouldAcceptFinalResult(s.stage)) return
 
+        if (isNoiseTranscript(sanitized)) {
+            // [unk], ruido o una letra suelta no son comandos ni deben escalar fallback.
+            WorkoutVoiceDiagnosticLogger.event("vosk_noise_discarded", mapOf("transcript" to text))
+            return
+        }
+
         if (s.stage == VoicePipelineStage.CONFIRM_WAIT) {
-            handleConfirmInput(text)
+            handleConfirmInput(sanitized)
             return
         }
 
@@ -951,8 +1063,15 @@ class WorkoutVoiceController(
             requestDucking()
             val info = exerciseInfoProvider?.invoke()
             continuousEngine.updateCommandContext(info?.toVoiceCommandContext(), VoicePipelineStage.PROCESSING)
-            processCommand(text, info)
+            processCommand(sanitized, info)
         }
+    }
+
+    private fun isNoiseTranscript(text: String): Boolean {
+        val cleaned = text.trim().lowercase().replace("[unk]", " ").replace(Regex("\\s+"), " ").trim()
+        if (cleaned.isEmpty()) return true
+        val tokens = cleaned.split(' ')
+        return tokens.size == 1 && tokens[0].length <= 1
     }
 
     private fun processCommand(transcript: String, exerciseInfo: ExerciseInfo?) {
@@ -1121,6 +1240,22 @@ class WorkoutVoiceController(
             }
             is VoiceSessionCommand.Unknown -> {
                 releaseDucking()
+                // Con confianza por palabra disponible: re-preguntar una vez en vez
+                // de quedarnos en silencio cuando el ASR reconoció algo poco claro.
+                if (lastHypothesisConfidenceKnown &&
+                    lastHypothesisConfidence < REASK_CONFIDENCE_THRESHOLD &&
+                    !command.raw.isBlank()
+                ) {
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "voice_low_confidence_reask",
+                        mapOf("transcript" to command.raw, "confidence" to lastHypothesisConfidence),
+                    )
+                    runSpeakingOrSkip(
+                        onComplete = { resumeListening() },
+                        speak = { ttsManager.speakError("No te entendí. Repetí la carga o el comando.") },
+                    )
+                    return
+                }
                 // Una alucinación aislada de Vosk queda en silencio. El fallback se reserva
                 // para una segunda entrada no resuelta cercana y nunca se encadena al nativo.
                 val secondUnresolved = fallbackTriggerPolicy.shouldRequestFallback()
@@ -1150,10 +1285,12 @@ class WorkoutVoiceController(
 
     private fun handleAddSet() {
         confirmedOrCancelled = false
+        val persistencePrompt = addSetPersistencePrompt()
         _state.update {
             it.copy(
                 lastCommand = VoiceSessionCommand.AddSet,
                 pendingAddSetPersistence = true,
+                pendingAddSetPersistencePrompt = persistencePrompt,
             )
         }
         onCommandDetected?.invoke(VoiceSessionCommand.AddSet)
@@ -1171,8 +1308,37 @@ class WorkoutVoiceController(
                 }
             },
             speak = {
-                ttsManager.speakError("Serie añadida. Di solo esta sesión o para siempre.")
+                ttsManager.speakError(persistencePrompt)
             },
+        )
+    }
+
+    private fun addSetPersistencePrompt(): String =
+        structuralPersistencePromptProvider?.invoke()
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?: "Serie añadida. Di solo esta sesión o para siempre."
+
+    private fun persistenceChoiceIsAvailable(command: VoiceSessionCommand): Boolean {
+        val options = structuralPersistenceOptionsProvider?.invoke() ?: return true
+        return when (command) {
+            is VoiceSessionCommand.AddSetSessionOnly -> ReplacementPersistenceScopeV2.SESSION_ONLY in options
+            is VoiceSessionCommand.AddSetPermanent -> options.any {
+                it == ReplacementPersistenceScopeV2.PERMANENT ||
+                    it == ReplacementPersistenceScopeV2.BLOCK_MATCHING
+            }
+            else -> false
+        }
+    }
+
+    private fun repeatAddSetPersistencePrompt() {
+        runSpeakingOrSkip(
+            onComplete = {
+                updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
+                startEngineForCurrentInputMode(scope ?: return@runSpeakingOrSkip)
+            },
+            speak = { ttsManager.speakError(addSetPersistencePrompt()) },
         )
     }
 
@@ -1227,18 +1393,34 @@ class WorkoutVoiceController(
                 null
             },
         )
+        // "solo la barra": resolver con la carga base del ejercicio (o 20 kg por defecto).
+        val finalInterpretation = if (resolvedInterpretation.isBarWeightOnly) {
+            val exercise = exerciseInfo?.exercise
+            val barWeight = exercise?.contextProfilesV3
+                ?.firstOrNull { it.id == exercise.defaultContextProfileIdV3 }
+                ?.let { it.barWeightKg ?: it.setupDetails?.barWeightKg ?: it.baseLoadKg }
+                ?: exercise?.setupDetails?.barWeightKg
+                ?: exercise?.setupDetails?.baseLoadKg
+                ?: DEFAULT_BAR_WEIGHT_KG
+            resolvedInterpretation.copy(
+                weightKg = barWeight,
+                fields = resolvedInterpretation.fields + WorkoutVoiceField.WEIGHT,
+            )
+        } else {
+            resolvedInterpretation
+        }
         _state.update {
             it.copy(
-                lastInterpretation = resolvedInterpretation,
-                lastCommand = VoiceSessionCommand.RegisterSet(resolvedInterpretation),
+                lastInterpretation = finalInterpretation,
+                lastCommand = VoiceSessionCommand.RegisterSet(finalInterpretation),
             )
         }
-        if (resolvedInterpretation.ambiguousIntensityValue != null) {
+        if (finalInterpretation.ambiguousIntensityValue != null) {
             _state.update {
                 it.copy(
                     pendingAction = VoicePendingAction.IntensityKind(
-                        resolvedInterpretation,
-                        resolvedInterpretation.ambiguousIntensityValue,
+                        finalInterpretation,
+                        finalInterpretation.ambiguousIntensityValue,
                     ),
                 )
             }
@@ -1246,22 +1428,22 @@ class WorkoutVoiceController(
                 onComplete = { resumeListening() },
                 speak = {
                     ttsManager.speakError(
-                        "¿Ese ${resolvedInterpretation.ambiguousIntensityValue.toInt()} es RPE o RIR?",
+                        "¿Ese ${finalInterpretation.ambiguousIntensityValue.toInt()} es RPE o RIR?",
                     )
                 },
             )
             return
         }
-        if (resolvedInterpretation.incompleteTechnique != null) {
+        if (finalInterpretation.incompleteTechnique != null) {
             _state.update {
                 it.copy(
                     pendingAction = VoicePendingAction.TechniqueDetails(
-                        resolvedInterpretation,
-                        resolvedInterpretation.incompleteTechnique,
+                        finalInterpretation,
+                        finalInterpretation.incompleteTechnique,
                     ),
                 )
             }
-            val missing = if (resolvedInterpretation.incompleteTechnique == "dropset") {
+            val missing = if (finalInterpretation.incompleteTechnique == "dropset") {
                 "Indica la carga y las repeticiones del dropset."
             } else {
                 "Indica el descanso y las repeticiones del rest pause."
@@ -1271,22 +1453,22 @@ class WorkoutVoiceController(
         }
         if (
             exerciseInfo?.loadMode == LoadModeV2.BODYWEIGHT &&
-            resolvedInterpretation.weightKg != null &&
-            resolvedInterpretation.loadModeOverride == null
+            finalInterpretation.weightKg != null &&
+            finalInterpretation.loadModeOverride == null
         ) {
-            _state.update { it.copy(pendingAction = VoicePendingAction.LoadMode(resolvedInterpretation)) }
+            _state.update { it.copy(pendingAction = VoicePendingAction.LoadMode(finalInterpretation)) }
             runSpeakingOrSkip(
                 onComplete = { resumeListening() },
                 speak = { ttsManager.speakError("¿Es carga normal o lastre?") },
             )
             return
         }
-        val effectiveLoadMode = resolvedInterpretation.loadModeOverride ?: exerciseInfo?.loadMode
+        val effectiveLoadMode = finalInterpretation.loadModeOverride ?: exerciseInfo?.loadMode
         val requiresWeight = effectiveLoadMode != LoadModeV2.BODYWEIGHT
         val draftHasWeightAndReps = (!requiresWeight || !draft?.weightText.isNullOrBlank()) && !draft?.valueText.isNullOrBlank()
         val missing = buildList {
-            if (resolvedInterpretation.resolvedMetricValue == null) add(metricLabel(exerciseInfo?.unitMode ?: UnitModeV2.REPS, exerciseInfo?.customUnit))
-            if (requiresWeight && resolvedInterpretation.weightKg == null) add("carga")
+            if (finalInterpretation.resolvedMetricValue == null) add(metricLabel(exerciseInfo?.unitMode ?: UnitModeV2.REPS, exerciseInfo?.customUnit))
+            if (requiresWeight && finalInterpretation.weightKg == null) add("carga")
         }
         if (missing.isNotEmpty()) {
             runSpeakingOrSkip(
@@ -1296,18 +1478,18 @@ class WorkoutVoiceController(
             return
         }
         val decision = WorkoutVoiceConfirmationPolicy.decide(
-            interpretation = resolvedInterpretation,
+            interpretation = finalInterpretation,
             asrConfidence = lastHypothesisConfidence,
             draftHasWeightAndReps = draftHasWeightAndReps,
             requiresWeight = requiresWeight,
             confidenceKnown = lastHypothesisConfidenceKnown,
         )
         if (decision == ConfirmationDecision.AUTO) {
-            val side = resolvedInterpretation.side ?: exerciseInfo?.pendingUnilateralSide
-            val resolved = if (side != null && resolvedInterpretation.side == null) {
-                resolvedInterpretation.copy(side = side)
+            val side = finalInterpretation.side ?: exerciseInfo?.pendingUnilateralSide
+            val resolved = if (side != null && finalInterpretation.side == null) {
+                finalInterpretation.copy(side = side)
             } else {
-                resolvedInterpretation
+                finalInterpretation
             }
             confirmedOrCancelled = true
             dispatchPersistenceAfterPause(resolved)
@@ -1326,27 +1508,29 @@ class WorkoutVoiceController(
                 continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
                 val activeScope = scope
                 if (activeScope != null) {
+                    val confirmation = ++confirmationToken
+                    confirmationReprompted = false
                     startEngineForCurrentInputMode(activeScope)
-                    startConfirmationTimeout(resolvedInterpretation)
+                    startConfirmationTimeout(finalInterpretation, confirmation)
                 } else {
                     resumeListening()
                 }
             },
             speak = {
                 ttsManager.speakSetConfirmation(
-                    weightKg = resolvedInterpretation.weightKg,
-                    metricValue = resolvedInterpretation.resolvedMetricValue,
+                    weightKg = finalInterpretation.weightKg,
+                    metricValue = finalInterpretation.resolvedMetricValue,
                     metricLabel = metricLabel(exerciseInfo?.unitMode ?: if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS, exerciseInfo?.customUnit),
-                    rpe = if (resolvedInterpretation.intensityKind == WorkoutVoiceIntensityKind.RPE) resolvedInterpretation.intensityValue else null,
-                    rir = if (resolvedInterpretation.intensityKind == WorkoutVoiceIntensityKind.RIR) resolvedInterpretation.intensityValue?.toInt() else null,
-                    reachedFailure = resolvedInterpretation.reachedFailure,
-                    romPercent = resolvedInterpretation.romPercent,
-                    tagName = resolvedInterpretation.tagName,
+                    rpe = if (finalInterpretation.intensityKind == WorkoutVoiceIntensityKind.RPE) finalInterpretation.intensityValue else null,
+                    rir = if (finalInterpretation.intensityKind == WorkoutVoiceIntensityKind.RIR) finalInterpretation.intensityValue?.toInt() else null,
+                    reachedFailure = finalInterpretation.reachedFailure,
+                    romPercent = finalInterpretation.romPercent,
+                    tagName = finalInterpretation.tagName,
                     advancedDetails = buildList {
-                        resolvedInterpretation.helpedReps?.let { add("$it repeticiones con ayuda") }
-                        if (resolvedInterpretation.isFailedSet) add("serie fallida")
-                        resolvedInterpretation.dropSets.forEach { add("dropset de ${it.weight} kilos y ${it.reps} repeticiones") }
-                        resolvedInterpretation.restPauses.forEach { add("rest pause de ${it.restTime} segundos y ${it.reps} repeticiones") }
+                        finalInterpretation.helpedReps?.let { add("$it repeticiones con ayuda") }
+                        if (finalInterpretation.isFailedSet) add("serie fallida")
+                        finalInterpretation.dropSets.forEach { add("dropset de ${it.weight} kilos y ${it.reps} repeticiones") }
+                        finalInterpretation.restPauses.forEach { add("rest pause de ${it.restTime} segundos y ${it.reps} repeticiones") }
                     },
                 )
             },
@@ -1395,6 +1579,8 @@ class WorkoutVoiceController(
                         // Correction while confirming: replace draft interpretation and re-ask sí/no.
                         confirmedOrCancelled = false
                         confirmationJob?.cancel()
+                        val replacementToken = ++confirmationToken
+                        confirmationReprompted = false
                         _state.update {
                             it.copy(
                                 lastInterpretation = reparsed.interpretation,
@@ -1408,7 +1594,7 @@ class WorkoutVoiceController(
                                 val activeScope = scope
                                 if (activeScope != null) {
                                     startEngineForCurrentInputMode(activeScope)
-                                    startConfirmationTimeout(reparsed.interpretation)
+                                    startConfirmationTimeout(reparsed.interpretation, replacementToken)
                                 }
                             },
                             speak = {
@@ -1467,26 +1653,25 @@ class WorkoutVoiceController(
         when (command) {
             is VoiceSessionCommand.AddSetSessionOnly -> resolveAddSetPersistence(VoiceSessionCommand.AddSetSessionOnly)
             is VoiceSessionCommand.AddSetPermanent -> resolveAddSetPersistence(VoiceSessionCommand.AddSetPermanent)
-            else -> {
-                runSpeakingOrSkip(
-                    onComplete = {
-                        updateStage(VoicePipelineStage.CONFIRM_WAIT)
-                        continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
-                        startEngineForCurrentInputMode(scope ?: return@runSpeakingOrSkip)
-                    },
-                    speak = {
-                        ttsManager.speakError("Di solo esta sesión o para siempre.")
-                    },
-                )
-            }
+            else -> repeatAddSetPersistencePrompt()
         }
     }
 
     private fun resolveAddSetPersistence(command: VoiceSessionCommand) {
         if (confirmedOrCancelled) return
+        if (!persistenceChoiceIsAvailable(command)) {
+            repeatAddSetPersistencePrompt()
+            return
+        }
         confirmedOrCancelled = true
         confirmationJob?.cancel()
-        _state.update { it.copy(pendingAddSetPersistence = false, lastCommand = command) }
+        _state.update {
+            it.copy(
+                pendingAddSetPersistence = false,
+                pendingAddSetPersistencePrompt = "",
+                lastCommand = command,
+            )
+        }
         onCommandDetected?.invoke(command)
         runSpeakingOrSkip(
             onComplete = {
@@ -1494,10 +1679,13 @@ class WorkoutVoiceController(
                 resumeListening()
             },
             speak = {
-                val msg = when (command) {
-                    is VoiceSessionCommand.AddSetPermanent -> "Serie guardada en el programa."
-                    else -> "Serie solo para esta sesión."
-                }
+                val msg = structuralPersistenceSuccessProvider?.invoke()
+                    ?.trim()
+                    ?.takeIf { it.isNotBlank() }
+                    ?: when (command) {
+                        is VoiceSessionCommand.AddSetPermanent -> "Serie guardada en el programa."
+                        else -> "Serie solo para esta sesión."
+                    }
                 ttsManager.speakError(msg)
             },
         )
@@ -1518,6 +1706,8 @@ class WorkoutVoiceController(
         if (confirmedOrCancelled) return
         WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "CONFIRM", "state" to "ACCEPTED"))
         confirmedOrCancelled = true
+        confirmationToken++
+        confirmationReprompted = false
         confirmationJob?.cancel()
 
         val navigation = _state.value.pendingAction as? VoicePendingAction.ExerciseNavigation
@@ -1578,9 +1768,11 @@ class WorkoutVoiceController(
             }
         }
     }
-    private fun doCancel() {
+    private fun doCancel(message: String = "Cancelado.") {
         if (confirmedOrCancelled) return
         confirmedOrCancelled = true
+        confirmationToken++
+        confirmationReprompted = false
         confirmationJob?.cancel()
 
         _state.update { it.copy(lastInterpretation = null, lastCommand = VoiceSessionCommand.Cancel, pendingAction = null) }
@@ -1590,23 +1782,101 @@ class WorkoutVoiceController(
                 releaseDucking()
                 resumeListening()
             },
-            speak = { ttsManager.speakError("Cancelado.") },
+            speak = { ttsManager.speakError(message) },
         )
     }
 
-    private fun startConfirmationTimeout(@Suppress("UNUSED_PARAMETER") interpretation: WorkoutVoiceInterpretation) {
+    private fun startConfirmationTimeout(
+        interpretation: WorkoutVoiceInterpretation,
+        token: Long = confirmationToken,
+        delayMs: Long = WorkoutVoiceSessionGate.CONFIRM_WAIT_TIMEOUT_MS,
+    ) {
         confirmationJob?.cancel()
         confirmationJob = scope?.launch {
-            delay(WorkoutVoiceSessionGate.CONFIRM_WAIT_TIMEOUT_MS)
-            if (!confirmedOrCancelled && _state.value.hasPendingConfirmation) {
-                // Auto-confirm removed: silence/timeout cancels instead of writing a set.
-                doCancel()
+            delay(delayMs)
+            if (token != confirmationToken || confirmedOrCancelled) return@launch
+            val current = _state.value
+            val pending = current.lastInterpretation != null &&
+                !current.pendingAddSetPersistence &&
+                !voiceSetPersistenceInFlight
+            if (!pending) return@launch
+            if (current.stage != VoicePipelineStage.CONFIRM_WAIT) {
+                WorkoutVoiceDiagnosticLogger.event(
+                    "confirmation_timeout_deferred",
+                    mapOf("stage" to current.stage.name, "retryMs" to CONFIRMATION_STAGE_RETRY_MS),
+                )
+                startConfirmationTimeout(interpretation, token, CONFIRMATION_STAGE_RETRY_MS)
+                return@launch
             }
+            if (confirmationReprompted) {
+                confirmationReprompted = false
+                WorkoutVoiceDiagnosticLogger.event(
+                    "confirmation_timeout",
+                    mapOf(
+                        "dropped" to true,
+                        "draftRetained" to true,
+                        "transcript" to interpretation.transcript.take(MAX_DIAGNOSTIC_TRANSCRIPT_LENGTH),
+                    ),
+                )
+                doCancel("No confirmado. Mantengo los datos en el borrador.")
+                return@launch
+            }
+            confirmationReprompted = true
+            WorkoutVoiceDiagnosticLogger.event(
+                "confirmation_timeout",
+                mapOf(
+                    "reprompted" to true,
+                    "transcript" to interpretation.transcript.take(MAX_DIAGNOSTIC_TRANSCRIPT_LENGTH),
+                ),
+            )
+            runSpeakingOrSkip(
+                onComplete = {
+                    val next = _state.value
+                    if (
+                        token == confirmationToken &&
+                        !confirmedOrCancelled &&
+                        next.lastInterpretation != null &&
+                        !next.pendingAddSetPersistence
+                    ) {
+                        updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                        continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
+                        val activeScope = scope
+                        if (activeScope != null) {
+                            startEngineForCurrentInputMode(activeScope)
+                            startConfirmationTimeout(interpretation, token)
+                        }
+                    }
+                },
+                speak = {
+                    val info = exerciseInfoProvider?.invoke()
+                    ttsManager.speakSetConfirmation(
+                        weightKg = interpretation.weightKg,
+                        metricValue = interpretation.resolvedMetricValue,
+                        metricLabel = metricLabel(
+                            info?.unitMode ?: UnitModeV2.REPS,
+                            info?.customUnit,
+                        ),
+                        rpe = if (interpretation.intensityKind == WorkoutVoiceIntensityKind.RPE) interpretation.intensityValue else null,
+                        rir = if (interpretation.intensityKind == WorkoutVoiceIntensityKind.RIR) interpretation.intensityValue?.toInt() else null,
+                        reachedFailure = interpretation.reachedFailure,
+                        romPercent = interpretation.romPercent,
+                        tagName = interpretation.tagName,
+                        advancedDetails = buildList {
+                            interpretation.helpedReps?.let { add("$it repeticiones con ayuda") }
+                            if (interpretation.isFailedSet) add("serie fallida")
+                        },
+                    )
+                },
+            )
         }
     }
 
     private fun resumeListening() {
         if (!sessionWanted) return
+        lastVoiceActivityAtMs = SystemClock.elapsedRealtime()
+        lastInstantPartialKey = null
+        lastHypothesisConfidence = 0f
+        lastHypothesisConfidenceKnown = true
         WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "RESUME", "state" to "REQUESTED"))
 
         if (isPushToTalkMode() && !pushToTalkHeld) {
@@ -1623,6 +1893,7 @@ class WorkoutVoiceController(
                 errorMessage = null,
                 consecutiveErrors = 0,
                 pendingAddSetPersistence = false,
+                pendingAddSetPersistencePrompt = "",
             )
         }
         continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.LISTENING)
@@ -1706,6 +1977,8 @@ class WorkoutVoiceController(
         utteranceWatchdogJob = null
         voskAggregationJob?.cancel()
         voskAggregationJob = null
+        partialFallbackJob?.cancel()
+        partialFallbackJob = null
         voskAccumulator.clear()
     }
 
@@ -1718,12 +1991,17 @@ class WorkoutVoiceController(
                 errorMessage = null,
                 consecutiveErrors = 0,
                 pendingAddSetPersistence = false,
+                pendingAddSetPersistencePrompt = "",
                 pendingAction = null,
             )
         }
     }
 
     private fun updateStage(stage: VoicePipelineStage) {
+        if (_state.value.stage == stage) return
+        partialFallbackJob?.cancel()
+        partialFallbackJob = null
+        captureEpoch += 1
         _state.update { it.copy(stage = stage) }
         WorkoutVoiceDiagnosticLogger.event("pipeline_stage_changed", mapOf("stage" to stage.name))
         WorkoutVoiceDiagnosticLogger.updateProcessState(stage)
@@ -1846,5 +2124,13 @@ class WorkoutVoiceController(
     }
     private companion object {
         const val VOSK_FRAGMENT_GRACE_MS = 2_200L
+        /** Endpoint can be lost during screen lock; allow the last partial to settle first. */
+        const val PARTIAL_FINAL_FALLBACK_MS = 2_800L
+        const val CONFIRMATION_STAGE_RETRY_MS = 500L
+        const val MAX_DIAGNOSTIC_TRANSCRIPT_LENGTH = 160
+        /** Fallback de peso cuando el ejercicio no define barWeightKg. */
+        const val DEFAULT_BAR_WEIGHT_KG = 20.0
+        /** Por debajo de esta confianza media por palabra se re-pregunta en vez de callar. */
+        const val REASK_CONFIDENCE_THRESHOLD = 0.35f
     }
 }

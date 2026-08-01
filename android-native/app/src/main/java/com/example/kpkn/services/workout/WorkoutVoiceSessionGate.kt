@@ -16,17 +16,6 @@ object WorkoutVoiceSessionGate {
         VoicePipelineStage.RECONNECTING,
     )
 
-    /** TTS became ready — never force DISABLED over an active or wanted session. */
-    fun stageAfterTtsReady(
-        sessionWanted: Boolean,
-        current: VoicePipelineStage,
-    ): VoicePipelineStage? {
-        if (sessionWanted || current in ACTIVE_STAGES || current == VoicePipelineStage.ERROR_RECOVERY) {
-            return null
-        }
-        return null
-    }
-
     /** TTS failed — only surface ERROR_RECOVERY when the user wants the session on. */
     fun stageAfterTtsError(
         sessionWanted: Boolean,
@@ -95,7 +84,15 @@ object WorkoutVoiceSessionGate {
     /** @deprecated Prefer [engineErrorBackoffMs] — kept for callers that expect a single delay. */
     const val ENGINE_ERROR_RETRY_MS = 400L
     /** Time to wait for sí/no (or AddSet persistence) after TTS finishes asking. */
-    const val CONFIRM_WAIT_TIMEOUT_MS = 8_000L
+    const val CONFIRM_WAIT_TIMEOUT_MS = 12_000L
+
+    /** Sin voz detectada: pausar captura y liberar el micrófono (reanuda al tocar). */
+    const val IDLE_SLEEP_MS = 3 * 60_000L
+
+    /** Mucho más inactividad: descargar el modelo Vosk (recarga perezosa al reanudar). */
+    const val IDLE_UNLOAD_MS = 12 * 60_000L
+
+    const val IDLE_CHECK_INTERVAL_MS = 30_000L
 
     /** Exponential backoff: 400 → 800 → 1600 ms (capped) based on consecutive error count. */
     fun engineErrorBackoffMs(consecutiveErrors: Int): Long {

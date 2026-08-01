@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
@@ -17,6 +18,7 @@ import com.example.kpkn.navigation.KpknDeepLinks
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -38,6 +40,8 @@ class WorkoutVoiceForegroundService : Service() {
     private var collectorsStarted = false
     private var wakeLock: PowerManager.WakeLock? = null
     private var stopping = false
+    /** True while the UI client has an active voice session, even during a mic pause/reconnect. */
+    private var sessionRequested = false
 
     private val binder = object : IWorkoutVoiceEngineService.Stub() {
         override fun registerCallback(cb: IWorkoutVoiceEngineCallback?, generation: Long) {
@@ -55,24 +59,31 @@ class WorkoutVoiceForegroundService : Service() {
             noiseProfileOrdinal: Int,
         ) {
             if (generation != clientGeneration) return
+            sessionRequested = true
             WorkoutVoiceDiagnosticLogger.start("voice-process", "generation-$generation")
             WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "PREPARING", "state" to "START"))
             val stage = VoicePipelineStage.entries.getOrElse(stageOrdinal) { VoicePipelineStage.LISTENING }
             val profile = VoiceNoiseProfile.entries.getOrElse(noiseProfileOrdinal) { VoiceNoiseProfile.GYM }
             engine.setNoiseProfile(profile)
             grammarJson?.let { engine.updateGrammarOverride(it, stage) }
+            acquireWakeLock()
             engine.start(serviceScope, holdMicRouteAcrossPause)
         }
 
         override fun pause(generation: Long, releaseMic: Boolean): Boolean {
             if (generation != clientGeneration) return false
-            return runBlocking(Dispatchers.IO) {
+            val acknowledged = runBlocking(Dispatchers.IO) {
                 engine.pauseAndAwait(releaseMic = releaseMic, timeoutMs = 1_500L)
             }
+            if (releaseMic) releaseWakeLock()
+            return acknowledged
         }
 
         override fun resume(generation: Long, delayMs: Long) {
-            if (generation == clientGeneration) engine.resumeDecoderAfterTts(delayMs)
+            if (generation == clientGeneration) {
+                acquireWakeLock()
+                engine.resumeDecoderAfterTts(delayMs)
+            }
         }
 
         override fun updateGrammar(generation: Long, grammarJson: String?, stageOrdinal: Int) {
@@ -83,6 +94,7 @@ class WorkoutVoiceForegroundService : Service() {
 
         override fun stop(generation: Long): Boolean {
             if (generation != clientGeneration) return false
+            sessionRequested = false
             return runBlocking(Dispatchers.IO) { engine.stopAndAwait(1_500L) }
         }
 
@@ -106,6 +118,21 @@ class WorkoutVoiceForegroundService : Service() {
 
     override fun onBind(intent: Intent?): IBinder = binder
 
+    @Suppress("DEPRECATION")
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        // UI_HIDDEN también ocurre al bloquear la pantalla. No detener una sesión
+        // solicitada sólo porque el micrófono está momentáneamente en IDLE/MIC_BUSY:
+        // hacerlo pierde el callback y deja los partials sin final ni persistencia.
+        if (level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN ||
+            level >= ComponentCallbacks2.TRIM_MEMORY_MODERATE
+        ) {
+            if (!sessionRequested && !engine.isActive) {
+                stopCaptureAndSelf()
+            }
+        }
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> {
@@ -121,19 +148,19 @@ class WorkoutVoiceForegroundService : Service() {
     private fun startCollectorsOnce() {
         if (collectorsStarted) return
         collectorsStarted = true
-        serviceScope.launch { engine.partialResults.collect { send { onPartial(clientGeneration, it) } } }
-        serviceScope.launch {
+        serviceScope.launch(start = CoroutineStart.UNDISPATCHED) { engine.partialResults.collect { send { onPartial(clientGeneration, it) } } }
+        serviceScope.launch(start = CoroutineStart.UNDISPATCHED) {
             engine.finalResults.collect { hypotheses ->
                 val json = JSONArray().apply {
                     hypotheses.forEach { hypothesis ->
-                        put(JSONObject().put("text", hypothesis.text).put("confidence", hypothesis.confidence).put("known", hypothesis.confidenceKnown))
+                        put(JSONObject().put("text", hypothesis.text).put("confidence", hypothesis.confidence).put("known", hypothesis.confidenceKnown).put("fromPartial", hypothesis.fromPartial))
                     }
                 }.toString()
                 send { onFinal(clientGeneration, json) }
             }
         }
-        serviceScope.launch { engine.errors.collect { send { onError(clientGeneration, "VOSK", it) } } }
-        serviceScope.launch { engine.statusMessages.collect { send { onStatus(clientGeneration, it) } } }
+        serviceScope.launch(start = CoroutineStart.UNDISPATCHED) { engine.errors.collect { send { onError(clientGeneration, "VOSK", it) } } }
+        serviceScope.launch(start = CoroutineStart.UNDISPATCHED) { engine.statusMessages.collect { send { onStatus(clientGeneration, it) } } }
         serviceScope.launch {
             engine.captureState.collect { state ->
                 val pipeline = when (state) {
@@ -154,7 +181,7 @@ class WorkoutVoiceForegroundService : Service() {
         serviceScope.launch { engine.activeRouteLabel.collect { send { onRoute(clientGeneration, it) } } }
         serviceScope.launch { engine.usingNativeFallback.collect { send { onNativeFallback(clientGeneration, it) } } }
         serviceScope.launch { engine.fallbackPaused.collect { send { onFallbackPaused(clientGeneration, it) } } }
-        serviceScope.launch {
+        serviceScope.launch(start = CoroutineStart.UNDISPATCHED) {
             engine.promptSpeak.collect { request ->
                 val id = promptCounter.incrementAndGet()
                 pendingPrompts[id] = request
@@ -180,6 +207,7 @@ class WorkoutVoiceForegroundService : Service() {
     private fun stopCaptureAndSelf() {
         if (stopping) return
         stopping = true
+        sessionRequested = false
         serviceScope.launch {
             engine.stopAndAwait(1_500L)
             WorkoutVoiceDiagnosticLogger.close("voice_process_stopped")

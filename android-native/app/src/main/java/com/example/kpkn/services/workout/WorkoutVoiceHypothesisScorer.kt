@@ -10,6 +10,8 @@ data class VoiceHypothesis(
     val text: String,
     val confidence: Float = 0f,
     val confidenceKnown: Boolean = true,
+    /** Hypotheses recovered from a Vosk partial when the final result was empty. */
+    val fromPartial: Boolean = false,
 )
 
 /**

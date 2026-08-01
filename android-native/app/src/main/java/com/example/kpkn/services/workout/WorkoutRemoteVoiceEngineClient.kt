@@ -74,7 +74,12 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
                 buildList {
                     for (index in 0 until array.length()) {
                         val item = array.getJSONObject(index)
-                        add(VoiceHypothesis(item.optString("text"), item.optDouble("confidence", 0.0).toFloat(), item.optBoolean("known", false)))
+                        add(VoiceHypothesis(
+                            text = item.optString("text"),
+                            confidence = item.optDouble("confidence", 0.0).toFloat(),
+                            confidenceKnown = item.optBoolean("known", false),
+                            fromPartial = item.optBoolean("fromPartial", false),
+                        ))
                     }
                 }
             }.getOrElse {
@@ -236,6 +241,7 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
         runCatching { appContext.unbindService(connection) }
         remote = null
         binding = false
+        WorkoutVoiceForegroundService.stop(appContext)
         _captureState.value = VoiceCaptureState.FAILED
         _rmsLevel.value = 0f
         val failureMessage = "La voz se detuvo; tu entrenamiento sigue guardado"

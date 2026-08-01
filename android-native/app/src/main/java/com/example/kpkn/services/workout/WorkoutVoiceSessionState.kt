@@ -26,8 +26,10 @@ data class VoiceSessionState(
     val errorMessage: String? = null,
     val duckHandle: Any? = null,
     val consecutiveErrors: Int = 0,
-    /** Waiting for "solo sesión" / "para siempre" after AddSet. */
+    /** Waiting for the persistence scope after AddSet. */
     val pendingAddSetPersistence: Boolean = false,
+    /** Exact scope choices announced for the current AddSet prompt. */
+    val pendingAddSetPersistencePrompt: String = "",
     /** Live mic level from SpeechRecognizer.onRmsChanged (dB). */
     val rmsLevel: Float = 0f,
     /** Short human summary of last understood action for the dock. */

@@ -424,9 +424,12 @@ class WorkoutViewModel(
                 }
                 override fun commitStructuralPersistencePermanent() {
                     if (_uiState.value.pendingStructuralPersistence != null) {
-                        val scope = replacementScopeOptions()
-                            .lastOrNull { it != ReplacementPersistenceScopeV2.SESSION_ONLY }
-                            ?: ReplacementPersistenceScopeV2.SESSION_ONLY
+                        val options = replacementScopeOptions()
+                        val scope = when {
+                            ReplacementPersistenceScopeV2.PERMANENT in options -> ReplacementPersistenceScopeV2.PERMANENT
+                            ReplacementPersistenceScopeV2.BLOCK_MATCHING in options -> ReplacementPersistenceScopeV2.BLOCK_MATCHING
+                            else -> ReplacementPersistenceScopeV2.SESSION_ONLY
+                        }
                         commitStructuralPersistence(scope)
                     }
                 }
@@ -588,6 +591,9 @@ class WorkoutViewModel(
     init {
         initExtractedControllers()
         voiceController.initialize(viewModelScope)
+        voiceController.structuralPersistenceOptionsProvider = { replacementScopeOptions().toSet() }
+        voiceController.structuralPersistencePromptProvider = { voiceStructuralPersistencePrompt(replacementScopeOptions()) }
+        voiceController.structuralPersistenceSuccessProvider = { voiceStructuralPersistenceSuccess(replacementScopeOptions()) }
         voiceController.verbosityProvider = { repository.settings.value.voiceVerbosity }
         voiceController.noiseProfileProvider = { repository.settings.value.voiceNoiseProfile }
         voiceController.inputModeProvider = { repository.settings.value.voiceInputMode }
@@ -665,7 +671,7 @@ class WorkoutViewModel(
         voiceController.onStageChanged = { stage ->
             _uiState.update { state ->
                 state.copy(
-                    voiceSessionEnabled = if (stage == VoicePipelineStage.FAILED) false else state.voiceSessionEnabled,
+                    voiceSessionEnabled = if (stage == VoicePipelineStage.FAILED || stage == VoicePipelineStage.DISABLED) false else state.voiceSessionEnabled,
                     voiceSessionState = voiceController.state.value,
                 )
             }
@@ -721,6 +727,25 @@ class WorkoutViewModel(
             ?: return listOf(ReplacementPersistenceScopeV2.SESSION_ONLY)
         return WorkoutEditingRules.replacementPersistenceOptions(program, sessionId)
     }
+    private fun voiceStructuralPersistencePrompt(
+        options: List<ReplacementPersistenceScopeV2>,
+    ): String = when {
+        ReplacementPersistenceScopeV2.BLOCK_MATCHING in options ->
+            "Serie añadida. Di solo esta sesión o aplicar a todo el bloque."
+        ReplacementPersistenceScopeV2.PERMANENT in options ->
+            "Serie añadida. Di solo esta sesión o guardar permanente."
+        else ->
+            "Serie añadida. Este cambio solo se guardará en esta sesión."
+    }
+
+    private fun voiceStructuralPersistenceSuccess(
+        options: List<ReplacementPersistenceScopeV2>,
+    ): String = when {
+        ReplacementPersistenceScopeV2.BLOCK_MATCHING in options -> "Serie aplicada a todo el bloque."
+        ReplacementPersistenceScopeV2.PERMANENT in options -> "Serie guardada permanentemente."
+        else -> "Serie solo para esta sesión."
+    }
+
 
     fun setHeaderWidgetVisibility(
         showRmCalculator: Boolean? = null,
@@ -2502,29 +2527,51 @@ class WorkoutViewModel(
     }
 
     fun setExerciseTag(exerciseId: String, tag: String) {
-        // Bridge: try to find or create a WorkoutTag with this name
-        val state = _uiState.value
+        val requestedTag = tag.trim()
+        if (requestedTag.isBlank()) {
+            clearExerciseTag(exerciseId)
+            return
+        }
         val existingTags = tagsForExercise(exerciseId)
-        val normalizedRequestedTag = normalizeVoiceTagName(tag)
-        val match = existingTags.firstOrNull { normalizeVoiceTagName(it.name) == normalizedRequestedTag }
+        val normalizedRequestedTag = normalizeVoiceTagName(requestedTag)
+        val match = existingTags.firstOrNull { candidate ->
+            normalizeVoiceTagName(candidate.name) == normalizedRequestedTag ||
+                normalizeVoiceTagName(
+                    workoutTagDisplayTitle(candidate.name, profileForTag(exerciseId, candidate.id)?.machineBrand),
+                ) == normalizedRequestedTag
+        }
+        val selectedTagName: String
+        val selectedTagId: String?
         if (match != null) {
-            toggleMainTagActive(exerciseId, match.id)
+            if (match.id !in _uiState.value.activeTagsByExercise[exerciseId].orEmpty()) {
+                toggleMainTagActive(exerciseId, match.id)
+            }
+            selectedTagName = match.name
+            selectedTagId = match.id
         } else {
             // createTag ya deja la etiqueta activa. Un segundo toggle la apagaba.
-            createTag(exerciseId, tag)
+            val created = createTag(exerciseId, requestedTag)
+            selectedTagName = created.name.takeIf { it.isNotBlank() } ?: requestedTag
+            selectedTagId = created.id.takeIf { it.isNotBlank() }
         }
         // Legacy compat: also set exerciseTags
-        _uiState.update { it.copy(exerciseTags = it.exerciseTags + (exerciseId to tag)) }
-        val exerciseKey = visibleExercises(state).firstOrNull { it.id == exerciseId }?.let { canonicalExerciseKey(it) }
+        _uiState.update { it.copy(exerciseTags = it.exerciseTags + (exerciseId to selectedTagName)) }
+        val currentState = _uiState.value
+        val exerciseKey = visibleExercises(currentState).firstOrNull { it.id == exerciseId }?.let { canonicalExerciseKey(it) }
         val bestProfile = exerciseKey?.let { key ->
-            state.contextProfilesV3.values
-                .filter { it.tagId == tag && it.exerciseKey == key }
+            currentState.contextProfilesV3.values
+                .filter {
+                    it.exerciseKey == key &&
+                        (it.tagId == selectedTagId ||
+                            it.tagId == selectedTagName ||
+                            it.setupLabel == selectedTagName)
+                }
                 .maxByOrNull { it.usageCount }
         }
         if (bestProfile != null) {
             setActiveContextProfile(exerciseId, bestProfile.id)
         } else {
-            syncActiveProfileTag(exerciseId, tag)
+            syncActiveProfileTag(exerciseId, selectedTagName)
         }
         persistOngoingState()
     }

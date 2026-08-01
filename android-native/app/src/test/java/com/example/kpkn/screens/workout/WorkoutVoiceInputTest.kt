@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.UnitModeV2
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -236,5 +237,205 @@ class WorkoutVoiceInputTest {
         assertFalse(failure?.isFailedSet == true)
         assertTrue(failedSet?.isFailedSet == true)
         assertFalse(failedSet?.reachedFailure == true)
+    }
+
+    @Test
+    fun parses_gym_decimal_without_separator() {
+        val result = parseWorkoutVoiceTranscript(
+            "veintidos cinco kilos siete repeticiones",
+            isTimeMode = false,
+            isUnilateral = false,
+        )
+
+        assertEquals(22.5, result?.weightKg ?: 0.0, 0.0)
+        assertEquals(7, result?.metricValue)
+    }
+
+    @Test
+    fun preserves_compound_integer_weights_and_supports_multiword_gym_decimals() {
+        val compoundInteger = parseWorkoutVoiceTranscript(
+            "treinta y cinco kilos seis repeticiones",
+            isTimeMode = false,
+            isUnilateral = false,
+        )
+        val multiwordDecimal = parseWorkoutVoiceTranscript(
+            "noventa y dos cinco kilos seis repeticiones",
+            isTimeMode = false,
+            isUnilateral = false,
+        )
+
+        assertEquals(35.0, compoundInteger?.weightKg ?: 0.0, 0.0)
+        assertEquals(92.5, multiwordDecimal?.weightKg ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun parses_gym_decimal_double_digit_fraction() {
+        val result = parseWorkoutVoiceTranscript(
+            "veintidos veinticinco kilos siete repeticiones fallo",
+            isTimeMode = false,
+            isUnilateral = false,
+        )
+
+        assertEquals(22.25, result?.weightKg ?: 0.0, 0.0)
+        assertEquals(7, result?.metricValue)
+        assertTrue(result?.reachedFailure == true)
+    }
+
+    @Test
+    fun keeps_hundreds_as_integer_composition() {
+        val hundred = parseWorkoutVoiceTranscript("ciento veinte kilos 8 repeticiones", false, false)
+        val compound = parseWorkoutVoiceTranscript("veinticinco kilos", false, false)
+
+        assertEquals(120.0, hundred?.weightKg ?: 0.0, 0.0)
+        assertEquals(25.0, compound?.weightKg ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun parses_spoken_decimal_with_multi_digit_fraction() {
+        val coma = parseWorkoutVoiceTranscript(
+            "noventa y dos coma veinticinco kilos 6 repeticiones",
+            isTimeMode = false,
+            isUnilateral = false,
+        )
+        val punto = parseWorkoutVoiceTranscript("veintidos punto cinco kilos", false, false)
+
+        assertEquals(92.25, coma?.weightKg ?: 0.0, 0.0)
+        assertEquals(22.5, punto?.weightKg ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun parses_digit_and_colloquial_decimal_weight_forms() {
+        listOf(
+            "22.5 kilos",
+            "22,5 kilos",
+            "22 coma 5 kilos",
+            "veintidos con cinco kilos",
+        ).forEach { transcript ->
+            val result = parseWorkoutVoiceTranscript(transcript, false, false)
+
+            assertEquals(transcript, 22.5, result?.weightKg ?: 0.0, 0.0)
+        }
+
+        val leadingZero = parseWorkoutVoiceTranscript("veintidos coma cero cinco kilos", false, false)
+        assertEquals(22.05, leadingZero?.weightKg ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun parses_y_cuarto_and_tres_cuartos() {
+        val cuarto = parseWorkoutVoiceTranscript("veintidos y cuarto kilos", false, false)
+        val tresCuartos = parseWorkoutVoiceTranscript("veintidos tres cuartos kilos", false, false)
+
+        assertEquals(22.25, cuarto?.weightKg ?: 0.0, 0.0)
+        assertEquals(22.75, tresCuartos?.weightKg ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun does_not_steal_reps_number_as_weight() {
+        val result = parseWorkoutVoiceTranscript("kilos cinco repeticiones al fallo", false, false)
+
+        assertNull(result?.weightKg)
+        assertEquals(5, result?.metricValue)
+        assertTrue(result?.reachedFailure == true)
+    }
+
+    @Test
+    fun cero_kilos_maps_to_bodyweight() {
+        val result = parseWorkoutVoiceTranscript("cero kilos cinco repeticiones al fallo", false, false)
+
+        assertEquals(0.0, result?.weightKg ?: -1.0, 0.0)
+        assertEquals(LoadModeV2.BODYWEIGHT, result?.loadModeOverride)
+        assertEquals(5, result?.metricValue)
+        assertTrue(result?.reachedFailure == true)
+    }
+
+    @Test
+    fun bodyweight_summary_omits_zero_kilos() {
+        val interpretation = parseWorkoutVoiceTranscript("cero kilos cinco repeticiones", false, false)!!
+
+        val summary = workoutVoiceSummary(interpretation, isTimeMode = false)
+        assertFalse(summary.contains("0 kg"))
+        assertTrue(summary.contains("Peso corporal"))
+    }
+
+    @Test
+    fun log_session_transcripts_parse_correctly() {
+        val cien = parseWorkoutVoiceTranscript("cien kilos siete repeticiones rir dos", false, false)
+        val cinco = parseWorkoutVoiceTranscript("cinco kilos cinco repeticiones rir cero", false, false)
+        val corporal = parseWorkoutVoiceTranscript("cinco repeticiones peso corporal", false, false)
+
+        assertEquals(100.0, cien?.weightKg ?: 0.0, 0.0)
+        assertEquals(7, cien?.metricValue)
+        assertEquals(2.0, cien?.intensityValue ?: 0.0, 0.0)
+        assertEquals(WorkoutVoiceIntensityKind.RIR, cien?.intensityKind)
+        assertEquals(5.0, cinco?.weightKg ?: 0.0, 0.0)
+        assertEquals(LoadModeV2.BODYWEIGHT, corporal?.loadModeOverride)
+        assertEquals(5, corporal?.metricValue)
+    }
+
+    @Test
+    fun misheard_metro_corporal_maps_to_bodyweight() {
+        val result = parseWorkoutVoiceTranscript("metro corporal cinco repeticiones", false, false)
+
+        assertEquals(LoadModeV2.BODYWEIGHT, result?.loadModeOverride)
+        assertEquals(5, result?.metricValue)
+    }
+
+    @Test
+    fun solo_la_barra_marks_bar_weight_only() {
+        val result = parseWorkoutVoiceTranscript("solo la barra cinco repeticiones", false, false)
+
+        assertTrue(result?.isBarWeightOnly == true)
+        assertTrue(result?.fields?.contains(WorkoutVoiceField.WEIGHT) == true)
+        assertEquals(5, result?.metricValue)
+    }
+
+    @Test
+    fun barra_de_veinte_parses_explicit_weight() {
+        val result = parseWorkoutVoiceTranscript("barra de veinte kilos cinco repeticiones", false, false)
+
+        assertEquals(20.0, result?.weightKg ?: 0.0, 0.0)
+        assertFalse(result?.isBarWeightOnly == true)
+        assertEquals(5, result?.metricValue)
+    }
+
+    @Test
+    fun solo_la_barra_with_explicit_weight_keeps_the_explicit_weight() {
+        val result = parseWorkoutVoiceTranscript("solo la barra de veinte kilos cinco repeticiones", false, false)
+
+        assertEquals(20.0, result?.weightKg ?: 0.0, 0.0)
+        assertFalse(result?.isBarWeightOnly == true)
+        assertEquals(5, result?.metricValue)
+    }
+
+    @Test
+    fun mancuernas_de_quince_parses_per_hand_weight() {
+        val result = parseWorkoutVoiceTranscript("mancuernas de quince kilos ocho repeticiones", false, false)
+
+        assertEquals(15.0, result?.weightKg ?: 0.0, 0.0)
+        assertEquals(8, result?.metricValue)
+    }
+
+    @Test
+    fun assisted_reps_parse_from_asistidas() {
+        val result = parseWorkoutVoiceTranscript("cinco repeticiones dos asistidas", false, false)
+
+        assertEquals(2, result?.helpedReps)
+        assertTrue(result?.fields?.contains(WorkoutVoiceField.HELPED_REPS) == true)
+    }
+
+    @Test
+    fun misheard_reir_normalizes_to_rir() {
+        val result = parseWorkoutVoiceTranscript("cien kilos cinco repeticiones reir dos", false, false)
+
+        assertEquals(WorkoutVoiceIntensityKind.RIR, result?.intensityKind)
+        assertEquals(2.0, result?.intensityValue ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun ordinary_words_are_not_corrupted_by_mishearing_layer() {
+        val result = parseWorkoutVoiceTranscript("pero cien kilos cinco repeticiones", false, false)
+
+        assertEquals(100.0, result?.weightKg ?: 0.0, 0.0)
+        assertEquals(5, result?.metricValue)
     }
 }

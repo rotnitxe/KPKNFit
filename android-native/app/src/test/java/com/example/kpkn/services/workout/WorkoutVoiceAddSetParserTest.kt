@@ -54,6 +54,19 @@ class WorkoutVoiceAddSetParserTest {
     }
 
     @Test
+    fun parsesAddSetPersistenceBlockLanguageAsLongScope() {
+        val cmd = WorkoutVoiceCommandParser.parseCommand(
+            transcript = "aplicar a todo el bloque",
+            isTimeMode = false,
+            isUnilateral = false,
+            hasPendingConfirmation = false,
+            isRestTimerActive = false,
+            pendingAddSetPersistence = true,
+        )
+        assertEquals(VoiceSessionCommand.AddSetPermanent, cmd)
+    }
+
+    @Test
     fun unknownPersistenceReasks() {
         val cmd = WorkoutVoiceCommandParser.parseAddSetPersistence("hola mundo")
         assertTrue(cmd is VoiceSessionCommand.Unknown)

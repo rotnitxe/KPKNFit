@@ -232,7 +232,13 @@ class WorkoutVoiceMicRouter(
                 AudioDeviceInfo.TYPE_BUILTIN_MIC -> "phone"
                 else -> "other"
             }
-            return if (name.isNotEmpty()) "$typeLabel:$name" else typeLabel
+            // El micrófono interno no debe exponer el modelo comercial del equipo
+            // (p.ej. "phone:SM-F731B"); el resto de dispositivos sí.
+            return if (device.type == AudioDeviceInfo.TYPE_BUILTIN_MIC || name.isEmpty()) {
+                typeLabel
+            } else {
+                "$typeLabel:$name"
+            }
         }
     }
 }

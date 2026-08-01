@@ -632,19 +632,19 @@ class WorkoutVoiceCommandHandler(
                     val target = mobility?.durationSeconds?.let { "$it segundos" }
                         ?: mobility?.reps?.let { "$it repeticiones" }
                         ?: "según lo programado"
-                    voiceController.speakFeedbackUpdated("Movilidad: ${mobility?.name ?: nextEx.name}, $target. Di iniciar si usa tiempo, o hecha al completarla.")
+                    voiceController.speakFeedbackUpdated("Movilidad: ${mobility?.name ?: displayWorkoutExerciseName(nextEx)}, $target. Di iniciar si usa tiempo, o hecha al completarla.")
                     return
                 }
                 if (step?.type == WorkoutStepType.WARMUP) {
                     val warmup = nextEx.warmupSets.firstOrNull { it.id == step.warmupSetId }
                     val suggested = ports.getWeightSuggestionWithAutoRegulation(nextEx, updatedState.currentSetIdx)?.suggestedWeight
                     val weightText = suggested?.let { ", peso calculado ${it.toTrimmedNumberString()} kilos" }.orEmpty()
-                    voiceController.speakFeedbackUpdated("Aproximación de ${nextEx.name}: ${warmup?.targetReps ?: 0} repeticiones$weightText. Di hecha al completarla.")
+                    voiceController.speakFeedbackUpdated("Aproximación de ${displayWorkoutExerciseName(nextEx)}: ${warmup?.targetReps ?: 0} repeticiones$weightText. Di hecha al completarla.")
                     return
                 }
                 val round = step?.supersetRoundIndex?.let { it + 1 }
                 voiceController.speakCurrentExercise(
-                    nextEx.name,
+                    displayWorkoutExerciseName(nextEx),
                     updatedState.currentSetIdx + 1,
                     nextEx.sets.size,
                     round = round,
@@ -686,7 +686,7 @@ class WorkoutVoiceCommandHandler(
             exerciseId = targetExercise.id,
             exerciseDbId = ports.canonicalExerciseKey(targetExercise),
             canonicalExerciseId = targetExercise.canonicalExerciseId ?: ports.canonicalExerciseKey(targetExercise),
-            exerciseName = targetExercise.name,
+            exerciseName = displayWorkoutExerciseName(targetExercise),
             technicalQuality = 8,
             discomfortIds = emptyList(),
             perceivedIntensityRpe = null
@@ -700,7 +700,7 @@ class WorkoutVoiceCommandHandler(
                         exerciseId = exerciseId,
                         exerciseDbId = memberEx?.let { ports.canonicalExerciseKey(it) } ?: "",
                         canonicalExerciseId = memberEx?.canonicalExerciseId ?: memberEx?.let { ports.canonicalExerciseKey(it) } ?: "",
-                        exerciseName = memberEx?.name ?: "",
+                        exerciseName = memberEx?.let(::displayWorkoutExerciseName) ?: "",
                         technicalQuality = 8,
                         discomfortIds = emptyList(),
                         perceivedIntensityRpe = null
@@ -899,12 +899,19 @@ class WorkoutVoiceCommandHandler(
         val value = interpretation.resolvedMetricValue ?: draft.valueText?.replace(',', '.')?.toDoubleOrNull()
         val draftWeight = draft.weightText?.replace(',', '.')?.toDoubleOrNull()
         val weight = interpretation.weightKg ?: draftWeight ?: if (loadMode == LoadModeV2.BODYWEIGHT) 0.0 else null
-        if (value == null || value <= 0.0 || weight == null || (loadMode != LoadModeV2.BODYWEIGHT && weight <= 0.0)) {
+        val missingValue = value == null || value <= 0.0
+        val invalidWeight = weight == null || (loadMode != LoadModeV2.BODYWEIGHT && weight <= 0.0)
+        if (missingValue || invalidWeight) {
             WorkoutVoiceDiagnosticLogger.event(
                 "set_persistence_rejected",
                 mapOf("reason" to "missing_or_invalid_required_values", "value" to value, "weight" to weight),
             )
-            voiceController.onVoiceSetPersistenceFailed("Faltan datos para registrar la serie.")
+            voiceController.onVoiceSetPersistenceFailed(
+                when {
+                    missingValue -> "Faltan datos para registrar la serie."
+                    else -> "El peso debe ser mayor a cero. Podés decir 'peso corporal' si entrenás sin carga."
+                },
+            )
             return
         }
         val intensity = interpretation.intensityValue ?: draft.intensityText?.replace(',', '.')?.toDoubleOrNull()
@@ -921,7 +928,10 @@ class WorkoutVoiceCommandHandler(
                 interpretation.tagName?.takeIf(String::isNotBlank)?.let { tag ->
                     ports.setExerciseTag(exercise.id, tag.take(40))
                 }
-                WorkoutVoiceDiagnosticLogger.event("set_persistence_succeeded", mapOf("exerciseId" to exercise.id, "setIndex" to setIdx, "side" to resolvedSide))
+                WorkoutVoiceDiagnosticLogger.event("set_persistence_succeeded", mapOf(
+                    "exerciseId" to exercise.id, "setIndex" to setIdx, "side" to resolvedSide,
+                    "interpretation" to interpretation.toString(),
+                ))
                 voiceController.onVoiceSetPersisted(
                     interpretation = interpretation.copy(side = resolvedSide),
                     exerciseId = exercise.id,
@@ -1030,7 +1040,7 @@ class WorkoutVoiceCommandHandler(
         )
         val weight = suggestion?.suggestedWeight
         if (weight != null && weight > 0.0) {
-            voiceController.speakSuggestedWeight(exercise.name, weight)
+            voiceController.speakSuggestedWeight(displayWorkoutExerciseName(exercise), weight)
         }
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
     }
@@ -1114,7 +1124,7 @@ class WorkoutVoiceCommandHandler(
 
         scope.launch {
             voiceController.speakFeedbackUpdated(
-                "${exercise.name}, serie $setNum de $totalSets$sideLabel.",
+                "${displayWorkoutExerciseName(exercise)}, serie $setNum de $totalSets$sideLabel.",
             )
         }
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
@@ -1126,7 +1136,7 @@ class WorkoutVoiceCommandHandler(
         val nextEx = allExercises.getOrNull(state.currentExerciseIdx + 1)
         if (nextEx != null) {
             scope.launch {
-                voiceController.speakNextExercise(nextEx.name)
+                voiceController.speakNextExercise(displayWorkoutExerciseName(nextEx))
             }
         }
         updateState { it.copy(voiceSessionState = voiceController.state.value) }

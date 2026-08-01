@@ -357,6 +357,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         var recognizer: Recognizer? = null
         var model: Model? = null
         var currentGrammarHash: Int? = null
+        val recognizerCache = LinkedHashMap<Int, Recognizer>(4, 0.75f, true)
         var recordOpenedAtMs = 0L
         var healthyRecord = false
         var hasListenedInGeneration = false
@@ -369,6 +370,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         var sawSpeechInCurrentUtterance = false
         var lastPartialText = ""
         var lastPartialEmitAtMs = 0L
+        var postTtsGuardUntilMs: Long? = null
         val shortBuffer = ShortArray(PCM_FRAME_SHORTS)
         val leaseGuard = WorkoutVoiceMicLeaseGuard()
 
@@ -377,17 +379,61 @@ class WorkoutContinuousVoiceEngine internal constructor(
             recognizer = null
         }
 
+        fun closeAllRecognizers() {
+            closeRecognizer()
+            recognizerCache.values.toList().forEach { cached -> runCatching { cached.close() } }
+            recognizerCache.clear()
+        }
+
+        /**
+         * Reutiliza recognizers por hash de gramática (caché LRU de 2: principal y
+         * confirmación). Resume ya no reconstruye KaldiRecognizer por transición:
+         * se hace reset() del estado de utterance, que es lo único que caduca.
+         */
+        fun cacheRecognizer(grammarHash: Int, candidate: Recognizer) {
+            recognizerCache.remove(grammarHash)?.let { previous ->
+                if (previous !== candidate) runCatching { previous.close() }
+            }
+            recognizerCache[grammarHash] = candidate
+            while (recognizerCache.size > RECOGNIZER_CACHE_SIZE) {
+                val eldest = recognizerCache.entries.firstOrNull() ?: break
+                recognizerCache.remove(eldest.key)
+                if (eldest.value !== recognizer) runCatching { eldest.value.close() }
+            }
+        }
+
         fun createRecognizerForCurrentPhase(force: Boolean = true): Boolean {
             val activeModel = model ?: return false
             val grammar = grammarOverride ?: WorkoutVoiceGrammarBuilder.build(currentStage, currentContext)
             val grammarHash = grammar.hashCode()
-            if (!force && recognizer != null && currentGrammarHash == grammarHash) return true
-            closeRecognizer()
+            if (!force && recognizer != null && currentGrammarHash == grammarHash) {
+                runCatching { recognizer?.reset() }
+                return true
+            }
+            if (!force) {
+                recognizerCache[grammarHash]?.let { cached ->
+                    closeRecognizer()
+                    recognizer = cached
+                    recognizerCache.remove(grammarHash)
+                    runCatching { cached.reset() }
+                    currentGrammarHash = grammarHash
+                    return true
+                }
+            }
+            val previous = recognizer
+            recognizer = null
+            val previousHash = currentGrammarHash
+            if (previous != null && previousHash != null && previousHash != grammarHash) {
+                cacheRecognizer(previousHash, previous)
+            } else {
+                runCatching { previous?.close() }
+            }
             WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "RECOGNIZER_CREATE", "state" to "START", "grammarHash" to grammarHash))
-            recognizer = Recognizer(activeModel, SAMPLE_RATE.toFloat(), grammar).apply {
-                setWords(false)
+            val created = Recognizer(activeModel, SAMPLE_RATE.toFloat(), grammar).apply {
+                setWords(true)
                 setPartialWords(false)
             }
+            recognizer = created
             currentGrammarHash = grammarHash
             WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "RECOGNIZER_CREATE", "state" to "READY", "grammarHash" to grammarHash))
             return true
@@ -628,7 +674,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     releaseRecord()
                     unregisterRecordingCallback()
                     micRouter.release()
-                    closeRecognizer()
+                    closeAllRecognizers()
                     model = null
                     WorkoutVoskModelStore.close()
                     publishStoppedState()
@@ -649,11 +695,14 @@ class WorkoutContinuousVoiceEngine internal constructor(
                 is EngineCommand.Resume -> {
                     if (command.generation != actorGeneration || !running) return
                     holdMicRouteAcrossPause = command.holdMicRouteAcrossPause
-                    discardPcmOnly = false
+                    // Guarda anti-eco: descartar PCM un instante tras reanudar para no
+                    // decodificar la cola del TTS que acaba de terminar.
+                    discardPcmOnly = true
+                    postTtsGuardUntilMs = clockMs() + POST_TTS_GUARD_MS
                     if (!fallbackInFlight.get()) {
                         captureDesired = true
                         micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_MUSIC_FIRST)
-                        runCatching { createRecognizerForCurrentPhase(force = true) }
+                        runCatching { createRecognizerForCurrentPhase(force = false) }
                         if (record == null) {
                             resetRecovery(clockMs(), immediate = true)
                             _captureState.value = VoiceCaptureState.RECONNECTING
@@ -773,11 +822,12 @@ class WorkoutContinuousVoiceEngine internal constructor(
                         }
                     }
                     cancelFallback()
-                    discardPcmOnly = false
+                    discardPcmOnly = true
+                    postTtsGuardUntilMs = clockMs() + POST_TTS_GUARD_MS
                     captureDesired = true
                     micBusy = false
                     micRouter.acquire(WorkoutVoiceMicRouter.RouteMode.CONTINUOUS_MUSIC_FIRST)
-                    runCatching { createRecognizerForCurrentPhase(force = true) }
+                    runCatching { createRecognizerForCurrentPhase(force = false) }
                     resetRecovery(clockMs(), immediate = true)
                     _captureState.value = VoiceCaptureState.RECONNECTING
                 }
@@ -799,6 +849,13 @@ class WorkoutContinuousVoiceEngine internal constructor(
                 }
 
                 val now = clockMs()
+                val guardDeadline = postTtsGuardUntilMs
+                if (guardDeadline != null && now >= guardDeadline) {
+                    postTtsGuardUntilMs = null
+                    if (running && activeRequested && !fallbackInFlight.get()) {
+                        discardPcmOnly = false
+                    }
+                }
                 val silencedDeadline = silencedDeadlineMs
                 if (micBusy && silencedDeadline != null && now >= silencedDeadline) {
                     silencedDeadlineMs = null
@@ -851,25 +908,48 @@ class WorkoutContinuousVoiceEngine internal constructor(
                                 if (currentRecognizer != null &&
                                     currentRecognizer.acceptWaveForm(shortBuffer, read)
                                 ) {
-                                    val finalText = parseFinalResult(currentRecognizer.result)
+                                    val resultJson = currentRecognizer.result
+                                    val finalText = parseFinalResult(resultJson)
                                     if (finalText != null) {
+                                        val confidence = parseFinalResultConfidence(resultJson)
                                         _finalResults.emit(
                                             listOf(
                                                 VoiceHypothesis(
                                                     text = finalText,
-                                                    confidence = 0f,
-                                                    confidenceKnown = false,
+                                                    confidence = confidence.first,
+                                                    confidenceKnown = confidence.second,
                                                 ),
                                             ),
                                         )
                                         sawSpeechInCurrentUtterance = false
                                         lastPartialText = ""
                                     } else {
+                                        val partial = lastPartialText
                                         if (sawSpeechInCurrentUtterance) {
-                                            WorkoutVoiceDiagnosticLogger.event(
-                                                "vosk_empty_final_discarded",
-                                                mapOf("partial" to lastPartialText),
-                                            )
+                                            if (partial.isNotBlank()) {
+                                                // El final vino vacío pero el partial traía la
+                                                // frase: emitirlo como hipótesis de respaldo en
+                                                // vez de perder el comando.
+                                                WorkoutVoiceDiagnosticLogger.event(
+                                                    "vosk_empty_final_partial_used",
+                                                    mapOf("partial" to partial),
+                                                )
+                                                _finalResults.emit(
+                                                    listOf(
+                                                        VoiceHypothesis(
+                                                            text = partial,
+                                                            confidence = 0f,
+                                                            confidenceKnown = false,
+                                                            fromPartial = true,
+                                                        ),
+                                                    ),
+                                                )
+                                            } else {
+                                                WorkoutVoiceDiagnosticLogger.event(
+                                                    "vosk_empty_final_discarded",
+                                                    mapOf("partial" to partial),
+                                                )
+                                            }
                                         }
                                         sawSpeechInCurrentUtterance = false
                                         lastPartialText = ""
@@ -925,7 +1005,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
             releaseRecord()
             unregisterRecordingCallback()
             micRouter.release()
-            closeRecognizer()
+            closeAllRecognizers()
             publishStoppedState()
         }
     }
@@ -961,6 +1041,24 @@ class WorkoutContinuousVoiceEngine internal constructor(
 
     private fun parseFinalResult(json: String): String? =
         JSONObject(json).optString("text").trim().takeIf { it.isNotBlank() }
+
+    /** Confianza media de las palabras del final (Vosk las emite con setWords(true)). */
+    private fun parseFinalResultConfidence(json: String): Pair<Float, Boolean> {
+        val words = JSONObject(json).optJSONArray("words") ?: return 0f to false
+        if (words.length() == 0) return 0f to false
+        var sum = 0.0
+        var knownWords = 0
+        for (index in 0 until words.length()) {
+            val word = words.optJSONObject(index) ?: continue
+            if (word.has("conf")) {
+                sum += word.optDouble("conf", 0.0)
+                knownWords++
+            }
+        }
+        if (knownWords == 0) return 0f to false
+        val mean = (sum / knownWords).toFloat()
+        return mean.coerceIn(0f, 1f) to true
+    }
 
     private fun shouldAttemptNativeFallback(text: String): Boolean {
         val normalized = text.trim().lowercase()
@@ -1048,8 +1146,10 @@ class WorkoutContinuousVoiceEngine internal constructor(
     companion object {
         internal const val SAMPLE_RATE = 16_000
         private const val PCM_FRAME_SHORTS = 1_600
-        private const val ACTOR_POLL_DELAY_MS = 10L
+        private const val ACTOR_POLL_DELAY_MS = 20L
+        private const val RECOGNIZER_CACHE_SIZE = 2
         private const val PARTIAL_EMIT_INTERVAL_MS = 250L
+        private const val POST_TTS_GUARD_MS = 250L
         private const val PCM_START_WATCHDOG_MS = 1_500L
         private const val MIC_BUSY_TIMEOUT_MS = 5_000L
         private const val MISSING_SESSION_RETRY_MS = 300L

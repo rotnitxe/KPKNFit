@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 import java.text.Normalizer
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.pow
 import kotlin.math.roundToInt
 
 @Serializable
@@ -89,6 +90,8 @@ data class WorkoutVoiceInterpretation(
     val romPercent: Int? = null,
     val tagName: String? = null,
     val fields: Set<WorkoutVoiceField> = emptySet(),
+    /** "solo la barra": el peso real se resuelve con barWeightKg del ejercicio. */
+    val isBarWeightOnly: Boolean = false,
 ) {
     val resolvedMetricValue: Double? get() = metricDecimalValue ?: metricValue?.toDouble()
 }
@@ -112,12 +115,28 @@ internal fun parseWorkoutVoiceTranscript(
     customUnit: String? = null,
     trackRom: Boolean = false,
 ): WorkoutVoiceInterpretation? {
-    val tokens = normalizeWorkoutVoiceTranscript(transcript)
+    val rawNormalized = normalizeWorkoutVoiceTranscriptString(transcript)
+    val correctedText = com.example.kpkn.services.workout.WorkoutVoiceMishearingCorrections.correct(rawNormalized)
+    val tokens = correctedText.split(' ').filter { it.isNotBlank() }
+    if (correctedText != rawNormalized) {
+        com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLogger.event(
+            "transcript_corrected",
+            mapOf("from" to rawNormalized, "to" to correctedText),
+        )
+    }
     if (tokens.isEmpty()) return null
 
+    val customUnitKeywords = normalizeWorkoutVoiceTranscript(customUnit.orEmpty()).toSet() + CUSTOM_UNIT_KEYWORDS
     val explicitWeight = tokens.indexOfFirst { it in WEIGHT_KEYWORDS }
         .takeIf { it >= 0 }
-        ?.let { nearestVoiceNumber(tokens, it, preferBackward = true) }
+        ?.let {
+            nearestVoiceNumber(
+                tokens, it,
+                preferBackward = true,
+                allowGymDecimal = true,
+                forwardUnitGuard = NON_WEIGHT_UNIT_KEYWORDS + customUnitKeywords,
+            )
+        }
     val techniqueStart = tokens.indexOfFirst { it in TECHNIQUE_KEYWORDS }.takeIf { it >= 0 } ?: tokens.size
     val mainTokens = tokens.take(techniqueStart)
     val explicitReps = mainTokens.indexOfFirst { it in REP_KEYWORDS }
@@ -130,8 +149,12 @@ internal fun parseWorkoutVoiceTranscript(
         .takeIf { it >= 0 }
         ?.let { nearestVoiceNumber(tokens, it, preferBackward = true)?.toSafeWholeNumber()?.times(60) }
     val explicitDistance = tokens.indexOfFirst { it in DISTANCE_KEYWORDS }.takeIf { it >= 0 }?.let { nearestVoiceNumber(tokens, it, preferBackward = true) }
-    val customUnitKeywords = normalizeWorkoutVoiceTranscript(customUnit.orEmpty()).toSet() + CUSTOM_UNIT_KEYWORDS
     val explicitCustom = tokens.indexOfFirst { it in customUnitKeywords }.takeIf { it >= 0 }?.let { nearestVoiceNumber(tokens, it, preferBackward = true) }
+    val normalizedText = tokens.joinToString(" ")
+    val barOnlyPhrase = BAR_ONLY_PHRASES.any(normalizedText::contains)
+    val barWeightOnly = barOnlyPhrase && explicitWeight == null
+    val mancuernaWeight = equipmentWeight(tokens, MANCUERNA_KEYWORDS)
+    val barraWeight = if (barOnlyPhrase) null else equipmentWeight(tokens, BAR_KEYWORDS)
     val explicitRpe = tokens.indexOfFirst { it in RPE_KEYWORDS }
         .takeIf { it >= 0 }
         ?.let { nearestVoiceNumber(tokens, it) }
@@ -154,16 +177,19 @@ internal fun parseWorkoutVoiceTranscript(
         tokens.any { it in RIGHT_SIDE_KEYWORDS } && tokens.none { it in LEFT_SIDE_KEYWORDS } -> "right"
         else -> null
     }
-    val normalizedText = tokens.joinToString(" ")
     val isFailedSet = FAILED_SET_PHRASES.any(normalizedText::contains)
     val reachedFailure = !isFailedSet && (
         FAILURE_PHRASES.any(normalizedText::contains) || tokens.any { it in FAILURE_KEYWORDS }
     )
     val helpedReps = extractNumberBeforePhrase(tokens, listOf("con", "ayuda"))?.toSafeWholeNumber()
+        ?: tokens.indexOfFirst { it in ASSISTED_REPS_KEYWORDS }
+            .takeIf { it >= 0 }
+            ?.let { readVoiceNumberBackward(tokens, it - 1)?.first?.toSafeWholeNumber() }
     val loadModeOverride = when {
         tokens.any { it in LASTRE_KEYWORDS } -> LoadModeV2.LASTRE
         tokens.any { it in ASSISTED_LOAD_KEYWORDS } -> LoadModeV2.ASSISTED
         BODYWEIGHT_PHRASES.any(normalizedText::contains) -> LoadModeV2.BODYWEIGHT
+        explicitWeight == 0.0 -> LoadModeV2.BODYWEIGHT
         tokens.any { it in NORMAL_LOAD_KEYWORDS } -> LoadModeV2.LOAD
         else -> null
     }
@@ -176,7 +202,12 @@ internal fun parseWorkoutVoiceTranscript(
     }
 
     val effectiveUnitMode = if (isTimeMode) UnitModeV2.TIME else unitMode
-    val weightKg = if (effectiveUnitMode != UnitModeV2.REPS) explicitWeight else explicitWeight ?: connectorPair?.first
+    val equipmentWeightKg = mancuernaWeight ?: barraWeight
+    val weightKg = if (effectiveUnitMode != UnitModeV2.REPS) {
+        explicitWeight ?: equipmentWeightKg
+    } else {
+        explicitWeight ?: equipmentWeightKg ?: connectorPair?.first
+    }
     val metricDecimalValue = when (effectiveUnitMode) {
         UnitModeV2.TIME -> (explicitSeconds ?: explicitMinutes)?.toDouble() ?: connectorPair?.second
         UnitModeV2.REPS -> explicitReps?.toDouble() ?: connectorPair?.second
@@ -203,7 +234,7 @@ internal fun parseWorkoutVoiceTranscript(
     } else null
 
     val fields = buildSet {
-        if (weightKg != null) add(WorkoutVoiceField.WEIGHT)
+        if (weightKg != null || barWeightOnly) add(WorkoutVoiceField.WEIGHT)
         if (metricDecimalValue != null) add(WorkoutVoiceField.VALUE)
         if (intensityValue != null) add(WorkoutVoiceField.INTENSITY)
         if (side != null) add(WorkoutVoiceField.SIDE)
@@ -235,6 +266,7 @@ internal fun parseWorkoutVoiceTranscript(
         incompleteTechnique = incompleteTechnique,
         romPercent = explicitRom,
         fields = fields,
+        isBarWeightOnly = barWeightOnly,
     )
 }
 
@@ -242,7 +274,11 @@ internal fun workoutVoiceSummary(
     interpretation: WorkoutVoiceInterpretation,
     isTimeMode: Boolean,
 ): String = buildList {
-    interpretation.weightKg?.let { add("${it.toTrimmedNumberString()} kg") }
+    val bodyWeightOnly = interpretation.loadModeOverride == LoadModeV2.BODYWEIGHT && interpretation.weightKg == 0.0
+    if (interpretation.weightKg != null && !bodyWeightOnly) {
+        add("${interpretation.weightKg.toTrimmedNumberString()} kg")
+    }
+    if (bodyWeightOnly) add("Peso corporal")
     interpretation.metricValue?.let { value ->
         add(if (isTimeMode) "$value s" else "$value reps")
     }
@@ -297,7 +333,7 @@ internal fun workoutVoiceIntensityText(
     return normalized.toTrimmedNumberString()
 }
 
-private fun normalizeWorkoutVoiceTranscript(transcript: String): List<String> {
+private fun normalizeWorkoutVoiceTranscriptString(transcript: String): String {
     val normalized = Normalizer.normalize(transcript.lowercase(Locale.ROOT), Normalizer.Form.NFD)
         .replace("\\p{Mn}+".toRegex(), "")
         .replace(Regex("\\berre\\s+pe\\s+e\\b"), "rpe")
@@ -307,13 +343,28 @@ private fun normalizeWorkoutVoiceTranscript(transcript: String): List<String> {
         .replace(Regex("[^a-z0-9.,% ]"), " ")
         .replace(Regex("\\s+"), " ")
         .trim()
-    return normalized.split(' ').filter { it.isNotBlank() }
+    return normalized
+}
+
+private fun normalizeWorkoutVoiceTranscript(transcript: String): List<String> =
+    normalizeWorkoutVoiceTranscriptString(transcript).split(' ').filter { it.isNotBlank() }
+
+/** "mancuernas de quince" -> 15, "barra de veinte" -> 20. */
+private fun equipmentWeight(tokens: List<String>, keywords: Set<String>): Double? {
+    val index = tokens.indexOfFirst { it in keywords }
+    if (index < 0) return null
+    val start = index + 1
+    return if (tokens.getOrNull(start) == "de") {
+        readVoiceNumberForward(tokens, start + 1)?.first
+    } else {
+        readVoiceNumberForward(tokens, start)?.first
+    }
 }
 
 private fun extractConnectedWeightAndMetric(tokens: List<String>): Pair<Double, Double>? {
     tokens.forEachIndexed { index, token ->
         if (token !in CONNECTOR_KEYWORDS) return@forEachIndexed
-        val left = readVoiceNumberBackward(tokens, index - 1)?.first
+        val left = readVoiceNumberBackward(tokens, index - 1, allowGymDecimal = true)?.first
         val right = readVoiceNumberForward(tokens, index + 1)?.first
         if (left != null && right != null) {
             return left to right
@@ -338,7 +389,9 @@ private fun extractDropSets(tokens: List<String>): List<DropSetData> {
     val segment = tokens.drop(start + 1)
     val weightIndex = segment.indexOfFirst { it in WEIGHT_KEYWORDS }
     val repsIndex = segment.indexOfFirst { it in REP_KEYWORDS }
-    val weight = weightIndex.takeIf { it >= 0 }?.let { nearestVoiceNumber(segment, it, true) }
+    val weight = weightIndex.takeIf { it >= 0 }?.let {
+        nearestVoiceNumber(segment, it, true, allowGymDecimal = true, forwardUnitGuard = NON_WEIGHT_UNIT_KEYWORDS)
+    }
     val reps = repsIndex.takeIf { it >= 0 }?.let { nearestVoiceNumber(segment, it, true)?.toSafeWholeNumber() }
     return if (weight != null && reps != null) listOf(DropSetData(weight, reps)) else emptyList()
 }
@@ -358,89 +411,148 @@ private fun nearestVoiceNumber(
     tokens: List<String>,
     index: Int,
     preferBackward: Boolean = false,
-): Double? = if (preferBackward) {
-    readVoiceNumberBackward(tokens, index - 1)?.first ?: readVoiceNumberForward(tokens, index + 1)?.first
-} else {
-    readVoiceNumberForward(tokens, index + 1)?.first ?: readVoiceNumberBackward(tokens, index - 1)?.first
+    allowGymDecimal: Boolean = false,
+    forwardUnitGuard: Set<String>? = null,
+): Double? {
+    val backward = readVoiceNumberBackward(tokens, index - 1, allowGymDecimal)
+    val forward = readVoiceNumberForward(tokens, index + 1, allowGymDecimal)
+    val guardedForward = when {
+        forward == null -> null
+        forwardUnitGuard == null -> forward
+        forward.second >= tokens.size || tokens[forward.second] !in forwardUnitGuard -> forward
+        else -> null
+    }
+    return if (preferBackward) backward?.first ?: guardedForward?.first
+    else guardedForward?.first ?: backward?.first
 }
 
-private fun readVoiceNumberForward(tokens: List<String>, startIndex: Int): Pair<Double, Int>? {
+private fun readVoiceNumberForward(tokens: List<String>, startIndex: Int, allowGymDecimal: Boolean = false): Pair<Double, Int>? {
     if (startIndex !in tokens.indices) return null
     val collected = mutableListOf<String>()
     var index = startIndex
-    while (index < tokens.size && tokens[index].isVoiceNumberToken()) {
+    while (index < tokens.size && (tokens[index].isVoiceNumberToken() || (allowGymDecimal && tokens[index] == "con"))) {
         collected += tokens[index]
         index += 1
     }
-    val value = parseVoiceNumberTokens(collected) ?: return null
+    val value = parseVoiceNumberTokens(collected, allowGymDecimal) ?: return null
     return value to index
 }
 
-private fun readVoiceNumberBackward(tokens: List<String>, startIndex: Int): Pair<Double, Int>? {
+private fun readVoiceNumberBackward(tokens: List<String>, startIndex: Int, allowGymDecimal: Boolean = false): Pair<Double, Int>? {
     if (startIndex !in tokens.indices) return null
     val collected = mutableListOf<String>()
     var index = startIndex
-    while (index >= 0 && tokens[index].isVoiceNumberToken()) {
+    while (index >= 0 && (tokens[index].isVoiceNumberToken() || (allowGymDecimal && tokens[index] == "con"))) {
         collected.add(0, tokens[index])
         index -= 1
     }
-    val value = parseVoiceNumberTokens(collected) ?: return null
+    val value = parseVoiceNumberTokens(collected, allowGymDecimal) ?: return null
     return value to (index + 1)
 }
 
-private fun parseVoiceNumberTokens(tokens: List<String>): Double? {
+private fun parseVoiceNumberTokens(tokens: List<String>, allowGymDecimal: Boolean = false): Double? {
     if (tokens.isEmpty()) return null
     if (tokens.size == 1 && DIGIT_TOKEN.matches(tokens.first())) {
         return tokens.first().replace(',', '.').toDoubleOrNull()
     }
 
-    val decimalSeparatorIdx = tokens.indexOfFirst { it == "punto" || it == "coma" }
+    val decimalSeparatorIdx = tokens.indexOfFirst { it == "punto" || it == "coma" || (allowGymDecimal && it == "con") }
     if (decimalSeparatorIdx >= 0) {
         val whole = parseVoiceInteger(tokens.take(decimalSeparatorIdx)) ?: return null
-        val decimals = buildString {
-            tokens.drop(decimalSeparatorIdx + 1).forEach { token ->
-                val digit = decimalDigitForVoiceToken(token) ?: return null
-                append(digit)
-            }
-        }
-        return "$whole.$decimals".toDoubleOrNull()
+        val decimalDigits = parseVoiceDecimalDigits(tokens.drop(decimalSeparatorIdx + 1)) ?: return null
+        val scale = 10.0.pow(decimalDigits.length)
+        return whole + decimalDigits.toDouble() / scale
+    }
+
+    if (allowGymDecimal) {
+        gymDecimal(tokens)?.let { return it }
     }
 
     return parseVoiceInteger(tokens)
+}
+
+/**
+ * "veintidos cinco kilos" -> 22.5, "veintidos veinticinco kilos" -> 22.25.
+ * Solo en contexto de peso; las centenas ("ciento veinte" -> 120), los conectores
+ * ("y", "medio") y las fracciones explícitas se mantienen como enteros.
+ */
+private fun parseVoiceDecimalDigits(tokens: List<String>): String? {
+    if (tokens.isEmpty()) return null
+    if (tokens.all { it in VOICE_DECIMAL_DIGITS }) {
+        return tokens.joinToString(separator = "") { VOICE_DECIMAL_DIGITS.getValue(it).toString() }
+    }
+    if (tokens.all { DIGIT_TOKEN.matches(it) && !it.contains('.') && !it.contains(',') }) {
+        return tokens.joinToString(separator = "")
+    }
+    return parseVoiceInteger(tokens)?.toInt()?.toString()
+}
+private fun gymDecimal(tokens: List<String>): Double? {
+    if (tokens.size < 2) return null
+    if ("medio" in tokens || "media" in tokens || "cuarto" in tokens || "cuartos" in tokens) return null
+    if (tokens.first() == "cien" || tokens.first() == "ciento") return null
+
+    for (split in (tokens.size - 1) downTo 1) {
+        val wholeTokens = tokens.take(split)
+        val fractionTokens = tokens.drop(split)
+        if (wholeTokens.lastOrNull() == "y") continue
+        if (fractionTokens.any { it == "y" || it == "medio" || it == "media" }) continue
+
+        val whole = parseVoiceInteger(wholeTokens) ?: continue
+        val fraction = parseVoiceInteger(fractionTokens) ?: continue
+        if (fraction <= 0.0 || fraction >= 100.0) continue
+
+        return if (fraction % 1.0 != 0.0) {
+            whole + fraction
+        } else {
+            val scale = if (fraction < 10.0) 10 else 100
+            whole + fraction / scale
+        }
+    }
+    return null
 }
 
 private fun parseVoiceInteger(tokens: List<String>): Double? {
     if (tokens.isEmpty()) return null
     var total = 0.0
     var consumed = false
-    tokens.forEach { token ->
+    tokens.forEachIndexed { index, token ->
         when {
             token == "y" -> Unit
             token == "medio" || token == "media" -> {
                 total += 0.5
                 consumed = true
             }
-
+            token == "cuarto" -> {
+                total += 0.25
+                consumed = true
+            }
+            token == "cuartos" -> {
+                val n = tokens.getOrNull(index - 1)?.let(::singleVoiceInteger)
+                if (n != null) {
+                    total -= n
+                    total += n / 4.0
+                } else {
+                    total += 0.75
+                }
+                consumed = true
+            }
             DIGIT_TOKEN.matches(token) -> {
                 total += token.replace(',', '.').toDoubleOrNull() ?: return null
                 consumed = true
             }
-
             VOICE_INTEGER_WORDS.containsKey(token) -> {
                 total += VOICE_INTEGER_WORDS.getValue(token)
                 consumed = true
             }
-
             else -> return null
         }
     }
     return total.takeIf { consumed }
 }
 
-private fun decimalDigitForVoiceToken(token: String): Char? = when {
-    DIGIT_TOKEN.matches(token) && token.length == 1 -> token.first()
-    VOICE_DECIMAL_DIGITS.containsKey(token) -> VOICE_DECIMAL_DIGITS.getValue(token)
-    else -> null
+private fun singleVoiceInteger(token: String): Double? {
+    if (DIGIT_TOKEN.matches(token)) return token.replace(',', '.').toDoubleOrNull()
+    return VOICE_INTEGER_WORDS[token]?.toDouble()
 }
 
 private fun String.isVoiceNumberToken(): Boolean =
@@ -451,7 +563,9 @@ private fun String.isVoiceNumberToken(): Boolean =
         this == "coma" ||
         this == "y" ||
         this == "medio" ||
-        this == "media"
+        this == "media" ||
+        this == "cuarto" ||
+        this == "cuartos"
 
 private fun Double.toSafeWholeNumber(): Int? =
     takeIf { abs(it - it.roundToInt().toDouble()) < 0.001 }
@@ -475,14 +589,25 @@ private val REST_PAUSE_KEYWORDS = setOf("rest-pause", "restpause", "pausa-descan
 private val TECHNIQUE_KEYWORDS = DROP_SET_KEYWORDS + REST_PAUSE_KEYWORDS
 private val LASTRE_KEYWORDS = setOf("lastre", "lastrado", "lastrada")
 private val ASSISTED_LOAD_KEYWORDS = setOf("asistencia", "contrapeso")
+private val ASSISTED_REPS_KEYWORDS = setOf("asistida", "asistidas", "ayudada", "ayudadas")
+private val MANCUERNA_KEYWORDS = setOf("mancuerna", "mancuernas")
+private val BAR_KEYWORDS = setOf("barra")
+private val BAR_ONLY_PHRASES = setOf("solo la barra", "la barra", "barra sola", "barra vacia", "barra vacia sin discos")
 private val NORMAL_LOAD_KEYWORDS = setOf("carga")
-private val BODYWEIGHT_PHRASES = setOf("peso corporal", "sin carga")
+private val BODYWEIGHT_PHRASES = setOf(
+    "peso corporal", "sin carga", "sin peso", "peso del cuerpo", "con el cuerpo",
+)
 private val FAILURE_DISTANCE_KEYWORDS = setOf("recamara", "recamaras", "reserva", "reservas")
 private val DISTANCE_KEYWORDS = setOf("metro", "metros", "kilometro", "kilometros", "km", "milla", "millas")
 private val CUSTOM_UNIT_KEYWORDS = setOf("unidad", "unidades", "caloria", "calorias", "vuelta", "vueltas", "piso", "pisos", "nivel", "niveles", "paso", "pasos")
 private val ROM_KEYWORDS = setOf("rom", "rango", "recorrido")
 private val LEFT_SIDE_KEYWORDS = setOf("izquierda", "izquierdo", "izq")
 private val RIGHT_SIDE_KEYWORDS = setOf("derecha", "derecho", "der")
+
+private val NON_WEIGHT_UNIT_KEYWORDS =
+    REP_KEYWORDS + SECOND_KEYWORDS + MINUTE_KEYWORDS + DISTANCE_KEYWORDS + CUSTOM_UNIT_KEYWORDS +
+        ROM_KEYWORDS + RIR_KEYWORDS + RPE_KEYWORDS + PERCENT_RM_KEYWORDS + FAILURE_KEYWORDS +
+        FAILURE_DISTANCE_KEYWORDS
 
 private val VOICE_INTEGER_WORDS = mapOf(
     "cero" to 0,

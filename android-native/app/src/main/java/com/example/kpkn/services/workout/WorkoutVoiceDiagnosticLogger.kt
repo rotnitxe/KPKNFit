@@ -33,6 +33,7 @@ object WorkoutVoiceDiagnosticLogger {
     private val lock = Any()
     private var appContext: Context? = null
     private var activeFile: File? = null
+    private var activeWriter: java.io.BufferedWriter? = null
     private var automaticFileUri: Uri? = null
     private var activeSessionKey: String? = null
     private var traceId: String? = null
@@ -181,6 +182,8 @@ object WorkoutVoiceDiagnosticLogger {
         } catch (error: Exception) {
             Log.e(TAG, "Unable to close voice diagnostics", error)
         } finally {
+            runCatching { activeWriter?.close() }
+            activeWriter = null
             activeFile = null
             automaticFileUri = null
             activeSessionKey = null
@@ -199,11 +202,13 @@ object WorkoutVoiceDiagnosticLogger {
         )
         payload.putAll(fields)
         val line = JsonObject(payload.mapValues { (_, value) -> value.toJsonElement() }).toString()
-        FileOutputStream(file, true).bufferedWriter(Charsets.UTF_8).use {
-            it.append(line)
-            it.newLine()
-            it.flush()
-        }
+        // Writer persistente: misma durabilidad (flush por línea) sin reabrir el
+        // archivo en cada evento — menos syscalls en almacenamiento de gama baja.
+        val writer = activeWriter
+            ?: FileOutputStream(file, true).bufferedWriter(Charsets.UTF_8).also { activeWriter = it }
+        writer.append(line)
+        writer.newLine()
+        writer.flush()
         automaticFileUri?.let { uri ->
             appContext?.let { context ->
                 WorkoutVoiceDiagnosticStorage.appendLine(context, uri, line)
