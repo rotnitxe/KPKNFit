@@ -92,4 +92,33 @@ class FoodCombinationParserTest {
         assertNotNull(ketchup)
         assertTrue(ketchup!!.proportion <= 0.15)
     }
+
+    // ─── C2: matching por palabras completas ───────────────────────────────
+
+    @Test
+    fun `arroz con leche condensada does not match dish arroz con leche`() {
+        val result = FoodCombinationParser.parse("arroz con leche condensada")
+        assertFalse(result.isKnownDish)
+    }
+
+    @Test
+    fun `arroz con leche y platano matches dish arroz con leche`() {
+        val result = FoodCombinationParser.parse("arroz con leche y plátano")
+        assertTrue(result.isKnownDish)
+        assertEquals("arroz con leche", result.dishName)
+    }
+
+    @Test
+    fun `pan con palta y jamon picks longest dish`() {
+        val result = FoodCombinationParser.parse("pan con palta y jamón")
+        assertTrue(result.isKnownDish)
+        assertEquals("pan con palta y jamón", result.dishName)
+    }
+
+    @Test
+    fun `pan con palta sola matches single dish`() {
+        val result = FoodCombinationParser.parse("pan con palta")
+        assertTrue(result.isKnownDish)
+        assertEquals("pan con palta", result.dishName)
+    }
 }

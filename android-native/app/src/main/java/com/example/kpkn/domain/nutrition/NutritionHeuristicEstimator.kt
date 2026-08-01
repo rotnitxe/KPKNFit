@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.data.models.CookingMethod
+
 /**
  * NutritionHeuristicEstimator — Keyword-based macro estimator for foods not in the database.
  *
@@ -239,26 +241,40 @@ private fun detectCookingBoost(foodName: String): CookingEstimateBoost? {
     val lower = foodName.lowercase()
     var boost: CookingEstimateBoost? = null
 
+    // B6: una sola fuente de verdad para las magnitudes — kcal/proteína/carbs vienen de
+    // COOKING_FACTORS (antes frito kcal ×2-3). La heurística no tiene paso de aceite
+    // separado, así que fats lleva un factor moderado (×2) que aproxima el aceite
+    // absorbido por la fritura.
+    fun boostFor(method: CookingMethod, fatsBoost: Double = 1.0, additiveCarbs: Double = 0.0): CookingEstimateBoost {
+        val f = COOKING_FACTORS[method]!!
+        return CookingEstimateBoost(
+            kcal = f.kcal,
+            fats = f.fats * fatsBoost,
+            protein = f.protein,
+            additiveCarbs = additiveCarbs,
+        )
+    }
+
     if (REGEX_FRITO.containsMatchIn(lower)) {
-        boost = CookingEstimateBoost(kcal = 2.0, fats = 3.0)
+        boost = boostFor(CookingMethod.FRITO, fatsBoost = 2.0)
     }
     if (REGEX_EMPANIZADO.containsMatchIn(lower)) {
-        boost = CookingEstimateBoost(kcal = 3.0, fats = 3.0, additiveCarbs = 15.0)
+        boost = boostFor(CookingMethod.EMPANIZADO_FRITO, fatsBoost = 2.0, additiveCarbs = 15.0)
     }
     if (REGEX_SALTEADO.containsMatchIn(lower)) {
-        boost = CookingEstimateBoost(kcal = 1.5, fats = 1.8)
+        boost = boostFor(CookingMethod.FRITO, fatsBoost = 2.0)
     }
     if (REGEX_CONFITADO.containsMatchIn(lower)) {
-        boost = CookingEstimateBoost(kcal = 2.5, fats = 3.5)
+        boost = boostFor(CookingMethod.FRITO, fatsBoost = 2.0)
     }
     if (REGEX_GRATINADO.containsMatchIn(lower)) {
-        boost = CookingEstimateBoost(kcal = 1.8, fats = 2.0, protein = 1.15)
+        boost = boostFor(CookingMethod.HORNO)
     }
     if (REGEX_PLANCHA.containsMatchIn(lower)) {
-        boost = CookingEstimateBoost(kcal = 1.0, fats = 0.9, protein = 1.05)
+        boost = boostFor(CookingMethod.PLANCHA)
     }
     if (REGEX_PARRILLA.containsMatchIn(lower)) {
-        boost = CookingEstimateBoost(kcal = 1.05, fats = 0.9, protein = 1.10)
+        boost = boostFor(CookingMethod.ASADO_PARRILLA)
     }
 
     return boost

@@ -48,7 +48,9 @@ object CookingStateResolver {
         val name = food.name.lowercase()
         return when (method) {
             CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO ->
-                name.contains("frit")
+                // B5: "revuelto" también es una fila preparada para FRITO (huevos revueltos);
+                // sin esto se aplicaba factor FRITO + aceite sobre la fila cruda aunque existiera.
+                name.contains("frit") || name.contains("revuelto")
             CookingMethod.PLANCHA -> name.contains("plancha")
             CookingMethod.HORNO -> name.contains("horno")
             CookingMethod.VAPOR -> name.contains("vapor")
@@ -60,28 +62,34 @@ object CookingStateResolver {
         }
     }
 
-    fun methodSearchSuffix(method: CookingMethod): String? = when (method) {
-        CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO -> "frito"
-        CookingMethod.PLANCHA -> "plancha"
-        CookingMethod.HORNO -> "horno"
-        CookingMethod.VAPOR -> "vapor"
-        CookingMethod.ASADO_PARRILLA -> "parrilla"
-        CookingMethod.COCIDO -> "cocido"
-        CookingMethod.AHUMADO -> "ahumado"
-        CookingMethod.OLLA, CookingMethod.GUISADO -> "cocido"
-        CookingMethod.CRUDO -> null
+    fun methodSearchSuffix(method: CookingMethod): String? = methodSearchSuffixes(method).firstOrNull()
+
+    /** Sufijos de fila preparada por método. FRITO también prueba "revuelto" (B5). */
+    fun methodSearchSuffixes(method: CookingMethod): List<String> = when (method) {
+        CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO -> listOf("frito", "revuelto", "frita", "revuelta")
+        CookingMethod.PLANCHA -> listOf("plancha")
+        CookingMethod.HORNO -> listOf("horno")
+        CookingMethod.VAPOR -> listOf("vapor")
+        CookingMethod.ASADO_PARRILLA -> listOf("parrilla", "asado")
+        CookingMethod.COCIDO -> listOf("cocido")
+        CookingMethod.AHUMADO -> listOf("ahumado")
+        CookingMethod.OLLA, CookingMethod.GUISADO -> listOf("cocido")
+        CookingMethod.CRUDO -> emptyList()
     }
 
     /** Prefer a DB row that already encodes the preparation (e.g. pechuga frita). */
     fun findPreparedVariant(tag: String, method: CookingMethod?): FoodItem? {
         if (method == null || method == CookingMethod.CRUDO) return null
-        val suffix = methodSearchSuffix(method) ?: return null
-        val queries = listOf(
-            "$tag $suffix",
-            "${tag.trim()} ($suffix)",
-        )
-        for (q in queries) {
-            findFoodByNormalized(q)?.let { return it }
+        val suffixes = methodSearchSuffixes(method)
+        if (suffixes.isEmpty()) return null
+        for (suffix in suffixes) {
+            val queries = listOf(
+                "$tag $suffix",
+                "${tag.trim()} ($suffix)",
+            )
+            for (q in queries) {
+                findFoodByNormalized(q)?.let { return it }
+            }
         }
         return null
     }

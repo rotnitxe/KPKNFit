@@ -85,15 +85,43 @@ class SmartFoodResolver(
 
     /**
      * Resolve a single query string to food candidates.
+     * @param contextHint descripción completa (D6): el dataset detecta qué alimentos
+     * co-ocurren con el contexto y boostea candidatos coherentes con ella.
      */
     suspend fun resolve(
         query: String,
         brandHint: String? = null,
+        contextHint: String? = null,
     ): ResolutionResult = withContext(Dispatchers.Default) {
+        val first = attemptResolve(query, brandHint, contextHint)
+        if (first.decision == Decision.AUTO_SELECT) {
+            return@withContext first
+        }
+
+        // F1.3 (G4): singularización dirigida por resolución. Si el intento inicial
+        // fue débil y la query termina en plural ("huevos" → "huevo"), se reintenta
+        // en singular y se queda con el mejor puntaje. Nunca empeora un resultado.
+        val singular = singularizeQuery(query)
+        if (singular != null) {
+            val retry = attemptResolve(singular, brandHint, contextHint)
+            val firstScore = first.candidates.firstOrNull()?.score ?: 0.0
+            val retryScore = retry.candidates.firstOrNull()?.score ?: 0.0
+            if (retryScore > firstScore) {
+                return@withContext retry.copy(query = query)
+            }
+        }
+        return@withContext first
+    }
+
+    private suspend fun attemptResolve(
+        query: String,
+        brandHint: String?,
+        contextHint: String? = null,
+    ): ResolutionResult {
         val normalizedQuery = FoodIndex.normalizeSearch(query)
         val queryTokens = FoodIndex.tokenize(normalizedQuery)
         if (queryTokens.isEmpty()) {
-            return@withContext ResolutionResult(
+            return ResolutionResult(
                 query = query,
                 candidates = emptyList(),
                 decision = Decision.UNRESOLVED,
@@ -105,6 +133,9 @@ class SmartFoodResolver(
         val learnedKey = buildLearnedKey(normalizedQuery, brandHint)
         val learned = learnedCache[learnedKey]
 
+        // D6: tokens que el dataset asocia con la descripción completa
+        val coTokens = contextHint?.takeIf { it.isNotBlank() }?.let { datasetCoOccurrenceTokens(it) }
+
         // Get candidate food IDs from index
         val candidateIds = foodIndex.search(normalizedQuery)
         if (candidateIds.isEmpty()) {
@@ -114,13 +145,53 @@ class SmartFoodResolver(
                 foodIndex.search(token).let { expandedIds.addAll(it) }
             }
             if (expandedIds.isEmpty()) {
-                return@withContext resolveDatasetOrHeuristicFallback(query, normalizedQuery)
+                return resolveDatasetOrHeuristicFallback(query, normalizedQuery)
             }
-            return@withContext scoreAndRank(query, normalizedQuery, queryTokens, expandedIds, brandHint, learned)
+            return scoreAndRank(query, normalizedQuery, queryTokens, expandedIds, brandHint, learned, coTokens)
         }
 
-        return@withContext scoreAndRank(query, normalizedQuery, queryTokens, candidateIds, brandHint, learned)
+        return scoreAndRank(query, normalizedQuery, queryTokens, candidateIds, brandHint, learned, coTokens)
     }
+
+    /** D6: tokens (≥4 letras) de los documentos más similares a la descripción completa. */
+    private fun datasetCoOccurrenceTokens(contextHint: String): Set<String> {
+        val snapshot = SemanticPortionRetriever.currentSnapshot() ?: return emptySet()
+        val retrieval = SemanticPortionRetriever.retrieve(contextHint)
+        val tokens = mutableSetOf<String>()
+        for (match in retrieval.matches.take(3)) {
+            snapshot.document(match.docId)?.instruction?.let { instruction ->
+                tokens.addAll(
+                    instruction.lowercase()
+                        .split(Regex("\\s+"))
+                        .filter { it.length >= 4 },
+                )
+            }
+        }
+        return tokens
+    }
+
+    /**
+     * Plural → singular, con guardas contra falsos positivos ("anís" NO → "aní").
+     * Solo se usa como reintento dirigido por resolución, nunca como transformación ciega.
+     */
+    private fun singularizeQuery(query: String): String? {
+        val lower = query.trim().lowercase()
+        if (lower.length <= 4) return null
+        val singular = when {
+            lower.endsWith("ces") && lower.length > 5 -> lower.dropLast(3) + "z"
+            lower.endsWith("es") && lower.length > 4 -> lower.dropLast(2)
+            lower.endsWith("s") && lower.length > 4 -> {
+                val stem = lower.dropLast(1)
+                // "anís" — palabras tónicas en vocal con tilde son ya singulares
+                if (ACCENTED_VOWEL_S.containsMatchIn(stem)) return null
+                stem
+            }
+            else -> return null
+        }
+        return singular.takeIf { it.length >= 3 && it != lower }
+    }
+
+    private val ACCENTED_VOWEL_S = Regex("[áéíóú]s$")
 
     /**
      * Resolve multiple queries in batch.
@@ -172,10 +243,11 @@ class SmartFoodResolver(
         candidateIds: Set<String>,
         brandHint: String?,
         learned: LearnedEntry?,
+        coTokens: Set<String>? = null,
     ): ResolutionResult {
         val candidates = candidateIds.mapNotNull { foodId ->
             val food = foodIndex.getFood(foodId) ?: return@mapNotNull null
-            val score = computeScore(food, normalizedQuery, queryTokens, brandHint, learned)
+            val score = computeScore(food, normalizedQuery, queryTokens, brandHint, learned, coTokens)
             val trace = buildTrace(food, normalizedQuery, queryTokens, brandHint)
 
             ResolutionCandidate(
@@ -288,9 +360,15 @@ class SmartFoodResolver(
         queryTokens: List<String>,
         brandHint: String?,
         learned: LearnedEntry?,
+        coTokens: Set<String>? = null,
     ): Double {
         var score = 0.0
         val foodTokens = food.tokens
+
+        // D6: boost si el candidato co-ocurre con el contexto de la descripción en el dataset
+        if (coTokens != null && foodTokens.any { it in coTokens }) {
+            score += 0.06
+        }
 
         // 1. Exact name match: +0.54
         if (food.normalizedName == normalizedQuery ||

@@ -14,6 +14,8 @@ object FoodCombinationParser {
     private val CON_Y_COMMA_LEADING_PATTERN = Regex("""^\s*(?:con|y|,)\s*""")
     private val COMBO_SPLIT_PATTERN = Regex("""\s+(?:con|y|,)\s+""")
 
+    private val dishRegexCache = mutableMapOf<String, Regex>()
+
     data class ParsedCombination(
         val baseFood: String,
         val baseProportion: Double,
@@ -51,6 +53,8 @@ object FoodCombinationParser {
         "pan con pollo" to listOf(DishComponent("pan", 0.5, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING)),
         "pan con salmon" to listOf(DishComponent("pan", 0.5, Role.STARCH), DishComponent("salmón", 0.5, Role.TOPPING)),
         "pan con palta y huevo" to listOf(DishComponent("pan", 0.35, Role.STARCH), DishComponent("palta", 0.35, Role.SIDE), DishComponent("huevo", 0.3, Role.TOPPING)),
+        "pan con palta y jamon" to listOf(DishComponent("pan", 0.4, Role.STARCH), DishComponent("palta", 0.35, Role.SIDE), DishComponent("jamón", 0.25, Role.TOPPING)),
+        "pan con palta y jamón" to listOf(DishComponent("pan", 0.4, Role.STARCH), DishComponent("palta", 0.35, Role.SIDE), DishComponent("jamón", 0.25, Role.TOPPING)),
         "pan con tomate y aceite" to listOf(DishComponent("pan", 0.6, Role.STARCH), DishComponent("tomate", 0.3, Role.SIDE), DishComponent("aceite", 0.1, Role.SAUCE)),
         "pan con tomate y jamon" to listOf(DishComponent("pan", 0.4, Role.STARCH), DishComponent("tomate", 0.3, Role.SIDE), DishComponent("jamón", 0.3, Role.TOPPING)),
         "pan con tomate y jamón" to listOf(DishComponent("pan", 0.4, Role.STARCH), DishComponent("tomate", 0.3, Role.SIDE), DishComponent("jamón", 0.3, Role.TOPPING)),
@@ -386,26 +390,43 @@ object FoodCombinationParser {
     fun parse(text: String): ParsedCombination {
         val lower = text.lowercase().trim()
 
-        // 1. Check known dishes first (highest confidence)
-        for ((dishName, components) in KNOWN_DISHES) {
-            if (lower == dishName || lower.contains(dishName)) {
-                val base = components.first()
-                val baseFood = base.food
-                val baseProportion = base.proportion
-                val accompaniments = components.drop(1).map { comp ->
-                    Accompaniment(food = comp.food, proportion = comp.proportion, role = comp.role)
-                }
-
-                return ParsedCombination(
-                    baseFood = baseFood,
-                    baseProportion = baseProportion,
-                    accompaniments = accompaniments,
-                    cookingMethod = null,
-                    isKnownDish = true,
-                    dishName = dishName,
-                    confidence = 0.95,
+        // 1. Check known dishes first (highest confidence).
+        // Match por palabras completas: "arroz con leche condensada" NO debe matchear
+        // "arroz con leche". El plato solo se acepta al final del texto o seguido de un
+        // conector ("con/y/e/mas/a/al/de"). Si varios platos matchean, gana el más largo.
+        var bestDishName: String? = null
+        var bestDishRegex: Regex? = null
+        for ((dishName, _) in KNOWN_DISHES) {
+            val regex = dishRegexCache.getOrPut(dishName) {
+                Regex(
+                    """\b${Regex.escape(dishName)}\b(?=$|\s+(?:con|y|e|mas|más|sin|a|al|de|,)\b)""",
+                    RegexOption.IGNORE_CASE,
                 )
             }
+            if (regex.containsMatchIn(lower) && (bestDishName == null || dishName.length > bestDishName.length)) {
+                bestDishName = dishName
+                bestDishRegex = regex
+            }
+        }
+
+        if (bestDishName != null) {
+            val components = KNOWN_DISHES.getValue(bestDishName)
+            val base = components.first()
+            val baseFood = base.food
+            val baseProportion = base.proportion
+            val accompaniments = components.drop(1).map { comp ->
+                Accompaniment(food = comp.food, proportion = comp.proportion, role = comp.role)
+            }
+
+            return ParsedCombination(
+                baseFood = baseFood,
+                baseProportion = baseProportion,
+                accompaniments = accompaniments,
+                cookingMethod = null,
+                isKnownDish = true,
+                dishName = bestDishName,
+                confidence = 0.95,
+            )
         }
 
         // 2. Try generic patterns

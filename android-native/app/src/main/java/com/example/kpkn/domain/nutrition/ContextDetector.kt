@@ -76,7 +76,7 @@ object ContextDetector {
             "tentempie", "piscolabis", "refrigerio", "entre comida", "entre horas",
         ),
         MealContext.DESAYUNO to listOf(
-            "desayuno", "desayunar", "am", "mañana", "manana", "al despertar",
+            "desayuno", "desayunar", "mañana", "manana", "al despertar",
             "temprano", "de mañana",
         ),
         MealContext.ALMUERZO to listOf(
@@ -90,14 +90,24 @@ object ContextDetector {
     )
 
     /**
+     * C3: precompilados con word-boundary — "am" matcheaba "jamón"/"camarón" por substring;
+     * "trabajo" matcheaba "trabajosa"; "mañana" matcheaba dentro de otras palabras.
+     */
+    private val CONTEXT_REGEXES: Map<MealContext, List<Regex>> by lazy {
+        CONTEXT_PATTERNS.mapValues { (_, keywords) ->
+            keywords.map { keyword -> Regex("""\b${Regex.escape(keyword)}\b""", RegexOption.IGNORE_CASE) }
+        }
+    }
+
+    /**
      * Detect meal context from user description.
      */
     fun detect(description: String): ContextResult {
         val lower = description.lowercase()
         val detected = mutableListOf<MealContext>()
 
-        for ((context, keywords) in CONTEXT_PATTERNS) {
-            if (keywords.any { lower.contains(it) }) {
+        for ((context, regexes) in CONTEXT_REGEXES) {
+            if (regexes.any { it.containsMatchIn(lower) }) {
                 detected.add(context)
             }
         }

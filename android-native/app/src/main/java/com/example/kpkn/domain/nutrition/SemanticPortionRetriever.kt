@@ -85,6 +85,13 @@ object SemanticPortionRetriever {
         "CENA" to listOf("cena", "cenar", "noche", "nocturno"),
     )
 
+    /** D4: word-boundary — "escena" ya no dispara CENA, "trabajoso" ya no dispara OFICINA. */
+    private val contextRegexes: Map<String, List<Regex>> by lazy {
+        contextKeywords.mapValues { (_, keywords) ->
+            keywords.map { keyword -> Regex("""\b${Regex.escape(keyword)}\b""", RegexOption.IGNORE_CASE) }
+        }
+    }
+
     private val cookingTerms = setOf(
         "plancha", "horno", "frito", "frita", "cocido", "cocida", "hervido", "hervida",
         "crudo", "cruda", "vapor", "parrilla", "asado", "asada", "guisado", "guisada",
@@ -100,6 +107,9 @@ object SemanticPortionRetriever {
         }
         knowledge = snapshot
     }
+
+    /** Snapshot instalado actualmente (diagnóstico y tests). */
+    fun currentSnapshot(): DatasetKnowledgeSnapshot? = knowledge
 
     fun status(): DatasetStatus {
         val snapshot = knowledge
@@ -214,13 +224,20 @@ object SemanticPortionRetriever {
         return snapshot.portionPriors.values.asSequence()
             .map { prior -> prior to foodSimilarity(normalizedFood, prior.food) }
             .filter { (_, similarity) -> similarity >= PORTION_MATCH_THRESHOLD }
+            // D5: frecuencia como desempate con peso — a igual similitud, el prior más
+            // visto en el dataset es más representativo.
             .maxWithOrNull(
                 compareBy<Pair<DatasetPortionPrior, Double>> { it.second }
-                    .thenBy { it.first.frequency },
+                    .thenBy { reliabilityScore(it.first) },
             )
             ?.first
             ?.grams
     }
+
+    /** 0..1: frecuencia normalizada logarítmicamente para comparar fiabilidad de priors. */
+    private fun reliabilityScore(prior: DatasetPortionPrior): Double =
+        kotlin.math.log10((prior.frequency + 1).toDouble()) /
+            kotlin.math.log10(10_001.0)
 
     private fun estimatePortionPriors(
         snapshot: DatasetKnowledgeSnapshot,
@@ -236,8 +253,12 @@ object SemanticPortionRetriever {
             for (portion in document.portions) {
                 val foodTokens = tokenize(portion.food).toSet()
                 if (foodTokens.isNotEmpty() && foodTokens.intersect(queryTokens).isNotEmpty()) {
-                    weighted.getOrPut(normalize(portion.food)) { mutableListOf() }
-                        .add(portion.grams to match.score)
+                    val priorKey = normalize(portion.food)
+                    // D5: un prior visto muchas veces en el dataset es más fiable
+                    val frequency = snapshot.portionPriors[priorKey]?.frequency ?: 0
+                    val weight = match.score * (1.0 + 0.03 * kotlin.math.log10((frequency + 1).toDouble()))
+                    weighted.getOrPut(priorKey) { mutableListOf() }
+                        .add(portion.grams to weight)
                 }
             }
         }
@@ -257,8 +278,26 @@ object SemanticPortionRetriever {
             if (match.score < maxOf(MINIMUM_MACRO_SCORE, topScore * 0.60)) return@mapNotNull null
             val document = snapshot.document(match.docId) ?: return@mapNotNull null
             val macros = document.macros ?: return@mapNotNull null
-            if (document.macroBasis != DatasetMacroBasis.PER_100_G) return@mapNotNull null
-            Triple(document.id, macros, match.score)
+            // D3: los documentos TOTAL_DESCRIPTION (macros del plato completo) antes se
+            // descartaban; ahora se escalan a PER_100_G usando basisGrams para sumar
+            // su evidencia a la estimación de rangos.
+            val per100 = when (document.macroBasis) {
+                DatasetMacroBasis.PER_100_G -> macros
+                DatasetMacroBasis.TOTAL_DESCRIPTION -> {
+                    if (document.basisGrams > 0.0) {
+                        DatasetMacros(
+                            calories = macros.calories / document.basisGrams * 100.0,
+                            protein = macros.protein / document.basisGrams * 100.0,
+                            fats = macros.fats / document.basisGrams * 100.0,
+                            carbs = macros.carbs / document.basisGrams * 100.0,
+                        )
+                    } else {
+                        return@mapNotNull null
+                    }
+                }
+                else -> return@mapNotNull null
+            }
+            Triple(document.id, per100, match.score)
         }
         if (samples.isEmpty()) return null
 
@@ -311,7 +350,7 @@ object SemanticPortionRetriever {
     }
 
     private fun detectContexts(normalizedQuery: String): List<String> =
-        contextKeywords.filterValues { keywords -> keywords.any(normalizedQuery::contains) }.keys.toList()
+        contextRegexes.filterValues { regexes -> regexes.any { it.containsMatchIn(normalizedQuery) } }.keys.toList()
 
     private fun foodSimilarity(left: String, right: String): Double {
         if (left == right) return 1.0

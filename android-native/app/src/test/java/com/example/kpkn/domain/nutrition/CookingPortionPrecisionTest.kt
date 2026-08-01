@@ -165,6 +165,26 @@ class CookingPortionPrecisionTest {
     }
 
     @Test
+    fun `revuelto row counts as prepared for FRITO without oil`() {
+        // B5: "revuelto" es una fila preparada para FRITO — no sumar aceite dos veces.
+        val revueltoRow = FoodItem(
+            name = "Huevo Entero (revuelto)",
+            calories = 150.0,
+            protein = 12.0,
+            carbs = 1.0,
+            fats = 10.0,
+        )
+        assertTrue(CookingStateResolver.isAlreadyPreparedForMethod(revueltoRow, CookingMethod.FRITO))
+        assertFalse(CookingStateResolver.shouldApplyOil(revueltoRow, CookingMethod.FRITO))
+    }
+
+    @Test
+    fun `methodSearchSuffixes for FRITO includes revuelto`() {
+        assertTrue("revuelto" in CookingStateResolver.methodSearchSuffixes(CookingMethod.FRITO))
+        assertTrue("frito" in CookingStateResolver.methodSearchSuffixes(CookingMethod.FRITO))
+    }
+
+    @Test
     fun `oil strip and reapply moves fats`() {
         val base = LoggedFood(
             id = "1",

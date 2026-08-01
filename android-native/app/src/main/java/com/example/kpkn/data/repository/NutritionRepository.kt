@@ -412,6 +412,9 @@ class NutritionRepository private constructor(
         ensureDatasetKnowledge()
     }
 
+    /** D7: estado del dataset de conocimiento (diagnóstico / aviso no-silencioso). */
+    fun datasetStatus(): SemanticPortionRetriever.DatasetStatus = SemanticPortionRetriever.status()
+
     suspend fun initFoodIndex() = withContext(Dispatchers.Default) {
         synchronized(foodIndexLock) {
             if (_foodIndex?.isBuilt() == true) return@withContext
@@ -433,11 +436,12 @@ class NutritionRepository private constructor(
     suspend fun resolveFoodWithSmartResolver(
         query: String,
         brandHint: String? = null,
+        contextHint: String? = null,
     ): SmartFoodResolver.ResolutionResult {
         // Ensure both verified foods and offline semantic knowledge are ready.
         ensureDatasetKnowledge()
         initFoodIndex()
-        return smartResolver.resolve(query, brandHint)
+        return smartResolver.resolve(query, brandHint, contextHint)
     }
 
     fun recordLearnedResolution(

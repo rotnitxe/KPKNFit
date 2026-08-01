@@ -12,9 +12,11 @@ import com.example.kpkn.data.models.*
 
 // ─── Regex Patterns ──────────────────────────────────────────────────────────
 
-private val GRAM_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)\b(?:\s+de)?\s*""", RegexOption.IGNORE_CASE)
+private const val GRAM_UNITS = "g|gr|gramos?|kg|kilos?|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?"
 
-private val COMMA_OR_PLUS = Regex("""(,\s*|\s+\+\s+)""")
+private val GRAM_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*(?:$GRAM_UNITS)\b(?:\s+de)?\s*""", RegexOption.IGNORE_CASE)
+
+private val COMMA_OR_PLUS = Regex("""(?:,\s*|;\s*|\s+\+\s+|\s*[\r\n]+\s*)""")
 private val CONNECTOR_Y = Regex("""\s+(?:y|e|mas|más)\s+""", RegexOption.IGNORE_CASE)
 private val CONNECTOR_CON = Regex("""\s+con\s+""", RegexOption.IGNORE_CASE)
 
@@ -101,23 +103,25 @@ private val REFERENCE_PATTERNS = listOf(
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(rebanadas?|tajadas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "slice"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(latas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "can"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(scoops?|medidas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "scoop"),
-    Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(porciones?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "portion"),
+    Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(porci[oó]n(?:es)?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "portion"),
     Pair(Regex("""\b(un|una|1)\s+(trozo)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "piece"),
     Pair(Regex("""\b(un|una|1)\s+(pedazo)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "piece"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(trozos?|pedazos?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "piece"),
-    // Indicadores subjetivos de cantidad
-    Pair(Regex("""\b(un\s+poco)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "little"),
+    // Indicadores subjetivos de cantidad (el normalizador conserva el literal "un/una"
+    // ante estos sustantivos, y se acepta dígito como red de seguridad)
+    Pair(Regex("""\b(un|1)\s+(poco)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "little"),
     Pair(Regex("""\b(poquito|poquita)\s+(?:de\s+)?(.+)""", RegexOption.IGNORE_CASE), "little"),
-    Pair(Regex("""\b(una?\s+pizca)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "pinch"),
-    Pair(Regex("""\b(un\s+chorrito)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "splash"),
+    Pair(Regex("""\b(una?|1)\s+(pizca)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "pinch"),
+    Pair(Regex("""\b(un|1)\s+(chorrito)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "splash"),
 )
 
 // Precompiled Regex patterns for optimization
 private val GROUP_PATTERN = Regex("^(.+?)\\s*\\((.+)\\)\\s*$")
 private val STARTS_WITH_DIGIT = Regex("""^\d""")
 private val NEGATION_PATTERN = Regex("""\b(?:sin|menos|no)\b""", RegexOption.IGNORE_CASE)
-private val GRAM_UNIT_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*(g|gr|gramos?|kg|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?)\b""", RegexOption.IGNORE_CASE)
-private val KG_LITER_PATTERN = Regex("kg|l$|litros?")
+private val GRAM_UNIT_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*($GRAM_UNITS)\b""", RegexOption.IGNORE_CASE)
+private val GRAM_POSITION_LOOKAHEAD = Regex("""(?=(?<!\d)(?<![.,])\d+(?:[.,]\d+)?\s*(?:$GRAM_UNITS)\b)""", RegexOption.IGNORE_CASE)
+private val KG_LITER_PATTERN = Regex("kg|kilos?|l$|litros?")
 private val OZ_PATTERN = Regex("oz|onzas?")
 private val LB_PATTERN = Regex("lb|libras?")
 private val MULTISPACE_PATTERN = Regex("\\s{2,}")
@@ -127,12 +131,14 @@ private val THREE_QUARTERS_PATTERN = Regex("""\b3/4\b""")
 private val RANGE_QUANTITY_PATTERN = Regex("""^(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s+(.+)$""")
 private val NUMBER_QUANTITY_PATTERN = Regex("""^(\d+(?:\.\d+)?)\s*(?:x\s*)?(.+)$""")
 private val LITERAL_QUANTITY_PATTERN = Regex("""^(un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciséis|dieciseis|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintidós|veintidos|veintitrés|veintitres|veinticuatro|veinticinco|treinta|media|medio|mitad|cuarto|tercio|doble|triple)\s+(.+)$""", RegexOption.IGNORE_CASE)
+private val PAIR_PATTERN = Regex("""^(?:un|1)\s+par\s+(?:de\s+)?(.+)$""", RegexOption.IGNORE_CASE)
+private val SUFFIX_X_PATTERN = Regex("""^(\d+(?:[.,]\d+)?)?\s*(.+?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*$""", RegexOption.IGNORE_CASE)
 private val SPACES_PATTERN = Regex("\\s+")
 private val LEADING_DE_PATTERN = Regex("^de\\s+")
+private val LEADING_ARTICLE_PATTERN = Regex("^(?:el|la|los|las)\\s+")
 private val PORTION_PREFIX_PATTERN = Regex("^(?:platos?|porciones?|porción|tazas?|vasos?|boles?|bowls?|fuentes?)\\s+de\\s+")
 private val ARTICLE_PORTION_PREFIX_PATTERN = Regex("^(?:un|una|unos|unas)\\s+(?:platos?|porciones?|porción|tazas?|vasos?|boles?|bowls?|fuentes?)\\s+de\\s+")
 private val TRAILING_DE_PATTERN = Regex("\\s+de\\s+$")
-private val DIMINUTIVE_PATTERN = Regex("""(\w+?)(cito|cita|ito|ita|illo|illa|ecito|ecita)$""")
 
 private val PROTECTED_ENTITIES_REGEX = Regex(
     PROTECTED_ENTITIES.joinToString("|") { "\\b${Regex.escape(it)}\\b" },
@@ -180,12 +186,24 @@ fun parseMealDescription(
     val globalPortion = extractGlobalPortion(trimmed)
 
     for (frag in fragments) {
-        val parsed = parseFragment(frag, retrievalResult) ?: continue
-        if (parsed.tag !in seen) {
-            seen.add(parsed.tag)
+        // D1: retrieval POR FRAGMENTO con confianza por ítem. El retrieval de la
+        // descripción completa diluye la confianza entre varios alimentos y bloquea
+        // priors buenos por el gate global; cada fragmento recibe el suyo.
+        // Si el snapshot no está instalado (tests), se cae al retrieval provisto.
+        val fragRetrieval = if (retrievalResult == null) {
+            null
+        } else {
+            SemanticPortionRetriever.retrieve(frag)
+                .takeIf { it.confidence > 0.0 || it.portionPriors.isNotEmpty() }
+                ?: retrievalResult
+        }
+        val parsed = parseFragment(frag, fragRetrieval) ?: continue
+        val key = canonicalTagKey(parsed.tag)
+        if (key !in seen) {
+            seen.add(key)
             items.add(parsed.copy(portion = if (parsed.portion == PortionPreset.MEDIUM && globalPortion != PortionPreset.MEDIUM) globalPortion else parsed.portion))
         } else {
-            val idx = items.indexOfFirst { it.tag == parsed.tag }
+            val idx = items.indexOfFirst { canonicalTagKey(it.tag) == key }
             if (idx >= 0) {
                 items[idx] = items[idx].copy(
                     quantity = items[idx].quantity + parsed.quantity,
@@ -282,11 +300,14 @@ private fun parseFragment(
     val shouldSingularize = STARTS_WITH_DIGIT.containsMatchIn(working.trim())
     val canonical = normalizeFoodName(foodName, singularize = shouldSingularize)
     // Dataset priors only fill when the user gave no measure at all.
+    // El prior del dataset es POR UNIDAD: se multiplica por la cantidad para no
+    // perderla ("2 huevos" + prior 60g → 120g, "media manzana" → 60g).
     val resolvedGrams = when (amountIntent) {
         AmountIntent.EXPLICIT_MASS, AmountIntent.RESOLVED_SUBJECTIVE -> grams
         AmountIntent.UNSPECIFIED -> grams ?: retrievalResult
             ?.takeIf { it.confidence >= DATASET_PORTION_MIN_CONFIDENCE }
             ?.let { SemanticPortionRetriever.getGramsForFood(canonical, it) }
+            ?.let { prior -> prior * quantity }
     }
 
     return ParsedMealItem(
@@ -345,6 +366,19 @@ private fun splitByListConnectors(description: String): List<String> {
         }
     }.filter { it.isNotEmpty() }
 
+    // Split fragments containing multiple explicit measures ("100g arroz 50g pollo")
+    parts = parts.flatMap { part ->
+        val positions = GRAM_POSITION_LOOKAHEAD.findAll(part).map { it.range.first }.toList()
+        if (positions.size <= 1) {
+            listOf(part)
+        } else {
+            positions.mapIndexed { index, start ->
+                val end = positions.getOrNull(index + 1) ?: part.length
+                part.substring(start, end).trim()
+            }
+        }
+    }.filter { it.isNotEmpty() }
+
     return parts
 }
 
@@ -382,7 +416,7 @@ private fun extractReferenceFromFragment(
 ): ReferenceResult {
     val lower = text.lowercase()
     if (REFERENCE_KEYWORDS_FAST.none { lower.contains(it) }) {
-        return ReferenceResult(null, 1.0, text)
+        return resolveViaSubjectiveEngine(text, retrievalResult)
     }
     for ((pattern, refType) in REFERENCE_PATTERNS) {
         val match = pattern.find(text) ?: continue
@@ -417,7 +451,55 @@ private fun extractReferenceFromFragment(
         // fragment (e.g. "una taza de avena") cleaned becomes "" → foodName.length < 2 → null item.
         return ReferenceResult(grams, qty, foodPart)
     }
-    return ReferenceResult(null, 1.0, text)
+    return resolveViaSubjectiveEngine(text, retrievalResult)
+}
+
+/**
+ * F1.1: Fallback directo al motor subjetivo completo (~310 expresiones: "un montón de",
+ * "una botella de", "una marraqueta", "una rodaja de", utensilios, comparaciones…).
+ * Antes estas expresiones caían a UNSPECIFIED porque el gate de REFERENCE_KEYWORDS_FAST
+ * y los ~19 REFERENCE_PATTERNS no las alcanzaban. El motor devuelve null si no matchea,
+ * así que el fallback es seguro.
+ */
+private val SUBJECTIVE_PHRASE_STRIP = Regex(
+    """^(?:(?:un|una|unos|unas|\d+(?:[.,]\d+)?)\s+)?[a-záéíóúñü]+(?:\s+[a-záéíóúñü]+){0,2}\s+de\s+(.+)$""",
+    RegexOption.IGNORE_CASE,
+)
+
+private fun resolveViaSubjectiveEngine(
+    text: String,
+    retrievalResult: SemanticPortionRetriever.RetrievalResult?,
+): ReferenceResult {
+    // Entidades protegidas ("empanada de pino", "café con leche"…) se resuelven
+    // como plato completo: el motor las fragmentaría mal ("una empanada de pino"
+    // dejaría "pino" como alimento).
+    if (PROTECTED_ENTITIES_REGEX.containsMatchIn(text)) {
+        return ReferenceResult(null, 1.0, text)
+    }
+    val food = findFoodByNormalized(text)
+    val densityCategory = SubjectivePortionEngine.detectDensityCategory(text)
+    val result = SubjectivePortionEngine.resolve(
+        expression = text,
+        foodCategory = densityCategory,
+        standardPortion = food?.servingSize,
+        retrievalResult = retrievalResult,
+    ) ?: return ReferenceResult(null, 1.0, text)
+
+    // Quitar la frase subjetiva ("un montón de") conservando el alimento. Si no hay
+    // "de" (ej. "una marraqueta"), se deja el texto completo: parseQuantityMultiplier
+    // se encarga del artículo y deja "marraqueta" como nombre.
+    val foodPart = SUBJECTIVE_PHRASE_STRIP.find(text)
+        ?.groupValues
+        ?.get(1)
+        ?.trim()
+        ?.takeIf { it.length >= 2 }
+        ?: text
+
+    return ReferenceResult(
+        grams = kotlin.math.round(result.grams * 10) / 10.0,
+        quantity = 1.0,
+        foodPart = foodPart,
+    )
 }
 
 private const val DATASET_PORTION_MIN_CONFIDENCE = 0.35
@@ -471,6 +553,26 @@ private fun parseQuantityMultiplier(text: String): Pair<Double, String> {
         }
     }
 
+    // Pair: "un par de huevos" → 2 (debe ir antes del patrón numérico)
+    val pairMatch = PAIR_PATTERN.find(trimmed)
+    if (pairMatch != null) {
+        val rest = pairMatch.groupValues[1].trim()
+        if (rest.length >= 2) {
+            return Pair(2.0, rest)
+        }
+    }
+
+    // Suffix multiplier: "huevos x2", "3 huevos x2" → cantidad × sufijo
+    val suffixMatch = SUFFIX_X_PATTERN.find(trimmed)
+    if (suffixMatch != null) {
+        val rest = suffixMatch.groupValues[2].trim()
+        if (rest.length >= 2) {
+            val suffix = suffixMatch.groupValues[3].toDoubleOrNull() ?: 1.0
+            val base = suffixMatch.groupValues[1].toDoubleOrNull() ?: 1.0
+            return Pair(base * suffix, rest)
+        }
+    }
+
     // Number: "2 manzanas", "3 huevos"
     val numMatch = NUMBER_QUANTITY_PATTERN.find(trimmed)
     if (numMatch != null) {
@@ -496,6 +598,26 @@ private fun parseQuantityMultiplier(text: String): Pair<Double, String> {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+private fun stripAccents(text: String): String =
+    java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)
+        .replace("\\p{Mn}+".toRegex(), "")
+
+/**
+ * Clave canónica para DEDUPE (G5/G7): minúsculas sin tildes y singularizada.
+ * "huevo", "huevos", "Huevo" y "2 huevos" + "1 huevo" se fusionan como el mismo alimento.
+ * Solo afecta la fusión de items; el tag visible se conserva tal cual.
+ */
+private fun canonicalTagKey(tag: String): String {
+    val stripped = stripAccents(tag.lowercase())
+    if (stripped.length <= 4) return stripped
+    return when {
+        stripped.endsWith("ces") && stripped.length > 5 -> stripped.dropLast(3) + "z"
+        stripped.endsWith("es") && stripped.length > 4 -> stripped.dropLast(2)
+        stripped.endsWith("s") && stripped.length > 4 -> stripped.dropLast(1)
+        else -> stripped
+    }
+}
+
 private fun extractGlobalPortion(description: String): PortionPreset {
     for ((pattern, preset, _) in PORTION_PATTERNS) {
         if (pattern.containsMatchIn(description)) return preset
@@ -508,13 +630,13 @@ private fun normalizeFoodName(name: String, singularize: Boolean = false): Strin
         .lowercase()
         .replace(SPACES_PATTERN, " ")
         .replace(LEADING_DE_PATTERN, "")
+        .replace(LEADING_ARTICLE_PATTERN, "")
         .replace(PORTION_PREFIX_PATTERN, "")
         .replace(ARTICLE_PORTION_PREFIX_PATTERN, "")
         .replace(TRAILING_DE_PATTERN, "")
 
-    // Diminutivos: -ito/-ita/-illo/-illa/-cito/-cita → quitar preservando raíz
-    normalized = normalized
-        .replace(DIMINUTIVE_PATTERN, "$1")
+    // Diminutivos con validación de raíz: "huevito"→"huevo" pero "mantequilla" NO se rompe
+    normalized = TextNormalizer.canonicalizeDiminutives(normalized)
 
     if (singularize) {
         normalized = when {

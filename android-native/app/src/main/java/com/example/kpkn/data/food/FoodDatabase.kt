@@ -236,6 +236,13 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen124", name = "Trigo Sarraceno (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 92.0, protein = 3.4, carbs = 20.0, fats = 0.6, searchAliases = listOf("trigo sarraceno", "alforfón", "alforfon")),
     FoodItem(id = "gen125", name = "Yuca (cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 130.0, protein = 0.9, carbs = 31.0, fats = 0.3, searchAliases = listOf("yuca", "mandioca")),
     FoodItem(id = "gen126", name = "Ñame (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 118.0, protein = 1.5, carbs = 28.0, fats = 0.2, searchAliases = listOf("ñame", "name")),
+    // F4.4: alimentos referenciados por emojis que antes caían a MIXED_DISH subestimado
+    FoodItem(id = "gen127", name = "Pizza", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 266.0, protein = 11.0, carbs = 33.0, fats = 10.0, searchAliases = listOf("pizza")),
+    FoodItem(id = "gen128", name = "Hamburguesa", brand = "Genérico", servingSize = 150.0, unit = "u", calories = 380.0, protein = 18.0, carbs = 30.0, fats = 19.0, searchAliases = listOf("hamburguesa", "burger", "burguer")),
+    FoodItem(id = "gen129", name = "Taco", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 220.0, protein = 8.0, carbs = 22.0, fats = 11.0, searchAliases = listOf("taco", "tacos")),
+    FoodItem(id = "gen130", name = "Burrito", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 200.0, protein = 8.0, carbs = 26.0, fats = 7.0, searchAliases = listOf("burrito", "burritos")),
+    FoodItem(id = "gen131", name = "Sushi", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 150.0, protein = 6.0, carbs = 25.0, fats = 3.0, searchAliases = listOf("sushi")),
+    FoodItem(id = "gen132", name = "Donut", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 420.0, protein = 5.0, carbs = 51.0, fats = 22.0, searchAliases = listOf("donut", "dona", "donuts", "donas")),
 )
 
 // ─── Chilean Foods ───────────────────────────────────────────────────────────
@@ -460,7 +467,32 @@ private val foodByExactName: Map<String, FoodItem> by lazy {
                 if (target != null) put(key.lowercase(), target)
             }
         }
+        // G7: claves sin tildes → "salmon" y "salmón" resuelven igual
+        val existingKeys = keys.toList()
+        existingKeys.forEach { key ->
+            putIfAbsent(stripAccents(key), getValue(key))
+        }
     }
+}
+
+private fun stripAccents(text: String): String =
+    java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)
+        .replace("\\p{Mn}+".toRegex(), "")
+
+/**
+ * Lookup SOLO por coincidencia exacta/alias O(1) (sin fallbacks difusos por palabras).
+ * Permite distinguir un match estático de alta precisión de uno fuzzy.
+ */
+fun findFoodExactByNormalized(text: String): FoodItem? {
+    val normalized = text.trim().lowercase()
+    val alias = FOOD_ALIASES[normalized] ?: normalized
+    foodByExactName[alias]?.let { return it }
+    foodByExactName[normalized]?.let { return it }
+    val stripped = stripAccents(normalized)
+    if (stripped != normalized) foodByExactName[stripped]?.let { return it }
+    val strippedAlias = stripAccents(alias)
+    if (strippedAlias != stripped) foodByExactName[strippedAlias]?.let { return it }
+    return null
 }
 
 fun findFoodByNormalized(text: String): FoodItem? {
@@ -470,7 +502,6 @@ fun findFoodByNormalized(text: String): FoodItem? {
     // O(1) exact lookup
     foodByExactName[alias]?.let { return it }
     foodByExactName[normalized]?.let { return it }
-
     // Fallback con coincidencia de palabras completas (evita que "pan" coincida con "empanada" o "pollo" con "repollo")
     val allFoods = ALL_FOODS
     val aliasWords = alias.split("[\\s(),/]+".toRegex()).filter { it.length > 1 }

@@ -74,12 +74,13 @@ object TextNormalizer {
 
     // ─── Quantity hedges ──────────────────────────────────────────────────
     private val HEDGE_PATTERN = Regex(
-        """\b(creo\s+que\s+(?:fue|era)|me\s+parece|m[aá]s\s+o\s+menos|como\s+unos|aprox(?:imadamente)?|tipo)\s*""",
+        """\b(creo\s+que\s+(?:fue|era)|me\s+parece|m[aá]s\s+o\s+menos|como\s+unos|casi|alrededor\s+de|cerca\s+de|aprox(?:imadamente)?|tipo|unos|unas|lo\s+que\s+(?:sobr[oó]|qued[oó])\s+de|el\s+resto\s+de)\s*""",
         RegexOption.IGNORE_CASE
     )
 
     // ─── Repeated letters from voice/chat noise ───────────────────────────
     private val REPEATED_VOWELS = Regex("""([aeiouáéíóúü])\1+""", RegexOption.IGNORE_CASE)
+    private val REPEATED_VOWELS_3_PLUS = Regex("""([aeiouáéíóúü])\1{2,}""", RegexOption.IGNORE_CASE)
     private val REPEATED_LETTERS_3_PLUS = Regex("""([a-záéíóúüñ])\1{2,}""", RegexOption.IGNORE_CASE)
 
     // ─── Repeated punctuation → remove ────────────────────────────────────
@@ -141,6 +142,19 @@ object TextNormalizer {
         "wine" to "vino", "yogurt" to "yogurt", "honey" to "miel",
         "sugar" to "azucar", "salt" to "sal", "oil" to "aceite",
         "butter" to "mantequilla", "cream" to "crema",
+        // Plurales y cortes comunes
+        "eggs" to "huevos", "apples" to "manzanas", "bananas" to "platanos",
+        "potatoes" to "papas", "tomatoes" to "tomates", "carrots" to "zanahorias",
+        "onions" to "cebollas", "avocados" to "paltas", "oranges" to "naranjas",
+        "grapes" to "uvas", "strawberries" to "frutillas", "almonds" to "almendras",
+        "walnuts" to "nueces", "mushrooms" to "champiñones", "beans" to "porotos",
+        "lentils" to "lentejas", "chickpeas" to "garbanzos", "sausages" to "salchichas",
+        "pancakes" to "panqueques", "blueberries" to "arandanos", "pineapples" to "pinas",
+        "cherries" to "cerezas", "peaches" to "duraznos", "lemons" to "limones",
+        "cucumbers" to "pepinos", "breast" to "pechuga", "thigh" to "muslo",
+        "turkey" to "pavo", "steak" to "bistec", "bacon" to "tocino", "ham" to "jamon",
+        "lamb" to "cordero", "tuna" to "atun", "oatmeal" to "avena", "cereal" to "cereal",
+        "jam" to "mermelada", "spinach" to "espinaca",
         // Culinary jargon
         "al dente" to "al dente",
         "golden" to "dorado", "crispy" to "crocante", "juicy" to "jugoso",
@@ -191,6 +205,11 @@ object TextNormalizer {
     private val SPACES_PATTERN = Regex("\\s+")
     private val MULTISPACE_PATTERN = Regex("\\s{2,}")
 
+    private val PLURAL_WORD_PATTERN = Regex(
+        """(?<![a-záéíóúñü])[a-záéíóúñü]+(?:es|s)\b""",
+        RegexOption.IGNORE_CASE,
+    )
+
     private val TYPO_REGEX_LIST: List<Pair<Regex, String>> by lazy {
         TYPO_MAP.map { (typo, correction) ->
             Regex("""\b${Regex.escape(typo)}\b""", RegexOption.IGNORE_CASE) to correction
@@ -203,9 +222,116 @@ object TextNormalizer {
         }
     }
 
+    // ─── Estructura EN → ES (solo con ≥2 señales de inglés) ─────────────────
+
+    /** Frases de medida primero (más específicas), luego conectores. */
+    private val EN_STRUCTURE_REPLACEMENTS: List<Pair<Regex, String>> = listOf(
+        Regex("""\bhalf\s+a\s+cup\s+of\b""", RegexOption.IGNORE_CASE) to "media taza de",
+        Regex("""\bhalf\s+an?\b""", RegexOption.IGNORE_CASE) to "media",
+        Regex("""\bquarter\s+of\s+an?\b""", RegexOption.IGNORE_CASE) to "cuarto de",
+        Regex("""\ba\s+cup\s+of\b""", RegexOption.IGNORE_CASE) to "una taza de",
+        Regex("""\ba\s+glass\s+of\b""", RegexOption.IGNORE_CASE) to "un vaso de",
+        Regex("""\ba\s+tablespoon\s+of\b""", RegexOption.IGNORE_CASE) to "una cucharada de",
+        Regex("""\btablespoons?\s+of\b""", RegexOption.IGNORE_CASE) to "cucharadas de",
+        Regex("""\ba\s+teaspoon\s+of\b""", RegexOption.IGNORE_CASE) to "una cucharadita de",
+        Regex("""\bteaspoons?\s+of\b""", RegexOption.IGNORE_CASE) to "cucharaditas de",
+        Regex("""\ba\s+handful\s+of\b""", RegexOption.IGNORE_CASE) to "un puñado de",
+        Regex("""\ba\s+slice\s+of\b""", RegexOption.IGNORE_CASE) to "una rebanada de",
+        Regex("""\bslices\s+of\b""", RegexOption.IGNORE_CASE) to "rebanadas de",
+        Regex("""\ba\s+bowl\s+of\b""", RegexOption.IGNORE_CASE) to "un bol de",
+        Regex("""\ba\s+can\s+of\b""", RegexOption.IGNORE_CASE) to "una lata de",
+        Regex("""\ba\s+scoop\s+of\b""", RegexOption.IGNORE_CASE) to "un scoop de",
+        Regex("""\bgrams?\s+of\b|\bgr\s+of\b""", RegexOption.IGNORE_CASE) to "g de",
+        Regex("""\bml\s+of\b""", RegexOption.IGNORE_CASE) to "ml de",
+        Regex("""\bkg\s+of\b""", RegexOption.IGNORE_CASE) to "kg de",
+        Regex("""\band\b""", RegexOption.IGNORE_CASE) to "y",
+        Regex("""\bwith\b""", RegexOption.IGNORE_CASE) to "con",
+        Regex("""\bplus\b""", RegexOption.IGNORE_CASE) to "+",
+        Regex("""\bwithout\b""", RegexOption.IGNORE_CASE) to "sin",
+        Regex("""\bno\b""", RegexOption.IGNORE_CASE) to "sin",
+        Regex("""\bof\b""", RegexOption.IGNORE_CASE) to "de",
+        Regex("""\ba\b""", RegexOption.IGNORE_CASE) to "un",
+        Regex("""\ban\b""", RegexOption.IGNORE_CASE) to "un",
+    )
+
+    private val EN_NUMBER_WORDS = mapOf(
+        "one" to "1", "two" to "2", "three" to "3", "four" to "4", "five" to "5",
+        "six" to "6", "seven" to "7", "eight" to "8", "nine" to "9", "ten" to "10",
+        "eleven" to "11", "twelve" to "12", "thirteen" to "13", "fourteen" to "14",
+        "fifteen" to "15", "sixteen" to "16", "seventeen" to "17", "eighteen" to "18",
+        "nineteen" to "19", "twenty" to "20", "thirty" to "30",
+    )
+
+    private val EN_NUMBER_WORD_REGEX_LIST: List<Pair<Regex, String>> by lazy {
+        EN_NUMBER_WORDS.map { (word, num) ->
+            Regex("""\b${Regex.escape(word)}\b""", RegexOption.IGNORE_CASE) to num
+        }
+    }
+
+    /** Palabras señal de inglés — un texto con ≥2 de ellas se traduce estructuralmente. */
+    private val EN_SIGNAL_WORDS: Set<String> = buildSet {
+        addAll(EN_ES_MAP.keys)
+        addAll(
+            listOf(
+                "and", "with", "plus", "without", "no", "of", "a", "an", "half", "quarter",
+                "cup", "glass", "tablespoon", "teaspoon", "handful", "slice", "bowl",
+                "can", "scoop", "grams", "gram", "gr", "ml", "kg", "breast", "thigh",
+                "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+                "ten", "eleven", "twelve", "fifteen", "twenty",
+            ),
+        )
+    }
+
+    private fun isLikelyEnglish(text: String): Boolean {
+        val tokens = text.lowercase().split(SPACES_PATTERN)
+        var hits = 0
+        for (token in tokens) {
+            if (token in EN_SIGNAL_WORDS) {
+                hits++
+                if (hits >= 2) return true
+            }
+        }
+        return false
+    }
+
+    private fun applyEnglishStructure(text: String): String {
+        var result = text
+        for ((regex, replacement) in EN_STRUCTURE_REPLACEMENTS) {
+            result = regex.replace(result) { " $replacement " }
+        }
+        return result.replace(MULTISPACE_PATTERN, " ").trim()
+    }
+
+    private fun applyEnglishNumberWords(text: String): String {
+        var result = text
+        for ((regex, num) in EN_NUMBER_WORD_REGEX_LIST) {
+            result = regex.replace(result, num)
+        }
+        return result
+    }
+
+    // Sustantivos de referencia/medida que exigen el literal "un/una" para que
+    // REFERENCE_PATTERNS y SubjectivePortionEngine los reconozcan (B1 + F1.1):
+    // convertir "un poco" → "1 poco" rompe "un poco de aceite"; "una marraqueta"
+    // tampoco matchearía los patrones del motor con "1 marraqueta".
+    // OJO: debe ser UNA sola línea — los saltos de línea en raw strings son literales.
+    private val NUMBER_WORD_EXCLUDE_NEXT = Regex(
+        """\s+(?:poc[oa]|poquit\w*|pizca\w*|chorrit\w*|par|mont[oó]n\w*|tantico|chin\b|pel[ií]n\b|miaja\w*|gotit\w*|gota\w*|hilito|hilo\b|velo\b|chorret[oó]n\w*|chorro\w*|cul[ií]n\w*|culillo|fondo\w*|capit\w*|capa\w*|raci[oó]n\w*|cerro\w*|barbaridad\w*|bestialidad\w*|exageraci[oó]n\w*|disparate\w*|porr[oó]n\w*|cuchar[oó]n\w*|tacit\w*|pocill\w*|taz[oó]n\w*|fuente\w*|vaso\w*|copa\w*|caballit\w*|dedal\w*|plato\w*|bol(?:es)?\b|bowl\w*|botell\w*|bot[ée]\b|frasco\w*|caja\w*|bolsa\w*|paquet\w*|sobre\b|marraquet\w*|hallull\w*|empanad\w*|gallet\w*|tortill\w*|boll\w*|tamal\w*|pastel\w*|bizcoch\w*|panecill\w*|mollet\w*|arep\w*|rebanad\w*|hogaza\w*|puñad\w*|pu[ñn]o\w*|rodaja\w*|tajad\w*|trozo\w*|pedaz\w*|lonch\w*|l[aá]mina\w*|tira\w*|gajo\w*|raja\w*|cu[ñn]a\w*|esquina\w*|punta\w*|tri[aá]ngulo\w*|dado\b|cubito\w*|pastilla\w*|tableta\w*|barra\w*|onza\w*|nuez\b|avellana\w*|aceituna\w*|garbanzo\w*|grano\w*|hoja\w*|ram[ao]\w*|ramillet\w*|tallo\w*|cabeza\w*|diente\w*|cogollo\w*|vara\w*|astilla\w*|pellizc\w*|dedo\w*|palma\w*|nudillo\w*|scoop\w*|medida\w*)\b""",
+        RegexOption.IGNORE_CASE,
+    )
+
     private val NUMBER_WORD_REGEX_LIST: List<Triple<String, Regex, String>> by lazy {
         NUMBER_WORDS.map { (word, num) ->
-            Triple(word, Regex("""\b${Regex.escape(word)}\b""", RegexOption.IGNORE_CASE), num.toString())
+            val exclusion = if (word == "un" || word == "una" || word == "uno") {
+                """(?!${NUMBER_WORD_EXCLUDE_NEXT.pattern})"""
+            } else {
+                ""
+            }
+            Triple(
+                word,
+                Regex("""\b${Regex.escape(word)}\b$exclusion""", RegexOption.IGNORE_CASE),
+                num.toString(),
+            )
         }
     }
 
@@ -222,8 +348,9 @@ object TextNormalizer {
         // 2. Strip repeated punctuation
         text = REPEATED_PUNCT.replace(text, "")
 
-        // 3. Collapse repeated vowels (polloooo → pollo)
-        text = REPEATED_VOWELS.replace(text) { it.groupValues[1] }
+        // 3. Collapse 3+ repeated vowels (voice noise: "eeeeehhh" → "ehhh",
+        //    "polloooo" → "pollo"). NO toca "coffee" (solo 2 vocales).
+        text = REPEATED_VOWELS_3_PLUS.replace(text) { it.groupValues[1] }
 
         // 4. Strip voice fillers
         text = FILLER_PATTERN.replace(text, "")
@@ -231,15 +358,27 @@ object TextNormalizer {
         // 5. Strip quantity hedges (keep the number that follows)
         text = HEDGE_PATTERN.replace(text, "")
 
-        // 6. Apply shorthand replacements
+        // 5. Apply shorthand replacements
         text = applyShorthand(text)
 
-        // 7. Apply common typos
+        // 6. Apply common typos
         text = applyTypos(text)
         text = REPEATED_LETTERS_3_PLUS.replace(text) { it.groupValues[1] }
 
-        // 8. Map English food words to Spanish
+        // 7. Map English → Spanish.
+        //    7a. Estructural: conectores, medidas y negación (solo si hay ≥2 señales EN,
+        //        para no romper español: "no" español ≠ "no" inglés).
+        //    7b. Número-palabras EN ("two eggs" → "2 eggs").
+        //    7c. Vocabulario de alimentos (mapa existente).
+        if (isLikelyEnglish(text)) {
+            text = applyEnglishStructure(text)
+            text = applyEnglishNumberWords(text)
+        }
         text = applyEnglishMapping(text)
+
+        // 8. Collapse repeated vowels (polloooo → pollo). Va DESPUÉS del mapeo EN:
+        //    "coffee" tiene "ee" legítimo que el colapso destruiría antes de traducirse.
+        text = REPEATED_VOWELS.replace(text) { it.groupValues[1] }
 
         // 9. Expand fractional patterns
         text = expandFractions(text)
@@ -261,19 +400,7 @@ object TextNormalizer {
         var normalized = name.trim().lowercase()
             .replace(SPACES_PATTERN, " ")
 
-        // Diminutivos: -ito/-ita/-illo/-illa/-cito/-cita/-ecito/-ecita
-        // Handle vowel elision: "pollito" → "pollo", "panecito" → "pan"
-        val diminutiveSuffixes = listOf("ecito", "ecita", "cito", "cita", "illo", "illa", "ito", "ita")
-        for (suffix in diminutiveSuffixes) {
-            if (normalized.endsWith(suffix) && normalized.length > suffix.length + 2) {
-                val root = normalized.dropLast(suffix.length)
-                if (root.length >= 3) {
-                    val candidates = listOf(root, root + "o", root + "a", root + "e")
-                    normalized = candidates.firstOrNull { it in COMMON_FOOD_ROOTS } ?: root
-                    break
-                }
-            }
-        }
+        normalized = canonicalizeDiminutives(normalized)
 
         // Aumentativos: -azo/-aza/-ote/-ota (only if root exists in common foods)
         val augmentativeSuffixes = listOf("azo", "aza", "ote", "ota")
@@ -291,6 +418,35 @@ object TextNormalizer {
         }
 
         return normalized
+    }
+
+    /**
+     * Reduce diminutivos (-ito/-ita/-illo/-illa/-cito/-cita/-ecito/-ecita) solo cuando la
+     * raíz (o raíz + o/a/e) existe en COMMON_FOOD_ROOTS. Evita falsos positivos como
+     * "mantequilla" → "mantequ", que el regex ciego rompe. Opera palabra a palabra
+     * ("huevitos revueltos" → "huevos revueltos") y tolera plurales ("huevitos" → "huevo").
+     */
+    fun canonicalizeDiminutives(name: String): String {
+        val diminutiveSuffixes = listOf("ecito", "ecita", "cito", "cita", "illo", "illa", "ito", "ita")
+
+        fun tryWord(word: String): String {
+            val attempts = if (word.endsWith("s")) listOf(word, word.dropLast(1)) else listOf(word)
+            for (w in attempts) {
+                for (suffix in diminutiveSuffixes) {
+                    if (w.endsWith(suffix) && w.length > suffix.length + 2) {
+                        val root = w.dropLast(suffix.length)
+                        if (root.length >= 3) {
+                            val candidates = listOf(root, root + "o", root + "a", root + "e")
+                            val validated = candidates.firstOrNull { it in COMMON_FOOD_ROOTS }
+                            if (validated != null) return validated
+                        }
+                    }
+                }
+            }
+            return word
+        }
+
+        return name.split(' ').joinToString(" ") { tryWord(it) }
     }
 
     // ─── Internal ──────────────────────────────────────────────────────────
@@ -331,6 +487,14 @@ object TextNormalizer {
         var result = text
         for ((regex, correction) in TYPO_REGEX_LIST) {
             result = result.replace(regex, correction)
+        }
+        // Typos flexionados: "uebos" no matchea \buebo\b, así que se intenta con el
+        // lema sin sufijo plural ("uebo" → "huevo" → "huevos").
+        result = PLURAL_WORD_PATTERN.replace(result) { match ->
+            val word = match.value.lowercase()
+            val stem = if (word.endsWith("es")) word.dropLast(2) else word.dropLast(1)
+            val corrected = TYPO_MAP[stem] ?: return@replace match.value
+            corrected + if (word.endsWith("es")) "es" else "s"
         }
         return result
     }
