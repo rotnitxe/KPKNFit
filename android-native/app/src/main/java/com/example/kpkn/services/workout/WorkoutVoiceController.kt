@@ -2,6 +2,11 @@ package com.example.kpkn.services.workout
 
 import android.content.Context
 import android.os.SystemClock
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
+import com.example.kpkn.services.diagnostics.KpknReportManager
+import com.example.kpkn.services.diagnostics.ReportEnrichmentScheduler
+import com.example.kpkn.services.diagnostics.ReportOrigin
+import com.example.kpkn.services.diagnostics.ReportRequest
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
@@ -87,6 +92,20 @@ class WorkoutVoiceController(
     var exerciseInfoProvider: (() -> ExerciseInfo?)? = null
     var verbosityProvider: (() -> com.example.kpkn.data.models.VoiceVerbosity)? = null
     var noiseProfileProvider: (() -> com.example.kpkn.data.models.VoiceNoiseProfile)? = null
+    private enum class ReportPhase {
+        IDLE,
+        PROMPTING,
+        CAPTURING,
+        AWAITING_CONFIRMATION,
+        FINISHING,
+    }
+
+    private var reportPhase = ReportPhase.IDLE
+    private var pendingReportDescription: String? = null
+    private var reportRetries = 0
+    private var reportResumeState: VoiceSessionState? = null
+    private var reportCaptureTimeoutJob: Job? = null
+
     var hapticEnabledProvider: (() -> Boolean)? = null
     var structuralPersistenceOptionsProvider: (() -> Set<ReplacementPersistenceScopeV2>)? = null
     var structuralPersistencePromptProvider: (() -> String)? = null
@@ -897,6 +916,10 @@ class WorkoutVoiceController(
         if (!isPushToTalkMode()) {
             idleMonitorJob = null
             return
+                if (reportPhase == ReportPhase.CAPTURING) {
+                    retryReportCapture(error.take(MAX_REPORT_ERROR_LENGTH))
+                    return@collect
+                }
         }
         idleMonitorJob = scope.launch {
             while (isActive) {
@@ -968,6 +991,10 @@ class WorkoutVoiceController(
             if (!WorkoutVoiceSessionGate.shouldProcessCommand(current.stage)) return@launch
             voskAggregationJob?.cancel()
             voskAccumulator.clear()
+        if (reportPhase == ReportPhase.CAPTURING) {
+            handleReportDescription(best.text)
+            return
+        }
             lastHypothesisConfidence = 0f
             lastHypothesisConfidenceKnown = false
             WorkoutVoiceDiagnosticLogger.event("asr_partial_fallback", mapOf("transcript" to candidate, "stage" to current.stage.name))
@@ -1061,6 +1088,24 @@ class WorkoutVoiceController(
             return
         }
 
+        val earlySanitized = text.replace("[unk]", " ").replace(Regex("\\s+"), " ").trim()
+        val earlyStage = _state.value.stage
+        if (
+            sessionWanted &&
+            reportPhase == ReportPhase.IDLE &&
+            earlyStage != VoicePipelineStage.DISABLED &&
+            earlyStage != VoicePipelineStage.TTS_SPEAKING &&
+            earlyStage != VoicePipelineStage.MIC_BUSY &&
+            earlyStage != VoicePipelineStage.FAILED &&
+            isReportCommand(earlySanitized)
+        ) {
+            WorkoutVoiceDiagnosticLogger.event(
+                "report_voice_command_detected",
+                mapOf("stage" to earlyStage.name),
+            )
+            beginReportFlow()
+            return
+        }
         if (s.stage == VoicePipelineStage.CONFIRM_WAIT) {
             handleConfirmInput(sanitized)
             return
@@ -1096,6 +1141,15 @@ class WorkoutVoiceController(
 
         if (exerciseInfo?.showPostExerciseSheet == true) {
             val feedbackCmd = WorkoutVoiceCommandParser.parseFeedbackCommand(transcript)
+        if (reportPhase == ReportPhase.CAPTURING) {
+            handleReportDescription(sanitized)
+            return
+        }
+        if (reportPhase == ReportPhase.AWAITING_CONFIRMATION) {
+            handleReportConfirmation(sanitized)
+            return
+        }
+        if (reportPhase != ReportPhase.IDLE) return
             _state.update { it.copy(lastCommand = feedbackCmd) }
             onCommandDetected?.invoke(feedbackCmd)
             releaseDucking()
@@ -2024,6 +2078,308 @@ class WorkoutVoiceController(
         try {
             val vibrator = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
                 val mgr = context.getSystemService(android.os.VibratorManager::class.java)
+    private fun isReportCommand(text: String): Boolean =
+        normalizeReportText(text).contains(REPORT_COMMAND)
+
+    private fun normalizeReportText(text: String): String =
+        Normalizer.normalize(text.lowercase(Locale.ROOT), Normalizer.Form.NFD)
+            .replace(Regex("\\p{Mn}+"), "")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+
+    private fun beginReportFlow() {
+        if (!sessionWanted || reportPhase != ReportPhase.IDLE) return
+        reportResumeState = _state.value
+        pendingReportDescription = null
+        reportRetries = 0
+        reportPhase = ReportPhase.PROMPTING
+        confirmedOrCancelled = false
+        confirmationJob?.cancel()
+        WorkoutVoiceDiagnosticLogger.event(
+            "report_voice_started",
+            mapOf("stage" to _state.value.stage.name, "maxRetries" to MAX_REPORT_RETRIES),
+        )
+        updateStage(VoicePipelineStage.PROCESSING)
+        requestDucking()
+        val activeScope = scope
+        if (activeScope == null) {
+            finishReportFlow("No pude iniciar el reporte.")
+            return
+        }
+        activeScope.launch {
+            val paused = continuousEngine.pauseAndAwait(releaseMic = true)
+            if (!paused) {
+                finishReportFlow("No pude reservar el micrófono para el reporte.")
+                return@launch
+            }
+            promptReportDescription()
+        }
+    }
+
+    private fun promptReportDescription() {
+        if (reportPhase != ReportPhase.PROMPTING) return
+        runSpeakingOrSkip(
+            priority = WorkoutSpeechPriority.HIGH,
+            onComplete = {
+                if (reportPhase == ReportPhase.PROMPTING) {
+                    releaseDucking()
+                    reportPhase = ReportPhase.CAPTURING
+                    updateStage(VoicePipelineStage.LISTENING)
+                    continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.LISTENING)
+                    val requested = continuousEngine.requestNativeFallbackForUnresolved(REPORT_CAPTURE_REQUEST)
+                    if (requested) {
+                        reportCaptureTimeoutJob?.cancel()
+                        reportCaptureTimeoutJob = scope?.launch {
+                            delay(REPORT_CAPTURE_TIMEOUT_MS + 2_000L)
+                            if (reportPhase == ReportPhase.CAPTURING) {
+                                retryReportCapture("No capté el problema.")
+                            }
+                        }
+                    } else {
+                        retryReportCapture("No pude iniciar la captura local.")
+                    }
+                }
+            },
+            speak = {
+                ttsManager.speakError("¿Qué problema querés reportar? Explicalo libremente durante unos segundos.")
+            },
+        )
+    }
+
+    private fun handleReportDescription(text: String) {
+        if (reportPhase != ReportPhase.CAPTURING) return
+        reportCaptureTimeoutJob?.cancel()
+        reportCaptureTimeoutJob = null
+        val description = text
+            .replace("[unk]", " ")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+            .take(MAX_REPORT_COMMENT_LENGTH)
+        if (description.isBlank() || isNoiseTranscript(description)) {
+            retryReportCapture("No capté una explicación.")
+            return
+        }
+        pendingReportDescription = description
+        reportPhase = ReportPhase.AWAITING_CONFIRMATION
+        WorkoutVoiceDiagnosticLogger.event(
+            "report_voice_description_captured",
+            mapOf("length" to description.length, "retryCount" to reportRetries),
+        )
+        updateStage(VoicePipelineStage.CONFIRM_WAIT)
+        continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
+        runSpeakingOrSkip(
+            priority = WorkoutSpeechPriority.HIGH,
+            onComplete = {
+                if (reportPhase == ReportPhase.AWAITING_CONFIRMATION) {
+                    updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                    continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
+                    scope?.let(::startEngineForCurrentInputMode)
+                }
+            },
+            speak = {
+                ttsManager.speakError(
+                    "Entendí: " + description.take(MAX_REPORT_TTS_LENGTH) +
+                        ". Di enviar reporte, repetir o cancelar.",
+                )
+            },
+        )
+    }
+
+    private fun handleReportConfirmation(text: String) {
+        if (reportPhase != ReportPhase.AWAITING_CONFIRMATION) return
+        val normalized = normalizeReportText(text)
+        when {
+            normalized.contains("enviar reporte") ||
+                normalized.contains("confirmar reporte") ||
+                normalized.contains("enviar") ||
+                normalized == "si" ||
+                normalized == "confirmar" -> saveVoiceReport()
+
+            normalized.contains("repetir") ||
+                normalized.contains("repite") ||
+                normalized.contains("otra vez") -> retryReportCapture("Repetí la explicación del problema.")
+
+            normalized == "no" ||
+                normalized.contains("cancelar") ||
+                normalized.contains("descartar") -> finishReportFlow("Reporte cancelado.")
+
+            else -> runSpeakingOrSkip(
+                priority = WorkoutSpeechPriority.HIGH,
+                onComplete = {
+                    if (reportPhase == ReportPhase.AWAITING_CONFIRMATION) {
+                        updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                        continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
+                        scope?.let(::startEngineForCurrentInputMode)
+                    }
+                },
+                speak = { ttsManager.speakError("Di enviar reporte, repetir o cancelar.") },
+            )
+        }
+    }
+
+    private fun retryReportCapture(reason: String) {
+        if (
+            reportPhase != ReportPhase.CAPTURING &&
+            reportPhase != ReportPhase.AWAITING_CONFIRMATION
+        ) return
+        reportCaptureTimeoutJob?.cancel()
+        reportCaptureTimeoutJob = null
+        if (reportRetries >= MAX_REPORT_RETRIES) {
+            finishReportFlow("No pude captar el problema. El reporte no se guardó.")
+            return
+        }
+        reportRetries += 1
+        pendingReportDescription = null
+        reportPhase = ReportPhase.PROMPTING
+        continuousEngine.pause()
+        requestDucking()
+        runSpeakingOrSkip(
+            priority = WorkoutSpeechPriority.HIGH,
+            onComplete = { promptReportDescription() },
+            speak = { ttsManager.speakError(reason + " Repetí la explicación.") },
+        )
+    }
+
+    private fun saveVoiceReport() {
+        val description = pendingReportDescription
+            ?.trim()
+            ?.takeIf(String::isNotBlank)
+            ?: run {
+                finishReportFlow("No hay una explicación para guardar.")
+                return
+            }
+        reportCaptureTimeoutJob?.cancel()
+        reportCaptureTimeoutJob = null
+        confirmationJob?.cancel()
+        reportPhase = ReportPhase.FINISHING
+        updateStage(VoicePipelineStage.PROCESSING)
+        continuousEngine.pause()
+        requestDucking()
+        val activeScope = scope
+        if (activeScope == null) {
+            finishReportFlow("No pude guardar el reporte.")
+            return
+        }
+        activeScope.launch {
+            val created = withContext(Dispatchers.IO) {
+                runCatching {
+                    KpknReportManager.create(
+                        context = context,
+                        request = ReportRequest(
+                            origin = ReportOrigin.VOICE,
+                            comment = description,
+                            category = "voz",
+                            screen = KpknDiagnosticLogger.currentScreen(),
+                        ),
+                    )
+                }
+            }
+            val report = created.getOrNull()
+            if (report != null) {
+                ReportEnrichmentScheduler.enqueue(context, report.reportId)
+                WorkoutVoiceDiagnosticLogger.event(
+                    "report_voice_saved",
+                    mapOf("reportId" to report.reportId, "aiQueued" to true),
+                )
+                runSpeakingOrSkip(
+                    priority = WorkoutSpeechPriority.HIGH,
+                    onComplete = { restoreAfterReport() },
+                    speak = {
+                        ttsManager.speakError(
+                            "Reporte guardado localmente. Quedó pendiente de análisis.",
+                        )
+                    },
+                )
+            } else {
+                val error = created.exceptionOrNull()
+                if (error != null) {
+                    WorkoutVoiceDiagnosticLogger.exception("report_voice_save_failed", error)
+                }
+                finishReportFlow("No pude guardar el reporte localmente.")
+            }
+        }
+    }
+
+    private fun finishReportFlow(message: String) {
+        if (reportPhase == ReportPhase.IDLE) return
+        reportCaptureTimeoutJob?.cancel()
+        reportCaptureTimeoutJob = null
+        reportPhase = ReportPhase.FINISHING
+        continuousEngine.pause()
+        requestDucking()
+        runSpeakingOrSkip(
+            priority = WorkoutSpeechPriority.HIGH,
+            onComplete = { restoreAfterReport() },
+            speak = { ttsManager.speakError(message) },
+        )
+    }
+
+    private fun restoreAfterReport() {
+        val snapshot = reportResumeState
+        reportPhase = ReportPhase.IDLE
+        pendingReportDescription = null
+        reportRetries = 0
+        reportResumeState = null
+        reportCaptureTimeoutJob?.cancel()
+        reportCaptureTimeoutJob = null
+        releaseDucking()
+        if (!sessionWanted) return
+        if (snapshot == null) {
+            resumeListening()
+            return
+        }
+        confirmedOrCancelled = false
+        confirmationReprompted = false
+        confirmationJob?.cancel()
+        val restoreStage = when (snapshot.stage) {
+            VoicePipelineStage.CONFIRM_WAIT -> VoicePipelineStage.CONFIRM_WAIT
+            VoicePipelineStage.ARMED -> VoicePipelineStage.ARMED
+            else -> VoicePipelineStage.LISTENING
+        }
+        _state.value = snapshot.copy(
+            stage = restoreStage,
+            partialText = "",
+            duckHandle = null,
+            errorMessage = null,
+        )
+        captureEpoch += 1
+        WorkoutVoiceDiagnosticLogger.event(
+            "report_voice_restored",
+            mapOf(
+                "stage" to restoreStage.name,
+                "pendingConfirmation" to (restoreStage == VoicePipelineStage.CONFIRM_WAIT),
+            ),
+        )
+        continuousEngine.updateCommandContext(currentVoiceContext(), restoreStage)
+        val activeScope = scope ?: return
+        when (restoreStage) {
+            VoicePipelineStage.CONFIRM_WAIT -> runSpeakingOrSkip(
+                priority = WorkoutSpeechPriority.HIGH,
+                onComplete = {
+                    updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                    continuousEngine.updateCommandContext(currentVoiceContext(), VoicePipelineStage.CONFIRM_WAIT)
+                    startEngineForCurrentInputMode(activeScope)
+                    if (snapshot.pendingAddSetPersistence) {
+                        startAddSetPersistenceTimeout()
+                    } else {
+                        snapshot.lastInterpretation?.let { interpretation ->
+                            startConfirmationTimeout(interpretation, ++confirmationToken)
+                        }
+                    }
+                },
+                speak = {
+                    ttsManager.speakError("Retomando la confirmación pendiente. Di sí o no.")
+                },
+            )
+
+            VoicePipelineStage.ARMED -> {
+                continuousEngine.pause()
+                updateStage(VoicePipelineStage.ARMED)
+            }
+
+            else -> resumeListening()
+        }
+    }
                 mgr?.defaultVibrator
             } else {
                 @Suppress("DEPRECATION")
@@ -2032,6 +2388,11 @@ class WorkoutVoiceController(
             val ms = when (stage) {
                 VoicePipelineStage.LISTENING -> 18L
                 VoicePipelineStage.CONFIRM_WAIT -> 30L
+        if (reportPhase == ReportPhase.AWAITING_CONFIRMATION) {
+            handleReportConfirmation(text)
+            return
+        }
+        if (reportPhase != ReportPhase.IDLE) return
                 VoicePipelineStage.ERROR_RECOVERY -> 50L
                 else -> return
             }
@@ -2144,3 +2505,17 @@ class WorkoutVoiceController(
         const val REASK_CONFIDENCE_THRESHOLD = 0.35f
     }
 }
+        reportCaptureTimeoutJob?.cancel()
+        reportCaptureTimeoutJob = null
+        reportPhase = ReportPhase.IDLE
+        pendingReportDescription = null
+        reportRetries = 0
+        reportResumeState = null
+        /** Intentos fallidos de respuesta a una clarificación guiada antes de cancelar. */
+        const val MAX_CLARIFICATION_MISSES = 2
+        const val REPORT_COMMAND = "reportar equipo"
+        const val MAX_REPORT_RETRIES = 2
+        const val MAX_REPORT_COMMENT_LENGTH = 8_000
+        const val MAX_REPORT_TTS_LENGTH = 240
+        const val MAX_REPORT_ERROR_LENGTH = 120
+        const val REPORT_CAPTURE_TIMEOUT_MS = 15_000L

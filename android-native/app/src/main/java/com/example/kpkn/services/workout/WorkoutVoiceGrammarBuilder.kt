@@ -10,6 +10,8 @@ package com.example.kpkn.services.workout
 object WorkoutVoiceGrammarBuilder {
     fun build(stage: VoicePipelineStage, context: VoiceCommandContext?): String {
         val tokens = linkedSetOf<String>()
+        // Reportes globales deben sobrevivir a las gramáticas específicas de cada etapa.
+        tokens += "reportar equipo"
         WorkoutVoiceCommandParser.grammarTokensForStage(
             stage = stage,
             includeFeedback =

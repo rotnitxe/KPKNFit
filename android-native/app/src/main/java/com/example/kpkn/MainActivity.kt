@@ -8,6 +8,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Build
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -60,6 +63,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
+import com.example.kpkn.services.diagnostics.KpknReportManager
+import com.example.kpkn.services.diagnostics.ReportEnrichmentScheduler
+import com.example.kpkn.services.diagnostics.ReportGestureDetector
+import com.example.kpkn.screens.reports.ReportDialog
+import com.example.kpkn.screens.reports.ReportRequestBus
 import com.example.kpkn.navigation.DeepLinkRouter
 import com.example.kpkn.navigation.KpknRoute
 import com.example.kpkn.navigation.addHealthConnectRoute
@@ -113,6 +122,7 @@ import com.example.kpkn.ui.theme.KPKNTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.withContext
 import com.example.kpkn.ui.components.KpknAlertDialog
 
 private enum class NutritionContextTab {
@@ -124,6 +134,37 @@ class MainActivity : ComponentActivity() {
     private val pendingDeepLinkRoute = mutableStateOf<String?>(null)
     private val pendingSharedNutritionText = mutableStateOf<String?>(null)
     private lateinit var telemetryHelper: TelemetryHelper
+
+    private val reportGestureDetector: ReportGestureDetector by lazy {
+        ReportGestureDetector.from(
+            view = window.decorView,
+            onCancel = ::dispatchSyntheticCancel,
+            onConfirmed = {
+                window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                KpknDiagnosticLogger.event("app", "report_gesture_confirmed")
+            },
+            onReleased = {
+                ReportRequestBus.requestGesture(KpknDiagnosticLogger.currentScreen())
+                KpknDiagnosticLogger.event("reports", "report_gesture_released")
+            },
+        )
+    }
+    private var dispatchingSyntheticCancel = false
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (dispatchingSyntheticCancel) return super.dispatchTouchEvent(event)
+        val consumed = reportGestureDetector.onTouchEvent(event)
+        return if (consumed) true else super.dispatchTouchEvent(event)
+    }
+
+    private fun dispatchSyntheticCancel(event: MotionEvent) {
+        dispatchingSyntheticCancel = true
+        try {
+            super.dispatchTouchEvent(event)
+        } finally {
+            dispatchingSyntheticCancel = false
+        }
+    }
 
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(LocaleManager.wrapContext(newBase))
@@ -257,6 +298,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onStop() {
+        reportGestureDetector.cancel()
+        KpknDiagnosticLogger.event("app", "activity_stop")
         super.onStop()
         telemetryHelper.logAppBackground()
         // Flush pending writes without blocking the main thread during background transition.
@@ -349,6 +392,7 @@ fun KPKNApp(
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStack?.destination?.route
     val previousRoute = remember { mutableStateOf<String?>(null) }
+    val pendingReport by ReportRequestBus.pending.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
     var showPermissionAlert by remember { mutableStateOf(false) }
@@ -377,6 +421,8 @@ fun KPKNApp(
     
     // Log navigation when route changes
     LaunchedEffect(currentRoute) {
+        KpknDiagnosticLogger.setCurrentScreen(currentRoute)
+        KpknDiagnosticLogger.event("app", "screen_visible", mapOf("route" to (currentRoute ?: "unknown")))
         if (currentRoute != previousRoute.value) {
             telemetryHelper.logNavigation(
                 from = previousRoute.value ?: "unknown",
@@ -839,6 +885,37 @@ fun KPKNApp(
                 KpknOverlayHostContent(overlayHost)
             }
         }
+    }
+
+    if (pendingReport != null) {
+        val reportRequest = pendingReport
+        val reportScope = rememberCoroutineScope()
+        ReportDialog(
+            request = reportRequest!!,
+            onDismiss = { ReportRequestBus.consume() },
+            onSave = { request ->
+                reportScope.launch {
+                    val result = withContext(Dispatchers.IO) {
+                        runCatching { KpknReportManager.create(context, request) }
+                    }
+                    result.onSuccess { created ->
+                        ReportEnrichmentScheduler.enqueue(context, created.reportId)
+                        ReportRequestBus.consume()
+                        Toast.makeText(
+                            context,
+                            "Reporte guardado. DeepSeek V4 Flash lo analizará en segundo plano.",
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }.onFailure {
+                        Toast.makeText(
+                            context,
+                            "No pude guardar el reporte localmente. Intentá de nuevo.",
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                }
+            },
+        )
     }
 
     if (showPermissionAlert) {

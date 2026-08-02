@@ -37,7 +37,9 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.findFoodExactByNormalized
-import com.example.kpkn.data.remote.ExternalAiService
+import com.example.kpkn.data.remote.DeepSeekV4FlashClient
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
+import com.example.kpkn.data.secure.DeepSeekCredentialStore
 import com.example.kpkn.data.remote.AiNutritionRequest
 import com.example.kpkn.domain.nutrition.SmartFoodResolver
 import com.example.kpkn.domain.nutrition.CookingStateResolver
@@ -262,7 +264,6 @@ fun FoodLoggerDrawer(
     // Modo de análisis: siempre determinístico con API externa opcional
     var showApiKey by remember { mutableStateOf(false) }
     var showApiConfigDialog by remember { mutableStateOf(false) }
-    var apiDraftProvider by remember { mutableStateOf(ApiProvider.GEMINI) }
     var apiDraftKey by remember { mutableStateOf("") }
     var apiDraftFallback by remember { mutableStateOf(true) }
     val listState = rememberLazyListState()
@@ -300,28 +301,8 @@ fun FoodLoggerDrawer(
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
-    fun providerLabel(provider: ApiProvider): String = when (provider) {
-        ApiProvider.GEMINI -> "Gemini 2 Flash Lite"
-        ApiProvider.DEEPSEEK -> "DeepSeek"
-        ApiProvider.GPT -> "GPT-4o Mini"
-    }
-
-    fun selectedApiKey(currentSettings: Settings, provider: ApiProvider): String {
-        return when (provider) {
-            ApiProvider.GEMINI -> currentSettings.apiKeys.gemini.orEmpty()
-            ApiProvider.DEEPSEEK -> currentSettings.apiKeys.deepseek.orEmpty()
-            ApiProvider.GPT -> currentSettings.apiKeys.gpt.orEmpty()
-        }
-    }
-
     fun openApiConfigDialog() {
-        val provider = when (settings.apiProvider) {
-            ApiProvider.GPT -> ApiProvider.GPT
-            ApiProvider.DEEPSEEK -> ApiProvider.DEEPSEEK
-            ApiProvider.GEMINI -> ApiProvider.GEMINI
-        }
-        apiDraftProvider = provider
-        apiDraftKey = selectedApiKey(settings, provider)
+        apiDraftKey = DeepSeekCredentialStore.read(context).orEmpty()
         apiDraftFallback = settings.aiFallbackEnabled
         showApiKey = false
         showApiConfigDialog = true
@@ -437,6 +418,14 @@ fun FoodLoggerDrawer(
         analysisStage = if (settings.useApiForDescriptions) ParseStage.ESTIMATING else ParseStage.INTERPRETING
         analysisStartedAtMs = System.currentTimeMillis()
         analysisElapsedMs = 0L
+        KpknDiagnosticLogger.event(
+            namespace = "nutrition",
+            name = "analysis_started",
+            fields = mapOf(
+                "usesDeepSeek" to settings.useApiForDescriptions,
+                "descriptionLength" to description.length,
+            ),
+        )
 
         nutritionRepo.findMealTemplateMatch(description)?.let { template ->
             tags = template.foods.map { food ->
@@ -470,7 +459,7 @@ fun FoodLoggerDrawer(
                 }
                 detectedContext = ContextDetector.detect(description)
                 val parsed = if (settings.useApiForDescriptions) {
-                    val apiService = ExternalAiService(settings.apiKeys, settings.apiProvider)
+                    val apiService = DeepSeekV4FlashClient(context)
                     val knownFoods = nutritionRepo.mealTemplates.value.flatMap { template ->
                         buildList {
                             add(template.name)
@@ -535,7 +524,7 @@ fun FoodLoggerDrawer(
                                     parseMealDescription(description, descriptionRetrieval)
                                 }
                                 fallback.copy(
-                                    analysisEngine = "external-api-failed-fallback-${settings.apiProvider.name.lowercase()}"
+                                    analysisEngine = "deepseek-v4-flash-failed-fallback"
                                 )
                             } else {
                                 ParsedMealDescription(
@@ -582,6 +571,14 @@ fun FoodLoggerDrawer(
                     tone = AnalysisNoticeTone.WARNING,
                 )
             } finally {
+                KpknDiagnosticLogger.event(
+                    namespace = "nutrition",
+                    name = "analysis_finished",
+                    fields = mapOf(
+                        "tagCount" to tags.size,
+                        "usesDeepSeek" to settings.useApiForDescriptions,
+                    ),
+                )
                 isAnalyzing = false
                 analysisStage = null
                 analysisStartedAtMs = 0L
@@ -965,6 +962,15 @@ fun FoodLoggerDrawer(
             status = NutritionStatus.CONSUMED,
         )
         onSave(log)
+        KpknDiagnosticLogger.event(
+            namespace = "nutrition",
+            name = "meal_saved",
+            fields = mapOf(
+                "foodCount" to resolvedFoods.size,
+                "mealType" to mealType.name,
+                "date" to logDate,
+            ),
+        )
         showSuccess = true
         reviewRequired = false
     }
@@ -982,45 +988,15 @@ fun FoodLoggerDrawer(
     if (showApiConfigDialog) {
         KpknAlertDialog(
             onDismissRequest = { showApiConfigDialog = false },
-            title = {
-                Text(
-                    text = "Configurar API personal",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-            },
+            title = { Text("Configurar DeepSeek V4 Flash") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = "Ingresa tu API key y define fallback. Guardar aplica todo de inmediato.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf(ApiProvider.GEMINI, ApiProvider.DEEPSEEK, ApiProvider.GPT).forEach { provider ->
-                            FilterChip(
-                                selected = apiDraftProvider == provider,
-                                onClick = {
-                                    apiDraftProvider = provider
-                                    apiDraftKey = selectedApiKey(settings, provider)
-                                },
-                                label = {
-                                    Text(
-                                        providerLabel(provider),
-                                        style = MaterialTheme.typography.labelSmall,
-                                    )
-                                },
-                            )
-                        }
-                    }
-
+                    Text("La app usa exclusivamente deepseek-v4-flash. La key se cifra con Android Keystore.")
                     TextField(
                         value = apiDraftKey,
                         onValueChange = { apiDraftKey = it },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("API Key ${providerLabel(apiDraftProvider)}") },
-                        placeholder = { Text("Pega aquí tu key") },
+                        label = { Text("API key de DeepSeek V4 Flash") },
                         singleLine = true,
                         visualTransformation = if (showApiKey) androidx.compose.ui.text.input.VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -1031,66 +1007,39 @@ fun FoodLoggerDrawer(
                                 )
                             }
                         },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = TextFieldDefaults.colors(
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer
-                        )
                     )
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Fallback API -> Parser",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                text = "Si la API falla, usar Parser automáticamente",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            Text("Fallback local", fontWeight = FontWeight.SemiBold)
+                            Text("Si DeepSeek falla, conservar el parser local.")
                         }
-                        Switch(
-                            checked = apiDraftFallback,
-                            onCheckedChange = { apiDraftFallback = it },
-                        )
+                        Switch(checked = apiDraftFallback, onCheckedChange = { apiDraftFallback = it })
                     }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showApiConfigDialog = false }) {
-                    Text("Cancelar")
-                }
+                TextButton(onClick = { showApiConfigDialog = false }) { Text("Cancelar") }
             },
             confirmButton = {
                 Button(
                     onClick = {
                         val trimmed = apiDraftKey.trim()
-                        val keyOrNull = trimmed.ifBlank { null }
+                        if (trimmed.isBlank()) DeepSeekCredentialStore.clear(context)
+                        else DeepSeekCredentialStore.write(context, trimmed)
                         programRepo.updateSettings { current ->
                             current.copy(
-                                apiProvider = apiDraftProvider,
+                                apiProvider = ApiProvider.DEEPSEEK,
+                                apiKeys = ApiKeys(),
                                 aiFallbackEnabled = apiDraftFallback,
-                                apiKeys = when (apiDraftProvider) {
-                                    ApiProvider.GEMINI -> current.apiKeys.copy(gemini = keyOrNull)
-                                    ApiProvider.DEEPSEEK -> current.apiKeys.copy(deepseek = keyOrNull)
-                                    ApiProvider.GPT -> current.apiKeys.copy(gpt = keyOrNull)
-                                },
                             )
                         }
                         showApiConfigDialog = false
                     },
-                ) {
-                    Text("Guardar")
-                }
+                ) { Text("Guardar") }
             },
             shape = RoundedCornerShape(20.dp),
         )
@@ -1242,7 +1191,7 @@ fun FoodLoggerDrawer(
                         ) {
                             AiAnalysisPanel(
                                 usingApi = settings.useApiForDescriptions,
-                                providerLabel = providerLabel(settings.apiProvider),
+                                providerLabel = "DeepSeek V4 Flash",
                                 stage = analysisStage,
                                 elapsedMs = analysisElapsedMs,
                                 fallbackEnabled = settings.aiFallbackEnabled,

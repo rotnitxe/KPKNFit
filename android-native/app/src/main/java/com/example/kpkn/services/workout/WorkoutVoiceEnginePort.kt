@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 internal interface WorkoutVoiceEnginePort {
+internal const val REPORT_CAPTURE_REQUEST = "__kpkn_report_capture__"
+
     val partialResults: Flow<String>
     val finalResults: Flow<List<VoiceHypothesis>>
     val errors: Flow<String>

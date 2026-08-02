@@ -5,11 +5,19 @@ import android.content.Context
 import android.os.Build
 import android.os.StrictMode
 import com.example.kpkn.telemetry.KpknTelemetry
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
+import com.example.kpkn.data.secure.DeepSeekSettingsMigration
+import com.example.kpkn.services.diagnostics.ReportEnrichmentScheduler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLogger
 import com.example.kpkn.services.workout.WorkoutVoiceExitInfoCollector
 import com.example.kpkn.ui.locale.LocaleManager
 
 class KpknApplication : Application() {
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(LocaleManager.wrapContext(base))
@@ -18,9 +26,16 @@ class KpknApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        KpknDiagnosticLogger.initialize(this)
         WorkoutVoiceDiagnosticLogger.initialize(this)
         val isMainProcess = Build.VERSION.SDK_INT < Build.VERSION_CODES.P ||
             Application.getProcessName() == packageName
+        if (isMainProcess) {
+            applicationScope.launch {
+                DeepSeekSettingsMigration.migrate(this@KpknApplication)
+                ReportEnrichmentScheduler.resumePending(this@KpknApplication)
+            }
+        }
         if (isMainProcess) {
             WorkoutVoiceExitInfoCollector.initialize(this)
         }

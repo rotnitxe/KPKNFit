@@ -328,13 +328,15 @@ class WorkoutContinuousVoiceEngine internal constructor(
 
     override fun requestNativeFallbackForUnresolved(transcript: String): Boolean {
         if (!activeRequested || micBusy || fallbackInFlight.get()) return false
-        if (!shouldAttemptNativeFallback(transcript)) return false
+        val reportCapture = transcript == REPORT_CAPTURE_REQUEST
+        if (!reportCapture && !shouldAttemptNativeFallback(transcript)) return false
         if (!fallbackQueued.compareAndSet(false, true)) return false
         val sent = commands.trySend(
             EngineCommand.RequestFallback(
                 generation = generationCounter.get(),
                 transcript = transcript,
-                announcePrompt = true,
+                announcePrompt = !reportCapture,
+                reportCapture = reportCapture,
             ),
         ).isSuccess
         if (!sent) fallbackQueued.set(false)
@@ -575,23 +577,29 @@ class WorkoutContinuousVoiceEngine internal constructor(
         ) {
             fallbackQueued.set(false)
             if (!running || generation != actorGeneration || !activeRequested || micBusy) return
-            if (fallbackInFlight.get() || !shouldAttemptNativeFallback(transcript)) return
-            val utteranceId = "utt-${++utteranceCounter}"
-            when (val gate = fallbackPolicy.canAttempt(utteranceId)) {
-                is FallbackGateResult.Blocked -> {
-                    _fallbackPaused.value = true
-                    _statusMessages.tryEmit(gate.reason)
-                    return
+            if (fallbackInFlight.get() || (!reportCapture && !shouldAttemptNativeFallback(transcript))) return
+            val utteranceId = "utt-" + (++utteranceCounter)
+            if (!reportCapture) {
+                when (val gate = fallbackPolicy.canAttempt(utteranceId)) {
+                    is FallbackGateResult.Blocked -> {
+                        _fallbackPaused.value = true
+                        _statusMessages.tryEmit(gate.reason)
+                        return
+                    }
+                    FallbackGateResult.Allowed -> Unit
                 }
                 FallbackGateResult.Allowed -> Unit
             }
             if (!nativeRecognizer.isAvailable()) {
-                _statusMessages.tryEmit(
-                    nativeRecognizer.unavailableReason() ?: "Fallback local no disponible",
-                )
+                val reason = nativeRecognizer.unavailableReason() ?: "Fallback local no disponible"
+                if (reportCapture) {
+                    _errors.tryEmit(reason)
+                } else {
+                    _statusMessages.tryEmit(reason)
+                }
                 return
             }
-            fallbackPolicy.recordAttempt(utteranceId)
+            if (!reportCapture) fallbackPolicy.recordAttempt(utteranceId)
             fallbackInFlight.set(true)
             _usingNativeFallback.value = true
             discardPcmOnly = true
@@ -611,7 +619,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                         if (!finished) prompt.complete()
                     }
                     WorkoutVoiceDiagnosticLogger.event("native_fallback_attempt", mapOf("attempt" to 1))
-                    withTimeoutOrNull(NATIVE_FALLBACK_TIMEOUT_MS) {
+                    withTimeoutOrNull(if (reportCapture) REPORT_CAPTURE_TIMEOUT_MS else NATIVE_FALLBACK_TIMEOUT_MS) {
                         val first = withContext(Dispatchers.Main) {
                             nativeRecognizer.recognizeOnce()
                         }
@@ -664,6 +672,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                         launchModelPreparation(actorGeneration)
                     }
                 }
+            reportCapture: Boolean,
 
                 is EngineCommand.Stop -> {
                     actorGeneration = command.generation
@@ -737,6 +746,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                         _captureState.value = VoiceCaptureState.ERROR_RECOVERY
                         _errors.emit("Error Vosk: ${e.message ?: "desconocido"}")
                     }
+                        reportCapture = reportCapture,
                 }
 
                 is EngineCommand.ModelFailed -> {
@@ -801,25 +811,40 @@ class WorkoutContinuousVoiceEngine internal constructor(
                     }
                     when (val result = command.result) {
                         is NativeRecognitionResult.Success -> {
-                            WorkoutVoiceDiagnosticLogger.event(
-                                "native_fallback_result",
-                                mapOf("state" to "SUCCESS", "hypotheses" to result.hypotheses.size),
-                            )
-                            fallbackPolicy.recordSuccess()
-                            _fallbackPaused.value = fallbackPolicy.isCircuitOpen
+                            if (command.reportCapture) {
+                                WorkoutVoiceDiagnosticLogger.event(
+                                    "report_capture_result",
+                                    mapOf("state" to "SUCCESS", "hypotheses" to result.hypotheses.size),
+                                )
+                            } else {
+                                WorkoutVoiceDiagnosticLogger.event(
+                                    "native_fallback_result",
+                                    mapOf("state" to "SUCCESS", "hypotheses" to result.hypotheses.size),
+                                )
+                                fallbackPolicy.recordSuccess()
+                                _fallbackPaused.value = fallbackPolicy.isCircuitOpen
+                            }
                             if (result.hypotheses.isNotEmpty()) {
                                 _finalResults.emit(result.hypotheses)
                             }
                         }
 
                         is NativeRecognitionResult.Error -> {
-                            WorkoutVoiceDiagnosticLogger.event(
-                                "native_fallback_result",
-                                mapOf("state" to "ERROR", "code" to result.code, "message" to result.message),
-                            )
-                            fallbackPolicy.recordFailure()
-                            _fallbackPaused.value = fallbackPolicy.isCircuitOpen
-                            _statusMessages.emit(result.message)
+                            if (command.reportCapture) {
+                                WorkoutVoiceDiagnosticLogger.event(
+                                    "report_capture_result",
+                                    mapOf("state" to "ERROR", "code" to result.code, "message" to result.message),
+                                )
+                                _errors.emit(result.message)
+                            } else {
+                                WorkoutVoiceDiagnosticLogger.event(
+                                    "native_fallback_result",
+                                    mapOf("state" to "ERROR", "code" to result.code, "message" to result.message),
+                                )
+                                fallbackPolicy.recordFailure()
+                                _fallbackPaused.value = fallbackPolicy.isCircuitOpen
+                                _statusMessages.emit(result.message)
+                            }
                         }
                     }
                     cancelFallback()
@@ -929,6 +954,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
                                         if (sawSpeechInCurrentUtterance) {
                                             if (partial.isNotBlank()) {
                                                 // El final vino vacío pero el partial traía la
+                        reportCapture = command.reportCapture,
                                                 // frase: emitirlo como hipótesis de respaldo en
                                                 // vez de perder el comando.
                                                 WorkoutVoiceDiagnosticLogger.event(
@@ -1179,3 +1205,6 @@ enum class VoiceCaptureState {
     ERROR_RECOVERY,
     FAILED,
 }
+            val reportCapture: Boolean = false,
+            val reportCapture: Boolean = false,
+        private const val REPORT_CAPTURE_TIMEOUT_MS = 15_000L

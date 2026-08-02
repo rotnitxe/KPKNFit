@@ -36,7 +36,8 @@ data class Settings(
     val workoutLoggerMode: WorkoutLoggerMode = WorkoutLoggerMode.PRO,
     val sessionCompactView: Boolean = false,
 
-    val apiProvider: ApiProvider = ApiProvider.GEMINI,
+    /** Legacy enum retained only so old Settings JSON can be decoded during migration. */
+    val apiProvider: ApiProvider = ApiProvider.DEEPSEEK,
     val apiKeys: ApiKeys = ApiKeys(),
     val aiTemperature: Double = 0.7,
     val useApiForDescriptions: Boolean = false,

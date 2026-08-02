@@ -1,6 +1,7 @@
 package com.example.kpkn.services.workout
 
 import android.app.ActivityManager
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import android.app.KeyguardManager
 import android.content.Context
 import android.net.Uri
@@ -218,7 +219,7 @@ object WorkoutVoiceDiagnosticLogger {
             "event" to name,
         )
         payload.putAll(fields)
-        val line = JsonObject(payload.mapValues { (_, value) -> value.toJsonElement() }).toString()
+        val line = JsonObject(payload.mapValues { (key, value) -> if (key.isSensitiveKey()) JsonPrimitive("[REDACTED]") else value.toJsonElement() }).toString()
         // Writer persistente: misma durabilidad (flush por línea) sin reabrir el
         // archivo en cada evento — menos syscalls en almacenamiento de gama baja.
         val writer = activeWriter
@@ -239,7 +240,13 @@ object WorkoutVoiceDiagnosticLogger {
         is Number -> JsonPrimitive(this)
         is Iterable<*> -> JsonArray(map { it.toJsonElement() })
         is Array<*> -> JsonArray(map { it.toJsonElement() })
-        else -> JsonPrimitive(toString().take(MAX_TEXT_LENGTH))
+        else -> JsonPrimitive(redactSecrets(toString()).take(MAX_TEXT_LENGTH))
+    }
+
+    private fun String.isSensitiveKey(): Boolean {
+        val value = lowercase()
+        return "key" in value || "token" in value || "secret" in value ||
+            "password" in value || "authorization" in value || "cookie" in value
     }
 
     private fun prune(directory: File) {
@@ -249,12 +256,25 @@ object WorkoutVoiceDiagnosticLogger {
             .toMutableList()
         var total = files.sumOf(File::length)
         while (files.size >= MAX_FILES || total > MAX_TOTAL_BYTES) {
+        KpknDiagnosticLogger.event(
+            namespace = "voice",
+            name = name,
+            fields = fields,
+            traceId = traceId,
+            sessionId = activeSessionKey,
+        )
             val oldest = files.removeLastOrNull() ?: break
             total -= oldest.length()
             oldest.delete()
         }
     }
 
+        is String -> JsonPrimitive(redactSecrets(this))
     private val FILE_TIME_FORMAT: DateTimeFormatter =
         DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneOffset.UTC)
 }
+    private fun redactSecrets(value: String): String = value
+        .replace(Regex("(?i)(bearer\\s+)[A-Za-z0-9._-]+"), "$1[REDACTED]")
+        .replace(Regex("(?i)(api[_ -]?key\\s*[:=]\\s*)[^\\s,]+"), "$1[REDACTED]")
+        .replace(Regex("(?i)sk-[A-Za-z0-9_-]{12,}"), "[REDACTED]")
+

@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import android.util.Log
+import com.example.kpkn.services.diagnostics.KpknDiagnosticStorage
 import java.io.File
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
@@ -28,9 +29,9 @@ object WorkoutVoiceDiagnosticStorage {
         1,
         30L,
         TimeUnit.SECONDS,
-        LinkedBlockingQueue(MAX_PENDING_WRITES),
+        LinkedBlockingQueue(),
         { runnable -> Thread(runnable, "kpkn-voice-jsonl-mirror").apply { isDaemon = true } },
-        ThreadPoolExecutor.DiscardPolicy(),
+        ThreadPoolExecutor.CallerRunsPolicy(),
     )
 
     fun configure(context: Context, treeUri: Uri): Result<String> = runCatching {
@@ -41,6 +42,7 @@ object WorkoutVoiceDiagnosticStorage {
             Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
         )
         val label = resolveTreeLabel(appContext, treeUri)
+        KpknDiagnosticStorage.configure(appContext, treeUri).getOrThrow()
         appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
             .putString(KEY_TREE_URI, treeUri.toString())
@@ -69,7 +71,7 @@ object WorkoutVoiceDiagnosticStorage {
             .getString(KEY_TREE_LABEL, null)
 
     fun createJsonl(context: Context, displayName: String): Uri? =
-        createDocument(context.applicationContext, displayName, "application/x-ndjson")
+        KpknDiagnosticStorage.createJsonl(context.applicationContext, "voice", displayName)
 
     fun appendLine(context: Context, documentUri: Uri, line: String) {
         val appContext = context.applicationContext

@@ -13,9 +13,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -23,10 +28,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.R
-import com.example.kpkn.data.models.ApiProvider
 import com.example.kpkn.data.models.AppTheme
 import com.example.kpkn.data.models.HapticIntensity
 import com.example.kpkn.ui.locale.LocaleManager
+import kotlinx.coroutines.delay
 import com.example.kpkn.screens.settings.components.SettingsConditionalItem
 import com.example.kpkn.screens.settings.components.SettingsDropdownItem
 import com.example.kpkn.screens.settings.components.SettingsSectionCard
@@ -41,7 +46,23 @@ fun SettingsGeneralScreen(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = viewModel { SettingsViewModel() },
 ) {
+    val context = LocalContext.current
     val settings by viewModel.settings.collectAsState()
+    val deepSeekKey by viewModel.deepSeekKey.collectAsState()
+    var deepSeekDraft by remember { mutableStateOf("") }
+
+    LaunchedEffect(context, viewModel) {
+        viewModel.setContext(context)
+    }
+    LaunchedEffect(deepSeekKey) {
+        deepSeekDraft = deepSeekKey.orEmpty()
+    }
+    LaunchedEffect(deepSeekDraft, deepSeekKey) {
+        if (deepSeekDraft != deepSeekKey.orEmpty()) {
+            delay(600)
+            viewModel.saveDeepSeekKey(context, deepSeekDraft)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -118,38 +139,26 @@ fun SettingsGeneralScreen(
             item { SettingsSectionHeader(stringResource(R.string.screen_settings_general_section_ai)) }
             item {
                 SettingsSectionCard {
-                    SettingsDropdownItem(
-                        title = stringResource(R.string.screen_settings_general_ai_provider),
-                        description = stringResource(R.string.screen_settings_general_ai_provider_desc),
-                        options = ApiProvider.entries,
-                        selected = settings.apiProvider,
-                        onSelect = { value -> viewModel.update { it.copy(apiProvider = value) } },
-                        optionLabel = { it.name },
+                    Text(
+                        text = "Proveedor único: DeepSeek V4 Flash",
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = if (deepSeekKey.isNullOrBlank()) {
+                            "Estado: API key no configurada"
+                        } else {
+                            "Estado: API key configurada de forma segura"
+                        },
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    )
+                    Text(
+                        text = "No se usarán Gemini, GPT, DeepSeek Pro ni modelos antiguos. La API key se cifra con Android Keystore y no se guarda en Room ni exportaciones.",
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
                     )
                     SettingsTextFieldItem(
-                        label = stringResource(R.string.screen_settings_general_api_key_gemini),
-                        value = settings.apiKeys.gemini.orEmpty(),
-                        onValueChange = { value ->
-                            viewModel.update { it.copy(apiKeys = it.apiKeys.copy(gemini = value.ifBlank { null })) }
-                        },
-                        keyboardType = KeyboardType.Password,
-                        visualTransformation = PasswordVisualTransformation(),
-                    )
-                    SettingsTextFieldItem(
-                        label = stringResource(R.string.screen_settings_general_api_key_gpt),
-                        value = settings.apiKeys.gpt.orEmpty(),
-                        onValueChange = { value ->
-                            viewModel.update { it.copy(apiKeys = it.apiKeys.copy(gpt = value.ifBlank { null })) }
-                        },
-                        keyboardType = KeyboardType.Password,
-                        visualTransformation = PasswordVisualTransformation(),
-                    )
-                    SettingsTextFieldItem(
-                        label = stringResource(R.string.screen_settings_general_api_key_deepseek),
-                        value = settings.apiKeys.deepseek.orEmpty(),
-                        onValueChange = { value ->
-                            viewModel.update { it.copy(apiKeys = it.apiKeys.copy(deepseek = value.ifBlank { null })) }
-                        },
+                        label = "API key de DeepSeek V4 Flash",
+                        value = deepSeekDraft,
+                        onValueChange = { deepSeekDraft = it },
                         keyboardType = KeyboardType.Password,
                         visualTransformation = PasswordVisualTransformation(),
                     )
