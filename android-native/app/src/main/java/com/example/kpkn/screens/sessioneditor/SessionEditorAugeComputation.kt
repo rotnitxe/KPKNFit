@@ -1,7 +1,7 @@
 package com.example.kpkn.screens.sessioneditor
 
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
-import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.auge.AugeFatigueEngine
@@ -583,9 +583,8 @@ internal fun resolveExerciseInfo(
     exercise: Exercise,
     exerciseIndex: Map<String, ExerciseMuscleInfo>,
 ): ExerciseMuscleInfo? {
-    val byId = exercise.exerciseDbId ?: exercise.exerciseId
-    return byId?.lowercase()?.let(exerciseIndex::get)
-        ?: exerciseIndex.values.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
+    val byId = exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId
+    return byId?.trim()?.lowercase()?.let(exerciseIndex::get)
 }
 
 internal fun resolvePrimaryMuscle(info: ExerciseMuscleInfo): String? {

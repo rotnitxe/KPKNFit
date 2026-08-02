@@ -105,8 +105,9 @@ class ExerciseMuscleContributionExplanationTest {
     @Test
     fun every_catalog_involvement_has_specific_non_generic_explanation() {
         val catalog = listOf(
-            File("src/main/assets/exercise_database.json"),
-            File("app/src/main/assets/exercise_database.json"),
+            File("../../catalog/exercises/v2/curation/evidence/legacy/exercise_database.json"),
+            File("../catalog/exercises/v2/curation/evidence/legacy/exercise_database.json"),
+            File("catalog/exercises/v2/curation/evidence/legacy/exercise_database.json"),
         ).first { it.exists() }
             .let { json.decodeFromString<List<ExerciseMuscleInfo>>(it.readText()) }
 

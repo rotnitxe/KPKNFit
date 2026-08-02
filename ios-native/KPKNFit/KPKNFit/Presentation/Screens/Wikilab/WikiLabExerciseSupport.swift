@@ -48,32 +48,11 @@ internal func resolveWikiLabExerciseLinks(ids: [String], subtitle: String = "") 
 
 private func resolveExerciseFromNaturalLanguage(_ raw: String) -> ExerciseMuscleInfo? {
     let query = normalizeForLookup(raw)
-    if query.isEmpty { return nil }
-    let tokens = query.split(separator: " ").filter { !$0.isEmpty }
-    if tokens.isEmpty { return nil }
-    
-    return EXERCISE_DATABASE
-        .compactMap { exercise -> (ExerciseMuscleInfo, Int)? in
-            let name = normalizeForLookup(exercise.name)
-            let alias = normalizeForLookup(exercise.alias ?? "")
-            let haystack = "\(name) \(alias)"
-            let tokenHits = tokens.filter { haystack.contains($0) }.count
-            let score: Int
-            if name == query || alias == query {
-                score = 200
-            } else if name.contains(query) || alias.contains(query) {
-                score = 150
-            } else {
-                score = tokenHits * 22
-            }
-            guard score > 0 else { return nil }
-            return (exercise, score)
-        }
-        .sorted { a, b in
-            if a.1 != b.1 { return a.1 > b.1 }
-            return a.0.name.count < b.0.name.count
-        }
-        .first?.0
+    guard !query.isEmpty,
+          let hit = exerciseCatalogV2().search(query, limit: 1).first,
+          let configuration = try? exerciseCatalogV2().defaultConfiguration(for: hit.definitionId)
+    else { return nil }
+    return resolveExercise(configuration.id)
 }
 
 private func normalizeForLookup(_ raw: String) -> String {

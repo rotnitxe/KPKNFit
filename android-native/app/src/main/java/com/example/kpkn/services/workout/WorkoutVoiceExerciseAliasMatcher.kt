@@ -1,6 +1,6 @@
 package com.example.kpkn.services.workout
 
-import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.catalogSearchRedirects
 import java.text.Normalizer
 import java.util.Locale
 
@@ -46,7 +46,7 @@ object WorkoutVoiceExerciseAliasMatcher {
         }
 
         // Catalog map is aliasId → canonicalId; also accept reverse contains on ids.
-        EXERCISE_ID_ALIASES.forEach { (aliasId, canonical) ->
+        catalogSearchRedirects().forEach { (aliasId, canonical) ->
             if (canonical == exerciseId || aliasId == exerciseId) {
                 val aliasNorm = normalize(aliasId.replace('_', ' '))
                 if (aliasNorm.isNotBlank() && spokenNorm.contains(aliasNorm)) return true

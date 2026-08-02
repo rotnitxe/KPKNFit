@@ -70,8 +70,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
-import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.WorkoutLog
@@ -628,7 +628,7 @@ internal fun AssistantTemplatesTab(
         templates = templates,
         searchQuery = searchQuery,
         onSelectTemplate = onSelectTemplate,
-        exerciseIndex = remember { EXERCISE_DATABASE.associateBy { it.id.lowercase() } },
+        exerciseIndex = remember { exerciseCatalogSnapshot().associateBy { it.id.lowercase() } },
         glassDark = true,
     )
     if (applyDecision != null) {
@@ -729,7 +729,7 @@ internal fun AssistantSuggestionCard(
 
 internal fun buildExerciseCatalogLookup(catalog: List<ExerciseMuscleInfo>): Map<String, ExerciseMuscleInfo> {
     val base = catalog.associateBy { it.id.lowercase() }
-    val aliasEntries = EXERCISE_ID_ALIASES.mapNotNull { (alias, canonical) ->
+    val aliasEntries = catalogSearchRedirects().mapNotNull { (alias, canonical) ->
         base[canonical]?.let { alias.lowercase() to it }
     }.toMap()
     return base + aliasEntries
@@ -739,9 +739,8 @@ internal fun resolveCatalogExerciseInfo(
     exercise: Exercise,
     catalogLookup: Map<String, ExerciseMuscleInfo>,
 ): ExerciseMuscleInfo? {
-    val byId = exercise.exerciseDbId ?: exercise.exerciseId
-    return byId?.lowercase()?.let(catalogLookup::get)
-        ?: catalogLookup.values.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
+    val byId = exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId
+    return byId?.trim()?.lowercase()?.let(catalogLookup::get)
 }
 
 internal fun buildDiscomfortByExercise(

@@ -563,6 +563,12 @@ class ProgramRepository private constructor(
         fromExerciseDbId: String,
         toExerciseDbId: String,
         scopeType: ReplacementPersistenceScopeV2,
+        fromCatalogRevision: String? = null,
+        fromDefinitionId: String? = null,
+        fromConfigurationId: String? = null,
+        toCatalogRevision: String? = null,
+        toDefinitionId: String? = null,
+        toConfigurationId: String? = null,
     ): ExerciseReplacementDecisionV2 {
         val decision = ExerciseReplacementDecisionV2(
             id = UUID.randomUUID().toString(),
@@ -575,6 +581,12 @@ class ProgramRepository private constructor(
             exerciseSlot = exerciseSlot,
             fromExerciseDbId = fromExerciseDbId,
             toExerciseDbId = toExerciseDbId,
+            fromCatalogRevision = fromCatalogRevision,
+            fromDefinitionId = fromDefinitionId,
+            fromConfigurationId = fromConfigurationId,
+            toCatalogRevision = toCatalogRevision,
+            toDefinitionId = toDefinitionId,
+            toConfigurationId = toConfigurationId,
             scope = scopeType,
             createdAtIso = java.time.Instant.now().toString(),
         )

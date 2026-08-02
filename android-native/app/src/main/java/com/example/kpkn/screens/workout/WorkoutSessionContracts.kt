@@ -132,8 +132,8 @@ internal fun isWorkoutPulseActive(
 }
 
 internal fun inferDefaultLoadModeFromCatalog(exercise: Exercise): LoadModeV2 {
-    val canonicalId = exercise.resolvedCanonicalExerciseId()
-    val info = com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID[canonicalId] ?: return LoadModeV2.LOAD
+    val catalogId = exercise.catalogConfigurationId ?: exercise.resolvedCanonicalExerciseId()
+    val info = com.example.kpkn.data.exercises.catalogExerciseIndex()[catalogId.lowercase()] ?: return LoadModeV2.LOAD
     val equipment = info.equipment?.lowercase().orEmpty()
     val name = exercise.name.lowercase()
     return when {

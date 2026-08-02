@@ -1,119 +1,72 @@
 package com.example.kpkn.data
 
-import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
 import java.io.File
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ExerciseCatalogContractTest {
-    private val catalog: List<ExerciseMuscleInfo> by lazy {
-        Json { ignoreUnknownKeys = true }.decodeFromString(
-            File("src/main/assets/exercise_database.json").readText(),
-        )
+    private val catalog: ExerciseCatalogV2 by lazy {
+        val file = listOf(
+            File("src/main/assets/exercise_catalog_v2.json"),
+            File("app/src/main/assets/exercise_catalog_v2.json"),
+        ).first { it.exists() }
+        ExerciseCatalogV2Loader.decodeApproved(file.readText())
+    }
+
+    private val definitions
+        get() = catalog.families.flatMap { it.definitions }
+
+    private val configurations
+        get() = definitions.flatMap { it.configurations }
+
+    @Test
+    fun approved_catalog_has_stable_schema_and_unique_exact_identities() {
+        assertEquals(2, catalog.schemaVersion)
+        assertEquals("v2-approved-2026-08-02", catalog.catalogRevision)
+        assertEquals(catalog.families.size, catalog.families.map { it.id }.distinct().size)
+        assertEquals(definitions.size, definitions.map { it.id }.distinct().size)
+        assertEquals(configurations.size, configurations.map { it.id }.distinct().size)
+        assertTrue(definitions.size >= 200)
+        assertTrue(configurations.size >= 250)
     }
 
     @Test
-    fun catalog_has_expected_unique_rows_and_preserves_submuscle_group() {
-        // Canonical catalog after alias consolidation (duplicates redirected via exercise_id_aliases.json).
-        assertEquals(257, catalog.size)
-        assertEquals(catalog.size, catalog.map { it.id }.distinct().size)
-        assertTrue(catalog.any { !it.subMuscleGroup.isNullOrBlank() })
-    }
-
-    @Test
-    fun activation_respects_role_contract() {
-        val violations = catalog.flatMap { exercise ->
-            exercise.involvedMuscles.mapNotNull { involved ->
-                val activation = involved.volumeContribution ?: return@mapNotNull "${exercise.id}:missing"
-                val valid = when (involved.role) {
-                    MuscleRole.PRIMARY -> activation in 0.8..1.0
-                    MuscleRole.SECONDARY -> activation in 0.3..0.7
-                    MuscleRole.STABILIZER -> activation in 0.0..0.4
-                    MuscleRole.NEUTRALIZER -> activation in 0.0..0.4
-                }
-                if (valid) null else "${exercise.id}:${involved.muscle}:${involved.role}:$activation"
+    fun every_definition_materializes_compatible_configurations_without_singleton_chips() {
+        definitions.forEach { definition ->
+            assertNotNull(definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId })
+            definition.optionAxes.forEach { axis ->
+                assertTrue(
+                    "singleton axis ${definition.id}:$axis",
+                    definition.configurations.mapNotNull { it.selectedOptions[axis] }.distinct().size > 1,
+                )
+            }
+            definition.configurations.forEach { configuration ->
+                assertEquals(definition.optionAxes.toSet(), configuration.selectedOptions.keys)
+                assertFalse(configuration.profile.richMetadata == null)
+                assertEquals("APPROVED", configuration.evidence.reviewStatus.name)
+                assertTrue(configuration.profile.automationEligible)
             }
         }
-        assertEquals(emptyList<String>(), violations)
     }
 
     @Test
-    fun technical_modifiers_use_canonical_parent_names() {
-        val allowed = setOf(
-            "Antebrazo", "Bíceps", "Core", "Deltoides", "Dorsales",
-            "Erectores Espinales", "Glúteo Mayor", "Pectorales", "Trapecio", "Tríceps",
-        )
-        val unknown = catalog.flatMap { exercise ->
-            exercise.technicalAspects.orEmpty().flatMap { aspect ->
-                aspect.options.flatMap { option ->
-                    option.modifiers.mapNotNull { modifier ->
-                        modifier.muscle.takeUnless { it in allowed }?.let { "${exercise.id}:$it" }
-                    }
-                }
-            }
+    fun rich_metadata_is_identity_consistent_and_non_empty() {
+        configurations.forEach { configuration ->
+            val metadata = configuration.profile.richMetadata!!
+            assertTrue(metadata.anatomy.targetRegions.isNotEmpty())
+            assertTrue(metadata.anatomy.jointActions.isNotEmpty())
+            assertTrue(metadata.biomechanics.relevantJoints.isNotEmpty())
+            assertTrue(metadata.coaching.cues.isNotEmpty())
+            assertTrue(metadata.programming.objectives.isNotEmpty())
+            assertTrue(metadata.replacement.preservesIntent.isNotEmpty())
+            assertEquals(configuration.profile.efc, metadata.fatigue.efc, 0.0)
+            assertEquals(configuration.profile.performanceProfileId, metadata.identity.performanceProfileId)
         }
-        assertEquals(emptyList<String>(), unknown)
-    }
-
-    @Test
-    fun descriptions_are_capitalized_and_technical_options_are_documented() {
-        assertTrue(catalog.all { !it.description.isNullOrBlank() })
-        assertTrue(catalog.none { it.description.orEmpty().contains("ajustable en chips", ignoreCase = true) })
-        val options = catalog.flatMap { it.technicalAspects.orEmpty() }.flatMap { it.options }
-        assertTrue(options.isNotEmpty())
-        assertTrue(options.all { !it.description.isNullOrBlank() })
-    }
-
-    @Test
-    fun barbell_hinges_have_minimum_structural_cost() {
-        val violations = catalog.filter {
-            it.movementPattern.orEmpty().startsWith("Bisagra") &&
-                it.equipment == "Barra" &&
-                (it.ssc ?: 0.0) < 1.0
-        }.map { it.id }
-        assertEquals(emptyList<String>(), violations)
-    }
-
-    @Test
-    fun catalog_forbids_manguito_rotador_as_volume_muscle() {
-        val hits = catalog.flatMap { exercise ->
-            exercise.involvedMuscles.mapNotNull { involved ->
-                involved.muscle.takeIf { it.contains("manguito", ignoreCase = true) }
-                    ?.let { "${exercise.id}:$it" }
-            }
-        }
-        assertEquals(emptyList<String>(), hits)
-    }
-
-    @Test
-    fun deltoid_and_glute_emphasis_use_canonical_head_keywords() {
-        val allowedDeltoid = setOf("anterior", "medio", "posterior", null)
-        val allowedGlute = setOf("mayor", "medio", "menor", null)
-        val violations = catalog.flatMap { exercise ->
-            exercise.involvedMuscles.mapNotNull { involved ->
-                when (involved.muscle) {
-                    "Deltoides" -> involved.emphasis.takeUnless { it in allowedDeltoid }
-                        ?.let { "${exercise.id}:Deltoides:$it" }
-                    "Glúteos" -> involved.emphasis.takeUnless { it in allowedGlute }
-                        ?.let { "${exercise.id}:Glúteos:$it" }
-                    else -> null
-                }
-            }
-        }
-        assertEquals(emptyList<String>(), violations)
-    }
-
-    @Test
-    fun deltoid_and_glute_never_duplicate_parent_rows() {
-        val violations = catalog.flatMap { exercise ->
-            listOf("Deltoides", "Glúteos").mapNotNull { parent ->
-                val count = exercise.involvedMuscles.count { it.muscle == parent }
-                if (count > 1) "${exercise.id}:$parent x$count" else null
-            }
-        }
-        assertEquals(emptyList<String>(), violations)
     }
 }

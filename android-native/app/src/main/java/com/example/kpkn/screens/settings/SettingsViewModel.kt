@@ -16,15 +16,21 @@ import androidx.room.withTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.example.kpkn.data.models.ApiKeys
+import com.example.kpkn.data.models.ApiProvider
 import com.example.kpkn.data.models.Settings
+import com.example.kpkn.data.secure.DeepSeekCredentialStore
+import com.example.kpkn.data.secure.DeepSeekSettingsMigration
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
+import com.example.kpkn.services.diagnostics.ReportEnrichmentScheduler
 import com.example.kpkn.services.workout.WorkoutReminderManager
 import com.example.kpkn.ui.locale.LocaleManager
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -37,12 +43,35 @@ class SettingsViewModel : ViewModel() {
     private val programRepository = ProgramRepository.getInstance()
     private val nutritionRepository = NutritionRepository.getInstance()
     private var appContext: Context? = null
+    private val _deepSeekKey = MutableStateFlow<String?>(null)
+    val deepSeekKey: StateFlow<String?> = _deepSeekKey.asStateFlow()
 
     val settings: StateFlow<Settings> = programRepository.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), Settings())
 
     fun setContext(context: Context) {
-        appContext = context.applicationContext
+        val appContext = context.applicationContext
+        this.appContext = appContext
+        loadDeepSeekKey(appContext)
+    }
+
+    fun loadDeepSeekKey(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            DeepSeekSettingsMigration.migrate(context)
+            _deepSeekKey.value = DeepSeekCredentialStore.read(context)
+        }
+    }
+
+    fun saveDeepSeekKey(context: Context, value: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val trimmed = value.trim()
+            if (trimmed.isBlank()) DeepSeekCredentialStore.clear(context) else DeepSeekCredentialStore.write(context, trimmed)
+            programRepository.updateSettings {
+                it.copy(apiProvider = ApiProvider.DEEPSEEK, apiKeys = ApiKeys())
+            }
+            _deepSeekKey.value = trimmed.takeIf { it.isNotBlank() }
+            ReportEnrichmentScheduler.resumePending(context)
+        }
     }
 
     fun update(transform: (Settings) -> Settings) {
@@ -119,7 +148,9 @@ class SettingsViewModel : ViewModel() {
     }
 
     fun resetSettings() {
+        appContext?.let(DeepSeekCredentialStore::clear)
         programRepository.updateSettings { Settings() }
+        _deepSeekKey.value = null
     }
 
     fun resetOnboarding() {
@@ -127,6 +158,7 @@ class SettingsViewModel : ViewModel() {
             current.copy(
                 hasSeenWelcome = false,
                 hasSeenHomeTour = false,
+                hasChosenVoiceCaptureMode = false,
             )
         }
     }
@@ -199,7 +231,12 @@ class SettingsViewModel : ViewModel() {
 
                 db.withTransaction {
                     db.clearAllTables()
-                    db.settingsDao().upsert(payload.settings.toEntity())
+                    db.settingsDao().upsert(
+                        payload.settings.copy(
+                            apiProvider = ApiProvider.DEEPSEEK,
+                            apiKeys = ApiKeys(),
+                        ).toEntity(),
+                    )
                     payload.programs.forEach { db.programDao().upsert(it.toEntity()) }
                     payload.workoutLogs.forEach { db.workoutLogDao().insert(it.toEntity()) }
                     payload.activeProgramState?.let { db.stateDao().upsertActiveProgram(it.toEntity()) }
@@ -242,6 +279,8 @@ class SettingsViewModel : ViewModel() {
             runCatching {
                 val db = KpknDatabase.getInstance(context)
                 db.clearAllTables()
+                DeepSeekCredentialStore.clear(context)
+                _deepSeekKey.value = null
 
                 context.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE).edit().clear().commit()
                 context.getSharedPreferences("measurements_prefs", Context.MODE_PRIVATE).edit().clear().commit()

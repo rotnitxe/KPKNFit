@@ -164,7 +164,7 @@ func isWorkoutPulseActive(
 
 func inferDefaultLoadModeFromCatalog(exercise: Exercise) -> LoadModeV2 {
     let canonicalId = exercise.resolvedCanonicalExerciseId()
-    guard let info = EXERCISE_DATABASE_BY_ID[canonicalId] else { return .LOAD }
+    guard let info = catalogExerciseIndex()[canonicalId] else { return .LOAD }
     let equipment = info.equipment?.lowercased() ?? ""
     let name = exercise.name.lowercased()
     

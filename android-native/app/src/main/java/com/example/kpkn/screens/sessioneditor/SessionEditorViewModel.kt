@@ -7,8 +7,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
-import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.CompetitionRepository
@@ -120,8 +120,8 @@ class SessionEditorViewModel(
     val allTemplates: StateFlow<List<SessionTemplate>> = templateRepository.allTemplates
         .stateIn(viewModelScope, SharingStarted.Lazily, templateRepository.allTemplates.value)
     internal val exerciseIndex = run {
-        val base = EXERCISE_DATABASE.associateBy { it.id.lowercase() }
-        val aliasEntries = EXERCISE_ID_ALIASES.mapNotNull { (alias, canonical) ->
+        val base = exerciseCatalogSnapshot().associateBy { it.id.lowercase() }
+        val aliasEntries = catalogSearchRedirects().mapNotNull { (alias, canonical) ->
             base[canonical]?.let { alias.lowercase() to it }
         }.toMap()
         base + aliasEntries
@@ -675,39 +675,48 @@ class SessionEditorViewModel(
             textHistoryBaseline = null
         }
     }
-    fun updateSessionMeetDay(isMeetDay: Boolean) = updateSession {
-
-        if (isMeetDay) {
-            it.copy(
-                isMeetDay = true,
-                isCompetitionSession = true,
-                trainingBackup = TrainingBackup(
-                    exercises = it.exercises,
-                    parts = it.parts,
-                    warmup = it.warmup,
-                    savedAtMs = System.currentTimeMillis(),
-                ),
-                exercises = emptyList(),
-                parts = emptyList(),
-                warmup = emptyList(),
-            )
-        } else {
-            val backup = it.trainingBackup
-            if (backup != null) {
-                it.copy(
-                    isMeetDay = false,
-                    isCompetitionSession = false,
-                    exercises = backup.exercises,
-                    parts = backup.parts,
-                    warmup = backup.warmup,
-                    trainingBackup = null,
-                )
-            } else {
-                it.copy(isMeetDay = false, isCompetitionSession = false)
+    fun updateSessionMeetDay(isMeetDay: Boolean) {
+        val current = _uiState.value.session ?: return
+        if (!isMeetDay) {
+            val backup = current.trainingBackup
+            if (backup != null && backup.catalogSchemaVersion < 2) {
+                updateUi { it.copy(snackbarMessage = "No se puede restaurar un respaldo de sesión anterior al catálogo v2.") }
+                return
             }
         }
-    }
-    fun updateSessionMeetBodyweight(bodyweight: Double?) = updateSession { it.copy(meetBodyweight = bodyweight) }
+        updateSession {
+            if (isMeetDay) {
+                it.copy(
+                    isMeetDay = true,
+                    isCompetitionSession = true,
+                    trainingBackup = TrainingBackup(
+                        exercises = it.exercises,
+                        parts = it.parts,
+                        warmup = it.warmup,
+                        savedAtMs = System.currentTimeMillis(),
+                        catalogSchemaVersion = 2,
+                    ),
+                    exercises = emptyList(),
+                    parts = emptyList(),
+                    warmup = emptyList(),
+                )
+            } else {
+                val backup = it.trainingBackup
+                if (backup != null && backup.catalogSchemaVersion >= 2) {
+                    it.copy(
+                        isMeetDay = false,
+                        isCompetitionSession = false,
+                        exercises = backup.exercises,
+                        parts = backup.parts,
+                        warmup = backup.warmup,
+                        trainingBackup = null,
+                    )
+                } else {
+                    it.copy(isMeetDay = false, isCompetitionSession = false)
+                }
+            }
+        }
+    }    fun updateSessionMeetBodyweight(bodyweight: Double?) = updateSession { it.copy(meetBodyweight = bodyweight) }
 
     fun syncMeetBodyweightFromLatestMeasurement(): SessionEditorSaveResult {
         val latest = _uiState.value.latestBodyMeasurement ?: return SessionEditorSaveResult(
@@ -883,4 +892,3 @@ class SessionEditorViewModel(
     }
 
 }
-

@@ -9,11 +9,11 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 class WorkoutReminderManagerCreateChannelsTest {
     @Test
-    @Config(sdk = [24])
-    fun createChannelsDoesNotCrashOnApi24() {
+    @Config(sdk = [26])
+    fun createChannelsDoesNotCrashOnSupportedApi() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val manager = WorkoutReminderManager(context)
-        // Must return early before touching NotificationChannel on API < 26.
+        // API 26 is the minimum of the Health flavor and supports channels.
         manager.createChannels()
     }
 

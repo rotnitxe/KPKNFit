@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.screens.wikilab.components.CaupolicanSquatInteractiveViewer
@@ -48,7 +48,7 @@ fun ExerciseDetailScreen(
     val fatigue = remember(exercise.id) { com.example.kpkn.domain.exercises.calculateFriendlyFatigue(exercise) }
     val customExercises by CustomExerciseRepository.customExercises.collectAsState()
     val catalog = remember(customExercises) {
-        (EXERCISE_DATABASE + customExercises)
+        (exerciseCatalogSnapshot() + customExercises)
             .associateBy { it.id.lowercase() }
             .values
             .toList()
@@ -134,7 +134,7 @@ fun ExerciseDetailScreen(
                 }
             }
 
-            if (!exercise.technicalAspects.isNullOrEmpty()) {
+            if (!exercise.catalogOptionAxes.isNullOrEmpty()) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
@@ -145,7 +145,7 @@ fun ExerciseDetailScreen(
                         )
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(
-                                exercise.technicalAspects.orEmpty().flatMap { aspect ->
+                                exercise.catalogOptionAxes.orEmpty().flatMap { aspect ->
                                     aspect.options.map { aspect to it }
                                 },
                             ) { (aspect, option) ->
@@ -295,10 +295,13 @@ private fun WikiInfobox(exercise: ExerciseMuscleInfo, fatigueScore: Double) {
             )
             HorizontalDivider(color = Color(0xFF2C2C2C))
             
-            InfoboxRow("Categoría", exercise.category ?: "N/A")
-            InfoboxRow("Equipamiento", exercise.equipment ?: "N/A")
-            InfoboxRow("Mecánica", exercise.type ?: "N/A")
-            InfoboxRow("Nivel (Tier)", exercise.tier ?: "N/A")
+            exercise.category?.let { InfoboxRow("Categoría", it) }
+            exercise.equipment?.let { InfoboxRow("Equipamiento", it) }
+            exercise.type?.let { InfoboxRow("Mecánica", it) }
+            // Tier is a legacy programming label and is intentionally not
+            // synthesized for v2.  Omit the row when the catalog does not
+            // provide one instead of rendering a placeholder.
+            exercise.tier?.let { InfoboxRow("Nivel (Tier)", it) }
             exercise.force?.let { InfoboxRow("Fuerza", it) }
             InfoboxRow("Fatiga General", "${"%.1f".format(fatigueScore)} / 5.0")
         }

@@ -183,6 +183,9 @@ object SessionTemplateAudit {
         } else {
             exerciseIndex
         }
+        if (exercise.catalogRevision != null) {
+            return exercise.catalogConfigurationId?.trim()?.lowercase()?.takeIf { it.isNotBlank() }?.let(index::get)
+        }
         val candidates = listOfNotNull(
             exercise.exerciseDbId,
             exercise.exerciseId,

@@ -27,8 +27,8 @@ object DiscomfortAggregationEngine {
             val workingSets = exercise.sets.count { !it.isWarmup && !it.skipped }
             if (workingSets == 0) continue
 
-            val dbInfo = exerciseDb[exercise.exerciseDbId ?: exercise.exerciseId]
-                ?: exerciseDb.values.firstOrNull { it.name.equals(exercise.exerciseName, ignoreCase = true) }
+            val dbId = exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId
+            val dbInfo = dbId?.trim()?.lowercase()?.let(exerciseDb::get)
             if (dbInfo == null) continue
 
             val involvedMuscles = exercise.effectiveMuscles?.takeIf { it.isNotEmpty() }

@@ -1,56 +1,27 @@
 package com.example.kpkn.domain.templates
 
-import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
 import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
 import com.example.kpkn.data.splits.Difficulty
-import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
-import java.io.File
 
 class TemplateCatalogFilterLogicTest {
 
     companion object {
-        private val json = Json { ignoreUnknownKeys = true }
         private lateinit var facetsById: Map<String, SessionTemplateFacets>
         private val templates = SESSION_TEMPLATES_SYSTEM
 
         @BeforeClass
         @JvmStatic
         fun setUpClass() {
-            val dbFile = findDbFile("exercise_database.json")
-            val aliasesFile = findDbFile("exercise_id_aliases.json")
-            val database = json.decodeFromString<List<ExerciseMuscleInfo>>(dbFile.readText())
-            val byId = database.associateBy { it.id.lowercase() }
-            val aliases = json.decodeFromString<Map<String, String>>(aliasesFile.readText())
-                .mapKeys { it.key.lowercase() }
-                .mapValues { it.value.lowercase() }
-            val merged = byId.toMutableMap()
-            aliases.forEach { (alias, canonical) ->
-                byId[canonical]?.let { merged[alias] = it }
-            }
-            facetsById = SessionTemplateFacetsBuilder.buildAll(templates, merged)
-        }
-
-        private fun findDbFile(fileName: String): File {
-            val resource = TemplateCatalogFilterLogicTest::class.java.classLoader?.getResource(fileName)
-            if (resource != null) return File(resource.toURI())
-            val candidates = listOf(
-                "src/main/assets/$fileName",
-                "../app/src/main/assets/$fileName",
-                "app/src/main/assets/$fileName",
-                "android-native/app/src/main/assets/$fileName",
-                "../android-native/app/src/main/assets/$fileName",
+            facetsById = SessionTemplateFacetsBuilder.buildAll(
+                templates,
+                CatalogV2TestFixture.configurationLookup(),
             )
-            for (path in candidates) {
-                val f = File(path)
-                if (f.exists()) return f
-            }
-            error("No se encontró $fileName.")
         }
     }
 

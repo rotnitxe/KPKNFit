@@ -720,10 +720,10 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
     val descriptionNormalized = normalizeCatalogSearchValue(info.description ?: "")
     val variantNormalized = normalizeCatalogSearchValue(info.variantName ?: "")
     val aspectNamesNormalized = normalizeCatalogSearchValue(
-        info.technicalAspects.orEmpty().joinToString(" ") { it.name },
+        info.catalogOptionAxes.orEmpty().joinToString(" ") { it.name },
     )
     val optionNamesNormalized = normalizeCatalogSearchValue(
-        info.technicalAspects.orEmpty().flatMap { it.options }.joinToString(" ") { it.name },
+        info.catalogOptionAxes.orEmpty().flatMap { it.options }.joinToString(" ") { it.name },
     )
 
     val searchBlob = normalizeCatalogSearchValue(
@@ -738,7 +738,7 @@ fun calculateSearchScore(info: ExerciseMuscleInfo, query: String): Int {
             info.involvedMuscles.joinToString(" ") { it.muscle },
             info.variantName,
             info.variantGroupName,
-            info.technicalAspects.orEmpty().joinToString(" ") { aspect ->
+            info.catalogOptionAxes.orEmpty().joinToString(" ") { aspect ->
                 (listOf(aspect.name, aspect.description.orEmpty()) + aspect.options.flatMap { option ->
                     listOf(option.name, option.description.orEmpty())
                 }).joinToString(" ")
@@ -822,7 +822,7 @@ fun matchingTechnicalAspectOptions(
 ): Map<String, String> {
     val terms = meaningfulSearchTerms(query)
     if (terms.isEmpty()) return emptyMap()
-    return info.technicalAspects.orEmpty().mapNotNull { aspect ->
+    return info.catalogOptionAxes.orEmpty().mapNotNull { aspect ->
         val option = aspect.options.firstOrNull { candidate ->
             val normalizedOption = normalizeCatalogSearchValue(candidate.name)
             terms.any { term -> catalogFieldMatchesTerm(normalizedOption, term) }

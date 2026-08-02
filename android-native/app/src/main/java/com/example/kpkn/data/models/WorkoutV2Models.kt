@@ -311,9 +311,27 @@ data class ExerciseReplacementDecisionV2(
     val exerciseSlot: Int,
     val fromExerciseDbId: String,
     val toExerciseDbId: String,
+    /** Exact v2 selections; ids are never re-resolved through aliases. */
+    val fromCatalogRevision: String? = null,
+    val fromDefinitionId: String? = null,
+    val fromConfigurationId: String? = null,
+    val toCatalogRevision: String? = null,
+    val toDefinitionId: String? = null,
+    val toConfigurationId: String? = null,
     val scope: ReplacementPersistenceScopeV2,
     val createdAtIso: String,
-)
+) {
+    init {
+        val fromIdentity = listOf(fromCatalogRevision, fromDefinitionId, fromConfigurationId)
+        val toIdentity = listOf(toCatalogRevision, toDefinitionId, toConfigurationId)
+        require(fromIdentity.all { it.isNullOrBlank() } || fromIdentity.all { !it.isNullOrBlank() }) {
+            "from replacement identity must be complete or absent"
+        }
+        require(toIdentity.all { it.isNullOrBlank() } || toIdentity.all { !it.isNullOrBlank() }) {
+            "to replacement identity must be complete or absent"
+        }
+    }
+}
 
 fun buildWorkoutContextKey(
     exerciseId: String,

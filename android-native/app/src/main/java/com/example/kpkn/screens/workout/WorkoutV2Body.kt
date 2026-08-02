@@ -23,8 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
@@ -173,6 +173,8 @@ internal fun WorkoutV2Body(
                 onTagClick = { tagId -> tagManagerTagId = tagId },
                 onRemoveSubTag = { subTagId -> viewModel.toggleSubTagActive(currentExercise?.id ?: "", subTagId) },
                 onCreateTagClick = { showCreateTagDialog = true },
+                voiceCaptureMode = settings.voiceCaptureMode.takeIf { uiState.voiceSessionEnabled },
+                onVoiceCaptureModeChange = { mode -> viewModel.setVoiceCaptureMode(mode) },
             )
 
             // ─── Tag manager modal ────────────────────────────────────────────
@@ -286,16 +288,34 @@ internal fun WorkoutV2Body(
 
             if (currentExercise != null && currentSet != null) {
                 if (!showingPostExerciseCard) {
-                    val currentExerciseInfo = remember(currentExercise.id, currentExercise.exerciseDbId, currentExercise.exerciseId) {
-                        EXERCISE_DATABASE_BY_ID[currentExercise.exerciseDbId ?: currentExercise.exerciseId]
-                            ?: EXERCISE_DATABASE.firstOrNull { it.id == (currentExercise.exerciseDbId ?: currentExercise.exerciseId) }
-                            ?: EXERCISE_DATABASE.firstOrNull { it.name.equals(currentExercise.name, ignoreCase = true) }
+                    val currentExerciseInfo = remember(
+                        currentExercise.id,
+                        currentExercise.catalogRevision,
+                        currentExercise.catalogConfigurationId,
+                        currentExercise.exerciseDbId,
+                        currentExercise.exerciseId,
+                    ) {
+                        if (currentExercise.catalogRevision != null) {
+                            currentExercise.catalogConfigurationId
+                                ?.lowercase()
+                                ?.let(catalogExerciseIndex()::get)
+                        } else {
+                            (currentExercise.exerciseDbId ?: currentExercise.exerciseId)
+                                ?.trim()
+                                ?.lowercase()
+                                ?.let(catalogExerciseIndex()::get)
+                        }
                     }
                     val currentExerciseCompleted = remember(currentExercise, uiState.completedSets) {
                         CompletedExercise(
                             exerciseId = currentExercise.id,
                             exerciseName = exerciseDisplayParts(currentExercise, currentExerciseInfo).text,
                             exerciseDbId = currentExercise.exerciseDbId ?: currentExercise.exerciseId,
+                            catalogRevision = currentExercise.catalogRevision,
+                            catalogDefinitionId = currentExercise.catalogDefinitionId,
+                            catalogConfigurationId = currentExercise.catalogConfigurationId,
+                            performanceProfileId = currentExercise.performanceProfileId,
+                            occurrenceId = currentExercise.occurrenceId ?: currentExercise.id,
                             variantName = currentExercise.variantName,
                             selectedAspects = currentExercise.selectedAspects,
                             effectiveMuscles = currentExercise.effectiveMuscles,
@@ -316,7 +336,7 @@ internal fun WorkoutV2Body(
                         } else {
                             AugeFatigueEngine.calculateCompletedSessionDrain(
                                 completedExercises = listOf(currentExerciseCompleted),
-                                exerciseDb = EXERCISE_DATABASE_BY_ID,
+                                exerciseDb = catalogExerciseIndex(),
                                 settings = settings,
                                 adaptiveCache = adaptiveCache,
                             )

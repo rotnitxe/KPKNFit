@@ -91,10 +91,10 @@ internal fun SessionEditorViewModel.addSeriesForAugeAlert(alert: SessionEditorAu
 fun SessionEditorViewModel.addGhostExercise(cardId: String) {
     val card = currentUiState.ghostExerciseCards.find { it.cardId == cardId } ?: return
     val info = exerciseIndex[card.exerciseDbId.lowercase()] ?: return
-    val newExercise = Exercise(
-        id = UUID.randomUUID().toString(),
+    // Reuse the catalog selection path so an assistant-added exercise cannot
+    // lose its v2 definition/configuration/performance identity.
+    val newExercise = createExerciseFromInfo(info, repository.history.value).copy(
         name = card.name,
-        exerciseDbId = card.exerciseDbId,
         selectedMovementPattern = info.movementPattern,
         selectedExecutionOption = info.executionOptions?.firstOrNull(),
         sets = (1..card.sets).map {

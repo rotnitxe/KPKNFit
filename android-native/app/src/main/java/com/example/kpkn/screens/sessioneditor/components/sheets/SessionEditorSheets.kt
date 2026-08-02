@@ -198,8 +198,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
-import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.sessions.SessionTemplate
@@ -324,8 +324,8 @@ import com.example.kpkn.screens.sessioneditor.SessionEditorAugeAlert
 import com.example.kpkn.screens.sessioneditor.SessionEditorAugeStatus
 import com.example.kpkn.screens.sessioneditor.SessionEditorAugeCorrectionType
 import com.example.kpkn.screens.sessioneditor.SessionEditorAugeSummary
-import com.example.kpkn.screens.sessioneditor.VariantFlowSheet
-import com.example.kpkn.screens.sessioneditor.VariantFlowResultCache
+import com.example.kpkn.screens.sessioneditor.CatalogSelectionWizard
+import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
 import com.example.kpkn.screens.sessioneditor.components.CompactTemplateCard
 import com.example.kpkn.screens.sessioneditor.SessionSubMuscleBreakdownList
@@ -461,7 +461,7 @@ internal fun SessionEditorSheets(
                               Text("Catálogo")
                           }
                       }
-                      CustomExerciseCreatorContent(
+                       CustomExerciseCreatorContent(
                           onBack = { showInlineCreator = false },
                           onSaved = { createdId ->
                               highlightedCreatedExerciseId = createdId
@@ -473,9 +473,12 @@ internal fun SessionEditorSheets(
                               .heightIn(max = 560.dp),
                       )
                    } else {
+                       val pickerTargetExercise = uiState.pickerTargetExerciseId?.let { targetId ->
+                           session.allExercises().firstOrNull { it.id == targetId }
+                       }
                        ExercisePickerSheet(
                            query = uiState.searchQuery,
-                           catalog = EXERCISE_DATABASE,
+                           catalog = exerciseCatalogSnapshot(),
                            workoutLogs = uiState.workoutLogs,
                            editingExisting = uiState.pickerTargetExerciseId != null,
                            highlightedExerciseId = highlightedCreatedExerciseId,
@@ -498,6 +501,8 @@ internal fun SessionEditorSheets(
                            onOpenExerciseCreator = { showInlineCreator = true },
                            onDismiss = requestPickerDismiss,
                            onSelectionChange = { pendingPickerSelection = it },
+                           editingCatalogDefinitionId = pickerTargetExercise?.catalogDefinitionId,
+                           editingCatalogConfigurationId = pickerTargetExercise?.catalogConfigurationId,
                        )
                    }
              }
@@ -671,7 +676,7 @@ internal fun SessionEditorSheets(
             }
             SessionEditorSheet.QUICK_ACTIONS -> ExerciseQuickActionsSheet(
                 exercise = quickActionExercise,
-                catalog = EXERCISE_DATABASE,
+                catalog = exerciseCatalogSnapshot(),
                 workoutLogs = uiState.workoutLogs,
                 onOpenExerciseDetail = { id ->
                     onDismiss()

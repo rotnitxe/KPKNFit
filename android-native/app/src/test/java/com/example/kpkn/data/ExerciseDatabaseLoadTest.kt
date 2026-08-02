@@ -11,7 +11,11 @@ class ExerciseDatabaseLoadTest {
 
     @Test
     fun testParseExerciseDatabase() {
-        val file = File("src/main/assets/exercise_database.json")
+        val file = listOf(
+            File("../../catalog/exercises/v2/curation/evidence/legacy/exercise_database.json"),
+            File("../catalog/exercises/v2/curation/evidence/legacy/exercise_database.json"),
+            File("catalog/exercises/v2/curation/evidence/legacy/exercise_database.json"),
+        ).first { it.exists() }
         assertTrue("exercise_database.json must exist", file.exists())
         val jsonText = file.readText()
         println("File size: ${jsonText.length} chars")

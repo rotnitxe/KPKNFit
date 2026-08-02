@@ -1,108 +1,64 @@
 package com.example.kpkn.domain.exercises
 
-import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Resolver
 import java.io.File
-import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ExerciseCatalogAuditTest {
-
-    private val json = Json { ignoreUnknownKeys = true }
-
-    private fun catalog(): List<ExerciseMuscleInfo> {
+    private val catalog: ExerciseCatalogV2 by lazy {
         val file = listOf(
-            File("src/main/assets/exercise_database.json"),
-            File("app/src/main/assets/exercise_database.json"),
+            File("src/main/assets/exercise_catalog_v2.json"),
+            File("app/src/main/assets/exercise_catalog_v2.json"),
         ).first { it.exists() }
-        return json.decodeFromString(file.readText())
+        ExerciseCatalogV2Loader.decodeApproved(file.readText())
+    }
+
+    private val definitions
+        get() = catalog.families.flatMap { it.definitions }
+
+    @Test
+    fun canonical_names_are_unique_and_malformed_bulgaria_label_is_absent() {
+        val names = definitions.map { it.canonicalName.lowercase() }
+        assertEquals(names.size, names.distinct().size)
+        assertFalse(names.any { it == "bulgaria en máquina" })
+        assertTrue(names.any { it == "sentadilla búlgara" })
     }
 
     @Test
-    fun catalog_has_no_duplicate_display_names() {
-        val duplicates = catalog()
-            .groupBy { visualCatalogDuplicateNameKey(it) }
-            .filterValues { it.size > 1 }
-            .mapValues { (_, items) -> items.map { it.id to it.name } }
-
-        assertEquals(emptyMap<String, List<Pair<String, String>>>(), duplicates)
+    fun screenshot_families_have_parent_and_specialty_identities() {
+        val byId = definitions.associateBy { it.id }
+        assertNotNull(byId["good_morning"])
+        assertNotNull(byId["hip_abduction"])
+        assertNotNull(byId["hip_adduction"])
+        assertNotNull(byId["chest_fly"])
+        assertNotNull(byId["bulgarian_split_squat"])
+        assertNotNull(byId["biceps_curl"])
+        assertNotNull(byId["lateral_raise"])
+        assertEquals("SPECIALTY", byId.getValue("biceps_curl_zottman").kind.name)
+        assertEquals("SPECIALTY", byId.getValue("lateral_raise_super_rom").kind.name)
     }
 
     @Test
-    fun catalog_keeps_required_common_exercises() {
-        val items = catalog()
-        val allNames = items.flatMap { listOfNotNull(it.name, it.alias) }.map { normalizeCatalogSearchValue(it) }.toSet()
-        val ids = items.map { it.id }.toSet()
-
-        assertTrue(ids.contains("tren_superior_press_pecho_maquina_convergente"))
-        assertTrue(ids.contains("tren_superior_press_banca_plano_barra"))
-        assertTrue(
-            allNames.any { it.contains("press") && it.contains("smith") } ||
-                items.any { ex ->
-                    ex.technicalAspects.orEmpty().any { aspect ->
-                        aspect.id == "bar_path" && aspect.options.any { it.id == "smith" }
-                    }
-                },
-        )
-        assertTrue(allNames.any { it.contains("sentadilla sissy") })
+    fun exact_search_suggests_configuration_without_name_resolution() {
+        val resolver = ExerciseCatalogV2Resolver(catalog)
+        val bayesian = resolver.search("curl bayesian")
+        assertTrue(bayesian.any { it.definitionId == "biceps_curl" && it.suggestedConfigurationId?.contains("bayesian") == true })
+        val bulgarian = resolver.search("bulgaria en maquina")
+        assertTrue(bulgarian.any { it.definitionId == "bulgarian_split_squat" })
     }
 
     @Test
-    fun audited_search_examples_rank_expected_exercise_first() {
-        val items = catalog()
-
-        fun firstResult(query: String): ExerciseMuscleInfo? =
-            items
-                .map { it to calculateSearchScore(it, query) }
-                .filter { it.second > 0 }
-                .sortedWith(
-                    compareByDescending<Pair<ExerciseMuscleInfo, Int>> { it.second }
-                        .thenBy { kotlin.math.abs(it.first.name.length - query.length) }
-                        .thenBy { it.first.name }
-                )
-                .firstOrNull()
-                ?.first
-
-        assertEquals("tren_superior_press_banca_plano_barra", firstResult("press banca plano")?.id)
-        assertEquals(
-            "tren_superior_press_pecho_maquina_convergente",
-            firstResult("press inclinado maquina convergente")?.id,
-        )
-        assertEquals("tren_superior_press_banca_plano_barra", firstResult("press inclinado smith")?.id)
-        val sissyFirstId = firstResult("sentadilla sissy")?.id
-        assertEquals("quads_sentadilla_sissy", sissyFirstId)
-        assertTrue(catalog().none { it.id == "nuevo_extension_cuadriceps_unilateral" })
-    }
-
-    @Test
-    fun remo_t_is_single_canonical_with_station_chips() {
-        val remoT = catalog().single { it.id == "back_remo_barra_t" }
-        val station = remoT.technicalAspects.orEmpty().single { it.id == "station" }
-        assertTrue(station.options.any { it.id == "libre" })
-        assertTrue(station.options.any { it.id == "maquina" })
-        assertTrue(catalog().none { it.id.startsWith("back_remo_barra_t_") })
-    }
-
-    @Test
-    fun hammer_curl_on_straight_or_ez_bar_removed() {
-        assertTrue(
-            catalog().none {
-                it.name.contains("Martillo", ignoreCase = true) &&
-                    (it.equipment == "Barra" || it.equipment == "Barra EZ")
-            },
-        )
-    }
-
-    @Test
-    fun press_specialties_remain_separate() {
-        val ids = catalog().map { it.id }.toSet()
-        assertTrue(ids.contains("tren_superior_press_spoto_barra"))
-        assertTrue(ids.contains("tren_superior_floor_press_barra"))
-        assertTrue(ids.contains("tren_superior_press_banca_cadenas"))
-        val spoto = catalog().single { it.id == "tren_superior_press_spoto_barra" }
-        assertTrue(spoto.technicalAspects.orEmpty().none { it.id == "chest_pause" })
-        assertTrue(spoto.variantGroupId.isNullOrBlank())
+    fun specialties_remain_outside_parent_chip_matrices() {
+        val byId = definitions.associateBy { it.id }
+        assertTrue(byId.getValue("biceps_curl_zottman").optionAxes.isEmpty())
+        assertTrue(byId.getValue("biceps_curl_waiter").optionAxes.isEmpty())
+        assertTrue(byId.getValue("lateral_raise_super_rom").optionAxes.isNotEmpty())
+        assertTrue(byId.getValue("reverse_pec_fly").optionAxes.isEmpty())
     }
 }

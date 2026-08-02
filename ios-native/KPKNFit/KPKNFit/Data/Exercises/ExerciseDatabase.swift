@@ -2,30 +2,9 @@ import Foundation
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-private let EXERCISE_DATABASE_ASSET = "exercise_database"
-private let EXERCISE_ALIASES_ASSET = "exercise_id_aliases"
-
-// ─── JSON Decoder ──────────────────────────────────────────────────────────
-
-private let exerciseCatalogDecoder: JSONDecoder = {
-    let decoder = JSONDecoder()
-    decoder.keyDecodingStrategy = .useDefaultKeys
-    return decoder
-}()
-
 // ─── Thread Safety ─────────────────────────────────────────────────────────
 
 private let exerciseCatalogLock = DispatchQueue(label: "kpkn.exercise.catalog.lock")
-
-// ─── Hardcoded Aliases ─────────────────────────────────────────────────────
-
-private let extraWikiLabExerciseAliases: [String: String] = [
-    "db_exp_face_pull": "tren_superior_face_pull_polea",
-    "db_plank": "ultimo_plancha_frontal",
-    "db_exp_hammer_curl": "tren_superior_curl_martillo_mancuernas",
-    "db_ab_wheel": "ultimo_plancha_rodillo",
-    "db_hanging_leg_raises": "ultimo_elevacion_piernas_paralelas",
-]
 
 // ─── Caches ────────────────────────────────────────────────────────────────
 
@@ -33,7 +12,8 @@ private var exerciseDatabaseCache: [ExerciseMuscleInfo] = []
 private var staticExerciseCache: [ExerciseMuscleInfo] = []
 private var customExerciseOverlayCache: [ExerciseMuscleInfo] = []
 private var exerciseDatabaseByIdCache: [String: ExerciseMuscleInfo] = [:]
-private var exerciseAliasCache: [String: String] = [:]
+private var v2ConfigurationLookupCache: [String: ExerciseMuscleInfo] = [:]
+private var exerciseCatalogV2Cache: ExerciseCatalogV2Repository?
 private var exerciseCatalogInitialized = false
 
 // ─── Public API ────────────────────────────────────────────────────────────
@@ -44,31 +24,40 @@ public func initializeExerciseDatabase() {
     exerciseCatalogLock.sync {
         if exerciseCatalogInitialized { return }
 
-        guard
-            let exercisesURL = Bundle.main.url(forResource: EXERCISE_DATABASE_ASSET, withExtension: "json"),
-            let aliasesURL = Bundle.main.url(forResource: EXERCISE_ALIASES_ASSET, withExtension: "json"),
-            let exercisesData = try? Data(contentsOf: exercisesURL),
-            let aliasesData = try? Data(contentsOf: aliasesURL)
-        else {
-            return
+        let catalog: ExerciseCatalogV2Repository
+        do {
+            catalog = try ExerciseCatalogV2Repository(bundle: .main)
+        } catch {
+            fatalError("Approved exercise catalog v2 failed to load: \(error.localizedDescription)")
         }
-
-        let baseExercises: [ExerciseMuscleInfo] = (try? exerciseCatalogDecoder.decode([ExerciseMuscleInfo].self, from: exercisesData)) ?? []
-        staticExerciseCache = baseExercises.map { normalizeExerciseLabels($0) }
+        exerciseCatalogV2Cache = catalog
+        staticExerciseCache = catalog.catalog.families.flatMap { family in
+            family.definitions.compactMap { definition in
+                guard let configuration = definition.configurations.first(where: { $0.id == definition.defaultConfigurationId }) else {
+                    return nil
+                }
+                return legacyExerciseInfo(family: family, definition: definition, configuration: configuration)
+            }
+        }.map { normalizeExerciseLabels($0) }
 
         let exercises = buildMergedExerciseCatalog()
-        let aliases = (try? exerciseCatalogDecoder.decode([String: String].self, from: aliasesData)) ?? [:]
-
         exerciseDatabaseCache = exercises
+        v2ConfigurationLookupCache = catalog.catalog.families.flatMap { family in
+            family.definitions.flatMap { definition in
+                definition.configurations.map { configuration in
+                    legacyExerciseInfo(
+                        family: family,
+                        definition: definition,
+                        configuration: configuration,
+                        id: configuration.id
+                    )
+                }
+            }
+        }.reduce(into: [String: ExerciseMuscleInfo]()) { result, info in
+            result[info.id.lowercased()] = normalizeExerciseLabels(info)
+        }
         exerciseDatabaseByIdCache = Dictionary(uniqueKeysWithValues: exercises.map { ($0.id.lowercased(), $0) })
-
-        var mergedAliases = aliases.reduce(into: [String: String]()) { result, pair in
-            result[pair.key.lowercased()] = pair.value.lowercased()
-        }
-        for (key, value) in extraWikiLabExerciseAliases {
-            mergedAliases[key.lowercased()] = value.lowercased()
-        }
-        exerciseAliasCache = mergedAliases
+            .merging(v2ConfigurationLookupCache) { _, v2 in v2 }
 
         exerciseCatalogInitialized = true
     }
@@ -88,35 +77,41 @@ public func loadCustomExercisesAsync() async {
         let merged = buildMergedExerciseCatalog()
         exerciseDatabaseCache = merged
         exerciseDatabaseByIdCache = Dictionary(uniqueKeysWithValues: merged.map { ($0.id.lowercased(), $0) })
+            .merging(v2ConfigurationLookupCache) { _, v2 in v2 }
     }
 }
 
-public var EXERCISE_DATABASE: [ExerciseMuscleInfo] {
+public var catalogExerciseList: [ExerciseMuscleInfo] {
+    initializeExerciseDatabase()
     exerciseDatabaseCache
 }
 
-public var EXERCISE_DATABASE_BY_ID: [String: ExerciseMuscleInfo] {
-    exerciseDatabaseByIdCache
+/// Exact ID index for definitions, configurations and custom exercises.
+public func catalogExerciseIndex() -> [String: ExerciseMuscleInfo] {
+    initializeExerciseDatabase()
+    return exerciseDatabaseByIdCache
 }
 
-public var EXERCISE_ID_ALIASES: [String: String] {
-    exerciseAliasCache
+/// Search terms are owned by the v2 repository; there is no runtime redirect table.
+public func catalogSearchRedirects() -> [String: String] {
+    [:]
+}
+
+public func exerciseCatalogV2() -> ExerciseCatalogV2Repository {
+    initializeExerciseDatabase()
+    return exerciseCatalogV2Cache!
 }
 
 public func resolveExerciseId(_ rawId: String?) -> String? {
+    initializeExerciseDatabase()
     guard let rawId = rawId?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !rawId.isEmpty else {
         return nil
     }
-    if exerciseDatabaseByIdCache[rawId] != nil {
-        return rawId
-    }
-    guard let canonical = exerciseAliasCache[rawId] else {
-        return nil
-    }
-    return exerciseDatabaseByIdCache[canonical] != nil ? canonical : nil
+    return exerciseDatabaseByIdCache[rawId] != nil ? rawId : nil
 }
 
 public func resolveExercise(_ rawId: String?) -> ExerciseMuscleInfo? {
+    initializeExerciseDatabase()
     guard let resolvedId = resolveExerciseId(rawId) else {
         return nil
     }
@@ -129,6 +124,7 @@ public func setCustomExerciseOverlay(exercises: [ExerciseMuscleInfo]) {
         let merged = buildMergedExerciseCatalog()
         exerciseDatabaseCache = merged
         exerciseDatabaseByIdCache = Dictionary(uniqueKeysWithValues: merged.map { ($0.id.lowercased(), $0) })
+            .merging(v2ConfigurationLookupCache) { _, v2 in v2 }
     }
 }
 
@@ -139,6 +135,7 @@ public func upsertCustomExerciseOverlay(exercise: ExerciseMuscleInfo) {
         let merged = buildMergedExerciseCatalog()
         exerciseDatabaseCache = merged
         exerciseDatabaseByIdCache = Dictionary(uniqueKeysWithValues: merged.map { ($0.id.lowercased(), $0) })
+            .merging(v2ConfigurationLookupCache) { _, v2 in v2 }
     }
 }
 
@@ -148,6 +145,7 @@ public func removeCustomExerciseOverlay(exerciseId: String) {
         let merged = buildMergedExerciseCatalog()
         exerciseDatabaseCache = merged
         exerciseDatabaseByIdCache = Dictionary(uniqueKeysWithValues: merged.map { ($0.id.lowercased(), $0) })
+            .merging(v2ConfigurationLookupCache) { _, v2 in v2 }
     }
 }
 
@@ -158,6 +156,116 @@ public func addOrUpdateCustomExercise(_ exercise: ExerciseMuscleInfo) async {
         try await KpknDatabase.instance().customExerciseDao.upsert(entity: normalized.toEntity())
     } catch {
         // runCatching swallows errors
+    }
+}
+
+// ─── v2 -> legacy materialization boundary ─────────────────────────────────
+
+/// Legacy consumers receive a read-only projection of the approved v2
+/// configuration. The source of truth remains the v2 repository and its
+/// exact definition/configuration IDs; this adapter exists only until every
+/// iOS feature consumes the v2 model directly.
+private func legacyExerciseInfo(
+    family: ExerciseCatalogFamilyV2,
+    definition: ExerciseCatalogDefinitionV2,
+    configuration: ExerciseCatalogConfigurationV2,
+    id: String? = nil
+) -> ExerciseMuscleInfo {
+    let profile = configuration.profile
+    let rich = profile.richMetadata
+    let involved: [InvolvedMuscle] = profile.primaryMuscles.map {
+        InvolvedMuscle(muscle: muscleLabel($0), role: .PRIMARY)
+    } + profile.secondaryMuscles.map {
+        InvolvedMuscle(muscle: muscleLabel($0), role: .SECONDARY)
+    } + profile.stabilizerMuscles.map {
+        InvolvedMuscle(muscle: muscleLabel($0), role: .STABILIZER)
+    }
+    let coaching = rich.coaching
+    return ExerciseMuscleInfo(
+        id: id ?? definition.id,
+        name: rich.display.displayName,
+        alias: definition.searchTerms.joined(separator: ", ").nilIfBlank,
+        description: "\(definition.description) \(configuration.displaySummary).",
+        involvedMuscles: involved,
+        equipment: equipmentLabel(profile.equipmentId),
+        category: definition.kind == "SPECIALTY" ? "Especialidad" : "Fuerza",
+        type: definition.kind == "SPECIALTY" ? "Especialidad" : "Accesorio",
+        force: profile.movementPatternId,
+        chain: profile.kineticChain.lowercased(),
+        bodyPart: profile.bodyRegion.lowercased(),
+        tier: rich.programming.role,
+        efc: profile.efc,
+        cnc: profile.cnc,
+        ssc: profile.ssc,
+        ttc: profile.ttc,
+        axialLoadFactor: profile.axialLoadFactor,
+        technicalDifficulty: profile.technicalDifficulty,
+        resistanceProfile: ResistanceProfile(
+            curve: profile.resistanceProfile,
+            peakTensionPoint: rich.biomechanics.rangeOfMotion,
+            description: rich.biomechanics.stability
+        ),
+        commonMistakes: profile.commonMistakes.map {
+            CommonMistake(mistake: $0, correction: "Reduce la carga y repite el cue técnico.")
+        },
+        setupCues: profile.setupCues,
+        executionCues: profile.executionCues,
+        progressions: coaching.progressions.map { Progression(name: "Progresión", description: $0) },
+        regressions: coaching.regressions.map { Progression(name: "Regresión", description: $0) },
+        recommendedMobility: coaching.relevantMobility,
+        functionalTransfer: rich.programming.objectives.joined(separator: " ").nilIfBlank,
+        sportsRelevance: rich.programming.splitSuitability,
+        setupTime: rich.programming.indicativeRestSeconds.min,
+        averageRestSeconds: rich.programming.indicativeRestSeconds.max,
+        executionOptions: definition.optionAxes,
+        movementPattern: profile.movementPatternId
+    )
+}
+
+private func muscleLabel(_ id: String) -> String {
+    [
+        "pectoralis": "Pectorales",
+        "deltoid": "Deltoides",
+        "triceps": "Tríceps",
+        "biceps": "Bíceps",
+        "forearm": "Antebrazo",
+        "latissimus_dorsi": "Dorsales",
+        "erector_spinae": "Erectores Espinales",
+        "hamstrings": "Isquiosurales",
+        "gluteus_maximus": "Glúteos",
+        "quadriceps": "Cuádriceps",
+        "calves": "Pantorrillas",
+        "tibialis_anterior": "Tibial Anterior",
+        "hip_flexors": "Flexores Cadera",
+        "neck": "Cuello",
+        "adductors": "Aductores",
+        "tensor_fasciae_latae": "Tensor Fascia Lata",
+        "trapezius": "Trapecio",
+        "rhomboids": "Romboides",
+        "abdominals": "Abdomen",
+        "core": "Core",
+    ][id] ?? id
+}
+
+private func equipmentLabel(_ id: String) -> String {
+    [
+        "barbell": "Barra",
+        "dumbbells": "Mancuerna",
+        "machine": "Máquina",
+        "cable": "Polea",
+        "bodyweight": "Peso Corporal",
+        "plate": "Disco",
+        "band": "Banda",
+        "kettlebell": "Kettlebell",
+        "ez_bar": "Barra EZ",
+        "trx": "TRX",
+        "smith_machine": "Máquina Smith",
+    ][id] ?? id
+}
+
+private extension String {
+    var nilIfBlank: String? {
+        trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : self
     }
 }
 

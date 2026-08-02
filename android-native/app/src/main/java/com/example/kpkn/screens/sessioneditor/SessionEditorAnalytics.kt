@@ -201,8 +201,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
-import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.buildExerciseCatalogLookup
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.discomfortLabel
@@ -277,9 +277,10 @@ internal fun computeSessionRoleWeightedSets(
     val result = mutableMapOf<String, Double>()
     val exercises = session.allExercises()
     exercises.forEach { exercise ->
-        val dbEntry = exercise.exerciseDbId?.lowercase()?.let(exerciseIndex::get)
-            ?: exercise.exerciseId?.lowercase()?.let(exerciseIndex::get)
-            ?: exerciseIndex.values.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
+        val dbEntry = (exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId)
+            ?.trim()
+            ?.lowercase()
+            ?.let(exerciseIndex::get)
             ?: return@forEach
         val effectiveSetCount = exercise.sets.count { !it.isIneffective }.coerceAtLeast(1)
         dbEntry.involvedMuscles.forEach { involvement ->
@@ -461,8 +462,8 @@ internal data class MuscleVolumeRow(
 internal fun buildMuscleVolumeRows(session: Session): List<MuscleVolumeRow> {
     val volumes = VolumeCalculator.calculateRoleSeparatedMuscleVolume(
         sessions = listOf(session),
-        exerciseList = EXERCISE_DATABASE,
-        aliases = EXERCISE_ID_ALIASES,
+        exerciseList = exerciseCatalogSnapshot(),
+        aliases = catalogSearchRedirects(),
     )
     val exerciseIndex = catalogIndexForVolume
     val intensitySets = mutableMapOf<String, MutableList<com.example.kpkn.data.models.ExerciseSet>>()
@@ -491,7 +492,7 @@ internal fun buildMuscleVolumeRows(session: Session): List<MuscleVolumeRow> {
 }
 
 private val catalogIndexForVolume: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo> by lazy {
-    buildExerciseCatalogLookup(EXERCISE_DATABASE)
+    buildExerciseCatalogLookup(exerciseCatalogSnapshot())
 }
 
 internal fun buildDisplayContributions(
@@ -701,7 +702,7 @@ internal fun SessionSubMuscleBreakdownList(
     countIndirect: Boolean,
     adjustByIntensity: Boolean,
 ) {
-    val exerciseIndex = remember { EXERCISE_DATABASE.associateBy { it.id.lowercase() } }
+    val exerciseIndex = remember { exerciseCatalogSnapshot().associateBy { it.id.lowercase() } }
     val breakdown = remember(muscleName, session, countIndirect, adjustByIntensity) {
         calculateSubMuscleBreakdown(muscleName, session, exerciseIndex, countIndirect, adjustByIntensity)
     }

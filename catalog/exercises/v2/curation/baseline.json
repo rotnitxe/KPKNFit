@@ -1,0 +1,19 @@
+{
+  "asset": "android-native/app/src/main/assets/exercise_database.json",
+  "assetSha256": "f5c656400666a2c0745555c71faa4926a650be182ec20ee47499a616bd3b558e",
+  "exerciseCount": 257,
+  "uniqueExerciseIds": 257,
+  "uniqueDisplayNames": 257,
+  "technicalAspectCount": 347,
+  "technicalOptionCount": 928,
+  "effectiveOptionCount": 115,
+  "singletonAspectCount": 78,
+  "parentsWithoutEffectiveModifiers": 229,
+  "parentsWithMultiAxisCartesianRisk": 55,
+  "aliasCount": 1294,
+  "sourceRevision": "pre-v2-observation-2026-08-02",
+  "notes": [
+    "These values are evidence only; no legacy row is imported automatically.",
+    "Cartesian risk is a diagnostic count of multi-axis option sets, not a generated exercise count."
+  ]
+}

@@ -23,7 +23,7 @@ fun exerciseDisplayParts(
     catalogInfo: ExerciseMuscleInfo?,
 ): ExerciseDisplayParts {
     val selected = exercise.selectedAspects.orEmpty()
-    val options = catalogInfo?.technicalAspects.orEmpty().flatMap { aspect ->
+    val options = catalogInfo?.catalogOptionAxes.orEmpty().flatMap { aspect ->
         val optionId = selected[aspect.id] ?: return@flatMap emptyList<AspectOption>()
         val defaultId = aspect.defaultOptionId ?: aspect.options.firstOrNull()?.id
         if (optionId == defaultId) return@flatMap emptyList()
@@ -54,6 +54,11 @@ fun completedExerciseDisplayName(
         id = exercise.exerciseId,
         name = exercise.exerciseName,
         exerciseDbId = exercise.exerciseDbId,
+        catalogRevision = exercise.catalogRevision,
+        catalogDefinitionId = exercise.catalogDefinitionId,
+        catalogConfigurationId = exercise.catalogConfigurationId,
+        performanceProfileId = exercise.performanceProfileId,
+        occurrenceId = exercise.occurrenceId,
         variantName = exercise.variantName,
         selectedAspects = exercise.selectedAspects,
         effectiveMuscles = exercise.effectiveMuscles,
@@ -65,7 +70,8 @@ private fun resolveCatalogInfoForDisplay(
     exercise: Exercise,
     catalogLookup: Map<String, ExerciseMuscleInfo>,
 ): ExerciseMuscleInfo? {
-    val id = (exercise.exerciseDbId ?: exercise.exerciseId)?.lowercase()
+    val id = (exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId)
+        ?.trim()
+        ?.lowercase()
     return id?.let(catalogLookup::get)
-        ?: catalogLookup.values.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
 }

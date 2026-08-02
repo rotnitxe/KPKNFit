@@ -2300,17 +2300,17 @@ func normalizeWorkoutMuscleKey(_ value: String) -> String {
 
 func workoutCatalogInfo(exercise: Exercise) -> ExerciseMuscleInfo? {
     let canonicalId = exercise.resolvedCanonicalExerciseId()
-    if let info = EXERCISE_DATABASE_BY_ID[canonicalId] { return info }
-    if let dbId = exercise.exerciseDbId?.lowercased(), let info = EXERCISE_DATABASE_BY_ID[dbId] { return info }
-    if let exId = exercise.exerciseId?.lowercased(), let info = EXERCISE_DATABASE_BY_ID[exId] { return info }
+    if let info = catalogExerciseIndex()[canonicalId] { return info }
+    if let dbId = exercise.exerciseDbId?.lowercased(), let info = catalogExerciseIndex()[dbId] { return info }
+    if let exId = exercise.exerciseId?.lowercased(), let info = catalogExerciseIndex()[exId] { return info }
     return nil
 }
 
 func workoutCatalogInfo(exercise: CompletedExercise) -> ExerciseMuscleInfo? {
     let canonicalId = exercise.resolvedCanonicalExerciseId()
-    if let info = EXERCISE_DATABASE_BY_ID[canonicalId] { return info }
-    if let dbId = exercise.exerciseDbId?.lowercased(), let info = EXERCISE_DATABASE_BY_ID[dbId] { return info }
-    if !exercise.exerciseId.isEmpty, let info = EXERCISE_DATABASE_BY_ID[exercise.exerciseId.lowercased()] { return info }
+    if let info = catalogExerciseIndex()[canonicalId] { return info }
+    if let dbId = exercise.exerciseDbId?.lowercased(), let info = catalogExerciseIndex()[dbId] { return info }
+    if !exercise.exerciseId.isEmpty, let info = catalogExerciseIndex()[exercise.exerciseId.lowercased()] { return info }
     return nil
 }
 

@@ -291,7 +291,7 @@ private fun TechnicalAspectDescriptionChips(
     exercise: ExerciseMuscleInfo,
     onChipTap: (String, String) -> Unit,
 ) {
-    val options = exercise.technicalAspects.orEmpty().flatMap { aspect ->
+    val options = exercise.catalogOptionAxes.orEmpty().flatMap { aspect ->
         aspect.options.map { aspect to it }
     }
     if (options.isEmpty()) return

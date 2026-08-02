@@ -62,7 +62,7 @@ struct WikiLabHomeScreen: View {
         let q = searchQuery.lowercased()
         var results: [SearchResult] = []
         
-        let matchedExercises = EXERCISE_DATABASE
+        let matchedExercises = catalogExerciseList
             .filter { calculateSearchScore($0, searchQuery) > 0 }
             .sorted { a, b in
                 let sa = calculateSearchScore(a, searchQuery)
@@ -114,7 +114,7 @@ struct WikiLabHomeScreen: View {
         var list: [WikiLensConcept] = []
         var idx = 0
         
-        for ex in EXERCISE_DATABASE.shuffled().prefix(12) {
+        for ex in catalogExerciseList.shuffled().prefix(12) {
             list.append(WikiLensConcept(key: "ex\(idx)", id: ex.id, label: String(ex.name.prefix(12)), type: .EXERCISE, color: LENS_EXERCISE))
             idx += 1
         }
@@ -351,7 +351,7 @@ struct WikiLabHomeScreen: View {
     
     private var compactStatsSection: some View {
         HStack(spacing: 12) {
-            CompactStatView(value: "\(EXERCISE_DATABASE.count)", label: "Ejercicios")
+            CompactStatView(value: "\(catalogExerciseList.count)", label: "Ejercicios")
             Text("•").foregroundColor(.white.opacity(0.25))
             CompactStatView(value: "\(WikiLabRepository.shared.muscles.count)", label: "Músculos")
             Text("•").foregroundColor(.white.opacity(0.25))
@@ -424,7 +424,7 @@ struct WikiLabHomeScreen: View {
             
             VStack(spacing: 10) {
                 HStack(spacing: 10) {
-                    WikiSectionTileView(title: "Ejercicios", subtitle: "\(EXERCISE_DATABASE.count) catalogados", onClick: onNavigateToExercises)
+                    WikiSectionTileView(title: "Ejercicios", subtitle: "\(catalogExerciseList.count) catalogados", onClick: onNavigateToExercises)
                     WikiSectionTileView(title: "Atlas Anatómico", subtitle: "\(WikiLabRepository.shared.muscles.count) músculos", onClick: onNavigateToMuscleAnatomy)
                 }
                 HStack(spacing: 10) {

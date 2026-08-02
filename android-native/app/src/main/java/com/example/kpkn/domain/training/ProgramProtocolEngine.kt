@@ -227,7 +227,13 @@ object ProgramProtocolEngine {
             exerciseDbId = resolvedLift.exerciseDbId,
             exerciseId = resolvedLift.exerciseDbId,
             canonicalExerciseId = resolvedLift.exerciseDbId,
+            exerciseFamilyId = resolvedLift.catalogDefinitionId,
             sets = sets,
+            catalogRevision = resolvedLift.catalogRevision,
+            catalogDefinitionId = resolvedLift.catalogDefinitionId,
+            catalogConfigurationId = resolvedLift.exerciseDbId,
+            performanceProfileId = resolvedLift.performanceProfileId,
+            occurrenceId = idProvider.newId(),
         )
     }
 

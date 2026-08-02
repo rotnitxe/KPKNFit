@@ -210,8 +210,8 @@ enum AugeTtcEngine {
             var sessionDrain = Dictionary(uniqueKeysWithValues: allBatteries.map { ($0, 0.0) })
 
             for ex in log.completedExercises {
-                let info = exerciseDb[ex.exerciseDbId ?? ex.exerciseId]
-                    ?? exerciseDb.values.first { $0.name.caseInsensitiveCompare(ex.exerciseName) == .orderedSame }
+                let info = (ex.exerciseDbId ?? ex.exerciseId)
+                    .flatMap { exerciseDb[$0.lowercased()] }
 
                 let weights = getArticularWeightsForExercise(info)
                 if weights.values.allSatisfy({ $0 == 0.0 }) { continue }

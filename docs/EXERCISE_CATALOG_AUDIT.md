@@ -1,7 +1,12 @@
 # Auditoría del catálogo de ejercicios
 
-Fecha: 2026-07-31  
-Fuente: `android-native/app/src/main/assets/exercise_database.json`  
+> **Documento histórico (2026-07-31).** Esta auditoría describe el catálogo v1
+> y no es una fuente de runtime ni una especificación vigente. La fuente
+> autoritativa actual es [`catalog/exercises/v2/curation/STATUS.md`](../catalog/exercises/v2/curation/STATUS.md)
+> y el runtime empaquetado es `exercise_catalog_v2.json`.
+
+Fecha del corte histórico: 2026-07-31
+Fuente histórica: `android-native/app/src/main/assets/exercise_database.json` (retirada del bundle)
 Método: revisión semántica manual + aplicación de taxonomía del plan (sin clustering automático).
 
 ## Principio universal

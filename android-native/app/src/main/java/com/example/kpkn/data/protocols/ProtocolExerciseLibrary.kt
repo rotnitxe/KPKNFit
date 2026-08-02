@@ -1,52 +1,83 @@
 package com.example.kpkn.data.protocols
 
+private const val CATALOG_V2_REVISION = "v2-approved-2026-08-02"
+
+private val PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
+    "back_dominadas__default" to "back_dominadas__bodyweight__dominadas",
+    "back_jalon_pecho_polea__default" to "back_jalon_pecho_polea__cable__jalon_al_pecho_en_polea",
+    "back_remo_pecho_apoyado_mancuernas__default" to "back_remo_pecho_apoyado_mancuernas__dumbbells__remo_con_pecho_apoyado_con_mancuernas",
+    "biceps_curl__standing__barbell" to "biceps_curl__barbell__curl_de_biceps",
+    "chest_fly__pec_deck__machine__machine" to "chest_fly__machine__aperturas_de_pecho",
+    "core_plancha__default" to "core_plancha__bodyweight__plancha",
+    "deltoides_press_hombros_sentado__default" to "deltoides_press_hombros_sentado__barbell__press_de_hombros_sentado",
+    "glutes_hip_thrust__default" to "glutes_hip_thrust__barbell__hip_thrust",
+    "hams_curl_femoral__default" to "hams_curl_femoral__sliders__curl_femoral",
+    "hams_peso_muerto_convencional__default" to "hams_peso_muerto_convencional__barbell__peso_muerto_convencional",
+    "hams_peso_muerto_sumo__default" to "hams_peso_muerto_sumo__barbell__peso_muerto_sumo",
+    "hip_adduction__seated__machine__bilateral" to "hip_adduction__machine__aduccion_de_cadera",
+    "lateral_raise__standing__cable__unilateral" to "lateral_raise__cable__elevacion_lateral",
+    "quads_extension_cuadriceps__default" to "quads_extension_cuadriceps__machine__extension_de_cuadriceps",
+    "quads_prensa_piernas__default" to "quads_prensa_piernas__machine__prensa_de_piernas",
+    "quads_sentadilla_frontal__default" to "quads_sentadilla_frontal__barbell__sentadilla_frontal",
+    "quads_sentadilla_trasera__default" to "quads_sentadilla_trasera__barbell__sentadilla_trasera",
+    "romanian_deadlift__bilateral__barbell" to "romanian_deadlift__barbell__peso_muerto_rumano",
+    "tren_superior_floor_press_barra__default" to "tren_superior_floor_press_barra__barbell__floor_press_con_barra",
+    "tren_superior_fondos__default" to "tren_superior_fondos__bodyweight__fondos",
+    "tren_superior_press_banca_plano_barra__default" to "tren_superior_press_banca_plano_barra__barbell__press_de_banca_con_barra",
+    "triceps_pushdown__default" to "triceps_pushdown__cable__pushdown_de_triceps",
+)
+
 /**
- * Pool mínimo de ejercicios reales (con exerciseDbId del catálogo) usado para
- * compilar protocolos a sesiones ejecutables. No pretende reemplazar los
- * SessionTemplates completos: solo cubre los movimientos principales de
- * powerlifting/powerbuilding/culturismo y sus acompañantes más comunes,
- * reutilizando los mismos IDs que [com.example.kpkn.data.sessions.SessionTemplates].
+ * Pool explícito de configuraciones v2 usado para compilar protocolos a
+ * sesiones ejecutables. `exerciseDbId` conserva el nombre histórico del
+ * campo de transporte, pero su valor es siempre un `configurationId` v2;
+ * nunca un alias ni un ID de la fuente antigua.
  */
-data class ProtocolLift(val name: String, val exerciseDbId: String)
+data class ProtocolLift(val name: String, val exerciseDbId: String) {
+    val catalogRevision: String = CATALOG_V2_REVISION
+    val catalogDefinitionId: String = exerciseDbId.substringBefore("__")
+    val performanceProfileId: String = PERFORMANCE_PROFILE_BY_CONFIGURATION[exerciseDbId]
+        ?: error("Protocol references an unregistered v2 configuration: $exerciseDbId")
+}
 
 enum class ProtocolLiftFocus { SQUAT, BENCH, DEADLIFT, OVERHEAD_PRESS, PULL, GENERAL }
 
 object ProtocolExerciseLibrary {
 
-    val SQUAT_MAIN = ProtocolLift("Sentadilla Trasera Barra Alta con Barra Recta", "quads_sentadilla_trasera_barra_alta")
-    val SQUAT_TECHNIQUE = ProtocolLift("Sentadilla Frontal con Barra Recta", "quads_sentadilla_frontal_barra_recta")
-    val BENCH_MAIN = ProtocolLift("Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra")
-    val BENCH_TECHNIQUE = ProtocolLift("Press de Banca Inclinado con Barra", "tren_superior_press_banca_inclinado_barra")
-    val DEADLIFT_MAIN = ProtocolLift("Peso Muerto Convencional con Barra Recta", "hams_peso_muerto_convencional_barra_recta")
-    val DEADLIFT_TECHNIQUE = ProtocolLift("Peso Muerto Sumo con Barra Recta", "hams_peso_muerto_sumo_barra_recta")
-    val OHP_MAIN = ProtocolLift("Press de Hombros Sentado con Barra Recta", "deltoides_press_hombros_sentado_barra_recta")
+    val SQUAT_MAIN = ProtocolLift("Sentadilla Trasera Barra Alta con Barra Recta", "quads_sentadilla_trasera__default")
+    val SQUAT_TECHNIQUE = ProtocolLift("Sentadilla Frontal con Barra Recta", "quads_sentadilla_frontal__default")
+    val BENCH_MAIN = ProtocolLift("Press de Banca Plano con Barra", "tren_superior_press_banca_plano_barra__default")
+    val BENCH_TECHNIQUE = ProtocolLift("Floor Press con Barra", "tren_superior_floor_press_barra__default")
+    val DEADLIFT_MAIN = ProtocolLift("Peso Muerto Convencional con Barra Recta", "hams_peso_muerto_convencional__default")
+    val DEADLIFT_TECHNIQUE = ProtocolLift("Peso Muerto Sumo con Barra Recta", "hams_peso_muerto_sumo__default")
+    val OHP_MAIN = ProtocolLift("Press de Hombros Sentado con Barra Recta", "deltoides_press_hombros_sentado__default")
 
     private val SQUAT_ACCESSORIES = listOf(
-        ProtocolLift("Prensa de Piernas Horizontal en Máquina", "quads_prensa_piernas_horizontal_maquina"),
-        ProtocolLift("Extensión de Cuádriceps en Máquina", "quads_extension_cuadriceps_maquina"),
-        ProtocolLift("Peso Muerto Rumano con Barra Recta", "hams_peso_muerto_rumano_barra_recta"),
+        ProtocolLift("Prensa de Piernas", "quads_prensa_piernas__default"),
+        ProtocolLift("Extensión de Cuádriceps en Máquina", "quads_extension_cuadriceps__default"),
+        ProtocolLift("Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell"),
     )
     private val BENCH_ACCESSORIES = listOf(
-        ProtocolLift("Extensión de Tríceps en Polea Alta", "triceps_pushdown_polea"),
-        ProtocolLift("Aperturas en Máquina Pec Deck", "tren_superior_aperturas_pec_deck"),
-        ProtocolLift("Fondos en Paralelas", "tren_superior_fondos_paralelas"),
+        ProtocolLift("Extensión de Tríceps en Polea Alta", "triceps_pushdown__default"),
+        ProtocolLift("Aperturas en Máquina Pec Deck", "chest_fly__pec_deck__machine__machine"),
+        ProtocolLift("Fondos en Paralelas", "tren_superior_fondos__default"),
     )
     private val DEADLIFT_ACCESSORIES = listOf(
-        ProtocolLift("Peso Muerto Rumano con Barra Recta", "hams_peso_muerto_rumano_barra_recta"),
-        ProtocolLift("Curl Femoral Sentado en Máquina", "hams_curl_femoral_sentado_maquina"),
-        ProtocolLift("Hip Thrust con Barra Recta", "glutes_hip_thrust_barra_recta"),
+        ProtocolLift("Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell"),
+        ProtocolLift("Curl Femoral con Sliders", "hams_curl_femoral__default"),
+        ProtocolLift("Hip Thrust con Barra Recta", "glutes_hip_thrust__default"),
     )
     private val PULL_ACCESSORIES = listOf(
-        ProtocolLift("Jalón al Pecho en Polea (Agarre Ancho)", "back_jalon_pecho_polea_ancho"),
-        ProtocolLift("Remo con Pecho Apoyado con Mancuernas", "back_remo_pecho_apoyado_mancuernas"),
-        ProtocolLift("Dominadas Pronas", "back_dominadas_pronas"),
+        ProtocolLift("Jalón al Pecho en Polea", "back_jalon_pecho_polea__default"),
+        ProtocolLift("Remo con Pecho Apoyado con Mancuernas", "back_remo_pecho_apoyado_mancuernas__default"),
+        ProtocolLift("Dominadas", "back_dominadas__default"),
     )
     private val SHOULDER_ARM_ACCESSORIES = listOf(
-        ProtocolLift("Elevaciones Laterales de Pie en Polea", "deltoides_elevaciones_laterales_de_pie_polea"),
-        ProtocolLift("Curl de Bíceps de Pie con Mancuernas", "biceps_curl_de_pie_supino_mancuernas"),
+        ProtocolLift("Elevación Lateral de Pie en Polea", "lateral_raise__standing__cable__unilateral"),
+        ProtocolLift("Curl de Bíceps de Pie", "biceps_curl__standing__barbell"),
     )
     private val CORE_ACCESSORIES = listOf(
-        ProtocolLift("Plancha Frontal Isométrica", "core_plancha_frontal_iso"),
+        ProtocolLift("Plancha Frontal", "core_plancha__default"),
     )
 
     private val rotation = listOf(SQUAT_MAIN, BENCH_MAIN, DEADLIFT_MAIN, OHP_MAIN)

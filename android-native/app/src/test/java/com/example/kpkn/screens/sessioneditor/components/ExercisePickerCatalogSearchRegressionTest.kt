@@ -54,7 +54,7 @@ class ExercisePickerCatalogSearchRegressionTest {
         val canonical = curlFemoral.copy(
             id = "biceps_curl_de_pie",
             name = "Curl de Bíceps de Pie",
-            technicalAspects = listOf(
+            catalogOptionAxes = listOf(
                 TechnicalAspect(
                     id = "grip_type",
                     name = "Tipo de agarre",

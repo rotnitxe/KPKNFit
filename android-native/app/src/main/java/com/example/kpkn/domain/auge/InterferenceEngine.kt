@@ -197,7 +197,7 @@ object InterferenceEngine {
         val drains = mutableMapOf<String, Double>()
 
         log.completedExercises.forEach { ce ->
-            val info = resolveExercise(ce.exerciseDbId, ce.exerciseName, exerciseDb) ?: return@forEach
+            val info = resolveExercise(ce.catalogConfigurationId ?: ce.exerciseDbId ?: ce.exerciseId, exerciseDb) ?: return@forEach
             val accumulated = mutableMapOf<String, Int>()
 
             ce.sets.forEach { set ->
@@ -238,7 +238,7 @@ object InterferenceEngine {
     ): Map<String, Double> {
         val usages = mutableMapOf<String, Double>()
         log.completedExercises.forEach { ce ->
-            val info = resolveExercise(ce.exerciseDbId, ce.exerciseName, exerciseDb) ?: return@forEach
+            val info = resolveExercise(ce.catalogConfigurationId ?: ce.exerciseDbId ?: ce.exerciseId, exerciseDb) ?: return@forEach
             val involvedMuscles = ce.effectiveMuscles?.takeIf { it.isNotEmpty() }
                 ?: info.involvedMuscles
             involvedMuscles.forEach { im ->
@@ -266,7 +266,7 @@ object InterferenceEngine {
         val allExercises = session.exercises + session.parts.flatMap { it.exercises }
 
         allExercises.forEach { ex ->
-            val info = resolveExercise(ex.exerciseDbId, ex.name, exerciseDb) ?: return@forEach
+            val info = resolveExercise(ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId, exerciseDb) ?: return@forEach
             val metrics = AugeFatigueEngine.getDynamicAugeMetrics(info.name, info.equipment, info) ?: AugeMetrics()
             // Estimar drenaje basado en EFC normalizado (sin sets reales)
             val estimatedDrain = (metrics.efc / 5.0) * 0.4   // 40% max drain estimado por ejercicio
@@ -298,7 +298,7 @@ object InterferenceEngine {
         val allExercises = session.exercises + session.parts.flatMap { it.exercises }
 
         allExercises.forEach { ex ->
-            val info = resolveExercise(ex.exerciseDbId, ex.name, exerciseDb) ?: return@forEach
+            val info = resolveExercise(ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId, exerciseDb) ?: return@forEach
             val involvedMuscles = if (!ex.effectiveMuscles.isNullOrEmpty()) {
                 ex.effectiveMuscles!!
             } else {
@@ -409,16 +409,11 @@ object InterferenceEngine {
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     private fun resolveExercise(
-        dbId: String?,
-        name: String,
+        catalogId: String?,
         exerciseDb: Map<String, ExerciseMuscleInfo>,
-    ): ExerciseMuscleInfo? {
-        if (!dbId.isNullOrBlank()) return exerciseDb[dbId]
-        // Fallback: match por nombre normalizado
-        val normName = name.lowercase().trim()
-        return exerciseDb.values.firstOrNull {
-            it.name.lowercase().trim() == normName
-                || it.alias?.lowercase()?.trim() == normName
-        }
-    }
+    ): ExerciseMuscleInfo? = catalogId
+        ?.trim()
+        ?.lowercase()
+        ?.takeIf(String::isNotBlank)
+        ?.let(exerciseDb::get)
 }

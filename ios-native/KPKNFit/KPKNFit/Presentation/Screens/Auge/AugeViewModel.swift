@@ -18,7 +18,7 @@ final class AugeViewModel: ObservableObject {
 
     private let augeRepo = AugeRepository.shared
     private let programRepo = ProgramRepository.shared
-    private let exerciseDb = EXERCISE_DATABASE_BY_ID
+    private let exerciseDb = catalogExerciseIndex()
 
     private var recoveryTimerTask: Task<Void, Never>?
 

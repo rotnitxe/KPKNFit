@@ -20,12 +20,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.TechnicalAspect
-import com.example.kpkn.screens.sessioneditor.VariantFlowResultCache
+import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
 import com.example.kpkn.ui.components.KpknSheetTokens
 
 /** Defaults: each aspect → defaultOptionId or first option. */
 fun defaultAspectSelection(exercise: ExerciseMuscleInfo): Map<String, String> {
-    val aspects = exercise.technicalAspects.orEmpty()
+    val aspects = exercise.catalogOptionAxes.orEmpty()
     if (aspects.isEmpty()) return emptyMap()
     return aspects.mapNotNull { aspect ->
         val opt = aspect.defaultOptionId
@@ -44,7 +44,7 @@ fun ExerciseAspectChipsInline(
     onOptionInfo: ((TechnicalAspect, com.example.kpkn.data.models.AspectOption) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    val aspects = exercise.technicalAspects.orEmpty()
+    val aspects = exercise.catalogOptionAxes.orEmpty()
     if (aspects.isEmpty()) return
 
     Column(
@@ -123,7 +123,7 @@ private fun AspectChipRow(
 }
 
 /**
- * When [exercise] has technical aspects, keep [VariantFlowResultCache] in sync so
+ * When [exercise] has technical aspects, keep [CatalogSelectionDraftBridge] in sync so
  * [createExerciseFromInfo] / workout replace pick up the selection without the wizard.
  */
 @Composable
@@ -133,8 +133,8 @@ fun RememberAspectCacheSync(
 ) {
     LaunchedEffect(exercise?.id, selectedAspects) {
         val ex = exercise ?: return@LaunchedEffect
-        if (ex.technicalAspects.isNullOrEmpty()) return@LaunchedEffect
-        VariantFlowResultCache.store(
+        if (ex.catalogOptionAxes.isNullOrEmpty()) return@LaunchedEffect
+        CatalogSelectionDraftBridge.store(
             exerciseDbId = ex.id,
             variantName = ex.variantName,
             variantGroupId = ex.variantGroupId,

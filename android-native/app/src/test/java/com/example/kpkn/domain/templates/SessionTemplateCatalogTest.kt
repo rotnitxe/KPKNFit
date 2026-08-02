@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
 import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
@@ -13,6 +14,7 @@ import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTag
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -27,55 +29,40 @@ import kotlin.math.abs
 class SessionTemplateCatalogTest {
 
     companion object {
-        private val json = Json { ignoreUnknownKeys = true }
         private lateinit var exerciseDatabase: List<ExerciseMuscleInfo>
         private lateinit var exerciseDatabaseById: Map<String, ExerciseMuscleInfo>
-        private lateinit var exerciseAliases: Map<String, String>
-        /** Índice con claves canónicas + aliases, como debe consumir [SessionTemplateAudit]. */
+        /** Índice exacto de configuraciones v2; no contiene aliases ni nombres. */
         private lateinit var exerciseIndexWithAliases: Map<String, ExerciseMuscleInfo>
 
         @BeforeClass
         @JvmStatic
         fun setUpClass() {
-            val dbFile = findDbFile("exercise_database.json")
-            val aliasesFile = findDbFile("exercise_id_aliases.json")
-
-            exerciseDatabase = json.decodeFromString<List<ExerciseMuscleInfo>>(dbFile.readText())
-            exerciseDatabaseById = exerciseDatabase.associateBy { it.id.lowercase() }
-            exerciseAliases = json.decodeFromString<Map<String, String>>(aliasesFile.readText())
-                .mapKeys { it.key.lowercase() }
-                .mapValues { it.value.lowercase() }
-            val merged = exerciseDatabaseById.toMutableMap()
-            exerciseAliases.forEach { (alias, canonical) ->
-                exerciseDatabaseById[canonical]?.let { merged[alias] = it }
-            }
-            exerciseIndexWithAliases = merged
+            val catalog = ExerciseCatalogV2Loader.decodeApproved(findCatalogFile().readText())
+            exerciseIndexWithAliases = catalog.toLegacyConfigurationLookup()
+            exerciseDatabase = exerciseIndexWithAliases.values.toList()
+            exerciseDatabaseById = exerciseIndexWithAliases
         }
 
-        private fun findDbFile(fileName: String): File {
-            val resource = SessionTemplateCatalogTest::class.java.classLoader?.getResource(fileName)
+        private fun findCatalogFile(): File {
+            val resource = SessionTemplateCatalogTest::class.java.classLoader?.getResource("exercise_catalog_v2.json")
             if (resource != null) return File(resource.toURI())
 
             val candidates = listOf(
-                "src/main/assets/$fileName",
-                "../app/src/main/assets/$fileName",
-                "app/src/main/assets/$fileName",
-                "android-native/app/src/main/assets/$fileName",
-                "../android-native/app/src/main/assets/$fileName"
+                "../../android-native/app/src/main/assets/exercise_catalog_v2.json",
+                "../android-native/app/src/main/assets/exercise_catalog_v2.json",
+                "android-native/app/src/main/assets/exercise_catalog_v2.json",
             )
             for (path in candidates) {
                 val f = File(path)
                 if (f.exists()) return f
             }
-            error("No se encontró $fileName.")
+            error("No se encontró exercise_catalog_v2.json.")
         }
 
         fun resolveExerciseId(rawId: String?): String? {
             val normalized = rawId?.trim()?.lowercase().orEmpty()
             if (normalized.isBlank()) return null
-            if (exerciseDatabaseById.containsKey(normalized)) return normalized
-            val canonical = exerciseAliases[normalized] ?: return null
-            return canonical.takeIf { exerciseDatabaseById.containsKey(it) }
+            return normalized.takeIf { exerciseDatabaseById.containsKey(it) }
         }
 
         fun resolveExercise(rawId: String?): ExerciseMuscleInfo? =

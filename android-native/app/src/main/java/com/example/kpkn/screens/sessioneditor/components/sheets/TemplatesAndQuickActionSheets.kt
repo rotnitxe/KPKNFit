@@ -59,7 +59,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.sessions.SessionTemplate
@@ -143,7 +143,7 @@ internal fun TemplatesSheet(
                     templates = templates,
                     searchQuery = searchQuery,
                     onSelectTemplate = onSelectTemplate,
-                    exerciseIndex = remember { EXERCISE_DATABASE.associateBy { it.id.lowercase() } },
+                    exerciseIndex = remember { exerciseCatalogSnapshot().associateBy { it.id.lowercase() } },
                     glassDark = true,
                     modifier = Modifier.fillMaxWidth(),
                 )

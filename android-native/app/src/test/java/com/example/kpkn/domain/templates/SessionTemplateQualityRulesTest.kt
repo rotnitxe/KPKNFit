@@ -11,55 +11,22 @@ import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.data.splits.Difficulty
-import kotlinx.serialization.json.Json
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
-import java.io.File
 
 class SessionTemplateQualityRulesTest {
 
     companion object {
-        private val json = Json { ignoreUnknownKeys = true }
         private lateinit var exerciseDatabaseById: Map<String, ExerciseMuscleInfo>
-        private lateinit var exerciseAliases: Map<String, String>
         private lateinit var exerciseIndexWithAliases: Map<String, ExerciseMuscleInfo>
 
         @BeforeClass
         @JvmStatic
         fun setUpClass() {
-            val dbFile = findDbFile("exercise_database.json")
-            val aliasesFile = findDbFile("exercise_id_aliases.json")
-
-            val exerciseDatabase = json.decodeFromString<List<ExerciseMuscleInfo>>(dbFile.readText())
-            exerciseDatabaseById = exerciseDatabase.associateBy { it.id.lowercase() }
-            exerciseAliases = json.decodeFromString<Map<String, String>>(aliasesFile.readText())
-                .mapKeys { it.key.lowercase() }
-                .mapValues { it.value.lowercase() }
-            val merged = exerciseDatabaseById.toMutableMap()
-            exerciseAliases.forEach { (alias, canonical) ->
-                exerciseDatabaseById[canonical]?.let { merged[alias] = it }
-            }
-            exerciseIndexWithAliases = merged
-        }
-
-        private fun findDbFile(fileName: String): File {
-            val resource = SessionTemplateQualityRulesTest::class.java.classLoader?.getResource(fileName)
-            if (resource != null) return File(resource.toURI())
-
-            val candidates = listOf(
-                "src/main/assets/$fileName",
-                "../app/src/main/assets/$fileName",
-                "app/src/main/assets/$fileName",
-                "android-native/app/src/main/assets/$fileName",
-                "../android-native/app/src/main/assets/$fileName",
-            )
-            for (path in candidates) {
-                val f = File(path)
-                if (f.exists()) return f
-            }
-            error("No se encontró $fileName.")
+            exerciseIndexWithAliases = CatalogV2TestFixture.configurationLookup()
+            exerciseDatabaseById = exerciseIndexWithAliases
         }
     }
 

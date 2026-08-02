@@ -271,8 +271,10 @@ object AugeTtcEngine {
             val sessionDrain = ArticularBattery.entries.associateWith { 0.0 }.toMutableMap()
 
             for (ex in log.completedExercises) {
-                val info = exerciseDb[ex.exerciseDbId ?: ex.exerciseId]
-                    ?: exerciseDb.values.find { it.name.equals(ex.exerciseName, ignoreCase = true) }
+                val info = (ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId)
+                    ?.trim()
+                    ?.lowercase()
+                    ?.let(exerciseDb::get)
 
                 val weights = getArticularWeightsForExercise(
                     info = info,

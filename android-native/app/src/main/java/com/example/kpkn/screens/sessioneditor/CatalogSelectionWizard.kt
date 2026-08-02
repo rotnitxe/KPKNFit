@@ -63,7 +63,7 @@ import com.example.kpkn.domain.exercises.VariantPreferenceStore
 import com.example.kpkn.screens.wikilab.wikilabMuscleColor
 
 @Composable
-fun VariantFlowSheet(
+fun CatalogSelectionWizard(
     initialExercise: ExerciseMuscleInfo,
     onConfirm: (selectedVariant: ExerciseMuscleInfo, selectedAspects: Map<String, String>) -> Unit,
     onDismiss: () -> Unit,
@@ -209,7 +209,7 @@ fun VariantFlowSheet(
 }
 
 private fun computeDefaults(variant: ExerciseMuscleInfo): Map<String, String> {
-    val aspects = variant.technicalAspects.orEmpty()
+    val aspects = variant.catalogOptionAxes.orEmpty()
     return aspects.mapNotNull { aspect ->
         val defaultId = aspect.defaultOptionId
             ?: aspect.options.firstOrNull()?.id
@@ -222,7 +222,7 @@ private fun computeEffective(
     selectedAspects: Map<String, String>,
 ): TechnicalAspectEngine.EffectiveMuscleResult {
     val selectedOptions = selectedAspects.mapNotNull { (aspectId, optId) ->
-        variant.technicalAspects
+        variant.catalogOptionAxes
             ?.firstOrNull { it.id == aspectId }
             ?.options
             ?.firstOrNull { it.id == optId }
@@ -309,7 +309,7 @@ private fun TechnicalAspectsStep(
     effectiveResult: TechnicalAspectEngine.EffectiveMuscleResult,
     onAspectChange: (aspectId: String, optionId: String) -> Unit,
 ) {
-    val aspects = variant.technicalAspects.orEmpty()
+    val aspects = variant.catalogOptionAxes.orEmpty()
 
     Column(
         modifier = Modifier
@@ -538,7 +538,7 @@ private fun formatRoleLabel(role: MuscleRole): String = when (role) {
     MuscleRole.NEUTRALIZER -> "Guiado"
 }
 
-object VariantFlowResultCache {
+object CatalogSelectionDraftBridge {
     private data class VariantResult(
         val variantName: String?,
         val variantGroupId: String?,

@@ -661,19 +661,8 @@ enum AugeFatigueEngine {
         let exercises = session.exercises + session.parts.flatMap { $0.exercises }
 
         for ex in exercises {
-            let rawId = (ex.exerciseDbId ?? ex.exerciseId)?.lowercased()
-            let resolvedId = rawId.flatMap { id -> String? in
-                if let alias = EXERCISE_ID_ALIASES[id] {
-                    return alias
-                }
-                return id
-            }
-            let dbInfo: ExerciseMuscleInfo?
-            if let rid = resolvedId, let info = exerciseDb[rid] {
-                dbInfo = info
-            } else {
-                dbInfo = exerciseDb.values.first { $0.name.caseInsensitiveCompare(ex.name) == .orderedSame }
-            }
+            let resolvedId = (ex.exerciseDbId ?? ex.exerciseId)?.lowercased()
+            let dbInfo = resolvedId.flatMap { exerciseDb[$0] }
             guard let metrics = getDynamicAugeMetrics(exerciseName: ex.name, equipment: dbInfo?.equipment, dbInfo: dbInfo) else {
                 print("[AugeFatigueEngine] Sin métricas de fatiga para '\(ex.name)' — ejercicio omitido del drenaje ajustado")
                 continue

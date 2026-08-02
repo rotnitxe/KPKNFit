@@ -28,8 +28,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
@@ -2010,19 +2010,29 @@ internal fun normalizeWorkoutMuscleKey(value: String): String =
         .replace("ü", "u")
 
 internal fun workoutCatalogInfo(exercise: Exercise): ExerciseMuscleInfo? {
-    val canonicalId = exercise.resolvedCanonicalExerciseId()
-    return EXERCISE_DATABASE_BY_ID[canonicalId]
-        ?: exercise.exerciseDbId?.lowercase(Locale.ROOT)?.let(EXERCISE_DATABASE_BY_ID::get)
-        ?: exercise.exerciseId?.lowercase(Locale.ROOT)?.let(EXERCISE_DATABASE_BY_ID::get)
-        ?: EXERCISE_DATABASE.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
+    if (exercise.catalogRevision != null) {
+        return exercise.catalogConfigurationId
+            ?.lowercase(Locale.ROOT)
+            ?.let(catalogExerciseIndex()::get)
+    }
+    val canonicalId = exercise.catalogConfigurationId
+        ?: exercise.resolvedCanonicalExerciseId()
+        ?: exercise.exerciseDbId
+        ?: exercise.exerciseId
+    return canonicalId?.trim()?.lowercase(Locale.ROOT)?.let(catalogExerciseIndex()::get)
 }
 
 internal fun workoutCatalogInfo(exercise: CompletedExercise): ExerciseMuscleInfo? {
-    val canonicalId = exercise.resolvedCanonicalExerciseId()
-    return EXERCISE_DATABASE_BY_ID[canonicalId]
-        ?: exercise.exerciseDbId?.lowercase(Locale.ROOT)?.let(EXERCISE_DATABASE_BY_ID::get)
-        ?: exercise.exerciseId?.lowercase(Locale.ROOT)?.let(EXERCISE_DATABASE_BY_ID::get)
-        ?: EXERCISE_DATABASE.firstOrNull { it.name.equals(exercise.exerciseName, ignoreCase = true) }
+    if (exercise.catalogRevision != null) {
+        return exercise.catalogConfigurationId
+            ?.lowercase(Locale.ROOT)
+            ?.let(catalogExerciseIndex()::get)
+    }
+    val canonicalId = exercise.catalogConfigurationId
+        ?: exercise.resolvedCanonicalExerciseId()
+        ?: exercise.exerciseDbId
+        ?: exercise.exerciseId
+    return canonicalId?.trim()?.lowercase(Locale.ROOT)?.let(catalogExerciseIndex()::get)
 }
 
 internal fun displayWorkoutMuscleGroup(group: String?): String? = when (group) {
@@ -2119,4 +2129,3 @@ internal fun ExerciseDrainOverlayHost(
         }
     }
 }
-

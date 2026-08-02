@@ -152,13 +152,10 @@ enum AugeRecoveryEngine {
 
     private static func resolveDbInfo(
         _ ex: CompletedExercise,
-        _ exerciseDb: [String: ExerciseMuscleInfo],
-        withNameFallback: Bool = false
+        _ exerciseDb: [String: ExerciseMuscleInfo]
     ) -> ExerciseMuscleInfo? {
         let lookupId = (ex.exerciseDbId ?? ex.exerciseId)?.lowercased()
-        let byId = lookupId.flatMap { exerciseDb[$0] }
-        if byId != nil || !withNameFallback { return byId }
-        return exerciseDb.values.first { $0.name.lowercased() == ex.exerciseName.lowercased() }
+        return lookupId.flatMap { exerciseDb[$0] }
     }
 
     private static func calculateMuscleDiscomfortPenaltyPct(
@@ -279,7 +276,7 @@ enum AugeRecoveryEngine {
             else { decay = (35.0 - daysSince) / 7.0 }
 
             for ex in log.completedExercises {
-                guard let dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback: true) else { continue }
+                guard let dbInfo = resolveDbInfo(ex, exerciseDb) else { continue }
                 guard let involvement = dbInfo.involvedMuscles.first(where: { muscleMatchesCategory($0.muscle, muscleName) }) else { continue }
 
                 let metrics = AugeFatigueEngine.getDynamicAugeMetrics(ex.exerciseName, dbInfo.equipment, dbInfo) ?? AugeMetrics()
@@ -381,7 +378,7 @@ enum AugeRecoveryEngine {
             var sessionMuscleStress = 0.0
 
             for ex in log.completedExercises {
-                let dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback: true)
+                let dbInfo = resolveDbInfo(ex, exerciseDb)
                 let involvement = dbInfo?.involvedMuscles.first { muscleMatchesCategory($0.muscle, muscleName) }
                 let metrics = AugeFatigueEngine.getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?? AugeMetrics()
                 let densityMult = densityMultiplierForCompletedExercise(ex)
@@ -492,7 +489,7 @@ enum AugeRecoveryEngine {
         var sessionMuscleStress = 0.0
 
         for ex in log.completedExercises {
-            let dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback: true)
+            let dbInfo = resolveDbInfo(ex, exerciseDb)
             let involvement = dbInfo?.involvedMuscles.first { muscleMatchesCategory($0.muscle, muscleName) }
             let metrics = AugeFatigueEngine.getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?? AugeMetrics()
             let densityMult = densityMultiplierForCompletedExercise(ex)
@@ -1124,7 +1121,7 @@ enum AugeRecoveryEngine {
             var totalSpinal = 0.0
 
             for ex in log.completedExercises {
-                let dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback: true)
+                let dbInfo = resolveDbInfo(ex, exerciseDb)
                 let metrics = AugeFatigueEngine.getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?? AugeMetrics()
                 let densityMult = densityMultiplierForCompletedExercise(ex)
                 var accumulated = 0
@@ -1177,7 +1174,7 @@ enum AugeRecoveryEngine {
         for log in history {
             for ex in log.completedExercises {
                 let key = (ex.exerciseDbId ?? ex.exerciseName).lowercased().trimmingCharacters(in: .whitespaces)
-                let dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback: true)
+                let dbInfo = resolveDbInfo(ex, exerciseDb)
                 let metrics = AugeFatigueEngine.getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?? AugeMetrics()
                 let densityMult = densityMultiplierForCompletedExercise(ex)
                 var accumulated = 0
@@ -1248,7 +1245,7 @@ enum AugeRecoveryEngine {
             var totalSpinal = 0.0
 
             for ex in log.completedExercises {
-                let dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback: true)
+                let dbInfo = resolveDbInfo(ex, exerciseDb)
                 let metrics = AugeFatigueEngine.getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?? AugeMetrics()
                 let densityMult = densityMultiplierForCompletedExercise(ex)
                 var accumulated = 0

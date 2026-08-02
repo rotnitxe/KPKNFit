@@ -205,8 +205,9 @@ data class TrainingBackup(
     val parts: List<SessionPart> = emptyList(),
     val warmup: List<WarmupExercise> = emptyList(),
     val savedAtMs: Long = 0L,
+    /** 1 means legacy serialized backup; newly created backups explicitly use v2. */
+    val catalogSchemaVersion: Int = 1,
 )
-
 @Serializable
 data class Exercise(
     val id: String,
@@ -262,6 +263,12 @@ data class Exercise(
     val mobilitySeries: List<MobilitySeries> = emptyList(),
     val timeStrategy: TimeStrategy? = null,
     val targetDurationMinutes: Int? = null,
+    /** v2 catalog identity; all values are persisted together when selected. */
+    val catalogRevision: String? = null,
+    val catalogDefinitionId: String? = null,
+    val catalogConfigurationId: String? = null,
+    val performanceProfileId: String? = null,
+    val occurrenceId: String? = null,
 )
 
 @Serializable
@@ -460,5 +467,3 @@ val Session.isCompetitionMeet: Boolean
 
 val Session.kind: SessionKind
     get() = if (isCompetitionMeet) SessionKind.COMPETITION else SessionKind.TRAINING
-
-

@@ -1038,9 +1038,8 @@ object SessionAssistantEngine {
         exercise: Exercise,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
     ): ExerciseMuscleInfo? {
-        val byId = exercise.exerciseDbId ?: exercise.exerciseId
-        return byId?.lowercase()?.let(exerciseIndex::get)
-            ?: exerciseIndex.values.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
+        val byId = exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId
+        return byId?.trim()?.lowercase()?.let(exerciseIndex::get)
     }
 
     internal fun defaultSessionVolumeLimit(settings: Settings): Int {
@@ -1131,7 +1130,7 @@ object SessionAssistantEngine {
         exerciseIndex: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo>,
     ): Boolean {
         for (ex in session.allExercises()) {
-            val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
+            val dbId = ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId ?: continue
             val info = exerciseIndex[dbId] ?: continue
             for (muscle in info.involvedMuscles) {
                 if (muscle.role == com.example.kpkn.data.models.MuscleRole.PRIMARY) {

@@ -167,6 +167,9 @@ object SessionTemplateQualityRules {
         exercise: Exercise,
         index: Map<String, ExerciseMuscleInfo>,
     ): ExerciseMuscleInfo? {
+        if (exercise.catalogRevision != null) {
+            return exercise.catalogConfigurationId?.trim()?.lowercase()?.takeIf { it.isNotBlank() }?.let(index::get)
+        }
         val candidates = listOfNotNull(
             exercise.exerciseDbId,
             exercise.exerciseId,

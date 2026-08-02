@@ -48,6 +48,9 @@
 		30983CEE92621FB5FC29B70D /* CompetitionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FA07C0A7B1DAC6007230B1 /* CompetitionModels.swift */; };
 		319E485B6ED6F96AB5E93B1A /* WorkoutPerformanceHomologationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A23DC4C8CFA6D0186BA6F05A /* WorkoutPerformanceHomologationEngine.swift */; };
 		35824F2EEFF2E77AB48A6C07 /* ExerciseDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64BAA88DBB738B722059808E /* ExerciseDatabase.swift */; };
+		C0DE00010000000000000001 /* ExerciseCatalogV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00020000000000000002 /* ExerciseCatalogV2.swift */; };
+		C0DE00030000000000000003 /* exercise_catalog_v2.json in Resources */ = {isa = PBXBuildFile; fileRef = C0DE00040000000000000004 /* exercise_catalog_v2.json */; };
+		C0DE00050000000000000005 /* exercise_catalog_v2.json in Test Resources */ = {isa = PBXBuildFile; fileRef = C0DE00040000000000000004 /* exercise_catalog_v2.json */; };
 		3A4473D03E79D93E3E6ADC2D /* SupersetRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = A750A840710324861A130B72 /* SupersetRules.swift */; };
 		3AC272322958AABA237DB821 /* DatasetKnowledgeContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD7B26DA1B157FBF06884A36 /* DatasetKnowledgeContext.swift */; };
 		3FD6C4E48DD5E053837B0A69 /* AugeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E8E4DA8FC6E1EB71597E480 /* AugeViewModel.swift */; };
@@ -316,6 +319,8 @@
 		636FDDB4C81900B5EF027004 /* JointDetailScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JointDetailScreen.swift; sourceTree = "<group>"; };
 		63C1801BD5F4F66E389CF0D6 /* ProgramModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Models/ProgramModels.swift; sourceTree = SOURCE_ROOT; };
 		64BAA88DBB738B722059808E /* ExerciseDatabase.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExerciseDatabase.swift; sourceTree = "<group>"; };
+		C0DE00020000000000000002 /* ExerciseCatalogV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExerciseCatalogV2.swift; sourceTree = "<group>"; };
+		C0DE00040000000000000004 /* exercise_catalog_v2.json */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.json; path = exercise_catalog_v2.json; sourceTree = "<group>"; };
 		662DA698E9C92FC64AF44861 /* SessionAssistantEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SessionAssistantEngine.swift; sourceTree = "<group>"; };
 		663A602C16A5AEBA10FC439E /* MainActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainActivity.swift; sourceTree = "<group>"; };
 		66494A943B38F3D6684CCF06 /* CreateProgramCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Components/CreateProgramCard.swift; sourceTree = SOURCE_ROOT; };
@@ -795,6 +800,7 @@
 			isa = PBXGroup;
 			children = (
 				64BAA88DBB738B722059808E /* ExerciseDatabase.swift */,
+				C0DE00020000000000000002 /* ExerciseCatalogV2.swift */,
 			);
 			name = Exercises;
 			path = Exercises;
@@ -1036,6 +1042,7 @@
 				828FDCAC3009B3E700857720 /* Services */,
 				828FDC803009B31E00857720 /* KPKNFitApp.swift */,
 				828FDC823009B31E00857720 /* ContentView.swift */,
+				C0DE00040000000000000004 /* exercise_catalog_v2.json */,
 				828FDC843009B32000857720 /* Assets.xcassets */,
 				828FDC863009B32000857720 /* Preview Content */,
 				690881535ABBA3D32323D1D6 /* Presentation */,
@@ -1484,6 +1491,7 @@
 				828FDCAE3009B3E800857720 /* Presentation in Resources */,
 				828FDCAF3009B3E800857720 /* Data in Resources */,
 				828FDC853009B32000857720 /* Assets.xcassets in Resources */,
+				C0DE00030000000000000003 /* exercise_catalog_v2.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1491,6 +1499,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0DE00050000000000000005 /* exercise_catalog_v2.json in Test Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1554,6 +1563,7 @@
 				8566CAC0F620C5C80A7E8909 /* WikiLabDao.swift in Sources */,
 				68D96285D66A28FE889363DE /* WikiLabEntities.swift in Sources */,
 				35824F2EEFF2E77AB48A6C07 /* ExerciseDatabase.swift in Sources */,
+				C0DE00010000000000000001 /* ExerciseCatalogV2.swift in Sources */,
 				FB38671A3BEA6E59291B1367 /* FoodDatabase.swift in Sources */,
 				1609FEDF96D914267DD834EC /* FoodDescriptionParser.swift in Sources */,
 				032CE2EF1A3F00B8A326CF85 /* FoodImporter.swift in Sources */,

@@ -57,7 +57,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.AnatomicalConsideration
 import com.example.kpkn.data.models.CommonMistake
 import com.example.kpkn.data.models.ExerciseMuscleInfo
@@ -167,7 +167,7 @@ fun CustomExerciseCreatorContent(
         equipment.isNotBlank() ||
         force.isNotBlank()
     val suggestions = remember(name, equipment, force, category, type, bodyPart, chain, isAxialLoaded, selectedBaseExercise) {
-        val database = EXERCISE_DATABASE
+        val database = exerciseCatalogSnapshot()
         val matches = when {
             selectedBaseExercise != null -> listOf(ExerciseMatchResult(selectedBaseExercise!!, 1.0))
             hasCreationSignal -> {
@@ -203,7 +203,7 @@ fun CustomExerciseCreatorContent(
         if (query.isBlank()) {
             emptyList()
         } else {
-            EXERCISE_DATABASE
+            exerciseCatalogSnapshot()
                 .map { it to calculateSimpleCreatorSearchScore(it, query) }
                 .filter { it.second > 0 }
                 .sortedByDescending { it.second }
@@ -236,7 +236,7 @@ fun CustomExerciseCreatorContent(
     }
 
     val muscleOptions = remember {
-        EXERCISE_DATABASE
+        exerciseCatalogSnapshot()
             .flatMap { it.involvedMuscles.map { muscle -> muscle.muscle } }
             .distinct()
             .sorted()
@@ -560,7 +560,7 @@ fun CustomExerciseCreatorContent(
                     }
 
                     val exercise = ExerciseMuscleInfo(
-                        id = "custom_${UUID.randomUUID()}",
+                        id = "custom:${UUID.randomUUID()}",
                         name = name.trim(),
                         alias = alias.trim().ifBlank { null },
                         description = description.trim().ifBlank { null },

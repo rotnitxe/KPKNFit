@@ -1,6 +1,6 @@
 package com.example.kpkn.domain.auge
 
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -41,9 +41,8 @@ object ExerciseReadinessEngine {
         unresolvedDiscomfortIds: List<String> = emptyList(),
         articularBatteries: Map<ArticularBattery, ArticularBatteryState> = emptyMap(),
     ): ExerciseReadiness? {
-        val dbInfo = EXERCISE_DATABASE_BY_ID[exercise.exerciseDbId?.lowercase()]
-            ?: EXERCISE_DATABASE_BY_ID[exercise.exerciseId?.lowercase()]
-            ?: return null
+        val dbId = (exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId)?.lowercase()
+        val dbInfo = dbId?.let(catalogExerciseIndex()::get) ?: return null
 
         val involvedMuscles = if (!exercise.effectiveMuscles.isNullOrEmpty()) {
             exercise.effectiveMuscles!!

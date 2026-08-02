@@ -1,6 +1,6 @@
 package com.example.kpkn.screens.workout
 
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.LoadModeV2
@@ -289,7 +289,7 @@ class WorkoutLoadSuggestionController(
             else -> "Del programa"
         }
 
-        val involvedMuscleIds = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, EXERCISE_DATABASE_BY_ID)
+        val involvedMuscleIds = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, catalogExerciseIndex())
             .filter { resolveMuscleVolumeContribution(it) > 0.0 }
             .map { getAugeMusclePillarId(it.muscle, it.emphasis) }
 

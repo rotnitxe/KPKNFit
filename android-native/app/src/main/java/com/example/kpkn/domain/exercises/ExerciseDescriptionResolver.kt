@@ -13,7 +13,7 @@ fun adaptedExerciseDescription(
         ?.trim()
         ?.takeIf { it.isNotBlank() }
         ?: canonicalFallbackDescription(exercise)
-    val selectedDetails = exercise.technicalAspects.orEmpty().mapNotNull { aspect ->
+    val selectedDetails = exercise.catalogOptionAxes.orEmpty().mapNotNull { aspect ->
         val optionId = selectedAspects[aspect.id] ?: return@mapNotNull null
         val option = aspect.options.firstOrNull { it.id == optionId } ?: return@mapNotNull null
         val defaultId = aspect.defaultOptionId ?: aspect.options.firstOrNull()?.id

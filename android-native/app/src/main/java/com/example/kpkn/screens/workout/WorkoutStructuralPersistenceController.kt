@@ -405,6 +405,7 @@ class WorkoutStructuralPersistenceController(
         val prompt = getState().pendingReplacementPersistencePrompt ?: return
         val state = getState()
         val session = state.session ?: return
+        val sourceExercise = session.allExercises().firstOrNull { it.id == prompt.exerciseId }
         val program = repository.getProgramById(programId)
         val location = program?.let { findSessionLocation(it, sessionId) }
         val effectiveScope = sanitizeLiveEditPersistenceScope(program, scope)
@@ -421,6 +422,12 @@ class WorkoutStructuralPersistenceController(
                 fromExerciseDbId = prompt.sourceExerciseDbId,
                 toExerciseDbId = prompt.replacement.id,
                 scopeType = effectiveScope,
+                fromCatalogRevision = sourceExercise?.catalogRevision,
+                fromDefinitionId = sourceExercise?.catalogDefinitionId,
+                fromConfigurationId = sourceExercise?.catalogConfigurationId,
+                toCatalogRevision = prompt.replacement.catalogRevision,
+                toDefinitionId = prompt.replacement.catalogDefinitionId,
+                toConfigurationId = prompt.replacement.catalogConfigurationId,
             )
 
             if (effectiveScope != ReplacementPersistenceScopeV2.SESSION_ONLY) {
@@ -429,6 +436,7 @@ class WorkoutStructuralPersistenceController(
                     currentLocation = location,
                     sourceExerciseDbId = prompt.sourceExerciseDbId,
                     sourceExerciseId = prompt.exerciseId,
+                    sourceCatalogConfigurationId = sourceExercise?.catalogConfigurationId,
                     sourceExerciseSlot = prompt.sourceExerciseSlot,
                     replacement = prompt.replacement,
                     scope = effectiveScope,
@@ -547,6 +555,12 @@ class WorkoutStructuralPersistenceController(
                 fromExerciseDbId = sourceExerciseDbId,
                 toExerciseDbId = replacement.id,
                 scopeType = effectiveScope,
+                fromCatalogRevision = sourceExercise.catalogRevision,
+                fromDefinitionId = sourceExercise.catalogDefinitionId,
+                fromConfigurationId = sourceExercise.catalogConfigurationId,
+                toCatalogRevision = replacement.catalogRevision,
+                toDefinitionId = replacement.catalogDefinitionId,
+                toConfigurationId = replacement.catalogConfigurationId,
             )
 
             val updatedProgram = applyReplacementToProgram(
@@ -554,6 +568,7 @@ class WorkoutStructuralPersistenceController(
                 currentLocation = location,
                 sourceExerciseDbId = sourceExerciseDbId,
                 sourceExerciseId = exerciseId,
+                sourceCatalogConfigurationId = sourceExercise.catalogConfigurationId,
                 sourceExerciseSlot = sourceExerciseSlot,
                 replacement = replacement,
                 scope = effectiveScope,
@@ -574,7 +589,11 @@ class WorkoutStructuralPersistenceController(
     }
 
     fun buildReplacementExercise(old: Exercise, replacement: ExerciseMuscleInfo): Exercise {
-        val cached = com.example.kpkn.screens.sessioneditor.VariantFlowResultCache.consume(replacement.id)
+        val cached = if (replacement.catalogRevision == null) {
+            com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge.consume(replacement.id)
+        } else {
+            null
+        }
         val replaced = old.replacedWithCatalogExercise(
             info = replacement,
             selectedAspects = cached?.selectedAspects,
@@ -694,7 +713,12 @@ class WorkoutStructuralPersistenceController(
         candidate: Exercise,
         sourceExerciseDbId: String?,
         sourceExerciseId: String,
+        sourceCatalogConfigurationId: String?,
     ): Boolean {
+        val sourceConfiguration = sourceCatalogConfigurationId?.trim().orEmpty()
+        if (sourceConfiguration.isNotBlank()) {
+            return candidate.catalogConfigurationId?.equals(sourceConfiguration, ignoreCase = true) == true
+        }
         val sourceDb = sourceExerciseDbId?.trim().orEmpty()
         val candidateDb = candidate.resolvedCanonicalExerciseId()
         return candidate.id == sourceExerciseId ||
@@ -736,13 +760,14 @@ class WorkoutStructuralPersistenceController(
         session: Session,
         sourceExerciseDbId: String?,
         sourceExerciseId: String,
+        sourceCatalogConfigurationId: String?,
         sourceExerciseSlot: Int?,
         replacement: ExerciseMuscleInfo,
         slotStrict: Boolean,
     ): Session {
         if (slotStrict && sourceExerciseSlot != null) {
             val target = session.exerciseAtSlot(sourceExerciseSlot)
-            if (target == null || !matchesSourceExercise(target, sourceExerciseDbId, sourceExerciseId)) return session
+            if (target == null || !matchesSourceExercise(target, sourceExerciseDbId, sourceExerciseId, sourceCatalogConfigurationId)) return session
             return session.replaceExerciseAtSlot(sourceExerciseSlot) { old ->
                 buildReplacementExercise(old, replacement)
             }
@@ -752,7 +777,7 @@ class WorkoutStructuralPersistenceController(
             var changed = false
             val newParts = session.parts.map { part ->
                 val mapped = part.exercises.map { candidate ->
-                    if (!matchesSourceExercise(candidate, sourceExerciseDbId, sourceExerciseId)) {
+                    if (!matchesSourceExercise(candidate, sourceExerciseDbId, sourceExerciseId, sourceCatalogConfigurationId)) {
                         candidate
                     } else {
                         changed = true
@@ -764,7 +789,7 @@ class WorkoutStructuralPersistenceController(
             if (changed) session.copy(parts = newParts) else session
         } else {
             val mapped = session.exercises.map { candidate ->
-                if (matchesSourceExercise(candidate, sourceExerciseDbId, sourceExerciseId)) {
+                if (matchesSourceExercise(candidate, sourceExerciseDbId, sourceExerciseId, sourceCatalogConfigurationId)) {
                     buildReplacementExercise(candidate, replacement)
                 } else {
                     candidate
@@ -779,6 +804,7 @@ class WorkoutStructuralPersistenceController(
         currentLocation: SessionLocationCursor?,
         sourceExerciseDbId: String?,
         sourceExerciseId: String,
+        sourceCatalogConfigurationId: String?,
         sourceExerciseSlot: Int?,
         replacement: ExerciseMuscleInfo,
         scope: ReplacementPersistenceScopeV2,
@@ -830,6 +856,7 @@ class WorkoutStructuralPersistenceController(
                                     session = session,
                                     sourceExerciseDbId = sourceExerciseDbId,
                                     sourceExerciseId = sourceExerciseId,
+                                    sourceCatalogConfigurationId = sourceCatalogConfigurationId,
                                     sourceExerciseSlot = sourceExerciseSlot,
                                     replacement = replacement,
                                     slotStrict = scope == ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING || scope == ReplacementPersistenceScopeV2.BLOCK_MATCHING,

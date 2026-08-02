@@ -462,9 +462,9 @@ internal func buildTendonGuide(_ tendon: TendonEntity) -> WikiLabVisualGuide {
 
 internal func recommendedExercisesForMuscle(_ muscle: MuscleGroupEntity, limit: Int = 6) -> [WikiLabExerciseLink] {
     let targets = canonicalExerciseMusclesFor(muscle)
-    guard !targets.isEmpty, !EXERCISE_DATABASE.isEmpty else { return [] }
+    guard !targets.isEmpty, !catalogExerciseList.isEmpty else { return [] }
     
-    return EXERCISE_DATABASE
+    return catalogExerciseList
         .compactMap { exercise -> (ExerciseMuscleInfo, Double)? in
             let score = scoreExerciseForMuscle(exercise, targets)
             guard score > 0.0 else { return nil }

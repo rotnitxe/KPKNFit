@@ -87,8 +87,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
@@ -153,12 +153,14 @@ import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.services.workout.PermissionGuideHelper
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.services.workout.WorkoutVoicePermissionHelper
+import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLogger
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import com.example.kpkn.screens.workout.components.WorkoutCommandDock
+import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
 import com.example.kpkn.screens.workout.components.RoadmapMode
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
@@ -277,6 +279,27 @@ fun WorkoutScreen(
 
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
 
+    // Consume la pre-activación de la tarjeta de hoy: activa voz al entrar a la sesión.
+    var voiceArmConsumed by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(settings.voiceArmForNextSession, voiceArmConsumed) {
+        if (settings.voiceArmForNextSession && !voiceArmConsumed) {
+            voiceArmConsumed = true
+            viewModel.consumeVoiceArmForNextSession()
+            if (!uiState.voiceSessionEnabled) {
+                val needed = WorkoutVoicePermissionHelper
+                    .permissionsToRequestForVoiceEnable(
+                        context = context,
+                        includeNotifications = true,
+                    )
+                if (needed.isEmpty()) {
+                    viewModel.enableVoice()
+                } else {
+                    voicePermissionsLauncher.launch(needed)
+                }
+            }
+        }
+    }
+
     // Recovery data
     val augeSnapshot by augeViewModel.snapshot.collectAsStateWithLifecycle()
     val perMuscle by augeViewModel.perMuscle.collectAsStateWithLifecycle()
@@ -358,7 +381,7 @@ fun WorkoutScreen(
         val upperOnlySession = isUpperOnlyWorkoutSession(modeSession, modeExercises)
             modeExercises
             .mapNotNull { ex ->
-                ExerciseMuscleResolver.effectiveMusclesForVolume(ex, EXERCISE_DATABASE_BY_ID)
+                ExerciseMuscleResolver.effectiveMusclesForVolume(ex, catalogExerciseIndex())
                     .filter { it.role == MuscleRole.PRIMARY || it.role == MuscleRole.SECONDARY }
                     .map { involved -> getAugeMusclePillarId(involved.muscle, involved.emphasis) }
                     .filterNot { muscleId ->
@@ -414,6 +437,11 @@ fun WorkoutScreen(
                 exerciseId = exercise.id,
                 exerciseName = exerciseDisplayParts(exercise, workoutCatalogInfo(exercise)).text,
                 exerciseDbId = exercise.exerciseDbId ?: exercise.exerciseId,
+                catalogRevision = exercise.catalogRevision,
+                catalogDefinitionId = exercise.catalogDefinitionId,
+                catalogConfigurationId = exercise.catalogConfigurationId,
+                performanceProfileId = exercise.performanceProfileId,
+                occurrenceId = exercise.occurrenceId ?: exercise.id,
                 variantName = exercise.variantName,
                 selectedAspects = exercise.selectedAspects,
                 effectiveMuscles = exercise.effectiveMuscles,
@@ -854,7 +882,7 @@ fun WorkoutScreen(
             DiscomfortAggregationEngine.computeSessionDiscomfortSummary(
                 postExerciseFeedbackByExerciseId = uiState.postExerciseFeedbackByExerciseId,
                 completedExercises = completedExercisesForSummary,
-                exerciseDb = EXERCISE_DATABASE_BY_ID,
+                exerciseDb = catalogExerciseIndex(),
             )
         }
         val postSessionPreview by produceState<PostSessionPreview>(
@@ -988,6 +1016,17 @@ fun WorkoutScreen(
                     currentBestEstimated1RM = currentBestEstimated1RM,
                 )
             }
+        )
+    }
+
+    if (uiState.showVoiceCaptureModeDialog) {
+        WorkoutVoiceDiagnosticLogger.event("voice_mode_dialog_shown")
+        VoiceCaptureModeDialog(
+            onChosen = { mode ->
+                viewModel.setVoiceCaptureMode(mode)
+                viewModel.hideVoiceCaptureModeDialog()
+                viewModel.enableVoice()
+            },
         )
     }
 }

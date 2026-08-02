@@ -678,7 +678,7 @@ private struct WorkoutV2Body: View {
                             ? PredictedDrain(cns: 0, muscular: 0, spinal: 0)
                             : AugeFatigueEngine.calculateCompletedSessionDrain(
                                 completedExercises: [currentExerciseCompleted],
-                                exerciseDb: EXERCISE_DATABASE_BY_ID
+                                exerciseDb: catalogExerciseIndex()
                             )
 
                         WorkoutExerciseTabs(
@@ -2773,9 +2773,9 @@ private func exerciseHasPlannedIntensity(_ exercise: Exercise) -> Bool {
 
 private func catalogInfoForExercise(_ exercise: Exercise) -> ExerciseMuscleInfo? {
     let canonicalId = exercise.resolvedCanonicalExerciseId()
-    if let info = EXERCISE_DATABASE_BY_ID[canonicalId] { return info }
-    if let dbId = exercise.exerciseDbId?.lowercased(), let info = EXERCISE_DATABASE_BY_ID[dbId] { return info }
-    if let exId = exercise.exerciseId?.lowercased(), let info = EXERCISE_DATABASE_BY_ID[exId] { return info }
+    if let info = catalogExerciseIndex()[canonicalId] { return info }
+    if let dbId = exercise.exerciseDbId?.lowercased(), let info = catalogExerciseIndex()[dbId] { return info }
+    if let exId = exercise.exerciseId?.lowercased(), let info = catalogExerciseIndex()[exId] { return info }
     return nil
 }
 

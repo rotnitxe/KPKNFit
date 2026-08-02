@@ -21,8 +21,8 @@ enum DiscomfortAggregationEngine {
             let workingSets = exercise.sets.filter { !$0.isWarmup && !$0.skipped }.count
             if workingSets == 0 { continue }
 
-            let dbInfo = exerciseDb[exercise.exerciseDbId ?? exercise.exerciseId]
-                ?? exerciseDb.values.first { $0.name.caseInsensitiveCompare(exercise.exerciseName) == .orderedSame }
+            let dbInfo = (exercise.exerciseDbId ?? exercise.exerciseId)
+                .flatMap { exerciseDb[$0.lowercased()] }
 
             guard let dbInfo = dbInfo else { continue }
 

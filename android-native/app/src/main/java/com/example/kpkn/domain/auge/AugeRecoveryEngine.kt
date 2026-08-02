@@ -184,12 +184,9 @@ object AugeRecoveryEngine {
     private fun resolveDbInfo(
         ex: CompletedExercise,
         exerciseDb: Map<String, ExerciseMuscleInfo>,
-        withNameFallback: Boolean = false,
     ): ExerciseMuscleInfo? {
-        val lookupId = (ex.exerciseDbId ?: ex.exerciseId)?.lowercase()
-        val byId = lookupId?.let { exerciseDb[it] }
-        return if (byId != null || !withNameFallback) byId
-        else exerciseDb.values.find { it.name.equals(ex.exerciseName, ignoreCase = true) }
+        val lookupId = (ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId)?.lowercase()
+        return lookupId?.let { exerciseDb[it] }
     }
 
     private fun calculateMuscleDiscomfortPenaltyPct(
@@ -327,7 +324,7 @@ object AugeRecoveryEngine {
                 else (35.0 - daysSince) / 7.0
 
             log.completedExercises.forEach { ex ->
-                val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
+                val dbInfo = resolveDbInfo(ex, exerciseDb)
                 val involvedMuscles = involvedMusclesFor(ex, dbInfo)
 
                 val involvement = involvedMuscles.find {
@@ -447,7 +444,7 @@ object AugeRecoveryEngine {
             var sessionSoftAccum = 0.0
 
             log.completedExercises.forEach { ex ->
-                val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
+                val dbInfo = resolveDbInfo(ex, exerciseDb)
                 val involvedMuscles = involvedMusclesFor(ex, dbInfo)
                 val involvement = involvedMuscles.find {
                     muscleMatchesCategory(it.muscle, muscleName)
@@ -576,7 +573,7 @@ object AugeRecoveryEngine {
         val remappedMultipliers = remapMuscleMultiplierMapToPillars(adaptiveCache.muscleDrainMultipliers)
 
         log.completedExercises.forEach { ex ->
-            val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
+            val dbInfo = resolveDbInfo(ex, exerciseDb)
             val involvedMuscles = involvedMusclesFor(ex, dbInfo)
             val involvement = involvedMuscles.find {
                 muscleMatchesCategory(it.muscle, muscleName)
@@ -1374,7 +1371,7 @@ object AugeRecoveryEngine {
         history.forEach { log ->
             log.completedExercises.forEach { ex ->
                 val key = (ex.exerciseDbId ?: ex.exerciseName).lowercase().trim()
-                val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
+                val dbInfo = resolveDbInfo(ex, exerciseDb)
                 val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
                 val densityMult = densityMultiplierForCompletedExercise(ex)
                 var accumulated = 0
@@ -1459,7 +1456,7 @@ object AugeRecoveryEngine {
             var totalSpinal = 0.0
 
             log.completedExercises.forEach { ex ->
-                val dbInfo = resolveDbInfo(ex, exerciseDb, withNameFallback = true)
+                val dbInfo = resolveDbInfo(ex, exerciseDb)
                 val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
                 val densityMult = densityMultiplierForCompletedExercise(ex)
                 var accumulated = 0

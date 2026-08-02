@@ -200,8 +200,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
-import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.sessions.SessionTemplate
@@ -310,8 +310,8 @@ import com.example.kpkn.screens.sessioneditor.SessionEditorAugeAlert
 import com.example.kpkn.screens.sessioneditor.SessionEditorAugeStatus
 import com.example.kpkn.screens.sessioneditor.SessionEditorAugeCorrectionType
 import com.example.kpkn.screens.sessioneditor.SessionEditorAugeSummary
-import com.example.kpkn.screens.sessioneditor.VariantFlowSheet
-import com.example.kpkn.screens.sessioneditor.VariantFlowResultCache
+import com.example.kpkn.screens.sessioneditor.CatalogSelectionWizard
+import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
 import com.example.kpkn.screens.sessioneditor.components.CompactTemplateCard
 import com.example.kpkn.screens.sessioneditor.SessionSubMuscleBreakdownList

@@ -27,7 +27,7 @@ struct WikiLabScreen: View {
     private var customExercises: [ExerciseMuscleInfo] { CustomExerciseRepository.shared.customExercises }
     
     private var exerciseCatalog: [ExerciseMuscleInfo] {
-        let all = EXERCISE_DATABASE + customExercises
+        let all = catalogExerciseList + customExercises
         var dict = [String: ExerciseMuscleInfo]()
         for ex in all { dict[ex.id.lowercased()] = ex }
         return Array(dict.values)

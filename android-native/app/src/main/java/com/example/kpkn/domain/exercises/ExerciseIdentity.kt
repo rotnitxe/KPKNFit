@@ -209,9 +209,9 @@ fun Exercise.replacedWithCatalogExercise(
         fallbackId = id,
     )
     val defaultLoadMode = defaultReplacementLoadMode(info)
-    val effectiveMuscles = if (selectedAspects != null && !info.technicalAspects.isNullOrEmpty()) {
+    val effectiveMuscles = if (selectedAspects != null && !info.catalogOptionAxes.isNullOrEmpty()) {
         val selectedOptions = selectedAspects.mapNotNull { (aspectId, optId) ->
-            info.technicalAspects
+            info.catalogOptionAxes
                 ?.firstOrNull { it.id == aspectId }
                 ?.options
                 ?.firstOrNull { it.id == optId }
@@ -253,6 +253,10 @@ fun Exercise.replacedWithCatalogExercise(
         selectedExecutionOption = info.executionOptions?.firstOrNull(),
         setupCues = info.setupCues.orEmpty(),
         executionCues = info.executionCues.orEmpty(),
+        catalogRevision = info.catalogRevision,
+        catalogDefinitionId = info.catalogDefinitionId,
+        catalogConfigurationId = info.catalogConfigurationId,
+        performanceProfileId = info.performanceProfileId,
         contextProfilesV3 = emptyList(),
         defaultContextProfileIdV3 = null,
     ).normalizedIdentityFields()

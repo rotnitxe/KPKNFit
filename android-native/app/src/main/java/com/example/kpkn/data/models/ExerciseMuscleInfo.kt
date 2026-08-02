@@ -86,7 +86,17 @@ data class ExerciseMuscleInfo(
     val variantGroupName: String? = null,
     val variantName: String? = null,
     val variantOrder: Int? = null,
-    val technicalAspects: List<TechnicalAspect>? = null,
+    val catalogOptionAxes: List<TechnicalAspect>? = null,
+
+    // v2 identity. These fields are optional only for legacy/custom JSON; a
+    // catalog-v2 runtime selection must carry all four values together.
+    val catalogRevision: String? = null,
+    val catalogDefinitionId: String? = null,
+    val catalogConfigurationId: String? = null,
+    val performanceProfileId: String? = null,
+    val catalogReviewStatus: String? = null,
+    /** Serialized typed v2 metadata; null for legacy/custom records. */
+    val catalogRichMetadataJson: String? = null,
 )
 
 @Serializable

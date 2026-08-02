@@ -63,7 +63,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
@@ -150,6 +150,8 @@ private fun LiveExercisePickerWithCreator(
     onToggleExerciseSelection: (String) -> Unit = {},
     onClearExerciseSelection: () -> Unit = {},
     onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
+    editingCatalogDefinitionId: String? = null,
+    editingCatalogConfigurationId: String? = null,
 ) {
     var showInlineCreator by remember { mutableStateOf(false) }
     var highlightedCreatedExerciseId by remember { mutableStateOf<String?>(null) }
@@ -194,7 +196,7 @@ private fun LiveExercisePickerWithCreator(
         } else {
             ExercisePickerSheet(
                 query = query,
-                catalog = EXERCISE_DATABASE,
+                catalog = exerciseCatalogSnapshot(),
                 workoutLogs = workoutLogs,
                 editingExisting = editingExisting,
                 highlightedExerciseId = highlightedCreatedExerciseId,
@@ -208,6 +210,8 @@ private fun LiveExercisePickerWithCreator(
                 onOpenExerciseDetail = onOpenExerciseDetail,
                 onOpenExerciseCreator = { showInlineCreator = true },
                 onDismiss = onDismiss,
+                editingCatalogDefinitionId = editingCatalogDefinitionId,
+                editingCatalogConfigurationId = editingCatalogConfigurationId,
             )
         }
     }
@@ -1055,6 +1059,7 @@ internal fun WorkoutStructureSheetsHost(
     if (state.showReplaceExercisePicker && state.replaceTargetExerciseId != null) {
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
+        val replaceTarget = visibleExercises.firstOrNull { it.id == state.replaceTargetExerciseId }
 
         KpknSheet(
             onDismissRequest = {
@@ -1088,6 +1093,8 @@ internal fun WorkoutStructureSheetsHost(
                     state.showReplaceExercisePicker = false
                     state.replaceTargetExerciseId = null
                 },
+                editingCatalogDefinitionId = replaceTarget?.catalogDefinitionId,
+                editingCatalogConfigurationId = replaceTarget?.catalogConfigurationId,
             )
         }
     }

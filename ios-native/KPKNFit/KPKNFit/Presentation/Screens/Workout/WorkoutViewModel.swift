@@ -28,7 +28,7 @@ import SwiftUI
     @Published var currentCoachMessage: CoachMessage?
 
     var lastLog: WorkoutLog? { repository.getLogsForSession(sessionId).first }
-    var exerciseIndex: [String: ExerciseMuscleInfo] { EXERCISE_DATABASE_BY_ID }
+    var exerciseIndex: [String: ExerciseMuscleInfo] { catalogExerciseIndex() }
 
     init(programId: String, sessionId: String) {
         self.programId = programId
@@ -309,18 +309,18 @@ import SwiftUI
 
     private func catalogInfoForExercise(_ exercise: Exercise) -> ExerciseMuscleInfo? {
         let canonicalId = canonicalExerciseKey(exercise)
-        if let info = EXERCISE_DATABASE_BY_ID[canonicalId] { return info }
-        if let dbId = exercise.exerciseDbId?.lowercased(), let info = EXERCISE_DATABASE_BY_ID[dbId] { return info }
-        if let exId = exercise.exerciseId?.lowercased(), let info = EXERCISE_DATABASE_BY_ID[exId] { return info }
+        if let info = catalogExerciseIndex()[canonicalId] { return info }
+        if let dbId = exercise.exerciseDbId?.lowercased(), let info = catalogExerciseIndex()[dbId] { return info }
+        if let exId = exercise.exerciseId?.lowercased(), let info = catalogExerciseIndex()[exId] { return info }
         return nil
     }
 
     private func catalogInfoForCompletedExercise(_ exercise: CompletedExercise) -> ExerciseMuscleInfo? {
         let canonicalId = exercise.resolvedCanonicalExerciseId()
-        if let info = EXERCISE_DATABASE_BY_ID[canonicalId] { return info }
-        if let dbId = exercise.exerciseDbId?.lowercased(), let info = EXERCISE_DATABASE_BY_ID[dbId] { return info }
+        if let info = catalogExerciseIndex()[canonicalId] { return info }
+        if let dbId = exercise.exerciseDbId?.lowercased(), let info = catalogExerciseIndex()[dbId] { return info }
         let exId = exercise.exerciseId.lowercased()
-        if let info = EXERCISE_DATABASE_BY_ID[exId] { return info }
+        if let info = catalogExerciseIndex()[exId] { return info }
         return nil
     }
 
@@ -2156,8 +2156,8 @@ import SwiftUI
             }
         }
         let logId = UUID().uuidString
-        let drain = AugeFatigueEngine.calculateCompletedSessionDrain(completedExercises: completedExercises, exerciseDb: EXERCISE_DATABASE_BY_ID, settings: repository.settings)
-        let base = AugeFatigueEngine.calculateCompletedSessionStress(completedExercises: completedExercises, exerciseDb: EXERCISE_DATABASE_BY_ID, settings: repository.settings)
+        let drain = AugeFatigueEngine.calculateCompletedSessionDrain(completedExercises: completedExercises, exerciseDb: catalogExerciseIndex(), settings: repository.settings)
+        let base = AugeFatigueEngine.calculateCompletedSessionStress(completedExercises: completedExercises, exerciseDb: catalogExerciseIndex(), settings: repository.settings)
 
         let predictedOverall = max(1.0, drain.cns * 0.45 + drain.muscular * 0.25 + drain.spinal * 0.30)
         let adjSystem = (drain.cns + Double(closingFeedback.systemAdjustment)).clamped(0, 100)

@@ -3,7 +3,7 @@ import Foundation
 // Redundant Exercise, CompletedExercise, and Session identity extensions removed (defined in ExerciseIdentity.swift and Session.swift)
 
 
-// Redundant EXERCISE_DATABASE_BY_ID and WorkoutContextRecurrenceEngine removed (defined in ExerciseDatabase.swift and WorkoutContextRecurrenceEngine.swift)
+// Redundant catalogExerciseIndex() and WorkoutContextRecurrenceEngine removed (defined in ExerciseDatabase.swift and WorkoutContextRecurrenceEngine.swift)
 
 
 // Redundant SupersetRules stub removed (defined in SupersetRules.swift)
@@ -964,11 +964,11 @@ extension Exercise {
     func inferDefaultLoadModeFromCatalog() -> LoadModeV2 {
         var resolvedInfo: ExerciseMuscleInfo? = nil
         let lowerId = self.id.lowercased()
-        if let info = EXERCISE_DATABASE_BY_ID[lowerId] {
+        if let info = catalogExerciseIndex()[lowerId] {
             resolvedInfo = info
-        } else if let dbId = self.exerciseDbId?.lowercased(), let info = EXERCISE_DATABASE_BY_ID[dbId] {
+        } else if let dbId = self.exerciseDbId?.lowercased(), let info = catalogExerciseIndex()[dbId] {
             resolvedInfo = info
-        } else if let exId = self.exerciseId?.lowercased(), let info = EXERCISE_DATABASE_BY_ID[exId] {
+        } else if let exId = self.exerciseId?.lowercased(), let info = catalogExerciseIndex()[exId] {
             resolvedInfo = info
         }
         guard let info = resolvedInfo else { return .LOAD }

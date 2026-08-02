@@ -47,8 +47,8 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
-import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.buildExerciseCatalogLookup
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.Program
@@ -165,8 +165,8 @@ fun VolumeView(
     val completedVolumes = remember(programLogs) {
         VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
             logs = programLogs,
-            exerciseList = EXERCISE_DATABASE,
-            aliases = EXERCISE_ID_ALIASES,
+            exerciseList = exerciseCatalogSnapshot(),
+            aliases = catalogSearchRedirects(),
             weeksCount = program.volumeRecommendations.firstOrNull()?.let {
                 (programLogs.size / 3).coerceAtLeast(1)
             } ?: 1
@@ -1215,7 +1215,7 @@ private fun calculateExerciseBreakdownForMuscle(
     // principales, mostrando solo directos o directos+indirectos según corresponda.
     countIndirect: Boolean = false,
 ): List<ExerciseVolumeBreakdown> {
-    val exerciseIndex = buildExerciseCatalogLookup(EXERCISE_DATABASE)
+    val exerciseIndex = buildExerciseCatalogLookup(exerciseCatalogSnapshot())
     val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
     val breakdownMap = mutableMapOf<String, Pair<Double, Int>>()
 
@@ -1370,8 +1370,8 @@ private fun calculateDisplayWeeklyMuscleVolume(
     val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
     val roleSeparated = VolumeCalculator.calculateRoleSeparatedMuscleVolume(
         sessions = sessions,
-        exerciseList = EXERCISE_DATABASE,
-        aliases = EXERCISE_ID_ALIASES,
+        exerciseList = exerciseCatalogSnapshot(),
+        aliases = catalogSearchRedirects(),
         divisor = divisor,
         adjustByIntensity = adjustByIntensity,
     )
@@ -1484,7 +1484,7 @@ private fun SubMuscleBreakdownList(
     countIndirect: Boolean,
     adjustByIntensity: Boolean,
 ) {
-    val exerciseIndex = remember { EXERCISE_DATABASE.associateBy { it.id.lowercase() } }
+    val exerciseIndex = remember { exerciseCatalogSnapshot().associateBy { it.id.lowercase() } }
     val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
     val subMuscleBreakdown = remember(muscleName, weeks, averageByWeek, countIndirect, adjustByIntensity) {
         calculateSubMuscleBreakdown(muscleName, weeks.flatMap { it.sessions }, exerciseIndex, divisor, countIndirect, adjustByIntensity)

@@ -28,12 +28,10 @@ enum TrainingEnergyEngine {
     }
 
     private static func resolveDbInfo(exerciseDbId: String?, exerciseId: String?, exerciseName: String) -> ExerciseMuscleInfo? {
-        var resolvedId: String? = nil
-        if let raw = (exerciseDbId ?? exerciseId)?.lowercased() {
-            resolvedId = EXERCISE_ID_ALIASES[raw] ?? raw
+        guard let id = (exerciseDbId ?? exerciseId)?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() else {
+            return nil
         }
-        if let id = resolvedId, let info = EXERCISE_DATABASE_BY_ID[id] { return info }
-        return EXERCISE_DATABASE_BY_ID.values.first { $0.name.caseInsensitiveCompare(exerciseName) == .orderedSame }
+        return catalogExerciseIndex()[id]
     }
 
     private static func estimateActiveSetKcal(effectiveLoadKg: Double, effectiveReps: Double, efc: Double, rpeMultiplier: Double, densityMultiplier: Double) -> Double {

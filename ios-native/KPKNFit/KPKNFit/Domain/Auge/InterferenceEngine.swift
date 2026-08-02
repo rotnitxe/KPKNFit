@@ -360,13 +360,9 @@ public enum InterferenceEngine {
         name: String,
         exerciseDb: [String: ExerciseMuscleInfo]
     ) -> ExerciseMuscleInfo? {
-        if let dbId = dbId, !dbId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return exerciseDb[dbId]
+        guard let dbId = dbId?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !dbId.isEmpty else {
+            return nil
         }
-        let normName = name.lowercased().trimmingCharacters(in: .whitespaces)
-        return exerciseDb.values.first { info in
-            info.name.lowercased().trimmingCharacters(in: .whitespaces) == normName
-                || info.alias?.lowercased().trimmingCharacters(in: .whitespaces) == normName
-        }
+        return exerciseDb[dbId]
     }
 }

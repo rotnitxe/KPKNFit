@@ -30,9 +30,9 @@ class ExerciseDbAuditTest {
 
         // Intento 2: ruta relativa desde el directorio de trabajo (Gradle)
         val candidates = listOf(
-            "src/main/assets/exercise_database.json",
-            "../app/src/main/assets/exercise_database.json",
-            "app/src/main/assets/exercise_database.json",
+            "../../catalog/exercises/v2/curation/evidence/legacy/exercise_database.json",
+            "../catalog/exercises/v2/curation/evidence/legacy/exercise_database.json",
+            "catalog/exercises/v2/curation/evidence/legacy/exercise_database.json",
         )
         for (path in candidates) {
             val f = File(path)

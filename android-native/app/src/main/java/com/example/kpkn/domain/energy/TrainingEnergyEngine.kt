@@ -1,7 +1,7 @@
 package com.example.kpkn.domain.energy
 
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
-import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
@@ -27,19 +27,21 @@ object TrainingEnergyEngine {
     private const val REST_KCAL_PER_MIN_BASE = 3.2
 
     private fun resolveDbInfo(
+        catalogConfigurationId: String?,
         exerciseDbId: String?,
         exerciseId: String?,
         exerciseName: String,
     ): ExerciseMuscleInfo? {
-        val resolvedId = (exerciseDbId ?: exerciseId)?.lowercase()?.let { rawId ->
-            EXERCISE_ID_ALIASES[rawId] ?: rawId
+        // A persisted v2 configuration is authoritative. Do not silently
+        // reinterpret it by alias or visible name when the runtime asset lacks it.
+        if (!catalogConfigurationId.isNullOrBlank()) {
+            return catalogExerciseIndex()[catalogConfigurationId.lowercase()]
         }
-        return resolvedId?.let { EXERCISE_DATABASE_BY_ID[it] }
-            ?: EXERCISE_DATABASE_BY_ID.values.find {
-                it.name.equals(exerciseName, ignoreCase = true)
-            }
+        val resolvedId = (exerciseDbId ?: exerciseId)?.lowercase()?.let { rawId ->
+            catalogSearchRedirects()[rawId] ?: rawId
+        }
+        return resolvedId?.let { catalogExerciseIndex()[it] }
     }
-
     /**
      * Bodyweight contribution to effective load from catalog fields
      * (equipment / pattern / force / bodyPart) — not exercise-name substrings.
@@ -292,6 +294,7 @@ object TrainingEnergyEngine {
         if (completedExercises != null) {
             for (compEx in completedExercises) {
                 val dbInfo = resolveDbInfo(
+                    catalogConfigurationId = compEx.catalogConfigurationId,
                     exerciseDbId = compEx.exerciseDbId,
                     exerciseId = compEx.exerciseId,
                     exerciseName = compEx.exerciseName,
@@ -453,6 +456,7 @@ object TrainingEnergyEngine {
 
             for ((exerciseName, exercise, plannedSet) in plannedSets) {
                 val dbInfo = resolveDbInfo(
+                    catalogConfigurationId = exercise.catalogConfigurationId,
                     exerciseDbId = exercise.exerciseDbId,
                     exerciseId = exercise.exerciseId,
                     exerciseName = exerciseName,

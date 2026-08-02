@@ -3,8 +3,8 @@ package com.example.kpkn.screens.programdetail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
-import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Exercise
@@ -207,12 +207,12 @@ class ProgramDetailViewModel(
         if (p == null) return@combine emptyMap()
 
         val statusMap = mutableMapOf<String, MuscleOvertrainingStatus>()
-        val exerciseList = EXERCISE_DATABASE_BY_ID.values.toList()
+        val exerciseList = catalogExerciseIndex().values.toList()
 
         val completedVolumes = VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
             logs = logs,
             exerciseList = exerciseList,
-            aliases = EXERCISE_ID_ALIASES,
+            aliases = catalogSearchRedirects(),
             weeksCount = p.volumeRecommendations.firstOrNull()?.let {
                 (logs.size / 3).coerceAtLeast(1)
             } ?: 1
@@ -1377,7 +1377,7 @@ class ProgramDetailViewModel(
 
     private fun resolveCanonicalMuscles(exercise: Exercise): Set<String> {
         val exerciseDbId = exercise.exerciseDbId?.lowercase() ?: return emptySet()
-        val info = EXERCISE_DATABASE_BY_ID[exerciseDbId] ?: return emptySet()
+        val info = catalogExerciseIndex()[exerciseDbId] ?: return emptySet()
 
         return info.involvedMuscles
             .filter { resolveMuscleVolumeContribution(it) > 0.0 }

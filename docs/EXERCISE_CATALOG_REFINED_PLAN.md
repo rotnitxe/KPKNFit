@@ -1,5 +1,11 @@
 # Plan Refinado del Catálogo de Ejercicios — Veredicto y Profundización
 
+> **Plan histórico, ya supersedido.** Este documento conserva el análisis y las
+> decisiones de la fase v1 como evidencia. No debe usarse para modificar el
+> runtime. La reconstrucción vigente, cerrada y determinista es el catálogo v2
+> descrito en [`catalog/exercises/v2/curation/STATUS.md`](../catalog/exercises/v2/curation/STATUS.md),
+> con `exercise_catalog_v2.json` como único asset de ejercicios.
+
 > Fecha: 2026-07-31  
 > Fuente: `android-native/app/src/main/assets/exercise_database.json` (795 filas, post-P0)  
 > Principio rector: la taxonomía Pin Press / Spoto / Floor es la regla de agrupación universal. No hay atrapatodos.
@@ -566,4 +572,3 @@ fun gripWidthCloseDoesNotRemovePectoralesFromBenchPress() {
 ---
 
 *Fin del plan refinado.*
-

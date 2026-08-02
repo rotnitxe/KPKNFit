@@ -1,7 +1,7 @@
 package com.example.kpkn.domain.auge
 
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
-import com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES
+import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.PostSessionFeedback
@@ -19,7 +19,7 @@ object OvertrainingDetector {
         program: Program,
         historyLogs: List<WorkoutLog>,
         feedbacks: List<PostSessionFeedback>,
-        exerciseDb: Map<String, ExerciseMuscleInfo> = EXERCISE_DATABASE_BY_ID,
+        exerciseDb: Map<String, ExerciseMuscleInfo> = catalogExerciseIndex(),
     ): List<String> {
         val logs = historyLogs.filter { it.programId == program.id }
         if (logs.isEmpty() || program.volumeRecommendations.isEmpty()) return emptyList()
@@ -31,7 +31,7 @@ object OvertrainingDetector {
         val completedVolumes = VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
             logs = logs,
             exerciseList = exerciseList,
-            aliases = EXERCISE_ID_ALIASES,
+            aliases = catalogSearchRedirects(),
             weeksCount = weeksCount,
         )
 

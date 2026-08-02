@@ -7,7 +7,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
@@ -39,7 +39,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     private val augeRepo = AugeRepository.getInstance(application)
     private val programRepo = ProgramRepository.getInstance()
     private val nutritionRepo = NutritionRepository.getInstance()
-    private val exerciseDb = EXERCISE_DATABASE_BY_ID
+    private val exerciseDb = catalogExerciseIndex()
 
     private var recoveryTimerJob: Job? = null
     private var pendingRevealJob: Job? = null

@@ -1,6 +1,9 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.exercises.isExerciseCatalogV2RuntimeReady
+import com.example.kpkn.data.exercises.catalogv2.catalogV2SelectionIssues
+
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
@@ -317,6 +320,20 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
     val draft = rawDraft.normalizeSession().copy(lastModifiedAtMs = System.currentTimeMillis())
     val program = repository.getProgramById(programId) ?: return SessionEditorSaveResult(false, "No pudimos encontrar el programa activo.")
     if (state.weekId.isBlank()) return SessionEditorSaveResult(false, "No pudimos identificar la semana para guardar.")
+
+    // Once v2 is actually loaded, no legacy/partial identity may cross the save boundary.
+    if (isExerciseCatalogV2RuntimeReady()) {
+        val catalogIssues = draft.catalogV2SelectionIssues()
+        if (catalogIssues.isNotEmpty()) {
+            val details = catalogIssues.take(3).joinToString(" | ") { issue ->
+                "${issue.exerciseId}: ${issue.code}${issue.detail?.let { detail -> " ($detail)" }.orEmpty()}"
+            }
+            return SessionEditorSaveResult(
+                false,
+                "Catálogo v2 bloqueó el guardado: $details",
+            )
+        }
+    }
 
     val validation = SessionEditorRulesEngine.validateBeforeSave(
         draft = draft,

@@ -1,6 +1,6 @@
 package com.example.kpkn.screens.workout
 
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.AugeMetrics
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.DifficultySignalV2
@@ -462,8 +462,8 @@ class WorkoutSetRecorder(
                 RestTimerKind.STANDARD,
                 -> baseRest
             }
-            val exerciseDbId = ports.canonicalExerciseKey(exercise)
-            val dbInfo = EXERCISE_DATABASE_BY_ID[exerciseDbId]
+            val exerciseDbId = exercise.catalogConfigurationId ?: ports.canonicalExerciseKey(exercise)
+            val dbInfo = catalogExerciseIndex()[exerciseDbId]
             val settings = repository.settings.value
             val augeMetrics = AugeFatigueEngine.getDynamicAugeMetrics(exercise.name, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
             val augeTanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)

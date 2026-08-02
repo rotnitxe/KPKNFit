@@ -58,7 +58,7 @@ private fun resolveExerciseFromNaturalLanguage(raw: String): com.example.kpkn.da
     val normalizedTokens = query.split(" ").filter { it.isNotBlank() }
     if (normalizedTokens.isEmpty()) return null
 
-    return com.example.kpkn.data.exercises.EXERCISE_DATABASE
+    return com.example.kpkn.data.exercises.exerciseCatalogSnapshot()
         .asSequence()
         .map { exercise ->
             val name = normalizeForLookup(exercise.name)

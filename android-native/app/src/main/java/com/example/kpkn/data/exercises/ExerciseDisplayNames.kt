@@ -6,10 +6,10 @@ import com.example.kpkn.domain.exercises.exerciseDisplayParts
 
 /** UI/data boundary convenience for every Android surface that has an Exercise. */
 fun Exercise.displayNameWithSelectedChips(
-    catalog: List<ExerciseMuscleInfo> = EXERCISE_DATABASE,
+    catalog: List<ExerciseMuscleInfo> = exerciseCatalogSnapshot(),
 ): String {
-    val info = resolveExercise(exerciseDbId)
+    val info = resolveExercise(catalogConfigurationId)
+        ?: resolveExercise(exerciseDbId)
         ?: resolveExercise(exerciseId)
-        ?: catalog.firstOrNull { it.name.equals(name, ignoreCase = true) }
     return exerciseDisplayParts(this, info).text.ifBlank { name }
 }

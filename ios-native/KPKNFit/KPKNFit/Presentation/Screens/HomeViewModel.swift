@@ -177,7 +177,7 @@ public final class HomeViewModel: ObservableObject {
         guard let p = activeProgram else { return [] }
         let logs = repository.history.filter { $0.programId == p.id }
         var overtrainedList: [String] = []
-        let exerciseList = EXERCISE_DATABASE_BY_ID.values.map { $0 }
+        let exerciseList = catalogExerciseIndex().values.map { $0 }
         
         let weeksCount = max(1, logs.count / 3)
         let completedVolumes = VolumeCalculator.calculateCompletedWeeklyMuscleVolume(

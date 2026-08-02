@@ -152,7 +152,7 @@ internal fun ExercisePickerDetailedCard(
 ) {
     val primaryMuscle = resolvePrimaryMuscleLabel(info)
     val bgAlpha = if (isSelected) 0.44f else 0.28f
-    val hasAspects = !info.technicalAspects.isNullOrEmpty()
+    val hasAspects = !info.catalogOptionAxes.isNullOrEmpty()
     var chipDescription by remember(info.id) { mutableStateOf<String?>(null) }
     Card(
         modifier = Modifier.fillMaxWidth(),

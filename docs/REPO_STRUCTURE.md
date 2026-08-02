@@ -126,8 +126,8 @@ com.example.kpkn/
 
 | Asset | Size | Purpose |
 | :--- | :--- | :--- |
-| `exercise_database.json` | ~1 MB | Exercise catalog with muscle mappings and biomechanics. |
-| `exercise_id_aliases.json` | ~28 KB | Canonical exercise ID alias resolution. |
+| `exercise_catalog_v2.json` | generated | Sole approved exercise catalog runtime asset: parent definitions, explicit configurations, chip axes, exact IDs, and rich AUGE/biomechanics/programming metadata. |
+| `catalog/exercises/v2/curation/evidence/legacy/` | evidence only | Archived v1 inputs used to justify editorial decisions; never loaded by the app and never used as an ID-alias fallback. |
 | `food_data/` | ~80 MB | USDA/OFF CSVs imported into Room on first launch, plus compiled offline semantic index `dataset_knowledge.bin` (~1.3 MB gzip, 19,405 examples) used by `SemanticPortionRetriever`. |
 | `wikilab/` | ~104 KB | `muscles.json`, `joints.json`, `tendons.json`, `movement_patterns.json`, `kinetic_chains.json` (anatomy catalog). |
 

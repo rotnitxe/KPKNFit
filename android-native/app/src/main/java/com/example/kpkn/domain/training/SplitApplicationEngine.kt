@@ -1,6 +1,6 @@
 package com.example.kpkn.domain.training
 
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.PredictedDrain
@@ -227,7 +227,7 @@ object SplitApplicationEngine {
         split: SplitTemplate,
         prefs: SuggestionPrefs = SuggestionPrefs(preferredDifficulty = split.difficulty),
         templates: List<SessionTemplate> = SESSION_TEMPLATES_SYSTEM,
-        exerciseIndex: Map<String, ExerciseMuscleInfo> = EXERCISE_DATABASE_BY_ID,
+        exerciseIndex: Map<String, ExerciseMuscleInfo> = catalogExerciseIndex(),
     ): PrebuiltWeekPreview {
         val plan = SessionTemplateSuggestionEngine.suggestWeek(
             split = split,
@@ -274,7 +274,7 @@ object SplitApplicationEngine {
         migrationMode: SessionMigrationMode,
         prefs: SuggestionPrefs = SuggestionPrefs(),
         templates: List<SessionTemplate> = SESSION_TEMPLATES_SYSTEM,
-        exerciseIndex: Map<String, ExerciseMuscleInfo> = EXERCISE_DATABASE_BY_ID,
+        exerciseIndex: Map<String, ExerciseMuscleInfo> = catalogExerciseIndex(),
     ): List<Session> {
         val trainingDays = patternToTrainingDays(pattern, startDay)
         if (trainingDays.isEmpty()) return emptyList()
@@ -493,7 +493,9 @@ object SplitApplicationEngine {
 
         fun collectFromExercises(exercises: List<Exercise>) {
             exercises.forEach { exercise ->
-                val info = exercise.exerciseDbId?.lowercase()?.let { EXERCISE_DATABASE_BY_ID[it] }
+                val info = (exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId)
+                    ?.lowercase()
+                    ?.let(catalogExerciseIndex()::get)
                 SessionMuscleFilter.relevantMusclesFor(info).forEach { involved ->
                     muscles.add(
                         normalizeCanonicalMuscle(

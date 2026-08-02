@@ -5,23 +5,16 @@ import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.db.toExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.exercises.catalogv2.toLegacyDefaultCatalog
+import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
 import com.example.kpkn.domain.exercises.VariantGroupIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 
-private const val EXERCISE_DATABASE_ASSET = "exercise_database.json"
-private const val EXERCISE_ALIASES_ASSET = "exercise_id_aliases.json"
+private const val EXERCISE_DATABASE_V2_ASSET = "exercise_catalog_v2.json"
 
-private val exerciseCatalogJson = Json { ignoreUnknownKeys = true }
 private val exerciseCatalogLock = Any()
-private val extraWikiLabExerciseAliases = mapOf(
-    "db_exp_face_pull" to "deltoides_face_pull_polea",
-    "db_plank" to "core_plancha_frontal_iso",
-    "db_exp_hammer_curl" to "biceps_curl_de_pie_martillo_mancuernas",
-    "db_ab_wheel" to "core_rueda_abdominal_rodillas",
-    "db_hanging_leg_raises" to "core_elevacion_piernas_paralelas",
-)
 
 @Volatile
 private var exerciseDatabaseCache: List<ExerciseMuscleInfo> = emptyList()
@@ -36,7 +29,7 @@ private var customExerciseOverlayCache: List<ExerciseMuscleInfo> = emptyList()
 private var exerciseDatabaseByIdCache: Map<String, ExerciseMuscleInfo> = emptyMap()
 
 @Volatile
-private var exerciseAliasCache: Map<String, String> = emptyMap()
+private var v2ConfigurationLookupCache: Map<String, ExerciseMuscleInfo> = emptyMap()
 
 @Volatile
 private var exerciseCatalogInitialized = false
@@ -48,21 +41,18 @@ fun initializeExerciseDatabase(context: Context) {
         if (exerciseCatalogInitialized) return
 
         val assets = context.assets
-        val exercisesJson = assets.open(EXERCISE_DATABASE_ASSET).bufferedReader().use { it.readText() }
-        val aliasesJson = assets.open(EXERCISE_ALIASES_ASSET).bufferedReader().use { it.readText() }
-
-        val baseExercises = exerciseCatalogJson.decodeFromString<List<ExerciseMuscleInfo>>(exercisesJson)
-            .map(::normalizeExerciseLabels)
-        staticExerciseCache = baseExercises
+        val v2Catalog = runCatching {
+            val payload = assets.open(EXERCISE_DATABASE_V2_ASSET).bufferedReader().use { it.readText() }
+            ExerciseCatalogV2Loader.decodeApproved(payload)
+        }.getOrElse { failure ->
+            throw IllegalStateException("Approved exercise catalog v2 failed to load", failure)
+        }
+        staticExerciseCache = v2Catalog.toLegacyDefaultCatalog().map(::normalizeExerciseLabels)
         val exercises = buildMergedExerciseCatalog()
-        val aliases = exerciseCatalogJson.decodeFromString<Map<String, String>>(aliasesJson)
-
         exerciseDatabaseCache = exercises
-        exerciseDatabaseByIdCache = exercises.associateBy { it.id.lowercase() }
-        exerciseAliasCache = (
-            aliases.mapKeys { it.key.lowercase() }.mapValues { it.value.lowercase() } +
-                extraWikiLabExerciseAliases.mapKeys { it.key.lowercase() }.mapValues { it.value.lowercase() }
-            )
+        v2ConfigurationLookupCache = v2Catalog.toLegacyConfigurationLookup()
+            .mapValues { (_, value) -> normalizeExerciseLabels(value) }
+        exerciseDatabaseByIdCache = (exercises.associateBy { it.id.lowercase() } + v2ConfigurationLookupCache)
         VariantGroupIndex.rebuild(exercises)
         exerciseCatalogInitialized = true
     }
@@ -81,7 +71,7 @@ suspend fun loadCustomExercisesAsync(context: Context) {
         customExerciseOverlayCache = customExercises
         val merged = buildMergedExerciseCatalog()
         exerciseDatabaseCache = merged
-        exerciseDatabaseByIdCache = merged.associateBy { it.id.lowercase() }
+        exerciseDatabaseByIdCache = merged.associateBy { it.id.lowercase() } + v2ConfigurationLookupCache
         VariantGroupIndex.rebuild(merged)
     }
 }
@@ -92,39 +82,64 @@ private fun buildMergedExerciseCatalog(): List<ExerciseMuscleInfo> =
         .values
         .toList()
 
-val EXERCISE_DATABASE: List<ExerciseMuscleInfo>
-    get() = exerciseDatabaseCache
+/**
+ * Repository-owned snapshot for presentation/analytics adapters.
+ *
+ * The catalog is intentionally exposed as a function rather than a global
+ * mutable-map/list constant. Callers receive the current v2-backed snapshot
+ * (including the custom overlay) and cannot retain a reference to the
+ * repository's internal index.
+ */
+fun exerciseCatalogSnapshot(): List<ExerciseMuscleInfo> = exerciseDatabaseCache.toList()
 
-val EXERCISE_DATABASE_BY_ID: Map<String, ExerciseMuscleInfo>
-    get() = exerciseDatabaseByIdCache
+/** Explicit v2 index; callers cannot construct identities from visible names. */
+fun catalogExerciseIndex(): Map<String, ExerciseMuscleInfo> = exerciseDatabaseByIdCache
 
-val EXERCISE_ID_ALIASES: Map<String, String>
-    get() = exerciseAliasCache
+/** Search terms live on v2 definitions; no redirect table is used at runtime. */
+fun catalogSearchRedirects(): Map<String, String> = emptyMap()
+
+/** True only after an approved v2 asset has loaded successfully. */
+fun isExerciseCatalogV2RuntimeReady(): Boolean =
+    exerciseCatalogInitialized && v2ConfigurationLookupCache.isNotEmpty()
 
 /**
- * Lookup used by analytics and workout history. Legacy ids are resolved to the
- * current catalog entry before callers attempt to read muscle metadata.
+ * Lookup used by analytics and workout history. Only exact v2 ids are accepted.
  */
 fun buildExerciseCatalogLookup(
-    catalog: List<ExerciseMuscleInfo> = EXERCISE_DATABASE,
+    catalog: List<ExerciseMuscleInfo> = exerciseCatalogSnapshot(),
 ): Map<String, ExerciseMuscleInfo> {
-    val base = catalog.associateBy { it.id.lowercase() }
-    val aliases = EXERCISE_ID_ALIASES.mapNotNull { (alias, canonical) ->
-        base[canonical.lowercase()]?.let { alias.lowercase() to it }
-    }
-    return base + aliases
+    return catalog.associateBy { it.id.lowercase() }
 }
 
 fun resolveExerciseId(rawId: String?): String? {
     val normalized = rawId?.trim()?.lowercase().orEmpty()
     if (normalized.isBlank()) return null
-    if (exerciseDatabaseByIdCache.containsKey(normalized)) return normalized
-    val canonical = exerciseAliasCache[normalized] ?: return null
-    return canonical.takeIf { exerciseDatabaseByIdCache.containsKey(it) }
+    return normalized.takeIf { exerciseDatabaseByIdCache.containsKey(it) }
 }
 
 fun resolveExercise(rawId: String?): ExerciseMuscleInfo? =
     resolveExerciseId(rawId)?.let { exerciseDatabaseByIdCache[it] }
+
+/**
+ * Resolves a voice/search phrase only through curated v2 definition
+ * searchTerms.  It deliberately does not compare against the visible
+ * canonical name and never consults the removed alias redirect table.
+ */
+fun catalogSearchExerciseId(query: String?): String? {
+    val normalized = normalizeCatalogSearchText(query.orEmpty())
+    if (normalized.isBlank()) return null
+    val candidates = staticExerciseCache.asSequence()
+        .flatMap { exercise ->
+            exercise.alias.orEmpty()
+                .split(',')
+                .asSequence()
+                .map { term -> normalizeCatalogSearchText(term) to exercise.id }
+        }
+        .filter { (term, _) -> term.isNotBlank() }
+        .toList()
+    return candidates.firstOrNull { (term, _) -> term == normalized }?.second
+        ?: candidates.firstOrNull { (term, _) -> term.contains(normalized) || normalized.contains(term) }?.second
+}
 
 fun setCustomExerciseOverlay(exercises: List<ExerciseMuscleInfo>) {
     synchronized(exerciseCatalogLock) {
@@ -132,7 +147,7 @@ fun setCustomExerciseOverlay(exercises: List<ExerciseMuscleInfo>) {
             .map { normalizeExerciseLabels(it.copy(isCustom = true)) }
         val merged = buildMergedExerciseCatalog()
         exerciseDatabaseCache = merged
-        exerciseDatabaseByIdCache = merged.associateBy { it.id.lowercase() }
+        exerciseDatabaseByIdCache = merged.associateBy { it.id.lowercase() } + v2ConfigurationLookupCache
     }
 }
 
@@ -143,7 +158,7 @@ fun upsertCustomExerciseOverlay(exercise: ExerciseMuscleInfo) {
             .filterNot { it.id.equals(normalized.id, ignoreCase = true) } + normalized
         val merged = buildMergedExerciseCatalog()
         exerciseDatabaseCache = merged
-        exerciseDatabaseByIdCache = merged.associateBy { it.id.lowercase() }
+        exerciseDatabaseByIdCache = merged.associateBy { it.id.lowercase() } + v2ConfigurationLookupCache
     }
 }
 
@@ -152,7 +167,7 @@ fun removeCustomExerciseOverlay(exerciseId: String) {
         customExerciseOverlayCache = customExerciseOverlayCache.filterNot { it.id.equals(exerciseId, ignoreCase = true) }
         val merged = buildMergedExerciseCatalog()
         exerciseDatabaseCache = merged
-        exerciseDatabaseByIdCache = merged.associateBy { it.id.lowercase() }
+        exerciseDatabaseByIdCache = merged.associateBy { it.id.lowercase() } + v2ConfigurationLookupCache
     }
 }
 
@@ -186,4 +201,10 @@ private fun normalizeInlineUppercaseP(value: String): String {
         }
     }
     return String(chars)
+}
+
+private fun normalizeCatalogSearchText(value: String): String {
+    return java.text.Normalizer.normalize(value.lowercase(java.util.Locale.ROOT), java.text.Normalizer.Form.NFD)
+        .replace(Regex("\\p{Mn}+"), "")
+        .trim()
 }

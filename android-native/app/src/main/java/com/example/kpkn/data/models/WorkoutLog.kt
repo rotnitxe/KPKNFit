@@ -103,6 +103,13 @@ data class CompletedExercise(
     val supersetRounds: Int? = null,
     val supersetRestBetween: Int? = null,
     val supersetRestAfter: Int? = null,
+    /** Immutable v2 selection and profile snapshot for completed history. */
+    val catalogRevision: String? = null,
+    val catalogDefinitionId: String? = null,
+    val catalogConfigurationId: String? = null,
+    val performanceProfileId: String? = null,
+    val occurrenceId: String? = null,
+    val resolvedProfileSnapshotJson: String? = null,
 )
 
 @Serializable

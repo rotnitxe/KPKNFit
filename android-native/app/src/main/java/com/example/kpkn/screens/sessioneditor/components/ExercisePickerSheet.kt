@@ -51,8 +51,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.exercises.catalogv2.ApprovedAssetExerciseCatalogRepositoryV2
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.domain.exercises.ALL_MUSCLES
@@ -62,8 +64,8 @@ import com.example.kpkn.domain.exercises.ExerciseCatalogSort
 import com.example.kpkn.domain.exercises.matchingTechnicalAspectOptions
 import com.example.kpkn.screens.sessioneditor.CatalogSearchField
 import com.example.kpkn.screens.sessioneditor.CompactCatalogFilterChip
-import com.example.kpkn.screens.sessioneditor.VariantFlowResultCache
-import com.example.kpkn.screens.sessioneditor.VariantFlowSheet
+import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
+import com.example.kpkn.screens.sessioneditor.CatalogSelectionWizard
 import com.example.kpkn.ui.components.KpknSheetTokens
 import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 
@@ -106,7 +108,30 @@ internal fun ExercisePickerSheet(
     onDismiss: () -> Unit,
     highlightedExerciseId: String? = null,
     onSelectionChange: (List<ExerciseMuscleInfo>) -> Unit = {},
+    editingCatalogDefinitionId: String? = null,
+    editingCatalogConfigurationId: String? = null,
 ) {
+    val v2Context = LocalContext.current
+    val v2Repository = remember(v2Context) { ApprovedAssetExerciseCatalogRepositoryV2(v2Context) }
+    val v2State by v2Repository.state.collectAsStateWithLifecycle()
+    LaunchedEffect(v2Repository) { v2Repository.load() }
+    if (v2State is com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2.Ready) {
+        ExercisePickerV2Catalog(
+            repository = v2Repository,
+            query = query,
+            editingExisting = editingExisting,
+            selectedExercisesIds = selectedExercisesIds,
+            onSelect = onSelect,
+            onMultiSelect = onMultiSelect,
+            onSelectionChange = onSelectionChange,
+            onOpenExerciseDetail = onOpenExerciseDetail,
+            onOpenExerciseCreator = onOpenExerciseCreator,
+            onDismiss = onDismiss,
+            initialCatalogDefinitionId = editingCatalogDefinitionId,
+            initialCatalogConfigurationId = editingCatalogConfigurationId,
+        )
+        return
+    }
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
     val fullCatalog = remember(catalog, customExercises) {
         (customExercises + catalog).distinctBy { it.id.lowercase() }
@@ -142,8 +167,8 @@ internal fun ExercisePickerSheet(
 
     fun updateAspects(info: ExerciseMuscleInfo, aspects: Map<String, String>) {
         aspectsByExerciseId = aspectsByExerciseId + (info.id to aspects)
-        if (!info.technicalAspects.isNullOrEmpty()) {
-            VariantFlowResultCache.store(
+        if (!info.catalogOptionAxes.isNullOrEmpty()) {
+            CatalogSelectionDraftBridge.store(
                 exerciseDbId = info.id,
                 variantName = info.variantName,
                 variantGroupId = info.variantGroupId,
@@ -160,7 +185,7 @@ internal fun ExercisePickerSheet(
     fun handleSelect(info: ExerciseMuscleInfo) {
         if (editingExisting) {
             val aspects = aspectsFor(info)
-            if (!info.technicalAspects.isNullOrEmpty()) {
+            if (!info.catalogOptionAxes.isNullOrEmpty()) {
                 updateAspects(info, aspects)
             }
             onSelect(info)
@@ -171,7 +196,7 @@ internal fun ExercisePickerSheet(
             } else {
                 selectionOrder + info.id
             }
-            if (selecting && !info.technicalAspects.isNullOrEmpty()) {
+            if (selecting && !info.catalogOptionAxes.isNullOrEmpty()) {
                 updateAspects(info, aspectsFor(info))
             }
             onToggleExerciseSelection(info.id)
@@ -652,10 +677,10 @@ internal fun ExercisePickerSheet(
     }
 
     variantFlowExercise?.let { exercise ->
-        VariantFlowSheet(
+        CatalogSelectionWizard(
             initialExercise = exercise,
             onConfirm = { selectedVariant, selectedAspects ->
-                VariantFlowResultCache.store(
+                CatalogSelectionDraftBridge.store(
                     exerciseDbId = selectedVariant.id,
                     variantName = selectedVariant.variantName,
                     variantGroupId = selectedVariant.variantGroupId,

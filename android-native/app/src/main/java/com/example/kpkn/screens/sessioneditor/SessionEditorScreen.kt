@@ -79,7 +79,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.components.rememberSessionEditorSpacing
@@ -197,7 +197,7 @@ fun SessionEditorScreen(
     var navigatorHeightDp by remember { mutableStateOf(editorSpacing.bottomContentPadding) }
     val contentBottomPadding = navigatorHeightDp + 16.dp
     val fabBottomPadding = navigatorHeightDp + 8.dp
-    val exerciseInfoById = remember { EXERCISE_DATABASE.associateBy { it.id } }
+    val exerciseInfoById = remember { exerciseCatalogSnapshot().associateBy { it.id } }
     val dragController = remember(session?.id) { SessionEditorDragController() }
     val partBounds = dragController.partBounds
     val partContentBounds = dragController.partContentBounds

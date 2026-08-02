@@ -15,11 +15,12 @@ import kotlin.math.roundToInt
 
 internal fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<WorkoutLog>): Exercise {
         val trainingMode = TrainingMode.REPS
-        val variantResult = VariantFlowResultCache.consume(info.id)
+        val occurrenceId = UUID.randomUUID().toString()
+        val variantResult = if (info.catalogRevision == null) CatalogSelectionDraftBridge.consume(info.id) else null
 
         val effectiveMuscles: List<InvolvedMuscle>? = if (variantResult != null) {
             val selectedOptions = variantResult.selectedAspects.mapNotNull { (aspectId, optId) ->
-                info.technicalAspects
+                info.catalogOptionAxes
                     ?.firstOrNull { it.id == aspectId }
                     ?.options
                     ?.firstOrNull { it.id == optId }
@@ -34,7 +35,7 @@ internal fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<Work
         }
 
         return Exercise(
-            id = UUID.randomUUID().toString(),
+            id = occurrenceId,
             name = info.name,
             exerciseDbId = info.id,
             exerciseId = info.id,
@@ -57,6 +58,11 @@ internal fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<Work
             ),
             setupCues = info.setupCues.orEmpty(),
             executionCues = info.executionCues.orEmpty(),
+            catalogRevision = info.catalogRevision,
+            catalogDefinitionId = info.catalogDefinitionId,
+            catalogConfigurationId = info.catalogConfigurationId,
+            performanceProfileId = info.performanceProfileId,
+            occurrenceId = occurrenceId,
             selectedExecutionOption = info.executionOptions?.firstOrNull(),
             selectedMovementPattern = info.movementPattern,
         ).withSharedPerformanceFromHistory(history)
@@ -115,21 +121,25 @@ internal fun Exercise.withSessionEditorDefaults(
         )
     }
 
-internal fun createBlankExercise(): Exercise =
-    Exercise(
-    id = UUID.randomUUID().toString(),
-    name = "",
-    canonicalExerciseId = null,
-    exerciseFamilyId = null,
-    trainingMode = TrainingMode.REPS,
-    restTime = 90,
-    sets = listOf(
-    ExerciseSet(
-    id = UUID.randomUUID().toString(),
-    targetReps = 8,
+internal fun createBlankExercise(): Exercise {
+    val customId = "custom:${UUID.randomUUID()}"
+    return Exercise(
+        id = UUID.randomUUID().toString(),
+        name = "",
+        exerciseDbId = customId,
+        exerciseId = customId,
+        canonicalExerciseId = customId,
+        exerciseFamilyId = customId,
+        trainingMode = TrainingMode.REPS,
+        restTime = 90,
+        sets = listOf(
+            ExerciseSet(
+                id = UUID.randomUUID().toString(),
+                targetReps = 8,
+            ),
+        ),
     )
-    ),
-    )
+}
 
 internal fun Session.transformExercises(transform: (Exercise) -> Exercise): Session {
     var applied = false

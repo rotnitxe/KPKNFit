@@ -955,8 +955,10 @@ enum SessionAssistantEngine {
 
     static func resolveExerciseInfo(exercise: Exercise, exerciseIndex: [String: ExerciseMuscleInfo]) -> ExerciseMuscleInfo? {
         let byId = exercise.exerciseDbId ?? exercise.exerciseId
-        if let key = byId?.lowercased(), let info = exerciseIndex[key] { return info }
-        return exerciseIndex.values.first { $0.name == exercise.name }
+        guard let key = byId?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !key.isEmpty else {
+            return nil
+        }
+        return exerciseIndex[key]
     }
 
     static func defaultSessionVolumeLimit(settings: Settings) -> Int {

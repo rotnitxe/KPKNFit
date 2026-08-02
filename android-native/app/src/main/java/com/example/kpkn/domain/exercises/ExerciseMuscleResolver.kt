@@ -50,11 +50,10 @@ object ExerciseMuscleResolver {
         exercise: Exercise,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
     ): ExerciseMuscleInfo? {
-        val dbId = (exercise.exerciseDbId ?: exercise.exerciseId)?.lowercase()
-        return dbId?.let { exerciseIndex[it] }
-            ?: exerciseIndex.values.firstOrNull {
-                it.name.equals(exercise.name, ignoreCase = true)
-            }
+        val dbId = (exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.exerciseId)
+            ?.trim()
+            ?.lowercase()
+        return dbId?.let(exerciseIndex::get)
     }
 
     private fun selectedTechnicalMuscles(
@@ -63,7 +62,7 @@ object ExerciseMuscleResolver {
     ): List<InvolvedMuscle>? {
         val selected = exercise.selectedAspects?.takeIf { it.isNotEmpty() } ?: return null
         val info = catalogInfo ?: return null
-        val options = info.technicalAspects.orEmpty().mapNotNull { aspect ->
+        val options = info.catalogOptionAxes.orEmpty().mapNotNull { aspect ->
             val optionId = selected[aspect.id] ?: return@mapNotNull null
             aspect.options.firstOrNull { it.id == optionId }
         }

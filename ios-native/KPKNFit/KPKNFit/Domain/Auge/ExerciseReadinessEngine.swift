@@ -18,9 +18,9 @@ enum ExerciseReadinessEngine {
     ) -> ExerciseReadiness? {
         let dbInfo: ExerciseMuscleInfo?
         if let dbId = exercise.exerciseDbId?.lowercased() {
-            dbInfo = EXERCISE_DATABASE_BY_ID[dbId]
+            dbInfo = catalogExerciseIndex()[dbId]
         } else if let exId = exercise.exerciseId?.lowercased() {
-            dbInfo = EXERCISE_DATABASE_BY_ID[exId]
+            dbInfo = catalogExerciseIndex()[exId]
         } else {
             dbInfo = nil
         }

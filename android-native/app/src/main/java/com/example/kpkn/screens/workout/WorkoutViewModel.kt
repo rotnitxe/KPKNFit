@@ -5,7 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.voice.VoiceState
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
@@ -15,7 +15,7 @@ import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
-import com.example.kpkn.screens.sessioneditor.VariantFlowResultCache
+import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.ProgramCalendarEngine
@@ -82,10 +82,11 @@ class WorkoutViewModel(
     private val repository = ProgramRepository.getInstance()
     private var deferredOnComplete: (() -> Unit)? = null
     private var pendingVoiceDiagnosticOnComplete: (() -> Unit)? = null
+    /** Includes every explicit v2 configuration; aliases are not added after cutover. */
     private val exerciseIndex by lazy {
-        val base = com.example.kpkn.data.exercises.EXERCISE_DATABASE.associateBy { it.id.lowercase() }
-        val aliases = com.example.kpkn.data.exercises.EXERCISE_ID_ALIASES.mapNotNull { (alias, canonical) ->
-            base[canonical]?.let { alias.lowercase() to it }
+        val base = catalogExerciseIndex()
+        val aliases = com.example.kpkn.data.exercises.catalogSearchRedirects().mapNotNull { (alias, canonical) ->
+            base[canonical.lowercase()]?.let { alias.lowercase() to it }
         }.toMap()
         base + aliases
     }
@@ -451,6 +452,21 @@ class WorkoutViewModel(
                     return suggestion.reason.takeIf { it.isNotBlank() }
                         ?: "Basado en tu historial y la fatiga actual."
                 }
+                override fun liveDrainSummary() = this@WorkoutViewModel.liveDrainSummary()
+                override fun moveCurrentExercise(direction: Int) {
+                    val state = _uiState.value
+                    val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
+                    moveExercise(exercise.id, direction)
+                }
+                override fun createLiveSuperset(memberIds: List<String>) {
+                    createLiveSuperset(memberIds, partId = null, restBetween = 60, restAfter = 120)
+                }
+                override fun dissolveCurrentSuperset() {
+                    val state = _uiState.value
+                    val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
+                    val groupId = exercise.supersetGroupRefOrLegacyId() ?: return
+                    dissolveLiveSuperset(groupId, preferredExerciseId = exercise.id)
+                }
                 override fun voiceExerciseAliases() = repository.settings.value.voiceExerciseAliases
                 override fun enteringExerciseRangeHint(exercise: Exercise): String? {
                     val canonicalId = canonicalExerciseKey(exercise)
@@ -597,6 +613,14 @@ class WorkoutViewModel(
         voiceController.verbosityProvider = { repository.settings.value.voiceVerbosity }
         voiceController.noiseProfileProvider = { repository.settings.value.voiceNoiseProfile }
         voiceController.inputModeProvider = { repository.settings.value.voiceInputMode }
+        voiceController.captureModeProvider = { repository.settings.value.voiceCaptureMode }
+        voiceController.customPhrasesProvider = { repository.settings.value.voiceCustomIntensityPhrases }
+        voiceController.autoSuggestLoadsProvider = { repository.settings.value.voiceAutoSuggestLoads }
+        voiceController.sessionExercisesProvider = {
+            visibleExercises(_uiState.value).map { exercise ->
+                exercise.id to displayWorkoutExerciseName(exercise)
+            }
+        }
         voiceController.exerciseInfoProvider = provider@{
             val s = _uiState.value
             val exercises = visibleExercises(s)
@@ -684,10 +708,7 @@ class WorkoutViewModel(
                 remaining to recovery
             }.collect { (remaining, recovery) ->
                 if (voiceController.isEnabled() && _uiState.value.isRestTimerRunning) {
-                    voiceController.onRestCountdownTick(
-                        remainingSeconds = remaining,
-                        isReady = recovery?.isReady == true,
-                    )
+                    voiceController.onRestCountdownTick(remainingSeconds = remaining)
                 }
             }
         }
@@ -806,23 +827,29 @@ class WorkoutViewModel(
     }
 
     private fun catalogInfoForExercise(exercise: Exercise): ExerciseMuscleInfo? {
+        if (exercise.catalogRevision != null) {
+            return exercise.catalogConfigurationId?.lowercase()?.let(catalogExerciseIndex()::get)
+        }
         val canonicalId = canonicalExerciseKey(exercise)
-        return EXERCISE_DATABASE_BY_ID[canonicalId]
-            ?: exercise.exerciseDbId?.lowercase()?.let(EXERCISE_DATABASE_BY_ID::get)
-            ?: exercise.exerciseId?.lowercase()?.let(EXERCISE_DATABASE_BY_ID::get)
+        return catalogExerciseIndex()[canonicalId]
+            ?: exercise.exerciseDbId?.lowercase()?.let(catalogExerciseIndex()::get)
+            ?: exercise.exerciseId?.lowercase()?.let(catalogExerciseIndex()::get)
     }
 
     private fun catalogInfoForCompletedExercise(exercise: CompletedExercise): ExerciseMuscleInfo? {
+        if (exercise.catalogRevision != null) {
+            return exercise.catalogConfigurationId?.lowercase()?.let(catalogExerciseIndex()::get)
+        }
         val canonicalId = exercise.resolvedCanonicalExerciseId()
-        return EXERCISE_DATABASE_BY_ID[canonicalId]
-            ?: exercise.exerciseDbId?.lowercase()?.let(EXERCISE_DATABASE_BY_ID::get)
-            ?: exercise.exerciseId?.lowercase()?.let(EXERCISE_DATABASE_BY_ID::get)
+        return catalogExerciseIndex()[canonicalId]
+            ?: exercise.exerciseDbId?.lowercase()?.let(catalogExerciseIndex()::get)
+            ?: exercise.exerciseId?.lowercase()?.let(catalogExerciseIndex()::get)
     }
 
     fun dominantMuscleGroupFor(exercise: Exercise): String? {
         val info = catalogInfoForExercise(exercise) ?: return null
         val involvedMuscles = com.example.kpkn.domain.exercises.ExerciseMuscleResolver
-            .effectiveMusclesForVolume(exercise, EXERCISE_DATABASE_BY_ID)
+            .effectiveMusclesForVolume(exercise, catalogExerciseIndex())
         val dominant = involvedMuscles
             .filter { resolveMuscleVolumeContribution(it, capAtOne = false) > 0.0 }
             .maxByOrNull { involvement ->
@@ -1254,8 +1281,17 @@ class WorkoutViewModel(
 
 
     fun enableVoice() = run {
+        if (!repository.settings.value.hasChosenVoiceCaptureMode) {
+            _uiState.update { it.copy(showVoiceCaptureModeDialog = true) }
+            return@run
+        }
         WorkoutVoiceDiagnosticLogger.initialize(appContext)
         WorkoutVoiceDiagnosticLogger.start(programId, sessionId)
+        WorkoutVoiceDiagnosticLogger.event(
+            "voice_environment",
+            WorkoutVoiceDiagnosticLogger.environmentFields(appContext) +
+                WorkoutVoiceDiagnosticLogger.runtimeStateFields(appContext),
+        )
         WorkoutVoiceDiagnosticLogger.event("voice_enable_requested")
         voiceCommandHandler.enableVoice()
         WorkoutVoiceDiagnosticLogger.event("voice_enable_result", mapOf("enabled" to voiceController.isEnabled()))
@@ -1263,8 +1299,28 @@ class WorkoutViewModel(
             repository.updateSettings {
                 it.copy(voiceTutorialVersionSeen = HYBRID_VOICE_TUTORIAL_VERSION)
             }
-
         }
+    }
+
+    /** Elige modo de captura (diálogo obligatorio / header / tarjeta) y lo aplica en caliente. */
+    fun setVoiceCaptureMode(mode: VoiceCaptureMode) {
+        WorkoutVoiceDiagnosticLogger.event(
+            "voice_mode_dialog_chosen",
+            mapOf("mode" to mode.name),
+        )
+        repository.updateSettings {
+            it.copy(voiceCaptureMode = mode, hasChosenVoiceCaptureMode = true)
+        }
+        if (voiceController.isEnabled()) voiceController.setCaptureMode(mode)
+    }
+
+    fun hideVoiceCaptureModeDialog() {
+        _uiState.update { it.copy(showVoiceCaptureModeDialog = false) }
+    }
+
+    /** Consume la pre-activación de la tarjeta de hoy (se limpia tras su uso). */
+    fun consumeVoiceArmForNextSession() {
+        repository.updateSettings { it.copy(voiceArmForNextSession = false) }
     }
 
 
@@ -1385,7 +1441,37 @@ class WorkoutViewModel(
         allExercises: List<Exercise>,
         settings: Settings,
     ): SessionEnergySummary {
-        val completedExercises = allExercises.map { exercise ->
+        val completedExercises = buildLiveCompletedExercises(completedSets, allExercises)
+
+        return TrainingEnergyEngine.estimateLiveSession(
+            completedExercises = completedExercises,
+            settings = settings,
+        )
+    }
+
+    /** Drenaje acumulado de la sesión en vivo (SNC, muscular, espinal en %). */
+    fun liveDrainSummary(): Triple<Int, Int, Int>? {
+        val s = _uiState.value
+        val exercises = visibleExercises(s)
+        if (exercises.isEmpty()) return null
+        val completedExercises = buildLiveCompletedExercises(s.completedSets, exercises)
+        if (completedExercises.isEmpty()) return null
+        val drain = com.example.kpkn.domain.auge.AugeFatigueEngine.calculateCompletedSessionDrain(
+            completedExercises = completedExercises,
+            settings = repository.settings.value,
+        )
+        return Triple(
+            drain.cns.toInt(),
+            drain.muscular.toInt(),
+            drain.spinal.toInt(),
+        )
+    }
+
+    private fun buildLiveCompletedExercises(
+        completedSets: Map<String, CompletedSet>,
+        allExercises: List<Exercise>,
+    ): List<CompletedExercise> =
+        allExercises.map { exercise ->
             val sets = exercise.sets.indices.flatMap { setIdx ->
                 val bilateral = completedSets["${exercise.id}_$setIdx"]
                 val left = completedSets["${exercise.id}_${setIdx}_L"]
@@ -1396,6 +1482,11 @@ class WorkoutViewModel(
                 exerciseId = exercise.id,
                 exerciseName = displayWorkoutExerciseName(exercise),
                 exerciseDbId = exercise.exerciseDbId ?: exercise.exerciseId,
+                catalogRevision = exercise.catalogRevision,
+                catalogDefinitionId = exercise.catalogDefinitionId,
+                catalogConfigurationId = exercise.catalogConfigurationId,
+                performanceProfileId = exercise.performanceProfileId,
+                occurrenceId = exercise.occurrenceId ?: exercise.id,
                 canonicalExerciseId = exercise.canonicalExerciseId ?: canonicalExerciseKey(exercise),
                 variantName = exercise.variantName,
                 selectedAspects = exercise.selectedAspects,
@@ -1405,12 +1496,6 @@ class WorkoutViewModel(
                 sets = sets,
             )
         }.filter { it.sets.any { s -> !s.skipped } }
-
-        return TrainingEnergyEngine.estimateLiveSession(
-            completedExercises = completedExercises,
-            settings = settings,
-        )
-    }
 
     private fun resolveResumePosition(
         exercises: List<Exercise>,
@@ -1708,7 +1793,7 @@ class WorkoutViewModel(
                 supersetRestAfter = group.restAfterSuperset,
             ).replacedWithCatalogExercise(
                 info = catalogExercise,
-                selectedAspects = VariantFlowResultCache.consume(catalogExercise.id)?.selectedAspects,
+                selectedAspects = CatalogSelectionDraftBridge.consume(catalogExercise.id)?.selectedAspects,
             )
 
             val memberIds = members.map { it.id }
@@ -2132,10 +2217,21 @@ class WorkoutViewModel(
 
     fun patchLastCompletedSet(patch: com.example.kpkn.services.workout.VoiceSetEditPatch): Boolean {
         val state = _uiState.value
-        val key = state.setJustLoggedKey
+        var key = state.setJustLoggedKey
             ?: state.completedSets.keys.lastOrNull()
             ?: return false
-        val current = state.completedSets[key] ?: return false
+        var current = state.completedSets[key] ?: return false
+        if (patch.side != null) {
+            val targetKey = when (patch.side) {
+                "left" -> "${key.removeSuffix("_L").removeSuffix("_R")}_L"
+                else -> "${key.removeSuffix("_L").removeSuffix("_R")}_R"
+            }
+            val sideSet = state.completedSets[targetKey]
+            if (sideSet != null) {
+                key = targetKey
+                current = sideSet
+            }
+        }
         val newWeight = when {
             patch.weightKg != null -> patch.weightKg
             patch.weightDeltaKg != null -> (current.weight + patch.weightDeltaKg).coerceAtLeast(0.0)

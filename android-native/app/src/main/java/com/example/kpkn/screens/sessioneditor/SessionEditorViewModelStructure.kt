@@ -243,7 +243,7 @@ fun SessionEditorViewModel.addCompetitionMovement(name: String): String {
 
 fun SessionEditorViewModel.replaceExerciseInPart(partId: String?, exerciseId: String, info: ExerciseMuscleInfo) {
     updateExercise(partId, exerciseId) { current ->
-        val cached = VariantFlowResultCache.consume(info.id)
+        val cached = if (info.catalogRevision == null) CatalogSelectionDraftBridge.consume(info.id) else null
         current.replacedWithCatalogExercise(
             info = info,
             selectedAspects = cached?.selectedAspects,
@@ -727,4 +727,3 @@ fun SessionEditorViewModel.applyGlobalIntensityAdjustment(
         )
     }
 }
-

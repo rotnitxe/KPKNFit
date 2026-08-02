@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramKeyDate
@@ -1241,7 +1241,7 @@ private fun AnalyticsPanel(
         ProgramAnalyticsEngine.analyze(
             program = program,
             logs = programLogs,
-            exerciseCatalog = EXERCISE_DATABASE,
+            exerciseCatalog = exerciseCatalogSnapshot(),
         )
     }
     val muscleCdbsStatus by viewModel.muscleCdbsStatus.collectAsState()

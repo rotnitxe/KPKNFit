@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.db.JointEntity
 import com.example.kpkn.data.db.MuscleGroupEntity
 import com.example.kpkn.data.db.TendonEntity
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
 
@@ -515,9 +515,10 @@ internal fun recommendedExercisesForMuscle(
     limit: Int = 6,
 ): List<WikiLabExerciseLink> {
     val targets = canonicalExerciseMusclesFor(muscle)
-    if (targets.isEmpty() || EXERCISE_DATABASE.isEmpty()) return emptyList()
+    val catalog = exerciseCatalogSnapshot()
+    if (targets.isEmpty() || catalog.isEmpty()) return emptyList()
 
-    return EXERCISE_DATABASE
+    return catalog
         .mapNotNull { exercise ->
             val score = scoreExerciseForMuscle(exercise, targets)
             if (score <= 0.0) return@mapNotNull null

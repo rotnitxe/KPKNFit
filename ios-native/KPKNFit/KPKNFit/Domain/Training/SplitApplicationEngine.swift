@@ -383,7 +383,7 @@ public enum SplitApplicationEngine {
 
         func collectFromExercises(_ exercises: [Exercise]) {
             for exercise in exercises {
-                let info = exercise.exerciseDbId?.lowercased().flatMap { EXERCISE_DATABASE_BY_ID[$0] }
+                let info = exercise.exerciseDbId?.lowercased().flatMap { catalogExerciseIndex()[$0] }
                 for involved in SessionMuscleFilter.relevantMusclesFor(info) {
                     muscles.insert(
                         normalizeCanonicalMuscle(

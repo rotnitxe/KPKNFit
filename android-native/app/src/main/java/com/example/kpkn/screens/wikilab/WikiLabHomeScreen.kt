@@ -38,7 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.data.repository.WikiLabRepository
@@ -110,7 +110,7 @@ fun WikiLabHomeScreen(
     val chains by WikiLabRepository.chains.collectAsState()
     val customExercises by CustomExerciseRepository.customExercises.collectAsState()
     val exerciseCatalog = remember(customExercises) {
-        (EXERCISE_DATABASE + customExercises)
+        (exerciseCatalogSnapshot() + customExercises)
             .associateBy { it.id.lowercase() }
             .values
             .toList()

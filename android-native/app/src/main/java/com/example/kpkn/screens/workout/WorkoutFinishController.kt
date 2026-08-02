@@ -1,7 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import android.content.Context
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.PendingQuestionnaire
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.exercises.catalogv2.toResolvedCatalogSnapshotJson
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.effectiveRepEquivalent
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
@@ -73,8 +74,10 @@ class WorkoutFinishController(
         val allExercises = activeSession.allExercises()
 
         val completedExercises = allExercises.map { exercise ->
-            val catalogInfo = exerciseIndex[canonicalExerciseKey(exercise).lowercase()]
-                ?: exerciseIndex.values.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
+            val catalogInfo = (exercise.catalogConfigurationId ?: canonicalExerciseKey(exercise))
+                .trim()
+                .lowercase()
+                .let(exerciseIndex::get)
             val displayName = com.example.kpkn.domain.exercises.exerciseDisplayParts(exercise, catalogInfo).text
             val sets = exercise.sets.indices.flatMap { setIdx ->
                 val bilateral = state.completedSets["${exercise.id}_$setIdx"]
@@ -86,6 +89,11 @@ class WorkoutFinishController(
                 exerciseId = exercise.id,
                 exerciseName = displayName,
                 exerciseDbId = canonicalExerciseKey(exercise),
+                catalogRevision = exercise.catalogRevision,
+                catalogDefinitionId = exercise.catalogDefinitionId,
+                catalogConfigurationId = exercise.catalogConfigurationId,
+                performanceProfileId = exercise.performanceProfileId,
+                occurrenceId = exercise.occurrenceId ?: exercise.id,
                 canonicalExerciseId = exercise.canonicalExerciseId ?: canonicalExerciseKey(exercise),
                 relativeToCanonicalExerciseId = exercise.relativeToCanonicalExerciseId,
                 variantName = exercise.variantName,
@@ -101,7 +109,13 @@ class WorkoutFinishController(
                 supersetRestBetween = exercise.supersetRestBetween,
                 supersetRestAfter = exercise.supersetRestAfter,
                 sets = sets,
-            )
+            ).let { completed ->
+                completed.copy(
+                    resolvedProfileSnapshotJson = catalogInfo?.let { info ->
+                        exercise.toResolvedCatalogSnapshotJson(info, System.currentTimeMillis())
+                    },
+                )
+            }
         }.filter { it.sets.isNotEmpty() }
 
         val skippedWithNoSets = allExercises.filter { exercise ->
@@ -109,8 +123,10 @@ class WorkoutFinishController(
                 state.completedSets.keys.none { key -> key.startsWith("${exercise.id}_") }
         }
         val omittedExercises = skippedWithNoSets.map { exercise ->
-            val catalogInfo = exerciseIndex[canonicalExerciseKey(exercise).lowercase()]
-                ?: exerciseIndex.values.firstOrNull { it.name.equals(exercise.name, ignoreCase = true) }
+            val catalogInfo = (exercise.catalogConfigurationId ?: canonicalExerciseKey(exercise))
+                .trim()
+                .lowercase()
+                .let(exerciseIndex::get)
             val displayName = com.example.kpkn.domain.exercises.exerciseDisplayParts(exercise, catalogInfo).text
             OmittedExercise(
                 exerciseId = exercise.id,
@@ -141,7 +157,7 @@ class WorkoutFinishController(
                         .getAdaptiveCache()
                     val drainSummary = AugeFatigueEngine.calculateCompletedSessionDrain(
                         completedExercises = completedExercises,
-                        exerciseDb = EXERCISE_DATABASE_BY_ID,
+                        exerciseDb = catalogExerciseIndex(),
                         settings = repository.settings.value,
                         adaptiveCache = adaptiveCache,
                     )
@@ -393,7 +409,7 @@ internal fun computeWorkoutVolumeDelta(
 
     val plannedPerMuscle = mutableMapOf<String, Double>()
     for (ex in plannedSession.allExercises()) {
-        val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
+        val dbId = ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId ?: continue
         val info = exerciseIndex[dbId] ?: continue
         for (muscle in ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)) {
             if (muscle.role != MuscleRole.PRIMARY) continue
@@ -412,7 +428,7 @@ internal fun computeWorkoutVolumeDelta(
     for (ex in plannedSession.allExercises()) {
         val sets = completedByExercise[ex.id] ?: 0
         if (sets == 0) continue
-        val dbId = ex.exerciseDbId ?: ex.exerciseId ?: continue
+        val dbId = ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId ?: continue
         val info = exerciseIndex[dbId] ?: continue
         for (muscle in ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)) {
             if (muscle.role != MuscleRole.PRIMARY) continue

@@ -21,7 +21,7 @@ object VariantGroupIndex {
         groups = byGroupId.mapValues { (groupId, exercises) ->
             val groupName = exercises.firstNotNullOfOrNull { it.variantGroupName } ?: groupId
             val allAspectIds = exercises
-                .flatMap { it.technicalAspects.orEmpty() }
+                .flatMap { it.catalogOptionAxes.orEmpty() }
                 .map { it.id }
                 .distinct()
             VariantGroup(

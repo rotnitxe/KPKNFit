@@ -465,7 +465,7 @@ object ProgramAnalyticsEngine {
     }
 
     private fun buildProgression(rows: List<CompletedExerciseRow>): List<ExerciseProgressionAnalytics> =
-        rows.groupBy { it.exercise.canonicalExerciseId ?: it.exercise.exerciseDbId ?: it.exercise.exerciseId }
+        rows.groupBy { it.exercise.performanceProfileId ?: it.exercise.catalogDefinitionId ?: it.exercise.canonicalExerciseId ?: it.exercise.exerciseDbId ?: it.exercise.exerciseId }
             .mapNotNull { (id, grouped) ->
                 if (id.isBlank()) return@mapNotNull null
                 val ordered = grouped.sortedBy { it.log.date }

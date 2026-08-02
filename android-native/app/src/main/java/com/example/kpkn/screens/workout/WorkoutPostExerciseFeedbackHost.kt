@@ -52,7 +52,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.data.exercises.EXERCISE_DATABASE_BY_ID
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
@@ -257,7 +257,7 @@ internal fun WorkoutPostExerciseFeedbackContent(
 
         val currentArticulations = remember(feedbackExercises) {
             feedbackExercises.flatMap { ex ->
-                val dbInfo = EXERCISE_DATABASE_BY_ID[ex.exerciseDbId ?: ex.exerciseId]
+                val dbInfo = catalogExerciseIndex()[ex.catalogConfigurationId ?: ex.exerciseDbId ?: ex.exerciseId]
                 (ex.effectiveMuscles?.takeIf { it.isNotEmpty() } ?: dbInfo?.involvedMuscles.orEmpty())
                 .flatMap { im -> AugeTtcEngine.articularBatteriesFor(im.muscle, im.emphasis) }
             }.distinct()
